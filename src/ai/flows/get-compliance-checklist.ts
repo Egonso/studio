@@ -17,7 +17,7 @@ const GetComplianceChecklistInputSchema = z.object({
     .describe('Das spezifische Compliance-Thema aus dem EU AI Act (z.B. "Technische Dokumentation", "Risikomanagementsystem").'),
   currentStatus: z
     .string()
-    .describe('Der aktuelle Compliance-Status für dieses Thema (z.B. "Nicht konform", "Gefährdet").'),
+    .describe('Der aktuelle Compliance-Status für dieses Thema (z.B. "Nicht konform", "Gefährdet", "Compliant").'),
   details: z
     .string()
     .describe('Die vorhandenen Details oder Gründe für den aktuellen Status.'),
@@ -27,7 +27,7 @@ export type GetComplianceChecklistInput = z.infer<typeof GetComplianceChecklistI
 const GetComplianceChecklistOutputSchema = z.object({
   checklist: z.array(z.object({
     id: z.string().describe("Eine eindeutige Kennung für die Aufgabe, z.B. 'task-1'"),
-    description: z.string().describe("Eine detaillierte, umsetzbare Aufgabe zur Erreichung der Konformität, inklusive eines Verweises auf den relevanten Artikel des EU AI Acts in Klammern am Ende, z.B. (Art. 11)."),
+    description: z.string().describe("Eine detaillierte, umsetzbare Aufgabe zur Erreichung der Konformität, inklusive eines Verweises auf den relevanten Artikel des EU AI Acts in Klammern am Ende, z.B. (Art. 11). Wenn der Status 'Compliant' ist, formuliere die Beschreibung als bestätigende Aussage im Präsens (z.B. 'Sie führen regelmäßig Audits durch...')."),
   })).describe("Eine Reihe von Checklistenpunkten."),
 });
 export type GetComplianceChecklistOutput = z.infer<typeof GetComplianceChecklistOutputSchema>;
@@ -44,9 +44,13 @@ const prompt = ai.definePrompt({
   output: {schema: GetComplianceChecklistOutputSchema},
   prompt: `Du bist ein Experte für den EU AI Act. Ein Benutzer benötigt eine detaillierte, umsetzbare Checkliste für ein bestimmtes Compliance-Thema in deutscher Sprache.
 
-Für das Thema '{{{topic}}}', das aktuell '{{{currentStatus}}}' ist, weil '{{{details}}}', erstelle eine Liste konkreter Schritte, die unternommen werden müssen, um konform zu werden.
+Für das Thema '{{{topic}}}', das aktuell '{{{currentStatus}}}' ist, weil '{{{details}}}', erstelle eine Liste von Schritten.
 
-Die Aufgaben müssen klar, prägnant und für ein nicht-juristisches Publikum (z.B. einen Kleinunternehmer) verständlich sein. Gib praktische Handlungen vor.
+**WICHTIGE ANWEISUNG:**
+- Wenn der 'currentStatus' **'Compliant'** ist, formuliere jeden Punkt als eine **bestätigende Aussage im Präsens**, die beschreibt, was bereits umgesetzt ist (z.B. "Sie stellen sicher, dass...", "Ihre Dokumentation enthält...").
+- Wenn der 'currentStatus' **'At Risk'** oder **'Non-Compliant'** ist, formuliere jeden Punkt als eine **umsetzbare Handlungsaufforderung** (z.B. "Stellen Sie sicher, dass...", "Erstellen Sie eine Dokumentation, die...").
+
+Die Aufgaben müssen klar, prägnant und für ein nicht-juristisches Publikum (z.B. einen Kleinunternehmer) verständlich sein.
 Füge am Ende jeder Aufgabe in Klammern einen Verweis auf den relevanten Artikel des EU AI Acts hinzu (z.B. "(Art. 11)").
 Konzentriere dich nur auf die Aufgaben, füge keinen einleitenden oder abschließenden Text hinzu.
 Generiere zwischen 3 und 5 Checklistenpunkte.`,
