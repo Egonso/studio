@@ -2,7 +2,7 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
-import { Dashboard } from "@/components/dashboard";
+import { Dashboard, type ChecklistState } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -53,6 +53,15 @@ const initialComplianceData: ComplianceItem[] = [
   ];
 
 function deriveComplianceState(answers: Record<string, string>): ComplianceItem[] {
+    const isForbidden = answers.q2 === 'yes_forbidden';
+    if (isForbidden) {
+        return initialComplianceData.map(item => ({
+            ...item,
+            status: 'Non-Compliant',
+            details: 'Kritisch: Ihr System scheint verbotene Praktiken nach Art. 5 anzuwenden. Der Betrieb muss sofort eingestellt und rechtlicher Rat eingeholt werden.'
+        }));
+    }
+
     const isHighRisk = Object.values(answers).includes("yes_high_risk");
 
     return initialComplianceData.map(item => {
@@ -90,6 +99,13 @@ function deriveComplianceState(answers: Record<string, string>): ComplianceItem[
 
 export default function DashboardPage() {
     const [complianceData, setComplianceData] = useState<ComplianceItem[] | null>(null);
+    const [checklistState, setChecklistState] = useState<ChecklistState>(() => {
+        if (typeof window !== 'undefined') {
+            const savedState = localStorage.getItem('checklistState');
+            return savedState ? JSON.parse(savedState) : {};
+        }
+        return {};
+    });
     const router = useRouter();
 
     useEffect(() => {
@@ -105,12 +121,20 @@ export default function DashboardPage() {
 
     }, [router]);
 
+    useEffect(() => {
+        localStorage.setItem('checklistState', JSON.stringify(checklistState));
+    }, [checklistState]);
+
   return (
     <div className="flex flex-col min-h-screen bg-background dark">
       <AppHeader />
       <main className="flex-1">
         {complianceData ? (
-             <Dashboard complianceItems={complianceData} />
+             <Dashboard 
+                complianceItems={complianceData}
+                checklistState={checklistState}
+                setChecklistState={setChecklistState}
+             />
         ) : (
             <div className="flex items-center justify-center h-full p-8">
                 <p>Lade Compliance-Status...</p>

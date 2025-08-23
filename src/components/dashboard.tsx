@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -24,8 +25,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+export interface ChecklistState {
+    [itemId: string]: {
+        loading: boolean;
+        error: string | null;
+        data: GetComplianceChecklistOutput | null;
+        checkedTasks: Record<string, boolean>;
+    }
+}
+
 interface DashboardProps {
   complianceItems: ComplianceItem[];
+  checklistState: ChecklistState;
+  setChecklistState: React.Dispatch<React.SetStateAction<ChecklistState>>;
 }
 
 const statusConfig = {
@@ -46,17 +58,9 @@ const statusConfig = {
     },
 };
 
-interface ChecklistState {
-    [itemId: string]: {
-        loading: boolean;
-        error: string | null;
-        data: GetComplianceChecklistOutput | null;
-        checkedTasks: Record<string, boolean>;
-    }
-}
 
-export function Dashboard({ complianceItems }: DashboardProps) {
-  const [checklistState, setChecklistState] = useState<ChecklistState>({});
+
+export function Dashboard({ complianceItems, checklistState, setChecklistState }: DashboardProps) {
 
   const compliantCount = complianceItems.filter(
     (item) => item.status === "Compliant"
@@ -78,7 +82,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
 
     setChecklistState(prev => ({
         ...prev,
-        [itemId]: { loading: true, error: null, data: null, checkedTasks: {} }
+        [itemId]: { ...(prev[itemId] || {}), loading: true, error: null, data: null, checkedTasks: prev[itemId]?.checkedTasks || {} }
     }));
 
     try {
@@ -88,7 +92,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
         details: item.details,
       });
 
-      let initialCheckedTasks: Record<string, boolean> = {};
+      let initialCheckedTasks: Record<string, boolean> = checklistState[itemId]?.checkedTasks || {};
       if (item.status === 'Compliant') {
         initialCheckedTasks = result.checklist.reduce((acc, task) => {
             acc[task.id] = true;
@@ -98,7 +102,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
 
       setChecklistState(prev => ({
         ...prev,
-        [itemId]: { loading: false, error: null, data: result, checkedTasks: initialCheckedTasks }
+        [itemId]: { ...prev[itemId], loading: false, error: null, data: result, checkedTasks: initialCheckedTasks }
       }));
     } catch (e) {
       console.error(e);
@@ -179,7 +183,9 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Critical Alerts!</AlertTitle>
                 <AlertDescription>
-                    You have {criticalAlerts.length} non-compliant item(s) requiring immediate attention.
+                    {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} non-compliant items` : 'Sie haben einen non-compliant item'}, die sofortige Aufmerksamkeit erfordern.
+                    {complianceItems.find(item => item.details.includes("verbotene Praktiken")) && 
+                     " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
                 </AlertDescription>
                 </Alert>
             )}
@@ -215,7 +221,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                                 </AccordionTrigger>
                                 <AccordionContent className="pl-10 space-y-4 text-sm">
                                     <p className="text-muted-foreground font-semibold">{item.description}</p>
-                                    <p className="italic">Current Status: {item.details}</p>
+                                    <p className="italic">Status-Begründung: {item.details}</p>
                                     
                                     <Card className="mt-4 bg-secondary">
                                         <CardHeader>
