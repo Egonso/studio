@@ -238,7 +238,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                                                                 className="mt-1"
                                                                 disabled={isCompliant}
                                                             />
-                                                            <Label htmlFor={`${item.id}-${task.id}`} className={cn("flex-1", state.checkedTasks[task.id] && "line-through text-muted-foreground")}>
+                                                            <Label htmlFor={`${item.id}-${task.id}`} className={cn("flex-1", state.checkedTasks[task.id] && "line-through text-foreground/70")}>
                                                                 {task.description}
                                                             </Label>
                                                         </div>
