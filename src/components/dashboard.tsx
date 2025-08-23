@@ -2,9 +2,10 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
-import { getComplianceChecklist, type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
+import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +22,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export interface ChecklistState {
@@ -112,23 +111,15 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
       }));
     }
   };
-
-  const handleTaskCheck = (itemId: string, taskId: string, checked: boolean) => {
-    setChecklistState(prev => {
-        const currentItemState = prev[itemId];
-        // Prevent unchecking for compliant items
-        if (complianceItems.find(i => i.id === itemId)?.status === 'Compliant') return prev;
-
-        const newCheckedTasks = { ...currentItemState.checkedTasks, [taskId]: checked };
-        return {
-            ...prev,
-            [itemId]: {
-                ...currentItemState,
-                checkedTasks: newCheckedTasks,
-            }
-        };
-    });
+  
+  const handleTaskClick = (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
+    localStorage.setItem('currentTask', JSON.stringify({
+      ...task,
+      complianceItemId: complianceItem.id,
+      complianceItemTitle: complianceItem.title,
+    }));
   };
+
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
@@ -234,21 +225,43 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                             {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generating checklist...</div>}
                                             {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
                                             {state?.data && (
-                                                <div className="space-y-3">
-                                                    {state.data.checklist.map((task) => (
-                                                        <div key={task.id} className="flex items-start space-x-3">
-                                                            <Checkbox 
-                                                                id={`${item.id}-${task.id}`} 
-                                                                checked={!!state.checkedTasks[task.id]}
-                                                                onCheckedChange={(checked) => handleTaskCheck(item.id, task.id, !!checked)}
-                                                                className="mt-1"
-                                                                disabled={isCompliant}
-                                                            />
-                                                            <Label htmlFor={`${item.id}-${task.id}`} className={cn("flex-1", !isCompliant && state.checkedTasks[task.id] && "line-through text-foreground/70")}>
-                                                                {task.description}
-                                                            </Label>
-                                                        </div>
-                                                    ))}
+                                                <div className="space-y-2">
+                                                    {state.data.checklist.map((task) => {
+                                                        const isChecked = !!state.checkedTasks[task.id];
+                                                        if (isCompliant) {
+                                                            return (
+                                                                <div key={task.id} className="flex items-start space-x-3 p-3 rounded-md bg-background/50">
+                                                                     <ShieldCheck className="h-5 w-5 text-primary mt-1 shrink-0" />
+                                                                     <p className="flex-1">{task.description}</p>
+                                                                </div>
+                                                            )
+                                                        }
+                                                        return (
+                                                           <Link 
+                                                                key={task.id}
+                                                                href={`/task/${task.id}`}
+                                                                onClick={() => handleTaskClick(task, item)}
+                                                                className={cn(
+                                                                    "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
+                                                                    isChecked 
+                                                                        ? "bg-primary/10 border-primary/20 hover:bg-primary/20"
+                                                                        : "bg-background/50 border-border hover:bg-background"
+                                                                )}
+                                                           >
+                                                              <div className="flex items-start gap-4">
+                                                                {isChecked ? (
+                                                                     <CheckCircle2 className="h-5 w-5 text-primary mt-1 shrink-0" />
+                                                                ) : (
+                                                                    <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                                                                )}
+                                                                <p className={cn("flex-1", isChecked && "line-through text-foreground/70")}>
+                                                                    {task.description}
+                                                                </p>
+                                                              </div>
+                                                              <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
+                                                          </Link>
+                                                        )
+                                                    })}
                                                 </div>
                                             )}
                                         </CardContent>
