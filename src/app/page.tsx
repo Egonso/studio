@@ -1,9 +1,23 @@
+
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const answers = localStorage.getItem('assessmentAnswers');
+    if (answers) {
+      router.push('/dashboard');
+    }
+  }, [router]);
+
   return (
     <div className="flex flex-col min-h-screen bg-background dark">
       <AppHeader />

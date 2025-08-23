@@ -1,8 +1,10 @@
+
 "use client";
 
 import * as React from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -93,6 +95,7 @@ export function AssessmentWizard() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [isCompleted, setIsCompleted] = useState(false);
+  const router = useRouter();
 
   const currentQuestion = questions[step];
   const progress = ((step + 1) / questions.length) * 100;
@@ -101,7 +104,10 @@ export function AssessmentWizard() {
     if (step < questions.length - 1) {
       setStep(step + 1);
     } else {
+      // Save answers to localStorage
+      localStorage.setItem('assessmentAnswers', JSON.stringify(answers));
       setIsCompleted(true);
+      router.push('/dashboard');
     }
   };
 
@@ -123,19 +129,14 @@ export function AssessmentWizard() {
     return (
         <Card className="w-full max-w-2xl">
             <CardHeader>
-                <CardTitle>Bewertung abgeschlossen</CardTitle>
+                <CardTitle>Bewertung wird verarbeitet...</CardTitle>
                 <CardDescription>
-                Ihre ersten Antworten wurden gespeichert. Auf dem Dashboard sehen Sie eine Zusammenfassung und die nächsten Schritte.
+                Ihre Antworten werden analysiert. Sie werden jetzt zum Dashboard weitergeleitet.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <p>Basierend auf Ihren Antworten wird Ihr KI-System nun analysiert. Das Ergebnis finden Sie in Ihrem persönlichen Dashboard.</p>
+                <p>Bitte warten Sie einen Moment.</p>
             </CardContent>
-            <CardFooter>
-                 <Link href="/dashboard" className="w-full">
-                    <Button className="w-full">Zum Dashboard</Button>
-                </Link>
-            </CardFooter>
         </Card>
     )
   }
@@ -180,7 +181,7 @@ export function AssessmentWizard() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
         </Button>
         <Button onClick={handleNext} disabled={!isCurrentStepAnswered()}>
-          {step === questions.length - 1 ? "Bewertung abschliessen" : "Weiter"}
+          {step === questions.length - 1 ? "Bewertung abschliessen & zum Dashboard" : "Weiter"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
