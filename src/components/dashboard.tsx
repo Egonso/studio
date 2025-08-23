@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+
 
 export interface ChecklistState {
     [itemId: string]: {
@@ -60,6 +62,7 @@ const statusConfig = {
 
 
 export function Dashboard({ complianceItems, checklistState, setChecklistState }: DashboardProps) {
+  const router = useRouter();
 
   const compliantCount = complianceItems.filter(
     (item) => item.status === "Compliant"
@@ -113,11 +116,15 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
   };
   
   const handleTaskClick = (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
+    // Prevent navigation for compliant items
+    if (complianceItem.status === 'Compliant') return;
+
     localStorage.setItem('currentTask', JSON.stringify({
       ...task,
       complianceItemId: complianceItem.id,
       complianceItemTitle: complianceItem.title,
     }));
+     router.push(`/task/${task.id}`);
   };
 
 
@@ -127,6 +134,12 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
         <h1 className="text-3xl font-bold tracking-tight">
           AI Act Compass
         </h1>
+        <Link href="/audit-report" passHref>
+             <Button variant="outline">
+                <FileText className="mr-2 h-4 w-4" />
+                Audit-Dossier erstellen
+            </Button>
+        </Link>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -228,39 +241,44 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                 <div className="space-y-2">
                                                     {state.data.checklist.map((task) => {
                                                         const isChecked = !!state.checkedTasks[task.id];
-                                                        if (isCompliant) {
-                                                            return (
-                                                                <div key={task.id} className="flex items-start space-x-3 p-3 rounded-md bg-background/50">
-                                                                     <ShieldCheck className="h-5 w-5 text-primary mt-1 shrink-0" />
-                                                                     <p className="flex-1">{task.description}</p>
-                                                                </div>
+                                                        const taskProps = {
+                                                            key: task.id,
+                                                            onClick: () => handleTaskClick(task, item),
+                                                            className: cn(
+                                                                "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
+                                                                isCompliant 
+                                                                    ? 'cursor-default bg-background/50'
+                                                                    : (isChecked 
+                                                                        ? "bg-primary/10 border-primary/20 hover:bg-primary/20 cursor-pointer"
+                                                                        : "bg-background/50 border-border hover:bg-background cursor-pointer")
                                                             )
-                                                        }
-                                                        return (
-                                                           <Link 
-                                                                key={task.id}
-                                                                href={`/task/${task.id}`}
-                                                                onClick={() => handleTaskClick(task, item)}
-                                                                className={cn(
-                                                                    "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
-                                                                    isChecked 
-                                                                        ? "bg-primary/10 border-primary/20 hover:bg-primary/20"
-                                                                        : "bg-background/50 border-border hover:bg-background"
-                                                                )}
-                                                           >
-                                                              <div className="flex items-start gap-4">
-                                                                {isChecked ? (
+                                                        };
+                                                        
+                                                        const content = (
+                                                            <>
+                                                               <div className="flex items-start gap-4">
+                                                                {isCompliant || isChecked ? (
                                                                      <CheckCircle2 className="h-5 w-5 text-primary mt-1 shrink-0" />
                                                                 ) : (
                                                                     <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                                                                 )}
-                                                                <p className={cn("flex-1", isChecked && "line-through text-foreground/70")}>
+                                                                <p className={cn("flex-1", !isCompliant && isChecked && "line-through text-foreground/70")}>
                                                                     {task.description}
                                                                 </p>
                                                               </div>
-                                                              <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />
-                                                          </Link>
-                                                        )
+                                                              {!isCompliant && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+                                                            </>
+                                                        );
+
+                                                        if (isCompliant) {
+                                                            return <div {...taskProps}>{content}</div>;
+                                                        }
+
+                                                        return (
+                                                            <div {...taskProps}>
+                                                                {content}
+                                                            </div>
+                                                        );
                                                     })}
                                                 </div>
                                             )}
