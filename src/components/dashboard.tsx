@@ -1,9 +1,15 @@
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
+import { getComplianceChecklist, type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -14,7 +20,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { AIAdvisor } from "./ai-advisor";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface DashboardProps {
@@ -39,7 +46,18 @@ const statusConfig = {
     },
 };
 
+interface ChecklistState {
+    [itemId: string]: {
+        loading: boolean;
+        error: string | null;
+        data: GetComplianceChecklistOutput | null;
+        checkedTasks: Record<string, boolean>;
+    }
+}
+
 export function Dashboard({ complianceItems }: DashboardProps) {
+  const [checklistState, setChecklistState] = useState<ChecklistState>({});
+
   const compliantCount = complianceItems.filter(
     (item) => item.status === "Compliant"
   ).length;
@@ -53,6 +71,48 @@ export function Dashboard({ complianceItems }: DashboardProps) {
   const criticalAlerts = complianceItems.filter(
     (item) => item.status === "Non-Compliant"
   );
+
+  const handleAccordionChange = async (itemId: string, item: ComplianceItem) => {
+    // If data is already present, don't re-fetch
+    if (checklistState[itemId]?.data) return;
+
+    setChecklistState(prev => ({
+        ...prev,
+        [itemId]: { loading: true, error: null, data: null, checkedTasks: {} }
+    }));
+
+    try {
+      const result = await getComplianceChecklist({
+        topic: item.title,
+        currentStatus: item.status,
+        details: item.details,
+      });
+      setChecklistState(prev => ({
+        ...prev,
+        [itemId]: { ...prev[itemId], loading: false, data: result }
+      }));
+    } catch (e) {
+      console.error(e);
+      setChecklistState(prev => ({
+        ...prev,
+        [itemId]: { ...prev[itemId], loading: false, error: "Failed to generate checklist." }
+      }));
+    }
+  };
+
+  const handleTaskCheck = (itemId: string, taskId: string, checked: boolean) => {
+    setChecklistState(prev => {
+        const currentItemState = prev[itemId];
+        const newCheckedTasks = { ...currentItemState.checkedTasks, [taskId]: checked };
+        return {
+            ...prev,
+            [itemId]: {
+                ...currentItemState,
+                checkedTasks: newCheckedTasks,
+            }
+        };
+    });
+  };
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
@@ -101,8 +161,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3 space-y-6">
+        <div className="space-y-6">
             {criticalAlerts.length > 0 && (
                 <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -116,12 +175,22 @@ export function Dashboard({ complianceItems }: DashboardProps) {
             <Card className="shadow-lg">
                 <CardHeader>
                     <CardTitle>Compliance Status Breakdown</CardTitle>
+                    <CardDescription>Click on an item to see a detailed compliance checklist.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Accordion type="single" collapsible className="w-full">
+                    <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
+                        if (value) {
+                            const item = complianceItems.find(i => i.id === value);
+                            if (item) {
+                                handleAccordionChange(value, item);
+                            }
+                        }
+                    }}>
                         {complianceItems.map((item) => {
                             const config = statusConfig[item.status];
                             const Icon = config.icon;
+                            const state = checklistState[item.id];
+                            
                             return (
                                 <AccordionItem value={item.id} key={item.id}>
                                 <AccordionTrigger className="hover:no-underline">
@@ -131,9 +200,39 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                                     </div>
                                     <Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge>
                                 </AccordionTrigger>
-                                <AccordionContent className="pl-10 space-y-2 text-sm">
-                                    <p className="text-muted-foreground">{item.description}</p>
-                                    <p>{item.details}</p>
+                                <AccordionContent className="pl-10 space-y-4 text-sm">
+                                    <p className="text-muted-foreground font-semibold">{item.description}</p>
+                                    <p className="italic">Current Status: {item.details}</p>
+                                    
+                                    <Card className="mt-4 bg-secondary">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <ListChecks className="h-5 w-5 text-accent"/>
+                                                Actionable Checklist
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generating checklist...</div>}
+                                            {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
+                                            {state?.data && (
+                                                <div className="space-y-3">
+                                                    {state.data.checklist.map((task, index) => (
+                                                        <div key={task.id} className="flex items-start space-x-3">
+                                                            <Checkbox 
+                                                                id={`${item.id}-${task.id}`} 
+                                                                checked={!!state.checkedTasks[task.id]}
+                                                                onCheckedChange={(checked) => handleTaskCheck(item.id, task.id, !!checked)}
+                                                                className="mt-1"
+                                                            />
+                                                            <Label htmlFor={`${item.id}-${task.id}`} className={cn("flex-1", state.checkedTasks[task.id] && "line-through text-muted-foreground")}>
+                                                                {task.description}
+                                                            </Label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
                                 </AccordionContent>
                                 </AccordionItem>
                             );
@@ -142,11 +241,6 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                 </CardContent>
             </Card>
         </div>
-
-        <div className="lg:col-span-2 space-y-6">
-            <AIAdvisor />
-        </div>
-      </div>
     </div>
   );
 }
