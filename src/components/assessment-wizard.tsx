@@ -23,48 +23,65 @@ const questions = [
   {
     id: "q1",
     title: "Anwendbarkeit des AI Acts",
-    question:
-      "Setzt Ihr Unternehmen KI-Systeme ein oder stellt diese auf dem EU-Markt bereit?",
+    question: "Setzt Ihr Unternehmen KI-Systeme ein oder stellt diese auf dem EU-Markt bereit, verkauft sie oder nimmt sie in Betrieb?",
     options: [
-      { label: "Ja, wir entwickeln oder betreiben KI-Systeme.", value: "yes" },
+      { label: "Ja, wir entwickeln, betreiben oder verkaufen KI-Systeme.", value: "yes" },
       { label: "Nein, wir nutzen keine KI.", value: "no" },
-      {
-        label: "Ich bin mir nicht sicher.",
-        value: "unsure",
-      },
+      { label: "Ich bin mir nicht sicher.", value: "unsure" },
     ],
   },
   {
     id: "q2",
-    title: "Einsatzbereich der KI",
-    question:
-      "In welchem der folgenden Bereiche wird Ihr KI-System hauptsächlich eingesetzt?",
+    title: "Verbotene Praktiken (Art. 5)",
+    question: "Nutzt Ihr KI-System Techniken, die das Verhalten von Personen manipulieren, um deren Fähigkeit zu einer informierten Entscheidung zu beeinträchtigen (unterschwellige Beeinflussung)?",
     options: [
-      {
-        label: "Personalwesen (z.B. Bewerber-Screening, Beförderungsentscheidungen)",
-        value: "hr",
-      },
-      {
-        label: "Kritische Infrastruktur (z.B. Wasser-, Gas-, Stromversorgung)",
-        value: "infrastructure",
-      },
-      {
-        label: "Medizinprodukte oder Gesundheitswesen",
-        value: "medical",
-      },
-      {
-        label: "Keiner der oben genannten Bereiche",
-        value: "none",
-      },
+      { label: "Ja", value: "yes_forbidden" },
+      { label: "Nein", value: "no" },
     ],
   },
   {
     id: "q3",
-    title: "Biometrische Daten",
-    question:
-      "Verarbeitet Ihr KI-System biometrische Daten zur Identifizierung von Personen in Echtzeit an öffentlich zugänglichen Orten?",
+    title: "Verbotene Praktiken (Art. 5)",
+    question: "Nutzt Ihr KI-System 'Social Scoring', also die Bewertung von Personen basierend auf ihrem sozialen Verhalten, was zu einer ungerechtfertigten Benachteiligung führt?",
+     options: [
+      { label: "Ja", value: "yes_forbidden" },
+      { label: "Nein", value: "no" },
+    ],
+  },
+  {
+    id: "q4",
+    title: "Echtzeit-Fernidentifizierung (Art. 5)",
+    question: "Verwendet Ihr System biometrische Daten zur Echtzeit-Fernidentifizierung von Personen in öffentlich zugänglichen Räumen (z.B. öffentliche Videoüberwachung mit Gesichtserkennung)?",
     options: [
-      { label: "Ja", value: "yes" },
+      { label: "Ja, für Strafverfolgungszwecke unter richterlicher Genehmigung.", value: "yes_law_enforcement" },
+      { label: "Ja, für andere Zwecke.", value: "yes_forbidden" },
+      { label: "Nein", value: "no" },
+    ],
+  },
+  {
+    id: "q5",
+    title: "Hochrisiko-System: Kritische Infrastruktur",
+    question: "Wird Ihr KI-System zur Steuerung oder als Sicherheitskomponente in kritischen Infrastrukturen wie Wasser-, Gas-, Stromversorgung oder im Verkehr eingesetzt?",
+    options: [
+      { label: "Ja", value: "yes_high_risk" },
+      { label: "Nein", value: "no" },
+    ],
+  },
+  {
+    id: "q6",
+    title: "Hochrisiko-System: Personalwesen",
+    question: "Trifft Ihr KI-System Entscheidungen im Personalbereich, z.B. bei der Auswahl von Bewerbern, bei Beförderungen oder Kündigungen?",
+    options: [
+      { label: "Ja", value: "yes_high_risk" },
+      { label: "Nein", value: "no" },
+    ],
+  },
+   {
+    id: "q7",
+    title: "Hochrisiko-System: Zugang zu Leistungen",
+    question: "Entscheidet Ihr KI-System über den Zugang zu wesentlichen privaten oder öffentlichen Dienstleistungen, wie z.B. die Kreditwürdigkeitsprüfung für einen Kredit?",
+    options: [
+      { label: "Ja", value: "yes_high_risk" },
       { label: "Nein", value: "no" },
     ],
   },
@@ -78,7 +95,7 @@ export function AssessmentWizard() {
   const [isCompleted, setIsCompleted] = useState(false);
 
   const currentQuestion = questions[step];
-  const progress = (step / questions.length) * 100;
+  const progress = ((step + 1) / questions.length) * 100;
 
   const handleNext = () => {
     if (step < questions.length - 1) {
@@ -146,11 +163,12 @@ export function AssessmentWizard() {
             <RadioGroup
               onValueChange={handleAnswerChange}
               value={answers[currentQuestion.id]}
+              className="space-y-2"
             >
               {currentQuestion.options.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option.value} id={option.value} />
-                  <Label htmlFor={option.value}>{option.label}</Label>
+                <div key={option.value} className="flex items-center space-x-2 p-3 rounded-md border border-transparent hover:border-primary has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-secondary transition-all">
+                  <RadioGroupItem value={option.value} id={`${currentQuestion.id}-${option.value}`} />
+                  <Label htmlFor={`${currentQuestion.id}-${option.value}`} className="flex-1 cursor-pointer">{option.label}</Label>
                 </div>
               ))}
             </RadioGroup>
@@ -162,7 +180,7 @@ export function AssessmentWizard() {
           <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
         </Button>
         <Button onClick={handleNext} disabled={!isCurrentStepAnswered()}>
-          {step === questions.length - 1 ? "Abschliessen" : "Weiter"}
+          {step === questions.length - 1 ? "Bewertung abschliessen" : "Weiter"}
           <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </CardFooter>
