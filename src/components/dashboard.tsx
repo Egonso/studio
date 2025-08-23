@@ -87,9 +87,18 @@ export function Dashboard({ complianceItems }: DashboardProps) {
         currentStatus: item.status,
         details: item.details,
       });
+
+      let initialCheckedTasks: Record<string, boolean> = {};
+      if (item.status === 'Compliant') {
+        initialCheckedTasks = result.checklist.reduce((acc, task) => {
+            acc[task.id] = true;
+            return acc;
+        }, {} as Record<string, boolean>);
+      }
+
       setChecklistState(prev => ({
         ...prev,
-        [itemId]: { ...prev[itemId], loading: false, data: result }
+        [itemId]: { loading: false, error: null, data: result, checkedTasks: initialCheckedTasks }
       }));
     } catch (e) {
       console.error(e);
@@ -103,6 +112,9 @@ export function Dashboard({ complianceItems }: DashboardProps) {
   const handleTaskCheck = (itemId: string, taskId: string, checked: boolean) => {
     setChecklistState(prev => {
         const currentItemState = prev[itemId];
+        // Prevent unchecking for compliant items
+        if (complianceItems.find(i => i.id === itemId)?.status === 'Compliant') return prev;
+
         const newCheckedTasks = { ...currentItemState.checkedTasks, [taskId]: checked };
         return {
             ...prev,
@@ -190,6 +202,7 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                             const config = statusConfig[item.status];
                             const Icon = config.icon;
                             const state = checklistState[item.id];
+                            const isCompliant = item.status === 'Compliant';
                             
                             return (
                                 <AccordionItem value={item.id} key={item.id}>
@@ -207,8 +220,8 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                                     <Card className="mt-4 bg-secondary">
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
-                                                <ListChecks className="h-5 w-5 text-accent"/>
-                                                Actionable Checklist
+                                                <ListChecks className="h-5 w-5 text-primary"/>
+                                                {isCompliant ? "Erfüllte Kriterien" : "Actionable Checklist"}
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
@@ -216,13 +229,14 @@ export function Dashboard({ complianceItems }: DashboardProps) {
                                             {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
                                             {state?.data && (
                                                 <div className="space-y-3">
-                                                    {state.data.checklist.map((task, index) => (
+                                                    {state.data.checklist.map((task) => (
                                                         <div key={task.id} className="flex items-start space-x-3">
                                                             <Checkbox 
                                                                 id={`${item.id}-${task.id}`} 
                                                                 checked={!!state.checkedTasks[task.id]}
                                                                 onCheckedChange={(checked) => handleTaskCheck(item.id, task.id, !!checked)}
                                                                 className="mt-1"
+                                                                disabled={isCompliant}
                                                             />
                                                             <Label htmlFor={`${item.id}-${task.id}`} className={cn("flex-1", state.checkedTasks[task.id] && "line-through text-muted-foreground")}>
                                                                 {task.description}
