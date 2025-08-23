@@ -14,21 +14,21 @@ import {z} from 'genkit';
 const GetComplianceChecklistInputSchema = z.object({
   topic: z
     .string()
-    .describe('The specific compliance topic from the EU AI Act (e.g., "Technical Documentation", "Risk Management System").'),
+    .describe('Das spezifische Compliance-Thema aus dem EU AI Act (z.B. "Technische Dokumentation", "Risikomanagementsystem").'),
   currentStatus: z
     .string()
-    .describe('The current compliance status for this topic (e.g., "Non-Compliant", "At Risk").'),
+    .describe('Der aktuelle Compliance-Status für dieses Thema (z.B. "Nicht konform", "Gefährdet").'),
   details: z
     .string()
-    .describe('The existing details or reasons for the current status.'),
+    .describe('Die vorhandenen Details oder Gründe für den aktuellen Status.'),
 });
 export type GetComplianceChecklistInput = z.infer<typeof GetComplianceChecklistInputSchema>;
 
 const GetComplianceChecklistOutputSchema = z.object({
   checklist: z.array(z.object({
-    id: z.string().describe("A unique identifier for the task, e.g., 'task-1'"),
-    description: z.string().describe("A detailed, actionable task to achieve compliance."),
-  })).describe("An array of checklist items."),
+    id: z.string().describe("Eine eindeutige Kennung für die Aufgabe, z.B. 'task-1'"),
+    description: z.string().describe("Eine detaillierte, umsetzbare Aufgabe zur Erreichung der Konformität, inklusive eines Verweises auf den relevanten Artikel des EU AI Acts in Klammern am Ende, z.B. (Art. 11)."),
+  })).describe("Eine Reihe von Checklistenpunkten."),
 });
 export type GetComplianceChecklistOutput = z.infer<typeof GetComplianceChecklistOutputSchema>;
 
@@ -42,13 +42,14 @@ const prompt = ai.definePrompt({
   name: 'getComplianceChecklistPrompt',
   input: {schema: GetComplianceChecklistInputSchema},
   output: {schema: GetComplianceChecklistOutputSchema},
-  prompt: `You are an expert on the EU AI Act. A user needs a detailed, actionable checklist for a specific compliance topic.
+  prompt: `Du bist ein Experte für den EU AI Act. Ein Benutzer benötigt eine detaillierte, umsetzbare Checkliste für ein bestimmtes Compliance-Thema in deutscher Sprache.
 
-Given the topic '{{{topic}}}', which is currently '{{{currentStatus}}}' because '{{{details}}}', generate a list of concrete steps they need to take to become compliant.
+Für das Thema '{{{topic}}}', das aktuell '{{{currentStatus}}}' ist, weil '{{{details}}}', erstelle eine Liste konkreter Schritte, die unternommen werden müssen, um konform zu werden.
 
-The tasks should be clear, concise, and written for a non-legal audience (e.g., a small business owner). Provide practical actions.
-Focus only on the tasks, do not add any introductory or concluding text.
-Generate between 3 and 5 checklist items.`,
+Die Aufgaben müssen klar, prägnant und für ein nicht-juristisches Publikum (z.B. einen Kleinunternehmer) verständlich sein. Gib praktische Handlungen vor.
+Füge am Ende jeder Aufgabe in Klammern einen Verweis auf den relevanten Artikel des EU AI Acts hinzu (z.B. "(Art. 11)").
+Konzentriere dich nur auf die Aufgaben, füge keinen einleitenden oder abschließenden Text hinzu.
+Generiere zwischen 3 und 5 Checklistenpunkte.`,
 });
 
 const getComplianceChecklistFlow = ai.defineFlow(

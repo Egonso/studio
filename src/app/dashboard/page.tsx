@@ -1,55 +1,59 @@
+import { AppHeader } from "@/components/app-header";
 import { Dashboard } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
 
 const complianceData: ComplianceItem[] = [
   {
     id: "data-governance",
-    title: "Data Governance and Management",
-    description: "Ensuring high-quality data is used for training, validation, and testing of AI systems.",
+    title: "Daten-Governance und -Management",
+    description: "Sicherstellung der Verwendung hochwertiger Daten für Training, Validierung und Tests von KI-Systemen.",
     status: "Compliant",
-    details: "Robust data governance frameworks are in place. Data is versioned, and quality checks are automated.",
+    details: "Robuste Data-Governance-Frameworks sind vorhanden. Daten werden versioniert und Qualitätsprüfungen sind automatisiert.",
   },
   {
     id: "risk-management",
-    title: "Risk Management System",
-    description: "Establishing a continuous risk management system throughout the AI system's lifecycle.",
+    title: "Risikomanagementsystem",
+    description: "Einrichtung eines kontinuierlichen Risikomanagementsystems während des gesamten Lebenszyklus des KI-Systems.",
     status: "Compliant",
-    details: "A comprehensive risk management system has been implemented and is regularly updated.",
+    details: "Ein umfassendes Risikomanagementsystem wurde implementiert und wird regelmäßig aktualisiert.",
   },
   {
     id: "technical-documentation",
-    title: "Technical Documentation",
-    description: "Maintaining up-to-date technical documentation for AI systems.",
+    title: "Technische Dokumentation",
+    description: "Pflege einer aktuellen technischen Dokumentation für KI-Systeme.",
     status: "At Risk",
-    details: "Documentation exists but is not consistently updated with every model change. Needs a more rigorous update process.",
+    details: "Dokumentation existiert, wird aber nicht bei jeder Modelländerung konsistent aktualisiert. Benötigt einen strengeren Aktualisierungsprozess.",
   },
   {
     id: "transparency",
-    title: "Transparency and Provision of Information",
-    description: "Ensuring AI systems are designed to be transparent, allowing users to understand and interact with them.",
+    title: "Transparenz und Informationsbereitstellung",
+    description: "Sicherstellung, dass KI-Systeme transparent gestaltet sind, damit Benutzer sie verstehen und mit ihnen interagieren können.",
     status: "Non-Compliant",
-    details: "The current system does not provide clear information to users about its AI-driven decision-making process. Immediate action required.",
+    details: "Das aktuelle System bietet den Nutzern keine klaren Informationen über seinen KI-gesteuerten Entscheidungsprozess. Sofortiger Handlungsbedarf.",
   },
   {
     id: "human-oversight",
-    title: "Human Oversight",
-    description: "Implementing measures for appropriate human oversight of AI systems.",
+    title: "Menschliche Aufsicht",
+    description: "Umsetzung von Maßnahmen für eine angemessene menschliche Aufsicht über KI-Systeme.",
     status: "Compliant",
-    details: "Designated personnel can intervene or halt the system at any time. Clear protocols for oversight are established.",
+    details: "Benanntes Personal kann jederzeit eingreifen oder das System anhalten. Klare Aufsichtsprotokolle sind etabliert.",
   },
   {
     id: "accuracy-robustness",
-    title: "Accuracy, Robustness, and Cybersecurity",
-    description: "Ensuring AI systems are accurate, resilient to errors, and secure against cyber threats.",
+    title: "Genauigkeit, Robustheit und Cybersicherheit",
+    description: "Sicherstellung, dass KI-Systeme genau, widerstandsfähig gegen Fehler und sicher gegen Cyber-Bedrohungen sind.",
     status: "At Risk",
-    details: "Accuracy metrics are met, but robustness testing against adversarial attacks is insufficient. Cybersecurity protocols need review.",
+    details: "Genauigkeitsmetriken werden erfüllt, aber die Robustheitsprüfung gegen gegnerische Angriffe ist unzureichend. Überprüfung der Cybersicherheitsprotokolle erforderlich.",
   },
 ];
 
 export default function DashboardPage() {
   return (
-    <main>
-      <Dashboard complianceItems={complianceData} />
-    </main>
+    <div className="flex flex-col min-h-screen bg-background dark">
+      <AppHeader />
+      <main className="flex-1">
+        <Dashboard complianceItems={complianceData} />
+      </main>
+    </div>
   );
 }
