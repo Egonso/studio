@@ -6,10 +6,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, AlertTriangle, ShieldCheck, ShieldX } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
-import type { GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
+import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -98,10 +98,9 @@ export default function TaskPage() {
         if (checklistState[task.complianceItemId]) {
             checklistState[task.complianceItemId].checkedTasks[task.id] = true;
         } else {
-            // Initialize if it doesn't exist
             const checklistData = await getComplianceChecklist({ 
                 topic: task.complianceItemTitle,
-                currentStatus: 'At Risk', // placeholder status
+                currentStatus: 'At Risk', 
                 details: 'Task manually completed' 
             });
             checklistState[task.complianceItemId] = {
@@ -283,5 +282,4 @@ export default function TaskPage() {
         </div>
     );
 }
-
     
