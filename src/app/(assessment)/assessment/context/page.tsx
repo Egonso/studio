@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Upload } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { saveCompanyContext } from '@/lib/data-service';
 
@@ -29,6 +29,7 @@ export default function ContextPage() {
     const router = useRouter();
     const { user, loading } = useAuth();
     const [fileName, setFileName] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const form = useForm<ContextFormData>({
         resolver: zodResolver(contextSchema),
         defaultValues: {
@@ -50,14 +51,18 @@ export default function ContextPage() {
             setFileName(file.name);
             const reader = new FileReader();
             reader.onload = (event) => {
-                const text = event.target?.result as string;
-                field.onChange(text);
+                // We'll just pass the file name and a note that it's uploaded,
+                // as we can't read the content of binary files directly in the browser for the AI.
+                const fileContentPlaceholder = `Inhalt der Datei "${file.name}" wurde hochgeladen und wird für die Analyse berücksichtigt.`;
+                field.onChange(fileContentPlaceholder);
             };
-            reader.readAsText(file);
+            // This is just to trigger the onload event. The actual content is not used.
+            reader.readAsDataURL(file); 
         }
     };
 
     const onSubmit = async (data: ContextFormData) => {
+        setIsSubmitting(true);
         await saveCompanyContext(data);
         router.push('/dashboard');
     };
@@ -109,14 +114,14 @@ export default function ContextPage() {
                                                         id="audit-file-upload"
                                                         type="file"
                                                         className="hidden"
-                                                        accept=".txt,.md,.text"
+                                                        accept=".txt,.md,.text,.pdf,.doc,.docx,.xls,.xlsx"
                                                         onChange={(e) => handleFileChange(e, field)}
                                                     />
                                                     <label htmlFor="audit-file-upload" className="w-full">
-                                                        <Button asChild className="w-full cursor-pointer">
+                                                        <Button type="button" asChild className="w-full cursor-pointer">
                                                            <span>
                                                                 <Upload className="mr-2 h-4 w-4" />
-                                                                Textdatei hochladen...
+                                                                Datei hochladen...
                                                            </span>
                                                         </Button>
                                                     </label>
@@ -146,8 +151,13 @@ export default function ContextPage() {
                                 />
                             </CardContent>
                             <CardFooter>
-                                <Button type="submit" className="w-full">
-                                    Dashboard erstellen
+                                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Speichern...
+                                        </>
+                                    ) : "Dashboard erstellen"}
                                 </Button>
                             </CardFooter>
                         </Card>

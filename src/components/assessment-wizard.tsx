@@ -18,7 +18,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { saveAssessmentAnswers } from "@/lib/data-service";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
@@ -117,6 +117,7 @@ type Answers = Record<string, string>;
 export function AssessmentWizard() {
   const [stepHistory, setStepHistory] = useState<QuestionId[]>(['q1']);
   const [answers, setAnswers] = useState<Answers>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   
   const currentStepId = stepHistory[stepHistory.length - 1];
@@ -132,6 +133,7 @@ export function AssessmentWizard() {
     
     // This is the final step logic
     if ('final' in currentQuestionDef) {
+        setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
         if(currentStepId === 'q_final_compliant') {
             router.push('/dashboard');
@@ -143,8 +145,10 @@ export function AssessmentWizard() {
     
     // This is for the first question special case
     if (currentStepId === 'q1' && value === 'no') {
+        setIsSubmitting(true);
         await saveAssessmentAnswers({ ...currentAnswers, q1: 'no' });
         setStepHistory([...stepHistory, 'q_final_compliant']);
+        setIsSubmitting(false);
         return;
     }
 
@@ -190,8 +194,15 @@ export function AssessmentWizard() {
                   <p>{currentQuestionDef.description}</p>
               </CardContent>
               <CardFooter className="flex justify-end">
-                  <Button onClick={handleNext}>
-                      {currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'}
+                  <Button onClick={handleNext} disabled={isSubmitting}>
+                      {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Weiterleiten...
+                          </>
+                      ) : (
+                        currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'
+                      )}
                   </Button>
               </CardFooter>
           </Card>
@@ -219,7 +230,8 @@ export function AssessmentWizard() {
             <h3 className="font-semibold text-lg mb-4">{currentQuestionDef.title}</h3>
             <p className="mb-6">{currentQuestionDef.question}</p>
             <RadioGroup
-              onValueChange={handleAnswerChange}
+              onValuecha
+nge={handleAnswerChange}
               value={answers[currentStepId]}
               className="space-y-2"
             >
