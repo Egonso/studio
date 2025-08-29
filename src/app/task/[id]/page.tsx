@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,10 +24,16 @@ interface Task extends GetComplianceChecklistOutput_Checklist {
 type Guide = GetImplementationGuideOutput['guide'];
 
 const StepContent = ({ content }: { content: string }) => {
-    const parts = content.split(/(`[^`]+`)/g);
+    const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
     return (
         <span>
             {parts.map((part, index) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={index}>{part.slice(2, -2)}</strong>;
+                }
+                if (part.startsWith('*') && part.endsWith('*')) {
+                    return <em key={index}>{part.slice(1, -1)}</em>;
+                }
                 if (part.startsWith('`') && part.endsWith('`')) {
                     return (
                         <code key={index} className="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">
@@ -35,7 +41,7 @@ const StepContent = ({ content }: { content: string }) => {
                         </code>
                     );
                 }
-                return part;
+                return <Fragment key={index}>{part}</Fragment>;
             })}
         </span>
     );

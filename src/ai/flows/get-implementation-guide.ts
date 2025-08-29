@@ -34,7 +34,7 @@ export type GetImplementationGuideInput = z.infer<typeof GetImplementationGuideI
 const GetImplementationGuideOutputSchema = z.object({
   guide: z.array(z.object({
     title: z.string().describe("Der Titel des Abschnitts, z.B. 'Empfohlene nächste Schritte' oder 'Leitfragen für Ihr Team'."),
-    steps: z.array(z.string()).describe("Eine Liste von konkreten Schritten, Fragen oder Empfehlungen. HTML-Tags wie `<code>` können zur Hervorhebung von Fachbegriffen oder Tools verwendet werden."),
+    steps: z.array(z.string()).describe("Eine Liste von konkreten Schritten, Fragen oder Empfehlungen. Verwende Markdown für die Formatierung: `**fett**` für Fettdruck, `*kursiv*` für Kursivschrift und `<code>` für Code/Tools."),
   })).describe("Eine Reihe von Anleitungs-Abschnitten."),
 });
 export type GetImplementationGuideOutput = z.infer<typeof GetImplementationGuideOutputSchema>;
@@ -73,8 +73,14 @@ Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen bes
 
 Erstelle eine präzise, leicht verständliche Anleitung in deutscher Sprache, die genau auf diese Aufgabe zugeschnitten ist. Die Anleitung soll aus zwei Abschnitten bestehen:
 
-1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen. Schlage, wo sinnvoll, konkrete Open-Source-Tools, Bibliotheken (z.B. Python-Bibliotheken wie 'pandas-profiling' oder 'great_expectations') oder bekannte kommerzielle Tools vor und hebe diese mit \`<code>\`-Tags hervor. Gib auch Links zu relevanten Vorlagen oder Standards, falls zutreffend.
+1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen.
 2.  **Leitfragen für Ihr Team:** Formuliere 3-4 prägnante Fragen, die sich das Team stellen kann, um zu überprüfen, ob sie die Anforderung wirklich verstanden haben und erfüllen.
+
+**FORMATIERUNGSREGELN:**
+- Verwende Markdown für die Formatierung.
+- Für **Fettdruck** nutze doppelte Sternchen: \`**Wichtiger Text**\`.
+- Für *Kursivschrift* nutze einfache Sternchen: \`*Betonung*\`.
+- Für Tool-Namen oder Code-Schnipsel nutze Backticks: \`<code>mein-tool</code>\`. Schlage, wo sinnvoll, konkrete Open-Source-Tools oder Bibliotheken vor und gib auch Links zu relevanten Vorlagen oder Standards, falls zutreffend.
 
 Sei sehr spezifisch und praxisorientiert. Vermeide allgemeines Gerede. Der Output muss direkt auf die gegebene Aufgabe anwendbar sein.`,
 });
