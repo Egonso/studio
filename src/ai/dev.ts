@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/ai-compliance-advisor.ts';
 import '@/ai/flows/get-compliance-checklist.ts';
+import '@/ai/flows/document-analyzer.ts';
