@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,8 @@ import type { GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-comp
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { useAuth } from '@/context/auth-context';
+import { getCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask } from '@/lib/data-service';
 
 interface Task extends GetComplianceChecklistOutput_Checklist {
     complianceItemId: string;
@@ -24,9 +25,7 @@ type Guide = GetImplementationGuideOutput['guide'];
 
 const formatStep = (step: string) => {
     let html = step;
-    // Convert **bold** to <strong>
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    // Convert `code` to <code>
     html = html.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>');
     return html;
 };
@@ -45,31 +44,35 @@ export default function TaskPage() {
     const router = useRouter();
     const params = useParams();
     const taskId = params.id as string;
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        const storedTaskData = localStorage.getItem('currentTask');
-        if (storedTaskData) {
-            const parsedTask: Task = JSON.parse(storedTaskData);
-            if (parsedTask.id === taskId) {
-                 setTask(parsedTask);
+        if (!authLoading && !user) {
+            router.push('/login');
+            return;
+        }
+        if (!user) return;
+
+        const loadTask = async () => {
+            const storedTask = await getCurrentTask();
+            if (storedTask && storedTask.id === taskId) {
+                setTask(storedTask);
             } else {
-                localStorage.removeItem('currentTask');
+                await clearCurrentTask();
                 router.push('/dashboard');
             }
-        } else {
-            router.push('/dashboard');
-        }
-    }, [router, taskId]);
+        };
+        loadTask();
+    }, [router, taskId, user, authLoading]);
 
     useEffect(() => {
-        if (!task) return;
+        if (!task || !user) return;
 
         const fetchGuide = async () => {
             setIsGuideLoading(true);
             setGuideError(null);
             
-            const storedCompanyContext = localStorage.getItem('companyContext');
-            const companyContext = storedCompanyContext ? JSON.parse(storedCompanyContext) : {};
+            const companyContext = await getCompanyContext() || {};
 
             try {
                 const result = await getImplementationGuide({ 
@@ -87,17 +90,16 @@ export default function TaskPage() {
         };
 
         fetchGuide();
-    }, [task]);
+    }, [task, user]);
 
-
-    const handleMarkAsDone = () => {
-        if (!task) return;
-        const checklistState = JSON.parse(localStorage.getItem('checklistState') || '{}');
+    const handleMarkAsDone = async () => {
+        if (!task || !user) return;
+        const checklistState = await getChecklistState();
         if (checklistState[task.complianceItemId]) {
             checklistState[task.complianceItemId].checkedTasks[task.id] = true;
         }
-        localStorage.setItem('checklistState', JSON.stringify(checklistState));
-        localStorage.removeItem('currentTask');
+        await saveChecklistState(checklistState);
+        await clearCurrentTask();
         router.push('/dashboard');
     };
     
@@ -121,12 +123,12 @@ export default function TaskPage() {
         }
     };
 
-    if (!task) {
+    if (authLoading || !task) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
-                    <p>Lade Aufgabe...</p>
+                    <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
             </div>
         );
@@ -234,52 +236,4 @@ export default function TaskPage() {
                                         </AlertTitle>
                                         <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700' : ''}>
                                             Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
-                                        </AlertDescription>
-                                    </Alert>
-
-                                    <div>
-                                        <h4 className="font-medium mb-2">Zusammenfassung</h4>
-                                        <p className="text-sm text-muted-foreground p-4 bg-secondary rounded-md">{analysisResult.summary}</p>
-                                    </div>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <Alert>
-                                            <ThumbsUp className="h-4 w-4" />
-                                            <AlertTitle>Stärken</AlertTitle>
-                                            <AlertDescription>
-                                                <ul className="list-disc pl-5 mt-2 space-y-1">
-                                                    {analysisResult.strengths.map((s, i) => <li key={`s-${i}`}>{s}</li>)}
-                                                     {analysisResult.strengths.length === 0 && <li className="text-muted-foreground">Keine spezifischen Stärken für diese Aufgabe gefunden.</li>}
-                                                </ul>
-                                            </AlertDescription>
-                                        </Alert>
-                                        <Alert variant="destructive">
-                                             <ThumbsDown className="h-4 w-4" />
-                                            <AlertTitle>Potenzielle Lücken</AlertTitle>
-                                            <AlertDescription>
-                                                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                                                    {analysisResult.weaknesses.map((w, i) => <li key={`w-${i}`}>{w}</li>)}
-                                                    {analysisResult.weaknesses.length === 0 && <li className="text-muted-foreground">Keine offensichtlichen Lücken gefunden. Gut gemacht!</li>}
-                                                </ul>
-                                            </AlertDescription>
-                                        </Alert>
-                                    </div>
-                                     <Alert variant="default" className="mt-6 bg-yellow-50 border-yellow-200 text-yellow-800">
-                                        <AlertTriangle className="h-4 w-4 !text-yellow-700" />
-                                        <AlertTitle>Rechtlicher Hinweis</AlertTitle>
-                                        <AlertDescription className="!text-yellow-700">
-                                            Diese KI-gestützte Analyse stellt keine Rechtsberatung dar und ersetzt nicht die Prüfung durch qualifizierte Rechtsexperten. Sie dient ausschließlich als unterstützendes Werkzeug.
-                                        </AlertDescription>
-                                    </Alert>
-                                </div>
-                            )}
-
-                        </CardContent>
-                    </Card>
-
-                </div>
-            </main>
-        </div>
-    );
-}
-
-    
+                                        </Aler ...

@@ -7,16 +7,21 @@ import { ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
 
 export default function Home() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    const answers = localStorage.getItem('assessmentAnswers');
-    if (answers) {
+    if (!loading && user) {
       router.push('/dashboard');
     }
-  }, [router]);
+  }, [user, loading, router]);
+  
+  if (loading || user) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -36,11 +41,11 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Link
-                    href="/assessment"
+                    href="/login"
                     className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
-                    Starten Sie Ihre Compliance-Prüfung <ArrowRight className="ml-2 h-4 w-4" />
+                    Kostenlos starten <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </div>
               </div>

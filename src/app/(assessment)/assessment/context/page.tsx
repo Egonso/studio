@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
@@ -12,10 +12,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Upload } from 'lucide-react';
-
+import { useAuth } from '@/context/auth-context';
+import { saveCompanyContext } from '@/lib/data-service';
 
 const contextSchema = z.object({
     companyDescription: z.string().min(10, { message: "Bitte beschreiben Sie Ihr Unternehmen etwas ausführlicher." }),
@@ -27,6 +27,7 @@ type ContextFormData = z.infer<typeof contextSchema>;
 
 export default function ContextPage() {
     const router = useRouter();
+    const { user, loading } = useAuth();
     const [fileName, setFileName] = useState<string | null>(null);
     const form = useForm<ContextFormData>({
         resolver: zodResolver(contextSchema),
@@ -36,6 +37,12 @@ export default function ContextPage() {
             riskProfile: "",
         }
     });
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
     
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
         const file = e.target.files?.[0];
@@ -50,11 +57,14 @@ export default function ContextPage() {
         }
     };
 
-
-    const onSubmit = (data: ContextFormData) => {
-        localStorage.setItem('companyContext', JSON.stringify(data));
+    const onSubmit = async (data: ContextFormData) => {
+        await saveCompanyContext(data);
         router.push('/dashboard');
     };
+
+    if (loading || !user) {
+        return null;
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -146,4 +156,3 @@ export default function ContextPage() {
             </div>
         </div>
     );
-}

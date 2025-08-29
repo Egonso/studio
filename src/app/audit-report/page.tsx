@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Printer, CheckCircle, XCircle, Circle } from 'lucide-react';
+import { Printer, CheckCircle, Circle, Loader2 } from 'lucide-react';
 import type { ComplianceItem } from '@/lib/types';
 import type { ChecklistState } from '@/components/dashboard';
-import { deriveComplianceState, getInitialComplianceData } from '@/lib/compliance-logic';
+import { deriveComplianceState } from '@/lib/compliance-logic';
 import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
+import { useAuth } from '@/context/auth-context';
+import { getAssessmentAnswers, getChecklistState } from '@/lib/data-service';
 
 const statusConfig = {
     'Compliant': { badgeVariant: 'default' as const },
@@ -27,76 +28,81 @@ interface FullComplianceInfo extends ComplianceItem {
 
 export default function AuditReportPage() {
     const [reportData, setReportData] = useState<FullComplianceInfo[] | null>(null);
-    const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string> | null>(null);
+    const [assessmentAnswers, setAssessmentAnswersData] = useState<Record<string, string> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        const storedAnswers = localStorage.getItem('assessmentAnswers');
-        const storedChecklistState = localStorage.getItem('checklistState');
-
-        if (!storedAnswers) {
-            router.push('/assessment');
+        if (!authLoading && !user) {
+            router.push('/login');
             return;
         }
-        
-        const answers = JSON.parse(storedAnswers);
-        setAssessmentAnswers(answers);
-        const checklistState: ChecklistState = storedChecklistState ? JSON.parse(storedChecklistState) : {};
+        if (!user) return;
 
-        const initialComplianceData = deriveComplianceState(answers);
+        const generateReport = async () => {
+            const answers = await getAssessmentAnswers();
+            const checklistStateData = await getChecklistState();
+            
+            if (!answers) {
+                router.push('/assessment');
+                return;
+            }
+            
+            setAssessmentAnswersData(answers);
+            const checklistState: ChecklistState = checklistStateData || {};
+            const initialComplianceData = deriveComplianceState(answers);
 
-        // This function fetches checklists for all items to build the report
-        const fetchAllChecklists = async () => {
-            const fullData: FullComplianceInfo[] = await Promise.all(
-                initialComplianceData.map(async (item) => {
-                    const state = checklistState[item.id];
-                    let checklist, checkedTasks;
+            const fetchAllChecklists = async () => {
+                const fullData: FullComplianceInfo[] = await Promise.all(
+                    initialComplianceData.map(async (item) => {
+                        const state = checklistState[item.id];
+                        let checklist, checkedTasks;
 
-                    if (state?.data) {
-                        checklist = state.data.checklist;
-                        checkedTasks = state.checkedTasks;
-                    } else {
-                        // If checklist is not in state, fetch it
-                        try {
-                            const result = await getComplianceChecklist({
-                                topic: item.title,
-                                currentStatus: item.status,
-                                details: item.details,
-                            });
-                            checklist = result.checklist;
-                            // Determine checked state for newly fetched list
-                             checkedTasks = item.status === 'Compliant' 
-                                ? result.checklist.reduce((acc, task) => ({...acc, [task.id]: true}), {})
-                                : {};
-                        } catch (e) {
-                            console.error("Error fetching checklist for report:", e);
-                            checklist = [];
-                            checkedTasks = {};
+                        if (state?.data) {
+                            checklist = state.data.checklist;
+                            checkedTasks = state.checkedTasks;
+                        } else {
+                            try {
+                                const result = await getComplianceChecklist({
+                                    topic: item.title,
+                                    currentStatus: item.status,
+                                    details: item.details,
+                                });
+                                checklist = result.checklist;
+                                checkedTasks = item.status === 'Compliant' 
+                                    ? result.checklist.reduce((acc, task) => ({...acc, [task.id]: true}), {})
+                                    : {};
+                            } catch (e) {
+                                console.error("Error fetching checklist for report:", e);
+                                checklist = [];
+                                checkedTasks = {};
+                            }
                         }
-                    }
-                    
-                    return {
-                        ...item,
-                        checklist,
-                        checkedTasks
-                    };
-                })
-            );
-            setReportData(fullData);
-            setIsLoading(false);
+                        
+                        return { ...item, checklist, checkedTasks };
+                    })
+                );
+                setReportData(fullData);
+                setIsLoading(false);
+            };
+
+            await fetchAllChecklists();
         };
 
-        fetchAllChecklists();
+        generateReport();
 
-    }, [router]);
+    }, [router, user, authLoading]);
     
-    if (isLoading) {
+    if (isLoading || authLoading) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
-                    <p>Generating Audit Report...</p>
+                    <div className="flex items-center gap-2">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <p>Generiere Audit-Dossier...</p>
+                    </div>
                 </div>
             </div>
         );

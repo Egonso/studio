@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AppHeader } from "@/components/app-header";
@@ -7,33 +6,41 @@ import type { ComplianceItem } from "@/lib/types";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
-
+import { useAuth } from "@/context/auth-context";
+import { getAssessmentAnswers, getChecklistState, saveChecklistState } from "@/lib/data-service";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
     const [initialComplianceData, setInitialComplianceData] = useState<ComplianceItem[] | null>(null);
-    const [checklistState, setChecklistState] = useState<ChecklistState>(() => {
-        if (typeof window !== 'undefined') {
-            const savedState = localStorage.getItem('checklistState');
-            return savedState ? JSON.parse(savedState) : {};
-        }
-        return {};
-    });
+    const [checklistState, setChecklistState] = useState<ChecklistState>({});
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const { user } = useAuth();
 
     useEffect(() => {
-        const storedAnswers = localStorage.getItem('assessmentAnswers');
-        if (!storedAnswers) {
-            router.push('/assessment');
+        if (!user) {
+            router.push('/login');
             return;
         }
 
-        const answers = JSON.parse(storedAnswers);
-        const derivedData = deriveComplianceState(answers);
-        setInitialComplianceData(derivedData);
+        const loadData = async () => {
+            setIsLoading(true);
+            const answers = await getAssessmentAnswers();
+            if (!answers) {
+                router.push('/assessment');
+                return;
+            }
+            const savedChecklistState = await getChecklistState();
 
-    }, [router]);
-    
-    // This recalculates the compliance data whenever the checklist state changes.
+            const derivedData = deriveComplianceState(answers);
+            setInitialComplianceData(derivedData);
+            setChecklistState(savedChecklistState);
+            setIsLoading(false);
+        };
+
+        loadData();
+    }, [router, user]);
+
     const complianceData = useMemo(() => {
         if (!initialComplianceData) return null;
         
@@ -43,27 +50,33 @@ export default function DashboardPage() {
 
     }, [initialComplianceData, checklistState]);
 
-
     useEffect(() => {
-        localStorage.setItem('checklistState', JSON.stringify(checklistState));
-    }, [checklistState]);
+        if (user && !isLoading) {
+            saveChecklistState(checklistState);
+        }
+    }, [checklistState, user, isLoading]);
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <AppHeader />
-      <main className="flex-1">
-        {complianceData ? (
-             <Dashboard 
-                complianceItems={complianceData}
-                checklistState={checklistState}
-                setChecklistState={setChecklistState}
-             />
-        ) : (
-            <div className="flex items-center justify-center h-full p-8">
-                <p>Lade Compliance-Status...</p>
+    if (isLoading || !complianceData) {
+        return (
+            <div className="flex h-screen w-full flex-col">
+                <AppHeader />
+                <div className="flex flex-1 items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
             </div>
-        )}
-      </main>
-    </div>
-  );
+        );
+    }
+
+    return (
+        <div className="flex flex-col min-h-screen bg-background">
+            <AppHeader />
+            <main className="flex-1">
+                <Dashboard 
+                    complianceItems={complianceData}
+                    checklistState={checklistState}
+                    setChecklistState={setChecklistState}
+                />
+            </main>
+        </div>
+    );
 }

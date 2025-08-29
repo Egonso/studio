@@ -6,16 +6,16 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import { auth } from "@/lib/firebase";
 
 export function AppHeader() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('assessmentAnswers');
-    localStorage.removeItem('companyContext');
-    localStorage.removeItem('checklistState');
-    localStorage.removeItem('currentTask');
-    router.push('/');
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
   };
 
 
@@ -31,15 +31,16 @@ export function AppHeader() {
         />
         <span className="font-bold text-lg hidden sm:inline-block">AI Act Compass</span>
       </Link>
-      <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-        <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-          Dashboard
-        </Link>
-         <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout / Neu starten
-         </Button>
-      </nav>
+      {user && (
+        <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+            <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Dashboard
+            </Link>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" /> Logout
+            </Button>
+        </nav>
+      )}
     </header>
   );
 }
