@@ -11,9 +11,7 @@ const getUserId = (): string | null => {
 
 // --- Firestore Document References ---
 
-const getUserDocRef = (userId: string) => doc(db, 'users', userId);
-const getTaskDocRef = (userId: string) => doc(db, `users/${userId}/appData`, 'currentTask');
-const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyContext' | 'checklistState') => {
+const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'currentTask') => {
     return doc(db, `users/${userId}/appData`, docId);
 };
 
@@ -23,20 +21,15 @@ const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyC
 const saveData = async <T extends object>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState', data: T): Promise<void> => {
     const userId = getUserId();
     if (!userId) {
-        // This case should ideally be handled by UI guards (e.g., redirecting to login)
-        console.error("User not authenticated. Cannot save data.");
-        // We throw an error to make it clear that the operation failed.
         throw new Error("User not authenticated");
     }
     const docRef = getAppDataDocRef(userId, docId);
-    // Using merge: true to avoid overwriting the whole document if we only want to update parts of it
     await setDoc(docRef, data, { merge: true });
 };
 
 const getData = async <T>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState'): Promise<T | null> => {
     const userId = getUserId();
     if (!userId) {
-        console.error("User not authenticated. Cannot get data.");
         return null;
     }
     const docRef = getAppDataDocRef(userId, docId);
@@ -49,7 +42,6 @@ const getData = async <T>(docId: 'assessmentAnswers' | 'companyContext' | 'check
 
 export async function saveAssessmentAnswers(answers: Record<string, string>) {
     await saveData('assessmentAnswers', { answers });
-    // When a new assessment is saved, clear old checklist and context data to ensure a fresh start
     const userId = getUserId();
     if (!userId) return;
     await setDoc(getAppDataDocRef(userId, 'checklistState'), {}, { merge: false }); // Overwrite
@@ -66,7 +58,8 @@ export async function saveCompanyContext(context: object) {
 }
 
 export async function getCompanyContext(): Promise<object | null> {
-    return await getData<object>('companyContext');
+    const data = await getData<object>('companyContext');
+    return data ? data : null;
 }
 
 export async function saveChecklistState(state: object) {
@@ -81,20 +74,23 @@ export async function getChecklistState() {
 export async function saveCurrentTask(task: object) {
     const userId = getUserId();
     if (!userId) return;
-    await setDoc(getTaskDocRef(userId), task);
+    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
+    await setDoc(taskDocRef, task);
 }
 
 export async function getCurrentTask() {
     const userId = getUserId();
     if (!userId) return null;
-    const docSnap = await getDoc(getTaskDocRef(userId));
+    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
+    const docSnap = await getDoc(taskDocRef);
     return docSnap.exists() ? docSnap.data() : null;
 }
 
 export async function clearCurrentTask() {
     const userId = getUserId();
     if (!userId) return;
-    await deleteDoc(getTaskDocRef(userId));
+    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
+    await deleteDoc(taskDocRef);
 }
 
 /**
