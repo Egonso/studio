@@ -1,4 +1,3 @@
-
 'use server';
 
 import { db, auth } from '@/lib/firebase';
@@ -25,6 +24,7 @@ export async function saveToFirestore(collectionName: string, data: any) {
     const userId = getUserId();
     const docRef = doc(db, collectionName, userId);
     try {
+        // Use setDoc with { merge: true } to create or update the document
         await setDoc(docRef, data, { merge: true });
     } catch (error) {
         console.error("Error saving to firestore:", error);
@@ -39,7 +39,16 @@ export async function getFromFirestore(collectionName: string) {
 }
 
 export async function saveAssessmentAnswers(answers: Record<string, string>) {
-    await saveToFirestore('userData', { assessmentAnswers: answers });
+    // We want to overwrite the answers completely, not merge.
+    // So we update the specific field.
+    const userId = getUserId();
+    const docRef = doc(db, 'userData', userId);
+    try {
+        await updateDoc(docRef, { assessmentAnswers: answers });
+    } catch (e) {
+         // If the document doesn't exist, create it.
+        await setDoc(docRef, { assessmentAnswers: answers });
+    }
 }
 
 export async function getAssessmentAnswers() {
