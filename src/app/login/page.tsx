@@ -7,7 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -33,16 +34,44 @@ export default function LoginPage() {
     defaultValues: { email: '', password: '' },
   });
 
+  const canRegister = async (email: string): Promise<boolean> => {
+    try {
+      const customerRef = doc(db, 'customers', email.toLowerCase());
+      const customerSnap = await getDoc(customerRef);
+      if (customerSnap.exists()) {
+          const customerData = customerSnap.data();
+          // Allow registration if status is not 'refunded'
+          return customerData.status !== 'refunded';
+      }
+      return false; // Not a paying customer
+    } catch (error) {
+        console.error("Error checking registration eligibility:", error);
+        return false; // Fail securely
+    }
+  };
+
+
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
+    const email = data.email.toLowerCase();
+
     try {
       if (action === 'login') {
-        await signInWithEmailAndPassword(auth, data.email, data.password);
+        await signInWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Anmeldung erfolgreich', description: 'Prüfe Ihren Status...' });
         const redirectPath = await checkOnboardingStatus();
         router.push(redirectPath);
-      } else {
-        await createUserWithEmailAndPassword(auth, data.email, data.password);
+      } else { // signup
+        const isEligible = await canRegister(email);
+        if (!isEligible) {
+            toast({
+                variant: 'destructive',
+                title: 'Registrierung nicht möglich',
+                description: 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
+            });
+            return; // Stop the process
+        }
+        await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });
         router.push('/assessment');
       }
@@ -128,7 +157,9 @@ export default function LoginPage() {
           <Card>
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
-              <CardDescription>Erstellen Sie ein kostenloses Konto, um Ihre Compliance zu verwalten.</CardDescription>
+              <CardDescription>
+                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
