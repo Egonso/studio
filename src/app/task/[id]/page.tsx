@@ -11,46 +11,28 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import type { GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
+import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface Task extends GetComplianceChecklistOutput_Checklist {
     complianceItemId: string;
     complianceItemTitle: string;
 }
 
-const implementationGuides: Record<string, {title: string, steps: string[]}[]> = {
-    'data-governance': [
-        { title: "Empfohlene nächste Schritte", steps: ["Analyse: Überprüfen Sie Ihre aktuellen Prozesse. Wo sammeln Sie Daten? Wie werden diese validiert und getestet? Gibt es bereits eine Dokumentation?", "Tooling: Suchen Sie nach Tools zur 'Bias Detection' oder zur Datenvalidierung. Anbieter wie Aporia, Fiddler AI oder Open-Source-Bibliotheken wie 'great_expectations' (Python) können hierbei helfen.", "Dokumentation: Erstellen Sie ein 'Data Sheet for Datasets'. Dies ist ein standardisiertes Dokument, das alle relevanten Informationen zu einem Datensatz zusammenfasst. Vorlagen hierfür sind online verfügbar."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Können wir die Herkunft und die Rechte für jeden einzelnen Datensatz nachweisen?", "Haben wir den Datensatz auf mögliche Verzerrungen (Bias) gegenüber bestimmten demografischen Gruppen analysiert?", "Wie stellen wir sicher, dass die Testdaten die realen Einsatzbedingungen des KI-Systems widerspiegeln?", "Wer ist im Unternehmen für die Datenqualität verantwortlich?"] }
-    ],
-    'risk-management': [
-        { title: "Empfohlene nächste Schritte", steps: ["Identifikation: Führen Sie einen Workshop durch, um alle potenziellen Risiken des KI-Systems zu identifizieren (technische, rechtliche, ethische).", "Bewertung: Bewerten Sie jedes Risiko nach Eintrittswahrscheinlichkeit und potenziellem Schaden.", "Maßnahmenplanung: Entwickeln Sie konkrete Maßnahmen zur Minderung der identifizierten Risiken und weisen Sie Verantwortlichkeiten zu.", "Dokumentation: Halten Sie den gesamten Prozess in Ihrem Risikomanagement-Dokument fest."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Welche unvorhergesehenen Folgen könnte der Einsatz des KI-Systems haben?", "Wie stellen wir sicher, dass unser Risikomanagementplan regelmäßig überprüft und aktualisiert wird?", "Welche Restrisiken akzeptieren wir bewusst?", "Wie überwachen wir die Wirksamkeit unserer Risikominderungsmaßnahmen?"] }
-    ],
-     'technical-documentation': [
-        { title: "Empfohlene nächste Schritte", steps: ["Struktur schaffen: Erstellen Sie eine klare Ordnerstruktur für Ihre technische Dokumentation, die den Anforderungen von Anhang IV des AI Acts entspricht.", "Inhalte sammeln: Tragen Sie alle relevanten Informationen zusammen: Systemarchitektur, Algorithmen, Trainingsdaten, Testergebnisse, Gebrauchsanweisungen.", "Versionierung: Implementieren Sie ein Versionierungssystem (z.B. Git), um Änderungen an der Dokumentation nachvollziehbar zu machen."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Ist unsere Dokumentation so verständlich, dass eine externe Person das System nachvollziehen kann?", "Wie halten wir die Dokumentation synchron mit der Entwicklung des KI-Systems?", "Wer ist für die Freigabe und Aktualisierung der Dokumentation verantwortlich?"] }
-    ],
-    'transparency': [
-        { title: "Empfohlene nächste Schritte", steps: ["Gebrauchsanweisung erstellen: Schreiben Sie eine klare und verständliche Gebrauchsanweisung für die Benutzer des Systems.", "Informationspflichten erfüllen: Stellen Sie sicher, dass Benutzer darüber informiert werden, wenn sie mit einem KI-System interagieren.", "Erklärbarkeit prüfen: Nutzen Sie Techniken wie SHAP oder LIME, um die Entscheidungen Ihres Modells nachvollziehbarer zu machen und dies zu dokumentieren."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Verstehen unsere Nutzer, wie das KI-System zu seinen Ergebnissen kommt?", "Wie informieren wir Nutzer über die Grenzen und potenziellen Risiken des Systems?", "Sind die Kontaktdaten des Anbieters leicht auffindbar?"] }
-    ],
-    'human-oversight': [
-        { title: "Empfohlene nächste Schritte", steps: ["Aufsichts-Konzepte entwickeln: Definieren Sie, wie und wann ein Mensch eingreifen kann ('Stop-Button', Übersteuerungsmechanismen).", "Zuständigkeiten festlegen: Benennen Sie Personen, die für die menschliche Aufsicht verantwortlich sind und schulen Sie diese.", "Monitoring einrichten: Implementieren Sie Dashboards oder Warnsysteme, die den Zustand des KI-Systems anzeigen und bei Anomalien alarmieren."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Welche Qualifikationen benötigen die Personen, die die Aufsicht führen?", "Wie stellen wir sicher, dass eine Person jederzeit die Kontrolle über das KI-System übernehmen kann?", "In welchen Situationen ist ein menschliches Eingreifen zwingend erforderlich?"] }
-    ],
-    'accuracy-robustness': [
-        { title: "Empfohlene nächste Schritte", steps: ["Metriken definieren: Legen Sie klare, messbare Ziele für Genauigkeit und Robustheit fest.", "Teststrategie entwickeln: Planen Sie umfangreiche Tests, einschließlich Tests unter widrigen Bedingungen (Adversarial Testing).", "Cybersicherheit prüfen: Führen Sie einen Penetrationstest durch, um Schwachstellen im System zu identifizieren."] },
-        { title: "Leitfragen für Ihr Team", steps: ["Wie verhält sich unser System bei unerwarteten oder fehlerhaften Eingaben?", "Welche Maßnahmen haben wir gegen Cyberangriffe wie 'Data Poisoning' oder 'Model Inversion' getroffen?", "Wie stellen wir die Konsistenz der Leistung über die Zeit sicher?"] }
-    ],
-};
-
+type Guide = GetImplementationGuideOutput['guide'];
 
 export default function TaskPage() {
     const [task, setTask] = useState<Task | null>(null);
     const [documentText, setDocumentText] = useState("");
     const [analysisResult, setAnalysisResult] = useState<AnalyzeDocumentOutput | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
+    
+    const [guide, setGuide] = useState<Guide | null>(null);
+    const [isGuideLoading, setIsGuideLoading] = useState(true);
+    const [guideError, setGuideError] = useState<string | null>(null);
+
     const router = useRouter();
     const params = useParams();
     const taskId = params.id as string;
@@ -70,10 +52,26 @@ export default function TaskPage() {
         }
     }, [router, taskId]);
 
-    const guide = useMemo(() => {
-        if (!task) return [];
-        return implementationGuides[task.complianceItemId] || [];
+    useEffect(() => {
+        if (!task) return;
+
+        const fetchGuide = async () => {
+            setIsGuideLoading(true);
+            setGuideError(null);
+            try {
+                const result = await getImplementationGuide({ taskDescription: task.description });
+                setGuide(result.guide);
+            } catch (e) {
+                console.error("Failed to fetch implementation guide", e);
+                setGuideError("Die Anleitung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.");
+            } finally {
+                setIsGuideLoading(false);
+            }
+        };
+
+        fetchGuide();
     }, [task]);
+
 
     const handleMarkAsDone = () => {
         if (!task) return;
@@ -89,7 +87,7 @@ export default function TaskPage() {
     const handleAnalyze = async () => {
         if (!documentText || !task) return;
         setIsAnalyzing(true);
-        setError(null);
+        setAnalysisError(null);
         setAnalysisResult(null);
         try {
             const result = await analyzeDocument({
@@ -100,7 +98,7 @@ export default function TaskPage() {
             setAnalysisResult(result);
         } catch (e) {
             console.error("Analysis failed", e);
-            setError("Die Analyse ist fehlgeschlagen. Bitte versuchen Sie es später erneut.");
+            setAnalysisError("Die Analyse ist fehlgeschlagen. Bitte versuchen Sie es später erneut.");
         } finally {
             setIsAnalyzing(false);
         }
@@ -142,11 +140,28 @@ export default function TaskPage() {
                         <CardHeader>
                             <CardTitle className="text-xl flex items-center gap-2">
                                 <Lightbulb className="h-6 w-6 text-primary" />
-                                Umsetzungshilfe
+                                KI-generierte Umsetzungshilfe
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            {guide.map((section, index) => (
+                            {isGuideLoading && (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-6 w-1/3" />
+                                    <div className="pl-5 space-y-2">
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-4 w-5/6" />
+                                        <Skeleton className="h-4 w-full" />
+                                    </div>
+                                    <Skeleton className="h-6 w-1/4 mt-4" />
+                                     <div className="pl-5 space-y-2">
+                                        <Skeleton className="h-4 w-full" />
+                                        <Skeleton className="h-4 w-4/6" />
+                                    </div>
+                                </div>
+                            )}
+                            {guideError && <Alert variant="destructive"><AlertTitle>Fehler</AlertTitle><AlertDescription>{guideError}</AlertDescription></Alert>}
+                            
+                            {guide && guide.map((section, index) => (
                                 <div key={index}>
                                     <h3 className="font-semibold mb-2">{section.title}</h3>
                                     <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
@@ -189,7 +204,7 @@ export default function TaskPage() {
                                 ) : "Dokument analysieren"}
                             </Button>
 
-                            {error && <Alert variant="destructive"><AlertTitle>Fehler</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
+                            {analysisError && <Alert variant="destructive"><AlertTitle>Fehler</AlertTitle><AlertDescription>{analysisError}</AlertDescription></Alert>}
 
                             {analysisResult && (
                                 <div className="space-y-6 pt-4">
