@@ -127,19 +127,11 @@ export function AssessmentWizard() {
   };
 
   const handleNext = () => {
-    // Save current answers before moving to the next step
     const currentAnswers = {...answers};
     const value = currentAnswers[currentStepId];
-    if (value) {
-        if (currentStepId === 'q1' && value === 'no') {
-            saveAssessmentAnswers({ q1: 'no' });
-            setStepHistory([...stepHistory, 'q_final_compliant']);
-            return;
-        }
-    }
-
-    const question = questions[currentStepId];
-    if ('final' in question) {
+    
+    // This is the final step logic
+    if ('final' in currentQuestionDef) {
         saveAssessmentAnswers(currentAnswers);
         if(currentStepId === 'q_final_compliant') {
             router.push('/dashboard');
@@ -149,14 +141,29 @@ export function AssessmentWizard() {
         return;
     }
     
-    const selectedOption = question.options.find(o => o.value === value);
-    let nextStepId = selectedOption?.next || question.next;
-    
-    if (!nextStepId) {
-        nextStepId = 'q_final_review';
+    // This is for the first question special case
+    if (currentStepId === 'q1' && value === 'no') {
+        saveAssessmentAnswers({ ...currentAnswers, q1: 'no' });
+        setStepHistory([...stepHistory, 'q_final_compliant']);
+        return;
     }
 
-    setStepHistory([...stepHistory, nextStepId]);
+    const question = questions[currentStepId];
+    if (!('final' in question)) {
+        const selectedOption = question.options.find(o => o.value === value);
+        let nextStepId = selectedOption?.next || question.next;
+        
+        if (!nextStepId) {
+             const currentIndex = questionOrder.indexOf(currentStepId);
+             if (currentIndex < questionOrder.length - 1) {
+                nextStepId = questionOrder[currentIndex + 1];
+             } else {
+                nextStepId = 'q_final_review';
+             }
+        }
+    
+        setStepHistory([...stepHistory, nextStepId]);
+    }
   };
 
   const handleBack = () => {

@@ -3,8 +3,6 @@
 
 // This service uses localStorage for data persistence.
 // It's a simple client-side solution for this prototype.
-// In a production app, you would use a database like Firestore
-// and handle data fetching asynchronously.
 
 const getLocalStorageItem = <T,>(key: string): T | null => {
     if (typeof window === 'undefined') return null;
@@ -16,7 +14,6 @@ const setLocalStorageItem = <T,>(key: string, value: T) => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(key, JSON.stringify(value));
 };
-
 
 // --- Specific data functions ---
 

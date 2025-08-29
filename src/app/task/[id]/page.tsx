@@ -58,6 +58,9 @@ export default function TaskPage() {
             if (storedTask && storedTask.id === taskId) {
                 setTask(storedTask);
             } else {
+                // Task might not be in localStorage if user reloads page.
+                // In a real app, you'd fetch this from a DB.
+                // For now, redirect to dashboard.
                 clearCurrentTask();
                 router.push('/dashboard');
             }
@@ -77,8 +80,8 @@ export default function TaskPage() {
             try {
                 const result = await getImplementationGuide({ 
                     taskDescription: task.description,
-                    companyDescription: companyContext.companyDescription,
-                    riskProfile: companyContext.riskProfile,
+                    companyDescription: (companyContext as any).companyDescription,
+                    riskProfile: (companyContext as any).riskProfile,
                 });
                 setGuide(result.guide);
             } catch (e) {
