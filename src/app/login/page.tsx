@@ -52,11 +52,13 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Fehler',
-        description: error.message.includes('auth/invalid-credential') 
+        description: error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'
           ? 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.'
-          : error.message.includes('auth/email-already-in-use')
+          : error.code === 'auth/email-already-in-use'
           ? 'Diese E-Mail-Adresse wird bereits verwendet.'
-          : 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+          : error.code === 'auth/configuration-not-found'
+          ? 'Firebase-Konfigurationsfehler. Bitte kontaktieren Sie den Support.'
+          : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
       });
     } finally {
       setIsLoading(false);
