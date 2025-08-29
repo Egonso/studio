@@ -11,14 +11,14 @@ const getUserId = (): string | null => {
 
 // --- Firestore Document References ---
 
-const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'currentTask') => {
+const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'currentTask' | 'courseProgress') => {
     return doc(db, `users/${userId}/appData`, docId);
 };
 
 
 // --- Generic Data Functions ---
 
-const saveData = async <T extends object>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState', data: T): Promise<void> => {
+const saveData = async <T extends object>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'courseProgress', data: T): Promise<void> => {
     const userId = getUserId();
     if (!userId) {
         throw new Error("User not authenticated");
@@ -27,7 +27,7 @@ const saveData = async <T extends object>(docId: 'assessmentAnswers' | 'companyC
     await setDoc(docRef, data, { merge: true });
 };
 
-const getData = async <T>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState'): Promise<T | null> => {
+const getData = async <T>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'courseProgress'): Promise<T | null> => {
     const userId = getUserId();
     if (!userId) {
         return null;
@@ -92,6 +92,16 @@ export async function clearCurrentTask() {
     const taskDocRef = getAppDataDocRef(userId, 'currentTask');
     await deleteDoc(taskDocRef);
 }
+
+export async function saveCourseProgress(completedVideoIds: string[]) {
+    await saveData('courseProgress', { completedVideoIds });
+}
+
+export async function getCourseProgress(): Promise<string[]> {
+    const data = await getData<{ completedVideoIds: string[] }>('courseProgress');
+    return data?.completedVideoIds || [];
+}
+
 
 /**
  * Checks if the user has completed all onboarding steps.

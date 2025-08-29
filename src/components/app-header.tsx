@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, BookOpen } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { auth } from "@/lib/firebase";
 
@@ -34,7 +34,11 @@ export function AppHeader() {
       {user && (
         <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
             <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Dashboard
+            Compliance
+            </Link>
+            <Link href="/kurs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+                <BookOpen className="h-4 w-4" />
+                Kursplattform
             </Link>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" /> Logout

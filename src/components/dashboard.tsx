@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { saveCurrentTask } from "@/lib/data-service";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 export interface ChecklistState {
@@ -135,164 +136,176 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
         <h1 className="text-3xl font-bold tracking-tight">
           AI Act Compass
         </h1>
-        <Link href="/audit-report" passHref>
+         <Link href="/audit-report" passHref>
              <Button variant="outline">
                 <FileText className="mr-2 h-4 w-4" />
                 Audit-Dossier erstellen
             </Button>
         </Link>
       </div>
-      
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compliant</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{compliantCount}</div>
-            <p className="text-xs text-muted-foreground">
-              von {complianceItems.length} Anforderungen
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">At Risk</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{atRiskCount}</div>
-             <p className="text-xs text-muted-foreground">
-              erfordern Aufmerksamkeit
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Non-Compliant</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{nonCompliantCount}</div>
-            <p className="text-xs text-muted-foreground">
-              kritische Probleme
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
-        <div className="space-y-6">
-            {criticalAlerts.length > 0 && (
-                <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Kritische Warnungen!</AlertTitle>
-                <AlertDescription>
-                    {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.
-                    {complianceItems.find(item => item.details.includes("verbotene Praktiken")) && 
-                     " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
-                </AlertDescription>
-                </Alert>
-            )}
+       <Tabs defaultValue="compliance" className="space-y-4">
+            <TabsList>
+                <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                <TabsTrigger value="course" onClick={() => router.push('/kurs')}>Kursplattform</TabsTrigger>
+            </TabsList>
 
-            <Card className="shadow-lg">
-                <CardHeader>
-                    <CardTitle>Übersicht des Compliance-Status</CardTitle>
-                    <CardDescription>Klicken Sie auf einen Punkt, um eine detaillierte Compliance-Checkliste zu sehen.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
-                        if (value) {
-                            const item = complianceItems.find(i => i.id === value);
-                            if (item) {
-                                handleAccordionChange(value, item);
-                            }
-                        }
-                    }}>
-                        {complianceItems.map((item) => {
-                            const config = statusConfig[item.status];
-                            const Icon = config.icon;
-                            const state = checklistState[item.id];
-                            const isCompliant = item.status === 'Compliant';
-                            
-                            return (
-                                <AccordionItem value={item.id} key={item.id}>
-                                <AccordionTrigger className="hover:no-underline">
-                                    <div className="flex items-center gap-3 flex-1 text-left">
-                                        <Icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} />
-                                        <span>{item.title}</span>
-                                    </div>
-                                    <Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge>
-                                </AccordionTrigger>
-                                <AccordionContent className="pl-10 space-y-4 text-sm">
-                                    <p className="text-muted-foreground font-semibold">{item.description}</p>
-                                    <p className="italic">Status-Begründung: {item.details}</p>
+            <TabsContent value="compliance" className="space-y-4">
+                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Compliant</CardTitle>
+                        <ShieldCheck className="h-4 w-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{compliantCount}</div>
+                        <p className="text-xs text-muted-foreground">
+                        von {complianceItems.length} Anforderungen
+                        </p>
+                    </CardContent>
+                    </Card>
+                    <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">At Risk</CardTitle>
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{atRiskCount}</div>
+                        <p className="text-xs text-muted-foreground">
+                        erfordern Aufmerksamkeit
+                        </p>
+                    </CardContent>
+                    </Card>
+                    <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Non-Compliant</CardTitle>
+                        <ShieldAlert className="h-4 w-4 text-red-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{nonCompliantCount}</div>
+                        <p className="text-xs text-muted-foreground">
+                        kritische Probleme
+                        </p>
+                    </CardContent>
+                    </Card>
+                </div>
+
+                <div className="space-y-6">
+                    {criticalAlerts.length > 0 && (
+                        <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Kritische Warnungen!</AlertTitle>
+                        <AlertDescription>
+                            {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.
+                            {complianceItems.find(item => item.details.includes("verbotene Praktiken")) && 
+                            " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
+                        </AlertDescription>
+                        </Alert>
+                    )}
+
+                    <Card className="shadow-lg">
+                        <CardHeader>
+                            <CardTitle>Übersicht des Compliance-Status</CardTitle>
+                            <CardDescription>Klicken Sie auf einen Punkt, um eine detaillierte Compliance-Checkliste zu sehen.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
+                                if (value) {
+                                    const item = complianceItems.find(i => i.id === value);
+                                    if (item) {
+                                        handleAccordionChange(value, item);
+                                    }
+                                }
+                            }}>
+                                {complianceItems.map((item) => {
+                                    const config = statusConfig[item.status];
+                                    const Icon = config.icon;
+                                    const state = checklistState[item.id];
+                                    const isCompliant = item.status === 'Compliant';
                                     
-                                    <Card className="mt-4 bg-secondary/50">
-                                        <CardHeader>
-                                            <CardTitle className="text-lg flex items-center gap-2">
-                                                <ListChecks className="h-5 w-5 text-primary"/>
-                                                {isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generiere Checkliste...</div>}
-                                            {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Fehler</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
-                                            {state?.data && (
-                                                <div className="space-y-2">
-                                                    {state.data.checklist.map((task) => {
-                                                        const isChecked = !!state.checkedTasks[task.id];
-                                                        const taskProps = {
-                                                            key: task.id,
-                                                            onClick: () => handleTaskClick(task, item),
-                                                            className: cn(
-                                                                "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
-                                                                isCompliant 
-                                                                    ? 'cursor-default bg-background/50'
-                                                                    : (isChecked 
-                                                                        ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default"
-                                                                        : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer")
-                                                            )
-                                                        };
-                                                        
-                                                        const content = (
-                                                            <>
-                                                               <div className="flex items-start gap-4">
-                                                                {isCompliant || isChecked ? (
-                                                                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" />
-                                                                ) : (
-                                                                    <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                                                                )}
-                                                                <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
-                                                                    {task.description}
-                                                                </p>
-                                                              </div>
-                                                              {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
-                                                            </>
-                                                        );
+                                    return (
+                                        <AccordionItem value={item.id} key={item.id}>
+                                        <AccordionTrigger className="hover:no-underline">
+                                            <div className="flex items-center gap-3 flex-1 text-left">
+                                                <Icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} />
+                                                <span>{item.title}</span>
+                                            </div>
+                                            <Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pl-10 space-y-4 text-sm">
+                                            <p className="text-muted-foreground font-semibold">{item.description}</p>
+                                            <p className="italic">Status-Begründung: {item.details}</p>
+                                            
+                                            <Card className="mt-4 bg-secondary/50">
+                                                <CardHeader>
+                                                    <CardTitle className="text-lg flex items-center gap-2">
+                                                        <ListChecks className="h-5 w-5 text-primary"/>
+                                                        {isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}
+                                                    </CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generiere Checkliste...</div>}
+                                                    {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Fehler</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
+                                                    {state?.data && (
+                                                        <div className="space-y-2">
+                                                            {state.data.checklist.map((task) => {
+                                                                const isChecked = !!state.checkedTasks[task.id];
+                                                                const taskProps = {
+                                                                    key: task.id,
+                                                                    onClick: () => handleTaskClick(task, item),
+                                                                    className: cn(
+                                                                        "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
+                                                                        isCompliant 
+                                                                            ? 'cursor-default bg-background/50'
+                                                                            : (isChecked 
+                                                                                ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default"
+                                                                                : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer")
+                                                                    )
+                                                                };
+                                                                
+                                                                const content = (
+                                                                    <>
+                                                                    <div className="flex items-start gap-4">
+                                                                        {isCompliant || isChecked ? (
+                                                                            <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" />
+                                                                        ) : (
+                                                                            <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                                                                        )}
+                                                                        <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
+                                                                            {task.description}
+                                                                        </p>
+                                                                    </div>
+                                                                    {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+                                                                    </>
+                                                                );
 
-                                                        if (isCompliant || isChecked) {
-                                                            return <div {...taskProps}>{content}</div>;
-                                                        }
+                                                                if (isCompliant || isChecked) {
+                                                                    return <div {...taskProps}>{content}</div>;
+                                                                }
 
-                                                        return (
-                                                            <div {...taskProps}>
-                                                                {content}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                </AccordionContent>
-                                </AccordionItem>
-                            );
-                        })}
-                    </Accordion>
-                </CardContent>
-            </Card>
-        </div>
+                                                                return (
+                                                                    <div {...taskProps}>
+                                                                        {content}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        </AccordionContent>
+                                        </AccordionItem>
+                                    );
+                                })}
+                            </Accordion>
+                        </CardContent>
+                    </Card>
+                </div>
+            </TabsContent>
+            <TabsContent value="course">
+                {/* Content will be handled by /kurs page, this just makes the tab exist */}
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }
