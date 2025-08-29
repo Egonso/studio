@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Upload } from 'lucide-react';
 
 
 const contextSchema = z.object({
@@ -26,6 +27,7 @@ type ContextFormData = z.infer<typeof contextSchema>;
 
 export default function ContextPage() {
     const router = useRouter();
+    const [fileName, setFileName] = useState<string | null>(null);
     const form = useForm<ContextFormData>({
         resolver: zodResolver(contextSchema),
         defaultValues: {
@@ -34,6 +36,20 @@ export default function ContextPage() {
             riskProfile: "",
         }
     });
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target?.result as string;
+                field.onChange(text);
+            };
+            reader.readAsText(file);
+        }
+    };
+
 
     const onSubmit = (data: ContextFormData) => {
         localStorage.setItem('companyContext', JSON.stringify(data));
@@ -78,11 +94,24 @@ export default function ContextPage() {
                                         <FormItem>
                                             <FormLabel>Vorhandene Audit-Daten (optional)</FormLabel>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder="Fügen Sie hier Informationen aus bestehenden Audits, Zertifizierungen (z.B. ISO 27001) oder Compliance-Prüfungen ein."
-                                                     className="min-h-[120px]"
-                                                    {...field}
-                                                />
+                                                <div>
+                                                    <Input 
+                                                        id="audit-file-upload"
+                                                        type="file"
+                                                        className="hidden"
+                                                        accept=".txt,.md,.text"
+                                                        onChange={(e) => handleFileChange(e, field)}
+                                                    />
+                                                    <label htmlFor="audit-file-upload" className="w-full">
+                                                        <Button asChild className="w-full cursor-pointer">
+                                                           <span>
+                                                                <Upload className="mr-2 h-4 w-4" />
+                                                                Textdatei hochladen...
+                                                           </span>
+                                                        </Button>
+                                                    </label>
+                                                    {fileName && <p className="text-sm text-muted-foreground mt-2">Hochgeladene Datei: {fileName}</p>}
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
