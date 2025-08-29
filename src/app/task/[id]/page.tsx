@@ -58,8 +58,16 @@ export default function TaskPage() {
         const fetchGuide = async () => {
             setIsGuideLoading(true);
             setGuideError(null);
+            
+            const storedCompanyContext = localStorage.getItem('companyContext');
+            const companyContext = storedCompanyContext ? JSON.parse(storedCompanyContext) : {};
+
             try {
-                const result = await getImplementationGuide({ taskDescription: task.description });
+                const result = await getImplementationGuide({ 
+                    taskDescription: task.description,
+                    companyDescription: companyContext.companyDescription,
+                    riskProfile: companyContext.riskProfile,
+                });
                 setGuide(result.guide);
             } catch (e) {
                 console.error("Failed to fetch implementation guide", e);
@@ -140,7 +148,7 @@ export default function TaskPage() {
                         <CardHeader>
                             <CardTitle className="text-xl flex items-center gap-2">
                                 <Lightbulb className="h-6 w-6 text-primary" />
-                                KI-generierte Umsetzungshilfe
+                                Personalisierte Umsetzungshilfe
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -165,7 +173,7 @@ export default function TaskPage() {
                                 <div key={index}>
                                     <h3 className="font-semibold mb-2">{section.title}</h3>
                                     <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: step.replace(/'([^']*)'/g, '<code>$1</code>') }} />)}
+                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: step.replace(/`([^`]*)`/g, '<code>$1</code>') }} />)}
                                     </ul>
                                 </div>
                             ))}

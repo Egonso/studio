@@ -15,6 +15,14 @@ const GetImplementationGuideInputSchema = z.object({
   taskDescription: z
     .string()
     .describe('Die spezifische Aufgabe aus einer EU AI Act Compliance-Checkliste, für die eine Anleitung benötigt wird. Z.B. "Stellen Sie sicher, dass Ihre Datensätze für das Training, die Validierung und das Testen Ihres KI-Systems relevant, repräsentativ, fehlerfrei und vollständig sind."'),
+  companyDescription: z
+    .string()
+    .optional()
+    .describe('Eine Beschreibung des Unternehmens und seiner Aktivitäten.'),
+  riskProfile: z
+    .string()
+    .optional()
+    .describe('Die Selbsteinschätzung des Risikoprofils des Unternehmens.'),
 });
 export type GetImplementationGuideInput = z.infer<typeof GetImplementationGuideInputSchema>;
 
@@ -41,9 +49,19 @@ Ein Benutzer benötigt eine detaillierte, umsetzbare Anleitung für die folgende
 
 **Aufgabe:** "{{{taskDescription}}}"
 
+{{#if companyDescription}}
+**Berücksichtige bei deiner Antwort den folgenden Unternehmenskontext:**
+*   **Unternehmensbeschreibung:** {{{companyDescription}}}
+{{#if riskProfile}}
+*   **Selbsteingeschätztes Risiko:** {{{riskProfile}}}
+{{/if}}
+Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen besonders relevant sind.
+{{/if}}
+
+
 Erstelle eine präzise, leicht verständliche Anleitung in deutscher Sprache, die genau auf diese Aufgabe zugeschnitten ist. Die Anleitung soll aus zwei Abschnitten bestehen:
 
-1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen. Schlage, wo sinnvoll, konkrete Open-Source-Tools, Bibliotheken (z.B. Python-Bibliotheken) oder bekannte kommerzielle Tools vor und hebe diese mit \`<code>\`-Tags hervor. Gib auch Links zu relevanten Vorlagen oder Standards, falls zutreffend.
+1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen. Schlage, wo sinnvoll, konkrete Open-Source-Tools, Bibliotheken (z.B. Python-Bibliotheken wie 'pandas-profiling' oder 'great_expectations') oder bekannte kommerzielle Tools vor und hebe diese mit \`<code>\`-Tags hervor. Gib auch Links zu relevanten Vorlagen oder Standards, falls zutreffend.
 2.  **Leitfragen für Ihr Team:** Formuliere 3-4 prägnante Fragen, die sich das Team stellen kann, um zu überprüfen, ob sie die Anforderung wirklich verstanden haben und erfüllen.
 
 Sei sehr spezifisch und praxisorientiert. Vermeide allgemeines Gerede. Der Output muss direkt auf die gegebene Aufgabe anwendbar sein.`,
