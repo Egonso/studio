@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AppHeader } from "@/components/app-header";
@@ -15,31 +16,34 @@ export default function DashboardPage() {
     const [checklistState, setChecklistState] = useState<ChecklistState>({});
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
 
     useEffect(() => {
-        if (!user) {
+        if (!loading && !user) {
             router.push('/login');
             return;
         }
+        if (user) {
+            const loadData = () => {
+                setIsLoading(true);
+                const answers = getAssessmentAnswers();
+                if (!answers) {
+                    router.push('/assessment');
+                    return;
+                }
+                const savedChecklistState = getChecklistState();
 
-        const loadData = async () => {
-            setIsLoading(true);
-            const answers = await getAssessmentAnswers();
-            if (!answers) {
-                router.push('/assessment');
-                return;
-            }
-            const savedChecklistState = await getChecklistState();
+                const derivedData = deriveComplianceState(answers);
+                setInitialComplianceData(derivedData);
+                if (savedChecklistState) {
+                    setChecklistState(savedChecklistState);
+                }
+                setIsLoading(false);
+            };
 
-            const derivedData = deriveComplianceState(answers);
-            setInitialComplianceData(derivedData);
-            setChecklistState(savedChecklistState);
-            setIsLoading(false);
-        };
-
-        loadData();
-    }, [router, user]);
+            loadData();
+        }
+    }, [router, user, loading]);
 
     const complianceData = useMemo(() => {
         if (!initialComplianceData) return null;
@@ -56,7 +60,7 @@ export default function DashboardPage() {
         }
     }, [checklistState, user, isLoading]);
 
-    if (isLoading || !complianceData) {
+    if (isLoading || !complianceData || loading) {
         return (
             <div className="flex h-screen w-full flex-col">
                 <AppHeader />

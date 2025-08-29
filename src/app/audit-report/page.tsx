@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -41,8 +42,8 @@ export default function AuditReportPage() {
         if (!user) return;
 
         const generateReport = async () => {
-            const answers = await getAssessmentAnswers();
-            const checklistStateData = await getChecklistState();
+            const answers = getAssessmentAnswers();
+            const checklistStateData = getChecklistState();
             
             if (!answers) {
                 router.push('/assessment');
@@ -87,7 +88,7 @@ export default function AuditReportPage() {
                 setIsLoading(false);
             };
 
-            await fetchAllChecklists();
+            fetchAllChecklists();
         };
 
         generateReport();

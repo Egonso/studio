@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
+import { saveAssessmentAnswers } from "@/lib/data-service";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
 
@@ -33,7 +34,7 @@ interface Question {
     next?: QuestionId; // Default next question if no option specifies one
 }
 
-const questions: Record<QuestionId, Question | { final: boolean, title: string, description: string, dashboardState: any }> = {
+const questions: Record<QuestionId, Question | { final: boolean, title: string, description: string }> = {
   q1: {
     title: "Anwendbarkeit des AI Acts",
     question: "Setzt Ihr Unternehmen KI-Systeme ein oder stellt diese auf dem EU-Markt bereit, verkauft sie oder nimmt sie in Betrieb?",
@@ -101,13 +102,11 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
       final: true,
       title: "Kein direkter Handlungsbedarf",
       description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard weiter, das diesen Status widerspiegelt.",
-      dashboardState: { q1: 'no' }
   },
   q_final_review: {
       final: true,
       title: "Bewertung abgeschlossen",
       description: "Vielen Dank. Ihre Antworten wurden aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge für Sie zu personalisieren.",
-      dashboardState: {} // will be filled with current answers
   }
 };
 
@@ -125,29 +124,23 @@ export function AssessmentWizard() {
 
   const handleAnswerChange = (value: string) => {
     setAnswers({ ...answers, [currentStepId]: value });
-
-    const question = questions[currentStepId];
-    if ('final' in question) return;
-
-    const selectedOption = question.options.find(o => o.value === value);
-    const nextStepId = selectedOption?.next || question.next;
-
-    if (nextStepId) {
-        // This is to prevent jumping to the next question immediately.
-        // The user has to click "Weiter".
-    }
   };
 
   const handleNext = () => {
-    const question = questions[currentStepId];
-    
-    // Save answers and move to context page
-    localStorage.setItem('assessmentAnswers', JSON.stringify(answers));
-    localStorage.removeItem('checklistState'); // Reset checklist on new assessment
-    localStorage.removeItem('companyContext');
+    // Save current answers before moving to the next step
+    const currentAnswers = {...answers};
+    const value = currentAnswers[currentStepId];
+    if (value) {
+        if (currentStepId === 'q1' && value === 'no') {
+            saveAssessmentAnswers({ q1: 'no' });
+            setStepHistory([...stepHistory, 'q_final_compliant']);
+            return;
+        }
+    }
 
+    const question = questions[currentStepId];
     if ('final' in question) {
-        // If it's a final step, decide where to go.
+        saveAssessmentAnswers(currentAnswers);
         if(currentStepId === 'q_final_compliant') {
             router.push('/dashboard');
         } else {
@@ -155,12 +148,10 @@ export function AssessmentWizard() {
         }
         return;
     }
-
-    const value = answers[currentStepId];
+    
     const selectedOption = question.options.find(o => o.value === value);
     let nextStepId = selectedOption?.next || question.next;
     
-    // If we've reached the end of the line, go to the final review
     if (!nextStepId) {
         nextStepId = 'q_final_review';
     }

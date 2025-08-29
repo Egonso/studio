@@ -1,83 +1,62 @@
 
-'use server';
+'use client';
 
-import { db, auth } from '@/lib/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+// This service uses localStorage for data persistence.
+// It's a simple client-side solution for this prototype.
+// In a production app, you would use a database like Firestore
+// and handle data fetching asynchronously.
 
-// Helper to get the current user's UID
-const getUserId = () => {
-    const user = auth.currentUser;
-    if (!user) throw new Error("Benutzer nicht authentifiziert.");
-    return user.uid;
+const getLocalStorageItem = <T,>(key: string): T | null => {
+    if (typeof window === 'undefined') return null;
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
 };
 
-// Generic function to get a user-specific document
-async function getUserDoc(collectionName: string, docId: string) {
-    const docRef = doc(db, collectionName, docId);
-    const docSnap = await getDoc(docRef);
-    return { docRef, docSnap };
-}
-
-// --- Functions to save and retrieve data using setDoc for robustness ---
-
-async function saveData(data: object) {
-    const userId = getUserId();
-    const docRef = doc(db, 'userData', userId);
-    try {
-        // Use setDoc with { merge: true } to create or update the document.
-        // This is safer than updateDoc for new users.
-        await setDoc(docRef, data, { merge: true });
-    } catch (error) {
-        console.error("Error saving data to Firestore:", error);
-        throw new Error("Daten konnten nicht gespeichert werden.");
-    }
-}
-
-async function getData() {
-    const userId = getUserId();
-    const { docSnap } = await getUserDoc('userData', userId);
-    return docSnap.exists() ? docSnap.data() : null;
-}
+const setLocalStorageItem = <T,>(key: string, value: T) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(key, JSON.stringify(value));
+};
 
 
 // --- Specific data functions ---
 
-export async function saveAssessmentAnswers(answers: Record<string, string>) {
-    await saveData({ assessmentAnswers: answers });
+export function saveAssessmentAnswers(answers: Record<string, string>) {
+    setLocalStorageItem('assessmentAnswers', answers);
+    // When a new assessment is saved, clear old checklist and context data
+    localStorage.removeItem('checklistState');
+    localStorage.removeItem('companyContext');
+    localStorage.removeItem('currentTask');
 }
 
-export async function getAssessmentAnswers() {
-    const data = await getData();
-    return (data as any)?.assessmentAnswers || null;
+export function getAssessmentAnswers() {
+    return getLocalStorageItem<Record<string, string>>('assessmentAnswers');
 }
 
-export async function saveCompanyContext(context: object) {
-    await saveData({ companyContext: context });
+export function saveCompanyContext(context: object) {
+    setLocalStorageItem('companyContext', context);
 }
 
-export async function getCompanyContext() {
-    const data = await getData();
-    return (data as any)?.companyContext || null;
+export function getCompanyContext() {
+    return getLocalStorageItem<object>('companyContext');
 }
 
-export async function saveChecklistState(state: object) {
-    await saveData({ checklistState: state });
+export function saveChecklistState(state: object) {
+    setLocalStorageItem('checklistState', state);
 }
 
-export async function getChecklistState() {
-    const data = await getData();
-    return (data as any)?.checklistState || {};
+export function getChecklistState() {
+    return getLocalStorageItem<any>('checklistState') || {};
 }
 
-export async function saveCurrentTask(task: object) {
-     await saveData({ currentTask: task });
+export function saveCurrentTask(task: object) {
+     setLocalStorageItem('currentTask', task);
 }
 
-export async function getCurrentTask() {
-    const data = await getData();
-    return (data as any)?.currentTask || null;
+export function getCurrentTask() {
+    return getLocalStorageItem<any>('currentTask');
 }
 
-export async function clearCurrentTask() {
-    await saveData({ currentTask: null });
+export function clearCurrentTask() {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem('currentTask');
 }

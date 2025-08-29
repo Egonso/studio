@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
-import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
+import { type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -53,12 +53,12 @@ export default function TaskPage() {
         }
         if (!user) return;
 
-        const loadTask = async () => {
-            const storedTask = await getCurrentTask();
+        const loadTask = () => {
+            const storedTask = getCurrentTask();
             if (storedTask && storedTask.id === taskId) {
                 setTask(storedTask);
             } else {
-                await clearCurrentTask();
+                clearCurrentTask();
                 router.push('/dashboard');
             }
         };
@@ -72,7 +72,7 @@ export default function TaskPage() {
             setIsGuideLoading(true);
             setGuideError(null);
             
-            const companyContext = await getCompanyContext() || {};
+            const companyContext = getCompanyContext() || {};
 
             try {
                 const result = await getImplementationGuide({ 
@@ -92,26 +92,14 @@ export default function TaskPage() {
         fetchGuide();
     }, [task, user]);
 
-    const handleMarkAsDone = async () => {
+    const handleMarkAsDone = () => {
         if (!task || !user) return;
-        const checklistState = await getChecklistState();
-        if (checklistState[task.complianceItemId]) {
-            checklistState[task.complianceItemId].checkedTasks[task.id] = true;
-        } else {
-            const checklistData = await getComplianceChecklist({ 
-                topic: task.complianceItemTitle,
-                currentStatus: 'At Risk', 
-                details: 'Task manually completed' 
-            });
-            checklistState[task.complianceItemId] = {
-                loading: false,
-                error: null,
-                data: checklistData,
-                checkedTasks: { [task.id]: true }
-            }
+        const state = getChecklistState();
+        if (state[task.complianceItemId]) {
+            state[task.complianceItemId].checkedTasks[task.id] = true;
         }
-        await saveChecklistState(checklistState);
-        await clearCurrentTask();
+        saveChecklistState(state);
+        clearCurrentTask();
         router.push('/dashboard');
     };
     
@@ -282,4 +270,3 @@ export default function TaskPage() {
         </div>
     );
 }
-    

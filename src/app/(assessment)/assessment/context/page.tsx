@@ -57,8 +57,8 @@ export default function ContextPage() {
         }
     };
 
-    const onSubmit = async (data: ContextFormData) => {
-        await saveCompanyContext(data);
+    const onSubmit = (data: ContextFormData) => {
+        saveCompanyContext(data);
         router.push('/dashboard');
     };
 
@@ -156,3 +156,4 @@ export default function ContextPage() {
             </div>
         </div>
     );
+}

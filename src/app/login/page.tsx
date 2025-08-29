@@ -43,7 +43,7 @@ export default function LoginPage() {
       } else {
         await createUserWithEmailAndPassword(auth, data.email, data.password);
         // After creating the user, we need to initialize their data
-        await saveAssessmentAnswers({}); // Initialize with empty answers
+        saveAssessmentAnswers({}); // Initialize with empty answers
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });
         router.push('/assessment');
       }
@@ -54,6 +54,8 @@ export default function LoginPage() {
         title: 'Fehler',
         description: error.message.includes('auth/invalid-credential') 
           ? 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.'
+          : error.message.includes('auth/email-already-in-use')
+          ? 'Diese E-Mail-Adresse wird bereits verwendet.'
           : 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
       });
     } finally {
