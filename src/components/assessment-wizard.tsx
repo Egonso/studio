@@ -176,7 +176,7 @@ export function AssessmentWizard() {
 
   if ('final' in currentQuestionDef) {
       return (
-          <Card className="w-full max-w-2xl shadow-2xl">
+          <Card className="w-full max-w-2xl shadow-lg">
               <CardHeader>
                   <CardTitle>{currentQuestionDef.title}</CardTitle>
               </CardHeader>
@@ -193,7 +193,7 @@ export function AssessmentWizard() {
   }
 
   return (
-    <Card className="w-full max-w-2xl shadow-2xl">
+    <Card className="w-full max-w-2xl shadow-lg">
       <CardHeader>
         <CardTitle>Compliance-Bewertung</CardTitle>
         <CardDescription>

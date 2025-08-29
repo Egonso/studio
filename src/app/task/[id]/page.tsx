@@ -57,7 +57,7 @@ export default function TaskPage() {
 
     if (!task) {
         return (
-            <div className="flex flex-col min-h-screen bg-background dark">
+            <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
                     <p>Lade Aufgabe...</p>
@@ -67,10 +67,10 @@ export default function TaskPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background dark">
+        <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
             <main className="flex-1 p-4 md:p-8 flex items-center justify-center">
-                <Card className="w-full max-w-3xl shadow-2xl">
+                <Card className="w-full max-w-3xl shadow-lg">
                     <CardHeader>
                         <Button variant="ghost" size="sm" className="justify-start p-0 h-auto mb-4" onClick={() => router.push('/dashboard')}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -129,4 +129,3 @@ export default function TaskPage() {
         </div>
     );
 }
-

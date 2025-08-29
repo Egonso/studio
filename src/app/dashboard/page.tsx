@@ -38,7 +38,7 @@ export default function DashboardPage() {
     }, [checklistState]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-background dark">
+    <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
       <main className="flex-1">
         {complianceData ? (

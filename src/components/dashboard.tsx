@@ -45,17 +45,17 @@ const statusConfig = {
     'Compliant': {
         icon: CheckCircle2,
         badgeVariant: 'default' as const,
-        iconClassName: 'text-primary',
+        iconClassName: 'text-green-600',
     },
     'At Risk': {
         icon: AlertTriangle,
         badgeVariant: 'secondary' as const,
-        iconClassName: 'text-muted-foreground',
+        iconClassName: 'text-yellow-600',
     },
     'Non-Compliant': {
         icon: AlertCircle,
         badgeVariant: 'destructive' as const,
-        iconClassName: 'text-destructive',
+        iconClassName: 'text-red-600',
     },
 };
 
@@ -146,7 +146,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Compliant</CardTitle>
-            <ShieldCheck className="h-4 w-4 text-primary" />
+            <ShieldCheck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{compliantCount}</div>
@@ -158,7 +158,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">At Risk</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+            <AlertTriangle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{atRiskCount}</div>
@@ -170,7 +170,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Non-Compliant</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-destructive" />
+            <ShieldAlert className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{nonCompliantCount}</div>
@@ -227,7 +227,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                     <p className="text-muted-foreground font-semibold">{item.description}</p>
                                     <p className="italic">Status-Begründung: {item.details}</p>
                                     
-                                    <Card className="mt-4 bg-secondary">
+                                    <Card className="mt-4 bg-secondary/50">
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
                                                 <ListChecks className="h-5 w-5 text-primary"/>
@@ -249,8 +249,8 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                                 isCompliant 
                                                                     ? 'cursor-default bg-background/50'
                                                                     : (isChecked 
-                                                                        ? "bg-primary/10 border-primary/20 hover:bg-primary/20 cursor-pointer"
-                                                                        : "bg-background/50 border-border hover:bg-background cursor-pointer")
+                                                                        ? "bg-green-100/50 border-green-200/80 hover:bg-green-100 cursor-pointer"
+                                                                        : "bg-background/50 border-border hover:bg-gray-50 cursor-pointer")
                                                             )
                                                         };
                                                         
@@ -258,7 +258,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                             <>
                                                                <div className="flex items-start gap-4">
                                                                 {isCompliant || isChecked ? (
-                                                                     <CheckCircle2 className="h-5 w-5 text-primary mt-1 shrink-0" />
+                                                                     <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" />
                                                                 ) : (
                                                                     <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                                                                 )}

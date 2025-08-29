@@ -93,7 +93,7 @@ export default function AuditReportPage() {
     
     if (isLoading) {
         return (
-            <div className="flex flex-col min-h-screen bg-background dark">
+            <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
                     <p>Generating Audit Report...</p>
@@ -103,7 +103,7 @@ export default function AuditReportPage() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background dark">
+        <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
             <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-4xl mx-auto">
