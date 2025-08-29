@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -23,11 +22,22 @@ interface Task extends GetComplianceChecklistOutput_Checklist {
 
 type Guide = GetImplementationGuideOutput['guide'];
 
-const formatStep = (step: string) => {
-    let html = step;
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>');
-    return { __html: html };
+const StepContent = ({ content }: { content: string }) => {
+    const parts = content.split(/(`[^`]+`)/g);
+    return (
+        <span>
+            {parts.map((part, index) => {
+                if (part.startsWith('`') && part.endsWith('`')) {
+                    return (
+                        <code key={index} className="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">
+                            {part.slice(1, -1)}
+                        </code>
+                    );
+                }
+                return part;
+            })}
+        </span>
+    );
 };
 
 export default function TaskPage() {
@@ -193,7 +203,11 @@ export default function TaskPage() {
                                 <div key={index}>
                                     <h3 className="font-semibold mb-2">{section.title}</h3>
                                     <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={formatStep(step)} />)}
+                                        {section.steps.map((step, stepIndex) => (
+                                            <li key={stepIndex}>
+                                                <StepContent content={step} />
+                                            </li>
+                                        ))}
                                     </ul>
                                 </div>
                             ))}
