@@ -95,7 +95,7 @@ export default function TaskPage() {
 
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
-        const currentState = await getChecklistState() || {};
+        const currentState = (await getChecklistState()) || {};
         
         if (!currentState[task.complianceItemId]) {
             currentState[task.complianceItemId] = { data: null, checkedTasks: {} };
