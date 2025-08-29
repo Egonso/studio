@@ -8,6 +8,8 @@ import { AppHeader } from "@/components/app-header";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
+import { checkOnboardingStatus } from "@/lib/data-service";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -15,12 +17,18 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      checkOnboardingStatus().then(path => {
+        router.push(path);
+      });
     }
   }, [user, loading, router]);
   
   if (loading || user) {
-    return null; // or a loading spinner
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
 
   return (

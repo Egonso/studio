@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
+import { checkOnboardingStatus } from '@/lib/data-service';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -37,8 +38,9 @@ export default function LoginPage() {
     try {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, data.email, data.password);
-        toast({ title: 'Anmeldung erfolgreich', description: 'Sie werden zum Dashboard weitergeleitet.' });
-        router.push('/dashboard');
+        toast({ title: 'Anmeldung erfolgreich', description: 'Prüfe Ihren Status...' });
+        const redirectPath = await checkOnboardingStatus();
+        router.push(redirectPath);
       } else {
         await createUserWithEmailAndPassword(auth, data.email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });

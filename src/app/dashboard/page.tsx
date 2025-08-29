@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getAssessmentAnswers, getChecklistState, saveChecklistState } from "@/lib/data-service";
+import { getAssessmentAnswers, getChecklistState, saveChecklistState, checkOnboardingStatus } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -16,15 +16,24 @@ export default function DashboardPage() {
     const [checklistState, setChecklistState] = useState<ChecklistState>({});
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-    const { user, loading } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const loadData = useCallback(async () => {
         setIsLoading(true);
+
+        const onboardingPath = await checkOnboardingStatus();
+        if (onboardingPath !== '/dashboard') {
+            router.push(onboardingPath);
+            return;
+        }
+
         const answers = await getAssessmentAnswers();
+        // This check is redundant due to checkOnboardingStatus, but kept as a safeguard
         if (!answers) {
             router.push('/assessment');
             return;
         }
+
         const savedChecklistState = await getChecklistState();
 
         const derivedData = deriveComplianceState(answers);
@@ -36,14 +45,14 @@ export default function DashboardPage() {
     }, [router]);
 
     useEffect(() => {
-        if (!loading && !user) {
+        if (!authLoading && !user) {
             router.push('/login');
             return;
         }
         if (user) {
             loadData();
         }
-    }, [router, user, loading, loadData]);
+    }, [router, user, authLoading, loadData]);
 
     const complianceData = useMemo(() => {
         if (!initialComplianceData) return null;
@@ -55,12 +64,13 @@ export default function DashboardPage() {
     }, [initialComplianceData, checklistState]);
 
     useEffect(() => {
-        if (user && !isLoading) {
+        // Only save state if it's not empty, to avoid overwriting on initial load
+        if (user && !isLoading && Object.keys(checklistState).length > 0) {
             saveChecklistState(checklistState);
         }
     }, [checklistState, user, isLoading]);
 
-    if (isLoading || !complianceData || loading) {
+    if (isLoading || !complianceData || authLoading) {
         return (
             <div className="flex h-screen w-full flex-col">
                 <AppHeader />
