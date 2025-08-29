@@ -151,7 +151,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
           <CardContent>
             <div className="text-2xl font-bold">{compliantCount}</div>
             <p className="text-xs text-muted-foreground">
-              out of {complianceItems.length} requirements
+              von {complianceItems.length} Anforderungen
             </p>
           </CardContent>
         </Card>
@@ -163,7 +163,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
           <CardContent>
             <div className="text-2xl font-bold">{atRiskCount}</div>
              <p className="text-xs text-muted-foreground">
-              require attention
+              erfordern Aufmerksamkeit
             </p>
           </CardContent>
         </Card>
@@ -175,7 +175,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
           <CardContent>
             <div className="text-2xl font-bold">{nonCompliantCount}</div>
             <p className="text-xs text-muted-foreground">
-              critical issues
+              kritische Probleme
             </p>
           </CardContent>
         </Card>
@@ -185,9 +185,9 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
             {criticalAlerts.length > 0 && (
                 <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Critical Alerts!</AlertTitle>
+                <AlertTitle>Kritische Warnungen!</AlertTitle>
                 <AlertDescription>
-                    {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} non-compliant items` : 'Sie haben einen non-compliant item'}, die sofortige Aufmerksamkeit erfordern.
+                    {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.
                     {complianceItems.find(item => item.details.includes("verbotene Praktiken")) && 
                      " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
                 </AlertDescription>
@@ -196,8 +196,8 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
 
             <Card className="shadow-lg">
                 <CardHeader>
-                    <CardTitle>Compliance Status Breakdown</CardTitle>
-                    <CardDescription>Click on an item to see a detailed compliance checklist.</CardDescription>
+                    <CardTitle>Übersicht des Compliance-Status</CardTitle>
+                    <CardDescription>Klicken Sie auf einen Punkt, um eine detaillierte Compliance-Checkliste zu sehen.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
@@ -231,12 +231,12 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                         <CardHeader>
                                             <CardTitle className="text-lg flex items-center gap-2">
                                                 <ListChecks className="h-5 w-5 text-primary"/>
-                                                {isCompliant ? "Erfüllte Kriterien" : "Actionable Checklist"}
+                                                {isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}
                                             </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generating checklist...</div>}
-                                            {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Error</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
+                                            {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generiere Checkliste...</div>}
+                                            {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Fehler</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
                                             {state?.data && (
                                                 <div className="space-y-2">
                                                     {state.data.checklist.map((task) => {
@@ -249,7 +249,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                                 isCompliant 
                                                                     ? 'cursor-default bg-background/50'
                                                                     : (isChecked 
-                                                                        ? "bg-green-100/50 border-green-200/80 hover:bg-green-100 cursor-pointer"
+                                                                        ? "bg-green-100/50 border-green-200/80 hover:bg-green-100 cursor-default"
                                                                         : "bg-background/50 border-border hover:bg-gray-50 cursor-pointer")
                                                             )
                                                         };
@@ -262,15 +262,15 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                                 ) : (
                                                                     <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                                                                 )}
-                                                                <p className={cn("flex-1", !isCompliant && isChecked && "line-through text-foreground/70")}>
+                                                                <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
                                                                     {task.description}
                                                                 </p>
                                                               </div>
-                                                              {!isCompliant && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+                                                              {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
                                                             </>
                                                         );
 
-                                                        if (isCompliant) {
+                                                        if (isCompliant || isChecked) {
                                                             return <div {...taskProps}>{content}</div>;
                                                         }
 
