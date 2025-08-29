@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -40,7 +41,7 @@ export default function LoginPage() {
         toast({ title: 'Anmeldung erfolgreich', description: 'Sie werden zum Dashboard weitergeleitet.' });
         router.push('/dashboard');
       } else {
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        await createUserWithEmailAndPassword(auth, data.email, data.password);
         // After creating the user, we need to initialize their data
         await saveAssessmentAnswers({}); // Initialize with empty answers
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });

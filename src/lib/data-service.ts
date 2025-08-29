@@ -1,7 +1,8 @@
+
 'use server';
 
 import { db, auth } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Helper to get the current user's UID
 const getUserId = () => {
@@ -11,78 +12,72 @@ const getUserId = () => {
 };
 
 // Generic function to get a user-specific document
-async function getUserDoc(collectionName: string) {
-    const userId = getUserId();
-    const docRef = doc(db, collectionName, userId);
+async function getUserDoc(collectionName: string, docId: string) {
+    const docRef = doc(db, collectionName, docId);
     const docSnap = await getDoc(docRef);
     return { docRef, docSnap };
 }
 
-// --- Functions to replace localStorage operations ---
+// --- Functions to save and retrieve data using setDoc for robustness ---
 
-export async function saveToFirestore(collectionName: string, data: any) {
-    const userId = getUserId();
-    const docRef = doc(db, collectionName, userId);
-    try {
-        // Use setDoc with { merge: true } to create or update the document
-        await setDoc(docRef, data, { merge: true });
-    } catch (error) {
-        console.error("Error saving to firestore:", error);
-        throw new Error("Could not save data.");
-    }
-}
-
-
-export async function getFromFirestore(collectionName: string) {
-    const { docSnap } = await getUserDoc(collectionName);
-    return docSnap.exists() ? docSnap.data() : null;
-}
-
-export async function saveAssessmentAnswers(answers: Record<string, string>) {
-    // We want to overwrite the answers completely, not merge.
-    // So we update the specific field.
+async function saveData(data: object) {
     const userId = getUserId();
     const docRef = doc(db, 'userData', userId);
     try {
-        await updateDoc(docRef, { assessmentAnswers: answers });
-    } catch (e) {
-         // If the document doesn't exist, create it.
-        await setDoc(docRef, { assessmentAnswers: answers });
+        // Use setDoc with { merge: true } to create or update the document.
+        // This is safer than updateDoc for new users.
+        await setDoc(docRef, data, { merge: true });
+    } catch (error) {
+        console.error("Error saving data to Firestore:", error);
+        throw new Error("Daten konnten nicht gespeichert werden.");
     }
 }
 
+async function getData() {
+    const userId = getUserId();
+    const { docSnap } = await getUserDoc('userData', userId);
+    return docSnap.exists() ? docSnap.data() : null;
+}
+
+
+// --- Specific data functions ---
+
+export async function saveAssessmentAnswers(answers: Record<string, string>) {
+    await saveData({ assessmentAnswers: answers });
+}
+
 export async function getAssessmentAnswers() {
-    const data = await getFromFirestore('userData');
+    const data = await getData();
     return (data as any)?.assessmentAnswers || null;
 }
 
 export async function saveCompanyContext(context: object) {
-    await saveToFirestore('userData', { companyContext: context });
+    await saveData({ companyContext: context });
 }
 
 export async function getCompanyContext() {
-    const data = await getFromFirestore('userData');
+    const data = await getData();
     return (data as any)?.companyContext || null;
 }
 
 export async function saveChecklistState(state: object) {
-    await saveToFirestore('userData', { checklistState: state });
+    await saveData({ checklistState: state });
 }
 
 export async function getChecklistState() {
-    const data = await getFromFirestore('userData');
+    const data = await getData();
     return (data as any)?.checklistState || {};
 }
 
 export async function saveCurrentTask(task: object) {
-     await saveToFirestore('userData', { currentTask: task });
+     await saveData({ currentTask: task });
 }
 
 export async function getCurrentTask() {
-    const data = await getFromFirestore('userData');
+    const data = await getData();
     return (data as any)?.currentTask || null;
 }
 
 export async function clearCurrentTask() {
-    await saveToFirestore('userData', { currentTask: null });
+    await saveData({ currentTask: null });
 }
