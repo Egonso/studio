@@ -4,7 +4,7 @@
 import { AppHeader } from "@/components/app-header";
 import { Dashboard, type ChecklistState } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
@@ -18,32 +18,32 @@ export default function DashboardPage() {
     const router = useRouter();
     const { user, loading } = useAuth();
 
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        const answers = await getAssessmentAnswers();
+        if (!answers) {
+            router.push('/assessment');
+            return;
+        }
+        const savedChecklistState = await getChecklistState();
+
+        const derivedData = deriveComplianceState(answers);
+        setInitialComplianceData(derivedData);
+        if (savedChecklistState) {
+            setChecklistState(savedChecklistState);
+        }
+        setIsLoading(false);
+    }, [router]);
+
     useEffect(() => {
         if (!loading && !user) {
             router.push('/login');
             return;
         }
         if (user) {
-            const loadData = () => {
-                setIsLoading(true);
-                const answers = getAssessmentAnswers();
-                if (!answers) {
-                    router.push('/assessment');
-                    return;
-                }
-                const savedChecklistState = getChecklistState();
-
-                const derivedData = deriveComplianceState(answers);
-                setInitialComplianceData(derivedData);
-                if (savedChecklistState) {
-                    setChecklistState(savedChecklistState);
-                }
-                setIsLoading(false);
-            };
-
             loadData();
         }
-    }, [router, user, loading]);
+    }, [router, user, loading, loadData]);
 
     const complianceData = useMemo(() => {
         if (!initialComplianceData) return null;

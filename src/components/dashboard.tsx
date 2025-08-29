@@ -116,11 +116,11 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
     }
   };
   
-  const handleTaskClick = (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
+  const handleTaskClick = async (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
     // Prevent navigation for compliant items
     if (complianceItem.status === 'Compliant') return;
     
-    saveCurrentTask({
+    await saveCurrentTask({
       ...task,
       complianceItemId: complianceItem.id,
       complianceItemTitle: complianceItem.title,

@@ -1,8 +1,8 @@
-// Import the functions you need from the SDKs you need
+
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   "projectId": "ai-act-compass-m6o05",
   "appId": "1:516664005385:web:8a51acd112bc94dc4d39d8",
@@ -12,7 +12,7 @@ const firebaseConfig = {
   "messagingSenderId": "516664005385"
 };
 
-// Initialize Firebase
+
 let app: FirebaseApp;
 if (getApps().length === 0) {
     app = initializeApp(firebaseConfig);
@@ -21,5 +21,6 @@ if (getApps().length === 0) {
 }
 
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-export { app, auth };
+export { app, auth, db };

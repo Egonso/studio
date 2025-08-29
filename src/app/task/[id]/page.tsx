@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +46,16 @@ export default function TaskPage() {
     const taskId = params.id as string;
     const { user, loading: authLoading } = useAuth();
 
+    const loadTask = useCallback(async () => {
+        const storedTask = await getCurrentTask();
+        if (storedTask && storedTask.id === taskId) {
+            setTask(storedTask as Task);
+        } else {
+            await clearCurrentTask();
+            router.push('/dashboard');
+        }
+    }, [router, taskId]);
+
     useEffect(() => {
         if (!authLoading && !user) {
             router.push('/login');
@@ -53,20 +63,8 @@ export default function TaskPage() {
         }
         if (!user) return;
 
-        const loadTask = () => {
-            const storedTask = getCurrentTask();
-            if (storedTask && storedTask.id === taskId) {
-                setTask(storedTask);
-            } else {
-                // Task might not be in localStorage if user reloads page.
-                // In a real app, you'd fetch this from a DB.
-                // For now, redirect to dashboard.
-                clearCurrentTask();
-                router.push('/dashboard');
-            }
-        };
         loadTask();
-    }, [router, taskId, user, authLoading]);
+    }, [router, taskId, user, authLoading, loadTask]);
 
     useEffect(() => {
         if (!task || !user) return;
@@ -75,7 +73,7 @@ export default function TaskPage() {
             setIsGuideLoading(true);
             setGuideError(null);
             
-            const companyContext = getCompanyContext() || {};
+            const companyContext = await getCompanyContext() || {};
 
             try {
                 const result = await getImplementationGuide({ 
@@ -95,14 +93,14 @@ export default function TaskPage() {
         fetchGuide();
     }, [task, user]);
 
-    const handleMarkAsDone = () => {
+    const handleMarkAsDone = async () => {
         if (!task || !user) return;
-        const state = getChecklistState();
+        const state = await getChecklistState();
         if (state[task.complianceItemId]) {
             state[task.complianceItemId].checkedTasks[task.id] = true;
         }
-        saveChecklistState(state);
-        clearCurrentTask();
+        await saveChecklistState(state);
+        await clearCurrentTask();
         router.push('/dashboard');
     };
     

@@ -126,13 +126,13 @@ export function AssessmentWizard() {
     setAnswers({ ...answers, [currentStepId]: value });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const currentAnswers = {...answers};
     const value = currentAnswers[currentStepId];
     
     // This is the final step logic
     if ('final' in currentQuestionDef) {
-        saveAssessmentAnswers(currentAnswers);
+        await saveAssessmentAnswers(currentAnswers);
         if(currentStepId === 'q_final_compliant') {
             router.push('/dashboard');
         } else {
@@ -143,7 +143,7 @@ export function AssessmentWizard() {
     
     // This is for the first question special case
     if (currentStepId === 'q1' && value === 'no') {
-        saveAssessmentAnswers({ ...currentAnswers, q1: 'no' });
+        await saveAssessmentAnswers({ ...currentAnswers, q1: 'no' });
         setStepHistory([...stepHistory, 'q_final_compliant']);
         return;
     }

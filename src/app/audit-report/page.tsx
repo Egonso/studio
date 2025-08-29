@@ -42,8 +42,8 @@ export default function AuditReportPage() {
         if (!user) return;
 
         const generateReport = async () => {
-            const answers = getAssessmentAnswers();
-            const checklistStateData = getChecklistState();
+            const answers = await getAssessmentAnswers();
+            const checklistStateData = await getChecklistState();
             
             if (!answers) {
                 router.push('/assessment');
@@ -109,6 +109,8 @@ export default function AuditReportPage() {
         );
     }
 
+    const hasHighRisk = assessmentAnswers ? Object.values(assessmentAnswers).includes("yes_high_risk") : false;
+
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
@@ -139,7 +141,7 @@ export default function AuditReportPage() {
                                     <div className="space-y-2 text-sm p-4 rounded-lg bg-secondary">
                                         <p><strong>KI-Einsatz im Unternehmen:</strong> {assessmentAnswers.q1 || 'k.A.'}</p>
                                         <p><strong>Prüfung auf verbotene Praktiken (Art. 5):</strong> {assessmentAnswers.q2 || 'k.A.'}</p>
-                                        <p><strong>Prüfung auf Hochrisiko-Systeme:</strong> {Object.values(assessmentAnswers || {}).includes("yes_high_risk") ? 'Ja' : 'Nein'}</p>
+                                        <p><strong>Prüfung auf Hochrisiko-Systeme:</strong> {hasHighRisk ? 'Ja' : 'Nein'}</p>
                                     </div>
                                 </div>
                             )}

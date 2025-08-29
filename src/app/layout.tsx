@@ -32,7 +32,7 @@ export default function RootLayout({
                      <Alert variant="default" className="bg-secondary border-secondary-foreground/10">
                         <Terminal className="h-4 w-4" />
                         <AlertDescription className='text-xs text-muted-foreground'>
-                            <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden lokal in Ihrem Browser gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Es werden keine Daten auf einem Server gespeichert. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
+                            <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden zur Bereitstellung der Funktionalität auf Firebase-Servern in der EU gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
                         </AlertDescription>
                     </Alert>
                     <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass. Alle Rechte vorbehalten.</p>
