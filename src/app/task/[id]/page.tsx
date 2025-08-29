@@ -22,6 +22,15 @@ interface Task extends GetComplianceChecklistOutput_Checklist {
 
 type Guide = GetImplementationGuideOutput['guide'];
 
+const formatStep = (step: string) => {
+    let html = step;
+    // Convert **bold** to <strong>
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Convert `code` to <code>
+    html = html.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>');
+    return html;
+};
+
 export default function TaskPage() {
     const [task, setTask] = useState<Task | null>(null);
     const [documentText, setDocumentText] = useState("");
@@ -173,7 +182,7 @@ export default function TaskPage() {
                                 <div key={index}>
                                     <h3 className="font-semibold mb-2">{section.title}</h3>
                                     <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: step.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>') }} />)}
+                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: formatStep(step) }} />)}
                                     </ul>
                                 </div>
                             ))}
@@ -272,3 +281,5 @@ export default function TaskPage() {
         </div>
     );
 }
+
+    
