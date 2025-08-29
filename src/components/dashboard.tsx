@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { saveCurrentTask } from "@/lib/data-service";
 
 
 export interface ChecklistState {
@@ -115,15 +116,15 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
     }
   };
   
-  const handleTaskClick = (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
+  const handleTaskClick = async (task: GetComplianceChecklistOutput_Checklist, complianceItem: ComplianceItem) => {
     // Prevent navigation for compliant items
     if (complianceItem.status === 'Compliant') return;
-
-    localStorage.setItem('currentTask', JSON.stringify({
+    
+    await saveCurrentTask({
       ...task,
       complianceItemId: complianceItem.id,
       complianceItemTitle: complianceItem.title,
-    }));
+    });
      router.push(`/task/${task.id}`);
   };
 
@@ -249,8 +250,8 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                                 isCompliant 
                                                                     ? 'cursor-default bg-background/50'
                                                                     : (isChecked 
-                                                                        ? "bg-green-100/50 border-green-200/80 hover:bg-green-100 cursor-default"
-                                                                        : "bg-background/50 border-border hover:bg-gray-50 cursor-pointer")
+                                                                        ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default"
+                                                                        : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer")
                                                             )
                                                         };
                                                         
@@ -295,3 +296,6 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
     </div>
   );
 }
+
+
+    

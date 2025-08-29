@@ -97,6 +97,19 @@ export default function TaskPage() {
         const checklistState = await getChecklistState();
         if (checklistState[task.complianceItemId]) {
             checklistState[task.complianceItemId].checkedTasks[task.id] = true;
+        } else {
+            // Initialize if it doesn't exist
+            const checklistData = await getComplianceChecklist({ 
+                topic: task.complianceItemTitle,
+                currentStatus: 'At Risk', // placeholder status
+                details: 'Task manually completed' 
+            });
+            checklistState[task.complianceItemId] = {
+                loading: false,
+                error: null,
+                data: checklistData,
+                checkedTasks: { [task.id]: true }
+            }
         }
         await saveChecklistState(checklistState);
         await clearCurrentTask();
@@ -229,11 +242,46 @@ export default function TaskPage() {
                                 <div className="space-y-6 pt-4">
                                     <h3 className="font-semibold text-lg">Analyseergebnis</h3>
 
-                                    <Alert variant={analysisResult.isFulfilled ? 'default' : 'destructive'} className={analysisResult.isFulfilled ? 'bg-green-50 border-green-200' : ''}>
-                                        {analysisResult.isFulfilled ? <ShieldCheck className="h-4 w-4 text-green-700" /> : <ShieldX className="h-4 w-4" />}
-                                        <AlertTitle className={analysisResult.isFulfilled ? 'text-green-800' : ''}>
+                                    <Alert variant={analysisResult.isFulfilled ? 'default' : 'destructive'} className={analysisResult.isFulfilled ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50' : ''}>
+                                        {analysisResult.isFulfilled ? <ShieldCheck className="h-4 w-4 text-green-700 dark:text-green-400" /> : <ShieldX className="h-4 w-4" />}
+                                        <AlertTitle className={analysisResult.isFulfilled ? 'text-green-800 dark:text-green-300' : ''}>
                                             KI-Einschätzung: {analysisResult.isFulfilled ? "Anforderung scheint erfüllt" : "Anforderung scheint nicht erfüllt"}
                                         </AlertTitle>
-                                        <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700' : ''}>
+                                        <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700 dark:text-green-400' : ''}>
                                             Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
-                                        </Aler ...
+                                        </AlertDescription>
+                                    </Alert>
+
+                                    <div>
+                                        <h4 className="font-semibold mb-2">Zusammenfassung des Dokuments</h4>
+                                        <p className="text-sm text-muted-foreground p-4 bg-secondary rounded-md">{analysisResult.summary}</p>
+                                    </div>
+                                    
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600"/> Stärken</h4>
+                                            <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                                                {analysisResult.strengths.map((item, index) => <li key={index}>{item}</li>)}
+                                                {analysisResult.strengths.length === 0 && <li className="text-muted-foreground">Keine spezifischen Stärken identifiziert.</li>}
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-red-600"/>Potenzielle Lücken</h4>
+                                             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                                                {analysisResult.weaknesses.map((item, index) => <li key={index}>{item}</li>)}
+                                                {analysisResult.weaknesses.length === 0 && <li className="text-muted-foreground">Keine spezifischen Lücken identifiziert.</li>}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+    

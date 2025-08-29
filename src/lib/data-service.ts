@@ -22,13 +22,16 @@ async function getUserDoc(collectionName: string) {
 // --- Functions to replace localStorage operations ---
 
 export async function saveToFirestore(collectionName: string, data: any) {
-    const { docRef, docSnap } = await getUserDoc(collectionName);
-    if (docSnap.exists()) {
-        await updateDoc(docRef, data);
-    } else {
-        await setDoc(docRef, data);
+    const userId = getUserId();
+    const docRef = doc(db, collectionName, userId);
+    try {
+        await setDoc(docRef, data, { merge: true });
+    } catch (error) {
+        console.error("Error saving to firestore:", error);
+        throw new Error("Could not save data.");
     }
 }
+
 
 export async function getFromFirestore(collectionName: string) {
     const { docSnap } = await getUserDoc(collectionName);
@@ -36,39 +39,41 @@ export async function getFromFirestore(collectionName: string) {
 }
 
 export async function saveAssessmentAnswers(answers: Record<string, string>) {
-    await saveToFirestore('assessmentAnswers', { answers });
+    await saveToFirestore('userData', { assessmentAnswers: answers });
 }
 
 export async function getAssessmentAnswers() {
-    const data = await getFromFirestore('assessmentAnswers');
-    return data?.answers || null;
+    const data = await getFromFirestore('userData');
+    return (data as any)?.assessmentAnswers || null;
 }
 
 export async function saveCompanyContext(context: object) {
-    await saveToFirestore('companyContext', context);
+    await saveToFirestore('userData', { companyContext: context });
 }
 
 export async function getCompanyContext() {
-    return await getFromFirestore('companyContext');
+    const data = await getFromFirestore('userData');
+    return (data as any)?.companyContext || null;
 }
 
 export async function saveChecklistState(state: object) {
-    await saveToFirestore('checklistState', { state });
+    await saveToFirestore('userData', { checklistState: state });
 }
 
 export async function getChecklistState() {
-    const data = await getFromFirestore('checklistState');
-    return data?.state || {};
+    const data = await getFromFirestore('userData');
+    return (data as any)?.checklistState || {};
 }
 
 export async function saveCurrentTask(task: object) {
-    await saveToFirestore('currentTask', { task });
+     await saveToFirestore('userData', { currentTask: task });
 }
 
 export async function getCurrentTask() {
-    const data = await getFromFirestore('currentTask');
-    return data?.task || null;
+    const data = await getFromFirestore('userData');
+    return (data as any)?.currentTask || null;
 }
 
 export async function clearCurrentTask() {
-    await saveToFirestore('currentTask', {
+    await saveToFirestore('userData', { currentTask: null });
+}
