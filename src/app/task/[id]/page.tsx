@@ -97,9 +97,10 @@ export default function TaskPage() {
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
         const state = await getChecklistState();
-        if (state[task.complianceItemId]) {
-            state[task.complianceItemId].checkedTasks[task.id] = true;
+        if (!state[task.complianceItemId]) {
+            state[task.complianceItemId] = { data: null, checkedTasks: {} };
         }
+        state[task.complianceItemId].checkedTasks[task.id] = true;
         await saveChecklistState(state);
         await clearCurrentTask();
         router.push('/dashboard');
