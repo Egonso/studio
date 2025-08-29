@@ -28,7 +28,7 @@ const formatStep = (step: string) => {
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>');
     return html;
-};
+}
 
 export default function TaskPage() {
     const [task, setTask] = useState<Task | null>(null);
@@ -51,7 +51,6 @@ export default function TaskPage() {
         if (storedTask && storedTask.id === taskId) {
             setTask(storedTask as Task);
         } else {
-            await clearCurrentTask();
             router.push('/dashboard');
         }
     }, [router, taskId]);
@@ -61,10 +60,10 @@ export default function TaskPage() {
             router.push('/login');
             return;
         }
-        if (!user) return;
-
-        loadTask();
-    }, [router, taskId, user, authLoading, loadTask]);
+        if (user) {
+            loadTask();
+        }
+    }, [user, authLoading, loadTask]);
 
     useEffect(() => {
         if (!task || !user) return;
@@ -96,12 +95,16 @@ export default function TaskPage() {
 
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
-        const state = await getChecklistState();
-        if (!state[task.complianceItemId]) {
-            state[task.complianceItemId] = { data: null, checkedTasks: {} };
+        const currentState = await getChecklistState();
+        
+        if (!currentState[task.complianceItemId]) {
+            currentState[task.complianceItemId] = { data: null, checkedTasks: {} };
         }
-        state[task.complianceItemId].checkedTasks[task.id] = true;
-        await saveChecklistState(state);
+        
+        currentState[task.complianceItemId].checkedTasks[task.id] = true;
+        
+        await saveChecklistState(currentState);
+        
         await clearCurrentTask();
         router.push('/dashboard');
     };
