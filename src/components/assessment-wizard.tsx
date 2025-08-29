@@ -106,7 +106,7 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
   q_final_review: {
       final: true,
       title: "Bewertung abgeschlossen",
-      description: "Vielen Dank. Ihre Antworten wurden aufgezeichnet. Wir leiten Sie nun zu Ihrem persönlichen Compliance-Dashboard weiter, um die Ergebnisse im Detail zu sehen und nächste Schritte zu planen.",
+      description: "Vielen Dank. Ihre Antworten wurden aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge für Sie zu personalisieren.",
       dashboardState: {} // will be filled with current answers
   }
 };
@@ -140,11 +140,19 @@ export function AssessmentWizard() {
 
   const handleNext = () => {
     const question = questions[currentStepId];
+    
+    // Save answers and move to context page
+    localStorage.setItem('assessmentAnswers', JSON.stringify(answers));
+    localStorage.removeItem('checklistState'); // Reset checklist on new assessment
+    localStorage.removeItem('companyContext');
+
     if ('final' in question) {
-        // This is a final step.
-        localStorage.setItem('assessmentAnswers', JSON.stringify(answers));
-        localStorage.removeItem('checklistState'); // Reset checklist on new assessment
-        router.push('/dashboard');
+        // If it's a final step, decide where to go.
+        if(currentStepId === 'q_final_compliant') {
+            router.push('/dashboard');
+        } else {
+            router.push('/assessment/context');
+        }
         return;
     }
 
@@ -185,7 +193,7 @@ export function AssessmentWizard() {
               </CardContent>
               <CardFooter className="flex justify-end">
                   <Button onClick={handleNext}>
-                      Zum Dashboard
+                      {currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'}
                   </Button>
               </CardFooter>
           </Card>
