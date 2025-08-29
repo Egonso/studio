@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { checkOnboardingStatus } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
@@ -57,13 +58,13 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-              <img
-                src="https://placehold.co/600x400.png"
+              <Image
+                src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
                 width="600"
                 height="400"
-                alt="Hero"
+                alt="AI Act Compass Siegel"
                 data-ai-hint="compliance law technology"
-                className="mx-auto aspect-[3/2] overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
+                className="mx-auto aspect-[3/2] overflow-hidden rounded-xl object-contain sm:w-full lg:order-last"
               />
             </div>
           </div>
