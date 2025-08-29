@@ -69,6 +69,7 @@ export default function LoginPage() {
                 title: 'Registrierung nicht möglich',
                 description: 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
             });
+            setIsLoading(false);
             return; // Stop the process
         }
         await createUserWithEmailAndPassword(auth, email, data.password);
@@ -89,7 +90,9 @@ export default function LoginPage() {
           : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
       });
     } finally {
-      setIsLoading(false);
+      if (action === 'login' || action === 'signup' && router.pathname === '/login') {
+        setIsLoading(false);
+      }
     }
   };
 

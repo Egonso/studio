@@ -1,9 +1,11 @@
-# Anleitung: Firebase Function für Stripe-Webhooks bereitstellen
 
-Herzlichen Glückwunsch! Die Code-Implementierung ist abgeschlossen. Damit Ihr neuer Stripe-Webhook live funktioniert und sicher ist, müssen wir zwei Dinge tun:
+# Anleitung: Firebase Function & Regeln bereitstellen
+
+Herzlichen Glückwunsch! Die Code-Implementierung ist abgeschlossen. Damit Ihr neuer Stripe-Webhook und die Sicherheitsregeln live funktionieren, müssen wir drei Dinge tun:
 
 1.  **Die Cloud Function bereitstellen (deployen):** Wir laden den neuen Code in Ihr Firebase-Projekt hoch.
-2.  **Geheime Schlüssel (Secrets) sicher hinterlegen:** Wir teilen Firebase Ihre geheimen Stripe-Schlüssel mit, ohne sie direkt in den Code zu schreiben.
+2.  **Geheime Schlüssel (Secrets) sicher hinterlegen:** Wir teilen Firebase Ihre geheimen Stripe-Schlüssel mit.
+3.  **Firestore-Regeln bereitstellen:** Wir laden die neuen Sicherheitsregeln hoch, die den Datenzugriff steuern.
 
 Folgen Sie einfach diesen Schritten.
 
@@ -24,8 +26,6 @@ Folgen Sie einfach diesen Schritten.
 
 Unsere Cloud Function hat ihr eigenes, separates Verzeichnis. Wir müssen dorthin navigieren, bevor wir Befehle ausführen.
 
-Geben Sie den folgenden Befehl ein und drücken Sie Enter:
-
 ```bash
 cd functions
 ```
@@ -34,17 +34,29 @@ cd functions
 
 Genau wie Ihr Hauptprojekt benötigt auch die Function ihre eigenen Pakete (`stripe`, `firebase-admin`, etc.).
 
-Geben Sie den folgenden Befehl ein und drücken Sie Enter. Warten Sie, bis der Vorgang abgeschlossen ist:
-
 ```bash
 npm install
 ```
 
-### Schritt 4: Die Function bereitstellen (deployen)
+### Schritt 4: Zurück ins Hauptverzeichnis wechseln
 
-Jetzt laden wir den Code in die Cloud hoch. Firebase erkennt automatisch die neue `stripeWebhook`-Funktion.
+Wechseln Sie wieder eine Ebene nach oben, um die restlichen Befehle auszuführen.
 
-Geben Sie den folgenden Befehl ein und drücken Sie Enter. Dieser Vorgang kann einige Minuten dauern.
+```bash
+cd ..
+```
+
+### Schritt 5: Die Firestore-Regeln bereitstellen
+
+Dieser Befehl lädt die neue `firestore.rules`-Datei in Ihr Projekt hoch.
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+### Schritt 6: Die Function bereitstellen (deployen)
+
+Jetzt laden wir den Code der Funktion in die Cloud hoch.
 
 ```bash
 firebase deploy --only functions
@@ -54,9 +66,9 @@ Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung, die Ihnen auch die URL I
 
 ---
 
-### Schritt 5: Geheime Schlüssel (Environment Variables) hinzufügen
+### Schritt 7: Geheime Schlüssel (Environment Variables) hinzufügen
 
-Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen.
+Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen. **Sie müssen dies nur einmal tun.**
 
 1.  **Öffnen Sie die Google Cloud Console:**
     *   Gehen Sie zu [https://console.cloud.google.com/](https://console.cloud.google.com/).
@@ -88,4 +100,4 @@ Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen.
 
 ### Fertig!
 
-Das war's! Ihr Stripe-Webhook ist jetzt voll funktionsfähig und sicher konfiguriert. Neue Kunden werden automatisch in Firestore gespeichert, und die Registrierung ist auf diese Kunden beschränkt.
+Das war's! Ihr Stripe-Webhook und Ihre Firestore-Datenbank sind jetzt voll funktionsfähig und sicher konfiguriert. Neue Kunden werden automatisch in Firestore gespeichert, und die Registrierung ist auf diese Kunden beschränkt.
