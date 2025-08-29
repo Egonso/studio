@@ -173,7 +173,7 @@ export default function TaskPage() {
                                 <div key={index}>
                                     <h3 className="font-semibold mb-2">{section.title}</h3>
                                     <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: step.replace(/`([^`]*)`/g, '<code>$1</code>') }} />)}
+                                        {section.steps.map((step, stepIndex) => <li key={stepIndex} dangerouslySetInnerHTML={{ __html: step.replace(/`([^`]*)`/g, '<code class="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">$1</code>') }} />)}
                                     </ul>
                                 </div>
                             ))}
