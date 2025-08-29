@@ -1,5 +1,6 @@
 
 import type { ComplianceItem } from "@/lib/types";
+import type { ChecklistState } from "@/components/dashboard";
 
 export function getInitialComplianceData(): ComplianceItem[] {
     return [
@@ -93,3 +94,33 @@ export function deriveComplianceState(answers: Record<string, string>): Complian
     });
 }
 
+/**
+ * Recalculates the status of a compliance item based on its checklist state.
+ * If all tasks are checked, the status is upgraded to 'Compliant'.
+ */
+export function recalculateComplianceStatus(
+    item: ComplianceItem,
+    checklistItemState: ChecklistState[string] | undefined
+): ComplianceItem {
+    if (!checklistItemState || !checklistItemState.data || item.status === 'Compliant') {
+        return item;
+    }
+    
+    const { data: { checklist }, checkedTasks } = checklistItemState;
+
+    if (checklist.length === 0) {
+        return item;
+    }
+
+    const allTasksCompleted = checklist.every(task => checkedTasks[task.id]);
+
+    if (allTasksCompleted) {
+        return {
+            ...item,
+            status: 'Compliant',
+            details: 'Alle erforderlichen Maßnahmen wurden als erledigt markiert.'
+        };
+    }
+
+    return item;
+}

@@ -4,13 +4,13 @@
 import { AppHeader } from "@/components/app-header";
 import { Dashboard, type ChecklistState } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { deriveComplianceState } from "@/lib/compliance-logic";
+import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 
 
 export default function DashboardPage() {
-    const [complianceData, setComplianceData] = useState<ComplianceItem[] | null>(null);
+    const [initialComplianceData, setInitialComplianceData] = useState<ComplianceItem[] | null>(null);
     const [checklistState, setChecklistState] = useState<ChecklistState>(() => {
         if (typeof window !== 'undefined') {
             const savedState = localStorage.getItem('checklistState');
@@ -29,9 +29,20 @@ export default function DashboardPage() {
 
         const answers = JSON.parse(storedAnswers);
         const derivedData = deriveComplianceState(answers);
-        setComplianceData(derivedData);
+        setInitialComplianceData(derivedData);
 
     }, [router]);
+    
+    // This recalculates the compliance data whenever the checklist state changes.
+    const complianceData = useMemo(() => {
+        if (!initialComplianceData) return null;
+        
+        return initialComplianceData.map(item => 
+            recalculateComplianceStatus(item, checklistState[item.id])
+        );
+
+    }, [initialComplianceData, checklistState]);
+
 
     useEffect(() => {
         localStorage.setItem('checklistState', JSON.stringify(checklistState));
