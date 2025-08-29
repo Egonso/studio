@@ -50,14 +50,21 @@ export default function ContextPage() {
         if (file) {
             setFileName(file.name);
             const reader = new FileReader();
-            reader.onload = (event) => {
-                // We'll just pass the file name and a note that it's uploaded,
-                // as we can't read the content of binary files directly in the browser for the AI.
-                const fileContentPlaceholder = `Inhalt der Datei "${file.name}" wurde hochgeladen und wird für die Analyse berücksichtigt.`;
+            
+            // Check for simple text file types
+            if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.text')) {
+                 reader.onload = (event) => {
+                    const textContent = event.target?.result as string;
+                    field.onChange(textContent);
+                };
+                reader.readAsText(file);
+            } else {
+                // For binary files (PDF, DOCX, etc.), we can't read content directly.
+                // We'll just pass a placeholder.
+                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen, aber für zukünftige Analysen gespeichert werden.`;
                 field.onChange(fileContentPlaceholder);
-            };
-            // This is just to trigger the onload event. The actual content is not used.
-            reader.readAsDataURL(file); 
+                // We don't need to actually read the file for the placeholder
+            }
         }
     };
 
@@ -107,7 +114,7 @@ export default function ContextPage() {
                                     name="existingAuditData"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Vorhandene Audit-Daten (optional)</FormLabel>
+                                            <FormLabel>Vorhandene Dokumente (optional)</FormLabel>
                                             <FormControl>
                                                 <div>
                                                     <Input 

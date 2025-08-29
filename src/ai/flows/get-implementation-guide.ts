@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -23,6 +24,10 @@ const GetImplementationGuideInputSchema = z.object({
     .string()
     .optional()
     .describe('Die Selbsteinschätzung des Risikoprofils des Unternehmens.'),
+  existingAuditData: z
+    .string()
+    .optional()
+    .describe('Der Textinhalt relevanter, vom Benutzer hochgeladener Dokumente.'),
 });
 export type GetImplementationGuideInput = z.infer<typeof GetImplementationGuideInputSchema>;
 
@@ -54,6 +59,13 @@ Ein Benutzer benötigt eine detaillierte, umsetzbare Anleitung für die folgende
 *   **Unternehmensbeschreibung:** {{{companyDescription}}}
 {{#if riskProfile}}
 *   **Selbsteingeschätztes Risiko:** {{{riskProfile}}}
+{{/if}}
+{{#if existingAuditData}}
+*   **Vom Benutzer bereitgestelltes Dokument:**
+    ---
+    {{{existingAuditData}}}
+    ---
+    Beziehe dich bei deinen Empfehlungen explizit auf Inhalte aus diesem Dokument, wenn es relevant ist.
 {{/if}}
 Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen besonders relevant sind.
 {{/if}}

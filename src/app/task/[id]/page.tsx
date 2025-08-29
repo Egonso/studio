@@ -80,6 +80,7 @@ export default function TaskPage() {
                     taskDescription: task.description,
                     companyDescription: (companyContext as any).companyDescription,
                     riskProfile: (companyContext as any).riskProfile,
+                    existingAuditData: (companyContext as any).existingAuditData,
                 });
                 setGuide(result.guide);
             } catch (e) {
@@ -234,7 +235,7 @@ export default function TaskPage() {
                                         {analysisResult.isFulfilled ? <ShieldCheck className="h-4 w-4 text-green-700 dark:text-green-400" /> : <ShieldX className="h-4 w-4" />}
                                         <AlertTitle className={analysisResult.isFulfilled ? 'text-green-800 dark:text-green-300' : ''}>
                                             KI-Einschätzung: {analysisResult.isFulfilled ? "Anforderung scheint erfüllt" : "Anforderung scheint nicht erfüllt"}
-                                        </AlertTitle>
+                                        </Title>
                                         <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700 dark:text-green-400' : ''}>
                                             Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
                                         </AlertDescription>
