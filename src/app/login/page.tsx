@@ -15,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { saveAssessmentAnswers } from '@/lib/data-service';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -42,8 +41,6 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         await createUserWithEmailAndPassword(auth, data.email, data.password);
-        // After creating the user, we need to initialize their data
-        saveAssessmentAnswers({}); // Initialize with empty answers
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });
         router.push('/assessment');
       }
