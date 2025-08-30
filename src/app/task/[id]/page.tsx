@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useEffect, useState, useCallback, Fragment } from 'react';
+import { useEffect, useState, useCallback, Fragment, ChangeEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
@@ -50,6 +50,7 @@ const StepContent = ({ content }: { content: string }) => {
 export default function TaskPage() {
     const [task, setTask] = useState<Task | null>(null);
     const [documentText, setDocumentText] = useState("");
+    const [fileName, setFileName] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalyzeDocumentOutput | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -68,7 +69,6 @@ export default function TaskPage() {
         if (storedTask && storedTask.id === taskId) {
             setTask(storedTask as Task);
         } else {
-            // Task not found or mismatch, redirect to dashboard
             await clearCurrentTask();
             const projectId = getActiveProjectId();
             router.push(projectId ? `/dashboard?projectId=${projectId}`: '/projects');
@@ -135,6 +135,26 @@ export default function TaskPage() {
         router.push(projectId ? `/dashboard?projectId=${projectId}`: '/projects');
     };
     
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            setAnalysisResult(null);
+            
+            if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.text')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const textContent = event.target?.result as string;
+                    setDocumentText(textContent);
+                };
+                reader.readAsText(file);
+            } else {
+                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden. Die KI wird basierend auf dem Dateinamen und dem Aufgabenkontext allgemeine Ratschläge geben.`;
+                setDocumentText(fileContentPlaceholder);
+            }
+        }
+    };
+
     const handleAnalyze = async () => {
         if (!documentText || !task) return;
         setIsAnalyzing(true);
@@ -245,16 +265,28 @@ export default function TaskPage() {
                                 KI-gestützter Dokumenten-Check
                             </CardTitle>
                             <CardDescription>
-                                Fügen Sie hier den Text aus Ihrem relevanten Dokument ein (z.B. aus Word, Confluence, etc.), um eine schnelle KI-Analyse zu erhalten.
+                                Laden Sie hier Ihr relevantes Dokument hoch (z.B. PDF, Word, Text), um eine schnelle KI-Analyse zu erhalten.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <Textarea 
-                                placeholder="Fügen Sie hier den Text Ihres Dokuments ein..."
-                                className="min-h-[200px] text-sm"
-                                value={documentText}
-                                onChange={(e) => setDocumentText(e.target.value)}
-                            />
+                            <div className="space-y-2">
+                                <Input 
+                                    id="document-upload"
+                                    type="file"
+                                    className="hidden"
+                                    accept=".txt,.md,.text,.pdf,.doc,.docx"
+                                    onChange={handleFileChange}
+                                />
+                                <label htmlFor="document-upload" className="w-full">
+                                    <Button type="button" asChild className="w-full cursor-pointer">
+                                       <span>
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Dokument auswählen...
+                                       </span>
+                                    </Button>
+                                </label>
+                                {fileName && <p className="text-sm text-muted-foreground mt-2">Ausgewählte Datei: {fileName}</p>}
+                            </div>
                              <Button onClick={handleAnalyze} disabled={isAnalyzing || !documentText}>
                                 {isAnalyzing ? (
                                     <>
@@ -310,3 +342,5 @@ export default function TaskPage() {
         </div>
     );
 }
+
+    
