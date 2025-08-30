@@ -12,7 +12,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { designPhases, principlesData } from '@/lib/design-thinking-data';
 
 // Dynamically create Zod enums from the data files to ensure consistency
@@ -37,14 +37,14 @@ const PrincipleSchema = z.object({
 });
 
 
-export const GetDesignAdviceInputSchema = z.object({
+const GetDesignAdviceInputSchema = z.object({
   projectContext: z.string().describe('A brief description of the user\'s project or idea. E.g., "An AI chatbot for customer service" or "A tool for analyzing job applications."'),
   phase: DesignPhaseSchema.describe('The current design thinking phase the user is in.'),
   principle: PrincipleSchema.describe('The principle of trustworthy intelligence the user wants to focus on.'),
 });
 export type GetDesignAdviceInput = z.infer<typeof GetDesignAdviceInputSchema>;
 
-export const GetDesignAdviceOutputSchema = z.object({
+const GetDesignAdviceOutputSchema = z.object({
   sections: z.array(z.object({
     title: z.string().describe("The title of the advice section, e.g., 'Principle Lenses: Key Questions' or 'Opportunity Reframer'."),
     content: z.array(z.string()).describe("A list of concrete questions, patterns, or reframed opportunities."),
