@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -38,6 +38,7 @@ export interface ChecklistState {
 }
 
 interface DashboardProps {
+  projectName: string;
   complianceItems: ComplianceItem[];
   checklistState: ChecklistState;
   setChecklistState: React.Dispatch<React.SetStateAction<ChecklistState>>;
@@ -63,7 +64,7 @@ const statusConfig = {
 
 
 
-export function Dashboard({ complianceItems, checklistState, setChecklistState }: DashboardProps) {
+export function Dashboard({ projectName, complianceItems, checklistState, setChecklistState }: DashboardProps) {
   const router = useRouter();
 
   const compliantCount = complianceItems.filter(
@@ -133,9 +134,14 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div className="flex items-center justify-between space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          AI Act Compass
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Compliance Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            Übersicht für Ihr Projekt: <span className="font-semibold">{projectName}</span>
+          </p>
+        </div>
          <Link href="/audit-report" passHref>
              <Button variant="outline">
                 <FileText className="mr-2 h-4 w-4" />
@@ -146,8 +152,14 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
 
        <Tabs defaultValue="compliance" className="space-y-4">
             <TabsList>
-                <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="course" onClick={() => router.push('/kurs')}>Kursplattform</TabsTrigger>
+                <TabsTrigger value="compliance">
+                    <GanttChartSquare className="mr-2 h-4 w-4" />
+                    Compliance
+                </TabsTrigger>
+                <TabsTrigger value="course" onClick={() => router.push('/kurs')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Kursplattform
+                </TabsTrigger>
             </TabsList>
 
             <TabsContent value="compliance" className="space-y-4">
@@ -272,7 +284,7 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
                                                                             <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
                                                                         )}
                                                                         <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
-                                                                            {task.description}
+                                                                            <StepContent content={task.description} />
                                                                         </p>
                                                                     </div>
                                                                     {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
@@ -309,3 +321,28 @@ export function Dashboard({ complianceItems, checklistState, setChecklistState }
     </div>
   );
 }
+
+
+const StepContent = ({ content }: { content: string }) => {
+    const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+    return (
+        <span>
+            {parts.map((part, index) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return <strong key={index}>{part.slice(2, -2)}</strong>;
+                }
+                if (part.startsWith('*') && part.endsWith('*')) {
+                    return <em key={index}>{part.slice(1, -1)}</em>;
+                }
+                if (part.startsWith('`') && part.endsWith('`')) {
+                    return (
+                        <code key={index} className="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">
+                            {part.slice(1, -1)}
+                        </code>
+                    );
+                }
+                return <span key={index}>{part}</span>;
+            })}
+        </span>
+    );
+};

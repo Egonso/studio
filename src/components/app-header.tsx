@@ -5,9 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { LogOut, BookOpen } from "lucide-react";
+import { LogOut, BookOpen, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { auth } from "@/lib/firebase";
+import { clearActiveProjectId } from "@/lib/data-service";
+
 
 export function AppHeader() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export function AppHeader() {
 
   const handleLogout = async () => {
     await auth.signOut();
+    clearActiveProjectId();
     router.push('/login');
   };
 
@@ -33,8 +36,9 @@ export function AppHeader() {
       </Link>
       {user && (
         <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
-            <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Compliance
+            <Link href="/projects" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+                <LayoutDashboard className="h-4 w-4" />
+                Projekte
             </Link>
             <Link href="/kurs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
                 <BookOpen className="h-4 w-4" />

@@ -19,7 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { saveAssessmentAnswers } from "@/lib/data-service";
+import { saveAssessmentAnswers, getActiveProjectId } from "@/lib/data-service";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
 
@@ -101,12 +101,12 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
   q_final_compliant: {
       final: true,
       title: "Kein direkter Handlungsbedarf",
-      description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard weiter, das diesen Status widerspiegelt.",
+      description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Projekt weiter, das diesen Status widerspiegelt.",
   },
   q_final_review: {
       final: true,
       title: "Bewertung abgeschlossen",
-      description: "Vielen Dank. Ihre Antworten wurden aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge für Sie zu personalisieren.",
+      description: "Vielen Dank. Ihre Antworten wurden für dieses Projekt aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
   }
 };
 
@@ -128,6 +128,13 @@ export function AssessmentWizard() {
   };
 
   const handleNext = async () => {
+    const projectId = getActiveProjectId();
+    if (!projectId) {
+        // Should not happen if page guard is effective
+        router.push('/projects');
+        return;
+    }
+    
     const currentAnswers = {...answers};
     const value = currentAnswers[currentStepId];
     
@@ -136,7 +143,7 @@ export function AssessmentWizard() {
         setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
         if(currentStepId === 'q_final_compliant') {
-            router.push('/dashboard');
+            router.push(`/dashboard?projectId=${projectId}`);
         } else {
             router.push('/assessment/context');
         }
@@ -214,7 +221,7 @@ export function AssessmentWizard() {
       <CardHeader>
         <CardTitle>Compliance-Bewertung</CardTitle>
         <CardDescription>
-          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI Acts.
+          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI Acts für Ihr Projekt.
         </CardDescription>
         <Progress value={progress} className="mt-2" />
       </CardHeader>
@@ -230,8 +237,7 @@ export function AssessmentWizard() {
             <h3 className="font-semibold text-lg mb-4">{currentQuestionDef.title}</h3>
             <p className="mb-6">{currentQuestionDef.question}</p>
             <RadioGroup
-              onValuecha
-nge={handleAnswerChange}
+              onValueChange={handleAnswerChange}
               value={answers[currentStepId]}
               className="space-y-2"
             >

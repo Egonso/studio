@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import type { ChecklistState } from '@/components/dashboard';
 import { deriveComplianceState } from '@/lib/compliance-logic';
 import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { useAuth } from '@/context/auth-context';
-import { getAssessmentAnswers, getChecklistState } from '@/lib/data-service';
+import { getAssessmentAnswers, getChecklistState, getActiveProjectId, setActiveProjectId } from '@/lib/data-service';
 
 const statusConfig = {
     'Compliant': { badgeVariant: 'default' as const },
@@ -27,12 +27,14 @@ interface FullComplianceInfo extends ComplianceItem {
     checkedTasks?: Record<string, boolean>;
 }
 
-export default function AuditReportPage() {
+function AuditReportPageContent() {
     const [reportData, setReportData] = useState<FullComplianceInfo[] | null>(null);
     const [assessmentAnswers, setAssessmentAnswersData] = useState<Record<string, string> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const searchParams = useSearchParams();
+    const projectId = searchParams.get('projectId') || getActiveProjectId();
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -41,11 +43,18 @@ export default function AuditReportPage() {
         }
         if (!user) return;
 
+        if (!projectId) {
+            router.push('/projects');
+            return;
+        }
+        setActiveProjectId(projectId);
+
         const generateReport = async () => {
             const answers = await getAssessmentAnswers();
             const checklistStateData = await getChecklistState();
             
-            if (!answers) {
+            if (!answers || Object.keys(answers).length === 0) {
+                // If no assessment, go do it.
                 router.push('/assessment');
                 return;
             }
@@ -93,7 +102,7 @@ export default function AuditReportPage() {
 
         generateReport();
 
-    }, [router, user, authLoading]);
+    }, [router, user, authLoading, projectId]);
     
     if (isLoading || authLoading) {
         return (
@@ -186,4 +195,20 @@ export default function AuditReportPage() {
             </main>
         </div>
     );
+}
+
+
+export default function AuditReportPage() {
+    return (
+        <Suspense fallback={
+             <div className="flex flex-col min-h-screen bg-background">
+                <AppHeader />
+                <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            </div>
+        }>
+            <AuditReportPageContent />
+        </Suspense>
+    )
 }

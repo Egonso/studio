@@ -4,55 +4,74 @@
 import { AppHeader } from "@/components/app-header";
 import { Dashboard, type ChecklistState } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getAssessmentAnswers, getChecklistState, saveChecklistState, checkOnboardingStatus } from "@/lib/data-service";
+import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId, getProjectDocRef } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
-export default function DashboardPage() {
+
+function DashboardPageContent() {
     const [initialComplianceData, setInitialComplianceData] = useState<ComplianceItem[] | null>(null);
     const [checklistState, setChecklistState] = useState<ChecklistState>({});
     const [isLoading, setIsLoading] = useState(true);
+    const [projectName, setProjectName] = useState('');
+    
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user, loading: authLoading } = useAuth();
+    
+    const projectId = searchParams.get('projectId');
 
-    const loadData = useCallback(async () => {
+    const loadData = useCallback(async (currentProjectId: string) => {
+        if (!user) return;
         setIsLoading(true);
 
-        const onboardingPath = await checkOnboardingStatus();
-        if (onboardingPath !== '/dashboard') {
-            router.push(onboardingPath);
+        // Ensure active project ID is set
+        setActiveProjectId(currentProjectId);
+
+        // Fetch project name
+        const projectDocRef = doc(db, `users/${user.uid}/projects`, currentProjectId);
+        const projectSnap = await getDoc(projectDocRef);
+        if (projectSnap.exists()) {
+            setProjectName(projectSnap.data().projectName);
+        } else {
+            // Project not found, redirect
+            router.push('/projects');
             return;
         }
 
         const answers = await getAssessmentAnswers();
-        // This check is redundant due to checkOnboardingStatus, but kept as a safeguard
-        if (!answers) {
+        if (!answers || Object.keys(answers).length === 0) {
             router.push('/assessment');
             return;
         }
 
         const savedChecklistState = await getChecklistState();
-
         const derivedData = deriveComplianceState(answers);
         setInitialComplianceData(derivedData);
+
         if (savedChecklistState) {
             setChecklistState(savedChecklistState);
         }
         setIsLoading(false);
-    }, [router]);
+    }, [router, user]);
 
     useEffect(() => {
         if (!authLoading && !user) {
             router.push('/login');
             return;
         }
-        if (user) {
-            loadData();
+        if (user && projectId) {
+            loadData(projectId);
+        } else if (!authLoading && !projectId) {
+            // If no project ID in URL, redirect to project selection
+            router.push('/projects');
         }
-    }, [router, user, authLoading, loadData]);
+    }, [router, user, authLoading, projectId, loadData]);
 
     const complianceData = useMemo(() => {
         if (!initialComplianceData) return null;
@@ -86,11 +105,27 @@ export default function DashboardPage() {
             <AppHeader />
             <main className="flex-1">
                 <Dashboard 
+                    projectName={projectName}
                     complianceItems={complianceData}
                     checklistState={checklistState}
                     setChecklistState={setChecklistState}
                 />
             </main>
         </div>
+    );
+}
+
+export default function DashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen w-full flex-col">
+                <AppHeader />
+                <div className="flex flex-1 items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            </div>
+        }>
+            <DashboardPageContent />
+        </Suspense>
     );
 }

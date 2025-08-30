@@ -2,121 +2,203 @@
 'use client';
 
 import { auth, db } from './firebase';
-import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 // Helper to get the current user's ID
 const getUserId = (): string | null => {
     return auth.currentUser?.uid || null;
 };
 
-// --- Firestore Document References ---
+// --- New Project-Based Data Structure ---
 
-const getAppDataDocRef = (userId: string, docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'currentTask' | 'courseProgress') => {
-    return doc(db, `users/${userId}/appData`, docId);
-};
+const getProjectsCollectionRef = (userId: string) => {
+    return collection(db, `users/${userId}/projects`);
+}
+
+const getProjectDocRef = (userId: string, projectId: string) => {
+    return doc(db, `users/${userId}/projects`, projectId);
+}
 
 
-// --- Generic Data Functions ---
+// --- Project Management Functions ---
 
-const saveData = async <T extends object>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'courseProgress', data: T): Promise<void> => {
+export async function createProject(projectName: string) {
     const userId = getUserId();
-    if (!userId) {
-        throw new Error("User not authenticated");
-    }
-    const docRef = getAppDataDocRef(userId, docId);
-    await setDoc(docRef, data, { merge: true });
-};
+    if (!userId) throw new Error("User not authenticated");
 
-const getData = async <T>(docId: 'assessmentAnswers' | 'companyContext' | 'checklistState' | 'courseProgress'): Promise<T | null> => {
+    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const newProjectRef = await addDoc(projectsCollectionRef, {
+        projectName,
+        createdAt: serverTimestamp(),
+        // Initialize empty data to prevent errors on first load
+        assessmentAnswers: {},
+        companyContext: {},
+        checklistState: {},
+    });
+
+    return newProjectRef.id;
+}
+
+export async function getUserProjects() {
     const userId = getUserId();
-    if (!userId) {
-        return null;
+    if (!userId) return [];
+
+    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as { id: string, projectName: string, createdAt: any }));
+}
+
+
+// --- Active Project State (using sessionStorage) ---
+
+export function setActiveProjectId(projectId: string) {
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('activeProjectId', projectId);
     }
-    const docRef = getAppDataDocRef(userId, docId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() as T : null;
-};
+}
+
+export function getActiveProjectId(): string | null {
+    if (typeof window !== 'undefined') {
+        return window.sessionStorage.getItem('activeProjectId');
+    }
+    return null;
+}
+
+export function clearActiveProjectId() {
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('activeProjectId');
+    }
+}
 
 
-// --- Specific Data Functions ---
+// --- Project-Specific Data Functions ---
 
+const getProjectData = async <T extends keyof ProjectData>(field: T): Promise<ProjectData[T] | null> => {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return null;
+
+    const projectDocRef = getProjectDocRef(userId, projectId);
+    const docSnap = await getDoc(projectDocRef);
+
+    if (docSnap.exists()) {
+        const projectData = docSnap.data() as ProjectData;
+        return projectData[field] || null;
+    }
+    return null;
+}
+
+const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const projectDocRef = getProjectDocRef(userId, projectId);
+    await setDoc(projectDocRef, data, { merge: true });
+}
+
+interface ProjectData {
+    assessmentAnswers: Record<string, string>;
+    companyContext: object;
+    checklistState: object;
+    courseProgress: { completedVideoIds: string[] };
+}
+
+// These functions now operate on the active project
 export async function saveAssessmentAnswers(answers: Record<string, string>) {
-    await saveData('assessmentAnswers', { answers });
-    const userId = getUserId();
-    if (!userId) return;
-    await setDoc(getAppDataDocRef(userId, 'checklistState'), {}, { merge: false }); // Overwrite
-    await setDoc(getAppDataDocRef(userId, 'companyContext'), {}, { merge: false }); // Overwrite
+    // When new assessment is saved, clear old context and checklist state for this project
+    await saveProjectData({ 
+        assessmentAnswers: answers,
+        companyContext: {},
+        checklistState: {}
+    });
 }
 
 export async function getAssessmentAnswers(): Promise<Record<string, string> | null> {
-    const data = await getData<{ answers: Record<string, string> }>('assessmentAnswers');
-    return data ? data.answers : null;
+    return getProjectData('assessmentAnswers');
 }
 
 export async function saveCompanyContext(context: object) {
-    await saveData('companyContext', context);
+    await saveProjectData({ companyContext: context });
 }
 
 export async function getCompanyContext(): Promise<object | null> {
-    const data = await getData<object>('companyContext');
-    return data ? data : null;
+    return getProjectData('companyContext');
 }
 
 export async function saveChecklistState(state: object) {
-    await saveData('checklistState', state);
+    await saveProjectData({ checklistState: state });
 }
 
 export async function getChecklistState() {
-    const state = await getData<any>('checklistState');
+    const state = await getProjectData('checklistState');
     return state || {};
 }
 
+
+// --- Course Progress (remains user-specific, not project-specific) ---
+const getUserDocRef = (userId: string, docId: 'courseProgress' | 'currentTask') => {
+    return doc(db, `users/${userId}/appData`, docId);
+};
+
+export async function saveCourseProgress(completedVideoIds: string[]) {
+    const userId = getUserId();
+    if (!userId) throw new Error("User not authenticated");
+    const docRef = getUserDocRef(userId, 'courseProgress');
+    await setDoc(docRef, { completedVideoIds }, { merge: true });
+}
+
+export async function getCourseProgress(): Promise<string[]> {
+    const userId = getUserId();
+    if (!userId) return [];
+    const docRef = getUserDocRef(userId, 'courseProgress');
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+    return data?.completedVideoIds || [];
+}
+
+
+// --- Current Task (remains user-specific for simplicity) ---
 export async function saveCurrentTask(task: object) {
     const userId = getUserId();
     if (!userId) return;
-    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
-    await setDoc(taskDocRef, task);
+    await setDoc(getUserDocRef(userId, 'currentTask'), task);
 }
 
 export async function getCurrentTask() {
     const userId = getUserId();
     if (!userId) return null;
-    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
-    const docSnap = await getDoc(taskDocRef);
+    const docSnap = await getDoc(getUserDocRef(userId, 'currentTask'));
     return docSnap.exists() ? docSnap.data() : null;
 }
 
 export async function clearCurrentTask() {
     const userId = getUserId();
     if (!userId) return;
-    const taskDocRef = getAppDataDocRef(userId, 'currentTask');
-    await deleteDoc(taskDocRef);
-}
-
-export async function saveCourseProgress(completedVideoIds: string[]) {
-    await saveData('courseProgress', { completedVideoIds });
-}
-
-export async function getCourseProgress(): Promise<string[]> {
-    const data = await getData<{ completedVideoIds: string[] }>('courseProgress');
-    return data?.completedVideoIds || [];
+    await deleteDoc(getUserDocRef(userId, 'currentTask'));
 }
 
 
-/**
- * Checks if the user has completed all onboarding steps.
- * Returns the path to redirect to if a step is incomplete.
- * @returns {Promise<string>} '/dashboard' if complete, otherwise the path to the incomplete step.
- */
-export async function checkOnboardingStatus(): Promise<string> {
+// --- Onboarding Logic ---
+export async function checkOnboardingStatus(projectId?: string): Promise<string> {
+    const activeProjectId = projectId || getActiveProjectId();
+
+    if (!activeProjectId) {
+        return '/projects';
+    }
+
     const answers = await getAssessmentAnswers();
     if (!answers || Object.keys(answers).length === 0) {
         return '/assessment';
     }
 
-    // A user who selects "no AI" in the first question is compliant and has no further steps.
     if (answers.q1 === 'no') {
-        return '/dashboard';
+        return `/dashboard?projectId=${activeProjectId}`;
     }
 
     const context = await getCompanyContext();
@@ -124,5 +206,5 @@ export async function checkOnboardingStatus(): Promise<string> {
         return '/assessment/context';
     }
 
-    return '/dashboard';
+    return `/dashboard?projectId=${activeProjectId}`;
 }

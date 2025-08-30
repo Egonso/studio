@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/app-header";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { getActiveProjectId } from "@/lib/data-service";
 
 export default function AssessmentPage() {
   const { user, loading } = useAuth();
@@ -14,6 +15,11 @@ export default function AssessmentPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+      return;
+    }
+    // Ensure an active project is set before starting an assessment
+    if (!loading && user && !getActiveProjectId()) {
+        router.push('/projects');
     }
   }, [user, loading, router]);
   

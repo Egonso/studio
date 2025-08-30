@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Upload, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { saveCompanyContext } from '@/lib/data-service';
+import { saveCompanyContext, getActiveProjectId } from '@/lib/data-service';
 
 const contextSchema = z.object({
     companyDescription: z.string().min(10, { message: "Bitte beschreiben Sie Ihr Unternehmen etwas ausführlicher." }),
@@ -42,6 +42,10 @@ export default function ContextPage() {
     useEffect(() => {
         if (!loading && !user) {
             router.push('/login');
+            return;
+        }
+        if (!loading && user && !getActiveProjectId()) {
+            router.push('/projects');
         }
     }, [user, loading, router]);
     
@@ -51,7 +55,6 @@ export default function ContextPage() {
             setFileName(file.name);
             const reader = new FileReader();
             
-            // Check for simple text file types
             if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.text')) {
                  reader.onload = (event) => {
                     const textContent = event.target?.result as string;
@@ -59,19 +62,21 @@ export default function ContextPage() {
                 };
                 reader.readAsText(file);
             } else {
-                // For binary files (PDF, DOCX, etc.), we can't read content directly.
-                // We'll just pass a placeholder.
                 const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen, aber für zukünftige Analysen gespeichert werden.`;
                 field.onChange(fileContentPlaceholder);
-                // We don't need to actually read the file for the placeholder
             }
         }
     };
 
     const onSubmit = async (data: ContextFormData) => {
+        if (!getActiveProjectId()) {
+            router.push('/projects');
+            return;
+        }
         setIsSubmitting(true);
         await saveCompanyContext(data);
-        router.push('/dashboard');
+        const projectId = getActiveProjectId();
+        router.push(`/dashboard?projectId=${projectId}`);
     };
 
     if (loading || !user) {

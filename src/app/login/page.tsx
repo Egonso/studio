@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { checkOnboardingStatus } from '@/lib/data-service';
+import { getUserProjects } from '@/lib/data-service';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -58,9 +58,9 @@ export default function LoginPage() {
     try {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
-        toast({ title: 'Anmeldung erfolgreich', description: 'Prüfe Ihren Status...' });
-        const redirectPath = await checkOnboardingStatus();
-        router.push(redirectPath);
+        toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
+        // After login, always go to the projects page to select a project.
+        router.push('/projects');
       } else { // signup
         const isEligible = await canRegister(email);
         if (!isEligible) {
@@ -73,8 +73,9 @@ export default function LoginPage() {
             return; // Stop the process
         }
         await createUserWithEmailAndPassword(auth, email, data.password);
-        toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr Profil einzurichten.' });
-        router.push('/assessment');
+        toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
+        // After signup, take them straight to the project creation page.
+        router.push('/projects');
       }
     } catch (error: any) {
       console.error(`${action} failed`, error);
@@ -90,9 +91,7 @@ export default function LoginPage() {
           : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
       });
     } finally {
-      if (action === 'login' || action === 'signup' && router.pathname === '/login') {
         setIsLoading(false);
-      }
     }
   };
 
@@ -117,7 +116,7 @@ export default function LoginPage() {
           <Card>
             <CardHeader>
               <CardTitle>Anmelden</CardTitle>
-              <CardDescription>Geben Sie Ihre Daten ein, um auf Ihr Dashboard zuzugreifen.</CardDescription>
+              <CardDescription>Geben Sie Ihre Daten ein, um auf Ihre Projekte zuzugreifen.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>

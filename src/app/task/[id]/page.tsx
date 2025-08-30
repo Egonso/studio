@@ -14,7 +14,7 @@ import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
-import { getCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask } from '@/lib/data-service';
+import { getCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask, getActiveProjectId } from '@/lib/data-service';
 
 interface Task extends GetComplianceChecklistOutput_Checklist {
     complianceItemId: string;
@@ -70,7 +70,8 @@ export default function TaskPage() {
         } else {
             // Task not found or mismatch, redirect to dashboard
             await clearCurrentTask();
-            router.push('/dashboard');
+            const projectId = getActiveProjectId();
+            router.push(projectId ? `/dashboard?projectId=${projectId}`: '/projects');
         }
     }, [router, taskId]);
 
@@ -80,9 +81,13 @@ export default function TaskPage() {
             return;
         }
         if (user) {
+            if (!getActiveProjectId()) {
+                router.push('/projects');
+                return;
+            }
             loadTask();
         }
-    }, [user, authLoading, loadTask]);
+    }, [user, authLoading, loadTask, router]);
 
     useEffect(() => {
         if (!task || !user) return;
@@ -126,7 +131,8 @@ export default function TaskPage() {
         
         await saveChecklistState(currentState);
         await clearCurrentTask();
-        router.push('/dashboard');
+        const projectId = getActiveProjectId();
+        router.push(projectId ? `/dashboard?projectId=${projectId}`: '/projects');
     };
     
     const handleAnalyze = async () => {
@@ -148,6 +154,11 @@ export default function TaskPage() {
             setIsAnalyzing(false);
         }
     };
+    
+    const handleBackToDashboard = () => {
+        const projectId = getActiveProjectId();
+        router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
+    };
 
     if (authLoading || !task) {
         return (
@@ -167,7 +178,7 @@ export default function TaskPage() {
                 <div className="w-full max-w-4xl space-y-8">
                     <Card className="w-full shadow-lg">
                         <CardHeader>
-                            <Button variant="ghost" size="sm" className="justify-start p-0 h-auto mb-4" onClick={() => router.push('/dashboard')}>
+                            <Button variant="ghost" size="sm" className="justify-start p-0 h-auto mb-4" onClick={handleBackToDashboard}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Zurück zum Dashboard
                             </Button>
@@ -176,7 +187,7 @@ export default function TaskPage() {
                         </CardHeader>
                         <CardContent>
                             <blockquote className="mt-2 border-l-2 pl-6 italic">
-                                "{task.description}"
+                                <StepContent content={task.description} />
                             </blockquote>
                         </CardContent>
                     </Card>
@@ -266,7 +277,8 @@ export default function TaskPage() {
                                         </AlertTitle>
                                         <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700 dark:text-green-400' : ''}>
                                             Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
-                                        </AlertDescription>
+                                        </Aler
+tDescription>
                                     </Alert>
 
                                     <div>

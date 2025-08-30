@@ -8,9 +8,9 @@ import { AppHeader } from "@/components/app-header";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
-import { checkOnboardingStatus } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import { getActiveProjectId, setActiveProjectId, getUserProjects } from "@/lib/data-service";
 
 export default function Home() {
   const router = useRouter();
@@ -18,9 +18,26 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-      checkOnboardingStatus().then(path => {
-        router.push(path);
-      });
+        // When user is authenticated, we first need to figure out where to go.
+        // It could be projects page, or an active project's dashboard.
+        const checkUserStatus = async () => {
+            const activeProjectId = getActiveProjectId();
+            if (activeProjectId) {
+                router.push(`/dashboard?projectId=${activeProjectId}`);
+            } else {
+                // If no project is active, check if they have any projects
+                const projects = await getUserProjects();
+                if (projects.length > 0) {
+                    // Default to the first project if none is active
+                    setActiveProjectId(projects[0].id);
+                    router.push(`/dashboard?projectId=${projects[0].id}`);
+                } else {
+                    // No projects, send to project creation page
+                    router.push('/projects');
+                }
+            }
+        };
+        checkUserStatus();
     }
   }, [user, loading, router]);
   
