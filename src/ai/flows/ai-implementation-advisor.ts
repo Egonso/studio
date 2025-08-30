@@ -13,8 +13,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const AiImplementationAdvisorInputSchema = z.object({
-  companyDescription: z.string().describe("Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten."),
-  challenge: z.string().describe("Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'."),
+  companyDescription: z.string().min(10, "Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten. Kann auch den Inhalt von hochgeladenen Dokumenten enthalten.").describe("Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten. Kann auch den Inhalt von hochgeladenen Dokumenten enthalten."),
+  challenge: z.string().min(10, "Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'.").describe("Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'."),
 });
 export type AiImplementationAdvisorInput = z.infer<typeof AiImplementationAdvisorInputSchema>;
 
@@ -67,3 +67,5 @@ const implementationAdvisorFlow = ai.defineFlow(
     return output!;
   }
 );
+
+    

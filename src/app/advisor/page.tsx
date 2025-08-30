@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AppHeader } from '@/components/app-header';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Wand2, Lightbulb, TrendingUp } from 'lucide-react';
+import { Loader2, Wand2, Lightbulb, TrendingUp, Upload, Info } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -21,8 +21,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 
 const AiImplementationAdvisorInputSchema = z.object({
-  companyDescription: z.string().describe("Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten."),
-  challenge: z.string().describe("Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'."),
+  companyDescription: z.string().min(10, { message: "Bitte beschreiben Sie Ihr Unternehmen etwas ausführlicher."}),
+  challenge: z.string().min(10, { message: "Bitte beschreiben Sie Ihre Herausforderung etwas ausführlicher."}),
 });
 
 export default function AdvisorPage() {
@@ -31,6 +31,7 @@ export default function AdvisorPage() {
     const [result, setResult] = useState<AiImplementationAdvisorOutput | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(null);
 
     const form = useForm<AiImplementationAdvisorInput>({
         resolver: zodResolver(AiImplementationAdvisorInputSchema),
@@ -39,6 +40,34 @@ export default function AdvisorPage() {
             challenge: '',
         },
     });
+
+     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+
+            const setContent = (content: string) => {
+                const currentDescription = form.getValues("companyDescription");
+                const newDescription = currentDescription 
+                    ? `${currentDescription}\n\n---\n[Inhalt von ${file.name}]:\n${content}`
+                    : `[Inhalt von ${file.name}]:\n${content}`;
+                form.setValue("companyDescription", newDescription, { shouldValidate: true });
+            };
+
+            if (file.type.startsWith('text/')) {
+                reader.onload = (event) => {
+                    const textContent = event.target?.result as string;
+                    setContent(textContent);
+                };
+                reader.readAsText(file);
+            } else {
+                const placeholder = `Platzhalter für Datei: "${file.name}". Der Inhalt kann nicht direkt gelesen werden.`;
+                setContent(placeholder);
+            }
+        }
+    };
+
 
     if (authLoading) {
         return (
@@ -104,14 +133,40 @@ export default function AdvisorPage() {
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Ihr Unternehmen</FormLabel>
+                                                    <Alert variant="default" className="mt-2 text-xs">
+                                                        <Info className="h-4 w-4" />
+                                                        <AlertTitle>Hinweis zur Inhaltsanalyse</AlertTitle>
+                                                        <AlertDescription>
+                                                          Für eine Analyse des Inhalts von Dokumenten, laden Sie bitte eine Textdatei (.txt, .md) hoch oder kopieren Sie den Text manuell aus Ihrer PDF-/Word-Datei in dieses Feld.
+                                                        </AlertDescription>
+                                                    </Alert>
                                                     <FormControl>
                                                         <Textarea
-                                                            placeholder="Beschreiben Sie kurz Ihre Branche, Ihre Produkte/Dienstleistungen und Ihre Kunden."
-                                                            className="min-h-[100px]"
+                                                            placeholder="Beschreiben Sie kurz Ihre Branche, Ihre Produkte/Dienstleistungen und Ihre Kunden. Sie können hier Text eingeben oder eine Datei hochladen."
+                                                            className="min-h-[120px] mt-2"
                                                             {...field}
                                                             disabled={isLoading}
                                                         />
                                                     </FormControl>
+                                                     <div className="pt-2">
+                                                        <Input 
+                                                            id="context-file-upload"
+                                                            type="file"
+                                                            className="hidden"
+                                                            accept=".txt,.md,.text"
+                                                            onChange={handleFileChange}
+                                                            disabled={isLoading}
+                                                        />
+                                                        <label htmlFor="context-file-upload" className="w-full">
+                                                            <Button type="button" asChild className="w-full cursor-pointer" variant="outline" disabled={isLoading}>
+                                                            <span>
+                                                                    <Upload className="mr-2 h-4 w-4" />
+                                                                    Kontext-Dokument hochladen...
+                                                            </span>
+                                                            </Button>
+                                                        </label>
+                                                        {fileName && <p className="text-xs text-muted-foreground mt-2">Zuletzt hochgeladen: {fileName}</p>}
+                                                    </div>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
@@ -136,7 +191,7 @@ export default function AdvisorPage() {
                                         />
                                     </CardContent>
                                     <CardFooter>
-                                        <Button type="submit" className="w-full" disabled={isLoading}>
+                                        <Button type="submit" className="w-full" disabled={isLoading || !form.formState.isValid}>
                                             {isLoading ? (
                                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analysiere...</>
                                             ) : "Lösungsvorschläge erhalten"}
@@ -201,3 +256,5 @@ export default function AdvisorPage() {
         </div>
     );
 }
+
+    
