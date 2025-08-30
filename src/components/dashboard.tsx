@@ -271,7 +271,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                                             {state.data.checklist.map((task) => {
                                                                 const isChecked = !!state.checkedTasks[task.id];
                                                                 const taskProps = {
-                                                                    key: task.id,
                                                                     onClick: () => handleTaskClick(task, item),
                                                                     className: cn(
                                                                         "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
@@ -300,11 +299,11 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                                                 );
 
                                                                 if (isCompliant || isChecked) {
-                                                                    return <div {...taskProps}>{content}</div>;
+                                                                    return <div key={task.id} {...taskProps}>{content}</div>;
                                                                 }
 
                                                                 return (
-                                                                    <div {...taskProps}>
+                                                                    <div key={task.id} {...taskProps}>
                                                                         {content}
                                                                     </div>
                                                                 );
