@@ -41,11 +41,6 @@ export async function createProject(projectName: string) {
             antiPatternAnalysis: null,
         },
         exportedInsights: [],
-        coachingData: {
-            horizont: {},
-            fundament: {},
-            hebel: {},
-        },
     });
 
     return newProjectRef.id;
@@ -121,7 +116,6 @@ interface ProjectData {
     designCanvas: object;
     courseProgress: { completedVideoIds: string[] };
     exportedInsights: string[];
-    coachingData: Record<'horizont' | 'fundament' | 'hebel', Record<string, string>>;
 }
 
 // These functions now operate on the active project
@@ -173,23 +167,6 @@ export async function getExportedInsights(): Promise<string[]> {
 export async function saveExportedInsight(insight: string) {
     const currentInsights = await getExportedInsights();
     await saveProjectData({ exportedInsights: [...currentInsights, insight] });
-}
-
-export async function saveCoachingData(pathId: 'horizont' | 'fundament' | 'hebel', answers: Record<string, string>) {
-    const userId = getUserId();
-    const projectId = getActiveProjectId();
-    if (!userId || !projectId) return;
-
-    const projectRef = getProjectDocRef(userId, projectId);
-    // Use dot notation to update a nested field
-    await updateDoc(projectRef, {
-        [`coachingData.${pathId}`]: answers
-    });
-}
-
-export async function getCoachingData(pathId: 'horizont' | 'fundament' | 'hebel'): Promise<Record<string, string> | null> {
-    const allCoachingData = await getProjectData('coachingData');
-    return allCoachingData ? allCoachingData[pathId] : null;
 }
 
 

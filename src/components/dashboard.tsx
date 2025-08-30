@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare, Sparkles, Wand2, Scaling } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare, Sparkles, Wand2 } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -160,10 +160,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     <Sparkles className="mr-2 h-4 w-4" />
                     Compliance by Design
                 </TabsTrigger>
-                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
-                    <Scaling className="mr-2 h-4 w-4" />
-                    Compliance by Scaling
-                </TabsTrigger>
                 <TabsTrigger value="course" onClick={() => router.push('/kurs')}>
                     <BookOpen className="mr-2 h-4 w-4" />
                     Kursplattform
@@ -271,6 +267,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                                             {state.data.checklist.map((task) => {
                                                                 const isChecked = !!state.checkedTasks[task.id];
                                                                 const taskProps = {
+                                                                    key: task.id,
                                                                     onClick: () => handleTaskClick(task, item),
                                                                     className: cn(
                                                                         "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
@@ -299,11 +296,11 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                                                 );
 
                                                                 if (isCompliant || isChecked) {
-                                                                    return <div key={task.id} {...taskProps}>{content}</div>;
+                                                                    return <div {...taskProps}>{content}</div>;
                                                                 }
 
                                                                 return (
-                                                                    <div key={task.id} {...taskProps}>
+                                                                    <div {...taskProps}>
                                                                         {content}
                                                                     </div>
                                                                 );
@@ -322,9 +319,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </div>
             </TabsContent>
              <TabsContent value="cbd">
-                 {/* Content will be handled by /cbs page, this just makes the tab exist */}
-            </TabsContent>
-            <TabsContent value="cbs">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
             </TabsContent>
             <TabsContent value="course">
@@ -359,5 +353,3 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
-
-    

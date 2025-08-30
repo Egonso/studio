@@ -1,101 +1,238 @@
+'use client';
 
-export interface CoachingStep {
-    id: string;
-    title: string;
-    question: string;
-    placeholder: string;
-    hasFileUpload?: boolean;
-}
+import { auth, db } from './firebase';
+import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
 
-export interface CoachingPath {
-    id: 'horizont' | 'fundament' | 'hebel';
-    title: string;
-    description: string;
-    steps: CoachingStep[];
-}
-
-interface CoachingData {
-    horizont: CoachingPath;
-    fundament: CoachingPath;
-    hebel: CoachingPath;
-}
-
-
-export const coachingData: CoachingData = {
-    horizont: {
-        id: "horizont",
-        title: "Vision Reverse Engineering",
-        description: "Wir starten beim unmöglichen Ziel und arbeiten uns zurück zur Gegenwart.",
-        steps: [
-            {
-                id: "h1",
-                title: "1. Vision formulieren",
-                question: "Beschreiben Sie die ideale Zukunft für Ihr Unternehmen oder Ihr Produkt in 3-5 Jahren. Wie sieht Erfolg aus? Was haben Sie erreicht? Seien Sie ambitioniert und inspirierend.",
-                placeholder: "Beispiel: Wir sind der bekannteste Anbieter für KI-gestützte Compliance-Lösungen im deutschsprachigen Raum. Unsere Kunden vertrauen uns, weil unsere Tools ihnen nachweislich Zeit sparen und Sicherheit geben...",
-                hasFileUpload: true,
-            },
-            {
-                id: "h2",
-                title: "2. Das 'unmögliche' Ziel",
-                question: "Stellen Sie sich vor, Sie müssten diese Vision nicht in 3 Jahren, sondern in 6 Monaten erreichen. Welche eine, radikale Sache müssten Sie tun, um auch nur eine Chance zu haben? Ignorieren Sie für den Moment alle Einschränkungen.",
-                placeholder: "Beispiel: Wir müssten eine Partnerschaft mit einem der größten Branchenverbände eingehen und unser Tool als Standard für alle Mitglieder etablieren.",
-            },
-            {
-                id: "h3",
-                title: "3. Prinzipien als Verstärker",
-                question: "Wie können die Prinzipien des Manifests Ihr 'unmögliches' Ziel noch wertvoller machen? Wie stellen Sie z.B. Fairness und Transparenz sicher, um das Vertrauen für die große Partnerschaft zu gewinnen?",
-                placeholder: "Beispiel: Indem wir unsere Algorithmen von einer unabhängigen Stelle prüfen lassen (Transparenz) und öffentlich dokumentieren, welche Daten wir wie verarbeiten (Verantwortung), schaffen wir das nötige Vertrauen.",
-            }
-        ]
-    },
-    fundament: {
-        id: "fundament",
-        title: "Bottleneck-Identifikation",
-        description: "Wir finden den einen Engpass, der Ihr Wachstum am stärksten bremst.",
-        steps: [
-            {
-                id: "f1",
-                title: "1. Ziel definieren",
-                question: "Was ist das konkrete, messbare Ziel, das Sie aktuell nicht wie gewünscht erreichen? Wo stagniert Ihr Fortschritt?",
-                placeholder: "Beispiel: Wir wollen die Anzahl der Support-Tickets, die manuell beantwortet werden müssen, innerhalb von 3 Monaten um 50% reduzieren, aber wir kommen nicht voran.",
-            },
-            {
-                id: "f2",
-                title: "2. Engpass analysieren",
-                question: "Was ist die tiefere Ursache, der wahre Engpass, der Sie blockiert? Fragen Sie 'Warum?' - mindestens dreimal.",
-                placeholder: "Beispiel: Warum kommen wir nicht voran? -> Weil die KI falsche Antworten gibt. -> Warum? -> Weil sie keinen Zugriff auf die aktuelle Dokumentation hat. -> Warum? -> Weil es keinen Prozess gibt, um neue Doku automatisch zu synchronisieren. Der Engpass ist der fehlende Sync-Prozess.",
-            },
-            {
-                id: "f3",
-                title: "3. Prinzipien als Lupe",
-                question: "Betrachten Sie den Engpass durch die Brille der Prinzipien. Berührt er Risiken, Datenschutz oder die menschliche Aufsicht? Wie hilft der AI Act, die Wichtigkeit dieses Engpasses zu verstehen?",
-                placeholder: "Beispiel: Fehlender Sync (Engpass) führt zu falschen Antworten, was ein Reputationsrisiko ist (Nutzen schlägt Risiko). Wenn falsche rechtliche Auskünfte gegeben werden, fehlt die 'menschliche Aufsicht'. Das Problem ist also nicht nur technisch, sondern ein Compliance-Thema.",
-            }
-        ]
-    },
-    hebel: {
-        id: "hebel",
-        title: "Hebel-Finder",
-        description: "Wir identifizieren die eine, entscheidende Maßnahme, die die größte Wirkung entfaltet.",
-        steps: [
-            {
-                id: "g1",
-                title: "1. Engpass benennen",
-                question: "Formulieren Sie den zentralen Engpass, den Sie aus dem vorherigen Schritt identifiziert haben, in einem klaren Satz.",
-                placeholder: "Beispiel: Unser zentraler Engpass ist, dass unser KI-System nicht automatisch auf die neueste Produktdokumentation zugreifen kann, was zu veralteten und falschen Kundenantworten führt.",
-            },
-            {
-                id: "g2",
-                title: "2. Hebel brainstormen",
-                question: "Welche eine Maßnahme oder welches eine Projekt würde diesen Engpass am elegantesten und wirkungsvollsten auflösen und eine positive Kettenreaktion auslösen?",
-                placeholder: "Beispiel: Die Einführung eines zentralen 'Dokumenten-Tresors' (z.B. ein dedizierter Cloud-Ordner), der als einzige Quelle für die KI dient und von allen Teams aktuell gehalten werden MUSS.",
-            },
-            {
-                id: "g3",
-                title: "3. Hebel verstärken",
-                question: "Wie machen die Prinzipien diesen Hebel noch mächtiger? Wie wird aus einer technischen Lösung ein strategischer Vorteil in Bezug auf Compliance, Vertrauen und Kommunikation?",
-                placeholder: "Beispiel: Der 'Dokumenten-Tresor' (Hebel) wird zur Grundlage unserer technischen Dokumentation (Art. 11). Wir kommunizieren proaktiv, dass unsere KI nur auf geprüfte Quellen zugreift (Kommunikation als Brücke) und schaffen so einen Vertrauensvorsprung.",
-            }
-        ]
-    }
+// Helper to get the current user's ID
+const getUserId = (): string | null => {
+    return auth.currentUser?.uid || null;
 };
+
+// --- New Project-Based Data Structure ---
+
+const getProjectsCollectionRef = (userId: string) => {
+    return collection(db, `users/${userId}/projects`);
+}
+
+export const getProjectDocRef = (userId: string, projectId: string) => {
+    return doc(db, `users/${userId}/projects`, projectId);
+}
+
+
+// --- Project Management Functions ---
+
+export async function createProject(projectName: string) {
+    const userId = getUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const newProjectRef = await addDoc(projectsCollectionRef, {
+        projectName,
+        createdAt: serverTimestamp(),
+        // Initialize empty data to prevent errors on first load
+        assessmentAnswers: {},
+        companyContext: {},
+        checklistState: {},
+        designCanvas: {
+            projectContext: '',
+            advice: null,
+            antiPatternDescription: '',
+            antiPatternAnalysis: null,
+        },
+        exportedInsights: [],
+    });
+
+    return newProjectRef.id;
+}
+
+export async function getUserProjects() {
+    const userId = getUserId();
+    if (!userId) return [];
+
+    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    } as { id: string, projectName: string, createdAt: any }));
+}
+
+
+// --- Active Project State (using sessionStorage) ---
+
+export function setActiveProjectId(projectId: string) {
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('activeProjectId', projectId);
+    }
+}
+
+export function getActiveProjectId(): string | null {
+    if (typeof window !== 'undefined') {
+        return window.sessionStorage.getItem('activeProjectId');
+    }
+    return null;
+}
+
+export function clearActiveProjectId() {
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('activeProjectId');
+    }
+}
+
+
+// --- Project-Specific Data Functions ---
+
+const getProjectData = async <T extends keyof ProjectData>(field: T): Promise<ProjectData[T] | null> => {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return null;
+
+    const projectDocRef = getProjectDocRef(userId, projectId);
+    const docSnap = await getDoc(projectDocRef);
+
+    if (docSnap.exists()) {
+        const projectData = docSnap.data() as ProjectData;
+        return projectData[field] || null;
+    }
+    return null;
+}
+
+const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const projectDocRef = getProjectDocRef(userId, projectId);
+    await setDoc(projectDocRef, data, { merge: true });
+}
+
+interface ProjectData {
+    assessmentAnswers: Record<string, string>;
+    companyContext: object;
+    checklistState: object;
+    designCanvas: object;
+    courseProgress: { completedVideoIds: string[] };
+    exportedInsights: string[];
+}
+
+// These functions now operate on the active project
+export async function saveAssessmentAnswers(answers: Record<string, string>) {
+    // When new assessment is saved, clear old context and checklist state for this project
+    await saveProjectData({ 
+        assessmentAnswers: answers,
+        companyContext: {},
+        checklistState: {},
+        exportedInsights: []
+    });
+}
+
+export async function getAssessmentAnswers(): Promise<Record<string, string> | null> {
+    return getProjectData('assessmentAnswers');
+}
+
+export async function saveCompanyContext(context: object) {
+    await saveProjectData({ companyContext: context });
+}
+
+export async function getCompanyContext(): Promise<object | null> {
+    return getProjectData('companyContext');
+}
+
+export async function saveChecklistState(state: object) {
+    await saveProjectData({ checklistState: state });
+}
+
+export async function getChecklistState() {
+    const state = await getProjectData('checklistState');
+    return state || {};
+}
+
+export async function saveDesignCanvasData(data: object) {
+    const existingData = await getDesignCanvasData() || {};
+    await saveProjectData({ designCanvas: {...existingData, ...data }});
+}
+
+export async function getDesignCanvasData() {
+    return getProjectData('designCanvas');
+}
+
+export async function getExportedInsights(): Promise<string[]> {
+    const insights = await getProjectData('exportedInsights');
+    return insights || [];
+}
+
+export async function saveExportedInsight(insight: string) {
+    const currentInsights = await getExportedInsights();
+    await saveProjectData({ exportedInsights: [...currentInsights, insight] });
+}
+
+
+// --- Course Progress (remains user-specific, not project-specific) ---
+const getUserDocRef = (userId: string, docId: 'courseProgress' | 'currentTask') => {
+    return doc(db, `users/${userId}/appData`, docId);
+};
+
+export async function saveCourseProgress(completedVideoIds: string[]) {
+    const userId = getUserId();
+    if (!userId) throw new Error("User not authenticated");
+    const docRef = getUserDocRef(userId, 'courseProgress');
+    await setDoc(docRef, { completedVideoIds }, { merge: true });
+}
+
+export async function getCourseProgress(): Promise<string[]> {
+    const userId = getUserId();
+    if (!userId) return [];
+    const docRef = getUserDocRef(userId, 'courseProgress');
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+    return data?.completedVideoIds || [];
+}
+
+
+// --- Current Task (remains user-specific for simplicity) ---
+export async function saveCurrentTask(task: object) {
+    const userId = getUserId();
+    if (!userId) return;
+    await setDoc(getUserDocRef(userId, 'currentTask'), task);
+}
+
+export async function getCurrentTask() {
+    const userId = getUserId();
+    if (!userId) return null;
+    const docSnap = await getDoc(getUserDocRef(userId, 'currentTask'));
+    return docSnap.exists() ? docSnap.data() : null;
+}
+
+export async function clearCurrentTask() {
+    const userId = getUserId();
+    if (!userId) return;
+    await deleteDoc(getUserDocRef(userId, 'currentTask'));
+}
+
+
+// --- Onboarding Logic ---
+export async function checkOnboardingStatus(projectId?: string): Promise<string> {
+    const activeProjectId = projectId || getActiveProjectId();
+
+    if (!activeProjectId) {
+        return '/projects';
+    }
+
+    const answers = await getAssessmentAnswers();
+    if (!answers || Object.keys(answers).length === 0) {
+        return '/assessment';
+    }
+
+    if (answers.q1 === 'no') {
+        return `/dashboard?projectId=${activeProjectId}`;
+    }
+
+    const context = await getCompanyContext();
+    if (!context || Object.keys(context).length === 0 || !(context as any).companyDescription) {
+        return '/assessment/context';
+    }
+
+    return `/dashboard?projectId=${activeProjectId}`;
+}
