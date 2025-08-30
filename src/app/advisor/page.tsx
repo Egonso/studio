@@ -14,10 +14,16 @@ import { Loader2, Wand2, Lightbulb, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { aiImplementationAdvisor, AiImplementationAdvisorInput, AiImplementationAdvisorOutputSchema } from '@/ai/flows/ai-implementation-advisor';
-import type { AiImplementationAdvisorOutput } from '@/ai/flows/ai-implementation-advisor';
+import { aiImplementationAdvisor } from '@/ai/flows/ai-implementation-advisor';
+import type { AiImplementationAdvisorInput, AiImplementationAdvisorOutput } from '@/ai/flows/ai-implementation-advisor';
+import { z } from 'zod';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+
+const AiImplementationAdvisorInputSchema = z.object({
+  companyDescription: z.string().describe("Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten."),
+  challenge: z.string().describe("Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'."),
+});
 
 export default function AdvisorPage() {
     const { user, loading: authLoading } = useAuth();

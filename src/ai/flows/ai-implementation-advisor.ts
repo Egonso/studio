@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -11,13 +12,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-export const AiImplementationAdvisorInputSchema = z.object({
+const AiImplementationAdvisorInputSchema = z.object({
   companyDescription: z.string().describe("Eine Beschreibung des Unternehmens, seiner Branche und seiner Hauptaktivitäten."),
   challenge: z.string().describe("Eine konkrete Herausforderung oder ein Problem, bei dem KI helfen könnte, z.B. 'Wir verbringen zu viel Zeit mit der Beantwortung von wiederkehrenden Kundenanfragen per E-Mail'."),
 });
 export type AiImplementationAdvisorInput = z.infer<typeof AiImplementationAdvisorInputSchema>;
 
-export const AiImplementationAdvisorOutputSchema = z.object({
+const AiImplementationAdvisorOutputSchema = z.object({
   suggestions: z.array(z.object({
     title: z.string().describe("Ein kurzer, prägnanter Titel für den Lösungsvorschlag, z.B. 'Intelligentes E-Mail-Ticket-System'."),
     description: z.string().describe("Eine klare Beschreibung der vorgeschlagenen KI-Lösung und wie sie die Herausforderung adressiert. Inklusive einer kurzen Erwähnung der benötigten Technologie (z.B. 'Sprachmodell zur Klassifizierung')."),
