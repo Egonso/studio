@@ -15,7 +15,7 @@ const getProjectsCollectionRef = (userId: string) => {
     return collection(db, `users/${userId}/projects`);
 }
 
-const getProjectDocRef = (userId: string, projectId: string) => {
+export const getProjectDocRef = (userId: string, projectId: string) => {
     return doc(db, `users/${userId}/projects`, projectId);
 }
 
@@ -34,6 +34,10 @@ export async function createProject(projectName: string) {
         assessmentAnswers: {},
         companyContext: {},
         checklistState: {},
+        designCanvas: { // Initialize design canvas data
+            projectContext: '',
+            advice: null,
+        }
     });
 
     return newProjectRef.id;
@@ -106,6 +110,7 @@ interface ProjectData {
     assessmentAnswers: Record<string, string>;
     companyContext: object;
     checklistState: object;
+    designCanvas: object;
     courseProgress: { completedVideoIds: string[] };
 }
 
@@ -138,6 +143,14 @@ export async function saveChecklistState(state: object) {
 export async function getChecklistState() {
     const state = await getProjectData('checklistState');
     return state || {};
+}
+
+export async function saveDesignCanvasData(data: object) {
+    await saveProjectData({ designCanvas: data });
+}
+
+export async function getDesignCanvasData() {
+    return getProjectData('designCanvas');
 }
 
 

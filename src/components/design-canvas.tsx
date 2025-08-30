@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { principlesData, designPhases, Principle, DesignPhase } from '@/lib/design-thinking-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
@@ -10,15 +10,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId } from '@/lib/data-service';
+import { useAuth } from '@/context/auth-context';
 
 export function DesignCanvas() {
+    const { user } = useAuth();
     const [selectedPhase, setSelectedPhase] = useState<DesignPhase>(designPhases[0]);
     const [selectedPrinciple, setSelectedPrinciple] = useState<Principle>(principlesData[0]);
     const [projectContext, setProjectContext] = useState('');
     
     const [isLoading, setIsLoading] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
     const [advice, setAdvice] = useState<GetDesignAdviceOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            if (user && getActiveProjectId()) {
+                setIsInitializing(true);
+                const data = await getDesignCanvasData() as { projectContext: string; advice: GetDesignAdviceOutput | null } | null;
+                if (data) {
+                    setProjectContext(data.projectContext || '');
+                    setAdvice(data.advice || null);
+                }
+                setIsInitializing(false);
+            }
+        };
+        loadData();
+    }, [user]);
 
     const handleGenerateAdvice = async () => {
         setIsLoading(true);
@@ -33,6 +52,7 @@ export function DesignCanvas() {
             };
             const result = await getDesignAdvice(input);
             setAdvice(result);
+            await saveDesignCanvasData({ projectContext, advice: result });
         } catch (e) {
             console.error("Failed to get design advice:", e);
             setError("Die KI-gestützte Beratung konnte nicht generiert werden. Bitte versuchen Sie es später erneut.");
@@ -40,6 +60,19 @@ export function DesignCanvas() {
             setIsLoading(false);
         }
     };
+
+    // Save project context on change, with debounce
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (!isInitializing && projectContext !== undefined) {
+                 saveDesignCanvasData({ projectContext, advice });
+            }
+        }, 1000); // 1-second debounce
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [projectContext, advice, isInitializing]);
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
@@ -51,54 +84,58 @@ export function DesignCanvas() {
                     <CardDescription>Wählen Sie Ihre aktuelle Phase und das Prinzip, das Sie explorieren möchten. Beschreiben Sie kurz Ihre Idee.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <label htmlFor="phase-select" className="text-sm font-medium">Design-Phase</label>
-                        <Select onValueChange={(value) => setSelectedPhase(designPhases.find(p => p.id === value) || designPhases[0])} defaultValue={selectedPhase.id}>
-                            <SelectTrigger id="phase-select">
-                                <SelectValue placeholder="Phase auswählen" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {designPhases.map(phase => (
-                                    <SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                         <p className="text-xs text-muted-foreground">Output dieser Phase: {selectedPhase.output}</p>
-                    </div>
+                     {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                        <>
+                            <div className="space-y-2">
+                                <label htmlFor="phase-select" className="text-sm font-medium">Design-Phase</label>
+                                <Select onValueChange={(value) => setSelectedPhase(designPhases.find(p => p.id === value) || designPhases[0])} defaultValue={selectedPhase.id}>
+                                    <SelectTrigger id="phase-select">
+                                        <SelectValue placeholder="Phase auswählen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {designPhases.map(phase => (
+                                            <SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">Output dieser Phase: {selectedPhase.output}</p>
+                            </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="principle-select" className="text-sm font-medium">Prinzip der vertrauensw. Intelligenz</label>
-                         <Select onValueChange={(value) => setSelectedPrinciple(principlesData.find(p => p.id === value) || principlesData[0])} defaultValue={selectedPrinciple.id}>
-                            <SelectTrigger id="principle-select">
-                                <SelectValue placeholder="Prinzip auswählen" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {principlesData.map(principle => (
-                                    <SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">{selectedPrinciple.description}</p>
-                    </div>
+                            <div className="space-y-2">
+                                <label htmlFor="principle-select" className="text-sm font-medium">Prinzip der vertrauensw. Intelligenz</label>
+                                <Select onValueChange={(value) => setSelectedPrinciple(principlesData.find(p => p.id === value) || principlesData[0])} defaultValue={selectedPrinciple.id}>
+                                    <SelectTrigger id="principle-select">
+                                        <SelectValue placeholder="Prinzip auswählen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {principlesData.map(principle => (
+                                            <SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">{selectedPrinciple.description}</p>
+                            </div>
 
-                    <div className="space-y-2">
-                        <label htmlFor="project-context" className="text-sm font-medium">Ihre Idee / Ihr Projektkontext</label>
-                        <Textarea 
-                            id="project-context"
-                            placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
-                            value={projectContext}
-                            onChange={(e) => setProjectContext(e.target.value)}
-                            className="min-h-[100px]"
-                        />
-                    </div>
-                    
-                    <Button onClick={handleGenerateAdvice} disabled={isLoading} className="w-full">
-                        {isLoading ? (
-                            <><Loader2 className="mr-2 animate-spin" /> Generiere Inspiration...</>
-                        ) : (
-                            <><Sparkles className="mr-2" /> Inspiration generieren</>
-                        )}
-                    </Button>
+                            <div className="space-y-2">
+                                <label htmlFor="project-context" className="text-sm font-medium">Ihre Idee / Ihr Projektkontext (wird automatisch gespeichert)</label>
+                                <Textarea 
+                                    id="project-context"
+                                    placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
+                                    value={projectContext}
+                                    onChange={(e) => setProjectContext(e.target.value)}
+                                    className="min-h-[100px]"
+                                />
+                            </div>
+                            
+                            <Button onClick={handleGenerateAdvice} disabled={isLoading || isInitializing} className="w-full">
+                                {isLoading ? (
+                                    <><Loader2 className="mr-2 animate-spin" /> Generiere Inspiration...</>
+                                ) : (
+                                    <><Sparkles className="mr-2" /> Inspiration generieren</>
+                                )}
+                            </Button>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
@@ -112,18 +149,16 @@ export function DesignCanvas() {
                     <CardDescription>Erhalten Sie massgeschneiderte Fragen, Muster und Chancen basierend auf Ihrer Auswahl.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {isLoading && (
+                    {isLoading || isInitializing ? (
                         <div className="flex items-center justify-center h-64">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    )}
-                     {error && (
+                    ) : error ? (
                         <Alert variant="destructive">
                             <AlertTitle>Fehler</AlertTitle>
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
-                    )}
-                    {advice ? (
+                    ) : advice ? (
                         <div className="space-y-6 animate-in fade-in-50">
                             {advice.sections.map((section, index) => (
                                 <div key={index}>
@@ -137,7 +172,7 @@ export function DesignCanvas() {
                             ))}
                         </div>
                     ) : (
-                        !isLoading && <p className="text-center text-muted-foreground pt-16">Definieren Sie links Ihren Kontext und klicken Sie auf "Inspiration generieren", um hier Vorschläge zu erhalten.</p>
+                        <p className="text-center text-muted-foreground pt-16">Definieren Sie links Ihren Kontext und klicken Sie auf "Inspiration generieren", um hier Vorschläge zu erhalten.</p>
                     )}
                 </CardContent>
             </Card>
