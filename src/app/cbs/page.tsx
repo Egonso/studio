@@ -4,11 +4,12 @@
 import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Zap } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Loader2, Zap, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { manifest, scalingData } from '@/lib/scaling-data';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 
 function ComplianceByScalingPageContent() {
@@ -22,6 +23,10 @@ function ComplianceByScalingPageContent() {
             </div>
         );
     }
+    
+    const handleStartCoaching = (step: string) => {
+        router.push(`/cbs/interactive?step=${step}`);
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
@@ -76,8 +81,12 @@ function ComplianceByScalingPageContent() {
                                             ))}
                                         </div>
                                     </div>
-
                                 </CardContent>
+                                <CardFooter>
+                                    <Button className="w-full" onClick={() => handleStartCoaching(item.id)}>
+                                        Coaching starten <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </CardFooter>
                             </Card>
                         ))}
                     </div>
@@ -102,5 +111,3 @@ export default function ComplianceByScalingPage() {
         </Suspense>
     );
 }
-
-    
