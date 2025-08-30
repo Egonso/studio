@@ -16,6 +16,7 @@ import { useAuth } from '@/context/auth-context';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 
 interface DesignCanvasData {
@@ -167,7 +168,7 @@ export function DesignCanvas() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Sparkles className="text-primary"/> 1. Inspiration Layer
+                           <Sparkles className="text-primary"/> 1. Entwicklungsstand & Impulse
                         </CardTitle>
                         <CardDescription>Wählen Sie Ihre Phase & Prinzip, beschreiben Sie Ihre Idee und erhalten Sie kreativen Input.</CardDescription>
                     </CardHeader>
@@ -240,9 +241,9 @@ export function DesignCanvas() {
                                 
                                 <Button onClick={handleGenerateAdvice} disabled={isGeneratingAdvice || isInitializing} className="w-full">
                                     {isGeneratingAdvice ? (
-                                        <><Loader2 className="mr-2 animate-spin" /> Generiere Inspiration...</>
+                                        <><Loader2 className="mr-2 animate-spin" /> Generiere Impulse...</>
                                     ) : (
-                                        <><Sparkles className="mr-2" /> Inspiration generieren</>
+                                        <><Sparkles className="mr-2" /> Entwicklungsimpulse generieren</>
                                     )}
                                 </Button>
                             </>
@@ -280,9 +281,9 @@ export function DesignCanvas() {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Wand2 className="text-primary" />
-                            KI-gestützte Ergebnisse
+                            Ihre generierten Impulse & Analysen
                         </CardTitle>
-                        <CardDescription>Hier erscheinen Ihre generierten Inspirationen und Analysen. Fügen Sie wichtige Erkenntnisse mit einem Klick zum Audit-Dossier hinzu.</CardDescription>
+                        <CardDescription>Hier erscheinen Ihre Ergebnisse. Fügen Sie wichtige Erkenntnisse mit einem Klick zum Audit-Dossier hinzu.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {isInitializing ? <Loader2 className="mx-auto my-8 h-8 w-8 animate-spin text-primary" /> :
@@ -298,26 +299,28 @@ export function DesignCanvas() {
                                     <AlertDescription>{adviceError}</AlertDescription>
                                 </Alert>
                             ) : canvasData.advice ? (
-                                <div className="space-y-6 animate-in fade-in-50">
+                                <Accordion type="multiple" defaultValue={["item-0"]} className="w-full animate-in fade-in-50">
                                     {canvasData.advice.sections.map((section, index) => (
-                                        <div key={index} className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="font-semibold text-md">{section.title}</h3>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleExportInsight(`**${section.title}**:\n${section.content.map(c => `- ${c}`).join('\n')}`)}>
-                                                    <SendToBack className="h-4 w-4" />
-                                                    <span className="sr-only">Zum Audit-Dossier hinzufügen</span>
+                                        <AccordionItem value={`item-${index}`} key={index}>
+                                            <AccordionTrigger className="text-md font-semibold">
+                                                {section.title}
+                                            </AccordionTrigger>
+                                            <AccordionContent className="space-y-4">
+                                                <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+                                                    {section.content.map((item, i) => (
+                                                        <li key={i}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                                <Button variant="outline" size="sm" onClick={() => handleExportInsight(`**${section.title}**:\n${section.content.map(c => `- ${c}`).join('\n')}`)}>
+                                                    <SendToBack className="mr-2 h-4 w-4" />
+                                                    Abschnitt zum Audit-Dossier
                                                 </Button>
-                                            </div>
-                                            <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                                {section.content.map((item, i) => (
-                                                    <li key={i}>{item}</li>
-                                                ))}
-                                            </ul>
-                                        </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
                                     ))}
-                                </div>
+                                </Accordion>
                             ) : (
-                                <p className="text-center text-muted-foreground pt-12">Definieren Sie links Ihren Kontext und klicken Sie auf "Inspiration generieren", um hier Vorschläge zu erhalten.</p>
+                                <p className="text-center text-muted-foreground pt-12">Definieren Sie links Ihren Kontext und klicken Sie auf "Entwicklungsimpulse generieren", um hier Vorschläge zu erhalten.</p>
                             )}
 
                             <Separator className="my-8"/>
@@ -334,42 +337,34 @@ export function DesignCanvas() {
                                 </Alert>
                             ) : canvasData.antiPatternAnalysis ? (
                                 <div className="space-y-4 animate-in fade-in-50">
-                                    <h3 className="font-semibold text-md mb-2">Analyse der Anti-Pattern</h3>
+                                    <h3 className="font-semibold text-lg mb-2">Analyse der Anti-Pattern</h3>
                                     {canvasData.antiPatternAnalysis.detectedPatterns.length > 0 ? (
                                         canvasData.antiPatternAnalysis.detectedPatterns.map((pattern, index) => (
                                             <div key={index}>
                                                 <Alert variant="destructive">
-                                                    <div className="flex justify-between items-start">
-                                                        <div>
-                                                            <AlertCircle className="h-4 w-4" />
-                                                            <AlertTitle>Potenzielles Problem gefunden: {pattern.patternName}</AlertTitle>
-                                                        </div>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 -mr-2 -mt-2 shrink-0" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse: ${pattern.patternName}**\n**Problem:** ${pattern.explanation}\n**Lösungsvorschlag:** ${pattern.suggestion}`)}>
-                                                           <SendToBack className="h-4 w-4" />
-                                                           <span className="sr-only">Zum Audit-Dossier hinzufügen</span>
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    <AlertTitle>Potenzielles Problem gefunden: {pattern.patternName}</AlertTitle>
+                                                    <AlertDescription className="space-y-2 mt-2">
+                                                        <p><strong>Erklärung:</strong> {pattern.explanation}</p>
+                                                        <p><strong>Besserer Vorschlag:</strong> {pattern.suggestion}</p>
+                                                        <Button variant="secondary" size="sm" className="mt-2" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse: ${pattern.patternName}**\n**Problem:** ${pattern.explanation}\n**Lösungsvorschlag:** ${pattern.suggestion}`)}>
+                                                            <SendToBack className="mr-2 h-4 w-4" />
+                                                            Analyse zum Audit-Dossier
                                                         </Button>
-                                                    </div>
-                                                    <AlertDescription className="space-y-2 mt-2 pr-6">
-                                                    <p><strong>Erklärung:</strong> {pattern.explanation}</p>
-                                                    <p><strong>Besserer Vorschlag:</strong> {pattern.suggestion}</p>
                                                     </AlertDescription>
                                                 </Alert>
                                             </div>
                                         ))
                                     ) : (
-                                         <Alert variant="default" className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <CheckCircle className="h-4 w-4 text-green-600"/>
-                                                    <AlertTitle>Keine offensichtlichen Anti-Pattern gefunden</AlertTitle>
-                                                </div>
-                                                 <Button variant="ghost" size="icon" className="h-7 w-7 -mr-2 -mt-2 shrink-0" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse:**\nKeine offensichtlichen Anti-Pattern im beschriebenen Workflow gefunden.`)}>
-                                                    <SendToBack className="h-4 w-4" />
-                                                    <span className="sr-only">Zum Audit-Dossier hinzufügen</span>
+                                        <Alert variant="default" className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50">
+                                            <CheckCircle className="h-4 w-4 text-green-600"/>
+                                            <AlertTitle>Keine offensichtlichen Anti-Pattern gefunden</AlertTitle>
+                                            <AlertDescription>
+                                                In der beschriebenen Vorgehensweise wurden keine gängigen manipulativen Muster erkannt.
+                                                 <Button variant="outline" size="sm" className="mt-2" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse:**\nKeine offensichtlichen Anti-Pattern im beschriebenen Workflow gefunden.`)}>
+                                                    <SendToBack className="mr-2 h-4 w-4" />
+                                                    Ergebnis zum Audit-Dossier
                                                 </Button>
-                                            </div>
-                                            <AlertDescription className="pr-6">
-                                                In der beschriebenen Vorgehensweise wurden keine gängigen manipulativen Muster erkannt. Das ist ein gutes Zeichen!
                                             </AlertDescription>
                                         </Alert>
                                     )}
