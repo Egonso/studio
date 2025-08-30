@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -11,12 +12,12 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
-export const DetectAntiPatternsInputSchema = z.object({
+const DetectAntiPatternsInputSchema = z.object({
   description: z.string().describe("A description of a user interface, a user workflow, or a specific design choice to be analyzed for manipulative or unethical patterns (Dark Patterns)."),
 });
 export type DetectAntiPatternsInput = z.infer<typeof DetectAntiPatternsInputSchema>;
 
-export const DetectAntiPatternsOutputSchema = z.object({
+const DetectAntiPatternsOutputSchema = z.object({
   detectedPatterns: z.array(z.object({
     patternName: z.string().describe("The common name of the detected anti-pattern, e.g., 'Confirmshaming', 'Roach Motel', 'Hidden Costs'."),
     explanation: z.string().describe("A clear and concise explanation of why the described workflow is considered a manipulative pattern and potentially problematic under the EU AI Act's transparency and fairness principles."),
