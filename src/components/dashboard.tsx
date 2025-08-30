@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare, Sparkles } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -155,6 +155,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 <TabsTrigger value="compliance">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance
+                </TabsTrigger>
+                 <TabsTrigger value="cbd" onClick={() => router.push('/cbd')}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Compliance by Design
                 </TabsTrigger>
                 <TabsTrigger value="course" onClick={() => router.push('/kurs')}>
                     <BookOpen className="mr-2 h-4 w-4" />
@@ -313,6 +317,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                         </CardContent>
                     </Card>
                 </div>
+            </TabsContent>
+            <TabsContent value="cbd">
+                 {/* Content will be handled by /cbd page, this just makes the tab exist */}
             </TabsContent>
             <TabsContent value="course">
                 {/* Content will be handled by /kurs page, this just makes the tab exist */}
