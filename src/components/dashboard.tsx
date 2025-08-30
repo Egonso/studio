@@ -156,10 +156,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance
                 </TabsTrigger>
-                <TabsTrigger value="advisor" onClick={() => router.push('/advisor')}>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    KI Berater
-                </TabsTrigger>
                  <TabsTrigger value="cbd" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Compliance by Design
@@ -321,9 +317,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                         </CardContent>
                     </Card>
                 </div>
-            </TabsContent>
-            <TabsContent value="advisor">
-                 {/* Content will be handled by /advisor page, this just makes the tab exist */}
             </TabsContent>
             <TabsContent value="cbd">
                  {/* Content will be handled by /cbd page, this just makes the tab exist */}
