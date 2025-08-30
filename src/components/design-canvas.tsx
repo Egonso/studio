@@ -8,7 +8,7 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
-import { Loader2, Sparkles, Wand2, Upload } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -143,12 +143,19 @@ export function DesignCanvas() {
 
                             <div className="space-y-2">
                                 <label htmlFor="project-context" className="text-sm font-medium">Ihre Idee / Ihr Projektkontext (wird automatisch gespeichert)</label>
+                                <Alert variant="default" className="mt-2 text-xs">
+                                     <Info className="h-4 w-4" />
+                                    <AlertTitle>Hinweis zur Inhaltsanalyse</AlertTitle>
+                                    <AlertDescription>
+                                        Damit die KI den Inhalt von Dokumenten analysieren kann, laden Sie bitte eine Textdatei (.txt, .md) hoch oder kopieren Sie den Inhalt aus Ihrer PDF-/Word-Datei manuell in das Textfeld.
+                                    </AlertDescription>
+                                </Alert>
                                 <Textarea 
                                     id="project-context"
                                     placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
                                     value={projectContext}
                                     onChange={(e) => setProjectContext(e.target.value)}
-                                    className="min-h-[120px]"
+                                    className="min-h-[120px] mt-2"
                                 />
                                 <Input 
                                     id="context-file-upload"
