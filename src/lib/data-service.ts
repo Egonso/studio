@@ -34,9 +34,11 @@ export async function createProject(projectName: string) {
         assessmentAnswers: {},
         companyContext: {},
         checklistState: {},
-        designCanvas: { // Initialize design canvas data
+        designCanvas: {
             projectContext: '',
             advice: null,
+            antiPatternDescription: '',
+            antiPatternAnalysis: null,
         }
     });
 
@@ -146,7 +148,8 @@ export async function getChecklistState() {
 }
 
 export async function saveDesignCanvasData(data: object) {
-    await saveProjectData({ designCanvas: data });
+    const existingData = await getDesignCanvasData() || {};
+    await saveProjectData({ designCanvas: {...existingData, ...data }});
 }
 
 export async function getDesignCanvasData() {
