@@ -1,23 +1,25 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { principlesData, designPhases, Principle, DesignPhase } from '@/lib/design-thinking-data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
-import { Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
+import { Input } from './ui/input';
 
 export function DesignCanvas() {
     const { user } = useAuth();
     const [selectedPhase, setSelectedPhase] = useState<DesignPhase>(designPhases[0]);
     const [selectedPrinciple, setSelectedPrinciple] = useState<Principle>(principlesData[0]);
     const [projectContext, setProjectContext] = useState('');
+    const [fileName, setFileName] = useState<string | null>(null);
     
     const [isLoading, setIsLoading] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
@@ -38,6 +40,29 @@ export function DesignCanvas() {
         };
         loadData();
     }, [user]);
+
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            
+            const appendContent = (content: string) => {
+                setProjectContext(prev => `${prev}\n\n---\n[Inhalt aus Datei: ${file.name}]\n${content}`);
+            };
+
+            if (file.type.startsWith('text/')) {
+                 reader.onload = (event) => {
+                    const textContent = event.target?.result as string;
+                    appendContent(textContent);
+                };
+                reader.readAsText(file);
+            } else {
+                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden.`;
+                appendContent(fileContentPlaceholder);
+            }
+        }
+    };
 
     const handleGenerateAdvice = async () => {
         setIsLoading(true);
@@ -81,7 +106,7 @@ export function DesignCanvas() {
             <Card className="shadow-lg sticky top-8">
                 <CardHeader>
                     <CardTitle>1. Design-Kontext festlegen</CardTitle>
-                    <CardDescription>Wählen Sie Ihre aktuelle Phase und das Prinzip, das Sie explorieren möchten. Beschreiben Sie kurz Ihre Idee.</CardDescription>
+                    <CardDescription>Wählen Sie Ihre aktuelle Phase und das Prinzip, das Sie explorieren möchten. Beschreiben Sie Ihre Idee oder laden Sie ein Dokument hoch.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                      {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
@@ -123,8 +148,24 @@ export function DesignCanvas() {
                                     placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
                                     value={projectContext}
                                     onChange={(e) => setProjectContext(e.target.value)}
-                                    className="min-h-[100px]"
+                                    className="min-h-[120px]"
                                 />
+                                <Input 
+                                    id="context-file-upload"
+                                    type="file"
+                                    className="hidden"
+                                    accept=".txt,.md,.text,.pdf,.doc,.docx"
+                                    onChange={handleFileChange}
+                                />
+                                <label htmlFor="context-file-upload" className="w-full pt-2 block">
+                                    <Button type="button" asChild className="w-full cursor-pointer" variant="outline">
+                                       <span>
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Kontext-Dokument hochladen...
+                                       </span>
+                                    </Button>
+                                </label>
+                                {fileName && <p className="text-xs text-muted-foreground mt-2">Zuletzt hochgeladen: {fileName}</p>}
                             </div>
                             
                             <Button onClick={handleGenerateAdvice} disabled={isLoading || isInitializing} className="w-full">
