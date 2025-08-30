@@ -15,7 +15,7 @@ import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
-import { getCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask, getActiveProjectId } from '@/lib/data-service';
+import { getCompanyContext, saveCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask, getActiveProjectId } from '@/lib/data-service';
 
 interface Task extends GetComplianceChecklistOutput_Checklist {
     complianceItemId: string;
@@ -27,7 +27,7 @@ type Guide = GetImplementationGuideOutput['guide'];
 const StepContent = ({ content }: { content: string }) => {
     const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
     return (
-        <span>
+        <Fragment>
             {parts.map((part, index) => {
                 if (part.startsWith('**') && part.endsWith('**')) {
                     return <strong key={index}>{part.slice(2, -2)}</strong>;
@@ -44,7 +44,7 @@ const StepContent = ({ content }: { content: string }) => {
                 }
                 return <Fragment key={index}>{part}</Fragment>;
             })}
-        </span>
+        </Fragment>
     );
 };
 
@@ -90,32 +90,32 @@ export default function TaskPage() {
         }
     }, [user, authLoading, loadTask, router]);
 
-    useEffect(() => {
+    const fetchAndSetGuide = useCallback(async () => {
         if (!task || !user) return;
-
-        const fetchGuide = async () => {
-            setIsGuideLoading(true);
-            setGuideError(null);
-            
-            try {
-                const companyContext = await getCompanyContext();
-                const result = await getImplementationGuide({ 
-                    taskDescription: task.description,
-                    companyDescription: (companyContext as any)?.companyDescription,
-                    riskProfile: (companyContext as any)?.riskProfile,
-                    existingAuditData: (companyContext as any)?.existingAuditData,
-                });
-                setGuide(result.guide);
-            } catch (e) {
-                console.error("Failed to fetch implementation guide", e);
-                setGuideError("Die Anleitung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.");
-            } finally {
-                setIsGuideLoading(false);
-            }
-        };
-
-        fetchGuide();
+        
+        setIsGuideLoading(true);
+        setGuideError(null);
+        try {
+            const companyContext = await getCompanyContext();
+            const result = await getImplementationGuide({ 
+                taskDescription: task.description,
+                companyDescription: (companyContext as any)?.companyDescription,
+                riskProfile: (companyContext as any)?.riskProfile,
+                existingAuditData: (companyContext as any)?.existingAuditData,
+            });
+            setGuide(result.guide);
+        } catch (e) {
+            console.error("Failed to fetch implementation guide", e);
+            setGuideError("Die Anleitung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.");
+        } finally {
+            setIsGuideLoading(false);
+        }
     }, [task, user]);
+
+
+    useEffect(() => {
+       fetchAndSetGuide();
+    }, [task, user, fetchAndSetGuide]);
 
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
@@ -142,16 +142,32 @@ export default function TaskPage() {
             setFileName(file.name);
             setAnalysisResult(null);
             
+            const processFileContent = async (content: string) => {
+                setDocumentText(content);
+                // Save the new file content to the project's company context
+                const companyContext: any = await getCompanyContext() || {};
+                const updatedAuditData = companyContext.existingAuditData 
+                    ? `${companyContext.existingAuditData}\n\n---\n\n${content}`
+                    : content;
+                
+                await saveCompanyContext({
+                    ...companyContext,
+                    existingAuditData: updatedAuditData
+                });
+                // Refresh the guide with the new context
+                fetchAndSetGuide();
+            };
+
             if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.text')) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     const textContent = event.target?.result as string;
-                    setDocumentText(textContent);
+                    processFileContent(textContent);
                 };
                 reader.readAsText(file);
             } else {
-                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden. Die KI wird basierend auf dem Dateinamen und dem Aufgabenkontext allgemeine Ratschläge geben.`;
-                setDocumentText(fileContentPlaceholder);
+                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden.`;
+                processFileContent(fileContentPlaceholder);
             }
         }
     };
@@ -219,6 +235,9 @@ export default function TaskPage() {
                                 <Lightbulb className="h-6 w-6 text-primary" />
                                 Personalisierte Umsetzungshilfe
                             </CardTitle>
+                             <CardDescription>
+                                Dieser Leitfaden wird durch die von Ihnen im Onboarding und hier bereitgestellten Kontextinformationen personalisiert.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {isGuideLoading && (
@@ -266,7 +285,7 @@ export default function TaskPage() {
                                 KI-gestützter Dokumenten-Check
                             </CardTitle>
                             <CardDescription>
-                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten.
+                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten. Hochgeladene Dateien werden zum Projektkontext hinzugefügt.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -350,3 +369,5 @@ export default function TaskPage() {
         </div>
     );
 }
+
+    
