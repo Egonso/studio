@@ -277,8 +277,7 @@ export default function TaskPage() {
                                         </AlertTitle>
                                         <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700 dark:text-green-400' : ''}>
                                             Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
-                                        </Aler
-tDescription>
+                                        </AlertDescription>
                                     </Alert>
 
                                     <div>
