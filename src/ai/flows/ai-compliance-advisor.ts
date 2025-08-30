@@ -40,7 +40,7 @@ export type AiComplianceAdvisorOutput = z.infer<typeof AiComplianceAdvisorOutput
 export async function aiComplianceAdvisor(
   input: AiComplianceAdvisorInput
 ): Promise<AiComplianceAdvisorOutput> {
-  return aiComplianceAdvisorFlow(input);
+  return complianceAdvisorFlow(input);
 }
 
 const prompt = ai.definePrompt({
@@ -56,9 +56,9 @@ Risk Profile: {{{riskProfile}}}
 Consider the company’s current operations and risk profile when generating the recommendations. Focus on practical steps the company can take to improve its compliance posture.`,
 });
 
-const aiComplianceAdvisorFlow = ai.defineFlow(
+const complianceAdvisorFlow = ai.defineFlow(
   {
-    name: 'aiComplianceAdvisorFlow',
+    name: 'complianceAdvisorFlow',
     inputSchema: AiComplianceAdvisorInputSchema,
     outputSchema: AiComplianceAdvisorOutputSchema,
   },
