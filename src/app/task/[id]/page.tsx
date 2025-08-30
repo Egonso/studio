@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX, Upload } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
@@ -265,10 +266,17 @@ export default function TaskPage() {
                                 KI-gestützter Dokumenten-Check
                             </CardTitle>
                             <CardDescription>
-                                Laden Sie hier Ihr relevantes Dokument hoch (z.B. PDF, Word, Text), um eine schnelle KI-Analyse zu erhalten.
+                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                             <Textarea
+                                placeholder="Fügen Sie den Inhalt Ihres Dokuments hier ein..."
+                                className="min-h-[150px]"
+                                value={documentText}
+                                onChange={(e) => setDocumentText(e.target.value)}
+                            />
+
                             <div className="space-y-2">
                                 <Input 
                                     id="document-upload"
@@ -281,7 +289,7 @@ export default function TaskPage() {
                                     <Button type="button" asChild className="w-full cursor-pointer">
                                        <span>
                                             <Upload className="mr-2 h-4 w-4" />
-                                            Dokument auswählen...
+                                            Oder Dokument hochladen...
                                        </span>
                                     </Button>
                                 </label>
@@ -342,5 +350,3 @@ export default function TaskPage() {
         </div>
     );
 }
-
-    
