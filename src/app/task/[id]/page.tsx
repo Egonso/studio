@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX, Upload } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX, Upload, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -147,8 +147,8 @@ export default function TaskPage() {
                 // Save the new file content to the project's company context
                 const companyContext: any = await getCompanyContext() || {};
                 const updatedAuditData = companyContext.existingAuditData 
-                    ? `${companyContext.existingAuditData}\n\n---\n\n${content}`
-                    : content;
+                    ? `${companyContext.existingAuditData}\n\n---\n\n[Inhalt von ${file.name}]:\n${content}`
+                    : `[Inhalt von ${file.name}]:\n${content}`;
                 
                 await saveCompanyContext({
                     ...companyContext,
@@ -289,6 +289,13 @@ export default function TaskPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
+                            <Alert>
+                                <Info className="h-4 w-4" />
+                                <AlertTitle>Wichtiger technischer Hinweis</AlertTitle>
+                                <AlertDescription>
+                                    Das Auslesen des Inhalts von .pdf- oder .docx-Dateien ist leider technisch nicht verlässlich möglich. Für eine vollständige Analyse müssen Sie den Text aus diesen Dateien entweder manuell kopieren und in das Textfeld einfügen oder als Textdatei (.txt, .md) hochladen.
+                                </AlertDescription>
+                            </Alert>
                              <Textarea
                                 placeholder="Fügen Sie den Inhalt Ihres Dokuments hier ein..."
                                 className="min-h-[150px]"
@@ -348,14 +355,14 @@ export default function TaskPage() {
                                         <div>
                                             <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600"/> Stärken</h4>
                                             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                                                {analysisResult.strengths.map((item, index) => <li key={index}>{item}</li>)}
+                                                {analysisResult.strengths.map((item, index) => <li key={index}><StepContent content={item} /></li>)}
                                                 {analysisResult.strengths.length === 0 && <li className="text-muted-foreground">Keine spezifischen Stärken identifiziert.</li>}
                                             </ul>
                                         </div>
                                         <div>
                                             <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-red-600"/>Potenzielle Lücken</h4>
                                              <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                                                {analysisResult.weaknesses.map((item, index) => <li key={index}>{item}</li>)}
+                                                {analysisResult.weaknesses.map((item, index) => <li key={index}><StepContent content={item} /></li>)}
                                                 {analysisResult.weaknesses.length === 0 && <li className="text-muted-foreground">Keine spezifischen Lücken identifiziert.</li>}
                                             </ul>
                                         </div>
@@ -369,5 +376,3 @@ export default function TaskPage() {
         </div>
     );
 }
-
-    

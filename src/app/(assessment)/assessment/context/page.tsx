@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, Info } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { saveCompanyContext, getActiveProjectId } from '@/lib/data-service';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const contextSchema = z.object({
     companyDescription: z.string().min(10, { message: "Bitte beschreiben Sie Ihr Unternehmen etwas ausführlicher." }),
@@ -120,8 +121,15 @@ export default function ContextPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Vorhandene Dokumente (optional)</FormLabel>
+                                            <Alert variant="default" className="mt-2">
+                                                <Info className="h-4 w-4" />
+                                                <AlertTitle>Hinweis zum Dateityp</AlertTitle>
+                                                <AlertDescription className="text-xs">
+                                                    Für eine Inhaltsanalyse laden Sie bitte Textdateien (.txt, .md) hoch. Bei anderen Formaten (PDF, DOCX) wird nur der Dateiname als Referenz gespeichert, nicht der Inhalt.
+                                                </AlertDescription>
+                                            </Alert>
                                             <FormControl>
-                                                <div>
+                                                <div className="mt-2">
                                                     <Input 
                                                         id="audit-file-upload"
                                                         type="file"

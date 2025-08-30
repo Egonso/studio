@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -14,7 +15,7 @@ import {z} from 'genkit';
 const AnalyzeDocumentInputSchema = z.object({
   documentText: z
     .string()
-    .describe('The full text content of the document to be analyzed.'),
+    .describe('The full text content of the document to be analyzed, which may include placeholders for file names.'),
   complianceTopic: z
     .string()
     .describe('The specific compliance requirement or task the document should fulfill. For example: "Technical Documentation" or "Data Governance Policy".'),
@@ -55,10 +56,10 @@ Your task is to analyze the provided document text in the context of the given c
 ---
 
 Please provide a structured analysis in German.
-- **Summary:** Summarize neutrally what the document is about.
-- **Strengths:** List the specific points where the document's content directly and effectively addresses the requirements of the task. Be specific.
-- **Weaknesses:** Identify concrete gaps, missing information, or areas that do not meet the requirements of the task. Provide actionable feedback on what needs to be added or clarified.
-- **isFulfilled:** Based *only* on the analysis of the document against the task description, make a final boolean judgment. If there are significant weaknesses, set this to 'false'. Set it to 'true' only if the document appears to comprehensively address the task.
+- **Summary:** Summarize neutrally what the document is about. If the text contains a placeholder like "Platzhalter für Datei: 'xyz.pdf'", explain what a document of this type should contain to fulfill the task.
+- **Strengths:** List the specific points where the document's content directly and effectively addresses the requirements of the task. Be specific. Use Markdown for formatting.
+- **Weaknesses:** Identify concrete gaps, missing information, or areas that do not meet the requirements of the task. Provide actionable feedback on what needs to be added or clarified. Use Markdown for formatting.
+- **isFulfilled:** Based *only* on the analysis of the document against the task description, make a final boolean judgment. If there are significant weaknesses, or if the text is just a placeholder, set this to 'false'. Set it to 'true' only if the document appears to comprehensively address the task.
 
 Focus solely on the provided text and the specific task. Do not invent information. If the document is irrelevant to the task, state this in the summary and leave strengths and weaknesses empty and set isFulfilled to false.`,
 });
