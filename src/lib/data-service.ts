@@ -39,7 +39,8 @@ export async function createProject(projectName: string) {
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
-        }
+        },
+        exportedInsights: []
     });
 
     return newProjectRef.id;
@@ -114,6 +115,7 @@ interface ProjectData {
     checklistState: object;
     designCanvas: object;
     courseProgress: { completedVideoIds: string[] };
+    exportedInsights: string[];
 }
 
 // These functions now operate on the active project
@@ -122,7 +124,8 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
     await saveProjectData({ 
         assessmentAnswers: answers,
         companyContext: {},
-        checklistState: {}
+        checklistState: {},
+        exportedInsights: []
     });
 }
 
@@ -154,6 +157,16 @@ export async function saveDesignCanvasData(data: object) {
 
 export async function getDesignCanvasData() {
     return getProjectData('designCanvas');
+}
+
+export async function getExportedInsights(): Promise<string[]> {
+    const insights = await getProjectData('exportedInsights');
+    return insights || [];
+}
+
+export async function saveExportedInsight(insight: string) {
+    const currentInsights = await getExportedInsights();
+    await saveProjectData({ exportedInsights: [...currentInsights, insight] });
 }
 
 

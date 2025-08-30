@@ -1,20 +1,20 @@
 
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, Fragment } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Printer, CheckCircle, Circle, Loader2 } from 'lucide-react';
+import { Printer, CheckCircle, Circle, Loader2, Edit } from 'lucide-react';
 import type { ComplianceItem } from '@/lib/types';
 import type { ChecklistState } from '@/components/dashboard';
 import { deriveComplianceState } from '@/lib/compliance-logic';
 import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { useAuth } from '@/context/auth-context';
-import { getAssessmentAnswers, getChecklistState, getActiveProjectId, setActiveProjectId } from '@/lib/data-service';
+import { getAssessmentAnswers, getChecklistState, getActiveProjectId, setActiveProjectId, getExportedInsights } from '@/lib/data-service';
 
 const statusConfig = {
     'Compliant': { badgeVariant: 'default' as const },
@@ -27,9 +27,32 @@ interface FullComplianceInfo extends ComplianceItem {
     checkedTasks?: Record<string, boolean>;
 }
 
+const InsightContent = ({ content }: { content: string }) => {
+    return (
+        <>
+            {content.split('\n').map((line, index) => {
+                const parts = line.split(/(\*\*.*?\*\*)/g);
+                return (
+                    <Fragment key={index}>
+                        {parts.map((part, partIndex) => {
+                            if (part.startsWith('**') && part.endsWith('**')) {
+                                return <strong key={partIndex}>{part.slice(2, -2)}</strong>;
+                            }
+                            return <Fragment key={partIndex}>{part}</Fragment>;
+                        })}
+                        <br />
+                    </Fragment>
+                );
+            })}
+        </>
+    );
+};
+
+
 function AuditReportPageContent() {
     const [reportData, setReportData] = useState<FullComplianceInfo[] | null>(null);
     const [assessmentAnswers, setAssessmentAnswersData] = useState<Record<string, string> | null>(null);
+    const [exportedInsights, setExportedInsights] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
@@ -52,6 +75,7 @@ function AuditReportPageContent() {
         const generateReport = async () => {
             const answers = await getAssessmentAnswers();
             const checklistStateData = await getChecklistState();
+            const insightsData = await getExportedInsights();
             
             if (!answers || Object.keys(answers).length === 0) {
                 // If no assessment, go do it.
@@ -60,6 +84,7 @@ function AuditReportPageContent() {
             }
             
             setAssessmentAnswersData(answers);
+            setExportedInsights(insightsData);
             const checklistState: ChecklistState = checklistStateData || {};
             const initialComplianceData = deriveComplianceState(answers);
 
@@ -188,6 +213,26 @@ function AuditReportPageContent() {
                                     ))}
                                 </div>
                             </div>
+                            
+                            {exportedInsights.length > 0 && (
+                                <>
+                                    <Separator />
+                                    <div>
+                                        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                                            <Edit className="h-5 w-5" />
+                                            Manuelle Einträge aus 'Compliance by Design'
+                                        </h2>
+                                        <div className="space-y-4">
+                                            {exportedInsights.map((insight, index) => (
+                                                <div key={index} className="text-sm p-4 rounded-lg bg-secondary break-inside-avoid">
+                                                    <p className="whitespace-pre-line"><InsightContent content={insight} /></p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
 
                         </CardContent>
                     </Card>
