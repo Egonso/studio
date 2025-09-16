@@ -10,6 +10,7 @@ export interface Module {
     id: string;
     title: string;
     videos: Video[];
+    isExam?: boolean;
 }
 
 export const courseData: Module[] = [
@@ -242,8 +243,14 @@ export const courseData: Module[] = [
         ]
     },
     {
+        id: "module-exam",
+        title: "Prüfung",
+        isExam: true,
+        videos: [],
+    },
+    {
         id: "module-5",
-        title: "Modul 5 - Abschluss",
+        title: "Abschluss",
         videos: [
             {
                 id: "video-5-1",
