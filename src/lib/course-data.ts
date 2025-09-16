@@ -253,56 +253,56 @@ export const courseData: Module[] = [
         videos: [
             {
                 id: "video-5-1",
-                title: "Bonus 1: PERMA & KI-Assistenz",
-                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI-Assistenten menschlicher zu gestalten.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20-%20Extra%20Video%20zu%20PERMA%20Assistenzkurs%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=cd570ac5-9ae6-4188-b215-afc636379b22"
             },
             {
                 id: "video-5-2",
-                title: "Bonus 2: Einführung in die Zertifizierung",
-                description: "Ein detaillierter Blick auf den Zertifizierungsprozess und wie Sie Ihr Unternehmen optimal darauf vorbereiten.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%201%20Einfu%CC%88hrung%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=e543b604-7d92-4eae-8000-692714982927"
             },
             {
                 id: "video-5-3",
-                title: "Bonus 3: Vertiefung Modul 1",
-                description: "Eine zusätzliche Lektion, die die technischen Konzepte aus Modul 1 weiter vertieft und praktische Beispiele zeigt.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%202%20Modul%201%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=445cc5e8-3cc4-4016-86b6-4afe3ff61466"
             },
             {
                 id: "video-5-4",
-                title: "Bonus 4: Vertiefung Modul 2",
-                description: "Erkunden Sie die rechtlichen Grundlagen des AI Acts mit weiteren Fallstudien und Expertenanalysen.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%203%20Modul%202%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=1ded1418-47f3-4301-b9bc-ad66dbad0ec1"
             },
             {
                 id: "video-5-5",
-                title: "Bonus 5: Vertiefung Modul 3",
-                description: "Ein tieferer Einblick in die ethischen Dimensionen und die Kommunikationsstrategien für eine erfolgreiche KI-Implementierung.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%204%20Modul%203%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=d7a98997-c531-4d57-86c1-bb7ff1a6d6da"
             },
             {
                 id: "video-5-6",
-                title: "Bonus 6: Vertiefung Modul 4",
-                description: "Zusätzliche Praxissimulationen und Anwendungsfälle, um Ihr Wissen zu festigen.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%205%20Modul%204%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=54a763a8-412b-4575-9c60-9ebb5608cabe"
             },
             {
                 id: "video-5-7",
-                title: "Bonus 7: Kulturwandel für KI",
-                description: "Strategien und Methoden, um eine innovationsfreundliche und verantwortungsbewusste KI-Kultur in Ihrem Unternehmen zu etablieren.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%206%20Modul%205%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=b0ce97b9-5b61-48dd-a683-3a1b9c34a78c"
             },
             {
                 id: "video-5-8",
-                title: "Bonus 8: Stakeholder Management",
-                description: "Wie Sie interne und externe Stakeholder für Ihre KI-Projekte gewinnen und deren Bedenken proaktiv managen.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%207%20Modul%206%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=3df3df1f-6427-4e25-a197-bb63f6ed123f"
             },
             {
                 id: "video-5-9",
-                title: "Bonus 9: Zukunftsfähige KI-Governance",
-                description: "Ein Leitfaden zur Etablierung langfristiger Governance-Strukturen für den verantwortungsvollen Einsatz von KI.",
+                title: "Implementation & Kultur",
+                description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20Video%208%20Modul%207%20EU%20AI%20Act%20Zertifizierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=32367c9a-9013-442b-b0e8-6a0d3ee26971"
             }
         ]
