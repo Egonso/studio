@@ -1,9 +1,16 @@
 
+export interface Resource {
+    title: string;
+    url: string;
+    type: 'pdf' | 'xlsx' | 'docx';
+}
+
 export interface Video {
     id: string;
     title: string;
     description: string;
     url: string;
+    resources?: Resource[];
 }
 
 export interface Module {
@@ -58,25 +65,37 @@ export const courseData: Module[] = [
                 id: "video-1-1",
                 title: "Video 1.1: Was ist KI? Einführung in Neuronale Netze",
                 description: "Willkommen! Sie lernen, wie Künstliche Intelligenz aus Beispielen lernt und welche Rolle neuronale Netze dabei spielen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz_videos%2F1.1%20Momo%20technische%20Grundlagen.mp4?alt=media&token=ccaf498c-1f27-4bcf-8179-4a53acb360a4"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz_videos%2F1.1%20Momo%20technische%20Grundlagen.mp4?alt=media&token=ccaf498c-1f27-4bcf-8179-4a53acb360a4",
+                resources: [
+                    { title: "Glossar KI Grundbegriffe", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FGlossar_KI_Grundbegri%EF%AC%83e_Modul1_1.1.pdf?alt=media&token=597d692c-16fd-4439-a796-812b230b215f", type: "pdf" }
+                ]
             },
             {
                 id: "video-1-2",
                 title: "Video 1.2: Tokens & Embeddings: Sprache in Zahlen",
                 description: "Willkommen! Dieses Video erklärt anschaulich, wie Texte in Zahlen übersetzt werden und warum das für Sprach-KI so wichtig ist.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.2%20Tokenisierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=29773c28-6e01-411d-9a10-995ea19891d9"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.2%20Tokenisierung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=29773c28-6e01-411d-9a10-995ea19891d9",
+                resources: [
+                    { title: "Token Rechner", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.2_Token_Rechner.xlsx?alt=media&token=435f164a-567f-4902-b723-c6719b4b565d", type: "xlsx" }
+                ]
             },
             {
                 id: "video-1-3",
                 title: "Video 1.3: Large Language Models: GPT & Co.",
                 description: "Willkommen! Sie erfahren, wie große Sprachmodelle funktionieren, welche Stärken und Grenzen sie haben und wo sie für KMUs nützlich sind.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=5a968127-4454-4a28-900a-6e3a9fc98cb0"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=5a968127-4454-4a28-900a-6e3a9fc98cb0",
+                resources: [
+                    { title: "Vergleich LLMs", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.3_Vergleich_LLMs.xlsx?alt=media&token=c50ac105-c62e-4c26-811e-23fcd2066a3a", type: "xlsx" }
+                ]
             },
             {
                 id: "video-1-4",
                 title: "Video 1.4: Prompt Engineering Basics",
                 description: "Willkommen! Sie lernen, wie Sie durch geschicktes Prompten bessere Ergebnisse von KI-Systemen erhalten.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=36bb95ef-384d-4d7c-bd9d-f9d198feb5a5"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=36bb95ef-384d-4d7c-bd9d-f9d198feb5a5",
+                resources: [
+                    { title: "Prompt Checkliste", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.4_Prompt_Checkliste.pdf?alt=media&token=6cfbde1f-7bfc-470b-a04a-63dcab9927c4", type: "pdf" }
+                ]
             },
             {
                 id: "video-1-5",
@@ -88,25 +107,39 @@ export const courseData: Module[] = [
                 id: "video-1-6",
                 title: "Video 1.6: RAG – Firmeneigene KI-Antworten",
                 description: "Willkommen! Dieses Video zeigt, wie Sie Ihre eigenen Dokumente mit KI nutzbar machen können – für präzisere Antworten im Unternehmen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.6%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=cedece03-59ce-4ee3-ad6f-b52c73a0ddbf"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.6%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=cedece03-59ce-4ee3-ad6f-b52c73a0ddbf",
+                resources: [
+                    { title: "RAG Template", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.5_RAG_Template.xlsx?alt=media&token=93999728-f0fd-4bad-86b8-2c2cb7edfb1a", type: "xlsx" }
+                ]
             },
             {
                 id: "video-1-7",
                 title: "Video 1.7: Offline- & Open-Source-LLMs",
                 description: "Willkommen! Sie erfahren, welche Vorteile lokale und offene KI-Modelle bieten, besonders in Bezug auf Datenschutz und Kosten.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.7%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=56a228b7-76a8-4a6a-bfd5-01128dff2ee2"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.7%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=56a228b7-76a8-4a6a-bfd5-01128dff2ee2",
+                 resources: [
+                    { title: "Open-Source Kriterienmatrix", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.7_OpenSource_Kriterienmatrix.xlsx?alt=media&token=39ecc64a-a06d-4c68-b38e-11fbb8308aaa", type: "xlsx" }
+                ]
             },
             {
                 id: "video-1-8",
                 title: "Video 1.8: Risiken & Bias",
                 description: "Willkommen! Sie lernen, wie Verzerrungen und Halluzinationen in KI entstehen und wie Sie die Qualität der Ergebnisse sichern.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.8%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=49d9f993-4cd8-4afe-bcaf-a850516e787e"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%201.8%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=49d9f993-4cd8-4afe-bcaf-a850516e787e",
+                 resources: [
+                    { title: "Bias Test Checkliste (PDF)", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.8_Bias_Test_Checkliste.pdf?alt=media&token=a223dad6-2b9b-4342-9289-670578da810a", type: "pdf" },
+                    { title: "Bias Test Checkliste (Excel)", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.8_Bias_Test_Checkliste.xlsx?alt=media&token=045a628f-ed3b-4231-89a5-c0dba095d797", type: "xlsx" }
+                ]
             },
             {
                 id: "video-1-9",
                 title: "Video 1.9: Datenschutz & Security",
                 description: "Willkommen! Sie erhalten praktische Grundlagen, wie Sie KI-Systeme sicher einsetzen und DSGVO-Vorgaben erfüllen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifierung%20Modul%201.9%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=98f66815-f073-40a2-bf3c-95c6ac5359ed"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifierung%20Modul%201.9%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=98f66815-f073-40a2-bf3c-95c6ac5359ed",
+                 resources: [
+                    { title: "Datenschutz Checkliste", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.6_Datenschutz_Checkliste.pdf?alt=media&token=498d199a-172c-45d6-aa9d-40690d916ddc", type: "pdf" },
+                    { title: "Privacy by Design Checkliste", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModull%201%2FModul1_1.9_Privacy_by_Design_Checkliste.pdf?alt=media&token=d0c8cfca-671e-4409-83e4-2d815b22c522", type: "pdf" }
+                ]
             }
         ]
     },
@@ -124,49 +157,73 @@ export const courseData: Module[] = [
                 id: "video-2-2",
                 title: "Video 2.2: Risiko-Pyramide",
                 description: "Willkommen! Dieses Video erklärt die vier Risikoklassen des AI Acts – von minimalem Risiko bis zu verbotenen Anwendungen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=a26f2c0f-ea67-4be1-911a-b221bb254434"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=a26f2c0f-ea67-4be1-911a-b221bb254434",
+                resources: [
+                    { title: "Risiko-Pyramide", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.2_Risiko-Pyramide.pdf?alt=media&token=435d532b-51e4-4185-baeb-eb6ece742821", type: "pdf" }
+                ]
             },
             {
                 id: "video-2-3",
                 title: "Video 2.3: Verbotene Praktiken",
                 description: "Willkommen! Sie lernen, welche KI-Anwendungen in der EU grundsätzlich verboten sind.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=92a70d9f-00b2-4ac9-8b2e-a9fcf4f2bffe"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=92a70d9f-00b2-4ac9-8b2e-a9fcf4f2bffe",
+                resources: [
+                    { title: "Verbotene Praktiken", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.3_Verbotene_Praktiken.pdf?alt=media&token=1164dc8d-0dbf-4dad-ab8f-1ab6de0d0605", type: "pdf" }
+                ]
             },
             {
                 id: "video-2-4",
                 title: "Video 2.4: Hochrisiko-Pflichten",
                 description: "Willkommen! Sie erfahren, welche Pflichten Anbieter und Nutzer von Hochrisiko-Systemen haben.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%204%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=fce19041-f951-4716-af86-f3f16efda1bd"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%204%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=fce19041-f951-4716-af86-f3f16efda1bd",
+                resources: [
+                    { title: "Hochrisiko-Pflichten", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.4_Hochrisiko_Pflichten.xlsx?alt=media&token=ae69bb02-375d-4ede-a7a4-162ff033879b", type: "xlsx" }
+                ]
             },
             {
                 id: "video-2-5",
                 title: "Video 2.5: Generative KI vs. GPAI",
                 description: "Willkommen! Dieses Video zeigt die Unterschiede zwischen generativer KI und Basismodellen (GPAI) und erklärt deren Pflichten.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.5%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=47ba2572-7fe3-4a9e-8569-1df8a2be42b8"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.5%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=47ba2572-7fe3-4a9e-8569-1df8a2be42b8",
+                resources: [
+                    { title: "GPAI vs Generative KI", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.5_GPAI_vs_GenerativeKI.pdf?alt=media&token=a7b260e7-8cf9-4010-bf4b-c1a7029a7d5c", type: "pdf" }
+                ]
             },
             {
                 id: "video-2-6",
                 title: "Video 2.6: Entscheidungsbaum live",
                 description: "Willkommen! Prof. Wendt führt Sie durch eine praktische Fallprüfung: Ist ein System Hochrisiko oder nicht?",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%206%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=e7f044f1-22ee-4b0e-96f6-83214140a010"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%206%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=e7f044f1-22ee-4b0e-96f6-83214140a010",
+                resources: [
+                    { title: "Entscheidungsbaum", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.6_Entscheidungsbaum.xlsx?alt=media&token=a6ca8b22-8e51-4e62-a70f-0ef7c65f7516", type: "xlsx" }
+                ]
             },
             {
                 id: "video-2-7",
                 title: "Video 2.7: Praxisfall Chatbot",
                 description: "Willkommen! Sie sehen, wie Transparenzpflichten bei Chatbots praktisch umgesetzt werden.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%207%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=f1500d79-85e8-4ea8-9173-a89b1131870d"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%207%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=f1500d79-85e8-4ea8-9173-a89b1131870d",
+                resources: [
+                    { title: "Chatbot Kennzeichnung", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.7_Chatbot_Kennzeichnung.pdf?alt=media&token=b08e3036-97c4-42ac-b800-fb5bdc1b47da", type: "pdf" }
+                ]
             },
             {
                 id: "video-2-8",
                 title: "Video 2.8: Praxisfall Emotionserkennung",
                 description: "Willkommen! Ein Beispiel zeigt, warum Emotionserkennung am Arbeitsplatz verboten ist.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.8%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=701a5d58-04c5-4997-82fa-d71fb7a81a66"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.8%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=701a5d58-04c5-4997-82fa-d71fb7a81a66",
+                resources: [
+                    { title: "Emotionserkennung", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.8_Emotionserkennung.pdf?alt=media&token=94d2e1e4-14e6-4117-876c-f584936cd094", type: "pdf" }
+                ]
             },
             {
                 id: "video-2-9",
                 title: "Video 2.9: Compliance-Fahrplan",
                 description: "Willkommen! Sie erhalten eine Roadmap bis 2026, um Ihr Unternehmen Schritt für Schritt AI-Act-konform zu machen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.9%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=5710ded6-e85f-4f98-aba0-cbc5460fc2fe"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.9%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=5710ded6-e85f-4f98-aba0-cbc5460fc2fe",
+                resources: [
+                    { title: "Compliance Roadmap", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%202%2FModul2_2.9_Compliance_Roadmap.xlsx?alt=media&token=e3cd1e0e-2ad9-4224-b882-1b105eec84de", type: "xlsx" }
+                ]
             }
         ]
     },
@@ -178,31 +235,48 @@ export const courseData: Module[] = [
                 id: "video-3-1",
                 title: "Video 3.1: Ethische Grundlagen",
                 description: "Willkommen! Sie lernen zentrale ethische Modelle kennen – Utilitarismus, Deontologie und die Prinzipien vertrauenswürdiger KI.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.1%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=71b87e52-4381-40fd-a764-baf5a52ca3de"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.1%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=71b87e52-4381-40fd-a764-baf5a52ca3de",
+                resources: [
+                    { title: "Ethik Prinzipien", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.1_Ethik_Prinzipien.pdf?alt=media&token=f55828e5-be0e-4f03-9bae-02de8efefa18", type: "pdf" }
+                ]
             },
             {
                 id: "video-3-2",
                 title: "Video 3.2: Ethik in KMU-Prozessen",
                 description: "Willkommen! Dieses Video übersetzt ethische Prinzipien in konkrete Checklisten und Verantwortlichkeiten für Ihr Unternehmen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=af445328-c9f5-47bb-8fe8-f3ede6f14b33"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=af445328-c9f5-47bb-8fe8-f3ede6f14b33",
+                 resources: [
+                    { title: "Ethik Selbstcheck", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.2_Ethik_Selbstcheck.xlsx?alt=media&token=98787ba6-5af5-41e8-bfd7-ac5aa14cacd4", type: "xlsx" }
+                ]
             },
             {
                 id: "video-3-3",
                 title: "Video 3.3: Interne Kommunikation",
                 description: "Willkommen! Sie erfahren, wie Sie intern über KI-Einsatz informieren, Ängste abbauen und Zielgruppen gezielt ansprechen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=47447b89-0eb4-4db0-a1f4-8dbd70c661bf"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=47447b89-0eb4-4db0-a1f4-8dbd70c661bf",
+                 resources: [
+                    { title: "Transparenz Logbuch", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.3_Transparenz_Logbuch.xlsx?alt=media&token=34dadc2b-bb6d-4c7c-ab7e-dbc259eaf76a", type: "xlsx" }
+                ]
             },
             {
                 id: "video-3-4",
                 title: "Video 3.4: Externe Kommunikation",
                 description: "Willkommen! Sie lernen, wie Sie über KI gegenüber Kunden, Partnern und Medien transparent und vertrauensvoll kommunizieren.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=2c2bbf81-feff-452a-831e-37663d969275"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=2c2bbf81-feff-452a-831e-37663d969275",
+                 resources: [
+                    { title: "Bias Audit Checkliste", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.4_Bias_Audit_Checkliste.pdf?alt=media&token=41e2c196-df36-4222-86a1-9c7eb9768007", type: "pdf" },
+                    { title: "Bias Audit", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.4_Bias_Audit.xlsx?alt=media&token=5ed03deb-ba03-46e9-a1fe-5a50d414a82f", type: "xlsx" }
+                ]
             },
             {
                 id: "video-3-5",
                 title: "Video 3.5: Rollenspiel „Herr Sommer“",
                 description: "Willkommen! In einem Rollenspiel erleben Sie, wie empathische Kommunikation über den AI Act funktioniert.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.5%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=3c3bd626-5259-4f78-a015-2ac222a072ac"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Ethik%203.5%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=3c3bd626-5259-4f78-a015-2ac222a072ac",
+                resources: [
+                    { title: "RACI Matrix", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.5_RACI_Matrix.xlsx?alt=media&token=3b310c3e-0fe2-4e8b-be01-113b6d4fbdd8", type: "xlsx" },
+                    { title: "Kommunikation FAQ", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%203%2FModul3_3.6_Kommunikation_FAQ.pdf?alt=media&token=5529ff42-89cd-4f8a-990b-8e1e16296b66", type: "pdf" }
+                ]
             }
         ]
     },
@@ -220,25 +294,37 @@ export const courseData: Module[] = [
                 id: "video-4-2",
                 title: "Video 4.2: Simulation I – Chatbot",
                 description: "Willkommen! In einer Simulation lernen Sie, wie ein KMU-Kunde auf Fragen zum KI-Chatbot reagiert – und wie Sie souverän antworten.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=6c282645-80ab-404c-b419-664f05436e76"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=6c282645-80ab-404c-b419-664f05436e76",
+                resources: [
+                    { title: "Roadmap Simulation", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%204%2FModul4_4.2_Roadmap_Simulation.xlsx?alt=media&token=9d602a55-b17e-4e52-b790-c71428c61080", type: "xlsx" }
+                ]
             },
             {
                 id: "video-4-3",
                 title: "Video 4.3: Simulation II – Handel & Service",
                 description: "Willkommen! Sie sehen, wie Datenschutz (DSGVO) und KI-Technik in einem realistischen Online-Handelsfall zusammenspielen.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=08c696b9-cbaa-43ac-8499-c1faeb33f3e8"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.3%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=08c696b9-cbaa-43ac-8499-c1faeb33f3e8",
+                resources: [
+                    { title: "DSGVO Checkliste", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%204%2FModul4_4.3_DSGVO_Checkliste.pdf?alt=media&token=6fe1501b-37f2-4353-9058-8dfa888eb540", type: "pdf" }
+                ]
             },
             {
                 id: "video-4-4",
                 title: "Video 4.4: Simulation III – Gesundheitswesen",
                 description: "Willkommen! Ein Praxisbeispiel zeigt die hohen Anforderungen an KI im Klinikalltag – von CE bis Patientenaufklärung.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=7ee7c758-1948-4db1-b8af-0ecdd61afda5"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%204.4%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=7ee7c758-1948-4db1-b8af-0ecdd61afda5",
+                resources: [
+                    { title: "Hochrisiko Gesundheitswesen", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%204%2FModul4_4.4_Hochrisiko_Gesundheitswesen.pdf?alt=media&token=d93d412a-f2c0-4dc7-ab2a-814b4ee7a1b1", type: "pdf" }
+                ]
             },
             {
                 id: "video-4-5",
                 title: "Video 4.5: Prüfungsvorbereitung",
                 description: "Willkommen! Sie erhalten die wichtigsten Fakten und Tipps für die Multiple-Choice-Prüfung.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Pru%CC%88fungsvorbereitung%20Abschluss%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=324c7e4c-0b4d-4c18-812c-c92d70f353ea"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Pru%CC%88fungsvorbereitung%20Abschluss%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=324c7e4c-0b4d-4c18-812c-c92d70f353ea",
+                resources: [
+                    { title: "Lernkarten Q&A", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/eukigesetz%2FModul%204%2FModul4_4.5_Lernkarten_QA.xlsx?alt=media&token=fb99a615-1f66-46e9-92e6-897d5eb8691f", type: "xlsx" }
+                ]
             }
         ]
     },
@@ -327,5 +413,7 @@ export const courseData: Module[] = [
         ]
     }
 ];
+
+    
 
     

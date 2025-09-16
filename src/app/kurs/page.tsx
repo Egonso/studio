@@ -4,17 +4,18 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PlayCircle, CheckCircle, GraduationCap } from 'lucide-react';
+import { PlayCircle, CheckCircle, GraduationCap, Download, FileText, Sheet as SheetIcon } from 'lucide-react';
 import { courseData } from '@/lib/course-data';
 import type { Video, Module } from '@/lib/course-data';
 import { useAuth } from '@/context/auth-context';
 import { getCourseProgress, saveCourseProgress } from '@/lib/data-service';
 import { cn } from '@/lib/utils';
 import { ExamCard } from '@/components/exam-card';
+import { Separator } from '@/components/ui/separator';
 
 type Selection = {
     type: 'video';
@@ -96,6 +97,18 @@ export default function CoursePage() {
         }
         return 'module-0';
     }
+    
+    const ResourceIcon = ({ type }: { type: string }) => {
+        switch (type) {
+            case 'pdf':
+                return <FileText className="h-5 w-5" />;
+            case 'xlsx':
+                return <SheetIcon className="h-5 w-5" />;
+            default:
+                return <Download className="h-5 w-5" />;
+        }
+    }
+
 
     if (authLoading || isLoading || !user) {
         return (
@@ -176,6 +189,37 @@ export default function CoursePage() {
                                     </div>
                                     <h1 className="text-2xl font-bold">{selectedItem.data.title}</h1>
                                     <p className="text-muted-foreground">{selectedItem.data.description}</p>
+
+                                    {selectedItem.data.resources && selectedItem.data.resources.length > 0 && (
+                                        <>
+                                            <Separator className="my-6" />
+                                            <div className="space-y-4">
+                                                <h2 className="text-lg font-semibold">Ressourcen zum Herunterladen</h2>
+                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                    {selectedItem.data.resources.map((resource, index) => (
+                                                        <a
+                                                            key={index}
+                                                            href={resource.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block"
+                                                        >
+                                                            <Card className="hover:bg-accent hover:text-accent-foreground transition-colors">
+                                                                <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
+                                                                    <ResourceIcon type={resource.type} />
+                                                                    <div className="flex-1">
+                                                                        <CardTitle className="text-sm font-medium">{resource.title}</CardTitle>
+                                                                    </div>
+                                                                    <Download className="h-5 w-5 text-muted-foreground" />
+                                                                </CardHeader>
+                                                            </Card>
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
                                 </div>
                             )}
                             {selectedItem?.type === 'exam' && <ExamCard />}
@@ -192,3 +236,5 @@ export default function CoursePage() {
         </div>
     );
 }
+
+    
