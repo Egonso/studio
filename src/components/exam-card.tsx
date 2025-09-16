@@ -30,9 +30,9 @@ export function ExamCard() {
                     <div className="space-y-4 p-4 bg-secondary rounded-lg">
                         <h3 className="font-semibold text-lg">Prüfungsablauf</h3>
                         <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                            <li>Öffne die Prüfungsseite.</li>
-                            <li>Gib den geheimen Passcode ein: <code className="bg-muted text-foreground font-mono p-1 rounded-sm">#061224!</code></li>
-                            <li>Beantworte die Multiple-Choice-Fragen.</li>
+                            <li>Öffnen Sie die Prüfungsseite.</li>
+                            <li>Geben Sie den geheimen Passcode ein: <code className="bg-muted text-foreground font-mono p-1 rounded-sm">#061224!</code> (Bitte inkl. Ausrufezeichen)</li>
+                            <li>Beantworten Sie die Multiple-Choice-Fragen.</li>
                         </ol>
                         <ul className="list-disc list-inside pl-4 text-xs text-muted-foreground">
                             <li>2 Minuten Zeit pro Frage</li>
@@ -56,7 +56,7 @@ export function ExamCard() {
                     <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                         <li>Die Prüfung kann bei Nichtbestehen wiederholt werden.</li>
                         <li>Alle Hilfsmittel sind während der Prüfung erlaubt.</li>
-                        <li>Bei technischen Problemen kontaktiere uns unter: <a href="mailto:office@momofeichtinger.com" className="text-primary hover:underline">office@momofeichtinger.com</a></li>
+                        <li>Bei technischen Problemen kontaktieren Sie uns unter: <a href="mailto:office@momofeichtinger.com" className="text-primary hover:underline">office@momofeichtinger.com</a></li>
                     </ul>
                 </div>
             </CardContent>
