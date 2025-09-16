@@ -257,6 +257,12 @@ export const courseData: Module[] = [
                 title: "Video 5.1: Zertifikat & Updates",
                 description: "Willkommen! Sie erfahren, wie Sie Ihr Zertifikat und Badge erhalten und über Newsletter-Updates auf dem Laufenden bleiben.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Abschluss%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=4a43337d-1e34-40b5-bbca-91ccb13de068"
+            },
+            {
+                id: "video-5-2",
+                title: "Abschied & Bloopers",
+                description: "Ein kleiner Blick hinter die Kulissen als Dankeschön für Ihre Teilnahme am Kurs.",
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Blooper%202%20fu%CC%88r%20Werbung%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=d8f3dd57-afc1-44cf-b27b-71174731627b"
             }
         ]
     },
@@ -321,3 +327,5 @@ export const courseData: Module[] = [
         ]
     }
 ];
+
+    
