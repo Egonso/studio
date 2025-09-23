@@ -40,16 +40,6 @@ function ComplianceByDesignPageContent() {
                                     <CardDescription className="text-lg mt-2 max-w-4xl">
                                         {manifest.introduction[0]}
                                     </CardDescription>
-                                     <div className="flex items-center gap-4 mt-4">
-                                        <p className="text-sm text-muted-foreground">In Kooperation mit</p>
-                                        <Image 
-                                            src="https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/PEVA-Logo-Blau-768x152.webp?alt=media&token=7a4584cc-03fd-44dd-8ef3-ec6ded818982"
-                                            alt="PEVA Logo"
-                                            width={150}
-                                            height={30}
-                                            className="h-auto"
-                                        />
-                                    </div>
                                 </div>
                                 <img src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp" alt="AI Act Compass Siegel" className="h-24 w-24 hidden md:block" />
                             </div>
