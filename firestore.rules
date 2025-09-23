@@ -3,22 +3,31 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Customers collection: Only the webhook function should write here.
-    // The client needs to read it to check for registration eligibility.
+
+    // Helper function to check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the data
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Allow unauthenticated reads on the 'customers' collection for registration check
     match /customers/{email} {
-      allow read: if request.auth != null; // Allow logged-in users to check
-      allow write: if false; // No client-side writes
+      allow get: if true;
+      allow list, create, update, delete: if false; // Disallow all other operations
     }
     
-    // Stripe events: Only backend/webhook can write. No client access needed.
-    match /stripe_events/{eventId} {
-        allow read, write: if false;
-    }
-    
-    // User-specific data
+    // Secure all user-specific data under a 'users' collection
     match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Disallow any other access to prevent data leaks.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
