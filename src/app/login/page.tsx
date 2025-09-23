@@ -107,7 +107,7 @@ export default function LoginPage() {
             />
             <span className="font-bold text-2xl">AI Act Compass</span>
       </div>
-      <Tabs defaultValue="login" className="w-full max-w-sm">
+      <Tabs defaultValue="signup" className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Anmelden</TabsTrigger>
           <TabsTrigger value="signup">Registrieren</TabsTrigger>
