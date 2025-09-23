@@ -62,11 +62,25 @@ Jetzt laden wir den Code der Funktion in die Cloud hoch.
 firebase deploy --only functions
 ```
 
-Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung, die Ihnen auch die URL Ihrer Webhook-Funktion anzeigt.
+Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung mit den URLs Ihrer Funktionen. Suchen Sie nach der URL für **`backfillCustomers`**. Sie sieht in etwa so aus: `https://backfillcustomers-xxxxxxxx-xx.a.run.app`.
 
 ---
 
-### Schritt 7: Geheime Schlüssel (Environment Variables) hinzufügen
+### Schritt 7 (NEU): Kundendaten für bestehende Käufe nachtragen
+
+Wir müssen eine einmalige Funktion ausführen, um alle bisherigen Käufer in die neue `customers`-Collection einzutragen.
+
+1.  **Funktions-URL aufrufen:** Kopieren Sie die URL der `backfillCustomers`-Funktion aus der Erfolgsmeldung im Terminal.
+2.  **Im Browser öffnen:** Fügen Sie diese URL in Ihren Webbrowser ein und drücken Sie Enter.
+3.  **Erfolg abwarten:** Warten Sie, bis die Seite geladen ist. Sie sollte eine Erfolgsmeldung anzeigen, z.B. "Backfill complete. Added or updated X unique customers."
+
+Damit können sich nun auch alle bisherigen Käufer registrieren.
+
+**Optional, aber empfohlen:** Nachdem dies erfolgreich war, können Sie den Code für die `backfillCustomers`-Funktion aus der `functions/src/index.ts`-Datei entfernen und die Funktionen erneut bereitstellen, um aufzuräumen.
+
+---
+
+### Schritt 8: Geheime Schlüssel (Environment Variables) hinzufügen
 
 Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen. **Sie müssen dies nur einmal tun.**
 

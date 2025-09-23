@@ -38,7 +38,8 @@ export const stripeWebhook = onRequest(
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
-          const customerEmail = session.customer_details?.email;
+          // Use customer_details.email first, then fallback to metadata.
+          const customerEmail = session.customer_details?.email || (session.metadata?.customerEmail as string | undefined);
           const stripeCustomerId = session.customer as string;
 
           if (customerEmail) {
@@ -63,7 +64,7 @@ export const stripeWebhook = onRequest(
             });
 
           } else {
-             logger.warn("Checkout session completed without customer email.");
+             logger.warn("Checkout session completed without customer email.", {sessionId: session.id});
           }
           break;
         }
@@ -134,3 +135,59 @@ export const stripeWebhook = onRequest(
     }
   }
 );
+
+
+/**
+ * One-time utility function to backfill the `customers` collection from `stripe_events`.
+ * Run this once after deployment by visiting its URL.
+ */
+export const backfillCustomers = onRequest(async (request, response) => {
+    logger.info("Starting backfill of customers collection...");
+
+    try {
+        const stripeEventsSnapshot = await db.collection("stripe_events")
+            .where("type", "==", "checkout.session.completed")
+            .get();
+
+        if (stripeEventsSnapshot.empty) {
+            const message = "No 'checkout.session.completed' events found to backfill.";
+            logger.info(message);
+            response.status(200).send(message);
+            return;
+        }
+
+        const batch = db.batch();
+        let customersAdded = 0;
+        const processedEmails = new Set<string>();
+
+        stripeEventsSnapshot.forEach((doc) => {
+            const eventData = doc.data();
+            const session = eventData.data as Stripe.Checkout.Session; // This is the nested object from the original event
+
+            // Determine the correct email field
+            const email = session?.customer_details?.email || eventData.email || session?.metadata?.customerEmail;
+
+            if (email && !processedEmails.has(email)) {
+                const customerRef = db.collection("customers").doc(email);
+                
+                batch.set(customerRef, {
+                    email: email,
+                    stripeId: eventData.customer,
+                    status: "active",
+                    created: eventData.created || admin.firestore.FieldValue.serverTimestamp(),
+                }, { merge: true });
+                
+                customersAdded++;
+                processedEmails.add(email);
+            }
+        });
+
+        await batch.commit();
+        const successMessage = `Backfill complete. Processed ${stripeEventsSnapshot.size} events. Added or updated ${customersAdded} unique customers.`;
+        logger.info(successMessage);
+        response.status(200).send(successMessage);
+    } catch (error) {
+        logger.error("Error during customer backfill:", error);
+        response.status(500).send("An error occurred during the backfill process. Check logs for details.");
+    }
+});
