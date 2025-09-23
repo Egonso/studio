@@ -1,8 +1,7 @@
-
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { getUserProjects } from '@/lib/data-service';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -27,12 +25,23 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  
+  const emailFromUrl = searchParams.get('email');
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: emailFromUrl || '', password: '' },
   });
+
+  useEffect(() => {
+    if (emailFromUrl) {
+      form.setValue('email', emailFromUrl);
+    }
+  }, [emailFromUrl, form]);
+
 
   const canRegister = async (email: string): Promise<boolean> => {
     try {

@@ -32,36 +32,34 @@ export const stripeWebhook = onRequest(
     }
 
     const eventLogRef = db.collection("stripe_events").doc(event.id);
+    const rawEventData = event.data.object as any;
 
     try {
       // Handle the event
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
-          // Use customer_details.email first, then fallback to metadata.
-          const customerEmail = session.customer_details?.email || (session.metadata?.customerEmail as string | undefined);
-          const stripeCustomerId = session.customer as string;
+          // Robustly get customer email from multiple possible locations
+          const customerEmail = session.customer_details?.email || rawEventData.email || session.metadata?.customerEmail;
 
           if (customerEmail) {
             const userRef = db.collection("customers").doc(customerEmail);
             await userRef.set({
               email: customerEmail,
-              stripeId: stripeCustomerId,
+              stripeId: session.customer, // Can be null, that's okay
               status: "active",
               created: admin.firestore.FieldValue.serverTimestamp(),
             }, {merge: true});
 
-            logger.info(`User ${customerEmail} created/updated from checkout session.`);
+            logger.info(`Customer ${customerEmail} created/updated from checkout session.`);
 
             await eventLogRef.set({
                 type: event.type,
+                raw: rawEventData,
                 email: customerEmail,
-                customer: stripeCustomerId,
-                amount_total: session.amount_total,
-                currency: session.currency,
-                metadata: session.metadata,
+                customer: session.customer,
                 created: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            }, {merge: true});
 
           } else {
              logger.warn("Checkout session completed without customer email.", {sessionId: session.id});
@@ -72,26 +70,24 @@ export const stripeWebhook = onRequest(
         case "invoice.paid": {
           const invoice = event.data.object as Stripe.Invoice;
           const customerEmail = invoice.customer_email;
-          const stripeCustomerId = invoice.customer as string;
 
           if (customerEmail) {
              const userRef = db.collection("customers").doc(customerEmail);
              await userRef.set({
                 email: customerEmail,
-                stripeId: stripeCustomerId,
+                stripeId: invoice.customer,
                 status: "active",
                 lastInvoicePaid: admin.firestore.FieldValue.serverTimestamp(),
              }, {merge: true});
-             logger.info(`User ${customerEmail} updated from invoice.paid.`);
+             logger.info(`Customer ${customerEmail} updated from invoice.paid.`);
           }
            await eventLogRef.set({
                 type: event.type,
+                raw: rawEventData,
                 email: customerEmail,
-                customer: stripeCustomerId,
-                amount_paid: invoice.amount_paid,
-                currency: invoice.currency,
+                customer: invoice.customer,
                 created: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            }, {merge: true});
           break;
         }
 
@@ -105,16 +101,15 @@ export const stripeWebhook = onRequest(
                     status: "refunded",
                     refundedAt: admin.firestore.FieldValue.serverTimestamp(),
                 });
-                logger.info(`User ${customerEmail} status set to refunded.`);
+                logger.info(`Customer ${customerEmail} status set to refunded.`);
             }
             await eventLogRef.set({
                 type: event.type,
+                raw: rawEventData,
                 email: customerEmail,
                 customer: charge.customer,
-                amount_refunded: charge.amount_refunded,
-                currency: charge.currency,
                 created: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            }, {merge: true});
             break;
         }
 
@@ -122,9 +117,9 @@ export const stripeWebhook = onRequest(
           logger.info(`Unhandled Stripe event type: ${event.type}`);
           await eventLogRef.set({
             type: event.type,
-            data: event.data.object,
+            raw: rawEventData,
             created: admin.firestore.FieldValue.serverTimestamp(),
-          });
+          }, {merge: true});
       }
 
       response.status(200).json({received: true});
@@ -162,9 +157,9 @@ export const backfillCustomers = onRequest(async (request, response) => {
 
         stripeEventsSnapshot.forEach((doc) => {
             const eventData = doc.data();
-            const session = eventData.data as Stripe.Checkout.Session; // This is the nested object from the original event
+            const session = eventData.raw as Stripe.Checkout.Session; // Use the 'raw' field
 
-            // Determine the correct email field
+            // Robustly determine the email from various possible fields
             const email = session?.customer_details?.email || eventData.email || session?.metadata?.customerEmail;
 
             if (email && !processedEmails.has(email)) {
@@ -172,13 +167,15 @@ export const backfillCustomers = onRequest(async (request, response) => {
                 
                 batch.set(customerRef, {
                     email: email,
-                    stripeId: eventData.customer,
+                    stripeId: eventData.customer, // This can be null
                     status: "active",
                     created: eventData.created || admin.firestore.FieldValue.serverTimestamp(),
                 }, { merge: true });
                 
                 customersAdded++;
                 processedEmails.add(email);
+            } else if (!email) {
+                logger.warn(`Could not find email for event: ${doc.id}`);
             }
         });
 
