@@ -40,7 +40,7 @@ export const stripeWebhook = onRequest(
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
           // Robustly get customer email from multiple possible locations
-          const customerEmail = session.customer_details?.email || rawEventData.email || session.metadata?.customerEmail;
+          const customerEmail = (session.customer_details?.email || rawEventData.email || session.metadata?.customerEmail)?.toLowerCase();
 
           if (customerEmail) {
             const userRef = db.collection("customers").doc(customerEmail);
@@ -69,7 +69,7 @@ export const stripeWebhook = onRequest(
 
         case "invoice.paid": {
           const invoice = event.data.object as Stripe.Invoice;
-          const customerEmail = invoice.customer_email;
+          const customerEmail = invoice.customer_email?.toLowerCase();
 
           if (customerEmail) {
              const userRef = db.collection("customers").doc(customerEmail);
@@ -93,7 +93,7 @@ export const stripeWebhook = onRequest(
 
         case "charge.refunded": {
             const charge = event.data.object as Stripe.Charge;
-            const customerEmail = charge.billing_details.email;
+            const customerEmail = charge.billing_details.email?.toLowerCase();
 
             if (customerEmail) {
                 const userRef = db.collection("customers").doc(customerEmail);
@@ -141,11 +141,11 @@ export const backfillCustomers = onRequest(async (request, response) => {
 
     try {
         const stripeEventsSnapshot = await db.collection("stripe_events")
-            .where("type", "==", "checkout.session.completed")
+            .where("type", "in", ["checkout.session.completed", "invoice.paid"])
             .get();
 
         if (stripeEventsSnapshot.empty) {
-            const message = "No 'checkout.session.completed' events found to backfill.";
+            const message = "No 'checkout.session.completed' or 'invoice.paid' events found to backfill.";
             logger.info(message);
             response.status(200).send(message);
             return;
@@ -157,10 +157,16 @@ export const backfillCustomers = onRequest(async (request, response) => {
 
         stripeEventsSnapshot.forEach((doc) => {
             const eventData = doc.data();
-            const session = eventData.raw as Stripe.Checkout.Session; // Use the 'raw' field
+            const rawData = eventData.raw || {}; // Fallback to empty object if raw is missing
 
-            // Robustly determine the email from various possible fields
-            const email = session?.customer_details?.email || eventData.email || session?.metadata?.customerEmail;
+            // Robustly determine the email from various possible fields, and convert to lower case
+            const email = (
+                rawData.customer_details?.email ||
+                eventData.email ||
+                rawData.customer_email ||
+                rawData.metadata?.customerEmail
+            )?.toLowerCase();
+
 
             if (email && !processedEmails.has(email)) {
                 const customerRef = db.collection("customers").doc(email);
