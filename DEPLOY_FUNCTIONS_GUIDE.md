@@ -15,6 +15,7 @@ Folgen Sie einfach diesen Schritten.
 
 1.  **Firebase CLI:** Sie müssen die Firebase-Befehlszeilentools (CLI) installiert haben. Falls nicht, finden Sie [hier eine Anleitung](https://firebase.google.com/docs/cli#install).
 2.  **Angemeldet sein:** Sie müssen in Ihrem Terminal bei Firebase angemeldet sein. Führen Sie `firebase login` aus, falls Sie sich nicht sicher sind.
+3.  **Im Projekt-Hauptverzeichnis sein:** Stellen Sie sicher, dass Ihr Terminal im Hauptverzeichnis des Projekts geöffnet ist (der Ordner, der `src`, `functions` und `package.json` enthält).
 
 ---
 
@@ -24,7 +25,7 @@ Folgen Sie einfach diesen Schritten.
 
 ### Schritt 2: In das `functions`-Verzeichnis wechseln
 
-Unsere Cloud Function hat ihr eigenes, separates Verzeichnis. Wir müssen dorthin navigieren, bevor wir Befehle ausführen.
+Unsere Cloud Function hat ihr eigenes, separates Verzeichnis. Wir müssen dorthin navigieren, um die Abhängigkeiten zu installieren.
 
 ```bash
 cd functions
@@ -38,9 +39,9 @@ Genau wie Ihr Hauptprojekt benötigt auch die Function ihre eigenen Pakete (`str
 npm install
 ```
 
-### Schritt 4: Zurück ins Hauptverzeichnis wechseln
+### Schritt 4: Zurück ins Hauptverzeichnis wechseln (SEHR WICHTIG)
 
-Wechseln Sie wieder eine Ebene nach oben, um die restlichen Befehle auszuführen.
+Wechseln Sie wieder eine Ebene nach oben in den Hauptordner Ihres Projekts, um die restlichen Befehle auszuführen. Dies ist der wichtigste Schritt, damit Firebase Ihre Dateien findet.
 
 ```bash
 cd ..
@@ -48,7 +49,7 @@ cd ..
 
 ### Schritt 5: Die Firestore-Regeln bereitstellen
 
-Dieser Befehl lädt die neue `firestore.rules`-Datei in Ihr Projekt hoch.
+Dieser Befehl lädt die neue `firestore.rules`-Datei in Ihr Projekt hoch. Führen Sie ihn vom **Hauptverzeichnis** aus.
 
 ```bash
 firebase deploy --only firestore:rules
@@ -56,7 +57,7 @@ firebase deploy --only firestore:rules
 
 ### Schritt 6: Die Function bereitstellen (deployen)
 
-Jetzt laden wir den Code der Funktion in die Cloud hoch.
+Jetzt laden wir den Code der Funktion in die Cloud hoch. Führen Sie ihn ebenfalls vom **Hauptverzeichnis** aus.
 
 ```bash
 firebase deploy --only functions
@@ -66,11 +67,11 @@ Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung mit den URLs Ihrer Funkti
 
 ---
 
-### Schritt 7 (NEU): Kundendaten für bestehende Käufe nachtragen
+### Schritt 7: Kundendaten für bestehende Käufe nachtragen
 
 Wir müssen eine einmalige Funktion ausführen, um alle bisherigen Käufer in die neue `customers`-Collection einzutragen.
 
-1.  **Funktions-URL aufrufen:** Kopieren Sie die URL der `backfillCustomers`-Funktion aus der Erfolgsmeldung im Terminal.
+1.  **Funktions-URL aufrufen:** Kopieren Sie die URL der `backfillCustomers`-Funktion aus der Erfolgsmeldung im Terminal (aus Schritt 6).
 2.  **Im Browser öffnen:** Fügen Sie diese URL in Ihren Webbrowser ein und drücken Sie Enter.
 3.  **Erfolg abwarten:** Warten Sie, bis die Seite geladen ist. Sie sollte eine Erfolgsmeldung anzeigen, z.B. "Backfill complete. Added or updated X unique customers."
 
