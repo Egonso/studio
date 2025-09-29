@@ -1,13 +1,7 @@
 
-# Anleitung: Firebase Function & Regeln bereitstellen (Finaler, korrigierter Prozess)
+# Anleitung: Firebase Function & Regeln bereitstellen (Vereinfachter Prozess)
 
-Herzlichen Glückwunsch! Die Code-Implementierung ist abgeschlossen. Damit Ihr neuer Stripe-Webhook und die Sicherheitsregeln live funktionieren, müssen wir drei Dinge tun:
-
-1.  **Den Funktionscode kompilieren:** Wir übersetzen den TypeScript-Code in JavaScript, damit Firebase ihn versteht.
-2.  **Die Cloud Function bereitstellen (deployen):** Wir laden den neuen JavaScript-Code in Ihr Firebase-Projekt hoch.
-3.  **Die `backfillCustomers`-Funktion ausführen:** Wir starten die einmalige Funktion, um Ihre bestehenden Kundendaten zu synchronisieren.
-
-Folgen Sie einfach diesen Schritten.
+Damit Ihr neuer Stripe-Webhook für zukünftige Käufe funktioniert, müssen wir den Code in die Cloud hochladen. Folgen Sie einfach diesen Schritten.
 
 ---
 
@@ -27,9 +21,7 @@ cd functions
 
 ---
 
-### Schritt 3: Die Abhängigkeiten der Funktion installieren
-
-Falls noch nicht geschehen, installieren Sie die Pakete, die Ihre Funktion benötigt.
+### Schritt 3: Die Abhängigkeiten der Funktion installieren (falls noch nicht geschehen)
 
 ```bash
 npm install
@@ -37,21 +29,19 @@ npm install
 
 ---
 
-### Schritt 4: Den Funktions-Code kompilieren (Der entscheidende Schritt)
+### Schritt 4: Den Funktions-Code kompilieren
 
-Dieser Befehl nimmt Ihren TypeScript-Code aus `functions/src` und erstellt die lauffähigen JavaScript-Dateien im `functions/lib` Ordner.
+Dieser Befehl übersetzt Ihren TypeScript-Code (`.ts`) in lauffähigen JavaScript-Code (`.js`), den Firebase versteht.
 
 ```bash
 npm run build
 ```
 
-Nachdem dieser Befehl erfolgreich war, sollte ein `lib`-Ordner innerhalb Ihres `functions`-Ordners existieren (oder aktualisiert worden sein).
+Nachdem dieser Befehl erfolgreich war, sollte ein `lib`-Ordner innerhalb Ihres `functions`-Ordners existieren.
 
 ---
 
 ### Schritt 5: Zurück ins Hauptverzeichnis wechseln (SEHR WICHTIG)
-
-Wechseln Sie wieder eine Ebene nach oben in den Hauptordner Ihres Projekts, um den finalen Befehl auszuführen.
 
 ```bash
 cd ..
@@ -59,25 +49,25 @@ cd ..
 
 ---
 
-### Schritt 6: Die Funktionen bereitstellen
+### Schritt 6: Die Funktion bereitstellen
 
-Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch. Führen Sie diesen Befehl vom **Hauptverzeichnis** aus.
+Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
 
 ```bash
 firebase deploy --only functions
 ```
 
-Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung mit den URLs Ihrer Funktionen. Suchen Sie nach der URL für **`backfillCustomers`**. Sie sieht in etwa so aus: `https://backfillcustomers-xxxxxxxx-xx.a.run.app`.
+Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung, die bestätigt, dass die `stripeWebhook`-Funktion bereitgestellt wurde.
 
 ---
 
-### Schritt 7: Kundendaten für bestehende Käufe nachtragen
+### Schritt 7: Die Firestore-Regeln bereitstellen
 
-1.  **Funktions-URL aufrufen:** Kopieren Sie die URL der `backfillCustomers`-Funktion aus der Erfolgsmeldung im Terminal (aus Schritt 6).
-2.  **Im Browser öffnen:** Fügen Sie diese URL in Ihren Webbrowser ein und drücken Sie Enter.
-3.  **Erfolg abwarten:** Warten Sie, bis die Seite geladen ist. Sie sollte eine Erfolgsmeldung anzeigen, z.B. "Backfill complete. Added or updated X unique customers."
+Falls noch nicht geschehen, führen Sie diesen Befehl aus, um die Sicherheitsregeln zu aktualisieren.
 
-Damit können sich nun auch alle bisherigen Käufer registrieren.
+```bash
+firebase deploy --only firestore:rules
+```
 
 ---
 
@@ -89,4 +79,4 @@ Falls noch nicht geschehen, folgen Sie den Schritten aus der vorherigen Anleitun
 
 ### Fertig!
 
-Das war's! Ihr System ist jetzt korrekt konfiguriert.
+Das System ist jetzt für alle zukünftigen Käufe korrekt konfiguriert.
