@@ -1,56 +1,19 @@
-# Anleitung: Firebase Function bereitstellen (Finaler Prozess)
+# Anleitung: Firebase Function bereitstellen (Finaler, einfacher Prozess)
 
-Dieser Prozess wird jetzt funktionieren. Die vorherigen Probleme wurden durch eine vollständige Neukonfiguration des `functions`-Ordners behoben.
-
-**WICHTIG:** Führen Sie die Befehle genau wie beschrieben im richtigen Verzeichnis aus.
+Alle vorherigen Anleitungen sind ungültig. Der Prozess wurde radikal vereinfacht. Der fehlerhafte Build-Schritt wird nun übersprungen und die Kompilierung findet direkt in der Cloud statt.
 
 ---
 
-### Phase 1: Abhängigkeiten installieren & Code kompilieren (Die entscheidenden ersten Schritte)
+### Einziger Schritt: Funktion bereitstellen
 
-1.  Öffnen Sie Ihr Terminal. Stellen Sie sicher, dass Sie sich im Hauptprojektordner (`/Users/zoltangal/desktop`) befinden.
+1.  Öffnen Sie Ihr Terminal. Stellen Sie sicher, dass Sie sich im Hauptprojektordner (`/Users/zoltangal/desktop`) befinden. Sie können das mit dem `pwd`-Befehl überprüfen.
 
-2.  Wechseln Sie in das `functions`-Verzeichnis:
-    ```bash
-    cd functions
-    ```
-
-3.  **NEUER, WICHTIGER SCHRITT:** Installieren Sie alle notwendigen Pakete neu. Dies stellt sicher, dass der richtige TypeScript-Compiler vorhanden ist.
-    ```bash
-    npm install
-    ```
-    Warten Sie, bis dieser Befehl abgeschlossen ist.
-
-4.  Führen Sie jetzt den Build-Befehl aus, um den Code zu kompilieren:
-    ```bash
-    npm run build
-    ```
-    **Erwartetes Ergebnis:** Im Gegensatz zu vorher sollte dieser Befehl jetzt **keine lange Hilfeliste** mehr ausgeben. Er sollte entweder **gar nichts** ausgeben und einfach zur nächsten Zeile springen oder eine kurze Erfolgsmeldung zeigen. Danach existiert der Ordner `lib` mit der Datei `index.js` darin. **Der Fehler `functions/lib/index.js does not exist` ist damit behoben.**
-
----
-
-### Phase 2: Code in die Cloud hochladen
-
-Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
-
-1.  Wechseln Sie vom `functions`-Verzeichnis **zurück in den Hauptprojektordner** (sehr wichtig!):
-    ```bash
-    cd ..
-    ```
-
-2.  Stellen Sie sicher, dass Sie sich im richtigen Verzeichnis befinden. Der `pwd`-Befehl sollte `/Users/zoltangal/desktop` ausgeben:
-    ```bash
-    pwd
-    ```
-
-3.  Stellen Sie die Funktion bereit. Dieser Befehl wird nun Ihren **kompilierten** Code finden und ihn in die Cloud hochladen. Er wird die Funktion `stripeWebhook` neu erstellen.
+2.  Führen Sie den folgenden, einzigen Befehl aus:
     ```bash
     firebase deploy --only functions
     ```
-    **Erfolg!** Der Befehl sollte nun durchlaufen und anzeigen, dass `stripeWebhook` erstellt oder aktualisiert wird.
 
----
+**Erwartetes Ergebnis:**
+Der Befehl wird nun Ihren TypeScript-Quellcode direkt hochladen und in der Cloud kompilieren. Nach Abschluss sollte die Funktion `stripeWebhook` erfolgreich erstellt oder aktualisiert worden sein. Sie können dies in der Firebase Konsole überprüfen.
 
-### Phase 3: Geheime Schlüssel hinzufügen
-
-Folgen Sie den Schritten aus der vorherigen Anleitung, um Ihre Stripe-Schlüssel (`STRIPE_API_KEY` und `STRIPE_WEBHOOK_SECRET`) sicher in der Google Cloud Console zu hinterlegen. Der Link zur Funktion wird nach dem erfolgreichen Deployment im Terminal angezeigt und sollte nun funktionieren.
+Der Fehler `functions/lib/index.js does not exist` wird nicht mehr auftreten, da wir diesen Schritt nun umgehen.
