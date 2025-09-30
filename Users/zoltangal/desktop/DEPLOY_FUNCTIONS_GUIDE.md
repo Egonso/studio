@@ -1,6 +1,6 @@
-# Anleitung: Firebase Function bereitstellen (Finaler, korrigierter Prozess)
+# Anleitung: Firebase Function bereitstellen (Finaler Prozess)
 
-Sie haben es fast geschafft. Dieser Prozess wird jetzt funktionieren. Der Schlüssel sind zwei einfache Phasen, die in der richtigen Reihenfolge ausgeführt werden müssen.
+Dieser Prozess wird jetzt funktionieren. Die vorherigen Probleme wurden durch eine vollständige Neukonfiguration des `functions`-Ordners behoben.
 
 **WICHTIG:** Führen Sie die Befehle genau wie beschrieben im richtigen Verzeichnis aus.
 
@@ -39,7 +39,7 @@ Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
     pwd
     ```
 
-3.  Stellen Sie die Funktion bereit. Dieser Befehl wird nun Ihren **kompilierten** Code finden und ihn in die Cloud hochladen. Die Frage, ob etwas gelöscht werden soll, wird nicht mehr erscheinen. Stattdessen wird die Funktion `stripeWebhook` erstellt.
+3.  Stellen Sie die Funktion bereit. Dieser Befehl wird nun Ihren **kompilierten** Code finden und ihn in die Cloud hochladen. Er wird die Funktion `stripeWebhook` neu erstellen.
     ```bash
     firebase deploy --only functions
     ```
@@ -47,35 +47,6 @@ Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
 
 ---
 
-### Phase 3: Geheime Schlüssel hinzufügen (Letzter Schritt!)
+### Phase 3: Geheime Schlüssel hinzufügen
 
-Damit Ihre Funktion mit Stripe kommunizieren kann, müssen Sie ihr die API-Schlüssel sicher mitteilen.
-
-1.  **Öffnen Sie die Google Cloud Console für Ihr Projekt:**
-    *   Warten Sie nach dem erfolgreichen Deployment ca. 1-2 Minuten.
-    *   Klicken Sie auf diesen Link: [https://console.cloud.google.com/functions/details/us-central1/stripeWebhook?project=ai-act-compass-m6o05](https://console.cloud.google.com/functions/details/us-central1/stripeWebhook?project=ai-act-compass-m6o05)
-    *   Die Seite sollte jetzt nicht mehr "Resource not found" anzeigen, sondern die Details Ihrer Funktion.
-
-2.  **Gehen Sie zum Bearbeiten der Funktion:**
-    *   Klicken Sie oben auf die Schaltfläche **"BEARBEITEN"**.
-
-3.  **Öffnen Sie die Laufzeit-Einstellungen:**
-    *   Klicken Sie auf **"WEITER"**, um zum Abschnitt **"Laufzeit-, Build- und Verbindungseinstellungen"** zu gelangen.
-
-4.  **Fügen Sie die geheimen Schlüssel hinzu:**
-    *   Scrollen Sie zum Unterabschnitt **"Laufzeitumgebungsvariablen"**.
-    *   Klicken Sie auf **"+ VARIABLE HINZUFÜGEN"**:
-        *   **Name:** `STRIPE_API_KEY`
-        *   **Wert:** Ihr geheimer Stripe-API-Schlüssel (`sk_...`).
-    *   Klicken Sie erneut auf **"+ VARIABLE HINZUFÜGEN"**:
-        *   **Name:** `STRIPE_WEBHOOK_SECRET`
-        *   **Wert:** Ihr Stripe-Webhook-Signaturgeheimnis (`whsec_...`).
-
-5.  **Speichern:**
-    *   Klicken Sie unten auf **"WEITER"** und dann auf **"BEREITSTELLEN"**.
-
----
-
-### ✅ Fertig!
-
-Ihr System ist jetzt **vollständig konfiguriert**.
+Folgen Sie den Schritten aus der vorherigen Anleitung, um Ihre Stripe-Schlüssel (`STRIPE_API_KEY` und `STRIPE_WEBHOOK_SECRET`) sicher in der Google Cloud Console zu hinterlegen. Der Link zur Funktion wird nach dem erfolgreichen Deployment im Terminal angezeigt und sollte nun funktionieren.
