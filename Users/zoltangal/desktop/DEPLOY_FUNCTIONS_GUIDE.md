@@ -1,4 +1,3 @@
-
 # Anleitung: Firebase Function & Regeln bereitstellen (Finaler Prozess)
 
 Sie haben es fast geschafft! Die folgenden Schritte stellen sicher, dass Ihr `stripeWebhook` korrekt bereitgestellt wird und für zukünftige Käufe funktioniert.
@@ -7,43 +6,48 @@ Sie haben es fast geschafft! Die folgenden Schritte stellen sicher, dass Ihr `st
 
 ---
 
-### Phase 1: Code kompilieren (bereits erledigt)
+### Phase 1: Code kompilieren (Sehr wichtiger erster Schritt)
 
-Dieser Schritt übersetzt Ihren TypeScript-Code in lauffähigen JavaScript-Code. Sie haben dies bereits erfolgreich getan.
+Dieser Schritt übersetzt Ihren TypeScript-Code (`.ts`) in lauffähigen JavaScript-Code (`.js`), den Firebase versteht.
 
-1.  Im Terminal in das `functions`-Verzeichnis wechseln:
+1.  Öffnen Sie Ihr Terminal. Stellen Sie sicher, dass Sie sich im Hauptprojektordner (`/Users/zoltangal/desktop`) befinden.
+2.  Wechseln Sie in das `functions`-Verzeichnis:
     ```bash
     cd functions
     ```
-2.  Die Abhängigkeiten installieren (falls noch nicht geschehen):
+3.  Installieren Sie die notwendigen Pakete (falls noch nicht geschehen):
     ```bash
     npm install
     ```
-3.  Den Code kompilieren:
+4.  Führen Sie den Build-Befehl aus, um den Code zu kompilieren:
     ```bash
     npm run build
     ```
-    Danach sollte ein `lib`-Ordner in `functions` existieren.
+    Nachdem dieser Befehl erfolgreich war, sollte ein `lib`-Ordner innerhalb Ihres `functions`-Ordners existieren.
 
 ---
 
-### Phase 2: Code bereitstellen (bereits erledigt)
+### Phase 2: Code und Regeln bereitstellen
 
-Sie haben den kompilierten Code und die Regeln erfolgreich in die Cloud hochgeladen.
+Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
 
-1.  Vom `functions`-Verzeichnis zurück ins Hauptverzeichnis wechseln:
+1.  Wechseln Sie vom `functions`-Verzeichnis **zurück in den Hauptprojektordner** (sehr wichtig!):
     ```bash
     cd ..
     ```
-2.  Die Firestore-Regeln bereitstellen:
+2.  Stellen Sie sicher, dass Sie sich im richtigen Verzeichnis befinden. Der `pwd`-Befehl sollte `/Users/zoltangal/desktop` ausgeben:
+    ```bash
+    pwd
+    ```
+3.  Stellen Sie die Firestore-Regeln bereit (falls noch nicht geschehen):
     ```bash
     firebase deploy --only firestore:rules
     ```
-3.  Die Funktionen bereitstellen:
+4.  Stellen Sie die Funktionen bereit. Dieser Befehl wird nun Ihren lokalen Code finden und ihn in die Cloud hochladen.
     ```bash
     firebase deploy --only functions
     ```
-    **Erfolg!** Ihr letzter Terminal-Log hat bestätigt, dass dies funktioniert hat. Die `stripeWebhook`-Funktion ist jetzt live.
+    **Erfolg!** Der Befehl sollte nun ohne die Frage nach dem Löschen durchlaufen und anzeigen, dass `stripeWebhook` erstellt oder aktualisiert wird.
 
 ---
 
@@ -53,7 +57,7 @@ Damit Ihre Funktion mit Stripe kommunizieren kann, müssen Sie ihr die API-Schl�
 
 1.  **Öffnen Sie die Google Cloud Console für Ihr Projekt:**
     *   Klicken Sie auf diesen Link: [https://console.cloud.google.com/functions/details/us-central1/stripeWebhook?project=ai-act-compass-m6o05](https://console.cloud.google.com/functions/details/us-central1/stripeWebhook?project=ai-act-compass-m6o05)
-    *   (Möglicherweise müssen Sie sich mit Ihrem Google-Konto anmelden.)
+    *   (Möglicherweise müssen Sie sich mit Ihrem Google-Konto anmelden und 1-2 Minuten warten, bis die Funktion nach dem Deployment in der Liste erscheint.)
 
 2.  **Gehen Sie zum Bearbeiten der Funktion:**
     *   Klicken Sie oben auf die Schaltfläche **"BEARBEITEN"**.
