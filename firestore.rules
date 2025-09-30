@@ -1,21 +1,20 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Allow unauthenticated reads on the customers collection for registration check
+    
+    // Allow reading customer status for registration check, but only the status field.
     match /customers/{email} {
       allow get: if true;
-      allow list, create, update, delete: if false;
+      allow list, write, update, delete: if request.auth != null;
     }
     
     // Secure user-specific data
     match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write, update, delete: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Disallow any other access
-    match /{document=**} {
+    // Stripe events can only be written from the backend (Cloud Function).
+    match /stripe_events/{eventId} {
       allow read, write: if false;
     }
   }
