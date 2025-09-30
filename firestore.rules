@@ -1,21 +1,26 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Allow reading customer status for registration check, but only the status field.
+    // Customers collection:
+    // - Only logged-in users who are also paying customers can create/update their own document.
+    // - Reading is disallowed for clients to protect customer data. Server-side access only.
     match /customers/{email} {
-      allow get: if true;
-      allow list, write, update, delete: if request.auth != null;
-    }
-    
-    // Secure user-specific data
-    match /users/{userId}/{document=**} {
-      allow read, write, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow read: if false; // No client-side reads
+      allow create, update: if request.auth != null && request.auth.token.email.lower() == email.lower() && exists(/databases/$(database)/documents/customers/$(request.auth.token.email.lower()));
     }
 
-    // Stripe events can only be written from the backend (Cloud Function).
+    // Stripe events log:
+    // - Completely locked down. Only accessible from server-side (e.g., Cloud Functions).
     match /stripe_events/{eventId} {
       allow read, write: if false;
+    }
+
+    // User-specific data (projects, course progress, etc.)
+    // - Users can only read and write their own data.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
