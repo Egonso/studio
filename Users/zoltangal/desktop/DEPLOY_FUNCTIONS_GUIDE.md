@@ -6,9 +6,7 @@ Dieser Prozess wird jetzt funktionieren. Die vorherigen Probleme wurden durch ei
 
 ---
 
-### Phase 1: Code kompilieren (Der entscheidende erste Schritt)
-
-Dieser Schritt übersetzt Ihren TypeScript-Code (`.ts`) in lauffähigen JavaScript-Code (`.js`), den Firebase versteht. **Ohne diesen Schritt kann das Deployment nicht funktionieren.**
+### Phase 1: Abhängigkeiten installieren & Code kompilieren (Die entscheidenden ersten Schritte)
 
 1.  Öffnen Sie Ihr Terminal. Stellen Sie sicher, dass Sie sich im Hauptprojektordner (`/Users/zoltangal/desktop`) befinden.
 
@@ -17,7 +15,13 @@ Dieser Schritt übersetzt Ihren TypeScript-Code (`.ts`) in lauffähigen JavaScri
     cd functions
     ```
 
-3.  Führen Sie den Build-Befehl aus, um den Code zu kompilieren:
+3.  **NEUER, WICHTIGER SCHRITT:** Installieren Sie alle notwendigen Pakete neu. Dies stellt sicher, dass der richtige TypeScript-Compiler vorhanden ist.
+    ```bash
+    npm install
+    ```
+    Warten Sie, bis dieser Befehl abgeschlossen ist.
+
+4.  Führen Sie jetzt den Build-Befehl aus, um den Code zu kompilieren:
     ```bash
     npm run build
     ```
