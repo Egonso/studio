@@ -1,4 +1,4 @@
-# Anleitung: Firebase Function bereitstellen (Finaler Prozess)
+# Anleitung: Firebase Function bereitstellen (Finaler, korrigierter Prozess)
 
 Sie haben es fast geschafft. Dieser Prozess wird jetzt funktionieren. Der Schlüssel sind zwei einfache Phasen, die in der richtigen Reihenfolge ausgeführt werden müssen.
 
@@ -21,7 +21,7 @@ Dieser Schritt übersetzt Ihren TypeScript-Code (`.ts`) in lauffähigen JavaScri
     ```bash
     npm run build
     ```
-    Nachdem dieser Befehl erfolgreich war, existiert der Ordner `lib` mit der Datei `index.js` darin. **Der Fehler `functions/lib/index.js does not exist` ist damit behoben.**
+    **Erwartetes Ergebnis:** Im Gegensatz zu vorher sollte dieser Befehl jetzt **keine lange Hilfeliste** mehr ausgeben. Er sollte entweder **gar nichts** ausgeben und einfach zur nächsten Zeile springen oder eine kurze Erfolgsmeldung zeigen. Danach existiert der Ordner `lib` mit der Datei `index.js` darin. **Der Fehler `functions/lib/index.js does not exist` ist damit behoben.**
 
 ---
 
@@ -43,7 +43,7 @@ Jetzt, da der Code kompiliert ist, laden wir ihn in die Cloud hoch.
     ```bash
     firebase deploy --only functions
     ```
-    **Erfolg!** Der Befehl sollte nun durchlaufen und anzeigen, dass `stripeWebhook` erstellt wird.
+    **Erfolg!** Der Befehl sollte nun durchlaufen und anzeigen, dass `stripeWebhook` erstellt oder aktualisiert wird.
 
 ---
 
