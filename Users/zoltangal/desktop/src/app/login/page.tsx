@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -41,6 +42,19 @@ export default function LoginPage() {
     }
   }, [emailFromUrl, form]);
 
+  const canRegister = async (email: string): Promise<{ eligible: boolean; reason?: string }> => {
+    try {
+      const functions = getFunctions();
+      const checkEligibility = httpsCallable(functions, 'checkRegistrationEligibility');
+      const result = await checkEligibility({ email });
+      return result.data as { eligible: boolean; reason?: string };
+    } catch (error: any) {
+      console.error("Error checking registration eligibility:", error);
+      const defaultError = "Die Berechtigungsprüfung ist fehlgeschlagen. Bitte versuchen Sie es später erneut.";
+      return { eligible: false, reason: error.details?.message || defaultError };
+    }
+  };
+
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
     const email = data.email.toLowerCase();
@@ -51,7 +65,16 @@ export default function LoginPage() {
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
         router.push('/projects');
       } else { // signup
-        // Registrierungs-Check vorübergehend entfernt. Jeder kann sich registrieren.
+        const eligibility = await canRegister(email);
+        if (!eligibility.eligible) {
+            toast({
+                variant: 'destructive',
+                title: 'Registrierung nicht möglich',
+                description: eligibility.reason || 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
+            });
+            setIsLoading(false);
+            return; // Stop the process
+        }
         await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
         router.push('/projects');
@@ -139,7 +162,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
               <CardDescription>
-                Geben Sie Ihre gewünschten Anmeldedaten ein, um ein neues Konto zu erstellen.
+                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -172,7 +195,7 @@ export default function LoginPage() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Erstelle Konto...' : 'Konto erstellen'}
+                    {isLoading ? 'Prüfe & erstelle Konto...' : 'Konto erstellen'}
                   </Button>
                 </form>
               </Form>
