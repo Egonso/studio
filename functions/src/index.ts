@@ -1,4 +1,5 @@
 
+import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onRequest} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
@@ -15,6 +16,45 @@ const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
 
 // Get Stripe webhook secret from environment configuration
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+export const checkRegistrationEligibility = onCall(async (data) => {
+    const email = data.email;
+
+    if (!email || typeof email !== 'string') {
+        throw new HttpsError('invalid-argument', 'The function must be called with one arguments "email" containing the email to check.');
+    }
+
+    const lowerCaseEmail = email.toLowerCase();
+
+    try {
+        // First, check for a purchase event.
+        const eventsRef = db.collection('stripe_events');
+        const eventQuery = eventsRef.where('email', '==', lowerCaseEmail).limit(1);
+        const eventSnapshot = await eventQuery.get();
+
+        if (eventSnapshot.empty) {
+            // No purchase event found, user is not eligible.
+            return { eligible: false, reason: 'No purchase record found for this email address.' };
+        }
+
+        // Second, explicitly check if the customer has been refunded.
+        const customerRef = db.collection('customers').doc(lowerCaseEmail);
+        const customerDoc = await customerRef.get();
+
+        if (customerDoc.exists && customerDoc.data()?.status === 'refunded') {
+            // A purchase exists, but it was refunded. Deny registration.
+            return { eligible: false, reason: 'This email address is associated with a refunded purchase.' };
+        }
+
+        // If a purchase event exists and there's no refund, they are eligible.
+        return { eligible: true };
+
+    } catch (error) {
+        logger.error("Error in checkRegistrationEligibility:", error);
+        throw new HttpsError('internal', 'An internal error occurred while checking eligibility.');
+    }
+});
+
 
 export const stripeWebhook = onRequest(
   {secrets: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET"]},
