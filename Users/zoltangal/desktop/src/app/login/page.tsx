@@ -1,0 +1,228 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Image from 'next/image';
+
+const formSchema = z.object({
+  email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
+  password: z.string().min(6, { message: 'Das Passwort muss mindestens 6 Zeichen lang sein.' }),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const emailFromUrl = searchParams.get('email');
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: emailFromUrl || '', password: '' },
+  });
+
+  useEffect(() => {
+    if (emailFromUrl) {
+      form.setValue('email', emailFromUrl);
+    }
+  }, [emailFromUrl, form]);
+
+
+  const canRegister = async (email: string): Promise<boolean> => {
+    try {
+        const lowerCaseEmail = email.toLowerCase();
+        
+        // Security check: Explicitly deny refunded customers first.
+        const customerRef = doc(db, 'customers', lowerCaseEmail);
+        const customerSnap = await getDoc(customerRef);
+        if (customerSnap.exists() && customerSnap.data().status === 'refunded') {
+            return false;
+        }
+
+        // Main check: Look for a purchase event in stripe_events collection.
+        const eventsRef = collection(db, 'stripe_events');
+        const q = query(
+            eventsRef, 
+            where('email', '==', lowerCaseEmail), 
+            limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        // If we found at least one event with this email, they are eligible.
+        return !querySnapshot.empty;
+
+    } catch (error) {
+        console.error("Error checking registration eligibility:", error);
+        return false; // Fail securely
+    }
+  };
+
+
+  const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
+    setIsLoading(true);
+    const email = data.email.toLowerCase();
+
+    try {
+      if (action === 'login') {
+        await signInWithEmailAndPassword(auth, email, data.password);
+        toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
+        // After login, always go to the projects page to select a project.
+        router.push('/projects');
+      } else { // signup
+        const isEligible = await canRegister(email);
+        if (!isEligible) {
+            toast({
+                variant: 'destructive',
+                title: 'Registrierung nicht möglich',
+                description: 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
+            });
+            setIsLoading(false);
+            return; // Stop the process
+        }
+        await createUserWithEmailAndPassword(auth, email, data.password);
+        toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
+        // After signup, take them straight to the project creation page.
+        router.push('/projects');
+      }
+    } catch (error: any) {
+      console.error(`${action} failed`, error);
+      toast({
+        variant: 'destructive',
+        title: 'Fehler',
+        description: error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'
+          ? 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.'
+          : error.code === 'auth/email-already-in-use'
+          ? 'Diese E-Mail-Adresse wird bereits verwendet.'
+          : error.code === 'auth/configuration-not-found'
+          ? 'Firebase-Konfigurationsfehler. Bitte kontaktieren Sie den Support.'
+          : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+      });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+        <div className="flex items-center justify-center gap-2 mb-8">
+            <Image
+                src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
+                alt="AI Act Compass Logo"
+                width={50}
+                height={50}
+                className="h-12 w-auto"
+            />
+            <span className="font-bold text-2xl">AI Act Compass</span>
+      </div>
+      <Tabs defaultValue="signup" className="w-full max-w-sm">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="login">Anmelden</TabsTrigger>
+          <TabsTrigger value="signup">Registrieren</TabsTrigger>
+        </TabsList>
+        <TabsContent value="login">
+          <Card>
+            <CardHeader>
+              <CardTitle>Anmelden</CardTitle>
+              <CardDescription>Geben Sie Ihre Daten ein, um auf Ihre Projekte zuzugreifen.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(data => handleAuthAction(data, 'login'))} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="ihre@email.de" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Passwort</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="********" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Melde an...' : 'Anmelden'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="signup">
+          <Card>
+            <CardHeader>
+              <CardTitle>Neues Konto erstellen</CardTitle>
+              <CardDescription>
+                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(data => handleAuthAction(data, 'signup'))} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="ihre@email.de" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Passwort</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="********" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Erstelle Konto...' : 'Konto erstellen'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
