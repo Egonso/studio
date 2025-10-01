@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -43,20 +41,6 @@ export default function LoginPage() {
     }
   }, [emailFromUrl, form]);
 
-  const canRegister = async (email: string): Promise<boolean> => {
-    try {
-      const functions = getFunctions();
-      const checkEligibility = httpsCallable(functions, 'checkRegistrationEligibility');
-      const result = await checkEligibility({ email });
-      const data = result.data as { eligible: boolean; reason?: string };
-      return data.eligible;
-    } catch (error) {
-      console.error("Error checking registration eligibility:", error);
-      // It's safer to deny registration if the check fails for any reason
-      return false;
-    }
-  };
-
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
     const email = data.email.toLowerCase();
@@ -65,22 +49,11 @@ export default function LoginPage() {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
-        // After login, always go to the projects page to select a project.
         router.push('/projects');
       } else { // signup
-        const isEligible = await canRegister(email);
-        if (!isEligible) {
-            toast({
-                variant: 'destructive',
-                title: 'Registrierung nicht möglich',
-                description: 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
-            });
-            setIsLoading(false);
-            return; // Stop the process
-        }
+        // Registrierungs-Check vorübergehend entfernt. Jeder kann sich registrieren.
         await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
-        // After signup, take them straight to the project creation page.
         router.push('/projects');
       }
     } catch (error: any) {
@@ -166,7 +139,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
               <CardDescription>
-                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
+                Geben Sie Ihre gewünschten Anmeldedaten ein, um ein neues Konto zu erstellen.
               </CardDescription>
             </CardHeader>
             <CardContent>
