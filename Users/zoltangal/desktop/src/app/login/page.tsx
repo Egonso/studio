@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -42,19 +41,6 @@ export default function LoginPage() {
     }
   }, [emailFromUrl, form]);
 
-  const canRegister = async (email: string): Promise<{ eligible: boolean; reason?: string }> => {
-    try {
-      const functions = getFunctions();
-      const checkEligibility = httpsCallable(functions, 'checkRegistrationEligibility');
-      const result = await checkEligibility({ email });
-      return result.data as { eligible: boolean; reason?: string };
-    } catch (error: any) {
-      console.error("Error checking registration eligibility:", error);
-      const defaultError = "Die Berechtigungsprüfung ist fehlgeschlagen. Bitte versuchen Sie es später erneut.";
-      return { eligible: false, reason: error.details?.message || defaultError };
-    }
-  };
-
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
     const email = data.email.toLowerCase();
@@ -65,32 +51,45 @@ export default function LoginPage() {
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
         router.push('/projects');
       } else { // signup
-        const eligibility = await canRegister(email);
-        if (!eligibility.eligible) {
-            toast({
-                variant: 'destructive',
-                title: 'Registrierung nicht möglich',
-                description: eligibility.reason || 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
-            });
-            setIsLoading(false);
-            return; // Stop the process
-        }
+        // Registrierungsprüfung wurde entfernt - jeder kann sich registrieren
         await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
         router.push('/projects');
       }
     } catch (error: any) {
       console.error(`${action} failed`, error);
+
+      let errorMessage = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+      switch (error.code) {
+          case 'auth/invalid-credential':
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+              errorMessage = 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.';
+              break;
+          case 'auth/email-already-in-use':
+              errorMessage = 'Diese E-Mail-Adresse wird bereits für ein Konto verwendet.';
+              break;
+          case 'auth/weak-password':
+              errorMessage = 'Das Passwort ist zu schwach. Es muss mindestens 6 Zeichen lang sein.';
+              break;
+          case 'auth/invalid-email':
+              errorMessage = 'Die E-Mail-Adresse ist ungültig. Bitte überprüfen Sie sie.';
+              break;
+          case 'auth/operation-not-allowed':
+              errorMessage = 'Registrierungen mit E-Mail/Passwort sind derzeit nicht aktiviert.';
+              break;
+          case 'auth/network-request-failed':
+              errorMessage = 'Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.';
+              break;
+          default:
+              errorMessage = `Ein Fehler ist aufgetreten. Code: ${error.code}`;
+              break;
+      }
+
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'
-          ? 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.'
-          : error.code === 'auth/email-already-in-use'
-          ? 'Diese E-Mail-Adresse wird bereits verwendet.'
-          : error.code === 'auth/configuration-not-found'
-          ? 'Firebase-Konfigurationsfehler. Bitte kontaktieren Sie den Support.'
-          : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+        title: `${action === 'login' ? 'Anmeldung' : 'Registrierung'} fehlgeschlagen`,
+        description: errorMessage,
       });
     } finally {
         setIsLoading(false);
@@ -162,7 +161,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
               <CardDescription>
-                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
+                Füllen Sie die Felder aus, um ein neues Konto zu erstellen.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -195,7 +194,7 @@ export default function LoginPage() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Prüfe & erstelle Konto...' : 'Konto erstellen'}
+                    {isLoading ? 'Erstelle Konto...' : 'Konto erstellen'}
                   </Button>
                 </form>
               </Form>
