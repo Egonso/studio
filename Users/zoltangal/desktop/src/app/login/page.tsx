@@ -47,14 +47,7 @@ export default function LoginPage() {
     try {
         const lowerCaseEmail = email.toLowerCase();
         
-        // Security check: Explicitly deny refunded customers first.
-        const customerRef = doc(db, 'customers', lowerCaseEmail);
-        const customerSnap = await getDoc(customerRef);
-        if (customerSnap.exists() && customerSnap.data().status === 'refunded') {
-            return false;
-        }
-
-        // Main check: Look for a purchase event in stripe_events collection.
+        // 1. Main check: Look for a purchase event in stripe_events collection.
         const eventsRef = collection(db, 'stripe_events');
         const q = query(
             eventsRef, 
@@ -63,8 +56,23 @@ export default function LoginPage() {
         );
         const querySnapshot = await getDocs(q);
         
-        // If we found at least one event with this email, they are eligible.
-        return !querySnapshot.empty;
+        const hasPurchaseEvent = !querySnapshot.empty;
+
+        // If no purchase event, registration is not possible.
+        if (!hasPurchaseEvent) {
+            return false;
+        }
+
+        // 2. Security check: Now that we know there was a purchase, explicitly check for a refund.
+        const customerRef = doc(db, 'customers', lowerCaseEmail);
+        const customerSnap = await getDoc(customerRef);
+        if (customerSnap.exists() && customerSnap.data().status === 'refunded') {
+            // A purchase exists, but it was refunded. Deny registration.
+            return false;
+        }
+
+        // If a purchase exists and there is no refund record, allow registration.
+        return true;
 
     } catch (error) {
         console.error("Error checking registration eligibility:", error);
