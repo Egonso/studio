@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,14 +45,27 @@ export default function LoginPage() {
 
   const canRegister = async (email: string): Promise<boolean> => {
     try {
-      const customerRef = doc(db, 'customers', email.toLowerCase());
-      const customerSnap = await getDoc(customerRef);
-      if (customerSnap.exists()) {
-          const customerData = customerSnap.data();
-          // Allow registration if status is not 'refunded'
-          return customerData.status !== 'refunded';
-      }
-      return false; // Not a paying customer
+        const lowerCaseEmail = email.toLowerCase();
+        
+        // Check in `customers` collection first for status (refunded etc.)
+        const customerRef = doc(db, 'customers', lowerCaseEmail);
+        const customerSnap = await getDoc(customerRef);
+        if (customerSnap.exists() && customerSnap.data().status === 'refunded') {
+            return false; // Explicitly deny refunded customers
+        }
+
+        // Check `stripe_events` for a purchase event if not found or not refunded in customers
+        const eventsRef = collection(db, 'stripe_events');
+        const q = query(
+            eventsRef, 
+            where('email', '==', lowerCaseEmail), 
+            limit(1)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        // If we found at least one event with this email, they are eligible.
+        return !querySnapshot.empty;
+
     } catch (error) {
         console.error("Error checking registration eligibility:", error);
         return false; // Fail securely
