@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,8 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs, query, where, limit } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -42,44 +43,19 @@ export default function LoginPage() {
     }
   }, [emailFromUrl, form]);
 
-
   const canRegister = async (email: string): Promise<boolean> => {
     try {
-        const lowerCaseEmail = email.toLowerCase();
-        
-        // 1. Main check: Look for a purchase event in stripe_events collection.
-        const eventsRef = collection(db, 'stripe_events');
-        const q = query(
-            eventsRef, 
-            where('email', '==', lowerCaseEmail), 
-            limit(1)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        const hasPurchaseEvent = !querySnapshot.empty;
-
-        // If no purchase event, registration is not possible.
-        if (!hasPurchaseEvent) {
-            return false;
-        }
-
-        // 2. Security check: Now that we know there was a purchase, explicitly check for a refund.
-        const customerRef = doc(db, 'customers', lowerCaseEmail);
-        const customerSnap = await getDoc(customerRef);
-        if (customerSnap.exists() && customerSnap.data().status === 'refunded') {
-            // A purchase exists, but it was refunded. Deny registration.
-            return false;
-        }
-
-        // If a purchase exists and there is no refund record, allow registration.
-        return true;
-
+      const functions = getFunctions();
+      const checkEligibility = httpsCallable(functions, 'checkRegistrationEligibility');
+      const result = await checkEligibility({ email });
+      const data = result.data as { eligible: boolean; reason?: string };
+      return data.eligible;
     } catch (error) {
-        console.error("Error checking registration eligibility:", error);
-        return false; // Fail securely
+      console.error("Error checking registration eligibility:", error);
+      // It's safer to deny registration if the check fails for any reason
+      return false;
     }
   };
-
 
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
