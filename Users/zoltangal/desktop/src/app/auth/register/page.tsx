@@ -39,7 +39,7 @@ export default function RegisterPage() {
       await createUserWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: 'Registrierung erfolgreich',
-        description: 'Sie werden nun zur Projektseite weitergeleitet.',
+        description: 'Sie werden nun zur Projekt-Auswahl weitergeleitet.',
       });
       router.push('/projects');
     } catch (error: any) {
@@ -85,8 +85,8 @@ export default function RegisterPage() {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Neues Konto erstellen (Spezial-Registrierung)</CardTitle>
-          <CardDescription>Füllen Sie die Felder aus, um ein neues Konto zu erstellen.</CardDescription>
+          <CardTitle>Spezial-Registrierung</CardTitle>
+          <CardDescription>Erstellen Sie hier ein neues Konto ohne Einschränkungen.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -131,7 +131,7 @@ export default function RegisterPage() {
           </Form>
         </CardContent>
       </Card>
-      <p className="mt-4 text-center text-sm text-muted-foreground">
+       <p className="mt-4 text-center text-sm text-muted-foreground">
         Haben Sie bereits ein Konto?{' '}
         <Link href="/login" className="underline">
           Zum Login
