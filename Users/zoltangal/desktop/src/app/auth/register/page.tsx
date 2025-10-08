@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -33,9 +35,32 @@ export default function RegisterPage() {
     defaultValues: { email: '', password: '' },
   });
 
+  const checkEligibility = async (email: string): Promise<{ eligible: boolean; reason?: string }> => {
+    try {
+      const functions = getFunctions();
+      const checkFunction = httpsCallable(functions, 'checkSpecialRegistrationEligibility');
+      const result = await checkFunction({ email });
+      return result.data as { eligible: boolean; reason?: string };
+    } catch (error) {
+      console.error("Error calling eligibility function:", error);
+      return { eligible: false, reason: 'Bei der Prüfung Ihrer Berechtigung ist ein Fehler aufgetreten.' };
+    }
+  };
+
   const handleRegister = async (data: FormData) => {
     setIsLoading(true);
     try {
+      const { eligible, reason } = await checkEligibility(data.email);
+
+      if (!eligible) {
+        toast({
+          variant: 'destructive',
+          title: 'Registrierung nicht möglich',
+          description: reason || 'Sie sind nicht berechtigt, sich mit dieser E-Mail-Adresse zu registrieren. Bitte prüfen Sie Ihre Eingabe oder kontaktieren Sie den Support.',
+        });
+        return;
+      }
+
       await createUserWithEmailAndPassword(auth, data.email, data.password);
       toast({
         title: 'Registrierung erfolgreich',
@@ -86,7 +111,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Spezial-Registrierung</CardTitle>
-          <CardDescription>Erstellen Sie hier ein neues Konto ohne Einschränkungen.</CardDescription>
+          <CardDescription>Erstellen Sie hier ein neues Konto.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -121,7 +146,7 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Konto wird erstellt...
+                    Prüfe & erstelle Konto...
                   </>
                 ) : (
                   'Konto erstellen'

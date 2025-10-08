@@ -1,4 +1,5 @@
 
+import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onRequest} from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
@@ -16,6 +17,72 @@ const stripe = new Stripe(process.env.STRIPE_API_KEY!, {
 // Get Stripe webhook secret from environment configuration
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
+export const checkSpecialRegistrationEligibility = onCall(async (data) => {
+    const email = data.email;
+
+    if (!email || typeof email !== 'string') {
+        throw new HttpsError('invalid-argument', 'The function must be called with one argument "email" containing the email to check.');
+    }
+
+    const lowerCaseEmail = email.toLowerCase();
+
+    try {
+        const eventsRef = db.collection('stripe_events');
+        
+        // Query for relevant checkout sessions
+        const querySnapshot = await eventsRef
+            .where('type', '==', 'checkout.session.completed')
+            .where('raw.customer_details.email', '==', lowerCaseEmail)
+            .where('raw.mode', '==', 'payment')
+            .get();
+
+        if (querySnapshot.empty) {
+            logger.info(`No matching checkout session found for ${lowerCaseEmail}.`);
+            return { eligible: false, reason: 'No purchase record found for this email address.' };
+        }
+
+        let hasPurchasedCourse = false;
+        // Iterate through the documents to check line items
+        for (const doc of querySnapshot.docs) {
+            const eventData = doc.data();
+            const lineItems = eventData.raw?.line_items?.data;
+
+            if (lineItems && Array.isArray(lineItems)) {
+                const purchasedCourse = lineItems.some(item => 
+                    item.price?.product === 'eu-ai-act-course'
+                );
+
+                if (purchasedCourse) {
+                    hasPurchasedCourse = true;
+                    break; // Found the required purchase, no need to check further
+                }
+            }
+        }
+        
+        if (!hasPurchasedCourse) {
+            logger.info(`Purchase record found for ${lowerCaseEmail}, but not for the specific product "eu-ai-act-course".`);
+            return { eligible: false, reason: 'A purchase was found, but not for the required product.' };
+        }
+
+        // Final check: ensure there is no refund for this customer.
+        const customerRef = db.collection('customers').doc(lowerCaseEmail);
+        const customerDoc = await customerRef.get();
+
+        if (customerDoc.exists && customerDoc.data()?.status === 'refunded') {
+            logger.warn(`Eligible purchase found for ${lowerCaseEmail}, but user has been refunded. Denying registration.`);
+            return { eligible: false, reason: 'This email address is associated with a refunded purchase.' };
+        }
+
+        logger.info(`Eligibility confirmed for ${lowerCaseEmail}.`);
+        return { eligible: true };
+
+    } catch (error) {
+        logger.error("Error in checkSpecialRegistrationEligibility:", error);
+        throw new HttpsError('internal', 'An internal error occurred while checking eligibility.');
+    }
+});
+
+
 export const stripeWebhook = onRequest(
   {secrets: ["STRIPE_API_KEY", "STRIPE_WEBHOOK_SECRET"]},
   async (request, response) => {
@@ -32,7 +99,24 @@ export const stripeWebhook = onRequest(
     }
 
     const eventLogRef = db.collection("stripe_events").doc(event.id);
+    
+    // Asynchronously fetch line items if they are not included in the event payload
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (!session.line_items) {
+            try {
+                const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+                (event.data.object as any).line_items = lineItems;
+                 logger.info(`Fetched line items for session ${session.id}`);
+            } catch (error) {
+                logger.error(`Could not fetch line items for session ${session.id}:`, error);
+                // Decide if you want to fail here or proceed without line items
+            }
+        }
+    }
+    
     const rawEventData = event.data.object as any;
+
 
     try {
       // Handle the event
@@ -56,7 +140,7 @@ export const stripeWebhook = onRequest(
             await eventLogRef.set({
                 type: event.type,
                 raw: rawEventData,
-                email: customerEmail,
+                email: customerEmail, // Explicitly log email for easier querying
                 customer: session.customer,
                 created: admin.firestore.FieldValue.serverTimestamp(),
             }, {merge: true});
