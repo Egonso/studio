@@ -56,8 +56,9 @@ export default function RegisterPage() {
         toast({
           variant: 'destructive',
           title: 'Registrierung nicht möglich',
-          description: reason || 'Sie sind nicht berechtigt, sich mit dieser E-Mail-Adresse zu registrieren. Bitte prüfen Sie Ihre Eingabe oder kontaktieren Sie den Support.',
+          description: reason || 'Sie sind nicht berechtigt, sich mit dieser E-Mail-Adresse zu registrieren. Bitte verwenden Sie die E-Mail, mit der Sie den Kurs erworben haben, oder kontaktieren Sie den Support.',
         });
+        setIsLoading(false);
         return;
       }
 
@@ -111,7 +112,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Spezial-Registrierung</CardTitle>
-          <CardDescription>Erstellen Sie hier ein neues Konto.</CardDescription>
+          <CardDescription>Diese Registrierung ist ausschließlich für Käufer des Kurses "EU AI Act". Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -123,7 +124,7 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="ihre@email.de" {...field} />
+                      <Input type="email" placeholder="ihre.kauf@email.de" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -146,7 +147,7 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Prüfe & erstelle Konto...
+                    Prüfe Berechtigung & erstelle Konto...
                   </>
                 ) : (
                   'Konto erstellen'
