@@ -1,7 +1,7 @@
 
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+import * * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import Stripe from "stripe";
 
@@ -29,11 +29,10 @@ export const checkSpecialRegistrationEligibility = onCall(async (data) => {
     try {
         const eventsRef = db.collection('stripe_events');
         
-        // Query for relevant checkout sessions
+        // Query for relevant checkout sessions based on the top-level email field
         const querySnapshot = await eventsRef
             .where('type', '==', 'checkout.session.completed')
-            .where('raw.customer_details.email', '==', lowerCaseEmail)
-            .where('raw.mode', '==', 'payment')
+            .where('email', '==', lowerCaseEmail)
             .get();
 
         if (querySnapshot.empty) {
@@ -42,9 +41,13 @@ export const checkSpecialRegistrationEligibility = onCall(async (data) => {
         }
 
         let hasPurchasedCourse = false;
-        // Iterate through the documents to check line items
+        // Iterate through the documents to check nested line items and mode
         for (const doc of querySnapshot.docs) {
             const eventData = doc.data();
+            
+            const isPaymentMode = eventData.raw?.mode === 'payment';
+            if (!isPaymentMode) continue;
+
             const lineItems = eventData.raw?.line_items?.data;
 
             if (lineItems && Array.isArray(lineItems)) {
@@ -60,8 +63,8 @@ export const checkSpecialRegistrationEligibility = onCall(async (data) => {
         }
         
         if (!hasPurchasedCourse) {
-            logger.info(`Purchase record found for ${lowerCaseEmail}, but not for the specific product "eu-ai-act-course".`);
-            return { eligible: false, reason: 'A purchase was found, but not for the required product.' };
+            logger.info(`Purchase record found for ${lowerCaseEmail}, but not for the specific product "eu-ai-act-course" or not in payment mode.`);
+            return { eligible: false, reason: 'A purchase was found, but not for the required product or mode.' };
         }
 
         // Final check: ensure there is no refund for this customer.
@@ -116,6 +119,24 @@ export const stripeWebhook = onRequest(
     }
     
     const rawEventData = event.data.object as any;
+    let customerEmail = '';
+
+    // Standardize getting the email address
+     switch (event.type) {
+        case "checkout.session.completed":
+            const session = event.data.object as Stripe.Checkout.Session;
+            customerEmail = (session.customer_details?.email || rawEventData.email || session.metadata?.customerEmail)?.toLowerCase();
+            break;
+        case "invoice.paid":
+            customerEmail = (event.data.object as Stripe.Invoice).customer_email?.toLowerCase();
+            break;
+        case "charge.refunded":
+            customerEmail = (event.data.object as Stripe.Charge).billing_details.email?.toLowerCase();
+            break;
+        default:
+            // Try to get email from known common fields for unhandled events
+            customerEmail = (rawEventData.customer_details?.email || rawEventData.customer_email)?.toLowerCase();
+    }
 
 
     try {
@@ -123,9 +144,6 @@ export const stripeWebhook = onRequest(
       switch (event.type) {
         case "checkout.session.completed": {
           const session = event.data.object as Stripe.Checkout.Session;
-          // Robustly get customer email from multiple possible locations
-          const customerEmail = (session.customer_details?.email || rawEventData.email || session.metadata?.customerEmail)?.toLowerCase();
-
           if (customerEmail) {
             const userRef = db.collection("customers").doc(customerEmail);
             await userRef.set({
@@ -136,15 +154,6 @@ export const stripeWebhook = onRequest(
             }, {merge: true});
 
             logger.info(`Customer ${customerEmail} created/updated from checkout session.`);
-
-            await eventLogRef.set({
-                type: event.type,
-                raw: rawEventData,
-                email: customerEmail, // Explicitly log email for easier querying
-                customer: session.customer,
-                created: admin.firestore.FieldValue.serverTimestamp(),
-            }, {merge: true});
-
           } else {
              logger.warn("Checkout session completed without customer email.", {sessionId: session.id});
           }
@@ -153,8 +162,6 @@ export const stripeWebhook = onRequest(
 
         case "invoice.paid": {
           const invoice = event.data.object as Stripe.Invoice;
-          const customerEmail = invoice.customer_email?.toLowerCase();
-
           if (customerEmail) {
              const userRef = db.collection("customers").doc(customerEmail);
              await userRef.set({
@@ -165,20 +172,10 @@ export const stripeWebhook = onRequest(
              }, {merge: true});
              logger.info(`Customer ${customerEmail} updated from invoice.paid.`);
           }
-           await eventLogRef.set({
-                type: event.type,
-                raw: rawEventData,
-                email: customerEmail,
-                customer: invoice.customer,
-                created: admin.firestore.FieldValue.serverTimestamp(),
-            }, {merge: true});
           break;
         }
 
         case "charge.refunded": {
-            const charge = event.data.object as Stripe.Charge;
-            const customerEmail = charge.billing_details.email?.toLowerCase();
-
             if (customerEmail) {
                 const userRef = db.collection("customers").doc(customerEmail);
                 await userRef.update({
@@ -187,24 +184,24 @@ export const stripeWebhook = onRequest(
                 });
                 logger.info(`Customer ${customerEmail} status set to refunded.`);
             }
-            await eventLogRef.set({
-                type: event.type,
-                raw: rawEventData,
-                email: customerEmail,
-                customer: charge.customer,
-                created: admin.firestore.FieldValue.serverTimestamp(),
-            }, {merge: true});
             break;
         }
+      }
 
-        default:
-          logger.info(`Unhandled Stripe event type: ${event.type}`);
-          await eventLogRef.set({
+        // Save event to log after processing, now with standardized email
+        const eventToLog = {
             type: event.type,
             raw: rawEventData,
             created: admin.firestore.FieldValue.serverTimestamp(),
-          }, {merge: true});
-      }
+            ...(customerEmail && { email: customerEmail }),
+            ...(rawEventData.customer && { customer: rawEventData.customer }),
+        };
+        await eventLogRef.set(eventToLog, {merge: true});
+         if (event.type !== 'default') {
+             logger.info(`Event ${event.type} for ${customerEmail || 'unknown email'} processed and logged.`);
+         } else {
+            logger.info(`Unhandled Stripe event type: ${event.type} logged.`);
+         }
 
       response.status(200).json({received: true});
 
