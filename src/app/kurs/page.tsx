@@ -70,6 +70,10 @@ export default function CoursePage() {
     }, [user, searchParams]);
 
     const handleSelectVideo = (video: Video) => {
+        if (video.isDirectDownload) {
+            window.open(video.url, '_blank');
+            return;
+        }
         setSelectedItem({ type: 'video', data: video });
         router.push(`/kurs?videoId=${video.id}`, { scroll: false });
     };
@@ -90,7 +94,8 @@ export default function CoursePage() {
     
      const getDefaultOpenModule = () => {
         if (selectedItem?.type === 'video') {
-            return `module-${selectedItem.data.id.split('-')[1]}`
+            const module = courseData.find(m => m.videos.some(v => v.id === selectedItem.data.id));
+            return module?.id || 'module-0';
         }
         if (selectedItem?.type === 'exam') {
             return selectedItem.data.id;
@@ -161,7 +166,10 @@ export default function CoursePage() {
                                                                 )}
                                                             >
                                                                 <div className="flex items-center gap-3">
-                                                                    {completedVideos.has(video.id) ? <CheckCircle className="h-4 w-4 text-primary" /> : <PlayCircle className="h-4 w-4" />}
+                                                                    {video.isDirectDownload 
+                                                                        ? <Download className="h-4 w-4" />
+                                                                        : (completedVideos.has(video.id) ? <CheckCircle className="h-4 w-4 text-primary" /> : <PlayCircle className="h-4 w-4" />)
+                                                                    }
                                                                     <span className="flex-1">{video.title}</span>
                                                                 </div>
                                                             </Button>
