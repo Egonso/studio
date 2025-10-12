@@ -35,19 +35,8 @@ export default function LoginPage() {
   });
 
   const canRegister = async (email: string): Promise<boolean> => {
-    try {
-      const customerRef = doc(db, 'customers', email.toLowerCase());
-      const customerSnap = await getDoc(customerRef);
-      if (customerSnap.exists()) {
-          const customerData = customerSnap.data();
-          // Allow registration if status is not 'refunded'
-          return customerData.status !== 'refunded';
-      }
-      return false; // Not a paying customer
-    } catch (error) {
-        console.error("Error checking registration eligibility:", error);
-        return false; // Fail securely
-    }
+    // Return true to allow anyone to register
+    return true;
   };
 
 
