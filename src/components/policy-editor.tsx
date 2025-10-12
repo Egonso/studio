@@ -169,34 +169,56 @@ export function PolicyEditor() {
     });
 
     const lines = renderedContent.split('\n').map((line, index) => {
-      if (line.startsWith('---')) return <hr key={index} className="my-4" />;
-      if (line.startsWith('**')) return <h3 key={index} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>;
-      if (line.startsWith('* ')) return <li key={index}>{line.substring(2)}</li>;
-      if (line.startsWith('− ')) return <li key={index}>{line.substring(2)}</li>;
-      if (line.match(/^\d\./)) return <li key={index} className="ml-4">{line.substring(2)}</li>
-
-      const parts = line.split(/(\*\*.*?\*\*)/g);
-      return <p key={index}>{parts.map((part, i) => part.startsWith('**') ? <strong key={i}>{part.slice(2, -2)}</strong> : <Fragment key={i}>{part}</Fragment>)}</p>;
+      if (line.trim() === '') return { type: 'empty', key: `empty-${index}` };
+      if (line.startsWith('---')) return { type: 'hr', key: `hr-${index}` };
+      if (line.startsWith('**')) return { type: 'h3', content: line.replace(/\*\*/g, ''), key: `h3-${index}` };
+      if (line.startsWith('* ') || line.startsWith('− ') || line.match(/^\d\./)) {
+        return { type: 'li', content: line.substring(2), key: `li-${index}` };
+      }
+      return { type: 'p', content: line, key: `p-${index}` };
     });
     
-    // Group list items
-    const groupedLines = [];
-    let listItems: JSX.Element[] = [];
-    for(const line of lines) {
-        if(line.type === 'li') {
-            listItems.push(line);
+    const groupedElements: JSX.Element[] = [];
+    let currentList: { type: string, content: string, key: string }[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        if (line.type === 'li') {
+            currentList.push(line);
         } else {
-            if(listItems.length > 0) {
-                groupedLines.push(<ul key={groupedLines.length} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
-                listItems = [];
+            if (currentList.length > 0) {
+                groupedElements.push(
+                    <ul key={`ul-${i - currentList.length}`} className="list-disc pl-5 space-y-1 my-2">
+                        {currentList.map(item => (
+                             <li key={item.key}>{item.content}</li>
+                        ))}
+                    </ul>
+                );
+                currentList = [];
             }
-            groupedLines.push(line);
+            if (line.type === 'hr') {
+                groupedElements.push(<hr key={line.key} className="my-4" />);
+            } else if (line.type === 'h3') {
+                groupedElements.push(<h3 key={line.key} className="text-lg font-semibold mt-4">{line.content}</h3>);
+            } else if (line.type === 'p') {
+                const parts = line.content.split(/(\*\*.*?\*\*)/g);
+                groupedElements.push(<p key={line.key}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+            }
+             // empty lines are skipped
         }
     }
-    if (listItems.length > 0) {
-         groupedLines.push(<ul key={groupedLines.length} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+    if (currentList.length > 0) {
+        groupedElements.push(
+            <ul key={`ul-${lines.length}`} className="list-disc pl-5 space-y-1 my-2">
+                 {currentList.map(item => (
+                    <li key={item.key}>{item.content}</li>
+                ))}
+            </ul>
+        );
     }
-    return groupedLines;
+    
+    return groupedElements;
   };
   
   const handlePrint = (level: Level) => {
@@ -339,5 +361,7 @@ export function PolicyEditor() {
     </div>
   );
 }
+
+    
 
     
