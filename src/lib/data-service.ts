@@ -229,7 +229,7 @@ export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'pro
     const projectId = getActiveProjectId();
     if (!authorId || !projectId) throw new Error("User or project not authenticated");
 
-    const dataToSave = {
+    const dataToSave: Omit<SharedPolicyData, 'level' | 'policy' | 'placeholders'> & { level: string; policy: { title: string; content: string; }; placeholders: Record<string, string>; } = {
         ...policyData,
         authorId,
         projectId,
