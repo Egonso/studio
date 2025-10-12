@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, ChangeEvent, Fragment } from 'react';
+import { useState, useMemo, ChangeEvent, Fragment, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
@@ -155,6 +155,13 @@ export function PolicyEditor() {
     return '1';
   }, [employeeCount, aiComplexity]);
 
+  const [activeTab, setActiveTab] = useState<Level>(recommendedLevel);
+
+  useEffect(() => {
+    setActiveTab(recommendedLevel);
+  }, [recommendedLevel]);
+
+
   const handlePlaceholderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPlaceholders(prev => ({ ...prev, [name]: value }));
@@ -168,56 +175,44 @@ export function PolicyEditor() {
       }
     });
 
-    const lines = renderedContent.split('\n').map((line, index) => {
-      if (line.trim() === '') return { type: 'empty', key: `empty-${index}` };
-      if (line.startsWith('---')) return { type: 'hr', key: `hr-${index}` };
-      if (line.startsWith('**')) return { type: 'h3', content: line.replace(/\*\*/g, ''), key: `h3-${index}` };
-      if (line.startsWith('* ') || line.startsWith('− ') || line.match(/^\d\./)) {
-        return { type: 'li', content: line.substring(2), key: `li-${index}` };
-      }
-      return { type: 'p', content: line, key: `p-${index}` };
-    });
-    
+    const lines = renderedContent.split('\n');
     const groupedElements: JSX.Element[] = [];
-    let currentList: { type: string, content: string, key: string }[] = [];
+    let currentList: string[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (line.type === 'li') {
-            currentList.push(line);
-        } else {
-            if (currentList.length > 0) {
-                groupedElements.push(
-                    <ul key={`ul-${i - currentList.length}`} className="list-disc pl-5 space-y-1 my-2">
-                        {currentList.map(item => (
-                             <li key={item.key}>{item.content}</li>
-                        ))}
-                    </ul>
-                );
-                currentList = [];
-            }
-            if (line.type === 'hr') {
-                groupedElements.push(<hr key={line.key} className="my-4" />);
-            } else if (line.type === 'h3') {
-                groupedElements.push(<h3 key={line.key} className="text-lg font-semibold mt-4">{line.content}</h3>);
-            } else if (line.type === 'p') {
-                const parts = line.content.split(/(\*\*.*?\*\*)/g);
-                groupedElements.push(<p key={line.key}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
-            }
-             // empty lines are skipped
+    const flushList = (key: string) => {
+        if (currentList.length > 0) {
+            groupedElements.push(
+                <ul key={key} className="list-disc pl-5 space-y-1 my-2">
+                    {currentList.map((item, index) => (
+                        <li key={`${key}-item-${index}`}>{item}</li>
+                    ))}
+                </ul>
+            );
+            currentList = [];
         }
-    }
-    if (currentList.length > 0) {
-        groupedElements.push(
-            <ul key={`ul-${lines.length}`} className="list-disc pl-5 space-y-1 my-2">
-                 {currentList.map(item => (
-                    <li key={item.key}>{item.content}</li>
-                ))}
-            </ul>
-        );
-    }
-    
+    };
+
+    lines.forEach((line, index) => {
+        const lineKey = `line-${index}`;
+        if (line.trim() === '') {
+            flushList(`ul-before-empty-${index}`);
+        } else if (line.startsWith('---')) {
+            flushList(`ul-before-hr-${index}`);
+            groupedElements.push(<hr key={lineKey} className="my-4" />);
+        } else if (line.startsWith('**')) {
+            flushList(`ul-before-h3-${index}`);
+            groupedElements.push(<h3 key={lineKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
+        } else if (line.startsWith('* ') || line.startsWith('− ') || line.match(/^\d\./)) {
+            currentList.push(line.substring(2));
+        } else {
+            flushList(`ul-before-p-${index}`);
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            groupedElements.push(<p key={lineKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+        }
+    });
+
+    flushList(`ul-final`);
+
     return groupedElements;
   };
   
@@ -330,7 +325,7 @@ export function PolicyEditor() {
 
       {/* Right Column: Policies */}
       <div className="md:col-span-2">
-        <Tabs defaultValue={recommendedLevel} value={recommendedLevel} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as Level)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="1">Level 1</TabsTrigger>
             <TabsTrigger value="2">Level 2</TabsTrigger>
@@ -345,14 +340,14 @@ export function PolicyEditor() {
                 <CardContent className="prose prose-sm max-w-none printable-content">
                     {renderPolicyContent(policy.content)}
                 </CardContent>
-                <CardContent className="flex gap-2 justify-end">
+                <CardFooter className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={() => handleShare()}>
-                        <Link2 className="mr-2"/> Digital teilen
+                        <Link2 className="mr-2 h-4 w-4"/> Digital teilen
                     </Button>
                     <Button onClick={() => handlePrint(level as Level)}>
-                        <Printer className="mr-2"/> Drucken / PDF
+                        <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
                     </Button>
-                </CardContent>
+                </CardFooter>
               </Card>
             </TabsContent>
           ))}
@@ -361,7 +356,5 @@ export function PolicyEditor() {
     </div>
   );
 }
-
-    
 
     
