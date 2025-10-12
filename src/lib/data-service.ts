@@ -239,4 +239,52 @@ export async function checkOnboardingStatus(projectId?: string): Promise<string>
     return `/dashboard?projectId=${activeProjectId}`;
 }
 
-    
+
+// --- Shared Policy Functions ---
+export async function createSharedPolicy(policyData: any): Promise<{ policyId: string | null }> {
+    const authorId = getUserId();
+    const projectId = getActiveProjectId();
+
+    if (!authorId || !projectId) {
+        console.error("User or project not authenticated for sharing policy.");
+        return { policyId: null };
+    }
+
+    try {
+        const collectionRef = collection(db, "sharedPolicies");
+        const dataToSave = {
+            ...policyData,
+            authorId,
+            projectId,
+            createdAt: serverTimestamp(),
+        };
+
+        const docRef = await addDoc(collectionRef, dataToSave);
+        return { policyId: docRef.id };
+    } catch (error) {
+        console.error("Error creating shared policy in Firestore:", error);
+        
+        // This is where we can add more detailed error handling if needed in the future
+        
+        return { policyId: null };
+    }
+}
+
+export async function getSharedPolicy(policyId: string) {
+    if (!policyId) return null;
+
+    try {
+        const docRef = doc(db, 'sharedPolicies', policyId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() };
+        } else {
+            console.warn(`No shared policy found with id: ${policyId}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error fetching shared policy with id ${policyId}:`, error);
+        return null;
+    }
+}

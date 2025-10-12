@@ -8,7 +8,9 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Share2, Loader2 } from 'lucide-react';
+import { createSharedPolicy } from '@/lib/data-service';
+import { useToast } from '@/hooks/use-toast';
 
 type Level = '1' | '2' | '3';
 
@@ -145,6 +147,9 @@ export function PolicyEditor() {
   const [employeeCount, setEmployeeCount] = useState<'1-10' | '11-50' | '>50'>('1-10');
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
+  const { toast } = useToast();
+  const [isSharing, setIsSharing] = useState(false);
+
 
   const recommendedLevel: Level = useMemo(() => {
     if (employeeCount === '>50' || aiComplexity === 'high') return '3';
@@ -247,6 +252,40 @@ export function PolicyEditor() {
     setTimeout(() => { printWindow?.print(); }, 500);
   }
 
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+        const policyData = {
+            level: activeTab,
+            content: policies[activeTab].content,
+            title: policies[activeTab].title,
+            placeholders: placeholders,
+        };
+        const { policyId } = await createSharedPolicy(policyData);
+
+        if (policyId) {
+            const shareUrl = `${window.location.origin}/cbs/share/${policyId}`;
+            await navigator.clipboard.writeText(shareUrl);
+            toast({
+                title: 'Link kopiert!',
+                description: 'Der Link zur geteilten Richtlinie wurde in Ihre Zwischenablage kopiert.',
+            });
+        } else {
+            throw new Error('Policy ID not returned');
+        }
+    } catch (error) {
+        console.error('Sharing failed:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Teilen fehlgeschlagen',
+            description: 'Die Richtlinie konnte nicht geteilt werden. Bitte versuchen Sie es erneut.',
+        });
+    } finally {
+        setIsSharing(false);
+    }
+  };
+
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
       {/* Left Column: Configuration */}
@@ -335,6 +374,19 @@ export function PolicyEditor() {
                     {renderPolicyContent(policies[level].content)}
                 </CardContent>
                 <CardFooter className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={handleShare} disabled={isSharing}>
+                      {isSharing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Teile...
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="mr-2 h-4 w-4" />
+                          Digital teilen
+                        </>
+                      )}
+                    </Button>
                     <Button onClick={handlePrint}>
                         <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
                     </Button>
