@@ -156,6 +156,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance
                 </TabsTrigger>
+                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Compliance-in-a-Day
+                </TabsTrigger>
                  <TabsTrigger value="cbd" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Compliance by Design
@@ -321,6 +325,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </Card>
                 </div>
             </TabsContent>
+             <TabsContent value="cbs">
+                 {/* Content will be handled by /cbs page, this just makes the tab exist */}
+            </TabsContent>
              <TabsContent value="cbd">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
             </TabsContent>
@@ -359,3 +366,5 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    
