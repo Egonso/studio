@@ -1,31 +1,28 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- Spezifische Sammlungen zuerst ---
-
-    // Benutzer können nur ihre eigenen Unterdokumente lesen und schreiben.
+    // Users can only read/write their own data. This is crucial for registration,
+    // login, and all project-related data storage.
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Geteilte Richtlinien:
-    // - Jeder kann eine einzelne Richtlinie lesen (wenn er den Link hat).
-    // - Niemand kann die gesamte Liste der Richtlinien abrufen.
-    // - Nur authentifizierte Benutzer können eine neue Richtlinie erstellen, und sie müssen der Autor sein.
+    // Rules for the new shared policies feature.
+    // Allow authenticated users to create policies if they are the author.
+    // Allow anyone with the link to read a single policy.
     match /sharedPolicies/{policyId} {
-      allow get: if true;
-      allow list: if false;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.authorId;
+      allow get: if true;
+      // Explicitly deny listing all policies for privacy, and deny updates/deletes.
+      allow list, update, delete: if false;
     }
 
-    // --- Allgemeine Fallback-Regel ZULETZT ---
-    // Diese Regel fängt alle Pfade ab, die nicht oben explizit definiert wurden,
-    // und verweigert den Zugriff. Sie darf keine anderen `match`-Blöcke umschließen.
+    // Security Fallback Rule: This is intentionally placed last.
+    // It denies any read or write access to any other path not explicitly matched above.
     match /{path=**} {
-      allow read, write: if false;
+        allow read, write: if false;
     }
   }
 }
