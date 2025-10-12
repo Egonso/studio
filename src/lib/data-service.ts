@@ -2,6 +2,8 @@
 
 import { auth, db } from './firebase';
 import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 // Helper to get the current user's ID
 const getUserId = (): string | null => {
@@ -226,7 +228,9 @@ export interface SharedPolicyData {
 export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<{ policyId: string | null }> {
     const authorId = getUserId();
     const projectId = getActiveProjectId();
-    if (!authorId || !projectId) throw new Error("User or project not authenticated");
+    if (!authorId || !projectId) {
+        throw new Error("User or project not authenticated for sharing.");
+    }
 
     const dataToSave: SharedPolicyData = {
         level: policyData.level,
@@ -237,17 +241,23 @@ export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'pro
         createdAt: serverTimestamp(),
     };
 
+    const sharedPoliciesRef = collection(db, 'sharedPolicies');
+    
     try {
-        const sharedPoliciesRef = collection(db, 'sharedPolicies');
         const newDocRef = await addDoc(sharedPoliciesRef, dataToSave);
         return { policyId: newDocRef.id };
-    } catch (e: any) {
-        console.error("Firestore write error:", e);
-        // In a real app, you might want to re-throw or handle this more gracefully
-        // For now, we'll return null to indicate failure.
+    } catch (serverError: any) {
+        const permissionError = new FirestorePermissionError({
+            path: sharedPoliciesRef.path,
+            operation: 'create',
+            requestResourceData: dataToSave,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original Firestore error:", serverError.message);
         return { policyId: null };
     }
 }
+
 
 export async function getSharedPolicy(policyId: string): Promise<SharedPolicyData | null> {
     const docRef = doc(db, 'sharedPolicies', policyId);
