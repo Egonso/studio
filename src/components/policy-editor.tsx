@@ -177,21 +177,48 @@ export function PolicyEditor() {
     });
 
     const lines = filledContent.split('\n');
-    return lines.map((line, index) => {
+    let listItems: JSX.Element[] = [];
+    const groupedLines: (JSX.Element | string)[] = [];
+
+    lines.forEach((line, index) => {
         const uniqueKey = `line-${index}`;
-        if (line.trim() === '') return <br key={uniqueKey} />;
-        if (line.startsWith('---')) return <hr key={uniqueKey} className="my-4" />;
-        if (line.startsWith('**')) return <h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>;
-        
-        if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
-             const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
-             const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
-             return <p key={uniqueKey} className="ml-5">{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
+        if (line.trim() === '') {
+            if (listItems.length > 0) {
+                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+                listItems = [];
+            }
+            groupedLines.push(<br key={uniqueKey} />);
+        } else if (line.startsWith('---')) {
+            if (listItems.length > 0) {
+                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+                listItems = [];
+            }
+            groupedLines.push(<hr key={uniqueKey} className="my-4" />);
+        } else if (line.startsWith('**')) {
+            if (listItems.length > 0) {
+                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+                listItems = [];
+            }
+            groupedLines.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
+        } else if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
+            const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
+            const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
+            listItems.push(<li key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</li>);
+        } else {
+             if (listItems.length > 0) {
+                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+                listItems = [];
+            }
+            const parts = line.split(/(\*\*.*?\*\*)/g);
+            groupedLines.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
         }
-        
-        const parts = line.split(/(\*\*.*?\*\*)/g);
-        return <p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
     });
+
+    if (listItems.length > 0) {
+        groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+    }
+    
+    return groupedLines;
   };
   
   const handlePrint = (level: Level) => {
@@ -352,11 +379,11 @@ export function PolicyEditor() {
                     {renderPolicyContent(policy.content)}
                 </CardContent>
                 <CardFooter className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => handleShare(level as Level)} disabled={isSharing}>
+                    <Button variant="outline" onClick={() => handleShare(level)} disabled={isSharing}>
                         {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Link2 className="mr-2 h-4 w-4"/>}
                         Digital teilen
                     </Button>
-                    <Button onClick={() => handlePrint(level as Level)}>
+                    <Button onClick={() => handlePrint(level)}>
                         <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
                     </Button>
                 </CardFooter>
