@@ -255,12 +255,11 @@ export function PolicyEditor() {
   const handleShare = async (level: Level) => {
     setIsSharing(true);
     try {
-        const policyData = {
+        const { policyId } = await createSharedPolicy({
             level: level,
             policy: policies[level],
             placeholders: placeholders,
-        };
-        const { policyId } = await createSharedPolicy(policyData);
+        });
 
         if (policyId) {
             const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
@@ -273,7 +272,7 @@ export function PolicyEditor() {
              toast({
                 variant: "destructive",
                 title: "Teilen fehlgeschlagen",
-                description: "Die Richtlinie konnte nicht gespeichert werden. Überprüfen Sie Ihre Berechtigungen.",
+                description: "Die Richtlinie konnte nicht gespeichert werden.",
                 duration: 9000,
             });
         }
