@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, ChangeEvent, Fragment, useEffect } from 'react';
@@ -256,9 +257,9 @@ export function PolicyEditor() {
     setIsSharing(true);
     try {
         const { policyId } = await createSharedPolicy({
-            level: level,
+            level,
             policy: policies[level],
-            placeholders: placeholders,
+            placeholders,
         });
 
         if (policyId) {
@@ -272,7 +273,7 @@ export function PolicyEditor() {
              toast({
                 variant: "destructive",
                 title: "Teilen fehlgeschlagen",
-                description: "Die Richtlinie konnte nicht gespeichert werden.",
+                description: "Die Richtlinie konnte nicht gespeichert werden. Prüfen Sie die Konsole auf Fehler.",
                 duration: 9000,
             });
         }
