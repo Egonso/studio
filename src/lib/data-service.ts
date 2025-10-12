@@ -214,69 +214,6 @@ export async function clearCurrentTask() {
     await deleteDoc(getUserDocRef(userId, 'currentTask'));
 }
 
-
-// --- Shared Policies ---
-
-export interface SharedPolicyPayload {
-    level: string;
-    policy: { title: string; content: string };
-    placeholders: Record<string, string>;
-}
-
-export async function createSharedPolicy(payload: SharedPolicyPayload): Promise<{ policyId: string | null }> {
-    const authorId = getUserId();
-    const projectId = getActiveProjectId();
-    if (!authorId || !projectId) {
-        const error = new Error("User or project not authenticated for sharing.");
-        console.error(error.message);
-        throw error;
-    }
-
-    const dataToSave = {
-        ...payload,
-        authorId: authorId,
-        projectId: projectId,
-        createdAt: serverTimestamp(),
-    };
-
-    const sharedPoliciesRef = collection(db, 'sharedPolicies');
-    
-    try {
-        const newDocRef = await addDoc(sharedPoliciesRef, dataToSave);
-        return { policyId: newDocRef.id };
-    } catch (serverError: any) {
-        const permissionError = new FirestorePermissionError({
-            path: sharedPoliciesRef.path,
-            operation: 'create',
-            requestResourceData: dataToSave,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original Firestore error for createSharedPolicy:", serverError);
-        return { policyId: null };
-    }
-}
-
-
-export async function getSharedPolicy(policyId: string): Promise<SharedPolicyPayload & { createdAt: any } | null> {
-    const docRef = doc(db, 'sharedPolicies', policyId);
-    try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return docSnap.data() as SharedPolicyPayload & { createdAt: any };
-        }
-        return null;
-    } catch (serverError: any) {
-         const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'get',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        console.error("Original Firestore error for getSharedPolicy:", serverError);
-        return null;
-    }
-}
-
-
 // --- Onboarding Logic ---
 export async function checkOnboardingStatus(projectId?: string): Promise<string> {
     const activeProjectId = projectId || getActiveProjectId();
