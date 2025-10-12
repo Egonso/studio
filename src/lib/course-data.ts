@@ -360,7 +360,10 @@ export const courseData: Module[] = [
                 id: "video-6-1",
                 title: "Implementation & Kultur",
                 description: "Erfahren Sie, wie das PERMA-Modell für Wohlbefinden genutzt werden kann, um KI für Menschen zu gestalten.",
-                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20-%20Extra%20Video%20zu%20PERMA%20Assistenzkurs%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=cd570ac5-9ae6-4188-b215-afc636379b22"
+                url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Marlies%20-%20Extra%20Video%20zu%20PERMA%20Assistenzkurs%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=cd570ac5-9ae6-4188-b215-afc636379b22",
+                resources: [
+                    { title: "Vollständige Variablenmatrix EU AI Act", url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU_AI_Act_COMPLETE_Professional_Sales_Workbook_UPDATED.xlsx?alt=media", type: "xlsx" }
+                ]
             },
             {
                 id: "video-6-2",
