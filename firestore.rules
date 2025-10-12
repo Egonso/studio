@@ -25,7 +25,7 @@ service cloud.firestore {
     // Diese Regel fängt alle Pfade ab, die nicht oben explizit definiert wurden,
     // und verweigert den Zugriff. Sie darf keine anderen `match`-Blöcke umschließen.
     match /{path=**} {
-        allow read, write: if false;
+      allow read, write: if false;
     }
   }
 }
