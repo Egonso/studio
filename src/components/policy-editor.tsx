@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, ChangeEvent, Fragment, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Label } from './ui/label';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -168,15 +168,8 @@ export function PolicyEditor() {
   };
 
   const renderPolicyContent = (content: string) => {
-    let renderedContent = content;
-    Object.entries(placeholders).forEach(([key, value]) => {
-      if (value) {
-        renderedContent = renderedContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
-      }
-    });
-
-    const lines = renderedContent.split('\n');
-    const groupedElements: JSX.Element[] = [];
+    const lines = content.split('\n');
+    const groupedElements: (JSX.Element | null)[] = [];
     let currentList: string[] = [];
 
     const flushList = (key: string) => {
@@ -192,22 +185,30 @@ export function PolicyEditor() {
         }
     };
 
-    lines.forEach((line, index) => {
-        const lineKey = `line-${index}`;
+    let filledContent = content;
+     Object.entries(placeholders).forEach(([key, value]) => {
+      if (value) {
+        filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+      }
+    });
+
+    filledContent.split('\n').forEach((line, index) => {
+        const uniqueKey = `line-${index}`;
         if (line.trim() === '') {
             flushList(`ul-before-empty-${index}`);
+            groupedElements.push(null);
         } else if (line.startsWith('---')) {
             flushList(`ul-before-hr-${index}`);
-            groupedElements.push(<hr key={lineKey} className="my-4" />);
+            groupedElements.push(<hr key={uniqueKey} className="my-4" />);
         } else if (line.startsWith('**')) {
             flushList(`ul-before-h3-${index}`);
-            groupedElements.push(<h3 key={lineKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
+            groupedElements.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
         } else if (line.startsWith('* ') || line.startsWith('− ') || line.match(/^\d\./)) {
-            currentList.push(line.substring(2));
+             currentList.push(line.substring(2));
         } else {
             flushList(`ul-before-p-${index}`);
             const parts = line.split(/(\*\*.*?\*\*)/g);
-            groupedElements.push(<p key={lineKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+            groupedElements.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
         }
     });
 
@@ -331,7 +332,9 @@ export function PolicyEditor() {
             <TabsTrigger value="2">Level 2</TabsTrigger>
             <TabsTrigger value="3">Level 3</TabsTrigger>
           </TabsList>
-          {Object.entries(policies).map(([level, policy]) => (
+          {(Object.keys(policies) as Level[]).map((level) => {
+            const policy = policies[level];
+            return (
             <TabsContent value={level} key={level}>
               <Card>
                 <CardHeader>
@@ -350,7 +353,8 @@ export function PolicyEditor() {
                 </CardFooter>
               </Card>
             </TabsContent>
-          ))}
+            );
+          })}
         </Tabs>
       </div>
     </div>
