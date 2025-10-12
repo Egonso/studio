@@ -1,4 +1,3 @@
-
 'use client';
 
 import { auth, db } from './firebase';
@@ -224,15 +223,15 @@ export interface SharedPolicyData {
     createdAt: any;
 }
 
-export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<{ policyId: string; error?: string }> {
+export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<{ policyId: string | null }> {
     const authorId = getUserId();
     const projectId = getActiveProjectId();
     if (!authorId || !projectId) throw new Error("User or project not authenticated");
 
-    const dataToSave: Omit<SharedPolicyData, 'level' | 'policy' | 'placeholders'> & { level: string; policy: { title: string; content: string; }; placeholders: Record<string, string>; } = {
+    const dataToSave: SharedPolicyData = {
         ...policyData,
-        authorId,
-        projectId,
+        authorId: authorId,
+        projectId: projectId,
         createdAt: serverTimestamp(),
     };
 
@@ -241,17 +240,10 @@ export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'pro
         const newDocRef = await addDoc(sharedPoliciesRef, dataToSave);
         return { policyId: newDocRef.id };
     } catch (e: any) {
-        if (e.code === 'permission-denied') {
-            const context = {
-                operation: 'create',
-                path: `sharedPolicies`,
-                userId: authorId,
-                data: dataToSave
-            };
-            const errorMessage = `Firestore-Berechtigungsfehler: ${e.message}. Kontext: ${JSON.stringify(context, null, 2)}`;
-            return { policyId: '', error: errorMessage };
-        }
-        throw e;
+        console.error("Firestore write error:", e);
+        // In a real app, you might want to re-throw or handle this more gracefully
+        // For now, we'll return null to indicate failure.
+        return { policyId: null };
     }
 }
 

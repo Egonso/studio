@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, ChangeEvent, Fragment, useEffect } from 'react';
@@ -177,21 +176,22 @@ export function PolicyEditor() {
       }
     });
 
-    const elements = filledContent.split('\n').map((line, index) => {
+    const lines = filledContent.split('\n');
+    return lines.map((line, index) => {
         const uniqueKey = `line-${index}`;
         if (line.trim() === '') return <br key={uniqueKey} />;
         if (line.startsWith('---')) return <hr key={uniqueKey} className="my-4" />;
         if (line.startsWith('**')) return <h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>;
         
         if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
-             return <p key={uniqueKey} className="ml-5">{line.substring(2)}</p>;
+             const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
+             const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
+             return <p key={uniqueKey} className="ml-5">{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
         }
         
         const parts = line.split(/(\*\*.*?\*\*)/g);
         return <p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
     });
-    
-    return <>{elements}</>;
   };
   
   const handlePrint = (level: Level) => {
@@ -233,26 +233,23 @@ export function PolicyEditor() {
             policy: policies[level],
             placeholders: placeholders,
         };
-        const { policyId, error } = await createSharedPolicy(policyData);
+        const { policyId } = await createSharedPolicy(policyData);
 
-        if (error) {
+        if (policyId) {
+            const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
+            await navigator.clipboard.writeText(shareUrl);
             toast({
+                title: "Link kopiert!",
+                description: "Der teilbare Link wurde in Ihre Zwischenablage kopiert.",
+            });
+        } else {
+             toast({
                 variant: "destructive",
                 title: "Teilen fehlgeschlagen",
-                description: `Fehler: ${error}. Dies deutet auf ein Problem mit den Firestore-Sicherheitsregeln hin.`,
+                description: "Die Richtlinie konnte nicht gespeichert werden. Überprüfen Sie Ihre Berechtigungen.",
                 duration: 9000,
             });
-            return;
         }
-
-        const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
-        
-        await navigator.clipboard.writeText(shareUrl);
-
-        toast({
-            title: "Link kopiert!",
-            description: "Der teilbare Link wurde in Ihre Zwischenablage kopiert.",
-        });
 
     } catch (error: any) {
         console.error("Failed to share policy:", error);

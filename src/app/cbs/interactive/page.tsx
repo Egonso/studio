@@ -28,6 +28,8 @@ function InteractiveCoachingPageContent() {
             Object.entries(policyData.placeholders).forEach(([key, value]) => {
                 if (value) {
                     filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+                } else {
+                    filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), `__________`);
                 }
             });
         }
@@ -35,21 +37,23 @@ function InteractiveCoachingPageContent() {
         const lines = filledContent.split('\n');
         return lines.map((line, index) => {
             const key = `line-${index}`;
-            if (line.trim() === '') return null;
+            if (line.trim() === '') return <div key={key} className="h-4" />;
             if (line.startsWith('---')) return <hr key={key} className="my-4" />;
-            if (line.startsWith('**')) return <h3 key={key} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>;
-            if (line.startsWith('− ') || line.match(/^\d\./)) {
-                return <p key={key} className="ml-5">{line}</p>;
+            if (line.startsWith('**')) return <h3 key={key} className="text-lg font-semibold mt-4 mb-2">{line.replace(/\*\*/g, '')}</h3>;
+            if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
+                const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
+                const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
+                return <li key={key} className="ml-5 list-item">{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</li>;
             }
             const parts = line.split(/(\*\*.*?\*\*)/g);
-            return <p key={key}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
+            return <p key={key} className="mb-2">{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
         });
     };
 
 
     useEffect(() => {
         if (!policyId) {
-            setError("Keine Richtlinien-ID gefunden.");
+            setError("Keine Richtlinien-ID gefunden. Der Link ist möglicherweise ungültig.");
             setIsLoading(false);
             return;
         }
@@ -58,7 +62,7 @@ function InteractiveCoachingPageContent() {
             try {
                 const data = await getSharedPolicy(policyId);
                 if (!data) {
-                    setError("Die angeforderte Richtlinie konnte nicht gefunden werden.");
+                    setError("Die angeforderte Richtlinie konnte nicht gefunden werden. Sie wurde möglicherweise gelöscht.");
                 } else {
                     setPolicyData(data);
                 }
@@ -76,32 +80,39 @@ function InteractiveCoachingPageContent() {
 
     if (isLoading) {
          return (
-            <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
+            <div className="flex h-screen w-full flex-col items-center justify-center">
+                 <AppHeader />
+                <div className="flex-1 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
             </div>
         );
     }
     
     if (error) {
         return (
-             <div className="flex-1 flex items-center justify-center p-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Fehler</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p>{error}</p>
-                    </CardContent>
-                </Card>
-            </div>
+             <div className="flex flex-col min-h-screen bg-background">
+                <AppHeader />
+                <div className="flex-1 flex items-center justify-center p-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Fehler</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p>{error}</p>
+                            <Button onClick={() => router.push('/')} className="mt-4">Zurück zur Startseite</Button>
+                        </CardContent>
+                    </Card>
+                </div>
+             </div>
         )
     }
 
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
-            <main className="flex-1 flex items-center justify-center p-4 md:p-8">
-                <Card className="w-full max-w-2xl">
+            <main className="flex-1 flex items-start justify-center p-4 md:p-8">
+                <Card className="w-full max-w-3xl my-8">
                     <CardHeader>
                         <div className="flex items-start justify-between">
                             <div>
@@ -109,13 +120,13 @@ function InteractiveCoachingPageContent() {
                                     <FileText/> {policyData?.policy.title}
                                 </CardTitle>
                                 <CardDescription>
-                                    Dieses Dokument wurde am {policyData?.createdAt ? new Date(policyData.createdAt.seconds * 1000).toLocaleDateString('de-DE') : ''} zur Ansicht und Gegenzeichnung geteilt.
+                                    Dieses Dokument wurde am {policyData?.createdAt ? new Date(policyData.createdAt.seconds * 1000).toLocaleDateString('de-DE') : ''} zur Ansicht geteilt.
                                 </CardDescription>
                             </div>
                             <img src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp" alt="Logo" className="h-16 w-16" />
                         </div>
                     </CardHeader>
-                    <CardContent className="prose prose-sm max-w-none">
+                    <CardContent className="prose prose-sm max-w-none text-foreground">
                        {policyData && renderPolicyContent(policyData.policy.content)}
                     </CardContent>
                 </Card>

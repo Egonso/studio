@@ -3,26 +3,29 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read/write their own data. This is crucial for registration,
-    // login, and all project-related data storage.
+    // Users can only read and write their own data.
+    // This covers projects, assessments, contexts, etc.
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Rules for the new shared policies feature.
-    // Allow authenticated users to create policies if they are the author.
-    // Allow anyone with the link to read a single policy.
+    // Rules for the sharedPolicies collection
     match /sharedPolicies/{policyId} {
+      // Allow any authenticated user to create a new shared policy,
+      // as long as they are the author.
       allow create: if request.auth != null && request.auth.uid == request.resource.data.authorId;
+
+      // Allow anyone (even unauthenticated users) to read a specific policy
+      // This is necessary for the shared link to work.
       allow get: if true;
-      // Explicitly deny listing all policies for privacy, and deny updates/deletes.
+
+      // Disallow listing, updating, or deleting for everyone to keep them secure.
       allow list, update, delete: if false;
     }
 
-    // Security Fallback Rule: This is intentionally placed last.
-    // It denies any read or write access to any other path not explicitly matched above.
+    // A fallback rule to deny all other access to the database for security.
     match /{path=**} {
-        allow read, write: if false;
+      allow read, write: if false;
     }
   }
 }
