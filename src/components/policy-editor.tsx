@@ -8,8 +8,9 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Printer, Link2 } from 'lucide-react';
+import { Printer, Link2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createSharedPolicy } from '@/lib/data-service';
 
 type Level = '1' | '2' | '3';
 
@@ -148,6 +149,7 @@ export function PolicyEditor() {
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  const [isSharing, setIsSharing] = useState(false);
 
   const recommendedLevel: Level = useMemo(() => {
     if (employeeCount === '>50' || aiComplexity === 'high') return '3';
@@ -169,24 +171,18 @@ export function PolicyEditor() {
 
   const renderPolicyContent = (content: string) => {
     const lines = content.split('\n');
-    const groupedElements: (JSX.Element | null)[] = [];
-    let currentList: string[] = [];
+    let groupedElements: (JSX.Element | null)[] = [];
+    let currentListItems: JSX.Element[] = [];
 
-    const flushList = (key: string) => {
-        if (currentList.length > 0) {
-            groupedElements.push(
-                <ul key={key} className="list-disc pl-5 space-y-1 my-2">
-                    {currentList.map((item, index) => (
-                        <li key={`${key}-item-${index}`}>{item}</li>
-                    ))}
-                </ul>
-            );
-            currentList = [];
+    const flushList = () => {
+        if (currentListItems.length > 0) {
+            groupedElements.push(<ul key={`ul-${groupedElements.length}`} className="list-disc pl-5 space-y-1 my-2">{currentListItems}</ul>);
+            currentListItems = [];
         }
     };
 
     let filledContent = content;
-     Object.entries(placeholders).forEach(([key, value]) => {
+    Object.entries(placeholders).forEach(([key, value]) => {
       if (value) {
         filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
       }
@@ -195,24 +191,24 @@ export function PolicyEditor() {
     filledContent.split('\n').forEach((line, index) => {
         const uniqueKey = `line-${index}`;
         if (line.trim() === '') {
-            flushList(`ul-before-empty-${index}`);
+            flushList();
             groupedElements.push(null);
         } else if (line.startsWith('---')) {
-            flushList(`ul-before-hr-${index}`);
+            flushList();
             groupedElements.push(<hr key={uniqueKey} className="my-4" />);
         } else if (line.startsWith('**')) {
-            flushList(`ul-before-h3-${index}`);
+            flushList();
             groupedElements.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
-        } else if (line.startsWith('* ') || line.startsWith('− ') || line.match(/^\d\./)) {
-             currentList.push(line.substring(2));
+        } else if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
+            currentListItems.push(<li key={`${uniqueKey}-item`}>{line.substring(2)}</li>);
         } else {
-            flushList(`ul-before-p-${index}`);
+            flushList();
             const parts = line.split(/(\*\*.*?\*\*)/g);
             groupedElements.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
         }
     });
 
-    flushList(`ul-final`);
+    flushList(); // Flush any remaining list items at the end
 
     return groupedElements;
   };
@@ -248,11 +244,34 @@ export function PolicyEditor() {
     setTimeout(() => { printWindow?.print(); }, 500);
   }
 
-  const handleShare = () => {
-    toast({
-      title: "Funktion in Entwicklung",
-      description: "Das Teilen von Dokumenten zur digitalen Signatur wird in einer zukünftigen Version verfügbar sein.",
-    });
+  const handleShare = async (level: Level) => {
+    setIsSharing(true);
+    try {
+        const policyData = {
+            level: level,
+            policy: policies[level],
+            placeholders: placeholders,
+        };
+        const policyId = await createSharedPolicy(policyData);
+        const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
+        
+        await navigator.clipboard.writeText(shareUrl);
+
+        toast({
+            title: "Link kopiert!",
+            description: "Der teilbare Link wurde in Ihre Zwischenablage kopiert.",
+        });
+
+    } catch (error) {
+        console.error("Failed to share policy:", error);
+        toast({
+            variant: "destructive",
+            title: "Fehler",
+            description: "Die Richtlinie konnte nicht geteilt werden. Bitte versuchen Sie es erneut.",
+        });
+    } finally {
+        setIsSharing(false);
+    }
   };
 
   return (
@@ -344,8 +363,9 @@ export function PolicyEditor() {
                     {renderPolicyContent(policy.content)}
                 </CardContent>
                 <CardFooter className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => handleShare()}>
-                        <Link2 className="mr-2 h-4 w-4"/> Digital teilen
+                    <Button variant="outline" onClick={() => handleShare(level as Level)} disabled={isSharing}>
+                        {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Link2 className="mr-2 h-4 w-4"/>}
+                        Digital teilen
                     </Button>
                     <Button onClick={() => handlePrint(level as Level)}>
                         <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
@@ -360,5 +380,3 @@ export function PolicyEditor() {
     </div>
   );
 }
-
-    

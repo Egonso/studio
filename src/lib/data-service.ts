@@ -213,6 +213,44 @@ export async function clearCurrentTask() {
 }
 
 
+// --- Shared Policies ---
+
+export interface SharedPolicyData {
+    level: string;
+    policy: { title: string; content: string };
+    placeholders: Record<string, string>;
+    projectId: string;
+    authorId: string;
+    createdAt: any;
+}
+
+export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<string> {
+    const authorId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!authorId || !projectId) throw new Error("User or project not authenticated");
+
+    const sharedPoliciesRef = collection(db, 'sharedPolicies');
+    const newDocRef = await addDoc(sharedPoliciesRef, {
+        ...policyData,
+        authorId,
+        projectId,
+        createdAt: serverTimestamp(),
+    });
+    return newDocRef.id;
+}
+
+export async function getSharedPolicy(policyId: string): Promise<SharedPolicyData | null> {
+    const docRef = doc(db, 'sharedPolicies', policyId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data() as SharedPolicyData;
+    }
+    return null;
+}
+
+
+
 // --- Onboarding Logic ---
 export async function checkOnboardingStatus(projectId?: string): Promise<string> {
     const activeProjectId = projectId || getActiveProjectId();
