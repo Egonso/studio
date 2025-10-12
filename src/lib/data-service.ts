@@ -224,19 +224,35 @@ export interface SharedPolicyData {
     createdAt: any;
 }
 
-export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<string> {
+export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<{ policyId: string; error?: string }> {
     const authorId = getUserId();
     const projectId = getActiveProjectId();
     if (!authorId || !projectId) throw new Error("User or project not authenticated");
 
-    const sharedPoliciesRef = collection(db, 'sharedPolicies');
-    const newDocRef = await addDoc(sharedPoliciesRef, {
+    const dataToSave = {
         ...policyData,
         authorId,
         projectId,
         createdAt: serverTimestamp(),
-    });
-    return newDocRef.id;
+    };
+
+    try {
+        const sharedPoliciesRef = collection(db, 'sharedPolicies');
+        const newDocRef = await addDoc(sharedPoliciesRef, dataToSave);
+        return { policyId: newDocRef.id };
+    } catch (e: any) {
+        if (e.code === 'permission-denied') {
+            const context = {
+                operation: 'create',
+                path: `sharedPolicies`,
+                userId: authorId,
+                data: dataToSave
+            };
+            const errorMessage = `Firestore-Berechtigungsfehler: ${e.message}. Kontext: ${JSON.stringify(context, null, 2)}`;
+            return { policyId: '', error: errorMessage };
+        }
+        throw e;
+    }
 }
 
 export async function getSharedPolicy(policyId: string): Promise<SharedPolicyData | null> {

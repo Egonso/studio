@@ -170,17 +170,6 @@ export function PolicyEditor() {
   };
 
   const renderPolicyContent = (content: string) => {
-    const lines = content.split('\n');
-    let groupedElements: (JSX.Element | null)[] = [];
-    let currentListItems: JSX.Element[] = [];
-
-    const flushList = () => {
-        if (currentListItems.length > 0) {
-            groupedElements.push(<ul key={`ul-${groupedElements.length}`} className="list-disc pl-5 space-y-1 my-2">{currentListItems}</ul>);
-            currentListItems = [];
-        }
-    };
-
     let filledContent = content;
     Object.entries(placeholders).forEach(([key, value]) => {
       if (value) {
@@ -188,29 +177,21 @@ export function PolicyEditor() {
       }
     });
 
-    filledContent.split('\n').forEach((line, index) => {
+    const elements = filledContent.split('\n').map((line, index) => {
         const uniqueKey = `line-${index}`;
-        if (line.trim() === '') {
-            flushList();
-            groupedElements.push(null);
-        } else if (line.startsWith('---')) {
-            flushList();
-            groupedElements.push(<hr key={uniqueKey} className="my-4" />);
-        } else if (line.startsWith('**')) {
-            flushList();
-            groupedElements.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
-        } else if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
-            currentListItems.push(<li key={`${uniqueKey}-item`}>{line.substring(2)}</li>);
-        } else {
-            flushList();
-            const parts = line.split(/(\*\*.*?\*\*)/g);
-            groupedElements.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+        if (line.trim() === '') return <br key={uniqueKey} />;
+        if (line.startsWith('---')) return <hr key={uniqueKey} className="my-4" />;
+        if (line.startsWith('**')) return <h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>;
+        
+        if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
+             return <p key={uniqueKey} className="ml-5">{line.substring(2)}</p>;
         }
+        
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        return <p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>;
     });
-
-    flushList(); // Flush any remaining list items at the end
-
-    return groupedElements;
+    
+    return <>{elements}</>;
   };
   
   const handlePrint = (level: Level) => {
@@ -252,7 +233,18 @@ export function PolicyEditor() {
             policy: policies[level],
             placeholders: placeholders,
         };
-        const policyId = await createSharedPolicy(policyData);
+        const { policyId, error } = await createSharedPolicy(policyData);
+
+        if (error) {
+            toast({
+                variant: "destructive",
+                title: "Teilen fehlgeschlagen",
+                description: `Fehler: ${error}. Dies deutet auf ein Problem mit den Firestore-Sicherheitsregeln hin.`,
+                duration: 9000,
+            });
+            return;
+        }
+
         const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
         
         await navigator.clipboard.writeText(shareUrl);
@@ -262,7 +254,7 @@ export function PolicyEditor() {
             description: "Der teilbare Link wurde in Ihre Zwischenablage kopiert.",
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to share policy:", error);
         toast({
             variant: "destructive",
