@@ -7,38 +7,32 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 
-
 export function FirebaseErrorListener() {
     const { toast } = useToast();
 
     useEffect(() => {
         const handler = (error: FirestorePermissionError) => {
-            console.error(
-                "Firestore Permission Error Caught:",
-                "Operation:", error.context.operation,
-                "Path:", error.context.path,
-                "Data:", error.context.requestResourceData,
-                "Auth:", auth.currentUser
-            );
-            
-            // Construct a developer-friendly error message
-            const errorMessage = `
-                Firestore Security Rules Denied Request:
+            const devErrorMessage = `
+                Firestore Permission Error:
                 - Operation: ${error.context.operation}
-                - Path: ${error.context.path}
+                - Path: /${error.context.path}
                 - User UID: ${auth.currentUser?.uid || 'Not authenticated'}
+                - Sent Data: ${JSON.stringify(error.context.requestResourceData, null, 2)}
             `;
+            
+            // Log the detailed error for developers to see in the browser console
+            console.error(devErrorMessage);
 
-            // Display the error in a toast for immediate feedback in the UI
+            // Display a user-friendly toast
             toast({
                 variant: 'destructive',
                 title: 'Fehler bei der Berechtigung',
-                description: "Der Zugriff wurde von den Firestore-Sicherheitsregeln verweigert. Prüfen Sie die Entwicklerkonsole für Details.",
+                description: "Der Zugriff wurde von den Sicherheitsregeln verweigert. Prüfen Sie die Entwicklerkonsole für Details.",
                 duration: 9000,
             });
 
             // Throwing the error here will display it in the Next.js error overlay for developers
-            throw new Error(errorMessage + `\n\nRaw Data: ${JSON.stringify(error.context.requestResourceData, null, 2)}`);
+            throw new Error(devErrorMessage);
         };
 
         errorEmitter.on('permission-error', handler);
@@ -50,3 +44,5 @@ export function FirebaseErrorListener() {
 
     return null; // This component does not render anything
 }
+
+    

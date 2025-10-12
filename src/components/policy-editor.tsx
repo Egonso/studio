@@ -140,7 +140,6 @@ Unterschrift KI-Beauftragte/r: [Unterschrift KI-Beauftragte/r]
 const parsePlaceholders = (text: string): string[] => {
     const regex = /\[(.*?)\]/g;
     const matches = text.match(regex) || [];
-    // Deduplicate and clean up brackets
     return [...new Set(matches.map(p => p.slice(1, -1)))];
 };
 
@@ -162,7 +161,6 @@ export function PolicyEditor() {
   useEffect(() => {
     setActiveTab(recommendedLevel);
   }, [recommendedLevel]);
-
 
   const handlePlaceholderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -222,8 +220,8 @@ export function PolicyEditor() {
     return groupedLines;
   };
   
-  const handlePrint = (level: Level) => {
-    const policy = policies[level];
+  const handlePrint = () => {
+    const policy = policies[activeTab];
     let printableContent = policy.content;
     
     Object.entries(placeholders).forEach(([key, value]) => {
@@ -253,14 +251,16 @@ export function PolicyEditor() {
     setTimeout(() => { printWindow?.print(); }, 500);
   }
 
-  const handleShare = async (level: Level) => {
+  const handleShare = async () => {
     setIsSharing(true);
     try {
-        const { policyId } = await createSharedPolicy({
-            level,
-            policy: policies[level],
-            placeholders,
-        });
+        const dataToShare = {
+            level: activeTab,
+            policy: policies[activeTab],
+            placeholders: placeholders,
+        };
+
+        const { policyId } = await createSharedPolicy(dataToShare);
 
         if (policyId) {
             const shareUrl = `${window.location.origin}/cbs/interactive?policyId=${policyId}`;
@@ -273,7 +273,7 @@ export function PolicyEditor() {
              toast({
                 variant: "destructive",
                 title: "Teilen fehlgeschlagen",
-                description: "Die Richtlinie konnte nicht gespeichert werden. Prüfen Sie die Konsole auf Fehler.",
+                description: "Die Richtlinie konnte nicht gespeichert werden.",
                 duration: 9000,
             });
         }
@@ -368,22 +368,21 @@ export function PolicyEditor() {
             <TabsTrigger value="3">Level 3</TabsTrigger>
           </TabsList>
           {(Object.keys(policies) as Level[]).map((level) => {
-            const policy = policies[level];
             return (
             <TabsContent value={level} key={level}>
               <Card>
                 <CardHeader>
-                  <CardTitle>{policy.title}</CardTitle>
+                  <CardTitle>{policies[level].title}</CardTitle>
                 </CardHeader>
                 <CardContent className="prose prose-sm max-w-none printable-content">
-                    {renderPolicyContent(policy.content)}
+                    {renderPolicyContent(policies[level].content)}
                 </CardContent>
                 <CardFooter className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => handleShare(level)} disabled={isSharing}>
+                    <Button variant="outline" onClick={handleShare} disabled={isSharing}>
                         {isSharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Link2 className="mr-2 h-4 w-4"/>}
                         Digital teilen
                     </Button>
-                    <Button onClick={() => handlePrint(level)}>
+                    <Button onClick={handlePrint}>
                         <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
                     </Button>
                 </CardFooter>

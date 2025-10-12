@@ -1,3 +1,4 @@
+
 'use client';
 
 import { auth, db } from './firebase';
@@ -216,26 +217,23 @@ export async function clearCurrentTask() {
 
 // --- Shared Policies ---
 
-export interface SharedPolicyData {
+export interface SharedPolicyPayload {
     level: string;
     policy: { title: string; content: string };
     placeholders: Record<string, string>;
-    projectId: string;
-    authorId: string;
-    createdAt: any;
 }
 
-export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'projectId' | 'authorId' | 'createdAt'>): Promise<{ policyId: string | null }> {
+export async function createSharedPolicy(payload: SharedPolicyPayload): Promise<{ policyId: string | null }> {
     const authorId = getUserId();
     const projectId = getActiveProjectId();
     if (!authorId || !projectId) {
-        throw new Error("User or project not authenticated for sharing.");
+        const error = new Error("User or project not authenticated for sharing.");
+        console.error(error.message);
+        throw error;
     }
 
-    const dataToSave: SharedPolicyData = {
-        level: policyData.level,
-        policy: policyData.policy,
-        placeholders: policyData.placeholders,
+    const dataToSave = {
+        ...payload,
         authorId: authorId,
         projectId: projectId,
         createdAt: serverTimestamp(),
@@ -253,22 +251,30 @@ export async function createSharedPolicy(policyData: Omit<SharedPolicyData, 'pro
             requestResourceData: dataToSave,
         });
         errorEmitter.emit('permission-error', permissionError);
-        console.error("Original Firestore error:", serverError.message);
+        console.error("Original Firestore error for createSharedPolicy:", serverError);
         return { policyId: null };
     }
 }
 
 
-export async function getSharedPolicy(policyId: string): Promise<SharedPolicyData | null> {
+export async function getSharedPolicy(policyId: string): Promise<SharedPolicyPayload & { createdAt: any } | null> {
     const docRef = doc(db, 'sharedPolicies', policyId);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-        return docSnap.data() as SharedPolicyData;
+    try {
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data() as SharedPolicyPayload & { createdAt: any };
+        }
+        return null;
+    } catch (serverError: any) {
+         const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error("Original Firestore error for getSharedPolicy:", serverError);
+        return null;
     }
-    return null;
 }
-
 
 
 // --- Onboarding Logic ---
@@ -295,3 +301,5 @@ export async function checkOnboardingStatus(projectId?: string): Promise<string>
 
     return `/dashboard?projectId=${activeProjectId}`;
 }
+
+    
