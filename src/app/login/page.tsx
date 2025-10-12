@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,12 +27,24 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('signup');
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', password: '' },
   });
+
+  useEffect(() => {
+    const emailFromQuery = searchParams.get('email');
+    if (emailFromQuery) {
+      form.setValue('email', emailFromQuery);
+      setActiveTab('signup'); // Switch to signup tab if email is in query
+    }
+  }, [searchParams, form]);
+
 
   const canRegister = async (email: string): Promise<boolean> => {
     // Return true to allow anyone to register
@@ -96,7 +108,7 @@ export default function LoginPage() {
             />
             <span className="font-bold text-2xl">AI Act Compass</span>
       </div>
-      <Tabs defaultValue="signup" className="w-full max-w-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Anmelden</TabsTrigger>
           <TabsTrigger value="signup">Registrieren</TabsTrigger>
@@ -149,7 +161,7 @@ export default function LoginPage() {
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
               <CardDescription>
-                Bitte registrieren Sie sich mit der E-Mail-Adresse, die Sie beim Kauf verwendet haben.
+                Jeder kann sich mit einer gültigen E-Mail-Adresse registrieren.
               </CardDescription>
             </CardHeader>
             <CardContent>
