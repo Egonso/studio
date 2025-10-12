@@ -42,7 +42,7 @@ function ComplianceInADayPageContent() {
                         </CardHeader>
                         <CardContent>
                            <p>
-                                Beginnen Sie mit der Selbsteinschätzung, um die passende Richtlinien-Vorlage für Ihr Unternehmen zu finden. Füllen Sie die markierten Felder aus und schon haben Sie ein audit-sicheres Dokument, das Sie intern verwenden können.
+                                Beginnen Sie mit der Selbsteinschätzung, um die passende Richtlinien-Vorlage für Ihr Unternehmen zu finden. Füllen Sie die markierten Felder aus und schon haben Sie ein Dokument, das Sie intern verwenden können. Gemeinsam mit dem Zertifizierungskurs kommen Sie so an nur einem Tag einen großen Schritt weiter.
                            </p>
                         </CardContent>
                     </Card>
