@@ -403,15 +403,20 @@ export function PolicyEditor() {
             <CardContent className="space-y-4">
                 {aiTools.map((tool, index) => (
                     <div key={index} className="p-3 rounded-md border bg-secondary/50 space-y-3">
-                        <div className="flex gap-2 items-center">
-                            <Input 
-                                placeholder="Name des KI-Tools (z.B. ChatGPT)"
-                                value={tool.name}
-                                onChange={(e) => handleToolChange(index, 'name', e.target.value)}
-                            />
-                            <Button variant="ghost" size="icon" onClick={() => removeTool(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                         <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor={`tool-name-${index}`} className="sr-only">Name des KI-Tools</Label>
+                                <Input 
+                                    id={`tool-name-${index}`}
+                                    placeholder="Name des KI-Tools (z.B. ChatGPT)"
+                                    value={tool.name}
+                                    onChange={(e) => handleToolChange(index, 'name', e.target.value)}
+                                    className="flex-grow"
+                                />
+                                <Button variant="ghost" size="icon" onClick={() => removeTool(index)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                            </div>
                         </div>
                          <div className="space-y-2">
                             <Label className="text-xs">Konformitäts-Check (optional):</Label>
