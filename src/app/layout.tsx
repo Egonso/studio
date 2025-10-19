@@ -20,18 +20,18 @@ export default function RootLayout({
   const currentMonth = currentDate.getMonth(); // 0-11
   const year = currentDate.getFullYear();
   
-  let quarterEndMonth;
+  let quarterStartMonth;
   if (currentMonth < 3) { // Q1 (Jan-Mar)
-      quarterEndMonth = 3;
+      quarterStartMonth = 1;
   } else if (currentMonth < 6) { // Q2 (Apr-Jun)
-      quarterEndMonth = 6;
+      quarterStartMonth = 4;
   } else if (currentMonth < 9) { // Q3 (Jul-Sep)
-      quarterEndMonth = 9;
+      quarterStartMonth = 7;
   } else { // Q4 (Oct-Dec)
-      quarterEndMonth = 12;
+      quarterStartMonth = 10;
   }
 
-  const month = quarterEndMonth.toString().padStart(2, '0');
+  const month = quarterStartMonth.toString().padStart(2, '0');
   const formattedDate = `${month}/${year}`;
 
   return (
