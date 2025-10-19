@@ -17,8 +17,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const currentDate = new Date();
-  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const currentMonth = currentDate.getMonth(); // 0-11
   const year = currentDate.getFullYear();
+  
+  let quarterEndMonth;
+  if (currentMonth < 3) { // Q1 (Jan-Mar)
+      quarterEndMonth = 3;
+  } else if (currentMonth < 6) { // Q2 (Apr-Jun)
+      quarterEndMonth = 6;
+  } else if (currentMonth < 9) { // Q3 (Jul-Sep)
+      quarterEndMonth = 9;
+  } else { // Q4 (Oct-Dec)
+      quarterEndMonth = 12;
+  }
+
+  const month = quarterEndMonth.toString().padStart(2, '0');
   const formattedDate = `${month}/${year}`;
 
   return (
