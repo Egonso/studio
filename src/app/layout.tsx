@@ -16,23 +16,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth(); // 0-11
-  const year = currentDate.getFullYear();
-  
-  let quarterStartMonth;
-  if (currentMonth < 3) { // Q1 (Jan-Mar)
-      quarterStartMonth = 1;
-  } else if (currentMonth < 6) { // Q2 (Apr-Jun)
-      quarterStartMonth = 4;
-  } else if (currentMonth < 9) { // Q3 (Jul-Sep)
-      quarterStartMonth = 7;
-  } else { // Q4 (Oct-Dec)
-      quarterStartMonth = 10;
-  }
-
-  const month = quarterStartMonth.toString().padStart(2, '0');
-  const formattedDate = `${month}/${year}`;
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -53,7 +36,7 @@ export default function RootLayout({
                             <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden zur Bereitstellung der Funktionalität auf Servern gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
                         </AlertDescription>
                     </Alert>
-                    <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass aktualisiert {formattedDate}. Alle Rechte vorbehalten.</p>
+                    <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass aktualisiert 10/2025. Alle Rechte vorbehalten.</p>
                 </div>
             </footer>
         </AuthProvider>
