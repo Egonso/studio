@@ -16,6 +16,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentDate = new Date();
+  const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+  const year = currentDate.getFullYear();
+  const formattedDate = `${month}/${year}`;
+
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
@@ -32,10 +37,10 @@ export default function RootLayout({
                      <Alert variant="default" className="bg-secondary border-secondary-foreground/10">
                         <Terminal className="h-4 w-4" />
                         <AlertDescription className='text-xs text-muted-foreground'>
-                            <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden zur Bereitstellung der Funktionalität auf Firebase-Servern in der EU gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
+                            <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden zur Bereitstellung der Funktionalität auf Servern gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
                         </AlertDescription>
                     </Alert>
-                    <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass. Alle Rechte vorbehalten.</p>
+                    <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass aktualisiert {formattedDate}. Alle Rechte vorbehalten.</p>
                 </div>
             </footer>
         </AuthProvider>
