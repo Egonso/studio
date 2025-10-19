@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,6 +21,7 @@ import { Separator } from '@/components/ui/separator';
 type Selection = {
     type: 'video';
     data: Video;
+    moduleId: string;
 } | {
     type: 'exam';
     data: Module;
@@ -33,6 +35,8 @@ export default function CoursePage() {
     const [selectedItem, setSelectedItem] = useState<Selection | null>(null);
     const [completedVideos, setCompletedVideos] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(true);
+
+    const sealUrl = "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU-AI-Act%20SIEGEL%20(2160%20x%201080%20px)%20(Anha%CC%88nger%C2%A0%E2%80%93%202%2C5%20x%202%2C5%20Zoll).png?alt=media&token=6f22bdf6-e4a5-4b26-bd48-7b2786ef6487";
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -50,9 +54,12 @@ export default function CoursePage() {
                 const moduleId = searchParams.get('moduleId');
 
                 if (videoId) {
-                    const video = courseData.flatMap(m => m.videos).find(v => v.id === videoId);
-                    if (video) {
-                        setSelectedItem({ type: 'video', data: video });
+                    for (const module of courseData) {
+                        const video = module.videos.find(v => v.id === videoId);
+                        if (video) {
+                            setSelectedItem({ type: 'video', data: video, moduleId: module.id });
+                            break;
+                        }
                     }
                 } else if (moduleId) {
                     const module = courseData.find(m => m.id === moduleId && m.isExam);
@@ -61,7 +68,7 @@ export default function CoursePage() {
                     }
                 } else if (courseData.length > 0 && courseData[0].videos.length > 0) {
                     // Default to first video
-                    setSelectedItem({ type: 'video', data: courseData[0].videos[0] });
+                    setSelectedItem({ type: 'video', data: courseData[0].videos[0], moduleId: courseData[0].id });
                 }
                 setIsLoading(false);
             };
@@ -69,12 +76,12 @@ export default function CoursePage() {
         }
     }, [user, searchParams]);
 
-    const handleSelectVideo = (video: Video) => {
+    const handleSelectVideo = (video: Video, moduleId: string) => {
         if (video.isDirectDownload) {
             window.open(video.url, '_blank');
             return;
         }
-        setSelectedItem({ type: 'video', data: video });
+        setSelectedItem({ type: 'video', data: video, moduleId: moduleId });
         router.push(`/kurs?videoId=${video.id}`, { scroll: false });
     };
     
@@ -94,8 +101,7 @@ export default function CoursePage() {
     
      const getDefaultOpenModule = () => {
         if (selectedItem?.type === 'video') {
-            const module = courseData.find(m => m.videos.some(v => v.id === selectedItem.data.id));
-            return module?.id || 'module-0';
+            return selectedItem.moduleId;
         }
         if (selectedItem?.type === 'exam') {
             return selectedItem.data.id;
@@ -113,6 +119,8 @@ export default function CoursePage() {
                 return <Download className="h-5 w-5" />;
         }
     }
+
+    const showSeal = selectedItem?.type === 'video' && ['module-0', 'module-1', 'module-2', 'module-3', 'module-4'].includes(selectedItem.moduleId);
 
 
     if (authLoading || isLoading || !user) {
@@ -159,7 +167,7 @@ export default function CoursePage() {
                                                             <Button
                                                                 key={video.id}
                                                                 variant="ghost"
-                                                                onClick={() => handleSelectVideo(video)}
+                                                                onClick={() => handleSelectVideo(video, module.id)}
                                                                 className={cn(
                                                                     "w-full justify-start text-left h-auto py-2",
                                                                     selectedItem?.type === 'video' && selectedItem.data.id === video.id && "bg-accent text-accent-foreground"
@@ -189,11 +197,20 @@ export default function CoursePage() {
                         <CardContent className="p-4 md:p-6">
                             {selectedItem?.type === 'video' && (
                                 <div className="space-y-4">
-                                    <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                    <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden">
                                         <video key={selectedItem.data.url} controls autoPlay className="w-full h-full" onEnded={handleVideoEnd}>
                                             <source src={selectedItem.data.url} type="video/mp4" />
                                             Ihr Browser unterstützt das Video-Tag nicht.
                                         </video>
+                                        {showSeal && (
+                                            <Image
+                                                src={sealUrl}
+                                                alt="AI Act Compass Siegel"
+                                                width={100}
+                                                height={100}
+                                                className="absolute top-4 left-4 h-16 w-16 md:h-24 md:w-24 pointer-events-none opacity-90"
+                                            />
+                                        )}
                                     </div>
                                     <h1 className="text-2xl font-bold">{selectedItem.data.title}</h1>
                                     <p className="text-muted-foreground">{selectedItem.data.description}</p>
