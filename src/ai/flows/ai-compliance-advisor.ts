@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { updateTokenUsage } from '@/lib/data-service';
+import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 const AiComplianceAdvisorInputSchema = z.object({
   companyDescription: z
@@ -65,6 +65,9 @@ const complianceAdvisorFlow = ai.defineFlow(
     outputSchema: AiComplianceAdvisorOutputSchema,
   },
   async input => {
+    if (await isUserOverTokenLimit()) {
+      throw new Error("Monthly token limit exceeded.");
+    }
     const result = await prompt(input);
     const usage = result.usage;
     if (usage) {

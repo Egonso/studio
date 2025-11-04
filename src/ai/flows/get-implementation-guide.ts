@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { updateTokenUsage } from '@/lib/data-service';
+import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 const GetImplementationGuideInputSchema = z.object({
   taskDescription: z
@@ -75,7 +75,7 @@ Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen bes
 Erstelle eine präzise, leicht verständliche Anleitung in deutscher Sprache, die genau auf diese Aufgabe zugeschnitten ist. Die Anleitung soll aus zwei Abschnitten bestehen:
 
 1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen.
-2.  **Leitfragen für Ihr Team:** Formuliere 3-4 prägnante Fragen, die sich das Team stellen kann, um zu überprüfen, ob sie die Anforderung wirklich verstanden haben und erfüllen.
+2.  **Leitfragen für Ihr Team:** Formuliere 3-4 präzise Fragen, die sich das Team stellen kann, um zu überprüfen, ob sie die Anforderung wirklich verstanden haben und erfüllen.
 
 **FORMATIERUNGSREGELN:**
 - Verwende Markdown für die Formatierung.
@@ -93,6 +93,9 @@ const getImplementationGuideFlow = ai.defineFlow(
     outputSchema: GetImplementationGuideOutputSchema,
   },
   async input => {
+    if (await isUserOverTokenLimit()) {
+      throw new Error("Monthly token limit exceeded.");
+    }
     const result = await prompt(input);
     const usage = result.usage;
     if (usage) {

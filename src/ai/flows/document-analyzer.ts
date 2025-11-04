@@ -11,7 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { updateTokenUsage } from '@/lib/data-service';
+import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 const AnalyzeDocumentInputSchema = z.object({
   documentText: z
@@ -72,6 +72,9 @@ const documentAnalyzerFlow = ai.defineFlow(
     outputSchema: AnalyzeDocumentOutputSchema,
   },
   async input => {
+    if (await isUserOverTokenLimit()) {
+      throw new Error("Monthly token limit exceeded.");
+    }
     const result = await prompt(input);
     const usage = result.usage;
     if (usage) {

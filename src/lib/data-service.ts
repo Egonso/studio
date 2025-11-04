@@ -1,10 +1,14 @@
 
+
 'use client';
 
 import { auth, db } from './firebase';
 import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+
+// --- Constants ---
+const MONTHLY_TOKEN_LIMIT = 1000000;
 
 // Helper to get the current user's ID
 const getUserId = (): string | null => {
@@ -191,6 +195,35 @@ export async function getCourseProgress(): Promise<string[]> {
     const docSnap = await getDoc(docRef);
     const data = docSnap.exists() ? docSnap.data() : null;
     return data?.completedVideoIds || [];
+}
+
+// --- Token Usage Tracking & Limiting ---
+
+export async function isUserOverTokenLimit(): Promise<boolean> {
+    const userId = getUserId();
+    if (!userId) {
+        // For unauthenticated users, we can decide to either always allow or deny.
+        // For this app, core features require auth, so we can assume this won't be hit often.
+        // Let's be safe and deny.
+        return true;
+    }
+    const docRef = getUserDocRef(userId, 'tokenUsage');
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+        return false; // No usage yet, so not over limit.
+    }
+
+    const data = docSnap.data();
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    // If the tracked month is not the current month, the user is not over the limit.
+    if (data.month !== currentMonth) {
+        return false;
+    }
+
+    return (data.total || 0) >= MONTHLY_TOKEN_LIMIT;
 }
 
 export async function updateTokenUsage(tokensUsed: number) {

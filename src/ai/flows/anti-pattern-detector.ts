@@ -11,7 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { updateTokenUsage } from '@/lib/data-service';
+import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 
 const DetectAntiPatternsInputSchema = z.object({
@@ -72,6 +72,9 @@ const antiPatternDetectorFlow = ai.defineFlow(
     outputSchema: DetectAntiPatternsOutputSchema,
   },
   async (input) => {
+    if (await isUserOverTokenLimit()) {
+      throw new Error("Monthly token limit exceeded.");
+    }
     const result = await prompt(input);
     const usage = result.usage;
     if (usage) {
