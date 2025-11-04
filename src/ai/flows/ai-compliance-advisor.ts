@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { updateTokenUsage } from '@/lib/data-service';
 
 const AiComplianceAdvisorInputSchema = z.object({
   companyDescription: z
@@ -63,7 +65,11 @@ const complianceAdvisorFlow = ai.defineFlow(
     outputSchema: AiComplianceAdvisorOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    const usage = result.usage;
+    if (usage) {
+      await updateTokenUsage(usage.inputTokens + usage.outputTokens);
+    }
+    return result.output!;
   }
 );

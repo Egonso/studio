@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,6 +11,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { updateTokenUsage } from '@/lib/data-service';
+
 
 const GetComplianceChecklistInputSchema = z.object({
   topic: z
@@ -63,7 +66,11 @@ const getComplianceChecklistFlow = ai.defineFlow(
     outputSchema: GetComplianceChecklistOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    const usage = result.usage;
+    if (usage) {
+      await updateTokenUsage(usage.inputTokens + usage.outputTokens);
+    }
+    return result.output!;
   }
 );

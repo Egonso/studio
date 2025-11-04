@@ -173,7 +173,7 @@ export async function saveExportedInsight(insight: string) {
 
 
 // --- Course Progress (remains user-specific, not project-specific) ---
-const getUserDocRef = (userId: string, docId: 'courseProgress' | 'currentTask') => {
+const getUserDocRef = (userId: string, docId: 'courseProgress' | 'currentTask' | 'tokenUsage') => {
     return doc(db, `users/${userId}/appData`, docId);
 };
 
@@ -191,6 +191,33 @@ export async function getCourseProgress(): Promise<string[]> {
     const docSnap = await getDoc(docRef);
     const data = docSnap.exists() ? docSnap.data() : null;
     return data?.completedVideoIds || [];
+}
+
+export async function updateTokenUsage(tokensUsed: number) {
+    const userId = getUserId();
+    if (!userId) return; // Don't track for unauthenticated users
+
+    const docRef = getUserDocRef(userId, 'tokenUsage');
+    const docSnap = await getDoc(docRef);
+
+    const today = new Date();
+    const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+    let newTotal = tokensUsed;
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.month === currentMonth) {
+            newTotal += data.total || 0;
+        }
+        // If the month is different, newTotal is just the current tokensUsed, effectively resetting the count.
+    }
+
+    await setDoc(docRef, {
+        total: newTotal,
+        month: currentMonth,
+        lastUpdated: serverTimestamp(),
+    }, { merge: true });
 }
 
 

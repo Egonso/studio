@@ -14,6 +14,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { designPhases, principlesData } from '@/lib/design-thinking-data';
+import { updateTokenUsage } from '@/lib/data-service';
 
 // Dynamically create Zod enums from the data files to ensure consistency
 const designPhaseIds = designPhases.map(p => p.id) as [string, ...string[]];
@@ -94,7 +95,11 @@ const designAdvisorFlow = ai.defineFlow(
     outputSchema: GetDesignAdviceOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    const usage = result.usage;
+    if (usage) {
+        await updateTokenUsage(usage.inputTokens + usage.outputTokens);
+    }
+    return result.output!;
   }
 );

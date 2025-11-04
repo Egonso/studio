@@ -11,6 +11,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { updateTokenUsage } from '@/lib/data-service';
+
 
 const DetectAntiPatternsInputSchema = z.object({
   description: z.string().describe("A description of a user interface, a user workflow, or a specific design choice to be analyzed for manipulative or unethical patterns (Dark Patterns)."),
@@ -70,7 +72,11 @@ const antiPatternDetectorFlow = ai.defineFlow(
     outputSchema: DetectAntiPatternsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    const result = await prompt(input);
+    const usage = result.usage;
+    if (usage) {
+        await updateTokenUsage(usage.inputTokens + usage.outputTokens);
+    }
+    return result.output!;
   }
 );
