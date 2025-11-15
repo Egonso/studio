@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
@@ -123,22 +123,13 @@ export function AssessmentWizard() {
   const currentStepId = stepHistory[stepHistory.length - 1];
   const currentQuestionDef = questions[currentStepId];
 
-  const handleAnswerChange = (value: string) => {
-    setAnswers({ ...answers, [currentStepId]: value });
-  };
-
-  const handleNext = async () => {
+  const handleNextStep = async (currentAnswers: Answers) => {
     const projectId = getActiveProjectId();
     if (!projectId) {
-        // Should not happen if page guard is effective
         router.push('/projects');
         return;
     }
-    
-    const currentAnswers = {...answers};
-    const value = currentAnswers[currentStepId];
-    
-    // This is the final step logic
+
     if ('final' in currentQuestionDef) {
         setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
@@ -150,15 +141,15 @@ export function AssessmentWizard() {
         return;
     }
     
-    // This is for the first question special case
+    const value = currentAnswers[currentStepId];
     if (currentStepId === 'q1' && value === 'no') {
         setIsSubmitting(true);
-        await saveAssessmentAnswers({ ...currentAnswers, q1: 'no' });
+        await saveAssessmentAnswers(currentAnswers);
         setStepHistory([...stepHistory, 'q_final_compliant']);
         setIsSubmitting(false);
         return;
     }
-
+    
     const question = questions[currentStepId];
     if (!('final' in question)) {
         const selectedOption = question.options.find(o => o.value === value);
@@ -172,9 +163,15 @@ export function AssessmentWizard() {
                 nextStepId = 'q_final_review';
              }
         }
-    
         setStepHistory([...stepHistory, nextStepId]);
     }
+  };
+
+  const handleAnswerChange = (value: string) => {
+    const newAnswers = { ...answers, [currentStepId]: value };
+    setAnswers(newAnswers);
+    // Automatically proceed to the next step after a short delay to show selection
+    setTimeout(() => handleNextStep(newAnswers), 150);
   };
 
   const handleBack = () => {
@@ -183,10 +180,6 @@ export function AssessmentWizard() {
         newHistory.pop();
         setStepHistory(newHistory);
     }
-  };
-  
-  const isCurrentStepAnswered = () => {
-      return answers.hasOwnProperty(currentStepId);
   };
   
   const progress = (stepHistory.length / (questionOrder.length + 1)) * 100;
@@ -201,7 +194,7 @@ export function AssessmentWizard() {
                   <p>{currentQuestionDef.description}</p>
               </CardContent>
               <CardFooter className="flex justify-end">
-                  <Button onClick={handleNext} disabled={isSubmitting}>
+                  <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
                       {isSubmitting ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -254,9 +247,6 @@ export function AssessmentWizard() {
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={handleBack} disabled={stepHistory.length <= 1}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
-        </Button>
-        <Button onClick={handleNext} disabled={!isCurrentStepAnswered()}>
-           Weiter
         </Button>
       </CardFooter>
     </Card>

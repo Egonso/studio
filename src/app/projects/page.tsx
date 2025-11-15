@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, PlusCircle, ArrowRight } from 'lucide-react';
+import { Loader2, PlusCircle, ArrowRight, CornerDownRight } from 'lucide-react';
 import { createProject, getUserProjects, setActiveProjectId } from '@/lib/data-service';
+import { Separator } from '@/components/ui/separator';
 
 interface Project {
     id: string;
@@ -83,6 +84,12 @@ export default function ProjectsPage() {
         setActiveProjectId(projectId);
         router.push(`/dashboard?projectId=${projectId}`);
     };
+
+    const handleJumpToLatest = () => {
+        if (projects.length > 0) {
+            handleSelectProject(projects[0].id);
+        }
+    }
     
     if (authLoading || isLoading) {
         return (
@@ -100,13 +107,49 @@ export default function ProjectsPage() {
             <AppHeader />
             <main className="flex-1 flex flex-col items-center p-4 md:p-8">
                 <div className="w-full max-w-4xl">
-                    <h1 className="text-3xl font-bold mb-6">Meine Projekte</h1>
+                    <div className="flex justify-between items-center mb-6">
+                        <h1 className="text-3xl font-bold">Meine Projekte</h1>
+                        {projects.length > 0 && (
+                            <Button onClick={handleJumpToLatest} variant="secondary">
+                                <CornerDownRight className="mr-2 h-4 w-4" /> Zum letzten Dashboard springen
+                            </Button>
+                        )}
+                    </div>
+                    
+                    {projects.length > 0 && (
+                         <div className="mb-12">
+                            <h2 className="text-2xl font-bold mb-4">Bestehende Projekte</h2>
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {projects.map(project => (
+                                    <Card key={project.id} className="flex flex-col justify-between hover:shadow-xl transition-shadow">
+                                        <CardHeader>
+                                            <CardTitle className="truncate">{project.projectName}</CardTitle>
+                                            <CardDescription>
+                                                Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardFooter>
+                                            <Button onClick={() => handleSelectProject(project.id)} className="w-full">
+                                                Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    <Separator className="my-8" />
 
-                    <Card className="mb-8 shadow-lg">
+
+                    <Card className="shadow-lg mt-8">
                         <CardHeader>
                             <CardTitle>Neues Projekt starten</CardTitle>
                             <CardDescription>
-                                Beginnen Sie eine neue Compliance-Bewertung für ein Produkt oder System. Die Metadaten helfen bei der Erstellung des Audit-Dossiers.
+                                {projects.length > 0 
+                                ? "Oder beginnen Sie eine neue Compliance-Bewertung für ein weiteres Produkt oder System."
+                                : "Beginnen Sie Ihre erste Compliance-Bewertung. Die Metadaten helfen bei der Erstellung des Audit-Dossiers."
+                                }
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -191,37 +234,13 @@ export default function ProjectsPage() {
                         </CardFooter>
                     </Card>
 
-                    <h2 className="text-2xl font-bold mb-4 mt-12">Bestehende Projekte</h2>
-                    {projects.length > 0 ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {projects.map(project => (
-                                <Card key={project.id} className="flex flex-col justify-between hover:shadow-xl transition-shadow">
-                                    <CardHeader>
-                                        <CardTitle className="truncate">{project.projectName}</CardTitle>
-                                        <CardDescription>
-                                            Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardFooter>
-                                        <Button onClick={() => handleSelectProject(project.id)} className="w-full">
-                                            Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                    {projects.length === 0 && !isLoading && (
+                        <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg mt-8">
+                            <p className="text-muted-foreground">Sie haben noch keine Projekte. Starten Sie Ihr erstes Projekt oben.</p>
                         </div>
-                    ) : (
-                        !isLoading && (
-                            <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg">
-                                <p className="text-muted-foreground">Sie haben noch keine Projekte erstellt.</p>
-                                <p className="text-muted-foreground">Starten Sie Ihr erstes Projekt oben.</p>
-                            </div>
-                        )
                     )}
                 </div>
             </main>
         </div>
     );
 }
-
-    
