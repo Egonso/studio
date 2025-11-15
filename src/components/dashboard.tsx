@@ -143,7 +143,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
             Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
           </p>
         </div>
-         <Link href="/audit-report" passHref>
+         <Link href={`/audit-report?projectId=${complianceItems.length > 0 ? new URLSearchParams(window.location.search).get('projectId') : ''}`} passHref>
              <Button variant="outline">
                 <FileText className="mr-2 h-4 w-4" />
                 Audit-Dossier erstellen
@@ -157,11 +157,11 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance-Status
                 </TabsTrigger>
-                 <TabsTrigger value="design">
+                 <TabsTrigger value="design" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     Ethics by Design
                 </TabsTrigger>
-                <TabsTrigger value="tools" onClick={() => router.push('/cbs')}>
+                <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
                     Compliance-in-a-Day
                 </TabsTrigger>
@@ -319,11 +319,11 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </div>
             </TabsContent>
             
-            <TabsContent value="design" className="space-y-4">
-                <DesignCanvas />
+            <TabsContent value="design">
+                 {/* Content will be handled by /cbd page */}
             </TabsContent>
 
-            <TabsContent value="tools">
+            <TabsContent value="cbs">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
             </TabsContent>
         </Tabs>

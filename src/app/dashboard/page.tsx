@@ -43,7 +43,7 @@ function DashboardPageContent() {
 
         const answers = await getAssessmentAnswers();
         if (!answers || Object.keys(answers).length === 0) {
-            router.push('/assessment');
+            router.push(`/assessment?projectId=${currentProjectId}`);
             return;
         }
 
@@ -66,7 +66,12 @@ function DashboardPageContent() {
         if (projectId) {
             loadData(projectId);
         } else {
-            router.push('/projects');
+            const activeProjectId = getActiveProjectId();
+            if (activeProjectId) {
+                router.push(`/dashboard?projectId=${activeProjectId}`);
+            } else {
+                router.push('/projects');
+            }
         }
     }, [router, user, authLoading, projectId, loadData]);
 
@@ -125,5 +130,3 @@ export default function DashboardPage() {
         </Suspense>
     );
 }
-
-    

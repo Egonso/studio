@@ -9,11 +9,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Printer, PlusCircle, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
 
-type Level = '1' | '2' | '3';
-type AiTool = { name: string; isDsgvoCompliant: boolean; isEuAiActCompliant: boolean; };
+export type Level = '1' | '2' | '3';
+export type AiTool = { name: string; isDsgvoCompliant: boolean; isEuAiActCompliant: boolean; };
+
+export interface PolicyData {
+    title: string;
+    content: string;
+    placeholders: Record<string, string>;
+}
 
 const policies: Record<Level, { title: string; content: string }> = {
   '1': {
@@ -165,7 +170,11 @@ const parsePlaceholders = (text: string): string[] => {
     return [...new Set(placeholderKeys)].filter(p => p !== 'KI-Tool-Liste');
 };
 
-export function PolicyEditor() {
+interface PolicyEditorProps {
+    onPolicyChange?: (policyData: {data: PolicyData, level: Level}) => void;
+}
+
+export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
   const [employeeCount, setEmployeeCount] = useState<'1-10' | '11-50' | '>50'>('1-10');
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
@@ -182,6 +191,20 @@ export function PolicyEditor() {
   useEffect(() => {
     setActiveTab(recommendedLevel);
   }, [recommendedLevel]);
+
+  useEffect(() => {
+    if (onPolicyChange) {
+      onPolicyChange({
+          data: {
+              title: policies[activeTab].title,
+              content: policies[activeTab].content,
+              placeholders: placeholders
+          },
+          level: activeTab
+      })
+    }
+  }, [placeholders, aiTools, activeTab, onPolicyChange]);
+
 
   const handlePlaceholderChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

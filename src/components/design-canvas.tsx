@@ -150,7 +150,7 @@ export function DesignCanvas() {
     // Save canvas data on change, with debounce
     useEffect(() => {
         const handler = setTimeout(() => {
-            if (!isInitializing) {
+            if (!isInitializing && getActiveProjectId()) {
                  saveDesignCanvasData(canvasData);
             }
         }, 1000); // 1-second debounce
@@ -257,20 +257,24 @@ export function DesignCanvas() {
                         <CardDescription>Beschreiben Sie einen geplanten User-Workflow, um ihn auf bekannte "Dark Patterns" oder manipulative Designs zu prüfen.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Textarea
-                            placeholder="Beispiel: Der User legt ein Produkt in den Warenkorb. Beim Checkout fügen wir automatisch eine teure Express-Lieferung hinzu, die der User aktiv abwählen muss."
-                            className="min-h-[100px]"
-                            value={canvasData.antiPatternDescription}
-                            onChange={(e) => setCanvasData(prev => ({...prev, antiPatternDescription: e.target.value}))}
-                            disabled={isDetecting}
-                        />
-                         <Button onClick={handleDetectAntiPatterns} disabled={isDetecting || !canvasData.antiPatternDescription.trim()}>
-                            {isDetecting ? (
-                                <><Loader2 className="mr-2 animate-spin" /> Prüfe Muster...</>
-                            ) : (
-                                <>Muster prüfen</>
-                            )}
-                        </Button>
+                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                            <>
+                                <Textarea
+                                    placeholder="Beispiel: Der User legt ein Produkt in den Warenkorb. Beim Checkout fügen wir automatisch eine teure Express-Lieferung hinzu, die der User aktiv abwählen muss."
+                                    className="min-h-[100px]"
+                                    value={canvasData.antiPatternDescription}
+                                    onChange={(e) => setCanvasData(prev => ({...prev, antiPatternDescription: e.target.value}))}
+                                    disabled={isDetecting}
+                                />
+                                <Button onClick={handleDetectAntiPatterns} disabled={isDetecting || !canvasData.antiPatternDescription.trim()}>
+                                    {isDetecting ? (
+                                        <><Loader2 className="mr-2 animate-spin" /> Prüfe Muster...</>
+                                    ) : (
+                                        <>Muster prüfen</>
+                                    )}
+                                </Button>
+                            </>
+                         )}
                     </CardContent>
                 </Card>
             </div>

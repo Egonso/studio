@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { auth, db } from './firebase';
@@ -148,7 +147,13 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
         assessmentAnswers: answers,
         companyContext: {},
         checklistState: {},
-        exportedInsights: []
+        exportedInsights: [],
+        designCanvas: {
+            projectContext: '',
+            advice: null,
+            antiPatternDescription: '',
+            antiPatternAnalysis: null,
+        }
     });
 }
 
@@ -366,5 +371,3 @@ export async function getSharedPolicy(policyId: string) {
         return null;
     }
 }
-
-    
