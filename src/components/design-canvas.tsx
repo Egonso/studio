@@ -19,13 +19,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Slider } from './ui/slider';
 import { Label } from './ui/label';
-import { Checkbox } from './ui/checkbox';
-import { cn } from '@/lib/utils';
 
 interface ValueMapping {
     [principleId: string]: {
         rating: number;
-        conflict: boolean;
     }
 }
 
@@ -36,6 +33,13 @@ interface Stakeholder {
     concerns: string;
 }
 
+interface ValueTension {
+    id: string;
+    principleA: string;
+    principleB: string;
+    resolution: string;
+}
+
 interface DesignCanvasData {
     projectContext: string;
     stakeholders: Stakeholder[];
@@ -43,6 +47,7 @@ interface DesignCanvasData {
     antiPatternDescription: string;
     antiPatternAnalysis: DetectAntiPatternsOutput | null;
     valueMapping: ValueMapping;
+    valueTensions: ValueTension[];
 }
 
 const ratingLabels = ['Irrelevant', 'Niedrige Priorität', 'Hohe Priorität', 'Sehr hohe Priorität'];
@@ -66,9 +71,8 @@ export function DesignCanvas() {
         antiPatternDescription: '',
         antiPatternAnalysis: null,
         valueMapping: {},
+        valueTensions: [],
     });
-    
-    const [fileName, setFileName] = useState<string | null>(null);
     
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
@@ -83,43 +87,17 @@ export function DesignCanvas() {
                 setIsInitializing(true);
                 const data = await getDesignCanvasData() as DesignCanvasData | null;
                 if (data) {
-                    // Ensure stakeholders is an array, default if not present
                     const stakeholders = Array.isArray(data.stakeholders) && data.stakeholders.length > 0 
                         ? data.stakeholders 
                         : [{id: '1', name: '', type: 'external', concerns: ''}];
-                    setCanvasData(prev => ({ ...prev, ...data, stakeholders }));
+                    const valueTensions = Array.isArray(data.valueTensions) ? data.valueTensions : [];
+                    setCanvasData(prev => ({ ...prev, ...data, stakeholders, valueTensions }));
                 }
                 setIsInitializing(false);
             }
         };
         loadData();
     }, [user]);
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFileName(file.name);
-            const reader = new FileReader();
-            
-            const appendContent = (content: string) => {
-                setCanvasData(prev => ({
-                    ...prev,
-                    projectContext: `${prev.projectContext}\n\n---\n[Inhalt aus Datei: ${file.name}]\n${content}`
-                }));
-            };
-
-            if (file.type.startsWith('text/')) {
-                 reader.onload = (event) => {
-                    const textContent = event.target?.result as string;
-                    appendContent(textContent);
-                };
-                reader.readAsText(file);
-            } else {
-                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden.`;
-                appendContent(fileContentPlaceholder);
-            }
-        }
-    };
 
     const handleGenerateAdvice = async () => {
         setIsGeneratingAdvice(true);
@@ -179,11 +157,11 @@ export function DesignCanvas() {
         }
     };
     
-    const handleValueMappingChange = (principleId: string, key: 'rating' | 'conflict', value: number | boolean) => {
+    const handleValueMappingChange = (principleId: string, key: 'rating', value: number) => {
         setCanvasData(prev => {
             const newMapping = { ...prev.valueMapping };
             if (!newMapping[principleId]) {
-                newMapping[principleId] = { rating: 0, conflict: false };
+                newMapping[principleId] = { rating: 0 };
             }
             (newMapping[principleId] as any)[key] = value;
             return { ...prev, valueMapping: newMapping };
@@ -208,9 +186,27 @@ export function DesignCanvas() {
             const newStakeholders = canvasData.stakeholders.filter((_, i) => i !== index);
             setCanvasData(prev => ({ ...prev, stakeholders: newStakeholders }));
         } else {
-            // Clear the last one instead of removing
             setCanvasData(prev => ({ ...prev, stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}] }));
         }
+    };
+
+    // --- Value Tension Handlers ---
+    const addValueTension = () => {
+        setCanvasData(prev => ({
+            ...prev,
+            valueTensions: [...prev.valueTensions, { id: new Date().getTime().toString(), principleA: '', principleB: '', resolution: '' }]
+        }));
+    };
+
+    const handleTensionChange = (index: number, field: keyof Omit<ValueTension, 'id'>, value: string) => {
+        const newTensions = [...canvasData.valueTensions];
+        (newTensions[index] as any)[field] = value;
+        setCanvasData(prev => ({ ...prev, valueTensions: newTensions }));
+    };
+
+    const removeValueTension = (index: number) => {
+        const newTensions = canvasData.valueTensions.filter((_, i) => i !== index);
+        setCanvasData(prev => ({ ...prev, valueTensions: newTensions }));
     };
 
     // Save canvas data on change, with debounce
@@ -229,7 +225,6 @@ export function DesignCanvas() {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
-            {/* Left Column: Configuration & Input */}
             <div className="space-y-8 sticky top-8 lg:col-span-1">
                 <Card className="shadow-lg">
                     <CardHeader>
@@ -323,25 +318,19 @@ export function DesignCanvas() {
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Wand2 className="text-primary"/> 3. Werte-Mapping</CardTitle>
-                        <CardDescription>Definieren Sie die ethischen Grundlagen Ihres Projekts.</CardDescription>
+                        <CardDescription>Definieren Sie die Priorität der ethischen Werte für Ihr Projekt.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
                             <div className="space-y-6">
                                 {principlesData.map(p => {
-                                    const mapping = canvasData.valueMapping?.[p.id] || { rating: 0, conflict: false };
+                                    const mapping = canvasData.valueMapping?.[p.id] || { rating: 0 };
                                     return (
                                         <div key={p.id} className="space-y-3">
                                             <Label htmlFor={`slider-${p.id}`} className='font-semibold'>{p.title}</Label>
                                             <div className="flex items-center gap-4">
                                                 <Slider id={`slider-${p.id}`} min={0} max={3} step={1} value={[mapping.rating]} onValueChange={(value) => handleValueMappingChange(p.id, 'rating', value[0])} className="flex-1" />
                                                 <span className="text-xs font-medium w-32 text-right">{ratingLabels[mapping.rating]}</span>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id={`conflict-${p.id}`} checked={mapping.conflict} onCheckedChange={(checked) => handleValueMappingChange(p.id, 'conflict', !!checked)} />
-                                                <label htmlFor={`conflict-${p.id}`} className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1">
-                                                    <AlertTriangle className="h-4 w-4 text-yellow-500"/> Potenzieller Wertekonflikt
-                                                </label>
                                             </div>
                                         </div>
                                     );
@@ -352,7 +341,52 @@ export function DesignCanvas() {
                 </Card>
                  <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 4. Anti-Pattern Detektor</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><AlertTriangle className="text-primary"/> 4. Wertekonflikte analysieren</CardTitle>
+                        <CardDescription>Dokumentieren Sie, wo Werte kollidieren und wie Sie die Spannung auflösen.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                            <>
+                                {canvasData.valueTensions.map((tension, index) => (
+                                    <div key={tension.id} className="p-4 rounded-lg border bg-secondary/50 space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm font-semibold">Konfliktanalyse</p>
+                                            <Button variant="ghost" size="icon" onClick={() => removeValueTension(index)}>
+                                                <Trash2 className="h-4 w-4 text-destructive"/>
+                                            </Button>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-2'>
+                                            <Select value={tension.principleA} onValueChange={(v) => handleTensionChange(index, 'principleA', v)}>
+                                                <SelectTrigger><SelectValue placeholder="Wert A"/></SelectTrigger>
+                                                <SelectContent>
+                                                    {principlesData.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Select value={tension.principleB} onValueChange={(v) => handleTensionChange(index, 'principleB', v)}>
+                                                <SelectTrigger><SelectValue placeholder="Wert B"/></SelectTrigger>
+                                                <SelectContent>
+                                                    {principlesData.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Textarea
+                                            placeholder="Begründung & Entscheidung zur Auflösung..."
+                                            value={tension.resolution}
+                                            onChange={(e) => handleTensionChange(index, 'resolution', e.target.value)}
+                                            className="text-xs min-h-[80px]"
+                                        />
+                                    </div>
+                                ))}
+                                <Button variant="outline" size="sm" onClick={addValueTension} className='w-full'>
+                                    <PlusCircle className="mr-2 h-4 w-4"/> Wertekonflikt hinzufügen
+                                </Button>
+                            </>
+                         )}
+                    </CardContent>
+                </Card>
+                 <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 5. Anti-Pattern Detektor</CardTitle>
                         <CardDescription>Prüfen Sie User-Workflows auf manipulative Designs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -478,3 +512,5 @@ export function DesignCanvas() {
         </div>
     );
 }
+
+    
