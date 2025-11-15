@@ -331,7 +331,7 @@ export const courseData: Module[] = [
     },
     {
         id: "module-exam",
-        title: "Prüfung",
+        title: "Zertifizierung",
         isExam: true,
         videos: [],
     },
@@ -422,6 +422,8 @@ export const courseData: Module[] = [
         ]
     }
 ];
+
+    
 
     
 

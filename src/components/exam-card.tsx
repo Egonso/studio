@@ -11,7 +11,7 @@ export function ExamCard() {
     };
     
     return (
-        <Card className="w-full shadow-lg border-0">
+        <Card className="w-full max-w-4xl shadow-lg border-0">
             <CardHeader>
                 <div className="flex items-center gap-4">
                     <GraduationCap className="h-10 w-10 text-primary" />
@@ -70,3 +70,5 @@ export function ExamCard() {
         </Card>
     );
 }
+
+    

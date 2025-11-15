@@ -152,7 +152,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
       </div>
 
        <Tabs defaultValue="compliance" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:inline-flex">
+            <TabsList className="grid w-full grid-cols-5 sm:w-auto sm:inline-flex">
                 <TabsTrigger value="compliance">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance-Status
@@ -168,6 +168,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 <TabsTrigger value="kurs" onClick={() => router.push('/kurs')}>
                     <BookOpen className="mr-2 h-4 w-4" />
                     Kurs
+                </TabsTrigger>
+                <TabsTrigger value="exam" onClick={() => router.push('/exam')}>
+                    <GraduationCap className="mr-2 h-4 w-4" />
+                    Zertifizierung
                 </TabsTrigger>
             </TabsList>
 
@@ -334,6 +338,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
              <TabsContent value="kurs">
                  {/* Content will be handled by /kurs page, this just makes the tab exist */}
             </TabsContent>
+             <TabsContent value="exam">
+                 {/* Content will be handled by /exam page, this just makes the tab exist */}
+            </TabsContent>
         </Tabs>
     </div>
   );
@@ -363,3 +370,5 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    

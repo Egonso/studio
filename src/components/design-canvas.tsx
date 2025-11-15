@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -505,6 +505,23 @@ export function DesignCanvas() {
                             ) : (
                                 <p className="text-center text-muted-foreground">Beschreiben Sie links einen Workflow, um ihn auf Anti-Pattern zu prüfen.</p>
                             )}
+
+                             {/* Placeholder for future features */}
+                            <Separator className="my-8"/>
+                            <div className="space-y-4">
+                                <Card className='bg-secondary/30'>
+                                    <CardHeader>
+                                        <CardTitle className='flex items-center gap-2 text-lg'><FileSignature className='text-primary'/>Value-to-Requirement-Traceability</CardTitle>
+                                        <CardDescription>Hier werden aus Werten konkrete, nachverfolgbare Anforderungen. (Nächster Schritt)</CardDescription>
+                                    </CardHeader>
+                                </Card>
+                                <Card className='bg-secondary/30'>
+                                    <CardHeader>
+                                        <CardTitle className='flex items-center gap-2 text-lg'><Layers className='text-primary'/>Verification Layer / Evidence</CardTitle>
+                                        <CardDescription>Hier werden Nachweise für die Erfüllung der Anforderungen gesammelt. (Zukünftiger Schritt)</CardDescription>
+                                    </CardHeader>
+                                </Card>
+                            </div>
                         </>)}
                     </CardContent>
                 </Card>
