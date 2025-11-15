@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -28,8 +28,17 @@ interface ValueMapping {
         conflict: boolean;
     }
 }
+
+interface Stakeholder {
+    id: string;
+    name: string;
+    type: 'internal' | 'external' | 'societal';
+    concerns: string;
+}
+
 interface DesignCanvasData {
     projectContext: string;
+    stakeholders: Stakeholder[];
     advice: GetDesignAdviceOutput | null;
     antiPatternDescription: string;
     antiPatternAnalysis: DetectAntiPatternsOutput | null;
@@ -37,6 +46,11 @@ interface DesignCanvasData {
 }
 
 const ratingLabels = ['Irrelevant', 'Niedrige Priorität', 'Hohe Priorität', 'Sehr hohe Priorität'];
+const stakeholderTypeLabels = {
+    'internal': 'Intern (Team, Management)',
+    'external': 'Extern (Kunden, Partner)',
+    'societal': 'Gesellschaftlich (Öffentlichkeit, Regulierer)'
+};
 
 export function DesignCanvas() {
     const { user } = useAuth();
@@ -47,6 +61,7 @@ export function DesignCanvas() {
     // State for the whole canvas data
     const [canvasData, setCanvasData] = useState<DesignCanvasData>({
         projectContext: '',
+        stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
         advice: null,
         antiPatternDescription: '',
         antiPatternAnalysis: null,
@@ -68,7 +83,11 @@ export function DesignCanvas() {
                 setIsInitializing(true);
                 const data = await getDesignCanvasData() as DesignCanvasData | null;
                 if (data) {
-                    setCanvasData(prev => ({ ...prev, ...data }));
+                    // Ensure stakeholders is an array, default if not present
+                    const stakeholders = Array.isArray(data.stakeholders) && data.stakeholders.length > 0 
+                        ? data.stakeholders 
+                        : [{id: '1', name: '', type: 'external', concerns: ''}];
+                    setCanvasData(prev => ({ ...prev, ...data, stakeholders }));
                 }
                 setIsInitializing(false);
             }
@@ -171,6 +190,29 @@ export function DesignCanvas() {
         });
     };
 
+    const handleStakeholderChange = (index: number, field: keyof Omit<Stakeholder, 'id'>, value: string) => {
+        const newStakeholders = [...canvasData.stakeholders];
+        (newStakeholders[index] as any)[field] = value;
+        setCanvasData(prev => ({ ...prev, stakeholders: newStakeholders }));
+    };
+
+    const addStakeholder = () => {
+        setCanvasData(prev => ({
+            ...prev,
+            stakeholders: [...prev.stakeholders, { id: new Date().getTime().toString(), name: '', type: 'external', concerns: '' }]
+        }));
+    };
+
+    const removeStakeholder = (index: number) => {
+        if (canvasData.stakeholders.length > 1) {
+            const newStakeholders = canvasData.stakeholders.filter((_, i) => i !== index);
+            setCanvasData(prev => ({ ...prev, stakeholders: newStakeholders }));
+        } else {
+            // Clear the last one instead of removing
+            setCanvasData(prev => ({ ...prev, stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}] }));
+        }
+    };
+
     // Save canvas data on change, with debounce
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -185,88 +227,93 @@ export function DesignCanvas() {
     }, [canvasData, isInitializing]);
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             {/* Left Column: Configuration & Input */}
-            <div className="space-y-8 sticky top-8">
+            <div className="space-y-8 sticky top-8 lg:col-span-1">
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Sparkles className="text-primary"/> 1. Projektkontext & Impulse
+                           <Users className="text-primary"/> 1. Stakeholder & Kontext
                         </CardTitle>
-                        <CardDescription>Beschreiben Sie Ihre Idee, wählen Sie Phase & Prinzip und erhalten Sie kreativen Input.</CardDescription>
+                        <CardDescription>Definieren Sie, wer von Ihrer KI betroffen ist und was Sie vorhaben.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
                             <>
                                 <div className="space-y-2">
-                                    <label htmlFor="project-context" className="text-sm font-medium">Ihre Idee / Ihr Projektkontext (wird automatisch gespeichert)</label>
-                                    <Alert variant="default" className="mt-2 text-xs">
-                                        <Info className="h-4 w-4" />
-                                        <AlertTitle>Hinweis zur Inhaltsanalyse</AlertTitle>
-                                        <AlertDescription>
-                                            Damit die KI den Inhalt von Dokumenten analysieren kann, laden Sie bitte eine Textdatei (.txt, .md) hoch oder kopieren Sie den Inhalt aus Ihrer PDF-/Word-Datei manuell in das Textfeld.
-                                        </AlertDescription>
-                                    </Alert>
+                                    <Label htmlFor="project-context">Ihre Idee / Ihr Projektkontext</Label>
                                     <Textarea 
                                         id="project-context"
                                         placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
                                         value={canvasData.projectContext}
                                         onChange={(e) => setCanvasData(prev => ({ ...prev, projectContext: e.target.value }))}
-                                        className="min-h-[120px] mt-2"
+                                        className="min-h-[100px] mt-1"
                                     />
-                                    <Input 
-                                        id="context-file-upload"
-                                        type="file"
-                                        className="hidden"
-                                        accept=".txt,.md,.text,.pdf,.doc,.docx"
-                                        onChange={handleFileChange}
-                                    />
-                                    <label htmlFor="context-file-upload" className="w-full pt-2 block">
-                                        <Button type="button" asChild className="w-full cursor-pointer" variant="outline">
-                                        <span>
-                                                <Upload className="mr-2 h-4 w-4" />
-                                                Kontext-Dokument hochladen...
-                                        </span>
-                                        </Button>
-                                    </label>
-                                    {fileName && <p className="text-xs text-muted-foreground mt-2">Zuletzt hochgeladen: {fileName}</p>}
                                 </div>
-                                <Separator />
+                                <div className="space-y-4">
+                                    <Label>Betroffene Stakeholder</Label>
+                                    {canvasData.stakeholders.map((stakeholder, index) => (
+                                        <div key={stakeholder.id} className="p-4 rounded-lg border bg-secondary/50 space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Input 
+                                                    placeholder="Name (z.B. Endkunden)"
+                                                    value={stakeholder.name}
+                                                    onChange={(e) => handleStakeholderChange(index, 'name', e.target.value)}
+                                                />
+                                                <Button variant="ghost" size="icon" onClick={() => removeStakeholder(index)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive"/>
+                                                </Button>
+                                            </div>
+                                            <Select value={stakeholder.type} onValueChange={(value) => handleStakeholderChange(index, 'type', value)}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>
+                                                    {Object.entries(stakeholderTypeLabels).map(([key, label]) => (
+                                                        <SelectItem key={key} value={key}>{label}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Textarea 
+                                                placeholder="Betroffenheit / Interessen (z.B. 'Erhalten KI-generierte Antworten auf Anfragen')"
+                                                value={stakeholder.concerns}
+                                                onChange={(e) => handleStakeholderChange(index, 'concerns', e.target.value)}
+                                                className="text-xs min-h-[60px]"
+                                            />
+                                        </div>
+                                    ))}
+                                    <Button variant="outline" size="sm" onClick={addStakeholder} className='w-full'>
+                                        <PlusCircle className="mr-2 h-4 w-4"/> Stakeholder hinzufügen
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+
+                 <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Sparkles className="text-primary"/> 2. Impulse & Analyse</CardTitle>
+                        <CardDescription>Wählen Sie Phase & Prinzip und lassen Sie die KI mitdenken.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                            <>
                                 <div className="space-y-2">
-                                    <label htmlFor="phase-select" className="text-sm font-medium">Design-Phase</label>
+                                    <Label htmlFor="phase-select">Design-Phase</Label>
                                     <Select onValueChange={(value) => setSelectedPhase(designPhases.find(p => p.id === value) || designPhases[0])} defaultValue={selectedPhase.id}>
-                                        <SelectTrigger id="phase-select">
-                                            <SelectValue placeholder="Phase auswählen" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {designPhases.map(phase => (
-                                                <SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
+                                        <SelectTrigger id="phase-select"><SelectValue placeholder="Phase auswählen" /></SelectTrigger>
+                                        <SelectContent>{designPhases.map(phase => (<SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>))}</SelectContent>
                                     </Select>
-                                    <p className="text-xs text-muted-foreground">Output dieser Phase: {selectedPhase.output}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="principle-select" className="text-sm font-medium">Prinzip der vertrauensw. Intelligenz</label>
+                                    <Label htmlFor="principle-select">Prinzip der vertrauensw. Intelligenz</Label>
                                     <Select onValueChange={(value) => setSelectedPrinciple(principlesData.find(p => p.id === value) || principlesData[0])} defaultValue={selectedPrinciple.id}>
-                                        <SelectTrigger id="principle-select">
-                                            <SelectValue placeholder="Prinzip auswählen" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {principlesData.map(principle => (
-                                                <SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
+                                        <SelectTrigger id="principle-select"><SelectValue placeholder="Prinzip auswählen" /></SelectTrigger>
+                                        <SelectContent>{principlesData.map(principle => (<SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </div>
-                                
                                 <Button onClick={handleGenerateAdvice} disabled={isGeneratingAdvice || isInitializing} className="w-full">
-                                    {isGeneratingAdvice ? (
-                                        <><Loader2 className="mr-2 animate-spin" /> Generiere Impulse...</>
-                                    ) : (
-                                        <><Sparkles className="mr-2" /> Entwicklungsimpulse generieren</>
-                                    )}
+                                    {isGeneratingAdvice ? <><Loader2 className="mr-2 animate-spin" /> Generiere Impulse...</> : <><Sparkles className="mr-2" /> Entwicklungsimpulse generieren</>}
                                 </Button>
                             </>
                         )}
@@ -275,10 +322,10 @@ export function DesignCanvas() {
 
                  <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Wand2 className="text-primary"/> 2. Werte-Mapping & Analyse</CardTitle>
-                        <CardDescription>Definieren Sie die ethischen Grundlagen Ihres Projekts gemäß der ISO/IEC/IEEE 24748-7000 Norm.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><Wand2 className="text-primary"/> 3. Werte-Mapping</CardTitle>
+                        <CardDescription>Definieren Sie die ethischen Grundlagen Ihres Projekts.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent>
                          {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
                             <div className="space-y-6">
                                 {principlesData.map(p => {
@@ -286,31 +333,14 @@ export function DesignCanvas() {
                                     return (
                                         <div key={p.id} className="space-y-3">
                                             <Label htmlFor={`slider-${p.id}`} className='font-semibold'>{p.title}</Label>
-                                            <p className="text-xs text-muted-foreground">{p.description}</p>
                                             <div className="flex items-center gap-4">
-                                                <Slider
-                                                    id={`slider-${p.id}`}
-                                                    min={0}
-                                                    max={3}
-                                                    step={1}
-                                                    value={[mapping.rating]}
-                                                    onValueChange={(value) => handleValueMappingChange(p.id, 'rating', value[0])}
-                                                    className="flex-1"
-                                                />
+                                                <Slider id={`slider-${p.id}`} min={0} max={3} step={1} value={[mapping.rating]} onValueChange={(value) => handleValueMappingChange(p.id, 'rating', value[0])} className="flex-1" />
                                                 <span className="text-xs font-medium w-32 text-right">{ratingLabels[mapping.rating]}</span>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <Checkbox 
-                                                    id={`conflict-${p.id}`} 
-                                                    checked={mapping.conflict}
-                                                    onCheckedChange={(checked) => handleValueMappingChange(p.id, 'conflict', !!checked)}
-                                                />
-                                                <label
-                                                    htmlFor={`conflict-${p.id}`}
-                                                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
-                                                >
-                                                    <AlertTriangle className="h-4 w-4 text-yellow-500"/>
-                                                    Potenzieller Wertekonflikt
+                                                <Checkbox id={`conflict-${p.id}`} checked={mapping.conflict} onCheckedChange={(checked) => handleValueMappingChange(p.id, 'conflict', !!checked)} />
+                                                <label htmlFor={`conflict-${p.id}`} className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1">
+                                                    <AlertTriangle className="h-4 w-4 text-yellow-500"/> Potenzieller Wertekonflikt
                                                 </label>
                                             </div>
                                         </div>
@@ -322,8 +352,8 @@ export function DesignCanvas() {
                 </Card>
                  <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 3. Anti-Pattern Detektor</CardTitle>
-                        <CardDescription>Prüfen Sie User-Workflows auf bekannte "Dark Patterns" oder manipulative Designs.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 4. Anti-Pattern Detektor</CardTitle>
+                        <CardDescription>Prüfen Sie User-Workflows auf manipulative Designs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                          {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
@@ -336,11 +366,7 @@ export function DesignCanvas() {
                                     disabled={isDetecting}
                                 />
                                 <Button onClick={handleDetectAntiPatterns} disabled={isDetecting || !canvasData.antiPatternDescription.trim()}>
-                                    {isDetecting ? (
-                                        <><Loader2 className="mr-2 animate-spin" /> Prüfe Muster...</>
-                                    ) : (
-                                        <>Muster prüfen</>
-                                    )}
+                                    {isDetecting ? <><Loader2 className="mr-2 animate-spin" /> Prüfe Muster...</> : <>Muster prüfen</>}
                                 </Button>
                             </>
                          )}
@@ -349,7 +375,7 @@ export function DesignCanvas() {
             </div>
 
             {/* Right Column: AI-Generated Output */}
-            <div className="space-y-8">
+            <div className="space-y-8 lg:col-span-2">
                 <Card className="shadow-lg min-h-[400px]">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -452,4 +478,3 @@ export function DesignCanvas() {
         </div>
     );
 }
-

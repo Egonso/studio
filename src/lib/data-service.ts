@@ -43,6 +43,7 @@ export async function createProject(projectName: string, metadata: { sector: str
         checklistState: {},
         designCanvas: {
             projectContext: '',
+            stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
@@ -151,6 +152,7 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
         exportedInsights: [],
         designCanvas: {
             projectContext: '',
+            stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
