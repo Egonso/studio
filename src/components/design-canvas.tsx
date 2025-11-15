@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent, Fragment } from 'react';
 import { principlesData, designPhases, Principle, DesignPhase } from '@/lib/design-thinking-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, SendToBack, AlertTriangle } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -385,7 +385,7 @@ export function DesignCanvas() {
                                                     ))}
                                                 </ul>
                                                 <Button variant="outline" size="sm" onClick={() => handleExportInsight(`**${section.title}**:\n${section.content.map(c => `- ${c}`).join('\n')}`)}>
-                                                    <SendToBack className="mr-2 h-4 w-4" />
+                                                    <Send className="mr-2 h-4 w-4" />
                                                     Abschnitt zum Audit-Dossier
                                                 </Button>
                                             </AccordionContent>
@@ -421,7 +421,7 @@ export function DesignCanvas() {
                                                         <p><strong>Erklärung:</strong> {pattern.explanation}</p>
                                                         <p><strong>Besserer Vorschlag:</strong> {pattern.suggestion}</p>
                                                         <Button variant="secondary" size="sm" className="mt-2" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse: ${pattern.patternName}**\n**Problem:** ${pattern.explanation}\n**Lösungsvorschlag:** ${pattern.suggestion}`)}>
-                                                            <SendToBack className="mr-2 h-4 w-4" />
+                                                            <Send className="mr-2 h-4 w-4" />
                                                             Analyse zum Audit-Dossier
                                                         </Button>
                                                     </AlertDescription>
@@ -435,7 +435,7 @@ export function DesignCanvas() {
                                             <AlertDescription>
                                                 In der beschriebenen Vorgehensweise wurden keine gängigen manipulativen Muster erkannt.
                                                  <Button variant="outline" size="sm" className="mt-2" onClick={() => handleExportInsight(`**Anti-Pattern-Analyse:**\nKeine offensichtlichen Anti-Pattern im beschriebenen Workflow gefunden.`)}>
-                                                    <SendToBack className="mr-2 h-4 w-4" />
+                                                    <Send className="mr-2 h-4 w-4" />
                                                     Ergebnis zum Audit-Dossier
                                                 </Button>
                                             </AlertDescription>
@@ -452,3 +452,4 @@ export function DesignCanvas() {
         </div>
     );
 }
+

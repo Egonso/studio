@@ -219,7 +219,7 @@ function AuditReportPageContent() {
                                     <div>
                                         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                                             <Edit className="h-5 w-5" />
-                                            Manuelle Einträge aus 'Compliance by Design'
+                                            Manuelle Einträge aus 'Ethics by Design'
                                         </h2>
                                         <div className="space-y-4">
                                             {exportedInsights.map((insight, index) => (
@@ -256,5 +256,3 @@ export default function AuditReportPage() {
         </Suspense>
     )
 }
-
-    
