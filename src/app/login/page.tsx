@@ -7,8 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,7 +15,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
-import { getUserProjects } from '@/lib/data-service';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -30,7 +28,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('signup');
+  const [activeTab, setActiveTab] = useState('login');
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -41,15 +39,9 @@ export default function LoginPage() {
     const emailFromQuery = searchParams.get('email');
     if (emailFromQuery) {
       form.setValue('email', emailFromQuery);
-      setActiveTab('signup'); // Switch to signup tab if email is in query
+      setActiveTab('signup');
     }
   }, [searchParams, form]);
-
-
-  const canRegister = async (email: string): Promise<boolean> => {
-    // Return true to allow anyone to register
-    return true;
-  };
 
 
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
@@ -60,22 +52,10 @@ export default function LoginPage() {
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
-        // After login, always go to the projects page to select a project.
         router.push('/projects');
       } else { // signup
-        const isEligible = await canRegister(email);
-        if (!isEligible) {
-            toast({
-                variant: 'destructive',
-                title: 'Registrierung nicht möglich',
-                description: 'Bitte verwenden Sie die E-Mail-Adresse, mit der Sie den Kurs erworben haben. Kontaktieren Sie den Support, wenn das Problem weiterhin besteht.',
-            });
-            setIsLoading(false);
-            return; // Stop the process
-        }
         await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
-        // After signup, take them straight to the project creation page.
         router.push('/projects');
       }
     } catch (error: any) {
@@ -205,3 +185,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    

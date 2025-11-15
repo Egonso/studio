@@ -20,21 +20,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-        const checkUserStatus = async () => {
-            const activeProjectId = getActiveProjectId();
-            if (activeProjectId) {
-                router.push(`/dashboard?projectId=${activeProjectId}`);
-            } else {
-                const projects = await getUserProjects();
-                if (projects.length > 0) {
-                    setActiveProjectId(projects[0].id);
-                    router.push(`/dashboard?projectId=${projects[0].id}`);
-                } else {
-                    router.push('/projects');
-                }
-            }
-        };
-        checkUserStatus();
+        // If a user is logged in, always redirect to the project selection page.
+        // This ensures a project context is always established.
+        router.push('/projects');
     }
   }, [user, loading, router]);
   
@@ -124,3 +112,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

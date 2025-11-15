@@ -2,13 +2,13 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
-import { Dashboard, type ChecklistState } from "@/components/dashboard";
+import { Dashboard } from "@/components/dashboard";
 import type { ComplianceItem } from "@/lib/types";
 import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId, getProjectDocRef } from "@/lib/data-service";
+import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -16,7 +16,7 @@ import { db } from "@/lib/firebase";
 
 function DashboardPageContent() {
     const [initialComplianceData, setInitialComplianceData] = useState<ComplianceItem[] | null>(null);
-    const [checklistState, setChecklistState] = useState<ChecklistState>({});
+    const [checklistState, setChecklistState] = useState<any>({});
     const [isLoading, setIsLoading] = useState(true);
     const [projectName, setProjectName] = useState('');
     
@@ -30,16 +30,13 @@ function DashboardPageContent() {
         if (!user) return;
         setIsLoading(true);
 
-        // Ensure active project ID is set
         setActiveProjectId(currentProjectId);
 
-        // Fetch project name
         const projectDocRef = doc(db, `users/${user.uid}/projects`, currentProjectId);
         const projectSnap = await getDoc(projectDocRef);
         if (projectSnap.exists()) {
             setProjectName(projectSnap.data().projectName);
         } else {
-            // Project not found, redirect
             router.push('/projects');
             return;
         }
@@ -61,14 +58,14 @@ function DashboardPageContent() {
     }, [router, user]);
 
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return;
+        if (!user) {
             router.push('/login');
             return;
         }
-        if (user && projectId) {
+        if (projectId) {
             loadData(projectId);
-        } else if (!authLoading && !projectId) {
-            // If no project ID in URL, redirect to project selection
+        } else {
             router.push('/projects');
         }
     }, [router, user, authLoading, projectId, loadData]);
@@ -83,7 +80,6 @@ function DashboardPageContent() {
     }, [initialComplianceData, checklistState]);
 
     useEffect(() => {
-        // Only save state if it's not empty, to avoid overwriting on initial load
         if (user && !isLoading && Object.keys(checklistState).length > 0) {
             saveChecklistState(checklistState);
         }
@@ -129,3 +125,5 @@ export default function DashboardPage() {
         </Suspense>
     );
 }
+
+    

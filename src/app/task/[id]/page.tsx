@@ -114,8 +114,10 @@ export default function TaskPage() {
 
 
     useEffect(() => {
-       fetchAndSetGuide();
-    }, [task, user, fetchAndSetGuide]);
+       if (task) {
+          fetchAndSetGuide();
+       }
+    }, [task, fetchAndSetGuide]);
 
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
@@ -144,7 +146,6 @@ export default function TaskPage() {
             
             const processFileContent = async (content: string) => {
                 setDocumentText(content);
-                // Save the new file content to the project's company context
                 const companyContext: any = await getCompanyContext() || {};
                 const updatedAuditData = companyContext.existingAuditData 
                     ? `${companyContext.existingAuditData}\n\n---\n\n[Inhalt von ${file.name}]:\n${content}`
@@ -154,7 +155,6 @@ export default function TaskPage() {
                     ...companyContext,
                     existingAuditData: updatedAuditData
                 });
-                // Refresh the guide with the new context
                 fetchAndSetGuide();
             };
 
@@ -376,3 +376,5 @@ export default function TaskPage() {
         </div>
     );
 }
+
+    

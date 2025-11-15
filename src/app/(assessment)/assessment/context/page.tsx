@@ -31,6 +31,7 @@ export default function ContextPage() {
     const { user, loading } = useAuth();
     const [fileName, setFileName] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const form = useForm<ContextFormData>({
         resolver: zodResolver(contextSchema),
         defaultValues: {
@@ -70,13 +71,13 @@ export default function ContextPage() {
     };
 
     const onSubmit = async (data: ContextFormData) => {
-        if (!getActiveProjectId()) {
+        const projectId = getActiveProjectId();
+        if (!projectId) {
             router.push('/projects');
             return;
         }
         setIsSubmitting(true);
         await saveCompanyContext(data);
-        const projectId = getActiveProjectId();
         router.push(`/dashboard?projectId=${projectId}`);
     };
 
@@ -187,3 +188,5 @@ export default function ContextPage() {
         </div>
     );
 }
+
+    

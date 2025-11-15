@@ -17,7 +17,6 @@ export default function AssessmentPage() {
       router.push('/login');
       return;
     }
-    // Ensure an active project is set before starting an assessment
     if (!loading && user && !getActiveProjectId()) {
         router.push('/projects');
     }
@@ -36,3 +35,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    

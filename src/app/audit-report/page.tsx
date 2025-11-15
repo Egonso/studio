@@ -57,14 +57,14 @@ function AuditReportPageContent() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
     const searchParams = useSearchParams();
-    const projectId = searchParams.get('projectId') || getActiveProjectId();
+    const projectId = searchParams.get('projectId');
 
     useEffect(() => {
-        if (!authLoading && !user) {
+        if (authLoading) return;
+        if (!user) {
             router.push('/login');
             return;
         }
-        if (!user) return;
 
         if (!projectId) {
             router.push('/projects');
@@ -78,7 +78,6 @@ function AuditReportPageContent() {
             const insightsData = await getExportedInsights();
             
             if (!answers || Object.keys(answers).length === 0) {
-                // If no assessment, go do it.
                 router.push('/assessment');
                 return;
             }
@@ -257,3 +256,5 @@ export default function AuditReportPage() {
         </Suspense>
     )
 }
+
+    

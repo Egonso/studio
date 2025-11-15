@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { saveCurrentTask } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DesignCanvas } from "./design-canvas";
 
 
 export interface ChecklistState {
@@ -136,10 +137,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
       <div className="flex items-center justify-between space-y-2">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Compliance Dashboard
+            AI Act Compass
           </h1>
           <p className="text-muted-foreground">
-            Übersicht für Ihr Projekt: <span className="font-semibold">{projectName}</span>
+            Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
           </p>
         </div>
          <Link href="/audit-report" passHref>
@@ -151,26 +152,18 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
       </div>
 
        <Tabs defaultValue="compliance" className="space-y-4">
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
                 <TabsTrigger value="compliance">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
-                    Compliance
+                    Compliance-Status
                 </TabsTrigger>
-                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Compliance-in-a-Day
-                </TabsTrigger>
-                 <TabsTrigger value="cbd" onClick={() => router.push('/cbd')}>
+                 <TabsTrigger value="design">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Compliance by Design
+                    Ethics by Design
                 </TabsTrigger>
-                <TabsTrigger value="course" onClick={() => router.push('/kurs')}>
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    Kursplattform
-                </TabsTrigger>
-                <TabsTrigger value="exam" onClick={() => router.push('/exam')}>
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    Prüfung
+                <TabsTrigger value="tools" onClick={() => router.push('/cbs')}>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Werkzeuge
                 </TabsTrigger>
             </TabsList>
 
@@ -325,17 +318,13 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </Card>
                 </div>
             </TabsContent>
-             <TabsContent value="cbs">
+            
+            <TabsContent value="design" className="space-y-4">
+                <DesignCanvas />
+            </TabsContent>
+
+            <TabsContent value="tools">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
-            </TabsContent>
-             <TabsContent value="cbd">
-                 {/* Content will be handled by /cbs page, this just makes the tab exist */}
-            </TabsContent>
-            <TabsContent value="course">
-                {/* Content will be handled by /kurs page, this just makes the tab exist */}
-            </TabsContent>
-            <TabsContent value="exam">
-                {/* Content will be handled by /exam page, this just makes the tab exist */}
             </TabsContent>
         </Tabs>
     </div>
@@ -366,5 +355,3 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
-
-    

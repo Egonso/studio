@@ -28,15 +28,17 @@ export const getProjectDocRef = (userId: string, projectId: string) => {
 
 // --- Project Management Functions ---
 
-export async function createProject(projectName: string) {
+export async function createProject(projectName: string, metadata: { sector: string; systemType: string; riskIndicators: string[] }) {
     const userId = getUserId();
     if (!userId) throw new Error("User not authenticated");
 
     const projectsCollectionRef = getProjectsCollectionRef(userId);
-    const newProjectRef = await addDoc(projectsCollectionRef, {
+    const docRef = await addDoc(projectsCollectionRef, {
         projectName,
-        createdAt: serverTimestamp(),
-        // Initialize empty data to prevent errors on first load
+        metadata: {
+            ...metadata,
+            createdAt: serverTimestamp(),
+        },
         assessmentAnswers: {},
         companyContext: {},
         checklistState: {},
@@ -47,9 +49,17 @@ export async function createProject(projectName: string) {
             antiPatternAnalysis: null,
         },
         exportedInsights: [],
+    }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: projectsCollectionRef.path,
+            operation: 'create',
+            requestResourceData: { projectName, metadata }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw serverError;
     });
 
-    return newProjectRef.id;
+    return docRef.id;
 }
 
 export async function getUserProjects() {
@@ -57,13 +67,13 @@ export async function getUserProjects() {
     if (!userId) return [];
 
     const projectsCollectionRef = getProjectsCollectionRef(userId);
-    const q = query(projectsCollectionRef, orderBy('createdAt', 'desc'));
+    const q = query(projectsCollectionRef, orderBy('metadata.createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
     return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-    } as { id: string, projectName: string, createdAt: any }));
+    } as { id: string, projectName: string, metadata: any }));
 }
 
 
@@ -112,7 +122,14 @@ const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
     if (!userId || !projectId) throw new Error("User or project not identified");
 
     const projectDocRef = getProjectDocRef(userId, projectId);
-    await setDoc(projectDocRef, data, { merge: true });
+    setDoc(projectDocRef, data, { merge: true }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: projectDocRef.path,
+            operation: 'update',
+            requestResourceData: data
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 interface ProjectData {
@@ -185,7 +202,14 @@ export async function saveCourseProgress(completedVideoIds: string[]) {
     const userId = getUserId();
     if (!userId) throw new Error("User not authenticated");
     const docRef = getUserDocRef(userId, 'courseProgress');
-    await setDoc(docRef, { completedVideoIds }, { merge: true });
+    setDoc(docRef, { completedVideoIds }, { merge: true }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: { completedVideoIds }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 export async function getCourseProgress(): Promise<string[]> {
@@ -202,23 +226,19 @@ export async function getCourseProgress(): Promise<string[]> {
 export async function isUserOverTokenLimit(): Promise<boolean> {
     const userId = getUserId();
     if (!userId) {
-        // For unauthenticated users, we can decide to either always allow or deny.
-        // For this app, core features require auth, so we can assume this won't be hit often.
-        // Let's be safe and deny.
         return true;
     }
     const docRef = getUserDocRef(userId, 'tokenUsage');
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
-        return false; // No usage yet, so not over limit.
+        return false;
     }
 
     const data = docSnap.data();
     const today = new Date();
     const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
-    // If the tracked month is not the current month, the user is not over the limit.
     if (data.month !== currentMonth) {
         return false;
     }
@@ -228,7 +248,7 @@ export async function isUserOverTokenLimit(): Promise<boolean> {
 
 export async function updateTokenUsage(tokensUsed: number) {
     const userId = getUserId();
-    if (!userId) return; // Don't track for unauthenticated users
+    if (!userId) return;
 
     const docRef = getUserDocRef(userId, 'tokenUsage');
     const docSnap = await getDoc(docRef);
@@ -243,14 +263,20 @@ export async function updateTokenUsage(tokensUsed: number) {
         if (data.month === currentMonth) {
             newTotal += data.total || 0;
         }
-        // If the month is different, newTotal is just the current tokensUsed, effectively resetting the count.
     }
 
-    await setDoc(docRef, {
+    setDoc(docRef, {
         total: newTotal,
         month: currentMonth,
         lastUpdated: serverTimestamp(),
-    }, { merge: true });
+    }, { merge: true }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: { total: newTotal, month: currentMonth }
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 
@@ -258,7 +284,15 @@ export async function updateTokenUsage(tokensUsed: number) {
 export async function saveCurrentTask(task: object) {
     const userId = getUserId();
     if (!userId) return;
-    await setDoc(getUserDocRef(userId, 'currentTask'), task);
+    const docRef = getUserDocRef(userId, 'currentTask');
+    setDoc(docRef, task).catch(async (serverError) => {
+         const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'create',
+            requestResourceData: task
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 export async function getCurrentTask() {
@@ -271,32 +305,14 @@ export async function getCurrentTask() {
 export async function clearCurrentTask() {
     const userId = getUserId();
     if (!userId) return;
-    await deleteDoc(getUserDocRef(userId, 'currentTask'));
-}
-
-// --- Onboarding Logic ---
-export async function checkOnboardingStatus(projectId?: string): Promise<string> {
-    const activeProjectId = projectId || getActiveProjectId();
-
-    if (!activeProjectId) {
-        return '/projects';
-    }
-
-    const answers = await getAssessmentAnswers();
-    if (!answers || Object.keys(answers).length === 0) {
-        return '/assessment';
-    }
-
-    if (answers.q1 === 'no') {
-        return `/dashboard?projectId=${activeProjectId}`;
-    }
-
-    const context = await getCompanyContext();
-    if (!context || Object.keys(context).length === 0 || !(context as any).companyDescription) {
-        return '/assessment/context';
-    }
-
-    return `/dashboard?projectId=${activeProjectId}`;
+    const docRef = getUserDocRef(userId, 'currentTask');
+    deleteDoc(docRef).catch(async (serverError) => {
+         const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 
@@ -309,23 +325,25 @@ export async function createSharedPolicy(policyData: any): Promise<{ policyId: s
         console.error("User or project not authenticated for sharing policy.");
         return { policyId: null };
     }
+    
+    const collectionRef = collection(db, "sharedPolicies");
+    const dataToSave = {
+        ...policyData,
+        authorId,
+        projectId,
+        createdAt: serverTimestamp(),
+    };
 
     try {
-        const collectionRef = collection(db, "sharedPolicies");
-        const dataToSave = {
-            ...policyData,
-            authorId,
-            projectId,
-            createdAt: serverTimestamp(),
-        };
-
         const docRef = await addDoc(collectionRef, dataToSave);
         return { policyId: docRef.id };
-    } catch (error) {
-        console.error("Error creating shared policy in Firestore:", error);
-        
-        // This is where we can add more detailed error handling if needed in the future
-        
+    } catch (serverError: any) {
+        const permissionError = new FirestorePermissionError({
+            path: collectionRef.path,
+            operation: 'create',
+            requestResourceData: dataToSave
+        });
+        errorEmitter.emit('permission-error', permissionError);
         return { policyId: null };
     }
 }
@@ -348,3 +366,5 @@ export async function getSharedPolicy(policyId: string) {
         return null;
     }
 }
+
+    
