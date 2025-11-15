@@ -152,7 +152,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
       </div>
 
        <Tabs defaultValue="compliance" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-flex">
+            <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:inline-flex">
                 <TabsTrigger value="compliance">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance-Status
@@ -164,6 +164,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
                     Compliance-in-a-Day
+                </TabsTrigger>
+                <TabsTrigger value="kurs" onClick={() => router.push('/kurs')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Kurs
                 </TabsTrigger>
             </TabsList>
 
@@ -325,6 +329,10 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
 
             <TabsContent value="cbs">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
+            </TabsContent>
+
+             <TabsContent value="kurs">
+                 {/* Content will be handled by /kurs page, this just makes the tab exist */}
             </TabsContent>
         </Tabs>
     </div>

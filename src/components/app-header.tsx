@@ -42,7 +42,7 @@ export function AppHeader() {
             </Link>
             <Link href="/kurs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
                 <BookOpen className="h-4 w-4" />
-                Kursplattform
+                Kurs
             </Link>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" /> Logout
