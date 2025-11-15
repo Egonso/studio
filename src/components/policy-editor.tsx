@@ -479,5 +479,3 @@ export function PolicyEditor() {
     </div>
   );
 }
-
-    
