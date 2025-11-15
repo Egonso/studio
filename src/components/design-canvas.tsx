@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, SendToBack } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, SendToBack, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -17,14 +17,26 @@ import { Input } from './ui/input';
 import { Separator } from './ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Slider } from './ui/slider';
+import { Label } from './ui/label';
+import { Checkbox } from './ui/checkbox';
+import { cn } from '@/lib/utils';
 
-
+interface ValueMapping {
+    [principleId: string]: {
+        rating: number;
+        conflict: boolean;
+    }
+}
 interface DesignCanvasData {
     projectContext: string;
     advice: GetDesignAdviceOutput | null;
     antiPatternDescription: string;
     antiPatternAnalysis: DetectAntiPatternsOutput | null;
+    valueMapping: ValueMapping;
 }
+
+const ratingLabels = ['Irrelevant', 'Niedrige Priorität', 'Hohe Priorität', 'Sehr hohe Priorität'];
 
 export function DesignCanvas() {
     const { user } = useAuth();
@@ -38,6 +50,7 @@ export function DesignCanvas() {
         advice: null,
         antiPatternDescription: '',
         antiPatternAnalysis: null,
+        valueMapping: {},
     });
     
     const [fileName, setFileName] = useState<string | null>(null);
@@ -146,6 +159,17 @@ export function DesignCanvas() {
             });
         }
     };
+    
+    const handleValueMappingChange = (principleId: string, key: 'rating' | 'conflict', value: number | boolean) => {
+        setCanvasData(prev => {
+            const newMapping = { ...prev.valueMapping };
+            if (!newMapping[principleId]) {
+                newMapping[principleId] = { rating: 0, conflict: false };
+            }
+            (newMapping[principleId] as any)[key] = value;
+            return { ...prev, valueMapping: newMapping };
+        });
+    };
 
     // Save canvas data on change, with debounce
     useEffect(() => {
@@ -168,43 +192,13 @@ export function DesignCanvas() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Sparkles className="text-primary"/> 1. Entwicklungsstand & Impulse
+                           <Sparkles className="text-primary"/> 1. Projektkontext & Impulse
                         </CardTitle>
-                        <CardDescription>Wählen Sie Ihre Phase & Prinzip, beschreiben Sie Ihre Idee und erhalten Sie kreativen Input.</CardDescription>
+                        <CardDescription>Beschreiben Sie Ihre Idee, wählen Sie Phase & Prinzip und erhalten Sie kreativen Input.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
                             <>
-                                <div className="space-y-2">
-                                    <label htmlFor="phase-select" className="text-sm font-medium">Design-Phase</label>
-                                    <Select onValueChange={(value) => setSelectedPhase(designPhases.find(p => p.id === value) || designPhases[0])} defaultValue={selectedPhase.id}>
-                                        <SelectTrigger id="phase-select">
-                                            <SelectValue placeholder="Phase auswählen" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {designPhases.map(phase => (
-                                                <SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">Output dieser Phase: {selectedPhase.output}</p>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label htmlFor="principle-select" className="text-sm font-medium">Prinzip der vertrauensw. Intelligenz</label>
-                                    <Select onValueChange={(value) => setSelectedPrinciple(principlesData.find(p => p.id === value) || principlesData[0])} defaultValue={selectedPrinciple.id}>
-                                        <SelectTrigger id="principle-select">
-                                            <SelectValue placeholder="Prinzip auswählen" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {principlesData.map(principle => (
-                                                <SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">{selectedPrinciple.description}</p>
-                                </div>
-
                                 <div className="space-y-2">
                                     <label htmlFor="project-context" className="text-sm font-medium">Ihre Idee / Ihr Projektkontext (wird automatisch gespeichert)</label>
                                     <Alert variant="default" className="mt-2 text-xs">
@@ -238,6 +232,34 @@ export function DesignCanvas() {
                                     </label>
                                     {fileName && <p className="text-xs text-muted-foreground mt-2">Zuletzt hochgeladen: {fileName}</p>}
                                 </div>
+                                <Separator />
+                                <div className="space-y-2">
+                                    <label htmlFor="phase-select" className="text-sm font-medium">Design-Phase</label>
+                                    <Select onValueChange={(value) => setSelectedPhase(designPhases.find(p => p.id === value) || designPhases[0])} defaultValue={selectedPhase.id}>
+                                        <SelectTrigger id="phase-select">
+                                            <SelectValue placeholder="Phase auswählen" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {designPhases.map(phase => (
+                                                <SelectItem key={phase.id} value={phase.id}>{phase.title}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-muted-foreground">Output dieser Phase: {selectedPhase.output}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="principle-select" className="text-sm font-medium">Prinzip der vertrauensw. Intelligenz</label>
+                                    <Select onValueChange={(value) => setSelectedPrinciple(principlesData.find(p => p.id === value) || principlesData[0])} defaultValue={selectedPrinciple.id}>
+                                        <SelectTrigger id="principle-select">
+                                            <SelectValue placeholder="Prinzip auswählen" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {principlesData.map(principle => (
+                                                <SelectItem key={principle.id} value={principle.id}>{principle.title}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                                 
                                 <Button onClick={handleGenerateAdvice} disabled={isGeneratingAdvice || isInitializing} className="w-full">
                                     {isGeneratingAdvice ? (
@@ -253,8 +275,55 @@ export function DesignCanvas() {
 
                  <Card className="shadow-lg">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 2. Anti-Pattern Detektor</CardTitle>
-                        <CardDescription>Beschreiben Sie einen geplanten User-Workflow, um ihn auf bekannte "Dark Patterns" oder manipulative Designs zu prüfen.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><Wand2 className="text-primary"/> 2. Werte-Mapping & Analyse</CardTitle>
+                        <CardDescription>Definieren Sie die ethischen Grundlagen Ihres Projekts gemäß der ISO/IEC/IEEE 24748-7000 Norm.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                            <div className="space-y-6">
+                                {principlesData.map(p => {
+                                    const mapping = canvasData.valueMapping?.[p.id] || { rating: 0, conflict: false };
+                                    return (
+                                        <div key={p.id} className="space-y-3">
+                                            <Label htmlFor={`slider-${p.id}`} className='font-semibold'>{p.title}</Label>
+                                            <p className="text-xs text-muted-foreground">{p.description}</p>
+                                            <div className="flex items-center gap-4">
+                                                <Slider
+                                                    id={`slider-${p.id}`}
+                                                    min={0}
+                                                    max={3}
+                                                    step={1}
+                                                    value={[mapping.rating]}
+                                                    onValueChange={(value) => handleValueMappingChange(p.id, 'rating', value[0])}
+                                                    className="flex-1"
+                                                />
+                                                <span className="text-xs font-medium w-32 text-right">{ratingLabels[mapping.rating]}</span>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox 
+                                                    id={`conflict-${p.id}`} 
+                                                    checked={mapping.conflict}
+                                                    onCheckedChange={(checked) => handleValueMappingChange(p.id, 'conflict', !!checked)}
+                                                />
+                                                <label
+                                                    htmlFor={`conflict-${p.id}`}
+                                                    className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1"
+                                                >
+                                                    <AlertTriangle className="h-4 w-4 text-yellow-500"/>
+                                                    Potenzieller Wertekonflikt
+                                                </label>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                         )}
+                    </CardContent>
+                </Card>
+                 <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> 3. Anti-Pattern Detektor</CardTitle>
+                        <CardDescription>Prüfen Sie User-Workflows auf bekannte "Dark Patterns" oder manipulative Designs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                          {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (

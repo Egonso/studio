@@ -46,6 +46,7 @@ export async function createProject(projectName: string, metadata: { sector: str
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
+            valueMapping: {},
         },
         exportedInsights: [],
     }).catch(async (serverError) => {
@@ -153,6 +154,7 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
+            valueMapping: {},
         }
     });
 }
