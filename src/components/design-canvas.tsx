@@ -40,6 +40,13 @@ interface ValueTension {
     resolution: string;
 }
 
+interface Requirement {
+    id: string;
+    title: string;
+    description: string;
+    responsible: string; // RACI field
+}
+
 interface DesignCanvasData {
     projectContext: string;
     stakeholders: Stakeholder[];
@@ -48,6 +55,7 @@ interface DesignCanvasData {
     antiPatternAnalysis: DetectAntiPatternsOutput | null;
     valueMapping: ValueMapping;
     valueTensions: ValueTension[];
+    requirements: Requirement[];
 }
 
 const ratingLabels = ['Irrelevant', 'Niedrige Priorität', 'Hohe Priorität', 'Sehr hohe Priorität'];
@@ -56,6 +64,82 @@ const stakeholderTypeLabels = {
     'external': 'Extern (Kunden, Partner)',
     'societal': 'Gesellschaftlich (Öffentlichkeit, Regulierer)'
 };
+
+function RequirementManager({ requirements, setCanvasData }: { requirements: Requirement[], setCanvasData: React.Dispatch<React.SetStateAction<DesignCanvasData>> }) {
+    const addRequirement = () => {
+        setCanvasData(prev => ({
+            ...prev,
+            requirements: [...prev.requirements, { id: new Date().getTime().toString(), title: '', description: '', responsible: '' }]
+        }));
+    };
+
+    const removeRequirement = (id: string) => {
+        setCanvasData(prev => ({
+            ...prev,
+            requirements: prev.requirements.filter(req => req.id !== id)
+        }));
+    };
+
+    const handleReqChange = (id: string, field: keyof Omit<Requirement, 'id'>, value: string) => {
+        setCanvasData(prev => ({
+            ...prev,
+            requirements: prev.requirements.map(req => req.id === id ? { ...req, [field]: value } : req)
+        }));
+    };
+
+    return (
+        <Card className="shadow-lg">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileSignature className='text-primary'/>
+                    Value-to-Requirement-Traceability
+                </CardTitle>
+                <CardDescription>
+                    Hier werden aus Werten konkrete, nachverfolgbare Anforderungen.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {requirements.map((req) => (
+                    <div key={req.id} className="p-4 rounded-lg border bg-secondary/50 space-y-3">
+                         <div className="flex justify-between items-center">
+                            <p className="text-sm font-semibold">Anforderung</p>
+                            <Button variant="ghost" size="icon" onClick={() => removeRequirement(req.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive"/>
+                            </Button>
+                        </div>
+                        <Input 
+                            placeholder="Titel der Anforderung (z.B. 'Transparenz bei Chatbot-Antworten')"
+                            value={req.title}
+                            onChange={(e) => handleReqChange(req.id, 'title', e.target.value)}
+                        />
+                         <Textarea 
+                            placeholder="Beschreibung und Akzeptanzkriterien"
+                            value={req.description}
+                            onChange={(e) => handleReqChange(req.id, 'description', e.target.value)}
+                            className="text-xs min-h-[80px]"
+                        />
+                        <Input 
+                            placeholder="Verantwortliche Person (RACI)"
+                            value={req.responsible}
+                            onChange={(e) => handleReqChange(req.id, 'responsible', e.target.value)}
+                        />
+                    </div>
+                ))}
+                 <Button variant="outline" size="sm" onClick={addRequirement} className='w-full'>
+                    <PlusCircle className="mr-2 h-4 w-4"/> Anforderung hinzufügen
+                </Button>
+            </CardContent>
+            <CardFooter>
+                 <Card className='bg-secondary/30 w-full'>
+                    <CardHeader>
+                        <CardTitle className='flex items-center gap-2 text-lg'><Layers className='text-primary'/>Verification Layer / Evidence</CardTitle>
+                        <CardDescription>Hier werden Nachweise für die Erfüllung der Anforderungen gesammelt. (Zukünftiger Schritt)</CardDescription>
+                    </CardHeader>
+                </Card>
+            </CardFooter>
+        </Card>
+    );
+}
 
 export function DesignCanvas() {
     const { user } = useAuth();
@@ -72,6 +156,7 @@ export function DesignCanvas() {
         antiPatternAnalysis: null,
         valueMapping: {},
         valueTensions: [],
+        requirements: [],
     });
     
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState(false);
@@ -91,7 +176,8 @@ export function DesignCanvas() {
                         ? data.stakeholders 
                         : [{id: '1', name: '', type: 'external', concerns: ''}];
                     const valueTensions = Array.isArray(data.valueTensions) ? data.valueTensions : [];
-                    setCanvasData(prev => ({ ...prev, ...data, stakeholders, valueTensions }));
+                    const requirements = Array.isArray(data.requirements) ? data.requirements : [];
+                    setCanvasData(prev => ({ ...prev, ...data, stakeholders, valueTensions, requirements }));
                 }
                 setIsInitializing(false);
             }
@@ -408,7 +494,7 @@ export function DesignCanvas() {
                 </Card>
             </div>
 
-            {/* Right Column: AI-Generated Output */}
+            {/* Right Column: AI-Generated Output & Requirements */}
             <div className="space-y-8 lg:col-span-2">
                 <Card className="shadow-lg min-h-[400px]">
                     <CardHeader>
@@ -505,29 +591,12 @@ export function DesignCanvas() {
                             ) : (
                                 <p className="text-center text-muted-foreground">Beschreiben Sie links einen Workflow, um ihn auf Anti-Pattern zu prüfen.</p>
                             )}
-
-                             {/* Placeholder for future features */}
-                            <Separator className="my-8"/>
-                            <div className="space-y-4">
-                                <Card className='bg-secondary/30'>
-                                    <CardHeader>
-                                        <CardTitle className='flex items-center gap-2 text-lg'><FileSignature className='text-primary'/>Value-to-Requirement-Traceability</CardTitle>
-                                        <CardDescription>Hier werden aus Werten konkrete, nachverfolgbare Anforderungen. (Nächster Schritt)</CardDescription>
-                                    </CardHeader>
-                                </Card>
-                                <Card className='bg-secondary/30'>
-                                    <CardHeader>
-                                        <CardTitle className='flex items-center gap-2 text-lg'><Layers className='text-primary'/>Verification Layer / Evidence</CardTitle>
-                                        <CardDescription>Hier werden Nachweise für die Erfüllung der Anforderungen gesammelt. (Zukünftiger Schritt)</CardDescription>
-                                    </CardHeader>
-                                </Card>
-                            </div>
                         </>)}
                     </CardContent>
                 </Card>
+                
+                 {isInitializing ? <Loader2 className="mx-auto my-8 h-8 w-8 animate-spin text-primary" /> : <RequirementManager requirements={canvasData.requirements} setCanvasData={setCanvasData} />}
             </div>
         </div>
     );
 }
-
-    
