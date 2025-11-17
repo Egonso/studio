@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
 import { getValueTensionAdvice, type GetValueTensionAdviceInput, type GetValueTensionAdviceOutput } from '@/ai/flows/value-tension-advisor';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake, BarChart } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -605,6 +605,28 @@ export function DesignCanvas() {
                             </>
                         )}
                     </CardContent>
+                    <CardFooter>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="secondary" className="w-full">
+                                    <BarChart className="mr-2 h-4 w-4" />
+                                    Stakeholder-Werte analysieren
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl">
+                                <DialogHeader>
+                                    <DialogTitle>Analyse der Stakeholder-Werte (Value Influence Table)</DialogTitle>
+                                    <DialogDescription>
+                                        Führen Sie eine KI-gestützte Analyse durch, um die Interessen Ihrer Stakeholder den ethischen Werten zuzuordnen.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4 text-center">
+                                    <Button>Analyse jetzt durchführen</Button>
+                                    <p className="text-sm text-muted-foreground mt-4">Platzhalter für die Value Influence Table.</p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </CardFooter>
                 </Card>
 
                  <Card className="shadow-lg">
