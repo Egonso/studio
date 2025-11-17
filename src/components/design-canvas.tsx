@@ -9,7 +9,8 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare } from 'lucide-react';
+import { getValueTensionAdvice, type GetValueTensionAdviceInput, type GetValueTensionAdviceOutput } from '@/ai/flows/value-tension-advisor';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -221,6 +222,162 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
     );
 }
 
+
+function TensionAnalysisDialog({ tension, setCanvasData, projectContext }: { tension: ValueTension, setCanvasData: React.Dispatch<React.SetStateAction<DesignCanvasData>>, projectContext: string }) {
+    const [open, setOpen] = useState(false);
+    const [synergyInsights, setSynergyInsights] = useState<GetValueTensionAdviceOutput | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    const principleA = principlesData.find(p => p.id === tension.principleA);
+    const principleB = principlesData.find(p => p.id === tension.principleB);
+
+    const handleGenerateInsights = async () => {
+        if (!principleA || !principleB) return;
+        setIsGenerating(true);
+        setSynergyInsights(null);
+        try {
+            const result = await getValueTensionAdvice({
+                projectContext: projectContext || "Ein allgemeines Software-Produkt.",
+                principleA,
+                principleB,
+            });
+            setSynergyInsights(result);
+        } catch (e) {
+            console.error("Failed to get synergy insights:", e);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    
+    const handleResolutionChange = (value: string) => {
+        setCanvasData(prev => ({
+            ...prev,
+            valueTensions: prev.valueTensions.map(t => 
+                t.id === tension.id ? { ...t, resolution: value } : t
+            )
+        }));
+    };
+    
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <button className="h-full w-full bg-secondary/30 hover:bg-secondary transition-colors" />
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Handshake className="text-primary"/>
+                        Konfliktanalyse: {principleA?.title} vs. {principleB?.title}
+                    </DialogTitle>
+                    <DialogDescription>
+                        Dokumentieren Sie hier, wie Sie den Wertekonflikt auflösen und als Chance nutzen.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div>
+                        <Label htmlFor="resolution">Ihre Entscheidung & Auflösung</Label>
+                        <Textarea
+                            id="resolution"
+                            placeholder="z.B. 'Wir priorisieren Transparenz, indem wir die Funktionsweise des Algorithmus offenlegen, anonymisieren aber alle Trainingsdaten, um die Privatsphäre zu schützen.'"
+                            className="min-h-[100px] mt-1"
+                            value={tension.resolution}
+                            onChange={(e) => handleResolutionChange(e.target.value)}
+                        />
+                    </div>
+                     <Separator />
+                     <div className="space-y-2">
+                        <Button onClick={handleGenerateInsights} disabled={isGenerating} variant="outline">
+                            {isGenerating ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generiere...</> : <><Sparkles className="mr-2 h-4 w-4" /> Synergie-Impulse erhalten</>}
+                        </Button>
+                        {synergyInsights && (
+                            <div className="space-y-4 pt-4 animate-in fade-in-50">
+                                 <div>
+                                    <h4 className="font-semibold text-sm flex items-center gap-2"><Zap className="h-4 w-4 text-yellow-500" /> Synergie-Vorschlag</h4>
+                                    <p className="text-sm text-muted-foreground mt-1 p-3 bg-secondary rounded-md">{synergyInsights.synergyProposal}</p>
+                                </div>
+                                <div>
+                                     <h4 className="font-semibold text-sm flex items-center gap-2"><BadgeHelp className="h-4 w-4 text-yellow-500" /> Impulsfragen</h4>
+                                     <ul className="list-disc pl-5 mt-1 space-y-1 text-sm text-muted-foreground">
+                                        {synergyInsights.impulseQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                                     </ul>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function ValueTensionMatrix({ tensions, setCanvasData, projectContext }: { tensions: ValueTension[], setCanvasData: React.Dispatch<React.SetStateAction<DesignCanvasData>>, projectContext: string }) {
+    const handleAddTension = (principleAId: string, principleBId: string) => {
+        // Prevent adding if it already exists
+        if (tensions.some(t => (t.principleA === principleAId && t.principleB === principleBId) || (t.principleA === principleBId && t.principleB === principleAId))) {
+            return;
+        }
+         setCanvasData(prev => ({
+            ...prev,
+            valueTensions: [...prev.valueTensions, { id: `${principleAId}-${principleBId}`, principleA: principleAId, principleB: principleBId, resolution: '' }]
+        }));
+    };
+    
+    return (
+        <div className="space-y-2">
+            <div className="relative overflow-x-auto">
+                <table className="w-full border-collapse text-xs">
+                    <thead>
+                        <tr>
+                            <th className="border p-1 w-24 h-24"></th>
+                            {principlesData.map(p => (
+                                <th key={p.id} className="border p-1 w-24 h-24 align-bottom text-center transform -rotate-45">
+                                   <span className="inline-block whitespace-nowrap">{p.title}</span>
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {principlesData.map((rowPrinciple, rowIndex) => (
+                            <tr key={rowPrinciple.id}>
+                                <th className="border p-1 w-24 h-24 text-left align-top">
+                                    {rowPrinciple.title}
+                                </th>
+                                {principlesData.map((colPrinciple, colIndex) => {
+                                    if (colIndex < rowIndex) {
+                                        const tension = tensions.find(t => 
+                                            (t.principleA === rowPrinciple.id && t.principleB === colPrinciple.id) ||
+                                            (t.principleA === colPrinciple.id && t.principleB === rowPrinciple.id)
+                                        );
+                                        return (
+                                            <td key={colPrinciple.id} className="border p-0 w-24 h-24 text-center relative">
+                                                {tension ? (
+                                                    <TensionAnalysisDialog tension={tension} setCanvasData={setCanvasData} projectContext={projectContext} />
+                                                ) : (
+                                                    <button onClick={() => handleAddTension(rowPrinciple.id, colPrinciple.id)} className="h-full w-full hover:bg-secondary/50" title={`Konflikt zwischen '${rowPrinciple.title}' und '${colPrinciple.title}' analysieren`}/>
+                                                )}
+                                                {tension?.resolution && (
+                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                        <Handshake className="h-6 w-6 text-primary opacity-50" />
+                                                    </div>
+                                                )}
+                                            </td>
+                                        );
+                                    } else if (colIndex === rowIndex) {
+                                        return <td key={colPrinciple.id} className="border bg-muted w-24 h-24"></td>;
+                                    }
+                                    return <td key={colPrinciple.id} className="p-0 w-24 h-24"></td>;
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+             <p className="text-xs text-muted-foreground text-center pt-2">Klicken Sie auf ein leeres Feld, um einen Wertekonflikt zu analysieren.</p>
+        </div>
+    );
+}
+
 export function DesignCanvas() {
     const { user } = useAuth();
     const { toast } = useToast();
@@ -354,25 +511,6 @@ export function DesignCanvas() {
         } else {
             setCanvasData(prev => ({ ...prev, stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}] }));
         }
-    };
-
-    // --- Value Tension Handlers ---
-    const addValueTension = () => {
-        setCanvasData(prev => ({
-            ...prev,
-            valueTensions: [...prev.valueTensions, { id: new Date().getTime().toString(), principleA: '', principleB: '', resolution: '' }]
-        }));
-    };
-
-    const handleTensionChange = (index: number, field: keyof Omit<ValueTension, 'id'>, value: string) => {
-        const newTensions = [...canvasData.valueTensions];
-        (newTensions[index] as any)[field] = value;
-        setCanvasData(prev => ({ ...prev, valueTensions: newTensions }));
-    };
-
-    const removeValueTension = (index: number) => {
-        const newTensions = canvasData.valueTensions.filter((_, i) => i !== index);
-        setCanvasData(prev => ({ ...prev, valueTensions: newTensions }));
     };
     
     // --- Requirement Generation ---
@@ -536,45 +674,11 @@ export function DesignCanvas() {
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><AlertTriangle className="text-primary"/> 4. Wertekonflikte analysieren</CardTitle>
-                        <CardDescription>Dokumentieren Sie, wo Werte kollidieren und wie Sie die Spannung auflösen.</CardDescription>
+                        <CardDescription>Visualisieren und lösen Sie Spannungsfelder zwischen ethischen Werten.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
-                            <>
-                                {canvasData.valueTensions.map((tension, index) => (
-                                    <div key={tension.id} className="p-4 rounded-lg border bg-secondary/50 space-y-3">
-                                        <div className="flex justify-between items-center">
-                                            <p className="text-sm font-semibold">Konfliktanalyse</p>
-                                            <Button variant="ghost" size="icon" onClick={() => removeValueTension(index)}>
-                                                <Trash2 className="h-4 w-4 text-destructive"/>
-                                            </Button>
-                                        </div>
-                                        <div className='grid grid-cols-2 gap-2'>
-                                            <Select value={tension.principleA} onValueChange={(v) => handleTensionChange(index, 'principleA', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Wert A"/></SelectTrigger>
-                                                <SelectContent>
-                                                    {principlesData.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={tension.principleB} onValueChange={(v) => handleTensionChange(index, 'principleB', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Wert B"/></SelectTrigger>
-                                                <SelectContent>
-                                                    {principlesData.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <Textarea
-                                            placeholder="Begründung & Entscheidung zur Auflösung..."
-                                            value={tension.resolution}
-                                            onChange={(e) => handleTensionChange(index, 'resolution', e.target.value)}
-                                            className="text-xs min-h-[80px]"
-                                        />
-                                    </div>
-                                ))}
-                                <Button variant="outline" size="sm" onClick={addValueTension} className='w-full'>
-                                    <PlusCircle className="mr-2 h-4 w-4"/> Wertekonflikt hinzufügen
-                                </Button>
-                            </>
+                    <CardContent>
+                        {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
+                            <ValueTensionMatrix tensions={canvasData.valueTensions} setCanvasData={setCanvasData} projectContext={canvasData.projectContext}/>
                          )}
                     </CardContent>
                 </Card>
@@ -708,5 +812,3 @@ export function DesignCanvas() {
         </div>
     );
 }
-
-    
