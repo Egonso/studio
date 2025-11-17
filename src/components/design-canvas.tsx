@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -44,8 +44,9 @@ interface Requirement {
     id: string;
     title: string;
     description: string;
-    responsible: string; // RACI field
-    evidence: string; // Verification Layer
+    responsible: string; 
+    evidence: string;
+    lifecyclePhase: string;
     sourcePrincipleId?: string;
 }
 
@@ -66,12 +67,14 @@ const stakeholderTypeLabels = {
     'external': 'Extern (Kunden, Partner)',
     'societal': 'Gesellschaftlich (Öffentlichkeit, Regulierer)'
 };
+const lifecyclePhases = ['Concept', 'Design', 'Build', 'Operate', 'Retire'];
+
 
 function RequirementManager({ requirements, setCanvasData }: { requirements: Requirement[], setCanvasData: React.Dispatch<React.SetStateAction<DesignCanvasData>> }) {
     const addRequirement = () => {
         setCanvasData(prev => ({
             ...prev,
-            requirements: [...prev.requirements, { id: new Date().getTime().toString(), title: '', description: '', responsible: '', evidence: '' }]
+            requirements: [...prev.requirements, { id: new Date().getTime().toString(), title: '', description: '', responsible: '', evidence: '', lifecyclePhase: '' }]
         }));
     };
 
@@ -130,6 +133,19 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                             value={req.responsible}
                             onChange={(e) => handleReqChange(req.id, 'responsible', e.target.value)}
                         />
+                        <div className="space-y-2">
+                             <Label className='flex items-center gap-2 text-sm'><Milestone className='h-4 w-4 text-primary'/> Lifecycle-Phase</Label>
+                             <Select value={req.lifecyclePhase} onValueChange={(value) => handleReqChange(req.id, 'lifecyclePhase', value)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Phase zuordnen..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {lifecyclePhases.map(phase => (
+                                        <SelectItem key={phase} value={phase}>{phase}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className='bg-secondary/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3'>
                             <Label className='flex items-center gap-2 text-sm'><Layers className='h-4 w-4 text-primary'/> Verification Layer / Evidence</Label>
                              <Textarea 
@@ -311,6 +327,7 @@ export function DesignCanvas() {
             description: `Definieren Sie die technischen und organisatorischen Maßnahmen, um das Prinzip "${principle.title}" im Projektkontext sicherzustellen.\n\nAkzeptanzkriterien:\n- \n- `,
             responsible: '',
             evidence: '',
+            lifecyclePhase: '',
             sourcePrincipleId: principle.id,
         };
         setCanvasData(prev => ({
@@ -635,5 +652,3 @@ export function DesignCanvas() {
         </div>
     );
 }
-
-    
