@@ -138,7 +138,7 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="outline" size="sm" disabled={requirements.length === 0}>
-                                <GanttChartSquare className="mr-2 h-4 w-4" /> Timeline
+                                <GanttChartSquare className="mr-2 h-4 w-4" /> Timeline anzeigen
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-4xl">
@@ -678,7 +678,24 @@ export function DesignCanvas() {
                     </CardHeader>
                     <CardContent>
                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
-                            <ValueTensionMatrix tensions={canvasData.valueTensions} setCanvasData={setCanvasData} projectContext={canvasData.projectContext}/>
+                             <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full">
+                                        <Handshake className="mr-2 h-4 w-4" /> Konflikt-Matrix öffnen
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-6xl">
+                                    <DialogHeader>
+                                        <DialogTitle>Value Tension Matrix</DialogTitle>
+                                        <DialogDescription>
+                                            Klicken Sie auf ein Feld in der Matrix, um einen potenziellen Konflikt zwischen zwei Werten zu analysieren und eine Lösung zu dokumentieren.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="py-4 max-h-[75vh] overflow-auto">
+                                        <ValueTensionMatrix tensions={canvasData.valueTensions} setCanvasData={setCanvasData} projectContext={canvasData.projectContext}/>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
                          )}
                     </CardContent>
                 </Card>
