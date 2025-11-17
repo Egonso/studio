@@ -62,7 +62,7 @@ Your task is to analyze a list of stakeholders for a given project and determine
 
 **The 10 Core Principles of Trustworthy Intelligence:**
 ---
-{{#each principlesData}}
+{{#each principles}}
 - **{{id}} ({{title}}):** {{description}}
 {{/each}}
 ---
@@ -84,10 +84,6 @@ If a stakeholder's concern is "I want to know when I am talking to a bot versus 
 
 Generate a structured output with the results for all stakeholders. Your response must be in German.
 `,
-}, {
-    context: {
-        principlesData: principlesData,
-    }
 });
 
 const valueInfluenceAnalyzerFlow = ai.defineFlow(
@@ -97,7 +93,12 @@ const valueInfluenceAnalyzerFlow = ai.defineFlow(
     outputSchema: ValueInfluenceAnalysisOutputSchema,
   },
   async (input) => {
-    const result = await prompt(input);
+    const result = await prompt({
+        ...input,
+        context: {
+            principles: principlesData
+        }
+    });
     return result.output!;
   }
 );
