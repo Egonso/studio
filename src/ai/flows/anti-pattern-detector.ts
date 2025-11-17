@@ -72,14 +72,8 @@ const antiPatternDetectorFlow = ai.defineFlow(
     outputSchema: DetectAntiPatternsOutputSchema,
   },
   async (input) => {
-    if (await isUserOverTokenLimit()) {
-      throw new Error("Monthly token limit exceeded.");
-    }
     const result = await prompt(input);
-    const usage = result.usage;
-    if (usage) {
-        await updateTokenUsage(usage.inputTokens + usage.outputTokens);
-    }
+    // TODO: Re-implement token counting on the server-side
     return result.output!;
   }
 );
