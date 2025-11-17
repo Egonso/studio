@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -45,6 +45,7 @@ interface Requirement {
     title: string;
     description: string;
     responsible: string; // RACI field
+    sourcePrincipleId?: string;
 }
 
 interface DesignCanvasData {
@@ -126,7 +127,7 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                     </div>
                 ))}
                  <Button variant="outline" size="sm" onClick={addRequirement} className='w-full'>
-                    <PlusCircle className="mr-2 h-4 w-4"/> Anforderung hinzufügen
+                    <PlusCircle className="mr-2 h-4 w-4"/> Manuelle Anforderung hinzufügen
                 </Button>
             </CardContent>
             <CardFooter>
@@ -294,6 +295,22 @@ export function DesignCanvas() {
         const newTensions = canvasData.valueTensions.filter((_, i) => i !== index);
         setCanvasData(prev => ({ ...prev, valueTensions: newTensions }));
     };
+    
+    // --- Requirement Generation ---
+    const generateRequirementFromPrinciple = (principle: Principle) => {
+        const newRequirement: Requirement = {
+            id: new Date().getTime().toString(),
+            title: `Anforderung für: ${principle.title}`,
+            description: `Definieren Sie die technischen und organisatorischen Maßnahmen, um das Prinzip "${principle.title}" im Projektkontext sicherzustellen.\n\nAkzeptanzkriterien:\n- \n- `,
+            responsible: '',
+            sourcePrincipleId: principle.id,
+        };
+        setCanvasData(prev => ({
+            ...prev,
+            requirements: [...prev.requirements, newRequirement]
+        }));
+    };
+
 
     // Save canvas data on change, with debounce
     useEffect(() => {
@@ -411,6 +428,7 @@ export function DesignCanvas() {
                             <div className="space-y-6">
                                 {principlesData.map(p => {
                                     const mapping = canvasData.valueMapping?.[p.id] || { rating: 0 };
+                                    const isHighPrio = mapping.rating >= 2;
                                     return (
                                         <div key={p.id} className="space-y-3">
                                             <Label htmlFor={`slider-${p.id}`} className='font-semibold'>{p.title}</Label>
@@ -418,6 +436,15 @@ export function DesignCanvas() {
                                                 <Slider id={`slider-${p.id}`} min={0} max={3} step={1} value={[mapping.rating]} onValueChange={(value) => handleValueMappingChange(p.id, 'rating', value[0])} className="flex-1" />
                                                 <span className="text-xs font-medium w-32 text-right">{ratingLabels[mapping.rating]}</span>
                                             </div>
+                                             <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                disabled={!isHighPrio}
+                                                onClick={() => generateRequirementFromPrinciple(p)}
+                                                className="w-full text-xs"
+                                            >
+                                                <ChevronsRight className="mr-2 h-4 w-4" /> Anforderung generieren
+                                            </Button>
                                         </div>
                                     );
                                 })}
