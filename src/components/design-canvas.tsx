@@ -45,6 +45,7 @@ interface Requirement {
     title: string;
     description: string;
     responsible: string; // RACI field
+    evidence: string; // Verification Layer
     sourcePrincipleId?: string;
 }
 
@@ -70,7 +71,7 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
     const addRequirement = () => {
         setCanvasData(prev => ({
             ...prev,
-            requirements: [...prev.requirements, { id: new Date().getTime().toString(), title: '', description: '', responsible: '' }]
+            requirements: [...prev.requirements, { id: new Date().getTime().toString(), title: '', description: '', responsible: '', evidence: '' }]
         }));
     };
 
@@ -96,10 +97,15 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                     Value-to-Requirement-Traceability
                 </CardTitle>
                 <CardDescription>
-                    Hier werden aus Werten konkrete, nachverfolgbare Anforderungen.
+                    Hier werden aus Werten konkrete, nachverfolgbare Anforderungen, die durch Nachweise auditiert werden können.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                {requirements.length === 0 && (
+                    <p className="text-sm text-center text-muted-foreground py-4">
+                        Keine Anforderungen definiert. Generieren Sie Anforderungen aus hoch priorisierten Werten im "Werte-Mapping" oder fügen Sie sie manuell hinzu.
+                    </p>
+                )}
                 {requirements.map((req) => (
                     <div key={req.id} className="p-4 rounded-lg border bg-secondary/50 space-y-3">
                          <div className="flex justify-between items-center">
@@ -124,20 +130,21 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                             value={req.responsible}
                             onChange={(e) => handleReqChange(req.id, 'responsible', e.target.value)}
                         />
+                        <div className='bg-secondary/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3'>
+                            <Label className='flex items-center gap-2 text-sm'><Layers className='h-4 w-4 text-primary'/> Verification Layer / Evidence</Label>
+                             <Textarea 
+                                placeholder="Nachweis oder Test (z.B. Link zum Bias-Test Protokoll, Screenshot des UI-Elements)"
+                                value={req.evidence}
+                                onChange={(e) => handleReqChange(req.id, 'evidence', e.target.value)}
+                                className="text-xs mt-2"
+                            />
+                        </div>
                     </div>
                 ))}
                  <Button variant="outline" size="sm" onClick={addRequirement} className='w-full'>
                     <PlusCircle className="mr-2 h-4 w-4"/> Manuelle Anforderung hinzufügen
                 </Button>
             </CardContent>
-            <CardFooter>
-                 <Card className='bg-secondary/30 w-full'>
-                    <CardHeader>
-                        <CardTitle className='flex items-center gap-2 text-lg'><Layers className='text-primary'/>Verification Layer / Evidence</CardTitle>
-                        <CardDescription>Hier werden Nachweise für die Erfüllung der Anforderungen gesammelt. (Zukünftiger Schritt)</CardDescription>
-                    </CardHeader>
-                </Card>
-            </CardFooter>
         </Card>
     );
 }
@@ -303,6 +310,7 @@ export function DesignCanvas() {
             title: `Anforderung für: ${principle.title}`,
             description: `Definieren Sie die technischen und organisatorischen Maßnahmen, um das Prinzip "${principle.title}" im Projektkontext sicherzustellen.\n\nAkzeptanzkriterien:\n- \n- `,
             responsible: '',
+            evidence: '',
             sourcePrincipleId: principle.id,
         };
         setCanvasData(prev => ({
@@ -627,3 +635,5 @@ export function DesignCanvas() {
         </div>
     );
 }
+
+    
