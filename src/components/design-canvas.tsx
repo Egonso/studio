@@ -133,27 +133,29 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                             value={req.responsible}
                             onChange={(e) => handleReqChange(req.id, 'responsible', e.target.value)}
                         />
-                        <div className="space-y-2">
-                             <Label className='flex items-center gap-2 text-sm'><Milestone className='h-4 w-4 text-primary'/> Lifecycle-Phase</Label>
-                             <Select value={req.lifecyclePhase} onValueChange={(value) => handleReqChange(req.id, 'lifecyclePhase', value)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Phase zuordnen..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {lifecyclePhases.map(phase => (
-                                        <SelectItem key={phase} value={phase}>{phase}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='bg-secondary/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3'>
-                            <Label className='flex items-center gap-2 text-sm'><Layers className='h-4 w-4 text-primary'/> Verification Layer / Evidence</Label>
-                             <Textarea 
-                                placeholder="Nachweis oder Test (z.B. Link zum Bias-Test Protokoll, Screenshot des UI-Elements)"
-                                value={req.evidence}
-                                onChange={(e) => handleReqChange(req.id, 'evidence', e.target.value)}
-                                className="text-xs mt-2"
-                            />
+                        <div className='bg-secondary/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3 space-y-4'>
+                            <div className="space-y-2">
+                                <Label className='flex items-center gap-2 text-sm'><Milestone className='h-4 w-4 text-primary'/> Lifecycle-Phase</Label>
+                                <Select value={req.lifecyclePhase} onValueChange={(value) => handleReqChange(req.id, 'lifecyclePhase', value)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Phase zuordnen..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {lifecyclePhases.map(phase => (
+                                            <SelectItem key={phase} value={phase}>{phase}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label className='flex items-center gap-2 text-sm'><Layers className='h-4 w-4 text-primary'/> Verification Layer / Evidence</Label>
+                                <Textarea 
+                                    placeholder="Nachweis oder Test (z.B. Link zum Bias-Test Protokoll, Screenshot des UI-Elements)"
+                                    value={req.evidence}
+                                    onChange={(e) => handleReqChange(req.id, 'evidence', e.target.value)}
+                                    className="text-xs mt-2"
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -652,3 +654,5 @@ export function DesignCanvas() {
         </div>
     );
 }
+
+    
