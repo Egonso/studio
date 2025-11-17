@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';
@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { Slider } from './ui/slider';
 import { Label } from './ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 
 interface ValueMapping {
     [principleId: string]: {
@@ -70,6 +71,39 @@ const stakeholderTypeLabels = {
 const lifecyclePhases = ['Concept', 'Design', 'Build', 'Operate', 'Retire'];
 
 
+function RequirementsTimeline({ requirements }: { requirements: Requirement[] }) {
+    const groupedRequirements = lifecyclePhases.reduce((acc, phase) => {
+        acc[phase] = requirements.filter(req => req.lifecyclePhase === phase);
+        return acc;
+    }, {} as Record<string, Requirement[]>);
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-5 gap-4">
+                {lifecyclePhases.map(phase => (
+                    <div key={phase} className="space-y-3">
+                        <h3 className="font-semibold text-center text-sm sticky top-0 bg-background py-2">{phase}</h3>
+                        <div className="space-y-3 p-2 rounded-lg bg-secondary/50 min-h-[100px]">
+                            {groupedRequirements[phase].length > 0 ? (
+                                groupedRequirements[phase].map(req => (
+                                    <Card key={req.id} className="text-xs">
+                                        <CardContent className="p-2">
+                                            <p className="font-semibold">{req.title}</p>
+                                            <p className="text-muted-foreground truncate">Verantwortlich: {req.responsible || 'N/A'}</p>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center text-xs text-muted-foreground pt-4">Keine Einträge</div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function RequirementManager({ requirements, setCanvasData }: { requirements: Requirement[], setCanvasData: React.Dispatch<React.SetStateAction<DesignCanvasData>> }) {
     const addRequirement = () => {
         setCanvasData(prev => ({
@@ -95,10 +129,30 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
     return (
         <Card className="shadow-lg">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileSignature className='text-primary'/>
-                    Value-to-Requirement-Traceability
-                </CardTitle>
+                <div className="flex justify-between items-center">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <FileSignature className='text-primary'/>
+                        Value-to-Requirement-Traceability
+                    </CardTitle>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" disabled={requirements.length === 0}>
+                                <GanttChartSquare className="mr-2 h-4 w-4" /> Timeline
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                            <DialogHeader>
+                                <DialogTitle>Anforderungs-Timeline</DialogTitle>
+                                <DialogDescription>
+                                    Eine visuelle Übersicht Ihrer Anforderungen, geordnet nach der Lifecycle-Phase.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="max-h-[70vh] overflow-y-auto p-1">
+                                <RequirementsTimeline requirements={requirements} />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                </div>
                 <CardDescription>
                     Hier werden aus Werten konkrete, nachverfolgbare Anforderungen, die durch Nachweise auditiert werden können.
                 </CardDescription>
@@ -133,8 +187,8 @@ function RequirementManager({ requirements, setCanvasData }: { requirements: Req
                             value={req.responsible}
                             onChange={(e) => handleReqChange(req.id, 'responsible', e.target.value)}
                         />
-                        <div className='bg-secondary/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3 space-y-4'>
-                            <div className="space-y-2">
+                        <div className='bg-background/50 -mx-4 -mb-4 p-4 rounded-b-lg mt-3 space-y-4'>
+                             <div className="space-y-2">
                                 <Label className='flex items-center gap-2 text-sm'><Milestone className='h-4 w-4 text-primary'/> Lifecycle-Phase</Label>
                                 <Select value={req.lifecyclePhase} onValueChange={(value) => handleReqChange(req.id, 'lifecyclePhase', value)}>
                                     <SelectTrigger>
