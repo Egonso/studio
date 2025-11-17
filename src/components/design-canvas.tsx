@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
 import { getValueTensionAdvice, type GetValueTensionAdviceInput, type GetValueTensionAdviceOutput } from '@/ai/flows/value-tension-advisor';
+import { analyzeValueInfluence, type ValueInfluenceAnalysisInput, type ValueInfluenceAnalysisOutput } from '@/ai/flows/value-influence-analyzer';
 import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake, BarChart } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
@@ -61,6 +62,7 @@ interface DesignCanvasData {
     valueMapping: ValueMapping;
     valueTensions: ValueTension[];
     requirements: Requirement[];
+    valueInfluenceAnalysis: ValueInfluenceAnalysisOutput | null;
 }
 
 const ratingLabels = ['Irrelevant', 'Niedrige Priorität', 'Hohe Priorität', 'Sehr hohe Priorität'];
@@ -384,7 +386,6 @@ export function DesignCanvas() {
     const [selectedPhase, setSelectedPhase] = useState<DesignPhase>(designPhases[0]);
     const [selectedPrinciple, setSelectedPrinciple] = useState<Principle>(principlesData[0]);
     
-    // State for the whole canvas data
     const [canvasData, setCanvasData] = useState<DesignCanvasData>({
         projectContext: '',
         stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
@@ -394,14 +395,17 @@ export function DesignCanvas() {
         valueMapping: {},
         valueTensions: [],
         requirements: [],
+        valueInfluenceAnalysis: null,
     });
     
     const [isGeneratingAdvice, setIsGeneratingAdvice] = useState(false);
     const [isDetecting, setIsDetecting] = useState(false);
     const [isInitializing, setIsInitializing] = useState(true);
+    const [isAnalyzingValues, setIsAnalyzingValues] = useState(false);
 
     const [adviceError, setAdviceError] = useState<string | null>(null);
     const [detectorError, setDetectorError] = useState<string | null>(null);
+    const [valueAnalysisError, setValueAnalysisError] = useState<string | null>(null);
 
     useEffect(() => {
         const loadData = async () => {
@@ -414,7 +418,8 @@ export function DesignCanvas() {
                         : [{id: '1', name: '', type: 'external', concerns: ''}];
                     const valueTensions = Array.isArray(data.valueTensions) ? data.valueTensions : [];
                     const requirements = Array.isArray(data.requirements) ? data.requirements : [];
-                    setCanvasData(prev => ({ ...prev, ...data, stakeholders, valueTensions, requirements }));
+                    const valueInfluenceAnalysis = data.valueInfluenceAnalysis || null;
+                    setCanvasData(prev => ({ ...prev, ...data, stakeholders, valueTensions, requirements, valueInfluenceAnalysis }));
                 }
                 setIsInitializing(false);
             }
@@ -460,6 +465,29 @@ export function DesignCanvas() {
             setDetectorError("Die Mustererkennung konnte nicht durchgeführt werden. Bitte versuchen Sie es später erneut.");
         } finally {
             setIsDetecting(false);
+        }
+    };
+
+    const handleAnalyzeValues = async () => {
+        setIsAnalyzingValues(true);
+        setValueAnalysisError(null);
+        try {
+            const input: ValueInfluenceAnalysisInput = {
+                projectContext: canvasData.projectContext || "Ein allgemeines Software-Produkt.",
+                stakeholders: canvasData.stakeholders.filter(s => s.name && s.concerns),
+            };
+            if (input.stakeholders.length === 0) {
+                setValueAnalysisError("Bitte definieren Sie mindestens einen Stakeholder mit Namen und Anliegen.");
+                setIsAnalyzingValues(false);
+                return;
+            }
+            const result = await analyzeValueInfluence(input);
+            setCanvasData(prev => ({...prev, valueInfluenceAnalysis: result }));
+        } catch (e) {
+            console.error("Failed to analyze value influence:", e);
+            setValueAnalysisError("Die Analyse konnte nicht durchgeführt werden.");
+        } finally {
+            setIsAnalyzingValues(false);
         }
     };
 
@@ -620,9 +648,48 @@ export function DesignCanvas() {
                                         Führen Sie eine KI-gestützte Analyse durch, um die Interessen Ihrer Stakeholder den ethischen Werten zuzuordnen.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="py-4 text-center">
-                                    <Button>Analyse jetzt durchführen</Button>
-                                    <p className="text-sm text-muted-foreground mt-4">Platzhalter für die Value Influence Table.</p>
+                                <div className="py-4">
+                                    <div className="flex justify-center mb-4">
+                                        <Button onClick={handleAnalyzeValues} disabled={isAnalyzingValues}>
+                                            {isAnalyzingValues ? (
+                                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Analysiere...</>
+                                            ) : "Analyse jetzt durchführen"}
+                                        </Button>
+                                    </div>
+                                    {valueAnalysisError && <Alert variant="destructive"><AlertDescription>{valueAnalysisError}</AlertDescription></Alert>}
+                                    
+                                    {canvasData.valueInfluenceAnalysis?.results ? (
+                                        <div className="overflow-x-auto mt-4">
+                                            <table className="w-full text-sm border-collapse">
+                                                <thead>
+                                                    <tr className="bg-secondary">
+                                                        <th className="p-2 border text-left">Prinzip</th>
+                                                        {canvasData.valueInfluenceAnalysis.results.map(r => (
+                                                            <th key={r.stakeholderId} className="p-2 border">{r.stakeholderName}</th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {principlesData.map(principle => (
+                                                        <tr key={principle.id}>
+                                                            <td className="p-2 border font-semibold">{principle.title}</td>
+                                                            {canvasData.valueInfluenceAnalysis!.results.map(stakeholderResult => {
+                                                                const analysis = stakeholderResult.analysis.find(a => a.principleId === principle.id);
+                                                                return (
+                                                                    <td key={stakeholderResult.stakeholderId} className="p-2 border text-center" title={analysis?.rationale}>
+                                                                        {analysis?.priority || 'N/A'}
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        !isAnalyzingValues && <p className="text-sm text-muted-foreground mt-4 text-center">Hier erscheinen die Analyseergebnisse.</p>
+                                    )}
+
                                 </div>
                             </DialogContent>
                         </Dialog>

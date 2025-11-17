@@ -50,6 +50,7 @@ export async function createProject(projectName: string, metadata: { sector: str
             valueMapping: {},
             valueTensions: [],
             requirements: [],
+            valueInfluenceAnalysis: null,
         },
         exportedInsights: [],
     }).catch(async (serverError) => {
@@ -161,6 +162,7 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
             valueMapping: {},
             valueTensions: [],
             requirements: [],
+            valueInfluenceAnalysis: null,
         }
     });
 }
