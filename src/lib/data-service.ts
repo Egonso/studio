@@ -52,6 +52,7 @@ export async function createProject(projectName: string, metadata: { sector: str
             requirements: [],
             valueInfluenceAnalysis: null,
         },
+        aimsData: {},
         exportedInsights: [],
     }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -141,6 +142,7 @@ interface ProjectData {
     companyContext: object;
     checklistState: object;
     designCanvas: object;
+    aimsData: object;
     courseProgress: { completedVideoIds: string[] };
     exportedInsights: string[];
 }
@@ -163,7 +165,8 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
             valueTensions: [],
             requirements: [],
             valueInfluenceAnalysis: null,
-        }
+        },
+        aimsData: {},
     });
 }
 
@@ -195,6 +198,14 @@ export async function saveDesignCanvasData(data: object) {
 
 export async function getDesignCanvasData() {
     return getProjectData('designCanvas');
+}
+
+export async function saveAimsData(data: object) {
+    await saveProjectData({ aimsData: data });
+}
+
+export async function getAimsData() {
+    return getProjectData('aimsData');
 }
 
 export async function getExportedInsights(): Promise<string[]> {
@@ -381,3 +392,5 @@ export async function getSharedPolicy(policyId: string) {
         return null;
     }
 }
+
+    
