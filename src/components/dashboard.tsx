@@ -178,7 +178,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </TabsTrigger>
                  <TabsTrigger value="iso" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    ISO 42001
+                    AI Management System
                 </TabsTrigger>
                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
@@ -254,7 +254,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                 <History className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold flex items-center gap-2"><X className="text-red-500 h-6 w-6"/> Nein</div>
+                                <div className="text-2xl font-bold flex items-center gap-2"><X className="text-muted-foreground h-6 w-6"/> Nein</div>
                                 <p className="text-xs text-muted-foreground">Zeigt, ob ein Risiko-Assessment nach ISO 42001 existiert</p>
                             </CardContent>
                         </Card>
@@ -470,4 +470,4 @@ const StepContent = ({ content }: { content: string }) => {
     );
 };
 
-    
+
