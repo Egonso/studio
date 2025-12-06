@@ -155,7 +155,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
          <div className="flex gap-2">
             <Button variant="outline">
                 <Shield className="mr-2 h-4 w-4" />
-                AIMS-Setup starten
+                KI Management System - Setup starten
             </Button>
             <Link href={`/audit-report?projectId=${complianceItems.length > 0 ? new URLSearchParams(window.location.search).get('projectId') : ''}`} passHref>
                 <Button variant="outline">
