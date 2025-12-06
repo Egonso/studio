@@ -8,7 +8,7 @@ import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId } from "@/lib/data-service";
+import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId, getFullProject } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -19,6 +19,7 @@ function DashboardPageContent() {
     const [checklistState, setChecklistState] = useState<any>({});
     const [isLoading, setIsLoading] = useState(true);
     const [projectName, setProjectName] = useState('');
+    const [projectData, setProjectData] = useState<any>(null);
     
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -32,28 +33,30 @@ function DashboardPageContent() {
 
         setActiveProjectId(currentProjectId);
 
-        const projectDocRef = doc(db, `users/${user.uid}/projects`, currentProjectId);
-        const projectSnap = await getDoc(projectDocRef);
-        if (projectSnap.exists()) {
-            setProjectName(projectSnap.data().projectName);
+        const fullProjectData = await getFullProject();
+
+        if (fullProjectData) {
+            setProjectName(fullProjectData.projectName || '');
+            setProjectData(fullProjectData);
+            
+            const answers = fullProjectData.assessmentAnswers;
+            if (!answers || Object.keys(answers).length === 0) {
+                router.push(`/assessment?projectId=${currentProjectId}`);
+                return;
+            }
+
+            const derivedData = deriveComplianceState(answers);
+            setInitialComplianceData(derivedData);
+
+            const savedChecklistState = fullProjectData.checklistState;
+            if (savedChecklistState) {
+                setChecklistState(savedChecklistState);
+            }
         } else {
             router.push('/projects');
             return;
         }
 
-        const answers = await getAssessmentAnswers();
-        if (!answers || Object.keys(answers).length === 0) {
-            router.push(`/assessment?projectId=${currentProjectId}`);
-            return;
-        }
-
-        const savedChecklistState = await getChecklistState();
-        const derivedData = deriveComplianceState(answers);
-        setInitialComplianceData(derivedData);
-
-        if (savedChecklistState) {
-            setChecklistState(savedChecklistState);
-        }
         setIsLoading(false);
     }, [router, user]);
 
@@ -110,6 +113,8 @@ function DashboardPageContent() {
                     complianceItems={complianceData}
                     checklistState={checklistState}
                     setChecklistState={setChecklistState}
+                    aimsData={projectData?.aimsData || {}}
+                    aimsProgress={projectData?.aimsProgress || {}}
                 />
             </main>
         </div>

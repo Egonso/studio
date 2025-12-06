@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info } from "lucide-react";
-import { getAimsData, saveAimsData, getActiveProjectId } from "@/lib/data-service";
+import { getAimsData, saveAimsData, getActiveProjectId, type AimsProgress } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -79,11 +80,32 @@ const initialAimsData: AimsData = {
     improvementProcess: '',
 };
 
+const validateStep = (step: number, data: AimsData): boolean => {
+    switch(step) {
+        case 1:
+            return !!data.scope && !!data.systems;
+        case 2:
+            return data.stakeholders.length > 0 && data.stakeholders.every(s => !!s.name && !!s.expectation && !!s.influence);
+        case 3:
+            return data.policy.length >= 20;
+        case 4:
+            return data.raci.length > 0 && data.raci.every(r => !!r.task && !!r.responsible && !!r.accountable);
+        case 5:
+            return data.risks.length > 0 && data.risks.every(r => !!r.description && !!r.impact && !!r.likelihood);
+        case 6:
+            return !!data.kpis || !!data.monitoringProcess || !!data.auditRhythm;
+        default:
+            return false;
+    }
+}
+
 export function AimsWizard() {
     const [step, setStep] = useState(1);
     const [data, setData] = useState<AimsData>(initialAimsData);
+    const [progress, setProgress] = useState<AimsProgress>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [validationError, setValidationError] = useState(false);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -100,9 +122,25 @@ export function AimsWizard() {
         loadData();
     }, []);
 
+    const calculateProgress = (currentData: AimsData): AimsProgress => {
+        return {
+            step1_complete: validateStep(1, currentData),
+            step2_complete: validateStep(2, currentData),
+            step3_complete: validateStep(3, currentData),
+            step4_complete: validateStep(4, currentData),
+            step5_complete: validateStep(5, currentData),
+            step6_complete: validateStep(6, currentData),
+        }
+    }
+    
+    useEffect(() => {
+        setProgress(calculateProgress(data));
+        setValidationError(false);
+    }, [data]);
+
     const handleSave = async (showToast: boolean = true) => {
         setIsSaving(true);
-        await saveAimsData(data);
+        await saveAimsData(data, progress);
         setIsSaving(false);
         if (showToast) {
             toast({ title: "Fortschritt gespeichert!", description: "Ihre Eingaben wurden gesichert." });
@@ -110,11 +148,19 @@ export function AimsWizard() {
     };
     
     const nextStep = () => {
-        if (step < TOTAL_STEPS) setStep(s => s + 1);
+        if (validateStep(step, data)) {
+            setValidationError(false);
+            if (step < TOTAL_STEPS) setStep(s => s + 1);
+        } else {
+            setValidationError(true);
+        }
     };
 
     const prevStep = () => {
-        if (step > 1) setStep(s => s - 1);
+        if (step > 1) {
+            setValidationError(false);
+            setStep(s => s - 1);
+        }
     };
     
     const handleFinish = async () => {
@@ -122,7 +168,8 @@ export function AimsWizard() {
         setStep(TOTAL_STEPS + 1); // Go to final screen
     }
 
-    const progress = (step / TOTAL_STEPS) * 100;
+    const completedSteps = Object.values(progress).filter(v => v === true).length;
+    const progressPercentage = (completedSteps / TOTAL_STEPS) * 100;
     
     const handleStakeholderChange = <K extends keyof Stakeholder>(index: number, field: K, value: Stakeholder[K]) => {
         const newStakeholders = [...data.stakeholders];
@@ -181,7 +228,7 @@ export function AimsWizard() {
                 </CardContent>
                 <CardFooter className="flex justify-between">
                     <Button variant="outline" onClick={() => router.push(`/dashboard?projectId=${getActiveProjectId()}`)}>Zurück zum Dashboard</Button>
-                    <Button onClick={() => router.push(`/dashboard?projectId=${getActiveProjectId()}`)}>ISO 42001 ansehen</Button>
+                    <Button onClick={() => router.push(`/ai-management`)}>ISO 42001 ansehen</Button>
                 </CardFooter>
             </Card>
         )
@@ -191,8 +238,8 @@ export function AimsWizard() {
         <Card className="w-full max-w-4xl shadow-md mt-8">
             <CardHeader>
                 <div className="mb-4">
-                    <p className="font-semibold text-gray-700">Schritt {step} von {TOTAL_STEPS}</p>
-                    <Progress value={progress} className="mt-2 w-full" />
+                    <p className="font-semibold text-gray-700">Schritt {step} von {TOTAL_STEPS} ({completedSteps} abgeschlossen)</p>
+                    <Progress value={progressPercentage} className="mt-2 w-full" />
                 </div>
                 <CardTitle>AI Management System Setup (ISO 42001)</CardTitle>
             </CardHeader>
@@ -203,11 +250,11 @@ export function AimsWizard() {
                             <h3 className="font-semibold text-lg">Kontext & Geltungsbereich</h3>
                             <p className="text-sm text-gray-700 mb-4">Definieren Sie, für welche KI-Systeme und Prozesse das AI-Managementsystem gelten soll.</p>
                             <div className="space-y-2">
-                                <Label htmlFor="scope">Geltungsbereich Ihres AI-Managementsystems</Label>
+                                <Label htmlFor="scope">Geltungsbereich Ihres AI-Managementsystems (*)</Label>
                                 <Textarea id="scope" placeholder="z.B. Alle KI-gestützten Kundeninteraktionen in der EU..." value={data.scope} onChange={(e) => setData({...data, scope: e.target.value})} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="systems">Welche KI-Systeme sind im Einsatz?</Label>
+                                <Label htmlFor="systems">Welche KI-Systeme sind im Einsatz? (*)</Label>
                                 <Input id="systems" placeholder="z.B. ChatGPT, Interner Chatbot, HR-Analyse-Tool" value={data.systems} onChange={(e) => setData({...data, systems: e.target.value})} />
                             </div>
                             <div className="space-y-2">
@@ -231,10 +278,10 @@ export function AimsWizard() {
                                             <Label className="font-semibold text-gray-700">Stakeholder #{index + 1}</Label>
                                             <Button variant="ghost" size="icon" onClick={() => removeStakeholder(index)}><Trash2 className="h-4 w-4 text-gray-400 hover:text-destructive transition-colors"/></Button>
                                         </div>
-                                        <Input placeholder="Name / Gruppe (z.B. Kunden, Nutzer)" value={stakeholder.name} onChange={(e) => handleStakeholderChange(index, 'name', e.target.value)} />
-                                        <Textarea placeholder="Erwartung / Interesse" value={stakeholder.expectation} onChange={(e) => handleStakeholderChange(index, 'expectation', e.target.value)} rows={2} />
+                                        <Input placeholder="Name / Gruppe (*)" value={stakeholder.name} onChange={(e) => handleStakeholderChange(index, 'name', e.target.value)} />
+                                        <Textarea placeholder="Erwartung / Interesse (*)" value={stakeholder.expectation} onChange={(e) => handleStakeholderChange(index, 'expectation', e.target.value)} rows={2} />
                                          <Select value={stakeholder.influence} onValueChange={(v: any) => handleStakeholderChange(index, 'influence', v)}>
-                                            <SelectTrigger><SelectValue placeholder="Einfluss..." /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder="Einfluss (*)" /></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="high">Hoch</SelectItem>
                                                 <SelectItem value="medium">Mittel</SelectItem>
@@ -252,7 +299,7 @@ export function AimsWizard() {
                      {step === 3 && (
                         <motion.div key={3} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Grundlegende KI-Policy</h3>
-                            <p className="text-sm text-gray-700 mb-4">Formulieren Sie die Leitlinien für den verantwortungsvollen KI-Einsatz.</p>
+                            <p className="text-sm text-gray-700 mb-4">Formulieren Sie die Leitlinien für den verantwortungsvollen KI-Einsatz. (Mindestens 20 Zeichen)</p>
                             <Textarea className="min-h-[300px]" placeholder="Beschreiben Sie Prinzipien zu Sicherheit, Transparenz, Fairness, Verantwortlichkeiten..." value={data.policy} onChange={(e) => setData({...data, policy: e.target.value})}/>
                         </motion.div>
                     )}
@@ -264,9 +311,9 @@ export function AimsWizard() {
                                 {data.raci.map((row, index) => (
                                     <div key={row.id} className="grid grid-cols-[1fr_auto] items-end gap-2 p-2 border border-gray-200 rounded-lg bg-secondary">
                                         <div className="grid grid-cols-5 gap-2">
-                                            <Input placeholder="Aufgabe" value={row.task} onChange={(e) => handleRaciChange(index, 'task', e.target.value)} />
-                                            <Input placeholder="Responsible" value={row.responsible} onChange={(e) => handleRaciChange(index, 'responsible', e.target.value)} />
-                                            <Input placeholder="Accountable" value={row.accountable} onChange={(e) => handleRaciChange(index, 'accountable', e.target.value)} />
+                                            <Input placeholder="Aufgabe (*)" value={row.task} onChange={(e) => handleRaciChange(index, 'task', e.target.value)} />
+                                            <Input placeholder="Responsible (*)" value={row.responsible} onChange={(e) => handleRaciChange(index, 'responsible', e.target.value)} />
+                                            <Input placeholder="Accountable (*)" value={row.accountable} onChange={(e) => handleRaciChange(index, 'accountable', e.target.value)} />
                                             <Input placeholder="Consulted" value={row.consulted} onChange={(e) => handleRaciChange(index, 'consulted', e.target.value)} />
                                             <Input placeholder="Informed" value={row.informed} onChange={(e) => handleRaciChange(index, 'informed', e.target.value)} />
                                         </div>
@@ -289,12 +336,12 @@ export function AimsWizard() {
                                                 <Label className="font-semibold text-gray-700">Risiko #{index + 1}</Label>
                                                 <Button variant="ghost" size="icon" onClick={() => removeRisk(index)}><Trash2 className="h-4 w-4 text-gray-400 hover:text-destructive transition-colors"/></Button>
                                             </div>
-                                            <Textarea placeholder="Risiko-Beschreibung" value={risk.description} onChange={(e) => handleRiskChange(index, 'description', e.target.value)} rows={2} />
+                                            <Textarea placeholder="Risiko-Beschreibung (*)" value={risk.description} onChange={(e) => handleRiskChange(index, 'description', e.target.value)} rows={2} />
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Label className="flex items-center gap-1 cursor-help">Auswirkung <Info className="h-3 w-3" /></Label>
+                                                            <Label className="flex items-center gap-1 cursor-help">Auswirkung (*)</Label>
                                                         </TooltipTrigger>
                                                         <TooltipContent><p>Wie stark wäre die Auswirkung, wenn das Risiko eintritt?</p></TooltipContent>
                                                     </Tooltip>
@@ -310,7 +357,7 @@ export function AimsWizard() {
                                                 <div>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <Label className="flex items-center gap-1 cursor-help">Eintrittswahrscheinlichkeit <Info className="h-3 w-3" /></Label>
+                                                            <Label className="flex items-center gap-1 cursor-help">Eintrittswahrscheinlichkeit (*)</Label>
                                                         </TooltipTrigger>
                                                         <TooltipContent><p>Wie wahrscheinlich ist der Eintritt dieses Risikos?</p></TooltipContent>
                                                     </Tooltip>
@@ -357,21 +404,24 @@ export function AimsWizard() {
                     )}
                 </AnimatePresence>
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex flex-col items-stretch gap-4 sm:flex-row sm:justify-between">
                 <Button variant="outline" onClick={prevStep} disabled={step <= 1}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
                 </Button>
                  <Button variant="secondary" onClick={() => handleSave()} disabled={isSaving}>
                      {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Speichern...</> : 'Speichern & später fortfahren'}
                 </Button>
-                {step < TOTAL_STEPS ? (
-                    <Button onClick={nextStep} size="lg">Weiter <ChevronsRight className="ml-2 h-4 w-4" /></Button>
-                ) : (
-                    <Button onClick={handleFinish} size="lg">Speichern & Fortfahren</Button>
-                )}
+                 <div className="flex flex-col items-center">
+                    {step < TOTAL_STEPS ? (
+                        <Button onClick={nextStep} size="lg">Weiter <ChevronsRight className="ml-2 h-4 w-4" /></Button>
+                    ) : (
+                        <Button onClick={handleFinish} size="lg" disabled={!validateStep(step, data)}>Abschliessen & Speichern</Button>
+                    )}
+                    {validationError && (
+                        <p className="text-sm text-red-600 mt-2">Bitte füllen Sie alle Pflichtfelder (*) aus, um fortzufahren.</p>
+                    )}
+                 </div>
             </CardFooter>
         </Card>
     );
 }
-
-    

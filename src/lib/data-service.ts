@@ -53,6 +53,7 @@ export async function createProject(projectName: string, metadata: { sector: str
             valueInfluenceAnalysis: null,
         },
         aimsData: {},
+        aimsProgress: {},
         exportedInsights: [],
     }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
@@ -121,6 +122,21 @@ const getProjectData = async <T extends keyof ProjectData>(field: T): Promise<Pr
     return null;
 }
 
+export const getFullProject = async (): Promise<ProjectData | null> => {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return null;
+
+    const projectDocRef = getProjectDocRef(userId, projectId);
+    const docSnap = await getDoc(projectDocRef);
+
+    if (docSnap.exists()) {
+        return docSnap.data() as ProjectData;
+    }
+    return null;
+}
+
+
 const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
     const userId = getUserId();
     const projectId = getActiveProjectId();
@@ -137,12 +153,24 @@ const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
     });
 }
 
+export interface AimsProgress {
+    step1_complete?: boolean;
+    step2_complete?: boolean;
+    step3_complete?: boolean;
+    step4_complete?: boolean;
+    step5_complete?: boolean;
+    step6_complete?: boolean;
+    updatedAt?: any;
+}
+
+
 interface ProjectData {
     assessmentAnswers: Record<string, string>;
     companyContext: object;
     checklistState: object;
     designCanvas: object;
     aimsData: object;
+    aimsProgress: AimsProgress;
     courseProgress: { completedVideoIds: string[] };
     exportedInsights: string[];
 }
@@ -167,6 +195,7 @@ export async function saveAssessmentAnswers(answers: Record<string, string>) {
             valueInfluenceAnalysis: null,
         },
         aimsData: {},
+        aimsProgress: {},
     });
 }
 
@@ -200,12 +229,22 @@ export async function getDesignCanvasData() {
     return getProjectData('designCanvas');
 }
 
-export async function saveAimsData(data: object) {
-    await saveProjectData({ aimsData: data });
+export async function saveAimsData(data: object, progress: AimsProgress) {
+    await saveProjectData({ 
+        aimsData: data,
+        aimsProgress: {
+            ...progress,
+            updatedAt: serverTimestamp()
+        }
+    });
 }
 
 export async function getAimsData() {
     return getProjectData('aimsData');
+}
+
+export async function getAimsProgress() {
+    return getProjectData('aimsProgress');
 }
 
 export async function getExportedInsights(): Promise<string[]> {
@@ -393,4 +432,3 @@ export async function getSharedPolicy(policyId: string) {
     }
 }
 
-    

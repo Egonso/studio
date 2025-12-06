@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Shield, Check, X, FileClock, History, LineChart } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, BookOpen, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Shield, Check, X, FileClock, History, LineChart, Gauge } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -24,7 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { saveCurrentTask } from "@/lib/data-service";
+import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export interface ChecklistState {
@@ -41,6 +41,8 @@ interface DashboardProps {
   complianceItems: ComplianceItem[];
   checklistState: ChecklistState;
   setChecklistState: React.Dispatch<React.SetStateAction<ChecklistState>>;
+  aimsData: any;
+  aimsProgress: AimsProgress;
 }
 
 const statusConfig = {
@@ -71,8 +73,10 @@ const isoCategories: ComplianceItem[] = [
 ];
 
 
-export function Dashboard({ projectName, complianceItems, checklistState, setChecklistState }: DashboardProps) {
+export function Dashboard({ projectName, complianceItems, checklistState, setChecklistState, aimsData, aimsProgress }: DashboardProps) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("compliance-status");
+
 
   const compliantCount = complianceItems.filter(
     (item) => item.status === "Compliant"
@@ -87,6 +91,24 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
   const criticalAlerts = complianceItems.filter(
     (item) => item.status === "Non-Compliant"
   );
+  
+  // ISO Status Calculation
+  const completedSteps = aimsProgress ? Object.values(aimsProgress).filter(v => v === true).length : 0;
+  const risksDocumented = aimsData?.risks && aimsData.risks.length > 0 && aimsData.risks.some((r:any) => r.description);
+  const policiesExist = aimsData?.policy && aimsData.policy.length >= 20;
+  const rolesExist = aimsData?.raci && aimsData.raci.length > 0 && aimsData.raci.some((r:any) => r.task);
+
+  const getAuditability = () => {
+      if (completedSteps === 6 && risksDocumented && policiesExist && rolesExist) {
+          return { label: 'Grün', color: 'bg-green-500' };
+      }
+      if (completedSteps >= 3 && (risksDocumented || policiesExist)) {
+          return { label: 'Gelb', color: 'bg-yellow-500' };
+      }
+      return { label: 'Rot', color: 'bg-red-500' };
+  };
+  const auditability = getAuditability();
+
 
   const handleAccordionChange = async (itemId: string, item: ComplianceItem) => {
     // If data is already present, don't re-fetch
@@ -137,6 +159,14 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
      router.push(`/task/${task.id}`);
   };
 
+  const handleTabChange = (value: string) => {
+    if (['ai-management', 'cbs', 'kurs', 'exam'].includes(value)) {
+        router.push(`/${value}`);
+    } else {
+        setActiveTab(value);
+    }
+  }
+
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
@@ -166,7 +196,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
          </div>
       </div>
 
-       <Tabs defaultValue="compliance-status" className="space-y-4">
+       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
                 <TabsTrigger value="compliance-status">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
@@ -176,19 +206,19 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                      <ListChecks className="mr-2 h-4 w-4" />
                     AI Act Pflichten
                 </TabsTrigger>
-                 <TabsTrigger value="ai-management" onClick={() => router.push('/cbd')}>
+                 <TabsTrigger value="ai-management">
                     <Sparkles className="mr-2 h-4 w-4" />
                     AI Management
                 </TabsTrigger>
-                <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
+                <TabsTrigger value="cbs">
                     <Wand2 className="mr-2 h-4 w-4" />
                     Compliance-in-a-Day
                 </TabsTrigger>
-                <TabsTrigger value="kurs" onClick={() => router.push('/kurs')}>
+                <TabsTrigger value="kurs">
                     <BookOpen className="mr-2 h-4 w-4" />
                     Kurs
                 </TabsTrigger>
-                <TabsTrigger value="exam" onClick={() => router.push('/exam')}>
+                <TabsTrigger value="exam">
                     <GraduationCap className="mr-2 h-4 w-4" />
                     Zertifizierung
                 </TabsTrigger>
@@ -241,46 +271,52 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </p>
                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">AIMS implementiert</CardTitle>
                                 <FileClock className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">0/6</div>
-                                <p className="text-xs text-muted-foreground">Erfüllte Kernanforderungen des AI-Managementsystems</p>
+                                <div className="text-2xl font-bold">{completedSteps}/6</div>
+                                <p className="text-xs text-muted-foreground">Erfüllte Kernanforderungen</p>
                             </CardContent>
                         </Card>
                         <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Risiken dokumentiert</CardTitle>
                                 <History className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold flex items-center gap-2"><X className="text-muted-foreground h-6 w-6"/> Nein</div>
-                                <p className="text-xs text-muted-foreground">Zeigt, ob ein Risiko-Assessment nach ISO 42001 existiert</p>
+                                <div className={cn("text-2xl font-bold flex items-center gap-2", risksDocumented ? "text-green-600" : "text-muted-foreground")}>
+                                    {risksDocumented ? <Check/> : <X/>}
+                                    {risksDocumented ? 'Ja' : 'Nein'}
+                                </div>
+                                <p className="text-xs text-muted-foreground">Risikobewertung nach ISO 42001</p>
                             </CardContent>
                         </Card>
                          <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Policies vorhanden</CardTitle>
                                 <Building className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold flex items-center gap-2"><Check className="text-green-500 h-6 w-6"/> Ja</div>
-                                <p className="text-xs text-muted-foreground">Anzahl vorhandener KI-relevanter Richtlinien</p>
+                                 <div className={cn("text-2xl font-bold flex items-center gap-2", policiesExist ? "text-green-600" : "text-muted-foreground")}>
+                                     {policiesExist ? <Check/> : <X/>}
+                                     {policiesExist ? 'Ja' : 'Nein'}
+                                </div>
+                                <p className="text-xs text-muted-foreground">Grundlegende Richtlinien vorhanden</p>
                             </CardContent>
                         </Card>
                         <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Auditfähigkeit</CardTitle>
-                                <LineChart className="h-4 w-4 text-muted-foreground" />
+                                <Gauge className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                              <CardContent>
                                 <div className="text-2xl font-bold flex items-center gap-2">
-                                     <div className="w-4 h-4 rounded-full bg-yellow-500" />
-                                     Gelb
+                                     <div className={cn("w-4 h-4 rounded-full", auditability.color)} />
+                                     {auditability.label}
                                 </div>
-                                <p className="text-xs text-muted-foreground">Bewertet, wie gut das Managementsystem auditierbar ist</p>
+                                <p className="text-xs text-muted-foreground">Grad der ISO-Auditvorbereitung</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -297,8 +333,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </AlertDescription>
                     </Alert>
                 )}
-
-                <Card className="shadow-lg">
+                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Übersicht des Compliance-Status</CardTitle>
                         <CardDescription>Das Managementsystem (ISO 42001) ergänzt die gesetzlichen Anforderungen (EU AI Act).<br/>Links: Was Sie tun müssen. Rechts: Wie Sie es dauerhaft sicherstellen.</CardDescription>
@@ -476,4 +511,3 @@ const StepContent = ({ content }: { content: string }) => {
     );
 };
 
-    
