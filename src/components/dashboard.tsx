@@ -178,7 +178,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </TabsTrigger>
                  <TabsTrigger value="iso" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    ISO 42001 / AI Management System
+                    ISO 42001
                 </TabsTrigger>
                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
@@ -469,4 +469,3 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
-
