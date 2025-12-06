@@ -13,9 +13,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info } from "lucide-react";
 import { getAimsData, saveAimsData, getActiveProjectId } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 const TOTAL_STEPS = 6;
 
@@ -170,7 +172,7 @@ export function AimsWizard() {
 
     if (step > TOTAL_STEPS) {
         return (
-            <Card className="w-full max-w-2xl shadow-lg">
+            <Card className="w-full max-w-2xl shadow-lg mt-8">
                 <CardHeader>
                     <CardTitle>AI Management System erstellt</CardTitle>
                 </CardHeader>
@@ -186,18 +188,20 @@ export function AimsWizard() {
     }
 
     return (
-        <Card className="w-full max-w-4xl shadow-lg">
+        <Card className="w-full max-w-4xl shadow-md mt-8">
             <CardHeader>
+                <div className="mb-4">
+                    <p className="font-semibold text-gray-700">Schritt {step} von {TOTAL_STEPS}</p>
+                    <Progress value={progress} className="mt-2 w-full" />
+                </div>
                 <CardTitle>AI Management System Setup (ISO 42001)</CardTitle>
-                <CardDescription>Schritt {step} von {TOTAL_STEPS}</CardDescription>
-                <Progress value={progress} className="mt-2" />
             </CardHeader>
             <CardContent className="overflow-hidden min-h-[400px]">
                 <AnimatePresence mode="wait">
                     {step === 1 && (
                         <motion.div key={1} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Kontext & Geltungsbereich</h3>
-                            <p className="text-sm text-muted-foreground">Definieren Sie, für welche KI-Systeme und Prozesse das AI-Managementsystem gelten soll.</p>
+                            <p className="text-sm text-gray-700 mb-4">Definieren Sie, für welche KI-Systeme und Prozesse das AI-Managementsystem gelten soll.</p>
                             <div className="space-y-2">
                                 <Label htmlFor="scope">Geltungsbereich Ihres AI-Managementsystems</Label>
                                 <Textarea id="scope" placeholder="z.B. Alle KI-gestützten Kundeninteraktionen in der EU..." value={data.scope} onChange={(e) => setData({...data, scope: e.target.value})} />
@@ -219,16 +223,16 @@ export function AimsWizard() {
                     {step === 2 && (
                         <motion.div key={2} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Stakeholder & Anforderungen</h3>
-                             <p className="text-sm text-muted-foreground">Identifizieren Sie Personen und Gruppen, die von Ihrem KI-Einsatz betroffen sind.</p>
+                             <p className="text-sm text-gray-700 mb-4">Identifizieren Sie Personen und Gruppen, die von Ihrem KI-Einsatz betroffen sind.</p>
                              {data.stakeholders.map((stakeholder, index) => (
-                                 <Card key={stakeholder.id} className="p-4 bg-secondary">
+                                 <Card key={stakeholder.id} className="p-4 bg-secondary border-gray-200 mt-4 shadow-sm">
                                     <CardContent className="space-y-3 p-0">
                                         <div className="flex justify-between items-center">
-                                            <Label>Stakeholder #{index + 1}</Label>
-                                            <Button variant="ghost" size="icon" onClick={() => removeStakeholder(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                            <Label className="font-semibold text-gray-700">Stakeholder #{index + 1}</Label>
+                                            <Button variant="ghost" size="icon" onClick={() => removeStakeholder(index)}><Trash2 className="h-4 w-4 text-gray-400 hover:text-destructive transition-colors"/></Button>
                                         </div>
                                         <Input placeholder="Name / Gruppe (z.B. Kunden, Nutzer)" value={stakeholder.name} onChange={(e) => handleStakeholderChange(index, 'name', e.target.value)} />
-                                        <Textarea placeholder="Erwartung / Interesse" value={stakeholder.expectation} onChange={(e) => handleStakeholderChange(index, 'expectation', e.target.value)} />
+                                        <Textarea placeholder="Erwartung / Interesse" value={stakeholder.expectation} onChange={(e) => handleStakeholderChange(index, 'expectation', e.target.value)} rows={2} />
                                          <Select value={stakeholder.influence} onValueChange={(v: any) => handleStakeholderChange(index, 'influence', v)}>
                                             <SelectTrigger><SelectValue placeholder="Einfluss..." /></SelectTrigger>
                                             <SelectContent>
@@ -242,23 +246,23 @@ export function AimsWizard() {
                                     </CardContent>
                                  </Card>
                              ))}
-                             <Button variant="outline" onClick={addStakeholder} className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Stakeholder hinzufügen</Button>
+                             <Button variant="outline" onClick={addStakeholder} className="w-full mt-4"><PlusCircle className="mr-2 h-4 w-4"/> Stakeholder hinzufügen</Button>
                         </motion.div>
                     )}
                      {step === 3 && (
                         <motion.div key={3} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Grundlegende KI-Policy</h3>
-                            <p className="text-sm text-muted-foreground">Formulieren Sie die Leitlinien für den verantwortungsvollen KI-Einsatz.</p>
+                            <p className="text-sm text-gray-700 mb-4">Formulieren Sie die Leitlinien für den verantwortungsvollen KI-Einsatz.</p>
                             <Textarea className="min-h-[300px]" placeholder="Beschreiben Sie Prinzipien zu Sicherheit, Transparenz, Fairness, Verantwortlichkeiten..." value={data.policy} onChange={(e) => setData({...data, policy: e.target.value})}/>
                         </motion.div>
                     )}
                     {step === 4 && (
                         <motion.div key={4} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Rollen & Verantwortlichkeiten (RACI)</h3>
-                             <p className="text-sm text-muted-foreground">Legen Sie fest, wer für welche AI-Governance-Aufgabe verantwortlich ist.</p>
+                             <p className="text-sm text-gray-700 mb-4">Legen Sie fest, wer für welche AI-Governance-Aufgabe verantwortlich ist.</p>
                              <div className="space-y-2">
                                 {data.raci.map((row, index) => (
-                                    <div key={row.id} className="grid grid-cols-[1fr_auto] items-end gap-2 p-2 border rounded-md bg-secondary">
+                                    <div key={row.id} className="grid grid-cols-[1fr_auto] items-end gap-2 p-2 border border-gray-200 rounded-lg bg-secondary">
                                         <div className="grid grid-cols-5 gap-2">
                                             <Input placeholder="Aufgabe" value={row.task} onChange={(e) => handleRaciChange(index, 'task', e.target.value)} />
                                             <Input placeholder="Responsible" value={row.responsible} onChange={(e) => handleRaciChange(index, 'responsible', e.target.value)} />
@@ -266,55 +270,73 @@ export function AimsWizard() {
                                             <Input placeholder="Consulted" value={row.consulted} onChange={(e) => handleRaciChange(index, 'consulted', e.target.value)} />
                                             <Input placeholder="Informed" value={row.informed} onChange={(e) => handleRaciChange(index, 'informed', e.target.value)} />
                                         </div>
-                                        <Button variant="ghost" size="icon" onClick={() => removeRaciRow(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                        <Button variant="ghost" size="icon" onClick={() => removeRaciRow(index)}><Trash2 className="h-4 w-4 text-gray-400 hover:text-destructive transition-colors"/></Button>
                                     </div>
                                 ))}
                              </div>
-                             <Button variant="outline" onClick={addRaciRow} className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Aufgabe hinzufügen</Button>
+                             <Button variant="outline" onClick={addRaciRow} className="w-full mt-4"><PlusCircle className="mr-2 h-4 w-4"/> Aufgabe hinzufügen</Button>
                         </motion.div>
                     )}
                      {step === 5 && (
                         <motion.div key={5} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                            <h3 className="font-semibold text-lg">Risikomanagement nach ISO 42001</h3>
-                            <p className="text-sm text-muted-foreground">Analysieren Sie Risiken und Chancen im Zusammenhang mit Ihren KI-Systemen.</p>
-                             {data.risks.map((risk, index) => (
-                                 <Card key={risk.id} className="p-4 bg-secondary">
-                                    <CardContent className="space-y-3 p-0">
-                                        <div className="flex justify-between items-center">
-                                            <Label>Risiko #{index + 1}</Label>
-                                            <Button variant="ghost" size="icon" onClick={() => removeRisk(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                        </div>
-                                        <Textarea placeholder="Risiko-Beschreibung" value={risk.description} onChange={(e) => handleRiskChange(index, 'description', e.target.value)} />
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <Select value={risk.impact} onValueChange={(v: any) => handleRiskChange(index, 'impact', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Auswirkung..." /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="high">Hoch</SelectItem>
-                                                    <SelectItem value="medium">Mittel</SelectItem>
-                                                    <SelectItem value="low">Niedrig</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            <Select value={risk.likelihood} onValueChange={(v: any) => handleRiskChange(index, 'likelihood', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Eintrittswahrscheinlichkeit..." /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="high">Hoch</SelectItem>
-                                                    <SelectItem value="medium">Mittel</SelectItem>
-                                                    <SelectItem value="low">Niedrig</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <Textarea placeholder="Bestehende Kontrollen" value={risk.controls} onChange={(e) => handleRiskChange(index, 'controls', e.target.value)} />
-                                        <Textarea placeholder="Geplante Maßnahmen" value={risk.measures} onChange={(e) => handleRiskChange(index, 'measures', e.target.value)} />
-                                    </CardContent>
-                                 </Card>
-                             ))}
-                             <Button variant="outline" onClick={addRisk} className="w-full"><PlusCircle className="mr-2 h-4 w-4"/> Risiko hinzufügen</Button>
+                            <p className="text-sm text-gray-700 mb-4">Analysieren Sie Risiken und Chancen im Zusammenhang mit Ihren KI-Systemen.</p>
+                             <TooltipProvider>
+                                {data.risks.map((risk, index) => (
+                                    <Card key={risk.id} className="p-4 bg-secondary border-gray-200 mt-4 shadow-sm">
+                                        <CardContent className="space-y-3 p-0">
+                                            <div className="flex justify-between items-center">
+                                                <Label className="font-semibold text-gray-700">Risiko #{index + 1}</Label>
+                                                <Button variant="ghost" size="icon" onClick={() => removeRisk(index)}><Trash2 className="h-4 w-4 text-gray-400 hover:text-destructive transition-colors"/></Button>
+                                            </div>
+                                            <Textarea placeholder="Risiko-Beschreibung" value={risk.description} onChange={(e) => handleRiskChange(index, 'description', e.target.value)} rows={2} />
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Label className="flex items-center gap-1 cursor-help">Auswirkung <Info className="h-3 w-3" /></Label>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p>Wie stark wäre die Auswirkung, wenn das Risiko eintritt?</p></TooltipContent>
+                                                    </Tooltip>
+                                                    <Select value={risk.impact} onValueChange={(v: any) => handleRiskChange(index, 'impact', v)}>
+                                                        <SelectTrigger><SelectValue placeholder="Auswirkung..." /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="high">Hoch</SelectItem>
+                                                            <SelectItem value="medium">Mittel</SelectItem>
+                                                            <SelectItem value="low">Niedrig</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Label className="flex items-center gap-1 cursor-help">Eintrittswahrscheinlichkeit <Info className="h-3 w-3" /></Label>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent><p>Wie wahrscheinlich ist der Eintritt dieses Risikos?</p></TooltipContent>
+                                                    </Tooltip>
+                                                    <Select value={risk.likelihood} onValueChange={(v: any) => handleRiskChange(index, 'likelihood', v)}>
+                                                        <SelectTrigger><SelectValue placeholder="Wahrscheinlichkeit..." /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="high">Hoch</SelectItem>
+                                                            <SelectItem value="medium">Mittel</SelectItem>
+                                                            <SelectItem value="low">Niedrig</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            <Textarea placeholder="Bestehende Kontrollen" value={risk.controls} onChange={(e) => handleRiskChange(index, 'controls', e.target.value)} rows={2} />
+                                            <Textarea placeholder="Geplante Maßnahmen" value={risk.measures} onChange={(e) => handleRiskChange(index, 'measures', e.target.value)} rows={2} />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </TooltipProvider>
+                             <Button variant="outline" onClick={addRisk} className="w-full mt-4"><PlusCircle className="mr-2 h-4 w-4"/> Risiko hinzufügen</Button>
                         </motion.div>
                     )}
                      {step === 6 && (
                         <motion.div key={6} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
                             <h3 className="font-semibold text-lg">Monitoring, KPIs & Verbesserungsprozess</h3>
-                            <p className="text-sm text-muted-foreground">Legen Sie fest, wie Sie den KI-Einsatz überwachen und kontinuierlich verbessern.</p>
+                            <p className="text-sm text-gray-700 mb-4">Legen Sie fest, wie Sie den KI-Einsatz überwachen und kontinuierlich verbessern.</p>
                              <div className="space-y-2">
                                 <Label htmlFor="kpis">KPIs zur Leistung</Label>
                                 <Textarea id="kpis" placeholder="z.B. Genauigkeit der Vorhersagen, Nutzerzufriedenheit, Anzahl der menschlichen Eingriffe..." value={data.kpis} onChange={(e) => setData({...data, kpis: e.target.value})}/>
@@ -343,9 +365,9 @@ export function AimsWizard() {
                      {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Speichern...</> : 'Speichern & später fortfahren'}
                 </Button>
                 {step < TOTAL_STEPS ? (
-                    <Button onClick={nextStep}>Weiter</Button>
+                    <Button onClick={nextStep} size="lg">Weiter <ChevronsRight className="ml-2 h-4 w-4" /></Button>
                 ) : (
-                    <Button onClick={handleFinish}>Speichern & Fortfahren</Button>
+                    <Button onClick={handleFinish} size="lg">Speichern & Fortfahren</Button>
                 )}
             </CardFooter>
         </Card>
