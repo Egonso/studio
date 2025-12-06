@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy } from 'lucide-react';
+import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy, FileType } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import type { AimsProgress } from '@/lib/data-service';
 
 
 interface AimsExportData {
@@ -26,7 +28,7 @@ interface AimsExportData {
   monitoringProcess: string;
   auditRhythm: string;
   improvementProcess: string;
-  aimsProgress: any;
+  aimsProgress: AimsProgress;
   generatedAt: string;
 }
 
@@ -101,6 +103,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
 export function AimsExportDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const [exportData, setExportData] = useState<AimsExportData | null>(null);
     const [markdownContent, setMarkdownContent] = useState('');
     const [jsonContent, setJsonContent] = useState('');
@@ -128,6 +131,40 @@ export function AimsExportDialog() {
             fetchData();
         }
     }, [open]);
+    
+    const handleExportPdf = async () => {
+        if (!exportData) return;
+        setIsGeneratingPdf(true);
+        console.log("Preparing to call 'generateAimsPdf' Cloud Function with payload:", exportData);
+        
+        try {
+            // This part is a placeholder for the actual Cloud Function call.
+            // It simulates the call and shows a toast.
+            // Once the function is deployed, this will trigger the PDF generation.
+            
+            // const functions = getFunctions();
+            // const generateAimsPdf = httpsCallable(functions, 'generateAimsPdf');
+            // const result = await generateAimsPdf({ aimsExport: exportData });
+            // const { downloadUrl } = result.data as { downloadUrl: string };
+            // window.open(downloadUrl, '_blank');
+
+            toast({
+                title: "PDF-Export in Vorbereitung",
+                description: "Die serverseitige PDF-Generierung ist noch nicht aktiviert. Bitte deployen Sie die 'generateAimsPdf' Cloud Function.",
+                variant: "default",
+            });
+
+        } catch (error) {
+            console.error("PDF generation call failed:", error);
+             toast({
+                title: "Fehler beim PDF-Export",
+                description: "Der Aufruf der Cloud Function ist fehlgeschlagen. Prüfen Sie die Entwicklerkonsole für Details.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsGeneratingPdf(false);
+        }
+    };
 
     const handleCopy = (content: string, type: string) => {
         navigator.clipboard.writeText(content);
@@ -201,19 +238,11 @@ export function AimsExportDialog() {
                     </Tabs>
                 )}
 
-                <DialogFooter className="sm:justify-between items-center">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div tabIndex={0}>
-                                    <Button variant="outline" disabled>PDF-Export (in Vorbereitung)</Button>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Diese Funktion wird in einer späteren Version aktiviert.</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                <DialogFooter className="sm:justify-between items-center pt-4">
+                    <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
+                        {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileType className="mr-2 h-4 w-4" />}
+                        PDF-Export
+                    </Button>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">Schließen</Button>
                     </DialogClose>
@@ -222,4 +251,3 @@ export function AimsExportDialog() {
         </Dialog>
     );
 }
-
