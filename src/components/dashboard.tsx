@@ -468,7 +468,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
             </TabsContent>
             
             <TabsContent value="ai-management">
-                 {/* Content will be handled by /cbd page */}
+                 {/* Content will be handled by /ai-management page */}
             </TabsContent>
 
             <TabsContent value="cbs">
@@ -510,4 +510,3 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
-
