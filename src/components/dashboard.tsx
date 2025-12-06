@@ -178,7 +178,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </TabsTrigger>
                  <TabsTrigger value="iso" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    ISO 42001 / AIMS
+                    ISO 42001 / AI Management System
                 </TabsTrigger>
                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
@@ -235,7 +235,8 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </div>
                 
                  <div>
-                    <h3 className="text-xl font-bold tracking-tight mb-4">ISO 42001 Status</h3>
+                    <h3 className="text-xl font-bold tracking-tight mb-2">ISO 42001 Status</h3>
+                    <p className="text-sm text-muted-foreground mb-4">ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.</p>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -244,7 +245,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">0/6</div>
-                                <p className="text-xs text-muted-foreground">Anforderungen erfüllt</p>
+                                <p className="text-xs text-muted-foreground">Erfüllte Kernanforderungen des AI-Managementsystems</p>
                             </CardContent>
                         </Card>
                         <Card>
@@ -254,7 +255,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold flex items-center gap-2"><X className="text-red-500 h-6 w-6"/> Nein</div>
-                                <p className="text-xs text-muted-foreground">Risiko-Assessment fehlt</p>
+                                <p className="text-xs text-muted-foreground">Zeigt, ob ein Risiko-Assessment nach ISO 42001 existiert</p>
                             </CardContent>
                         </Card>
                          <Card>
@@ -264,7 +265,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold flex items-center gap-2"><Check className="text-green-500 h-6 w-6"/> Ja</div>
-                                <p className="text-xs text-muted-foreground">Via Compliance-in-a-Day</p>
+                                <p className="text-xs text-muted-foreground">Anzahl vorhandener KI-relevanter Richtlinien</p>
                             </CardContent>
                         </Card>
                         <Card>
@@ -277,7 +278,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                      <div className="w-4 h-4 rounded-full bg-yellow-500" />
                                      Gelb
                                 </div>
-                                <p className="text-xs text-muted-foreground">Teilweise nachweisbar</p>
+                                <p className="text-xs text-muted-foreground">Bewertet, wie gut das Managementsystem auditierbar ist</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -469,4 +470,3 @@ const StepContent = ({ content }: { content: string }) => {
     );
 };
 
-    
