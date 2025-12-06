@@ -176,9 +176,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                      <ListChecks className="mr-2 h-4 w-4" />
                     AI Act Pflichten
                 </TabsTrigger>
-                 <TabsTrigger value="iso" onClick={() => router.push('/cbd')}>
+                 <TabsTrigger value="ai-management" onClick={() => router.push('/cbd')}>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    AI Management System
+                    AI Management
                 </TabsTrigger>
                 <TabsTrigger value="cbs" onClick={() => router.push('/cbs')}>
                     <Wand2 className="mr-2 h-4 w-4" />
@@ -196,7 +196,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
 
             <TabsContent value="compliance-status" className="space-y-6">
                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Card>
+                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle>
                         <ShieldCheck className="h-4 w-4 text-green-600" />
@@ -208,7 +208,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                         </p>
                     </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-yellow-600" />
@@ -220,7 +220,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                         </p>
                     </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle>
                         <ShieldAlert className="h-4 w-4 text-red-600" />
@@ -236,9 +236,11 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 
                  <div>
                     <h3 className="text-xl font-bold tracking-tight mb-2">ISO 42001 Status</h3>
-                    <p className="text-sm text-muted-foreground mb-4">ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.
+                    </p>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Card>
+                        <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">AIMS implementiert</CardTitle>
                                 <FileClock className="h-4 w-4 text-muted-foreground" />
@@ -248,7 +250,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                 <p className="text-xs text-muted-foreground">Erfüllte Kernanforderungen des AI-Managementsystems</p>
                             </CardContent>
                         </Card>
-                        <Card>
+                        <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Risiken dokumentiert</CardTitle>
                                 <History className="h-4 w-4 text-muted-foreground" />
@@ -258,7 +260,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                 <p className="text-xs text-muted-foreground">Zeigt, ob ein Risiko-Assessment nach ISO 42001 existiert</p>
                             </CardContent>
                         </Card>
-                         <Card>
+                         <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Policies vorhanden</CardTitle>
                                 <Building className="h-4 w-4 text-muted-foreground" />
@@ -268,7 +270,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                 <p className="text-xs text-muted-foreground">Anzahl vorhandener KI-relevanter Richtlinien</p>
                             </CardContent>
                         </Card>
-                        <Card>
+                        <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Auditfähigkeit</CardTitle>
                                 <LineChart className="h-4 w-4 text-muted-foreground" />
@@ -295,9 +297,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </AlertDescription>
                     </Alert>
                 )}
-            </TabsContent>
 
-             <TabsContent value="ai-act-duties">
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Übersicht des Compliance-Status</CardTitle>
@@ -427,8 +427,12 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     </CardContent>
                 </Card>
             </TabsContent>
+
+             <TabsContent value="ai-act-duties">
+                <p>Platzhalter für die detaillierten AI Act Pflichten.</p>
+            </TabsContent>
             
-            <TabsContent value="iso">
+            <TabsContent value="ai-management">
                  {/* Content will be handled by /cbd page */}
             </TabsContent>
 
