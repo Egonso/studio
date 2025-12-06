@@ -63,10 +63,10 @@ const statusConfig = {
 
 const isoCategories: ComplianceItem[] = [
     { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-leadership', title: 'Leadership & Policies', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: 'At Risk', details: 'Noch nicht bewertet.' },
+    { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: 'At Risk', details: 'Noch nicht bewertet.' },
     { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-operation', title: 'Operation / Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-monitoring', title: 'Monitoring & KPIs', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: 'At Risk', details: 'Noch nicht bewertet.' },
+    { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: 'At Risk', details: 'Noch nicht bewertet.' },
+    { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: 'At Risk', details: 'Noch nicht bewertet.' },
     { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: 'At Risk', details: 'Noch nicht bewertet.' },
 ];
 
@@ -301,12 +301,13 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Übersicht des Compliance-Status</CardTitle>
-                        <CardDescription>Klicken Sie auf einen Punkt, um eine detaillierte Compliance-Checkliste zu sehen.</CardDescription>
+                        <CardDescription>Das Managementsystem (ISO 42001) ergänzt die gesetzlichen Anforderungen (EU AI Act).<br/>Links: Was Sie tun müssen. Rechts: Wie Sie es dauerhaft sicherstellen.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
                         {/* EU AI Act Column */}
                         <div>
-                             <h3 className="font-semibold text-lg mb-4">EU AI Act Pflichten</h3>
+                             <h3 className="font-semibold text-lg mb-2">EU AI Act Pflichten</h3>
+                             <p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
                              <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
                                 if (value) {
                                     const item = complianceItems.find(i => i.id === value);
@@ -398,8 +399,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                         </div>
 
                          {/* ISO 42001 Column */}
-                        <div>
-                             <h3 className="font-semibold text-lg mb-4">ISO 42001 Managementsystem</h3>
+                        <div className="border-l border-gray-200 pl-8">
+                             <h3 className="font-semibold text-lg mb-2">ISO 42001 Managementsystem</h3>
+                             <p className="text-sm text-muted-foreground mb-4">Strukturelle Prozesse & Governance nach ISO/IEC 42001.</p>
                              <Accordion type="single" collapsible className="w-full">
                                 {isoCategories.map((item) => {
                                     const config = statusConfig[item.status];
@@ -471,3 +473,6 @@ const StepContent = ({ content }: { content: string }) => {
 };
 
 
+
+
+    
