@@ -265,8 +265,8 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </div>
                 
                  <div>
-                    <h3 className="text-xl font-bold tracking-tight mb-2">ISO 42001 Status</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <h3 className="text-xl font-bold tracking-tight mb-2">AI Management System Status</h3>
+                     <p className="text-sm text-muted-foreground mb-4">
                         ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.
                     </p>
                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -277,7 +277,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{completedSteps}/6</div>
-                                <p className="text-xs text-muted-foreground">Erfüllte Kernanforderungen</p>
+                                <p className="text-xs text-muted-foreground">Erfüllte Anforderungen</p>
                             </CardContent>
                         </Card>
                         <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
@@ -336,26 +336,20 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                  <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Übersicht des Compliance-Status</CardTitle>
-                        <CardDescription>Das Managementsystem (ISO 42001) ergänzt die gesetzlichen Anforderungen (EU AI Act).<br/>Links: Was Sie tun müssen. Rechts: Wie Sie es dauerhaft sicherstellen.</CardDescription>
+                        <CardDescription>
+                            Das Managementsystem (ISO 42001) ergänzt die gesetzlichen Anforderungen (EU AI Act).
+                            <br/>Links: Was Sie tun müssen. Rechts: Wie Sie es dauerhaft sicherstellen.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
                         {/* EU AI Act Column */}
                         <div>
                              <h3 className="font-semibold text-lg mb-2">EU AI Act Pflichten</h3>
                              <p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
-                             <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
-                                if (value) {
-                                    const item = complianceItems.find(i => i.id === value);
-                                    if (item) {
-                                        handleAccordionChange(value, item);
-                                    }
-                                }
-                            }}>
+                             <Accordion type="single" collapsible className="w-full">
                                 {complianceItems.map((item) => {
                                     const config = statusConfig[item.status];
                                     const Icon = config.icon;
-                                    const state = checklistState[item.id];
-                                    const isCompliant = item.status === 'Compliant';
                                     
                                     return (
                                         <AccordionItem value={item.id} key={item.id}>
@@ -369,63 +363,9 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                                         <AccordionContent className="pl-10 space-y-4 text-sm">
                                             <p className="text-muted-foreground font-semibold">{item.description}</p>
                                             <p className="italic">Status-Begründung: {item.details}</p>
-                                            
-                                            <Card className="mt-4 bg-secondary/50">
-                                                <CardHeader>
-                                                    <CardTitle className="text-lg flex items-center gap-2">
-                                                        <ListChecks className="h-5 w-5 text-primary"/>
-                                                        {isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generiere Checkliste...</div>}
-                                                    {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Fehler</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
-                                                    {state?.data && (
-                                                        <div className="space-y-2">
-                                                            {state.data.checklist.map((task) => {
-                                                                const isChecked = !!state.checkedTasks[task.id];
-                                                                const taskProps = {
-                                                                    onClick: () => handleTaskClick(task, item),
-                                                                    className: cn(
-                                                                        "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
-                                                                        isCompliant 
-                                                                            ? 'cursor-default bg-background/50'
-                                                                            : (isChecked 
-                                                                                ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default"
-                                                                                : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer")
-                                                                    )
-                                                                };
-                                                                
-                                                                const content = (
-                                                                    <>
-                                                                    <div className="flex items-start gap-4">
-                                                                        {isCompliant || isChecked ? (
-                                                                            <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" />
-                                                                        ) : (
-                                                                            <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                                                                        )}
-                                                                        <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
-                                                                            <StepContent content={task.description} />
-                                                                        </p>
-                                                                    </div>
-                                                                    {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
-                                                                    </>
-                                                                );
-
-                                                                if (isCompliant || isChecked) {
-                                                                    return <div key={task.id} {...taskProps}>{content}</div>;
-                                                                }
-
-                                                                return (
-                                                                    <div key={task.id} {...taskProps}>
-                                                                        {content}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
+                                            <Button variant="secondary" size="sm" onClick={() => setActiveTab("ai-act-duties")}>
+                                                Zur Detailansicht & Checkliste <ArrowRight className="ml-2 h-4 w-4"/>
+                                            </Button>
                                         </AccordionContent>
                                         </AccordionItem>
                                     );
@@ -566,7 +506,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                  {/* Content will be handled by /ai-management page */}
             </TabsContent>
 
-            <TabsContent value="cbs">
+             <TabsContent value="cbs">
                  {/* Content will be handled by /cbs page, this just makes the tab exist */}
             </TabsContent>
 
@@ -605,5 +545,7 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    
 
     
