@@ -165,9 +165,6 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div className="flex items-start justify-between space-y-2 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Dashboard
-          </h1>
           <p className="text-muted-foreground">
             Projekt: <span className="font-semibold">{projectName}</span>
           </p>
@@ -187,7 +184,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
       </div>
 
        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="compliance-status">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance-Status
@@ -541,5 +538,3 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
-
-    
