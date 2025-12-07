@@ -2,15 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAimsData, getAimsProgress, getFullProject } from '@/lib/data-service';
+import axios from 'axios';
+import { getFullProject } from '@/lib/data-service';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy, FileType } from 'lucide-react';
+import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy, FileType, FileSignature } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import type { AimsProgress } from '@/lib/data-service';
 
 
@@ -103,7 +102,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
 export function AimsExportDialog() {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+    const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
     const [exportData, setExportData] = useState<AimsExportData | null>(null);
     const [markdownContent, setMarkdownContent] = useState('');
     const [jsonContent, setJsonContent] = useState('');
@@ -132,37 +131,65 @@ export function AimsExportDialog() {
         }
     }, [open]);
     
-    const handleExportPdf = async () => {
+    const handleExportDocument = async (format: 'pdf' | 'docx') => {
         if (!exportData) return;
-        setIsGeneratingPdf(true);
-        console.log("Preparing to call 'generateAimsPdf' Cloud Function with payload:", exportData);
-        
-        try {
-            // This part is a placeholder for the actual Cloud Function call.
-            // It simulates the call and shows a toast.
-            // Once the function is deployed, this will trigger the PDF generation.
-            
-            // const functions = getFunctions();
-            // const generateAimsPdf = httpsCallable(functions, 'generateAimsPdf');
-            // const result = await generateAimsPdf({ aimsExport: exportData });
-            // const { downloadUrl } = result.data as { downloadUrl: string };
-            // window.open(downloadUrl, '_blank');
+        setIsGeneratingDoc(true);
 
+        const apiKey = process.env.NEXT_PUBLIC_DOCUMENTERO_API_KEY;
+
+        if (!apiKey) {
             toast({
-                title: "PDF-Export in Vorbereitung",
-                description: "Die serverseitige PDF-Generierung ist noch nicht aktiviert. Bitte deployen Sie die 'generateAimsPdf' Cloud Function.",
-                variant: "default",
+                title: "Fehler: API-Schlüssel fehlt",
+                description: "Der Documentero API-Schlüssel ist nicht in den Umgebungsvariablen konfiguriert.",
+                variant: "destructive",
+            });
+            setIsGeneratingDoc(false);
+            return;
+        }
+        
+        const payload = {
+            document: 'jyhIyFKzOaQps7aWLoyX',
+            format: format,
+            data: {
+              ...exportData,
+              'aimsProgress.step1_complete': exportData.aimsProgress?.step1_complete ?? false,
+              'aimsProgress.step2_complete': exportData.aimsProgress?.step2_complete ?? false,
+              'aimsProgress.step3_complete': exportData.aimsProgress?.step3_complete ?? false,
+              'aimsProgress.step4_complete': exportData.aimsProgress?.step4_complete ?? false,
+              'aimsProgress.step5_complete': exportData.aimsProgress?.step5_complete ?? false,
+              'aimsProgress.step6_complete': exportData.aimsProgress?.step6_complete ?? false,
+              'aimsProgress.updatedAt': exportData.aimsProgress?.updatedAt ? new Date((exportData.aimsProgress.updatedAt as any).seconds * 1000).toLocaleString('de-DE') : '',
+               generatedAt: new Date(exportData.generatedAt).toLocaleString('de-DE'),
+            },
+        };
+
+        try {
+            const response = await axios.post('https://app.documentero.com/api', payload, {
+                headers: {
+                    'Authorization': `apiKey ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
-        } catch (error) {
-            console.error("PDF generation call failed:", error);
+            if (response.data && response.data.status === 200 && response.data.data) {
+                window.open(response.data.data, '_blank');
+                toast({
+                    title: "Dokument wird heruntergeladen",
+                    description: `Ihr ${format.toUpperCase()}-Dokument wurde erfolgreich generiert und wird in einem neuen Tab geöffnet.`,
+                });
+            } else {
+                throw new Error(response.data.message || 'Unbekannter Fehler bei der Dokumentenerstellung.');
+            }
+
+        } catch (error: any) {
+            console.error("Documentero API call failed:", error);
              toast({
-                title: "Fehler beim PDF-Export",
-                description: "Der Aufruf der Cloud Function ist fehlgeschlagen. Prüfen Sie die Entwicklerkonsole für Details.",
+                title: `Fehler beim ${format.toUpperCase()}-Export`,
+                description: error.response?.data?.message || error.message || "Die Dokumentenerstellung ist fehlgeschlagen.",
                 variant: "destructive",
             });
         } finally {
-            setIsGeneratingPdf(false);
+            setIsGeneratingDoc(false);
         }
     };
 
@@ -239,10 +266,16 @@ export function AimsExportDialog() {
                 )}
 
                 <DialogFooter className="sm:justify-between items-center pt-4">
-                    <Button variant="outline" onClick={handleExportPdf} disabled={isGeneratingPdf}>
-                        {isGeneratingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileType className="mr-2 h-4 w-4" />}
-                        PDF-Export
-                    </Button>
+                     <div className="flex gap-2">
+                        <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc}>
+                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileType className="mr-2 h-4 w-4" />}
+                            PDF-Export
+                        </Button>
+                        <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc}>
+                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileSignature className="mr-2 h-4 w-4" />}
+                            DOCX-Export
+                        </Button>
+                    </div>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">Schließen</Button>
                     </DialogClose>
