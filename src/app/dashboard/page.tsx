@@ -2,21 +2,16 @@
 "use client";
 
 import { AppHeader } from "@/components/app-header";
-import { Dashboard } from "@/components/dashboard";
-import type { ComplianceItem } from "@/lib/types";
-import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
+import { Dashboard, type FullComplianceInfo } from "@/components/dashboard";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { deriveComplianceState, recalculateComplianceStatus } from "@/lib/compliance-logic";
+import { deriveComplianceState } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getAssessmentAnswers, getChecklistState, saveChecklistState, setActiveProjectId, getActiveProjectId, getFullProject } from "@/lib/data-service";
+import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjectId } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
 
 function DashboardPageContent() {
-    const [initialComplianceData, setInitialComplianceData] = useState<ComplianceItem[] | null>(null);
-    const [checklistState, setChecklistState] = useState<any>({});
+    const [fullComplianceData, setFullComplianceData] = useState<FullComplianceInfo[] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [projectName, setProjectName] = useState('');
     const [projectData, setProjectData] = useState<any>(null);
@@ -46,13 +41,17 @@ function DashboardPageContent() {
             }
 
             const derivedData = deriveComplianceState(answers);
-            setInitialComplianceData(derivedData);
+            const savedChecklistState = fullProjectData.checklistState || {};
+            
+            const enrichedData: FullComplianceInfo[] = derivedData.map(item => ({
+                ...item,
+                checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
+            }));
 
-            const savedChecklistState = fullProjectData.checklistState;
-            if (savedChecklistState) {
-                setChecklistState(savedChecklistState);
-            }
+            setFullComplianceData(enrichedData);
+
         } else {
+            console.warn("No project data found, redirecting to projects page.");
             router.push('/projects');
             return;
         }
@@ -66,34 +65,48 @@ function DashboardPageContent() {
             router.push('/login');
             return;
         }
-        if (projectId) {
-            loadData(projectId);
-        } else {
-            const activeProjectId = getActiveProjectId();
-            if (activeProjectId) {
+        
+        const activeProjectId = projectId || getActiveProjectId();
+
+        if (activeProjectId) {
+            if (activeProjectId !== projectId) {
+                // Ensure URL reflects the active project
                 router.push(`/dashboard?projectId=${activeProjectId}`);
             } else {
-                router.push('/projects');
+                loadData(activeProjectId);
             }
+        } else {
+            router.push('/projects');
         }
     }, [router, user, authLoading, projectId, loadData]);
 
-    const complianceData = useMemo(() => {
-        if (!initialComplianceData) return null;
-        
-        return initialComplianceData.map(item => 
-            recalculateComplianceStatus(item, checklistState[item.id])
-        );
 
-    }, [initialComplianceData, checklistState]);
+    const updateChecklistStateInDb = useCallback(async (data: FullComplianceInfo[]) => {
+        if (!user || isLoading) return;
+
+        const checklistStateToSave = data.reduce((acc, item) => {
+            if (item.checklistState) {
+                acc[item.id] = {
+                    data: item.checklistState.data,
+                    checkedTasks: item.checklistState.checkedTasks
+                };
+            }
+            return acc;
+        }, {} as any);
+
+        if (Object.keys(checklistStateToSave).length > 0) {
+            await saveChecklistState(checklistStateToSave);
+        }
+    }, [user, isLoading]);
 
     useEffect(() => {
-        if (user && !isLoading && Object.keys(checklistState).length > 0) {
-            saveChecklistState(checklistState);
+        if (fullComplianceData) {
+            updateChecklistStateInDb(fullComplianceData);
         }
-    }, [checklistState, user, isLoading]);
+    }, [fullComplianceData, updateChecklistStateInDb]);
 
-    if (isLoading || !complianceData || authLoading) {
+
+    if (isLoading || !fullComplianceData || authLoading) {
         return (
             <div className="flex h-screen w-full flex-col">
                 <AppHeader />
@@ -110,9 +123,8 @@ function DashboardPageContent() {
             <main className="flex-1">
                 <Dashboard 
                     projectName={projectName}
-                    complianceItems={complianceData}
-                    checklistState={checklistState}
-                    setChecklistState={setChecklistState}
+                    complianceData={fullComplianceData}
+                    setComplianceData={setFullComplianceData}
                     aimsData={projectData?.aimsData || {}}
                     aimsProgress={projectData?.aimsProgress || {}}
                 />
