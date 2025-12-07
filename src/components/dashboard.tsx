@@ -464,7 +464,102 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
             </TabsContent>
 
              <TabsContent value="ai-act-duties">
-                <p>Platzhalter für die detaillierten AI Act Pflichten.</p>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Detaillierte AI Act Pflichten</CardTitle>
+                        <CardDescription>Hier finden Sie eine detaillierte Aufschlüsselung aller gesetzlichen Anforderungen des EU AI Acts und können den Umsetzungsstand verfolgen.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
+                            if (value) {
+                                const item = complianceItems.find(i => i.id === value);
+                                if (item) {
+                                    handleAccordionChange(value, item);
+                                }
+                            }
+                        }}>
+                            {complianceItems.map((item) => {
+                                const config = statusConfig[item.status];
+                                const Icon = config.icon;
+                                const state = checklistState[item.id];
+                                const isCompliant = item.status === 'Compliant';
+                                
+                                return (
+                                    <AccordionItem value={item.id} key={item.id}>
+                                    <AccordionTrigger className="hover:no-underline">
+                                        <div className="flex items-center gap-3 flex-1 text-left">
+                                            <Icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} />
+                                            <span>{item.title}</span>
+                                        </div>
+                                        <Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pl-10 space-y-4 text-sm">
+                                        <p className="text-muted-foreground font-semibold">{item.description}</p>
+                                        <p className="italic">Status-Begründung: {item.details}</p>
+                                        
+                                        <Card className="mt-4 bg-secondary/50">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg flex items-center gap-2">
+                                                    <ListChecks className="h-5 w-5 text-primary"/>
+                                                    {isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                {state?.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Generiere Checkliste...</div>}
+                                                {state?.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4"/><AlertTitle>Fehler</AlertTitle><AlertDescription>{state.error}</AlertDescription></Alert>}
+                                                {state?.data && (
+                                                    <div className="space-y-2">
+                                                        {state.data.checklist.map((task) => {
+                                                            const isChecked = !!state.checkedTasks[task.id];
+                                                            const taskProps = {
+                                                                onClick: () => handleTaskClick(task, item),
+                                                                className: cn(
+                                                                    "flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors",
+                                                                    isCompliant 
+                                                                        ? 'cursor-default bg-background/50'
+                                                                        : (isChecked 
+                                                                            ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default"
+                                                                            : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer")
+                                                                )
+                                                            };
+                                                            
+                                                            const content = (
+                                                                <>
+                                                                <div className="flex items-start gap-4">
+                                                                    {isCompliant || isChecked ? (
+                                                                        <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" />
+                                                                    ) : (
+                                                                        <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
+                                                                    )}
+                                                                    <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}>
+                                                                        <StepContent content={task.description} />
+                                                                    </p>
+                                                                </div>
+                                                                {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
+                                                                </>
+                                                            );
+
+                                                            if (isCompliant || isChecked) {
+                                                                return <div key={task.id} {...taskProps}>{content}</div>;
+                                                            }
+
+                                                            return (
+                                                                <div key={task.id} {...taskProps}>
+                                                                    {content}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    </AccordionContent>
+                                    </AccordionItem>
+                                );
+                            })}
+                        </Accordion>
+                    </CardContent>
+                </Card>
             </TabsContent>
             
             <TabsContent value="ai-management">
@@ -510,3 +605,5 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    
