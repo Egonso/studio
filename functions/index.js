@@ -1,13 +1,8 @@
+
 // index.js (CommonJS)
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const PDFDocument = require("pdfkit");
-
-admin.initializeApp();
-
-const functions = require("firebase-functions/v2");
-const { onRequest } = require("firebase-functions/v2/https");
-const admin = require("firebase-admin");
 const express = require("express");
 const stripeLib = require("stripe");
 
@@ -163,7 +158,7 @@ app.get("/health", (_req, res) => {
 });
 
 // Export der Function (eine einzige HTTPS-Funktion, die Express bedient)
-exports.api = onRequest(
+exports.api = functions.https.onRequest(
   { secrets: [STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET], cors: true },
   app
 );
