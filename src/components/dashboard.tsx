@@ -172,7 +172,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
          <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.push('/aims')}>
                 <Shield className="mr-2 h-4 w-4" />
-                AIMS Setup
+                KI Management Setup
             </Button>
             <Link href={`/audit-report?projectId=${complianceItems.length > 0 ? new URLSearchParams(window.location.search).get('projectId') : ''}`} passHref>
                 <Button variant="outline">
@@ -195,7 +195,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </TabsTrigger>
                  <TabsTrigger value="ai-management">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    AI Management (ISO 42001)
+                    KI Management (ISO 42001)
                 </TabsTrigger>
             </TabsList>
 
@@ -484,7 +484,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                             <div className="flex justify-between items-start">
                                 <div>
                                     <CardTitle className="text-3xl font-bold text-primary">
-                                        AI Management System (ISO 42001)
+                                        KI Management System (ISO 42001)
                                     </CardTitle>
                                     <CardDescription className="text-lg mt-2 max-w-4xl">
                                         Hier verwalten und exportieren Sie die Dokumentation Ihres AI Management Systems.
@@ -503,7 +503,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                     <Card>
                         <CardHeader><CardTitle>Detailansicht</CardTitle></CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">In zukünftigen Versionen werden Sie hier eine detaillierte Ansicht und Bearbeitungsmöglichkeiten für die einzelnen Bereiche Ihres AI Management Systems finden.</p>
+                            <p className="text-muted-foreground">In zukünftigen Versionen werden Sie hier eine detaillierte Ansicht und Bearbeitungsmöglichkeiten für die einzelnen Bereiche Ihres KI Management Systems finden.</p>
                         </CardContent>
                     </Card>
 
@@ -538,3 +538,5 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    
