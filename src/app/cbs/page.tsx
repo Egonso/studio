@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AppTabs } from '@/components/app-tabs';
 
 function ComplianceInADayPageContent() {
     const router = useRouter();
@@ -73,6 +74,9 @@ function ComplianceInADayPageContent() {
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
             <main className="flex-1 p-4 md:p-8">
+                <div className="max-w-4xl mx-auto mb-8">
+                    <AppTabs />
+                </div>
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card className="w-full shadow-lg bg-secondary border-none">
                         <CardHeader>

@@ -17,6 +17,7 @@ import { getCourseProgress, saveCourseProgress } from '@/lib/data-service';
 import { cn } from '@/lib/utils';
 import { ExamCard } from '@/components/exam-card';
 import { Separator } from '@/components/ui/separator';
+import { AppTabs } from '@/components/app-tabs';
 
 type Selection = {
     type: 'video';
@@ -137,126 +138,131 @@ export default function CoursePage() {
     return (
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
-            <div className="flex-1 grid md:grid-cols-[350px_1fr] gap-6 p-4 md:p-8">
-                <aside className="flex flex-col gap-4">
-                    <Card>
-                        <CardContent className="p-2">
-                             <ScrollArea className="h-[calc(100vh-10rem)]">
-                                <Accordion type="multiple" defaultValue={[getDefaultOpenModule()]} className="w-full">
-                                    {courseData.map(module => (
-                                        <AccordionItem value={module.id} key={module.id}>
-                                            <AccordionTrigger>{module.title}</AccordionTrigger>
-                                            <AccordionContent>
-                                                <div className="flex flex-col gap-1">
-                                                    {module.isExam ? (
-                                                        <Button
-                                                            variant="ghost"
-                                                            onClick={() => handleSelectExam(module)}
-                                                            className={cn(
-                                                                "w-full justify-start text-left h-auto py-2",
-                                                                selectedItem?.type === 'exam' && selectedItem.data.id === module.id && "bg-accent text-accent-foreground"
-                                                            )}
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <GraduationCap className="h-4 w-4" />
-                                                                <span className="flex-1">Prüfungsinformationen</span>
-                                                            </div>
-                                                        </Button>
-                                                    ) : (
-                                                        module.videos.map(video => (
+            <div className="p-4 md:p-8">
+                 <div className="max-w-6xl mx-auto mb-8">
+                    <AppTabs />
+                </div>
+                <div className="grid md:grid-cols-[350px_1fr] gap-6 max-w-6xl mx-auto">
+                    <aside className="flex flex-col gap-4">
+                        <Card>
+                            <CardContent className="p-2">
+                                <ScrollArea className="h-[calc(100vh-18rem)]">
+                                    <Accordion type="multiple" defaultValue={[getDefaultOpenModule()]} className="w-full">
+                                        {courseData.map(module => (
+                                            <AccordionItem value={module.id} key={module.id}>
+                                                <AccordionTrigger>{module.title}</AccordionTrigger>
+                                                <AccordionContent>
+                                                    <div className="flex flex-col gap-1">
+                                                        {module.isExam ? (
                                                             <Button
-                                                                key={video.id}
                                                                 variant="ghost"
-                                                                onClick={() => handleSelectVideo(video, module.id)}
+                                                                onClick={() => handleSelectExam(module)}
                                                                 className={cn(
                                                                     "w-full justify-start text-left h-auto py-2",
-                                                                    selectedItem?.type === 'video' && selectedItem.data.id === video.id && "bg-accent text-accent-foreground"
+                                                                    selectedItem?.type === 'exam' && selectedItem.data.id === module.id && "bg-accent text-accent-foreground"
                                                                 )}
                                                             >
                                                                 <div className="flex items-center gap-3">
-                                                                    {video.isDirectDownload 
-                                                                        ? <Download className="h-4 w-4" />
-                                                                        : (completedVideos.has(video.id) ? <CheckCircle className="h-4 w-4 text-primary" /> : <PlayCircle className="h-4 w-4" />)
-                                                                    }
-                                                                    <span className="flex-1">{video.title}</span>
+                                                                    <GraduationCap className="h-4 w-4" />
+                                                                    <span className="flex-1">Prüfungsinformationen</span>
                                                                 </div>
                                                             </Button>
-                                                        ))
-                                                    )}
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    ))}
-                                </Accordion>
-                            </ScrollArea>
-                        </CardContent>
-                    </Card>
-                </aside>
-                <main>
-                    <Card>
-                        <CardContent className="p-4 md:p-6">
-                            {selectedItem?.type === 'video' && (
-                                <div className="space-y-4">
-                                    <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden">
-                                        <video key={selectedItem.data.url} controls autoPlay className="w-full h-full" onEnded={handleVideoEnd}>
-                                            <source src={selectedItem.data.url} type="video/mp4" />
-                                            Ihr Browser unterstützt das Video-Tag nicht.
-                                        </video>
-                                        {showSeal && (
-                                            <Image
-                                                src={sealUrl}
-                                                alt="AI Act Compass Siegel"
-                                                width={100}
-                                                height={100}
-                                                className="absolute top-4 left-4 h-16 w-16 md:h-24 md:w-24 pointer-events-none opacity-90"
-                                            />
-                                        )}
-                                    </div>
-                                    <h1 className="text-2xl font-bold">{selectedItem.data.title}</h1>
-                                    <p className="text-muted-foreground">{selectedItem.data.description}</p>
-
-                                    {selectedItem.data.resources && selectedItem.data.resources.length > 0 && (
-                                        <>
-                                            <Separator className="my-6" />
-                                            <div className="space-y-4">
-                                                <h2 className="text-lg font-semibold">Ressourcen zum Herunterladen</h2>
-                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                                    {selectedItem.data.resources.map((resource, index) => (
-                                                        <a
-                                                            key={index}
-                                                            href={resource.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="block"
-                                                        >
-                                                            <Card className="hover:bg-accent hover:text-accent-foreground transition-colors">
-                                                                <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
-                                                                    <ResourceIcon type={resource.type} />
-                                                                    <div className="flex-1">
-                                                                        <CardTitle className="text-sm font-medium">{resource.title}</CardTitle>
+                                                        ) : (
+                                                            module.videos.map(video => (
+                                                                <Button
+                                                                    key={video.id}
+                                                                    variant="ghost"
+                                                                    onClick={() => handleSelectVideo(video, module.id)}
+                                                                    className={cn(
+                                                                        "w-full justify-start text-left h-auto py-2",
+                                                                        selectedItem?.type === 'video' && selectedItem.data.id === video.id && "bg-accent text-accent-foreground"
+                                                                    )}
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        {video.isDirectDownload 
+                                                                            ? <Download className="h-4 w-4" />
+                                                                            : (completedVideos.has(video.id) ? <CheckCircle className="h-4 w-4 text-primary" /> : <PlayCircle className="h-4 w-4" />)
+                                                                        }
+                                                                        <span className="flex-1">{video.title}</span>
                                                                     </div>
-                                                                    <Download className="h-5 w-5 text-muted-foreground" />
-                                                                </CardHeader>
-                                                            </Card>
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                                                                </Button>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </ScrollArea>
+                            </CardContent>
+                        </Card>
+                    </aside>
+                    <main>
+                        <Card>
+                            <CardContent className="p-4 md:p-6">
+                                {selectedItem?.type === 'video' && (
+                                    <div className="space-y-4">
+                                        <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                            <video key={selectedItem.data.url} controls autoPlay className="w-full h-full" onEnded={handleVideoEnd}>
+                                                <source src={selectedItem.data.url} type="video/mp4" />
+                                                Ihr Browser unterstützt das Video-Tag nicht.
+                                            </video>
+                                            {showSeal && (
+                                                <Image
+                                                    src={sealUrl}
+                                                    alt="AI Act Compass Siegel"
+                                                    width={100}
+                                                    height={100}
+                                                    className="absolute top-4 left-4 h-16 w-16 md:h-24 md:w-24 pointer-events-none opacity-90"
+                                                />
+                                            )}
+                                        </div>
+                                        <h1 className="text-2xl font-bold">{selectedItem.data.title}</h1>
+                                        <p className="text-muted-foreground">{selectedItem.data.description}</p>
 
-                                </div>
-                            )}
-                            {selectedItem?.type === 'exam' && <ExamCard />}
-                            {!selectedItem && (
-                                <div className="text-center p-8">
-                                    <h1 className="text-2xl font-bold">Willkommen zur Kursplattform!</h1>
-                                    <p className="text-muted-foreground mt-2">Wählen Sie links ein Video aus, um zu beginnen.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </main>
+                                        {selectedItem.data.resources && selectedItem.data.resources.length > 0 && (
+                                            <>
+                                                <Separator className="my-6" />
+                                                <div className="space-y-4">
+                                                    <h2 className="text-lg font-semibold">Ressourcen zum Herunterladen</h2>
+                                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                        {selectedItem.data.resources.map((resource, index) => (
+                                                            <a
+                                                                key={index}
+                                                                href={resource.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="block"
+                                                            >
+                                                                <Card className="hover:bg-accent hover:text-accent-foreground transition-colors">
+                                                                    <CardHeader className="flex flex-row items-center gap-4 space-y-0 p-4">
+                                                                        <ResourceIcon type={resource.type} />
+                                                                        <div className="flex-1">
+                                                                            <CardTitle className="text-sm font-medium">{resource.title}</CardTitle>
+                                                                        </div>
+                                                                        <Download className="h-5 w-5 text-muted-foreground" />
+                                                                    </CardHeader>
+                                                                </Card>
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+
+                                    </div>
+                                )}
+                                {selectedItem?.type === 'exam' && <ExamCard />}
+                                {!selectedItem && (
+                                    <div className="text-center p-8">
+                                        <h1 className="text-2xl font-bold">Willkommen zur Kursplattform!</h1>
+                                        <p className="text-muted-foreground mt-2">Wählen Sie links ein Video aus, um zu beginnen.</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </main>
+                </div>
             </div>
         </div>
     );
