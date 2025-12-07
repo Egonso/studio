@@ -17,7 +17,6 @@ import { getCourseProgress, saveCourseProgress } from '@/lib/data-service';
 import { cn } from '@/lib/utils';
 import { ExamCard } from '@/components/exam-card';
 import { Separator } from '@/components/ui/separator';
-import { AppTabs } from '@/components/app-tabs';
 
 type Selection = {
     type: 'video';
@@ -139,9 +138,6 @@ export default function CoursePage() {
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
             <div className="p-4 md:p-8">
-                 <div className="max-w-6xl mx-auto mb-8">
-                    <AppTabs />
-                </div>
                 <div className="grid md:grid-cols-[350px_1fr] gap-6 max-w-6xl mx-auto">
                     <aside className="flex flex-col gap-4">
                         <Card>
@@ -269,3 +265,4 @@ export default function CoursePage() {
 }
 
     
+

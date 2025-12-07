@@ -27,7 +27,6 @@ import { useRouter } from "next/navigation";
 import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AimsExportDialog } from "./aims-export-dialog";
-import { AppTabs } from "./app-tabs";
 
 export interface ChecklistState {
     [itemId: string]: {
@@ -161,48 +160,34 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
      router.push(`/task/${task.id}`);
   };
 
-  const handleTabChange = (value: string) => {
-    if (['cbs', 'kurs', 'exam'].includes(value)) {
-        router.push(`/${value}`);
-    } else {
-        setActiveTab(value);
-    }
-  }
-
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
-       <div className="max-w-6xl mx-auto">
-           <AppTabs />
-       </div>
       <div className="flex items-start justify-between space-y-2 max-w-6xl mx-auto">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            AI Act Compass
+            Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
-          </p>
-          <p className="text-xs text-muted-foreground mt-4 max-w-2xl">
-            Dieses Dashboard verbindet gesetzliche EU-KI-Compliance (AI Act) mit dem optionalen, international anerkannten Managementsystem ISO/IEC 42001.
+            Projekt: <span className="font-semibold">{projectName}</span>
           </p>
         </div>
          <div className="flex gap-2">
             <Button variant="outline" onClick={() => router.push('/aims')}>
                 <Shield className="mr-2 h-4 w-4" />
-                KI Management System - Setup starten
+                AIMS Setup
             </Button>
             <Link href={`/audit-report?projectId=${complianceItems.length > 0 ? new URLSearchParams(window.location.search).get('projectId') : ''}`} passHref>
                 <Button variant="outline">
                     <FileText className="mr-2 h-4 w-4" />
-                    Audit-Dossier erstellen
+                    Audit-Dossier
                 </Button>
             </Link>
          </div>
       </div>
 
        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3">
                 <TabsTrigger value="compliance-status">
                     <GanttChartSquare className="mr-2 h-4 w-4" />
                     Compliance-Status
@@ -213,7 +198,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
                 </TabsTrigger>
                  <TabsTrigger value="ai-management">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    AI Management
+                    AI Management (ISO 42001)
                 </TabsTrigger>
             </TabsList>
 
