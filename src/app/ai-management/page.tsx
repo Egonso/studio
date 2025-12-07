@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -25,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AimsExportDialog } from "./aims-export-dialog";
+import { AimsExportDialog } from "@/components/aims-export-dialog";
 
 export interface ChecklistState {
     [itemId: string]: {
