@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AimsExportDialog } from "./aims-export-dialog";
 
 export interface ChecklistState {
     [itemId: string]: {
@@ -160,7 +161,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
   };
 
   const handleTabChange = (value: string) => {
-    if (['ai-management', 'cbs', 'kurs', 'exam'].includes(value)) {
+    if (['cbs', 'kurs', 'exam'].includes(value)) {
         router.push(`/${value}`);
     } else {
         setActiveTab(value);
@@ -178,7 +179,7 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
           <p className="text-muted-foreground">
             Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
           </p>
-          <p className="text-xs text-muted-foreground mt-2 max-w-2xl">
+          <p className="text-xs text-muted-foreground mt-4 max-w-2xl">
             Dieses Dashboard verbindet gesetzliche EU-KI-Compliance (AI Act) mit dem optionalen, international anerkannten Managementsystem ISO/IEC 42001.
           </p>
         </div>
@@ -503,7 +504,36 @@ export function Dashboard({ projectName, complianceItems, checklistState, setChe
             </TabsContent>
             
             <TabsContent value="ai-management">
-                 {/* Content will be handled by /ai-management page */}
+                <div className="max-w-4xl mx-auto space-y-8">
+                     <Card className="w-full shadow-lg bg-secondary border-none">
+                        <CardHeader>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-3xl font-bold text-primary">
+                                        AI Management System (ISO 42001)
+                                    </CardTitle>
+                                    <CardDescription className="text-lg mt-2 max-w-4xl">
+                                        Hier verwalten und exportieren Sie die Dokumentation Ihres AI Management Systems.
+                                    </CardDescription>
+                                </div>
+                                 <AimsExportDialog />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                           <p>
+                                Die hier gesammelten Informationen bilden die Grundlage für ein auditierbares Managementsystem. Sie können die Daten jederzeit als strukturierte Text- oder JSON-Datei exportieren, um sie in internen Systemen weiterzuverarbeiten.
+                           </p>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader><CardTitle>Detailansicht</CardTitle></CardHeader>
+                        <CardContent>
+                            <p className="text-muted-foreground">In zukünftigen Versionen werden Sie hier eine detaillierte Ansicht und Bearbeitungsmöglichkeiten für die einzelnen Bereiche Ihres AI Management Systems finden.</p>
+                        </CardContent>
+                    </Card>
+
+                </div>
             </TabsContent>
 
              <TabsContent value="cbs">
@@ -545,6 +575,8 @@ const StepContent = ({ content }: { content: string }) => {
         </span>
     );
 };
+
+    
 
     
 
