@@ -1,4 +1,10 @@
 // index.js (CommonJS)
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const PDFDocument = require("pdfkit");
+
+admin.initializeApp();
+
 const functions = require("firebase-functions/v2");
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
