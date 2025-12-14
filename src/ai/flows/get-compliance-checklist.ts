@@ -27,6 +27,11 @@ const GetComplianceChecklistInputSchema = z.object({
 });
 export type GetComplianceChecklistInput = z.infer<typeof GetComplianceChecklistInputSchema>;
 
+export type GetComplianceChecklistOutput_Checklist = {
+    id: string;
+    description: string;
+}
+
 const GetComplianceChecklistOutputSchema = z.object({
   checklist: z.array(z.object({
     id: z.string().describe("Eine eindeutige Kennung für die Aufgabe, z.B. 'task-1'"),

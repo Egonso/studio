@@ -100,7 +100,7 @@ export function deriveComplianceState(answers: Record<string, string>): Complian
  */
 export function recalculateComplianceStatus(
     item: ComplianceItem,
-    checklistItemState: ChecklistState[string] | undefined
+    checklistItemState: ChecklistState
 ): ComplianceItem {
     if (!checklistItemState || !checklistItemState.data || item.status === 'Compliant') {
         return item;

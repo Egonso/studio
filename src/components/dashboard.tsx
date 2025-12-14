@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Building, Shield, Check, X, FileClock, History, LineChart, Gauge } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Building, Shield, Check, X, FileClock, History, LineChart, Gauge, Briefcase } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -64,6 +64,13 @@ const isoCategories: ComplianceItem[] = [
     { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: 'At Risk', details: 'Noch nicht bewertet.' },
 ];
 
+const portfolioCategories: ComplianceItem[] = [
+    { id: 'portfolio-strategy', title: 'Strategie & Vision', description: 'Definition der langfristigen KI-Ziele und Ausrichtung.', status: 'At Risk', details: 'Initialphase' },
+    { id: 'portfolio-usecases', title: 'Use Case Bewertung', description: 'Identifikation und Priorisierung von KI-Anwendungsfällen.', status: 'At Risk', details: 'In Evaluierung' },
+    { id: 'portfolio-roi', title: 'ROI & Wertbeitrag', description: 'Analyse des wirtschaftlichen Nutzens.', status: 'At Risk', details: 'Noch nicht berechnet' },
+    { id: 'portfolio-tech', title: 'Technologie & Infrastruktur', description: 'Bewertung der technischen Machbarkeit.', status: 'At Risk', details: 'In Prüfung' },
+];
+
 
 export function Dashboard({ projectName, complianceData, setComplianceData, aimsData, aimsProgress }: DashboardProps) {
   const router = useRouter();
@@ -117,37 +124,79 @@ export function Dashboard({ projectName, complianceData, setComplianceData, aims
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <div className="flex justify-between items-center">
-                 <TabsList>
-                    <TabsTrigger value="compliance-status">
-                        <GanttChartSquare className="mr-2 h-4 w-4" />
-                        Compliance-Status
-                    </TabsTrigger>
-                    <TabsTrigger value="ai-act-duties">
-                        <ListChecks className="mr-2 h-4 w-4" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <div className="flex flex-col gap-6">
+                 {/* 3 Main Pillars Navigation */}
+                 <TabsList className="grid grid-cols-1 md:grid-cols-3 h-auto p-1 bg-muted rounded-xl">
+                    <TabsTrigger value="ai-act-duties" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
+                        <ListChecks className="mr-2 h-5 w-5" />
                         AI Act Pflichten
                     </TabsTrigger>
-                    <TabsTrigger value="ai-management">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        KI Management (ISO 42001)
+                    <TabsTrigger value="ai-management" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
+                        <Sparkles className="mr-2 h-5 w-5" />
+                        KI Management (ISO)
+                    </TabsTrigger>
+                     <TabsTrigger value="portfolio-strategy" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
+                        <Briefcase className="mr-2 h-5 w-5" />
+                        KI-Portfolio Strategie
                     </TabsTrigger>
                 </TabsList>
-                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => router.push('/aims')}>
-                        <Shield className="mr-2 h-4 w-4" />
-                        KI Management Setup
-                    </Button>
-                    <Link href={`/audit-report?projectId=${new URLSearchParams(window.location.search).get('projectId') || ''}`} passHref>
-                        <Button variant="outline">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Audit-Dossier
+
+                {/* Sub-navigation / Wizards / Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Pillar 1 Actions */}
+                    <div className="flex gap-2 justify-center">
+                         <Button variant={activeTab === 'ai-act-duties' ? "default" : "outline"} className={cn("w-full", activeTab !== 'ai-act-duties' && "opacity-50")} onClick={() => setActiveTab('ai-act-duties')}>
+                            <Shield className="mr-2 h-4 w-4" />
+                            AI Act Wizard
                         </Button>
-                    </Link>
+                        <Link href={`/audit-report?projectId=${new URLSearchParams(window.location.search).get('projectId') || ''}&type=ai-act`} passHref className={cn("w-full", activeTab !== 'ai-act-duties' && "opacity-50 pointer-events-none")}>
+                            <Button variant="outline" className="w-full">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Audit-Dossier
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {/* Pillar 2 Actions */}
+                    <div className="flex gap-2 justify-center">
+                         <Button variant={activeTab === 'ai-management' ? "default" : "outline"} className={cn("w-full", activeTab !== 'ai-management' && "opacity-50")} onClick={() => { setActiveTab('ai-management'); router.push('/aims'); }}>
+                            <Shield className="mr-2 h-4 w-4" />
+                            KI Management Setup
+                        </Button>
+                         <div className={cn("w-full", activeTab !== 'ai-management' && "opacity-50 pointer-events-none")}>
+                            {/* Reusing AimsExportDialog as the "Audit Paper" for ISO */}
+                            <AimsExportDialog />
+                        </div>
+                    </div>
+
+                    {/* Pillar 3 Actions */}
+                    <div className="flex gap-2 justify-center">
+                        <Button variant={activeTab === 'portfolio-strategy' ? "default" : "outline"} className={cn("w-full", activeTab !== 'portfolio-strategy' && "opacity-50")} onClick={() => { setActiveTab('portfolio-strategy'); router.push('/portfolio'); }}>
+                            <LineChart className="mr-2 h-4 w-4" />
+                            Strategie Wizard
+                        </Button>
+                        <Button variant="outline" className={cn("w-full", activeTab !== 'portfolio-strategy' && "opacity-50")} disabled>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Portfolio Paper
+                        </Button>
+                    </div>
                 </div>
+
+                {/* Compliance Status Overview Button (acts as "Home" for the dashboard) */}
+                 <div className="flex justify-center">
+                     <Button
+                        variant={activeTab === 'compliance-status' ? "secondary" : "ghost"}
+                        onClick={() => setActiveTab('compliance-status')}
+                        className="w-full md:w-1/3"
+                    >
+                        <GanttChartSquare className="mr-2 h-4 w-4" />
+                        Gesamtübersicht & Compliance-Status
+                     </Button>
+                 </div>
             </div>
 
-            <TabsContent value="compliance-status" className="space-y-6">
+            <TabsContent value="compliance-status" className="space-y-6 mt-6">
                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle><ShieldCheck className="h-4 w-4 text-green-600" /></CardHeader><CardContent><div className="text-2xl font-bold">{compliantCount}</div><p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p></CardContent></Card>
                     <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle><AlertTriangle className="h-4 w-4 text-yellow-600" /></CardHeader><CardContent><div className="text-2xl font-bold">{atRiskCount}</div><p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p></CardContent></Card>
@@ -166,22 +215,33 @@ export function Dashboard({ projectName, complianceData, setComplianceData, aims
                 </div>
 
                 {criticalAlerts.length > 0 && (<Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Kritische Warnungen!</AlertTitle><AlertDescription>{criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.{complianceData.find(item => item.details.includes("verbotene Praktiken")) && " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}</AlertDescription></Alert>)}
-                 <Card className="shadow-lg"><CardHeader><CardTitle>Übersicht des Compliance-Status</CardTitle><CardDescription>Das Managementsystem (ISO 42001) ergänzt die gesetzlichen Anforderungen (EU AI Act).<br/>Links: Was Sie tun müssen. Rechts: Wie Sie es dauerhaft sicherstellen.</CardDescription></CardHeader><CardContent className="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                 <Card className="shadow-lg"><CardHeader><CardTitle>Übersicht des Compliance-Status</CardTitle><CardDescription>Zusammenfassung der drei Säulen: AI Act, ISO 42001 und Portfolio-Strategie.</CardDescription></CardHeader><CardContent className="grid md:grid-cols-3 gap-x-8 gap-y-4">
                         <div>
-                             <h3 className="font-semibold text-lg mb-2">EU AI Act Pflichten</h3><p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
+                             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><ListChecks className="w-5 h-5 text-primary"/> AI Act Pflichten</h3><p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
                              <Accordion type="single" collapsible className="w-full">
-                                {finalComplianceItems.map((item) => {
+                                {finalComplianceItems.slice(0, 3).map((item) => {
                                     const config = statusConfig[item.status];
-                                    return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-sm"><p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">Status-Begründung: {item.details}</p><Button variant="secondary" size="sm" onClick={() => setActiveTab("ai-act-duties")}>Zur Detailansicht & Checkliste <ArrowRight className="ml-2 h-4 w-4"/></Button></AccordionContent></AccordionItem>);
+                                    return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-act-duties")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
                                 })}
+                                <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-act-duties")}>Alle anzeigen</Button>
                             </Accordion>
                         </div>
-                        <div className="border-l border-gray-200 pl-8">
-                             <h3 className="font-semibold text-lg mb-2">ISO 42001 Managementsystem</h3><p className="text-sm text-muted-foreground mb-4">Strukturelle Prozesse & Governance nach ISO/IEC 42001.</p>
+                        <div className="border-l border-gray-200 pl-4 md:pl-8">
+                             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary"/> KI Management (ISO)</h3><p className="text-sm text-muted-foreground mb-4">Strukturelle Prozesse & Governance nach ISO/IEC 42001.</p>
                              <Accordion type="single" collapsible className="w-full">
-                                {isoCategories.map((item) => {
+                                {isoCategories.slice(0, 3).map((item) => {
                                     const config = statusConfig[item.status];
-                                    return (<AccordionItem value={item.id} key={item.id} disabled><AccordionTrigger className="hover:no-underline disabled:opacity-50"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-sm"><p>Inhalt wird in Kürze verfügbar sein.</p></AccordionContent></AccordionItem>);
+                                    return (<AccordionItem value={item.id} key={item.id} disabled><AccordionTrigger className="hover:no-underline disabled:opacity-50"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p>Inhalt wird in Kürze verfügbar sein.</p></AccordionContent></AccordionItem>);
+                                })}
+                                <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-management")}>Alle anzeigen</Button>
+                            </Accordion>
+                        </div>
+                        <div className="border-l border-gray-200 pl-4 md:pl-8">
+                             <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary"/> Portfolio Strategie</h3><p className="text-sm text-muted-foreground mb-4">Strategische Ausrichtung und Use Case Bewertung.</p>
+                             <Accordion type="single" collapsible className="w-full">
+                                {portfolioCategories.map((item) => {
+                                    const config = statusConfig[item.status];
+                                    return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground">{item.description}</p></AccordionContent></AccordionItem>);
                                 })}
                             </Accordion>
                         </div>
@@ -236,7 +296,50 @@ export function Dashboard({ projectName, complianceData, setComplianceData, aims
             <TabsContent value="ai-management">
                 <div className="max-w-4xl mx-auto space-y-8">
                      <Card className="w-full shadow-lg bg-secondary border-none"><CardHeader><div className="flex justify-between items-start"><div><CardTitle className="text-3xl font-bold text-primary">KI Management System (ISO 42001)</CardTitle><CardDescription className="text-lg mt-2 max-w-4xl">Hier verwalten und exportieren Sie die Dokumentation Ihres AI Management Systems.</CardDescription></div><AimsExportDialog /></div></CardHeader><CardContent><p>Die hier gesammelten Informationen bilden die Grundlage für ein auditierbares Managementsystem. Sie können die Daten jederzeit als strukturierte Text- oder JSON-Datei exportieren, um sie in internen Systemen weiterzuverarbeiten.</p></CardContent></Card>
-                     <Card><CardHeader><CardTitle>Detailansicht</CardTitle></CardHeader><CardContent><p className="text-muted-foreground">In zukünftigen Versionen werden Sie hier eine detaillierte Ansicht und Bearbeitungsmöglichkeiten für die einzelnen Bereiche Ihres KI Management Systems finden.</p></CardContent></Card>
+
+                     <Card>
+                         <CardHeader><CardTitle>ISO 42001 Anforderungen</CardTitle></CardHeader>
+                         <CardContent>
+                            <Accordion type="single" collapsible className="w-full">
+                                {isoCategories.map((item) => {
+                                    const config = statusConfig[item.status];
+                                    return (<AccordionItem value={item.id} key={item.id} disabled><AccordionTrigger className="hover:no-underline disabled:opacity-50"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-sm"><p>Inhalt wird in Kürze verfügbar sein.</p></AccordionContent></AccordionItem>);
+                                })}
+                            </Accordion>
+                         </CardContent>
+                     </Card>
+                </div>
+            </TabsContent>
+
+             <TabsContent value="portfolio-strategy">
+                <div className="max-w-4xl mx-auto space-y-8">
+                     <Card className="w-full shadow-lg bg-secondary border-none">
+                        <CardHeader>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-3xl font-bold text-primary">KI-Portfolio Strategie</CardTitle>
+                                    <CardDescription className="text-lg mt-2 max-w-4xl">Entwickeln und überwachen Sie Ihre KI-Strategie und das Portfolio.</CardDescription>
+                                </div>
+                                <Button>
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Strategie-Paper erstellen
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent><p>Hier definieren Sie Ihre KI-Strategie, bewerten Use Cases und überwachen den ROI Ihrer KI-Initiativen.</p></CardContent>
+                    </Card>
+
+                    <Card>
+                         <CardHeader><CardTitle>Strategische Handlungsfelder</CardTitle></CardHeader>
+                         <CardContent>
+                            <Accordion type="single" collapsible className="w-full">
+                                {portfolioCategories.map((item) => {
+                                    const config = statusConfig[item.status];
+                                    return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-sm"><p className="text-muted-foreground">{item.description}</p><p>Status: {item.details}</p></AccordionContent></AccordionItem>);
+                                })}
+                            </Accordion>
+                         </CardContent>
+                     </Card>
                 </div>
             </TabsContent>
         </Tabs>
