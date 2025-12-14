@@ -2,9 +2,10 @@
 'use client';
 
 import { auth, db } from './firebase';
-import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc, where } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
 
 // --- Constants ---
 const MONTHLY_TOKEN_LIMIT = 1000000;
@@ -432,3 +433,71 @@ export async function getSharedPolicy(policyId: string) {
     }
 }
 
+// --- Portfolio (Pillar 3) Functions ---
+
+const getPortfolioCollectionRef = (userId: string, projectId: string) => {
+    return collection(db, `users/${userId}/projects/${projectId}/portfolio`);
+}
+
+const getPortfolioDecisionsCollectionRef = (userId: string, projectId: string, portfolioId: string) => {
+    return collection(db, `users/${userId}/projects/${projectId}/portfolio/${portfolioId}/decisions`);
+}
+
+export async function createPortfolioProject(projectData: Omit<AIProject, 'id' | 'createdAt'>): Promise<string> {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const collectionRef = getPortfolioCollectionRef(userId, projectId);
+    const docRef = await addDoc(collectionRef, {
+        ...projectData,
+        createdAt: serverTimestamp(),
+    });
+    return docRef.id;
+}
+
+export async function getPortfolioProjects(): Promise<(AIProject & { assessment?: AIProjectAssessment })[]> {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return [];
+
+    const collectionRef = getPortfolioCollectionRef(userId, projectId);
+    const q = query(collectionRef, orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AIProject & { assessment?: AIProjectAssessment }));
+}
+
+export async function updatePortfolioProjectAssessment(portfolioProjectId: string, assessment: Omit<AIProjectAssessment, 'projectId' | 'updatedAt'>) {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const docRef = doc(db, `users/${userId}/projects/${projectId}/portfolio`, portfolioProjectId);
+    await setDoc(docRef, { assessment: { ...assessment, updatedAt: serverTimestamp() } }, { merge: true });
+}
+
+export async function addPortfolioDecision(portfolioProjectId: string, decision: Omit<AIProjectDecisionLog, 'id' | 'projectId' | 'date'>) {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const collectionRef = getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
+    await addDoc(collectionRef, {
+        ...decision,
+        projectId: portfolioProjectId,
+        date: serverTimestamp(),
+    });
+}
+
+export async function getPortfolioDecisions(portfolioProjectId: string): Promise<AIProjectDecisionLog[]> {
+    const userId = getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return [];
+
+    const collectionRef = getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
+    const q = query(collectionRef, orderBy('date', 'desc'));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AIProjectDecisionLog));
+}
