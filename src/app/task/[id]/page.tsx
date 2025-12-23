@@ -65,7 +65,6 @@ export default function TaskPage() {
     const router = useRouter();
     const params = useParams();
     const taskId = params.id as string;
-    const taskId = params.id as string;
     const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();
 
