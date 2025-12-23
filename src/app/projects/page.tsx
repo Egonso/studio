@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, PlusCircle, ArrowRight, CornerDownRight, FolderPlus } from 'lucide-react';
 import { createProject, getUserProjects, setActiveProjectId } from '@/lib/data-service';
 import { Separator } from '@/components/ui/separator';

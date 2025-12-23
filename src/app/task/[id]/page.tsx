@@ -14,7 +14,7 @@ import { type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-comp
 import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
 import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/auth-context';
 import { getCompanyContext, saveCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask, getActiveProjectId, saveTaskGuide, getTaskGuide } from '@/lib/data-service';
 
