@@ -6,8 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -29,13 +27,25 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  
+  const [authReady, setAuthReady] = useState(false);
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', password: '' },
   });
 
   useEffect(() => {
+    // Preload Firebase Auth
+    async function loadAuth() {
+      try {
+        await import('@/lib/firebase');
+        setAuthReady(true);
+      } catch (error) {
+        console.error('Failed to load Firebase:', error);
+      }
+    }
+    loadAuth();
+
     const emailFromQuery = searchParams.get('email');
     if (emailFromQuery) {
       form.setValue('email', emailFromQuery);
@@ -49,6 +59,10 @@ export default function LoginPage() {
     const email = data.email.toLowerCase();
 
     try {
+      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const auth = await getFirebaseAuth();
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import('firebase/auth');
+
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
@@ -66,27 +80,27 @@ export default function LoginPage() {
         description: error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password'
           ? 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.'
           : error.code === 'auth/email-already-in-use'
-          ? 'Diese E-Mail-Adresse wird bereits verwendet.'
-          : error.code === 'auth/configuration-not-found'
-          ? 'Firebase-Konfigurationsfehler. Bitte kontaktieren Sie den Support.'
-          : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+            ? 'Diese E-Mail-Adresse wird bereits verwendet.'
+            : error.code === 'auth/configuration-not-found'
+              ? 'Firebase-Konfigurationsfehler. Bitte kontaktieren Sie den Support.'
+              : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
       });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-        <div className="flex items-center justify-center gap-2 mb-8">
-            <Image
-                src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
-                alt="AI Act Compass Logo"
-                width={50}
-                height={50}
-                className="h-12 w-auto"
-            />
-            <span className="font-bold text-2xl">AI Act Compass</span>
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <Image
+          src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
+          alt="AI Act Compass Logo"
+          width={50}
+          height={50}
+          className="h-12 w-auto"
+        />
+        <span className="font-bold text-2xl">AI Act Compass</span>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
@@ -186,4 +200,3 @@ export default function LoginPage() {
   );
 }
 
-    

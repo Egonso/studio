@@ -9,14 +9,18 @@
  * - GetImplementationGuideOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 const GetImplementationGuideInputSchema = z.object({
   taskDescription: z
     .string()
-    .describe('Die spezifische Aufgabe aus einer EU AI Act Compliance-Checkliste, für die eine Anleitung benötigt wird. Z.B. "Stellen Sie sicher, dass Ihre Datensätze für das Training, die Validierung und das Testen Ihres KI-Systems relevant, repräsentativ, fehlerfrei und vollständig sind."'),
+    .describe('Die spezifische Aufgabe aus einer EU AI Act Compliance-Checkliste, ISO 42001 Norm oder Portfolio-Strategie, für die eine Anleitung benötigt wird. Z.B. "Stellen Sie sicher, dass Ihre Datensätze für das Training... relevant sind."'),
+  pillar: z
+    .enum(['ai-act', 'iso-42001', 'portfolio'])
+    .optional()
+    .describe('Der Kontext der Aufgabe: EU AI Act, ISO 42001 oder Portfolio-Strategie.'),
   companyDescription: z
     .string()
     .optional()
@@ -29,6 +33,8 @@ const GetImplementationGuideInputSchema = z.object({
     .string()
     .optional()
     .describe('Der Textinhalt relevanter, vom Benutzer hochgeladener Dokumente.'),
+  isIso42001: z.boolean().optional().describe('Flag indicating if pillar is iso-42001.'),
+  isPortfolio: z.boolean().optional().describe('Flag indicating if pillar is portfolio.'),
 });
 export type GetImplementationGuideInput = z.infer<typeof GetImplementationGuideInputSchema>;
 
@@ -48,42 +54,51 @@ export async function getImplementationGuide(
 
 const prompt = ai.definePrompt({
   name: 'getImplementationGuidePrompt',
-  input: {schema: GetImplementationGuideInputSchema},
-  output: {schema: GetImplementationGuideOutputSchema},
-  prompt: `Du bist ein Experte für den EU AI Act und ein hilfreicher Compliance-Berater für KMU und Startups.
-Ein Benutzer benötigt eine detaillierte, umsetzbare Anleitung für die folgende spezifische Aufgabe:
+  input: { schema: GetImplementationGuideInputSchema },
+  output: { schema: GetImplementationGuideOutputSchema },
+  prompt: `
+  {{#if isIso42001}}
+  Du bist ein zertifizierter Auditor für ISO 42001 (AI Management Systems).
+  {{else}}
+  {{#if isPortfolio}}
+  Du bist ein Strategieberater für KI-Portfolio-Management und ROI-Optimierung.
+  {{else}}
+  Du bist ein Experte für den EU AI Act und ein hilfreicher Compliance-Berater für KMU und Startups.
+  {{/if}}
+  {{/if}}
 
-**Aufgabe:** "{{{taskDescription}}}"
-
-{{#if companyDescription}}
-**Berücksichtige bei deiner Antwort den folgenden Unternehmenskontext:**
-*   **Unternehmensbeschreibung:** {{{companyDescription}}}
-{{#if riskProfile}}
-*   **Selbsteingeschätztes Risiko:** {{{riskProfile}}}
-{{/if}}
-{{#if existingAuditData}}
-*   **Vom Benutzer bereitgestelltes Dokument:**
-    ---
-    {{{existingAuditData}}}
-    ---
-    Beziehe dich bei deinen Empfehlungen explizit auf Inhalte aus diesem Dokument, wenn es relevant ist.
-{{/if}}
-Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen besonders relevant sind.
-{{/if}}
-
-
-Erstelle eine präzise, leicht verständliche Anleitung in deutscher Sprache, die genau auf diese Aufgabe zugeschnitten ist. Die Anleitung soll aus zwei Abschnitten bestehen:
-
-1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten, umsetzbaren Schritten, die ein kleines Unternehmen unternehmen kann, um diese Anforderung zu erfüllen.
-2.  **Leitfragen für Ihr Team:** Formuliere 3-4 präzise Fragen, die sich das Team stellen kann, um zu überprüfen, ob sie die Anforderung wirklich verstanden haben und erfüllen.
-
-**FORMATIERUNGSREGELN:**
-- Verwende Markdown für die Formatierung.
-- Für **Fettdruck** nutze doppelte Sternchen: \`**Wichtiger Text**\`.
-- Für *Kursivschrift* nutze einfache Sternchen: \`*Betonung*\`.
-- Für Tool-Namen oder Code-Schnipsel nutze Backticks: \`<code>mein-tool</code>\`. Schlage, wo sinnvoll, konkrete Open-Source-Tools oder Bibliotheken vor und gib auch Links zu relevanten Vorlagen oder Standards, falls zutreffend.
-
-Sei sehr spezifisch und praxisorientiert. Vermeide allgemeines Gerede. Der Output muss direkt auf die gegebene Aufgabe anwendbar sein.`,
+  Ein Benutzer benötigt eine detaillierte, umsetzbare Anleitung für die folgende spezifische Aufgabe im Kontext von {{pillar}}:
+  
+  **Aufgabe:** "{{{taskDescription}}}"
+  
+  {{#if companyDescription}}
+  **Berücksichtige bei deiner Antwort den folgenden Unternehmenskontext:**
+  *   **Unternehmensbeschreibung:** {{{companyDescription}}}
+  {{#if riskProfile}}
+  *   **Selbsteingeschätztes Risiko:** {{{riskProfile}}}
+  {{/if}}
+  {{#if existingAuditData}}
+  *   **Vom Benutzer bereitgestelltes Dokument:**
+      ---
+      {{{existingAuditData}}}
+      ---
+      Beziehe dich bei deinen Empfehlungen explizit auf Inhalte aus diesem Dokument, wenn es relevant ist.
+  {{/if}}
+  Passe deine Empfehlungen so an, dass sie für dieses spezifische Unternehmen besonders relevant sind.
+  {{/if}}
+  
+  Erstelle eine präzise, leicht verständliche Anleitung in deutscher Sprache, die genau auf diese Aufgabe zugeschnitten ist. Die Anleitung soll aus zwei Abschnitten bestehen:
+  
+  1.  **Empfohlene nächste Schritte:** Gib eine Liste von 3-4 konkreten Meilensteinen oder Schritten, die das Unternehmen unternehmen kann.
+  2.  {{#if isIso42001}}**Audit-Checkliste:** Welche Nachweise würde ein Auditor verlangen?{{else}}**Leitfragen für Ihr Team:** Formuliere Fragen zur Selbstüberprüfung.{{/if}}
+  
+  **FORMATIERUNGSREGELN:**
+  - Verwende Markdown für die Formatierung.
+  - Für **Fettdruck** nutze doppelte Sternchen: \`**Wichtiger Text**\`.
+  - Für *Kursivschrift* nutze einfache Sternchen: \`*Betonung*\`.
+  - Für Tool-Namen oder Code-Schnipsel nutze Backticks: \`<code>mein-tool</code>\`.
+  
+  Sei sehr spezifisch und praxisorientiert. Der Output muss direkt auf die gegebene Aufgabe anwendbar sein.`,
 });
 
 const getImplementationGuideFlow = ai.defineFlow(
@@ -93,7 +108,13 @@ const getImplementationGuideFlow = ai.defineFlow(
     outputSchema: GetImplementationGuideOutputSchema,
   },
   async input => {
-    const result = await prompt(input);
+    // Compute boolean flags for Handlebars template (workaround for knownHelpersOnly)
+    const promptInput = {
+      ...input,
+      isIso42001: input.pillar === 'iso-42001',
+      isPortfolio: input.pillar === 'portfolio',
+    };
+    const result = await prompt(promptInput);
     // TODO: Re-implement token counting on the server-side
     return result.output!;
   }

@@ -1,0 +1,188 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9002
+
+   ▲ Next.js 15.3.8 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://192.168.0.167:9002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.2s
+ ○ Compiling / ...
+ ✓ Compiled / in 13.4s
+DEBUG: Server-side environment detected. Node version: v25.2.1
+DEBUG: global.localStorage exists: true
+DEBUG: global.localStorage features: []
+DEBUG: localStorage mock applied to global.
+ HEAD / 200 in 14688ms
+ ✓ Compiled in 755ms
+ ✓ Compiled / in 245ms
+ HEAD / 200 in 874ms
+ GET / 200 in 15831ms
+ ○ Compiling /favicon.ico ...
+ ⨯ upstream image response timed out for https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp
+ ✓ Compiled /favicon.ico in 89.3s
+ GET /favicon.ico?favicon.56766c03.ico 200 in 92905ms
+ GET / 200 in 483ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 13.6s
+ GET /login 200 in 13885ms
+ GET /login 200 in 333ms
+ ○ Compiling /projects ...
+ ✓ Compiled /projects in 8.1s
+ GET /projects 200 in 8486ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 13.6s
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 15729ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 737ms
+ POST /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 3467ms
+ ○ Compiling /task/[id] ...
+ ✓ Compiled /task/[id] in 11.2s
+ GET /task/data-governance-1 200 in 16853ms
+ GET /task/data-governance-1 200 in 1117ms
+ POST /task/data-governance-1 200 in 10405ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1763ms
+ ✓ Compiled in 4s
+ ✓ Compiled in 2.5s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 7283ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 1643ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1003ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 1998ms
+ ○ Compiling /aims ...
+ ✓ Compiled /aims in 21.3s
+ GET /aims 200 in 21987ms
+ GET /aims 200 in 726ms
+ GET /aims 200 in 887ms
+ ○ Compiling /portfolio ...
+ ✓ Compiled /portfolio in 9.1s
+ GET /portfolio 200 in 9623ms
+ ✓ Compiled in 12s
+ ⚠ Fast Refresh had to perform a full reload when ./src/lib/firebase.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /portfolio 200 in 2920ms
+ ✓ Compiled in 35ms
+ GET /dashboard 200 in 15490ms
+ ○ Compiling /dashboard ...
+ GET /portfolio 200 in 2756ms
+ ✓ Compiled /dashboard in 555ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 1093ms
+ GET /dashboard 200 in 2945ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1393ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1991ms
+ POST /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 4110ms
+ HEAD /dashboard?projectId=test 200 in 1928ms
+ POST /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 3032ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1022ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 489ms
+ GET /aims 200 in 1235ms
+ ○ Compiling /ai-management ...
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1211ms
+ ✓ Compiled /ai-management in 24s
+ ⨯ [Error: The default export is not a React Component in "/ai-management/page"] {
+  page: '/ai-management'
+}
+ ○ Compiling /_error ...
+ ⨯ [Error: The default export is not a React Component in "/ai-management/page"] {
+  page: '/ai-management'
+}
+ ⨯ [Error: The default export is not a React Component in "/ai-management/page"] {
+  page: '/ai-management'
+}
+ ⨯ [Error: The default export is not a React Component in "/ai-management/page"] {
+  page: '/ai-management'
+}
+ ✓ Compiled /_error in 16.2s
+ GET /ai-management 500 in 13861ms
+ GET /ai-management 500 in 7984ms
+ GET /ai-management 500 in 44664ms
+ GET /ai-management 500 in 20720ms
+ ✓ Compiled in 9.9s
+ ⚠ Fast Refresh had to perform a full reload when ./src/lib/firebase.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 644ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 10457ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 12655ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 991ms
+ ✓ Compiled in 8.6s
+ ⚠ Fast Refresh had to perform a full reload when ./src/lib/firebase.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 39ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 968ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 9474ms
+ ✓ Compiled in 4.5s
+ ⚠ Fast Refresh had to perform a full reload when ./src/lib/firebase.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 5906ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 12030ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 8272ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 2395ms
+ ✓ Compiled in 4s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 6147ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 1822ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 948ms
+ GET / 200 in 2562ms
+ GET /projects 200 in 1697ms
+ GET /projects 200 in 1577ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 1947ms
+ ✓ Compiled in 9.9s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 14701ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 1384ms
+ GET / 200 in 5741ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 863ms
+ GET /projects 200 in 1030ms
+ GET /projects 200 in 708ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 988ms
+ ✓ Compiled in 10.4s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+(node:95396) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGTERM listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+ GET /favicon.ico 200 in 7034ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 9631ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 8604ms
+ ✓ Compiled in 5.8s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+(node:95396) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGINT listeners added to [process]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 20338ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 4556ms
+ ✓ Compiled in 3.7s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 8864ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 3341ms
+ ✓ Compiled in 14.4s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ Fast Refresh had to perform a full reload when ./src/lib/firebase.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1405ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 8689ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 2261ms
+ ✓ Compiled in 2.5s
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 7204ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 2189ms
+ POST /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 5649ms
+ GET /aims 200 in 586ms
+ GET / 200 in 295ms
+ GET /projects 200 in 371ms
+ GET /projects 200 in 300ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 683ms
+ POST /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 3295ms
+ GET /portfolio 200 in 123ms
+ GET /dashboard 200 in 186ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 126ms
+ GET /dashboard?projectId=nkOFYiMEwXnYyTLZmLnc 200 in 63ms
+ ✓ Compiled in 2.8s
+ ○ Compiling /cbs ...
+ ✓ Compiled /cbs in 39.9s
+ GET /kurs 200 in 38436ms
+ GET /cbs 200 in 41317ms
+ GET /favicon.ico?favicon.56766c03.ico 200 in 10804ms
+ GET / 200 in 2110ms
+ GET /projects 200 in 1548ms
+ GET /projects 200 in 466ms
+ ✓ Compiled in 13.5s
+ GET /projects 200 in 7071ms
+ ✓ Compiled in 20.8s
+ ✓ Compiled in 2.5s

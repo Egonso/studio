@@ -1,0 +1,108 @@
+
+> nextn@0.1.0 build
+> next build
+
+   ▲ Next.js 15.3.8
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 8.1min
+
+./node_modules/@opentelemetry/sdk-node/build/src/TracerProviderWithEnvExporter.js
+Module not found: Can't resolve '@opentelemetry/exporter-jaeger' in '/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/@opentelemetry/sdk-node/build/src'
+
+Import trace for requested module:
+./node_modules/@opentelemetry/sdk-node/build/src/TracerProviderWithEnvExporter.js
+./node_modules/@opentelemetry/sdk-node/build/src/sdk.js
+./node_modules/@opentelemetry/sdk-node/build/src/index.js
+./node_modules/@genkit-ai/core/lib/tracing.js
+./node_modules/genkit/lib/tracing.js
+./node_modules/genkit/lib/genkit.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/get-compliance-checklist.ts
+
+./node_modules/handlebars/lib/index.js
+require.extensions is not supported by webpack. Use a loader instead.
+
+Import trace for requested module:
+./node_modules/handlebars/lib/index.js
+./node_modules/dotprompt/dist/index.js
+./node_modules/@genkit-ai/core/lib/registry.js
+./node_modules/genkit/lib/registry.js
+./node_modules/genkit/lib/genkit.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/get-compliance-checklist.ts
+
+./node_modules/handlebars/lib/index.js
+require.extensions is not supported by webpack. Use a loader instead.
+
+Import trace for requested module:
+./node_modules/handlebars/lib/index.js
+./node_modules/dotprompt/dist/index.js
+./node_modules/@genkit-ai/core/lib/registry.js
+./node_modules/genkit/lib/registry.js
+./node_modules/genkit/lib/genkit.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/get-compliance-checklist.ts
+
+./node_modules/handlebars/lib/index.js
+require.extensions is not supported by webpack. Use a loader instead.
+
+Import trace for requested module:
+./node_modules/handlebars/lib/index.js
+./node_modules/dotprompt/dist/index.js
+./node_modules/@genkit-ai/core/lib/registry.js
+./node_modules/genkit/lib/registry.js
+./node_modules/genkit/lib/genkit.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/get-compliance-checklist.ts
+
+./node_modules/@genkit-ai/core/lib/tracing.js
+Module not found: Can't resolve '@genkit-ai/firebase' in '/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/@genkit-ai/core/lib'
+
+Import trace for requested module:
+./node_modules/@genkit-ai/core/lib/tracing.js
+./node_modules/genkit/lib/tracing.js
+./node_modules/genkit/lib/genkit.js
+./node_modules/genkit/lib/index.mjs
+./src/ai/flows/get-compliance-checklist.ts
+
+ ✓ Compiled successfully in 9.1min
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/18) ...
+   Generating static pages (4/18) 
+   Generating static pages (8/18) 
+   Generating static pages (13/18) 
+ ✓ Generating static pages (18/18)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    3.49 kB         162 kB
+├ ○ /_not-found                            982 B         102 kB
+├ ƒ /ai-management                       5.82 kB         167 kB
+├ ○ /aims                                12.7 kB         199 kB
+├ ○ /assessment                          7.04 kB         172 kB
+├ ○ /assessment/context                  5.92 kB         153 kB
+├ ○ /audit-report                         6.9 kB         130 kB
+├ ○ /cbd                                 12.8 kB         175 kB
+├ ○ /cbs                                 14.3 kB         151 kB
+├ ƒ /cbs/share/[policyId]                3.47 kB         127 kB
+├ ○ /dashboard                           8.63 kB         176 kB
+├ ○ /exam                                  778 B         127 kB
+├ ○ /kurs                                15.7 kB         145 kB
+├ ○ /login                               6.36 kB         148 kB
+├ ○ /portfolio                           6.61 kB         164 kB
+├ ○ /projects                            6.68 kB         157 kB
+└ ƒ /task/[id]                           6.87 kB         130 kB
++ First Load JS shared by all             101 kB
+  ├ chunks/1684-7e1c47770751f561.js      46.1 kB
+  ├ chunks/4bd1b696-4f298af592d428ab.js  53.2 kB
+  └ other shared chunks (total)          2.14 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

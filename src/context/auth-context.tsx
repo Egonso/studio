@@ -2,8 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { type User } from 'firebase/auth';
 import { Loader2 } from 'lucide-react';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -19,20 +18,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    let unsubscribe: (() => void) | undefined;
 
-    return () => unsubscribe();
+    // Lazy load Firebase Auth
+    async function initAuth() {
+      try {
+        const { getFirebaseAuth } = await import('@/lib/firebase');
+        const auth = await getFirebaseAuth();
+
+        const { onAuthStateChanged } = await import('firebase/auth');
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          setUser(user);
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error('Failed to initialize Firebase Auth:', error);
+        setLoading(false);
+      }
+    }
+
+    initAuth();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   if (loading) {
-      return (
-          <div className="flex h-screen w-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-      )
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (

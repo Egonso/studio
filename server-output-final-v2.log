@@ -1,0 +1,52 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9002
+
+   ▲ Next.js 15.3.8 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://192.168.0.167:9002
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 17.2s
+(node:93717) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ⨯ [TypeError: localStorage.getItem is not a function] {
+  digest: '2656462734'
+}
+[TypeError: localStorage.getItem is not a function]
+ ⨯ [TypeError: localStorage.getItem is not a function] { page: '/' }
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 3.6s
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection: TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection:  TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+[TypeError: localStorage.getItem is not a function] { page: '/' }
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection: TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection:  TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ HEAD / 500 in 25024ms
+ HEAD / 500 in 185ms
+ ✓ Compiled in 1446ms

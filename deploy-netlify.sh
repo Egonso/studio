@@ -1,0 +1,22 @@
+#!/bin/bash
+# Netlify Deployment Script
+
+echo "🚀 Netlify Deployment für Studio-Projekt"
+echo ""
+echo "Bitte führen Sie die folgenden Schritte im Netlify-Dashboard aus:"
+echo ""
+echo "1. Gehen Sie zu https://app.netlify.com"
+echo "2. Klicken Sie auf 'Add new site' → 'Import an existing project'"
+echo "3. Wählen Sie GitHub und das Repository 'Egonso/studio'"
+echo "4. In den Build-Einstellungen:"
+echo "   - Build command: npm run build"
+echo "   - Publish directory: .next"
+echo "5. Klicken Sie auf 'Show advanced' und fügen Sie die Umgebungsvariable hinzu:"
+echo "   - Key: GEMINI_API_KEY"
+echo "   - Value: AIzaSyBmxtV54HizcIK-Rgrx2xtlafEZ9d02Nsw"
+echo "6. Klicken Sie auf 'Deploy site'"
+echo ""
+echo "Alternativ können Sie auch die Umgebungsvariable später hinzufügen:"
+echo "- Gehen Sie zu Site settings → Environment variables"
+echo "- Fügen Sie GEMINI_API_KEY mit dem oben genannten Wert hinzu"
+echo "- Trigger einen neuen Deploy"

@@ -1,0 +1,597 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9002 -p 9002
+
+   ▲ Next.js 15.3.8 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://192.168.0.167:9002
+   - Environments: .env.local
+
+ ✓ Starting...
+2025-12-23T10:21:14.258Z next:router-server:filesystem nextDataRoutes Set(0) {}
+2025-12-23T10:21:14.260Z next:router-server:filesystem dynamicRoutes []
+2025-12-23T10:21:14.260Z next:router-server:filesystem customRoutes {
+  headers: [],
+  rewrites: { beforeFiles: [], afterFiles: [], fallback: [] },
+  redirects: [
+    {
+      source: '/:path+/',
+      destination: '/:path+',
+      permanent: true,
+      locale: undefined,
+      internal: true
+    }
+  ]
+}
+2025-12-23T10:21:14.262Z next:router-server:filesystem publicFolderItems Set(0) {}
+2025-12-23T10:21:14.264Z next:router-server:filesystem nextStaticFolderItems Set(0) {}
+2025-12-23T10:21:14.264Z next:router-server:filesystem pageFiles Set(0) {}
+2025-12-23T10:21:14.264Z next:router-server:filesystem appFiles Set(0) {}
+Creating turbopack project {
+  dir: '/Users/momofeichtinger/Projects/Programmieren/studio',
+  testMode: true
+}
+ ✓ Ready in 2.4s
+2025-12-23T10:21:29.642Z next:router-server:main requestHandler! / {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:21:29.647Z next:router-server:main invokeRender / { host: 'localhost:9002', 'user-agent': 'curl/8.6.0', accept: '*/*' }
+ ○ Compiling / ...
+
+
+Source path: ./src/app/globals.css
+Setting up new context...
+Finding changed files: 10.664ms
+Reading changed files: 129.901ms
+Sorting candidates: 11.206ms
+Generate rules: 319.368ms
+Build stylesheet: 11.27ms
+Potential classes:  6957
+Active contexts:  1
+JIT TOTAL: 732.547ms
+
+
+ ✓ Compiled / in 11.1s
+(node:74178) Warning: `--localstorage-file` was provided without a valid path
+    at Object.get (node:internal/webstorage:32:25)
+    at /Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:274:210141
+    at DevOverlay (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:274:210349)
+    at react-stack-bottom-frame (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:240690)
+    at renderWithHooks (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:70854)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:85582)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:156530)
+    at renderChildrenArray (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:153781)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147686)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:133543)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:156530)
+    at renderChildrenArray (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:153781)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147686)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:133543)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at finishFunctionComponent (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:71864)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:87063)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at finishFunctionComponent (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:71864)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:87063)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderElement (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:139974)
+    at retryNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:147220)
+    at renderNodeDestructive (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:146483)
+    at renderNode (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:156530)
+    at renderChildrenArray (/Users/momofeichtinger/Projects/Programmieren/studio/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js:150:153781)
+ ⨯ [TypeError: localStorage.getItem is not a function] {
+  digest: '2656462734'
+}
+[TypeError: localStorage.getItem is not a function]
+ ⨯ [TypeError: localStorage.getItem is not a function] { page: '/' }
+ ○ Compiling /_error ...
+2025-12-23T10:22:19.141Z next:router-server:main requestHandler! / {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:22:19.279Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+}
+ ⨯ [TypeError: localStorage.getItem is not a function] {
+  digest: '2656462734'
+}
+[TypeError: localStorage.getItem is not a function]
+ ⨯ [TypeError: localStorage.getItem is not a function] { page: '/' }
+ ✓ Compiled /_error in 69s
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection: TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ unhandledRejection:  TypeError: localStorage.getItem is not a function
+    at new Promise (<anonymous>)
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages-manifest.json'
+}
+[TypeError: localStorage.getItem is not a function] { page: '/' }
+2025-12-23T10:23:03.430Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+  'x-forwarded-host': 'localhost:9002',
+  'x-forwarded-port': '9002',
+  'x-forwarded-proto': 'http',
+  'x-forwarded-for': '::1'
+}
+[TypeError: localStorage.getItem is not a function] { page: '/' }
+2025-12-23T10:23:03.960Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  'user-agent': 'curl/8.6.0',
+  accept: '*/*',
+  'x-forwarded-host': 'localhost:9002',
+  'x-forwarded-port': '9002',
+  'x-forwarded-proto': 'http',
+  'x-forwarded-for': '::1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+2025-12-23T10:23:04.211Z compression undefined not compressible
+2025-12-23T10:23:04.211Z compression no compression: filtered
+ GET / 500 in 44732ms
+ GET / 500 in 800ms
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+2025-12-23T10:23:04.335Z compression undefined not compressible
+2025-12-23T10:23:04.336Z compression no compression: filtered
+ GET / 500 in 94687ms
+ GET / 500 in 377ms
+2025-12-23T10:23:06.161Z next:router-server:main requestHandler! /favicon.ico {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/favicon.ico'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/favicon.ico', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:23:06.161Z next:router-server:main invokeRender /favicon.ico {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"macOS"',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-mode': 'no-cors',
+  'sec-fetch-dest': 'image',
+  referer: 'http://localhost:9002/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+}
+2025-12-23T10:23:06.183Z next:router-server:main requestHandler! /_next/static/chunks/src_app_globals_b805903d.css {
+  matchedOutput: null,
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: {
+    pathname: '/_next/static/chunks/src_app_globals_b805903d.css',
+    query: [Object: null prototype] {}
+  },
+  finished: false
+}
+2025-12-23T10:23:06.184Z next:router-server:main invokeRender /_next/static/chunks/src_app_globals_b805903d.css {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"macOS"',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  accept: 'text/css,*/*;q=0.1',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-mode': 'no-cors',
+  'sec-fetch-dest': 'style',
+  referer: 'http://localhost:9002/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+}
+ ○ Compiling /favicon.ico ...
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.5nni16fljzw'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.5nni16fljzw'
+}
+2025-12-23T10:23:17.720Z compression no compression: size below threshold
+ ✓ Compiled /favicon.ico in 27.8s
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/middleware-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/middleware-manifest.json'
+}
+2025-12-23T10:23:35.108Z next:router-server:main invokeRender /_next/static/chunks/src_app_globals_b805903d.css {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"macOS"',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  accept: 'text/css,*/*;q=0.1',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-mode': 'no-cors',
+  'sec-fetch-dest': 'style',
+  referer: 'http://localhost:9002/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+  'x-forwarded-host': 'localhost:9002',
+  'x-forwarded-port': '9002',
+  'x-forwarded-proto': 'http',
+  'x-forwarded-for': '::1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+2025-12-23T10:23:36.537Z compression undefined not compressible
+2025-12-23T10:23:36.537Z compression no compression: filtered
+2025-12-23T10:25:08.214Z next:router-server:main requestHandler! / {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:25:08.264Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'cache-control': 'max-age=0',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'
+}
+2025-12-23T10:25:12.652Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'cache-control': 'max-age=0',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
+  'x-forwarded-host': 'localhost:9002',
+  'x-forwarded-port': '9002',
+  'x-forwarded-proto': 'http',
+  'x-forwarded-for': '::1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+2025-12-23T10:25:12.967Z compression undefined not compressible
+2025-12-23T10:25:12.967Z compression no compression: filtered
+2025-12-23T10:25:13.989Z next:router-server:main requestHandler! /favicon.ico {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/favicon.ico'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/favicon.ico', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:25:13.990Z next:router-server:main invokeRender /favicon.ico {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"macOS"',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-mode': 'no-cors',
+  'sec-fetch-dest': 'image',
+  referer: 'http://localhost:9002/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.loutfp8fjpg'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.loutfp8fjpg'
+}
+2025-12-23T10:25:14.532Z compression no compression: size below threshold
+2025-12-23T10:25:21.145Z next:router-server:main requestHandler! / {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:25:21.189Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'cache-control': 'max-age=0',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-AT,de;q=0.9,en-AT;q=0.8,en;q=0.7,de-DE;q=0.6,en-US;q=0.5'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/app/page/app-build-manifest.json'
+}
+2025-12-23T10:25:30.690Z next:router-server:main invokeRender / {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'cache-control': 'max-age=0',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'upgrade-insecure-requests': '1',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+  'sec-fetch-site': 'none',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-user': '?1',
+  'sec-fetch-dest': 'document',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-AT,de;q=0.9,en-AT;q=0.8,en;q=0.7,de-DE;q=0.6,en-US;q=0.5',
+  'x-forwarded-host': 'localhost:9002',
+  'x-forwarded-port': '9002',
+  'x-forwarded-proto': 'http',
+  'x-forwarded-for': '::1'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/server/pages/_app/build-manifest.json'
+}
+2025-12-23T10:25:32.257Z compression undefined not compressible
+2025-12-23T10:25:32.257Z compression no compression: filtered
+2025-12-23T10:26:28.259Z next:router-server:main requestHandler! /favicon.ico {
+  matchedOutput: {
+    type: 'appFile',
+    fsPath: undefined,
+    locale: undefined,
+    itemsRoot: undefined,
+    itemPath: '/favicon.ico'
+  },
+  statusCode: undefined,
+  resHeaders: {},
+  bodyStream: false,
+  parsedUrl: { pathname: '/favicon.ico', query: [Object: null prototype] {} },
+  finished: true
+}
+2025-12-23T10:26:28.533Z next:router-server:main invokeRender /favicon.ico {
+  host: 'localhost:9002',
+  connection: 'keep-alive',
+  'sec-ch-ua-platform': '"macOS"',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+  'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+  'sec-ch-ua-mobile': '?0',
+  accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+  'sec-fetch-site': 'same-origin',
+  'sec-fetch-mode': 'no-cors',
+  'sec-fetch-dest': 'image',
+  referer: 'http://localhost:9002/',
+  'accept-encoding': 'gzip, deflate, br, zstd',
+  'accept-language': 'de-AT,de;q=0.9,en-AT;q=0.8,en;q=0.7,de-DE;q=0.6,en-US;q=0.5'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.ac5xy8g9ecb'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/momofeichtinger/Projects/Programmieren/studio/.next/static/development/_buildManifest.js.tmp.ac5xy8g9ecb'
+}
+2025-12-23T10:26:53.176Z compression no compression: size below threshold
+Finding changed files: 147.968ms
+Reading changed files: 31.02ms
+Sorting candidates: 0.407ms
+Generate rules: 51.197ms
+Build stylesheet: 0.031ms
+Potential classes:  134
+JIT TOTAL: 917.926ms
+Finding changed files: 236.324ms
+Reading changed files: 72.983ms
+Sorting candidates: 0.149ms
+Generate rules: 88.966ms
+Build stylesheet: 0.073ms
+JIT TOTAL: 1.409s

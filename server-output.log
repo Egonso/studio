@@ -1,0 +1,13 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9002
+
+   ▲ Next.js 15.3.8 (Turbopack)
+   - Local:        http://localhost:9002
+   - Network:      http://192.168.0.167:9002
+   - Environments: .env.local
+
+ ✓ Starting...
+Slow filesystem detected. If /Users/momofeichtinger/Projects/Programmieren/studio/.next is a network drive, consider moving it to a local folder. If you have an antivirus enabled, consider excluding your project directory.
+ ✓ Ready in 9.5s
+ ○ Compiling / ...
