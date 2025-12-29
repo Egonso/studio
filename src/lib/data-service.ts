@@ -1,27 +1,50 @@
 
 'use client';
 
-import { auth, db } from './firebase';
-import { doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, query, orderBy, serverTimestamp, writeBatch, updateDoc, where } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
+import type { Auth } from 'firebase/auth';
+import type { Firestore } from 'firebase/firestore';
 
 // --- Constants ---
 const MONTHLY_TOKEN_LIMIT = 1000000;
 
+// --- Lazy Firebase Loaders ---
+let authInstance: Auth | null = null;
+let dbInstance: Firestore | null = null;
+
+async function getAuth(): Promise<Auth> {
+    if (authInstance) return authInstance;
+    const { getFirebaseAuth } = await import('./firebase');
+    authInstance = await getFirebaseAuth();
+    return authInstance;
+}
+
+async function getDb(): Promise<Firestore> {
+    if (dbInstance) return dbInstance;
+    const { getFirebaseDb } = await import('./firebase');
+    dbInstance = await getFirebaseDb();
+    return dbInstance;
+}
+
 // Helper to get the current user's ID
-const getUserId = (): string | null => {
+async function getUserId(): Promise<string | null> {
+    const auth = await getAuth();
     return auth.currentUser?.uid || null;
-};
+}
 
 // --- New Project-Based Data Structure ---
 
-const getProjectsCollectionRef = (userId: string) => {
+async function getProjectsCollectionRef(userId: string) {
+    const db = await getDb();
+    const { collection } = await import('firebase/firestore');
     return collection(db, `users/${userId}/projects`);
 }
 
-export const getProjectDocRef = (userId: string, projectId: string) => {
+export async function getProjectDocRef(userId: string, projectId: string) {
+    const db = await getDb();
+    const { doc } = await import('firebase/firestore');
     return doc(db, `users/${userId}/projects`, projectId);
 }
 
@@ -29,10 +52,11 @@ export const getProjectDocRef = (userId: string, projectId: string) => {
 // --- Project Management Functions ---
 
 export async function createProject(projectName: string, metadata: { sector: string; systemType: string; riskIndicators: string[] }) {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) throw new Error("User not authenticated");
 
-    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const { addDoc, serverTimestamp } = await import('firebase/firestore');
+    const projectsCollectionRef = await getProjectsCollectionRef(userId);
     const docRef = await addDoc(projectsCollectionRef, {
         projectName,
         metadata: {
@@ -71,10 +95,11 @@ export async function createProject(projectName: string, metadata: { sector: str
 }
 
 export async function getUserProjects() {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) return [];
 
-    const projectsCollectionRef = getProjectsCollectionRef(userId);
+    const { query, orderBy, getDocs } = await import('firebase/firestore');
+    const projectsCollectionRef = await getProjectsCollectionRef(userId);
     const q = query(projectsCollectionRef, orderBy('metadata.createdAt', 'desc'));
     const querySnapshot = await getDocs(q);
 
@@ -109,12 +134,13 @@ export function clearActiveProjectId() {
 
 // --- Project-Specific Data Functions ---
 
-const getProjectData = async <T extends keyof ProjectData>(field: T): Promise<ProjectData[T] | null> => {
-    const userId = getUserId();
+async function getProjectData<T extends keyof ProjectData>(field: T): Promise<ProjectData[T] | null> {
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) return null;
 
-    const projectDocRef = getProjectDocRef(userId, projectId);
+    const { getDoc } = await import('firebase/firestore');
+    const projectDocRef = await getProjectDocRef(userId, projectId);
     const docSnap = await getDoc(projectDocRef);
 
     if (docSnap.exists()) {
@@ -124,12 +150,13 @@ const getProjectData = async <T extends keyof ProjectData>(field: T): Promise<Pr
     return null;
 }
 
-export const getFullProject = async (): Promise<ProjectData | null> => {
-    const userId = getUserId();
+export async function getFullProject(): Promise<ProjectData | null> {
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) return null;
 
-    const projectDocRef = getProjectDocRef(userId, projectId);
+    const { getDoc } = await import('firebase/firestore');
+    const projectDocRef = await getProjectDocRef(userId, projectId);
     const docSnap = await getDoc(projectDocRef);
 
     if (docSnap.exists()) {
@@ -139,12 +166,13 @@ export const getFullProject = async (): Promise<ProjectData | null> => {
 }
 
 
-const saveProjectData = async (data: Partial<ProjectData>): Promise<void> => {
-    const userId = getUserId();
+async function saveProjectData(data: Partial<ProjectData>): Promise<void> {
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) throw new Error("User or project not identified");
 
-    const projectDocRef = getProjectDocRef(userId, projectId);
+    const { setDoc } = await import('firebase/firestore');
+    const projectDocRef = await getProjectDocRef(userId, projectId);
     setDoc(projectDocRef, data, { merge: true }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
             path: projectDocRef.path,
@@ -235,6 +263,7 @@ export async function getDesignCanvasData() {
 }
 
 export async function saveAimsData(data: object, progress: AimsProgress) {
+    const { serverTimestamp } = await import('firebase/firestore');
     await saveProjectData({
         aimsData: data,
         aimsProgress: {
@@ -276,14 +305,17 @@ export async function updateIsoWizardStatus(started: boolean) {
 
 
 // --- Course Progress (remains user-specific, not project-specific) ---
-const getUserDocRef = (userId: string, docId: 'courseProgress' | 'currentTask' | 'tokenUsage') => {
+async function getUserDocRef(userId: string, docId: 'courseProgress' | 'currentTask' | 'tokenUsage') {
+    const db = await getDb();
+    const { doc } = await import('firebase/firestore');
     return doc(db, `users/${userId}/appData`, docId);
-};
+}
 
 export async function saveCourseProgress(completedVideoIds: string[]) {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) throw new Error("User not authenticated");
-    const docRef = getUserDocRef(userId, 'courseProgress');
+    const { setDoc } = await import('firebase/firestore');
+    const docRef = await getUserDocRef(userId, 'courseProgress');
     setDoc(docRef, { completedVideoIds }, { merge: true }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
             path: docRef.path,
@@ -295,9 +327,10 @@ export async function saveCourseProgress(completedVideoIds: string[]) {
 }
 
 export async function getCourseProgress(): Promise<string[]> {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) return [];
-    const docRef = getUserDocRef(userId, 'courseProgress');
+    const { getDoc } = await import('firebase/firestore');
+    const docRef = await getUserDocRef(userId, 'courseProgress');
     const docSnap = await getDoc(docRef);
     const data = docSnap.exists() ? docSnap.data() : null;
     return data?.completedVideoIds || [];
@@ -306,11 +339,12 @@ export async function getCourseProgress(): Promise<string[]> {
 // --- Token Usage Tracking & Limiting ---
 
 export async function isUserOverTokenLimit(): Promise<boolean> {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) {
         return true;
     }
-    const docRef = getUserDocRef(userId, 'tokenUsage');
+    const { getDoc } = await import('firebase/firestore');
+    const docRef = await getUserDocRef(userId, 'tokenUsage');
     const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists()) {
@@ -329,10 +363,11 @@ export async function isUserOverTokenLimit(): Promise<boolean> {
 }
 
 export async function updateTokenUsage(tokensUsed: number) {
-    const userId = getUserId();
+    const userId = await getUserId();
     if (!userId) return;
 
-    const docRef = getUserDocRef(userId, 'tokenUsage');
+    const { getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+    const docRef = await getUserDocRef(userId, 'tokenUsage');
     const docSnap = await getDoc(docRef);
 
     const today = new Date();
@@ -363,44 +398,31 @@ export async function updateTokenUsage(tokensUsed: number) {
 
 
 // --- Current Task (remains user-specific for simplicity) ---
+// --- Current Task (moved to sessionStorage for performance) ---
 export async function saveCurrentTask(task: object) {
-    const userId = getUserId();
-    if (!userId) return;
-    const docRef = getUserDocRef(userId, 'currentTask');
-    setDoc(docRef, task).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'create',
-            requestResourceData: task
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('currentTask', JSON.stringify(task));
+    }
 }
 
 export async function getCurrentTask() {
-    const userId = getUserId();
-    if (!userId) return null;
-    const docSnap = await getDoc(getUserDocRef(userId, 'currentTask'));
-    return docSnap.exists() ? docSnap.data() : null;
+    if (typeof window !== 'undefined') {
+        const taskStr = window.sessionStorage.getItem('currentTask');
+        return taskStr ? JSON.parse(taskStr) : null;
+    }
+    return null;
 }
 
 export async function clearCurrentTask() {
-    const userId = getUserId();
-    if (!userId) return;
-    const docRef = getUserDocRef(userId, 'currentTask');
-    deleteDoc(docRef).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
+    if (typeof window !== 'undefined') {
+        window.sessionStorage.removeItem('currentTask');
+    }
 }
 
 
 // --- Shared Policy Functions ---
 export async function createSharedPolicy(policyData: any): Promise<{ policyId: string | null }> {
-    const authorId = getUserId();
+    const authorId = await getUserId();
     const projectId = getActiveProjectId();
 
     if (!authorId || !projectId) {
@@ -408,6 +430,8 @@ export async function createSharedPolicy(policyData: any): Promise<{ policyId: s
         return { policyId: null };
     }
 
+    const db = await getDb();
+    const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
     const collectionRef = collection(db, "sharedPolicies");
     const dataToSave = {
         ...policyData,
@@ -434,6 +458,8 @@ export async function getSharedPolicy(policyId: string) {
     if (!policyId) return null;
 
     try {
+        const db = await getDb();
+        const { doc, getDoc } = await import('firebase/firestore');
         const docRef = doc(db, 'sharedPolicies', policyId);
         const docSnap = await getDoc(docRef);
 
@@ -451,20 +477,25 @@ export async function getSharedPolicy(policyId: string) {
 
 // --- Portfolio (Pillar 3) Functions ---
 
-const getPortfolioCollectionRef = (userId: string, projectId: string) => {
+async function getPortfolioCollectionRef(userId: string, projectId: string) {
+    const db = await getDb();
+    const { collection } = await import('firebase/firestore');
     return collection(db, `users/${userId}/projects/${projectId}/portfolio`);
 }
 
-const getPortfolioDecisionsCollectionRef = (userId: string, projectId: string, portfolioId: string) => {
+async function getPortfolioDecisionsCollectionRef(userId: string, projectId: string, portfolioId: string) {
+    const db = await getDb();
+    const { collection } = await import('firebase/firestore');
     return collection(db, `users/${userId}/projects/${projectId}/portfolio/${portfolioId}/decisions`);
 }
 
 export async function createPortfolioProject(projectData: Omit<AIProject, 'id' | 'createdAt'>): Promise<string> {
-    const userId = getUserId();
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) throw new Error("User or project not identified");
 
-    const collectionRef = getPortfolioCollectionRef(userId, projectId);
+    const { addDoc, serverTimestamp } = await import('firebase/firestore');
+    const collectionRef = await getPortfolioCollectionRef(userId, projectId);
     const docRef = await addDoc(collectionRef, {
         ...projectData,
         createdAt: serverTimestamp(),
@@ -473,11 +504,12 @@ export async function createPortfolioProject(projectData: Omit<AIProject, 'id' |
 }
 
 export async function getPortfolioProjects(): Promise<(AIProject & { assessment?: AIProjectAssessment })[]> {
-    const userId = getUserId();
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) return [];
 
-    const collectionRef = getPortfolioCollectionRef(userId, projectId);
+    const { query, orderBy, getDocs } = await import('firebase/firestore');
+    const collectionRef = await getPortfolioCollectionRef(userId, projectId);
     const q = query(collectionRef, orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
 
@@ -485,20 +517,23 @@ export async function getPortfolioProjects(): Promise<(AIProject & { assessment?
 }
 
 export async function updatePortfolioProjectAssessment(portfolioProjectId: string, assessment: Omit<AIProjectAssessment, 'projectId' | 'updatedAt'>) {
-    const userId = getUserId();
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) throw new Error("User or project not identified");
 
+    const db = await getDb();
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
     const docRef = doc(db, `users/${userId}/projects/${projectId}/portfolio`, portfolioProjectId);
     await setDoc(docRef, { assessment: { ...assessment, updatedAt: serverTimestamp() } }, { merge: true });
 }
 
 export async function addPortfolioDecision(portfolioProjectId: string, decision: Omit<AIProjectDecisionLog, 'id' | 'projectId' | 'date'>) {
-    const userId = getUserId();
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) throw new Error("User or project not identified");
 
-    const collectionRef = getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
+    const { addDoc, serverTimestamp } = await import('firebase/firestore');
+    const collectionRef = await getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
     await addDoc(collectionRef, {
         ...decision,
         projectId: portfolioProjectId,
@@ -507,13 +542,49 @@ export async function addPortfolioDecision(portfolioProjectId: string, decision:
 }
 
 export async function getPortfolioDecisions(portfolioProjectId: string): Promise<AIProjectDecisionLog[]> {
-    const userId = getUserId();
+    const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) return [];
 
-    const collectionRef = getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
+    const { query, orderBy, getDocs } = await import('firebase/firestore');
+    const collectionRef = await getPortfolioDecisionsCollectionRef(userId, projectId, portfolioProjectId);
     const q = query(collectionRef, orderBy('date', 'desc'));
     const snapshot = await getDocs(q);
 
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AIProjectDecisionLog));
+}
+// --- Task Guide Persistence ---
+
+async function getTaskGuidesCollectionRef(userId: string, projectId: string) {
+    const db = await getDb();
+    const { collection } = await import('firebase/firestore');
+    return collection(db, `users/${userId}/projects/${projectId}/taskGuides`);
+}
+
+export async function saveTaskGuide(taskId: string, guide: any) {
+    const userId = await getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const db = await getDb();
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+    const docRef = doc(db, `users/${userId}/projects/${projectId}/taskGuides`, taskId);
+
+    await setDoc(docRef, {
+        guide,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+export async function getTaskGuide(taskId: string) {
+    const userId = await getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) return null;
+
+    const db = await getDb();
+    const { doc, getDoc } = await import('firebase/firestore');
+    const docRef = doc(db, `users/${userId}/projects/${projectId}/taskGuides`, taskId);
+    const docSnap = await getDoc(docRef);
+
+    return docSnap.exists() ? docSnap.data().guide : null;
 }

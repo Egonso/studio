@@ -1,6 +1,34 @@
+import type { Metadata } from 'next';
 
-import type {Metadata} from 'next';
+// Node.js 25 compatibility fix: provide a minimal localStorage mock if missing or incomplete on the server
+if (typeof window === 'undefined') {
+  try {
+    if (typeof global !== 'undefined') {
+      // Create a robust mock
+      const mock = {
+        getItem: () => null,
+        setItem: () => { },
+        removeItem: () => { },
+        clear: () => { },
+        key: () => null,
+        length: 0
+      };
+
+      // Aggressively override global.localStorage to ensure compatibility
+      Object.defineProperty(global, 'localStorage', {
+        value: mock,
+        writable: true,
+        configurable: true,
+        enumerable: true
+      });
+    }
+  } catch (e) {
+    // Silent fail in production
+  }
+}
+
 import './globals.css';
+import { Footer } from '@/components/footer';
 import { Toaster } from "@/components/ui/toaster";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
@@ -20,25 +48,15 @@ export default function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background">
         <AuthProvider>
-            {children}
-            <Toaster />
-            <footer className="p-4 md:p-6 border-t bg-background text-gray-600">
-                <div className="max-w-4xl mx-auto">
-                     <Alert variant="default" className="bg-secondary border-secondary-foreground/10">
-                        <Terminal className="h-4 w-4" />
-                        <AlertDescription className='text-xs text-muted-foreground'>
-                            <b>Hinweis zur Datennutzung:</b> Die in dieser Anwendung eingegebenen Informationen werden zur Bereitstellung der Funktionalität auf Servern gespeichert und zur Generierung von Inhalten an KI-Modelle von Google (Gemini) gesendet. Laden Sie keine sensiblen oder personenbezogenen Daten hoch, die einer besonderen Geheimhaltung unterliegen. Diese Anwendung ist ein Prototyp und stellt keine Rechtsberatung dar.
-                        </AlertDescription>
-                    </Alert>
-                    <p className="text-xs text-muted-foreground mt-4">&copy; 2024 AI Act Compass aktualisiert 10/2025. Alle Rechte vorbehalten.</p>
-                </div>
-            </footer>
+          {children}
+          <Toaster />
+          <Footer />
         </AuthProvider>
       </body>
     </html>

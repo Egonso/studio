@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, PlusCircle, ArrowRight, CornerDownRight } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, PlusCircle, ArrowRight, CornerDownRight, FolderPlus } from 'lucide-react';
 import { createProject, getUserProjects, setActiveProjectId } from '@/lib/data-service';
 import { Separator } from '@/components/ui/separator';
 
@@ -35,6 +36,7 @@ const riskIndicators = [
 export default function ProjectsPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
     const [projects, setProjects] = useState<Project[]>([]);
     const [newProjectName, setNewProjectName] = useState('');
     const [sector, setSector] = useState('');
@@ -72,9 +74,18 @@ export default function ProjectsPage() {
             };
             const newProjectId = await createProject(newProjectName, metadata);
             setActiveProjectId(newProjectId);
+            toast({
+                title: "Projekt erstellt",
+                description: `Das Projekt "${newProjectName}" wurde erfolgreich angelegt.`,
+            });
             router.push(`/assessment?projectId=${newProjectId}`);
         } catch (error) {
             console.error("Failed to create project:", error);
+            toast({
+                title: "Fehler",
+                description: "Das Projekt konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+                variant: "destructive",
+            });
         } finally {
             setIsCreating(false);
         }
@@ -107,43 +118,56 @@ export default function ProjectsPage() {
             <AppHeader />
             <main className="flex-1 flex flex-col items-center p-4 md:p-8">
                 <div className="w-full max-w-4xl">
-                    <div className="flex justify-between items-center mb-10">
+                    <div className="flex justify-between items-center mb-6">
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Meine Projekte</h1>
-                        <div>
-                            {/* Actions moved to cards or specific flows */}
-                        </div>
+                        {projects.length > 0 && (
+                            <Button onClick={handleJumpToLatest} variant="secondary">
+                                <CornerDownRight className="mr-2 h-4 w-4" /> Zum letzten Dashboard springen
+                            </Button>
+                        )}
                     </div>
 
-
-                    <div className="mb-12">
-                        <h2 className="text-xl md:text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-100">Bestehende Projekte</h2>
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {projects.map(project => (
-                                <Card key={project.id} className="flex flex-col justify-between hover:shadow-lg transition-all border-slate-200 dark:border-slate-800">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="truncate text-lg">{project.projectName}</CardTitle>
-                                        <CardDescription>
-                                            Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardFooter className="pt-3">
-                                        <Button onClick={() => handleSelectProject(project.id)} className="w-full text-primary" variant="outline">
-                                            Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))}
+                    {projects.length > 0 ? (
+                        <div className="mb-12">
+                            <h2 className="text-2xl font-bold mb-4 tracking-tight text-slate-900 dark:text-slate-100">Bestehende Projekte</h2>
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {projects.map(project => (
+                                    <Card key={project.id} className="flex flex-col justify-between hover:shadow-xl transition-shadow border-slate-200 dark:border-slate-800">
+                                        <CardHeader>
+                                            <CardTitle className="truncate">{project.projectName}</CardTitle>
+                                            <CardDescription>
+                                                Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardFooter>
+                                            <Button onClick={() => handleSelectProject(project.id)} className="w-full text-primary" variant="outline">
+                                                Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="text-center py-16 px-6 border-2 border-dashed rounded-xl bg-muted/30 mb-12">
+                            <FolderPlus className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-xl font-semibold mb-2">Keine Projekte gefunden</h3>
+                            <p className="text-muted-foreground max-w-md mx-auto">
+                                Sie haben noch keine Compliance-Projekte angelegt. Starten Sie jetzt mit Ihrer ersten KI-Bewertung.
+                            </p>
+                        </div>
+                    )}
+
+                    <Separator className="my-8" />
 
 
-                    <Card className="shadow-lg mt-8">
+                    <Card className="shadow-lg mt-8 border-primary/20">
                         <CardHeader>
                             <CardTitle>Neues Projekt starten</CardTitle>
                             <CardDescription>
                                 {projects.length > 0
                                     ? "Oder beginnen Sie eine neue Compliance-Bewertung für ein weiteres Produkt oder System."
-                                    : "Beginnen Sie Ihre erste Compliance-Bewertung. Die Metadaten helfen bei der Erstellung des Audit-Dossiers."
+                                    : "Erstellen Sie Ihr erstes Projekt, um den Status Ihrer KI-Systeme zu bewerten."
                                 }
                             </CardDescription>
                         </CardHeader>
@@ -228,12 +252,6 @@ export default function ProjectsPage() {
                             </Button>
                         </CardFooter>
                     </Card>
-
-                    {projects.length === 0 && !isLoading && (
-                        <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg mt-8">
-                            <p className="text-muted-foreground">Sie haben noch keine Projekte. Starten Sie Ihr erstes Projekt oben.</p>
-                        </div>
-                    )}
                 </div>
             </main >
         </div >

@@ -1,7 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -33,6 +32,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_DOCUMENTERO_API_KEY: process.env.NEXT_PUBLIC_DOCUMENTERO_API_KEY,
   },
+  serverExternalPackages: ['genkit', '@genkit-ai/googleai', '@genkit-ai/firebase', 'handlebars'],
 };
 
 export default nextConfig;

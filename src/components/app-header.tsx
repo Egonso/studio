@@ -7,7 +7,6 @@ import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { LogOut, BookOpen, LayoutDashboard, GanttChartSquare, Wand2, GraduationCap } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
-import { auth } from "@/lib/firebase";
 import { clearActiveProjectId } from "@/lib/data-service";
 
 
@@ -16,9 +15,15 @@ export function AppHeader() {
   const { user } = useAuth();
 
   const handleLogout = async () => {
-    await auth.signOut();
-    clearActiveProjectId();
-    router.push('/login');
+    try {
+      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const auth = await getFirebaseAuth();
+      await auth.signOut();
+      clearActiveProjectId();
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
 
