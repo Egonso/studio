@@ -15,11 +15,11 @@ function DashboardPageContent() {
     const [isLoading, setIsLoading] = useState(true);
     const [projectName, setProjectName] = useState('');
     const [projectData, setProjectData] = useState<any>(null);
-    
+
     const router = useRouter();
     const searchParams = useSearchParams();
     const { user, loading: authLoading } = useAuth();
-    
+
     const projectId = searchParams.get('projectId');
 
     const loadData = useCallback(async (currentProjectId: string) => {
@@ -33,7 +33,7 @@ function DashboardPageContent() {
         if (fullProjectData) {
             setProjectName(fullProjectData.projectName || '');
             setProjectData(fullProjectData);
-            
+
             const answers = fullProjectData.assessmentAnswers;
             if (!answers || Object.keys(answers).length === 0) {
                 router.push(`/assessment?projectId=${currentProjectId}`);
@@ -42,11 +42,13 @@ function DashboardPageContent() {
 
             const derivedData = deriveComplianceState(answers);
             const savedChecklistState = fullProjectData.checklistState || {};
-            
+
             const enrichedData: FullComplianceInfo[] = derivedData.map(item => ({
                 ...item,
                 checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
             }));
+
+            setFullComplianceData(enrichedData);
 
             setFullComplianceData(enrichedData);
 
@@ -65,7 +67,7 @@ function DashboardPageContent() {
             router.push('/login');
             return;
         }
-        
+
         const activeProjectId = projectId || getActiveProjectId();
 
         if (activeProjectId) {
@@ -121,12 +123,14 @@ function DashboardPageContent() {
         <div className="flex flex-col min-h-screen bg-background">
             <AppHeader />
             <main className="flex-1">
-                <Dashboard 
+                <Dashboard
                     projectName={projectName}
                     complianceData={fullComplianceData}
                     setComplianceData={setFullComplianceData}
                     aimsData={projectData?.aimsData || {}}
+                    aimsData={projectData?.aimsData || {}}
                     aimsProgress={projectData?.aimsProgress || {}}
+                    wizardStatus={projectData?.wizardStatus || 'not_started'}
                 />
             </main>
         </div>

@@ -39,12 +39,13 @@ export async function createProject(projectName: string, metadata: { sector: str
             ...metadata,
             createdAt: serverTimestamp(),
         },
+        wizardStatus: 'in_progress', // Default for new projects
         assessmentAnswers: {},
         companyContext: {},
         checklistState: {},
         designCanvas: {
             projectContext: '',
-            stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
+            stakeholders: [{ id: '1', name: '', type: 'external', concerns: '' }],
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
@@ -174,19 +175,22 @@ interface ProjectData {
     aimsProgress: AimsProgress;
     courseProgress: { completedVideoIds: string[] };
     exportedInsights: string[];
+    wizardStatus?: 'not_started' | 'in_progress' | 'completed';
+    policiesGenerated?: boolean;
+    isoWizardStarted?: boolean;
 }
 
 // These functions now operate on the active project
 export async function saveAssessmentAnswers(answers: Record<string, string>) {
     // When new assessment is saved, clear old context and checklist state for this project
-    await saveProjectData({ 
+    await saveProjectData({
         assessmentAnswers: answers,
         companyContext: {},
         checklistState: {},
         exportedInsights: [],
         designCanvas: {
             projectContext: '',
-            stakeholders: [{id: '1', name: '', type: 'external', concerns: ''}],
+            stakeholders: [{ id: '1', name: '', type: 'external', concerns: '' }],
             advice: null,
             antiPatternDescription: '',
             antiPatternAnalysis: null,
@@ -223,7 +227,7 @@ export async function getChecklistState() {
 
 export async function saveDesignCanvasData(data: object) {
     const existingData = await getDesignCanvasData() || {};
-    await saveProjectData({ designCanvas: {...existingData, ...data }});
+    await saveProjectData({ designCanvas: { ...existingData, ...data } });
 }
 
 export async function getDesignCanvasData() {
@@ -231,7 +235,7 @@ export async function getDesignCanvasData() {
 }
 
 export async function saveAimsData(data: object, progress: AimsProgress) {
-    await saveProjectData({ 
+    await saveProjectData({
         aimsData: data,
         aimsProgress: {
             ...progress,
@@ -256,6 +260,18 @@ export async function getExportedInsights(): Promise<string[]> {
 export async function saveExportedInsight(insight: string) {
     const currentInsights = await getExportedInsights();
     await saveProjectData({ exportedInsights: [...currentInsights, insight] });
+}
+
+export async function updateWizardStatus(status: 'not_started' | 'in_progress' | 'completed') {
+    await saveProjectData({ wizardStatus: status });
+}
+
+export async function updatePoliciesStatus(generated: boolean) {
+    await saveProjectData({ policiesGenerated: generated });
+}
+
+export async function updateIsoWizardStatus(started: boolean) {
+    await saveProjectData({ isoWizardStarted: started });
 }
 
 
@@ -352,7 +368,7 @@ export async function saveCurrentTask(task: object) {
     if (!userId) return;
     const docRef = getUserDocRef(userId, 'currentTask');
     setDoc(docRef, task).catch(async (serverError) => {
-         const permissionError = new FirestorePermissionError({
+        const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'create',
             requestResourceData: task
@@ -373,7 +389,7 @@ export async function clearCurrentTask() {
     if (!userId) return;
     const docRef = getUserDocRef(userId, 'currentTask');
     deleteDoc(docRef).catch(async (serverError) => {
-         const permissionError = new FirestorePermissionError({
+        const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'delete',
         });
@@ -391,7 +407,7 @@ export async function createSharedPolicy(policyData: any): Promise<{ policyId: s
         console.error("User or project not authenticated for sharing policy.");
         return { policyId: null };
     }
-    
+
     const collectionRef = collection(db, "sharedPolicies");
     const dataToSave = {
         ...policyData,

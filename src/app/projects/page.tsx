@@ -40,7 +40,7 @@ export default function ProjectsPage() {
     const [sector, setSector] = useState('');
     const [systemType, setSystemType] = useState('');
     const [selectedRisks, setSelectedRisks] = useState<string[]>([]);
-    
+
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
 
@@ -72,7 +72,7 @@ export default function ProjectsPage() {
             };
             const newProjectId = await createProject(newProjectName, metadata);
             setActiveProjectId(newProjectId);
-            router.push('/assessment');
+            router.push(`/assessment?projectId=${newProjectId}`);
         } catch (error) {
             console.error("Failed to create project:", error);
         } finally {
@@ -90,7 +90,7 @@ export default function ProjectsPage() {
             handleSelectProject(projects[0].id);
         }
     }
-    
+
     if (authLoading || isLoading) {
         return (
             <div className="flex h-screen w-full flex-col">
@@ -107,48 +107,43 @@ export default function ProjectsPage() {
             <AppHeader />
             <main className="flex-1 flex flex-col items-center p-4 md:p-8">
                 <div className="w-full max-w-4xl">
-                    <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold">Meine Projekte</h1>
-                        {projects.length > 0 && (
-                            <Button onClick={handleJumpToLatest} variant="secondary">
-                                <CornerDownRight className="mr-2 h-4 w-4" /> Zum letzten Dashboard springen
-                            </Button>
-                        )}
-                    </div>
-                    
-                    {projects.length > 0 && (
-                         <div className="mb-12">
-                            <h2 className="text-2xl font-bold mb-4">Bestehende Projekte</h2>
-                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {projects.map(project => (
-                                    <Card key={project.id} className="flex flex-col justify-between hover:shadow-xl transition-shadow">
-                                        <CardHeader>
-                                            <CardTitle className="truncate">{project.projectName}</CardTitle>
-                                            <CardDescription>
-                                                Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
-                                            </CardDescription>
-                                        </CardHeader>
-                                        <CardFooter>
-                                            <Button onClick={() => handleSelectProject(project.id)} className="w-full">
-                                                Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
+                    <div className="flex justify-between items-center mb-10">
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">Meine Projekte</h1>
+                        <div>
+                            {/* Actions moved to cards or specific flows */}
                         </div>
-                    )}
-                    
-                    <Separator className="my-8" />
+                    </div>
+
+
+                    <div className="mb-12">
+                        <h2 className="text-xl md:text-2xl font-bold mb-6 tracking-tight text-slate-900 dark:text-slate-100">Bestehende Projekte</h2>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {projects.map(project => (
+                                <Card key={project.id} className="flex flex-col justify-between hover:shadow-lg transition-all border-slate-200 dark:border-slate-800">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="truncate text-lg">{project.projectName}</CardTitle>
+                                        <CardDescription>
+                                            Erstellt am: {project.metadata?.createdAt?.toDate().toLocaleDateString('de-DE') || 'N/A'}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardFooter className="pt-3">
+                                        <Button onClick={() => handleSelectProject(project.id)} className="w-full text-primary" variant="outline">
+                                            Zum Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
 
 
                     <Card className="shadow-lg mt-8">
                         <CardHeader>
                             <CardTitle>Neues Projekt starten</CardTitle>
                             <CardDescription>
-                                {projects.length > 0 
-                                ? "Oder beginnen Sie eine neue Compliance-Bewertung für ein weiteres Produkt oder System."
-                                : "Beginnen Sie Ihre erste Compliance-Bewertung. Die Metadaten helfen bei der Erstellung des Audit-Dossiers."
+                                {projects.length > 0
+                                    ? "Oder beginnen Sie eine neue Compliance-Bewertung für ein weiteres Produkt oder System."
+                                    : "Beginnen Sie Ihre erste Compliance-Bewertung. Die Metadaten helfen bei der Erstellung des Audit-Dossiers."
                                 }
                             </CardDescription>
                         </CardHeader>
@@ -166,7 +161,7 @@ export default function ProjectsPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="sector">Branche</Label>
-                                     <Select value={sector} onValueChange={setSector} disabled={isCreating}>
+                                    <Select value={sector} onValueChange={setSector} disabled={isCreating}>
                                         <SelectTrigger id="sector">
                                             <SelectValue placeholder="Branche auswählen..." />
                                         </SelectTrigger>
@@ -227,7 +222,7 @@ export default function ProjectsPage() {
                                 ) : (
                                     <>
                                         <PlusCircle className="mr-2 h-4 w-4" />
-                                        Projekt erstellen & Bewertung starten
+                                        <span>Projekt erstellen & Bewertung starten</span>
                                     </>
                                 )}
                             </Button>
@@ -240,7 +235,7 @@ export default function ProjectsPage() {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

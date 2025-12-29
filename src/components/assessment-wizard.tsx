@@ -4,7 +4,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,19 +19,19 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { saveAssessmentAnswers, getActiveProjectId } from "@/lib/data-service";
+import { saveAssessmentAnswers, getActiveProjectId, updateWizardStatus } from "@/lib/data-service";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
 
 interface Question {
-    title: string;
-    question: string;
-    options: {
-        label: string;
-        value: string;
-        next?: QuestionId;
-    }[];
-    next?: QuestionId; // Default next question if no option specifies one
+  title: string;
+  question: string;
+  options: {
+    label: string;
+    value: string;
+    next?: QuestionId;
+  }[];
+  next?: QuestionId; // Default next question if no option specifies one
 }
 
 const questions: Record<QuestionId, Question | { final: boolean, title: string, description: string }> = {
@@ -48,8 +48,8 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
     title: "Verbotene Praktiken (Art. 5)",
     question: "Nutzt Ihr KI-System Techniken, die das Verhalten von Personen manipulieren (z.B. unterschwellige Beeinflussung), 'Social Scoring' zur Bewertung von Personen einsetzen oder Echtzeit-Fernidentifizierung im öffentlichen Raum ohne richterliche Genehmigung durchführen?",
     options: [
-        { label: "Ja, eines oder mehrere davon treffen zu.", value: "yes_forbidden" },
-        { label: "Nein, nichts davon trifft zu.", value: "no" },
+      { label: "Ja, eines oder mehrere davon treffen zu.", value: "yes_forbidden" },
+      { label: "Nein, nichts davon trifft zu.", value: "no" },
     ],
     next: 'q3'
   },
@@ -66,8 +66,8 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
     title: "Hochrisiko-System: Bildung / Berufliche Bildung",
     question: "Wird Ihr KI-System eingesetzt, um über den Zugang zu Bildungseinrichtungen zu entscheiden oder die Leistung von Studierenden zu bewerten (z.B. bei Prüfungen)?",
     options: [
-        { label: "Ja", value: "yes_high_risk" },
-        { label: "Nein", value: "no" },
+      { label: "Ja", value: "yes_high_risk" },
+      { label: "Nein", value: "no" },
     ],
     next: 'q5'
   },
@@ -80,7 +80,7 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
     ],
     next: 'q6'
   },
-   q6: {
+  q6: {
     title: "Hochrisiko-System: Zugang zu Leistungen",
     question: "Entscheidet Ihr KI-System über den Zugang zu wesentlichen privaten oder öffentlichen Dienstleistungen, wie z.B. die Kreditwürdigkeitsprüfung für einen Kredit?",
     options: [
@@ -90,23 +90,23 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
     next: 'q7'
   },
   q7: {
-      title: "Hochrisiko-System: Strafverfolgung & Biometrie",
-      question: "Wird Ihr System im Bereich der Strafverfolgung eingesetzt, z.B. zur Bewertung der Zuverlässigkeit von Beweismitteln oder zur Vorhersage von Straftaten?",
-      options: [
-          { label: "Ja", value: "yes_high_risk" },
-          { label: "Nein", value: "no" },
-      ],
-      next: 'q_final_review'
+    title: "Hochrisiko-System: Strafverfolgung & Biometrie",
+    question: "Wird Ihr System im Bereich der Strafverfolgung eingesetzt, z.B. zur Bewertung der Zuverlässigkeit von Beweismitteln oder zur Vorhersage von Straftaten?",
+    options: [
+      { label: "Ja", value: "yes_high_risk" },
+      { label: "Nein", value: "no" },
+    ],
+    next: 'q_final_review'
   },
   q_final_compliant: {
-      final: true,
-      title: "Kein direkter Handlungsbedarf",
-      description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Projekt weiter, das diesen Status widerspiegelt.",
+    final: true,
+    title: "Kein direkter Handlungsbedarf",
+    description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Projekt weiter, das diesen Status widerspiegelt.",
   },
   q_final_review: {
-      final: true,
-      title: "Bewertung abgeschlossen",
-      description: "Vielen Dank. Ihre Antworten wurden für dieses Projekt aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
+    final: true,
+    title: "Bewertung abgeschlossen",
+    description: "Vielen Dank. Ihre Antworten wurden für dieses Projekt aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
   }
 };
 
@@ -119,51 +119,68 @@ export function AssessmentWizard() {
   const [answers, setAnswers] = useState<Answers>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  
+  const searchParams = useSearchParams();
+
   const currentStepId = stepHistory[stepHistory.length - 1];
   const currentQuestionDef = questions[currentStepId];
 
   const handleNextStep = async (currentAnswers: Answers) => {
-    const projectId = getActiveProjectId();
-    if (!projectId) {
+    try {
+      const projectIdParam = searchParams.get('projectId');
+      const projectId = projectIdParam || getActiveProjectId();
+
+      if (!projectId) {
+        console.warn("No active project found in wizard, redirecting to projects.");
         router.push('/projects');
         return;
-    }
+      }
 
-    if ('final' in currentQuestionDef) {
+      const question = questions[currentStepId];
+
+      if ('final' in question) {
         setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
-        if(currentStepId === 'q_final_compliant') {
-            router.push(`/dashboard?projectId=${projectId}`);
+
+        if (currentStepId === 'q_final_compliant' || currentStepId === 'q_final_review') {
+          await updateWizardStatus('completed');
+          router.push(`/dashboard?projectId=${projectId}`);
         } else {
-            router.push('/assessment/context');
+          router.push(`/dashboard?projectId=${projectId}`);
         }
         return;
-    }
-    
-    const value = currentAnswers[currentStepId];
-    if (currentStepId === 'q1' && value === 'no') {
+      }
+
+      // Special check for Q1 'no' -> Compliant
+      if (currentStepId === 'q1' && currentAnswers[currentStepId] === 'no') {
         setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
         setStepHistory([...stepHistory, 'q_final_compliant']);
         setIsSubmitting(false);
         return;
-    }
-    
-    const question = questions[currentStepId];
-    if (!('final' in question)) {
+      }
+
+      // Normal navigation
+      if (!('final' in question)) {
+        const value = currentAnswers[currentStepId];
         const selectedOption = question.options.find(o => o.value === value);
         let nextStepId = selectedOption?.next || question.next;
-        
+
         if (!nextStepId) {
-             const currentIndex = questionOrder.indexOf(currentStepId);
-             if (currentIndex < questionOrder.length - 1) {
-                nextStepId = questionOrder[currentIndex + 1];
-             } else {
-                nextStepId = 'q_final_review';
-             }
+          const currentIndex = questionOrder.indexOf(currentStepId);
+          if (currentIndex < questionOrder.length - 1) {
+            nextStepId = questionOrder[currentIndex + 1];
+          } else {
+            nextStepId = 'q_final_review';
+          }
         }
         setStepHistory([...stepHistory, nextStepId]);
+      }
+    } catch (error: any) {
+      console.error("Error in wizard next step:", error);
+      setIsSubmitting(false);
+      // If we hit a permission error (e.g. session expired), maybe redirect or show toast
+      // For now, we rely on the global error emitter or just log it.
+      // Ideally, we'd use useToast here to notify the user.
     }
   };
 
@@ -176,37 +193,37 @@ export function AssessmentWizard() {
 
   const handleBack = () => {
     if (stepHistory.length > 1) {
-        const newHistory = [...stepHistory];
-        newHistory.pop();
-        setStepHistory(newHistory);
+      const newHistory = [...stepHistory];
+      newHistory.pop();
+      setStepHistory(newHistory);
     }
   };
-  
+
   const progress = (stepHistory.length / (questionOrder.length + 1)) * 100;
 
   if ('final' in currentQuestionDef) {
-      return (
-          <Card className="w-full max-w-2xl shadow-lg">
-              <CardHeader>
-                  <CardTitle>{currentQuestionDef.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                  <p>{currentQuestionDef.description}</p>
-              </CardContent>
-              <CardFooter className="flex justify-end">
-                  <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
-                      {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Weiterleiten...
-                          </>
-                      ) : (
-                        currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'
-                      )}
-                  </Button>
-              </CardFooter>
-          </Card>
-      )
+    return (
+      <Card className="w-full max-w-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle>{currentQuestionDef.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>{currentQuestionDef.description}</p>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Weiterleiten...
+              </>
+            ) : (
+              currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    )
   }
 
   return (
