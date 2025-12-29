@@ -41,6 +41,7 @@ interface DashboardProps {
     aimsData: any;
     aimsProgress: AimsProgress;
     wizardStatus: 'not_started' | 'in_progress' | 'completed';
+    policiesGenerated?: boolean;
 }
 
 const statusConfig = {
@@ -71,7 +72,8 @@ export function Dashboard({
     setPortfolioComplianceData,
     aimsData,
     aimsProgress,
-    wizardStatus
+    wizardStatus,
+    policiesGenerated
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -147,6 +149,7 @@ export function Dashboard({
                             projectId={new URLSearchParams(window.location.search).get('projectId') || ''}
                             wizardStatus={wizardStatus}
                             projectName={projectName}
+                            policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
                         />
 
                         {/* 3 Main Pillars Navigation */}

@@ -475,6 +475,27 @@ export async function getSharedPolicy(policyId: string) {
     }
 }
 
+export async function savePolicyData(policyData: { title: string; content: string; placeholders: any }, level: string) {
+    const userId = await getUserId();
+    const projectId = getActiveProjectId();
+
+    if (!projectId || !userId) {
+        throw new Error("Missing project or user ID");
+    }
+
+    const projectRef = await getProjectDocRef(userId, projectId);
+    const { updateDoc } = await import('firebase/firestore');
+
+    await updateDoc(projectRef, {
+        "aimsData.policy": policyData.content,
+        "aimsData.policyTitle": policyData.title,
+        "aimsData.policyLevel": level,
+        "aimsData.policyPlaceholders": policyData.placeholders,
+        "aimsData.policyUpdatedAt": new Date().toISOString(),
+        "policiesGenerated": true
+    });
+}
+
 // --- Portfolio (Pillar 3) Functions ---
 
 async function getPortfolioCollectionRef(userId: string, projectId: string) {

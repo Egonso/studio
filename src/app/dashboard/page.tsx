@@ -63,12 +63,12 @@ function DashboardPageContent() {
                     return 'Non-Compliant';
                 };
                 const aimsItems = [
-                    { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: getStatus(fullProjectData.aimsProgress?.step1Completed, !!fullProjectData.aimsData?.scope), details: fullProjectData.aimsData?.scope ? `Scope definiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: getStatus(fullProjectData.aimsProgress?.step2Completed, !!fullProjectData.aimsData?.policy && fullProjectData.aimsData.policy.length > 20), details: fullProjectData.aimsData?.policy ? 'Policy vorhanden.' : 'Noch nicht bewertet.' },
-                    { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: getStatus(fullProjectData.aimsProgress?.step3Completed, fullProjectData.aimsData?.risks?.some((r: any) => r.description)), details: fullProjectData.aimsData?.risks?.length > 0 ? `${fullProjectData.aimsData.risks.length} Risiken dokumentiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: getStatus(fullProjectData.aimsProgress?.step4Completed, fullProjectData.aimsData?.raci?.some((r: any) => r.task)), details: fullProjectData.aimsData?.raci?.length > 0 ? `${fullProjectData.aimsData.raci.length} Verantwortlichkeiten definiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: getStatus(fullProjectData.aimsProgress?.step5Completed, !!fullProjectData.aimsData?.kpis), details: fullProjectData.aimsData?.kpis ? 'KPIs definiert.' : 'Noch nicht bewertet.' },
-                    { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: getStatus(fullProjectData.aimsProgress?.step6Completed, !!fullProjectData.aimsData?.improvementProcess), details: fullProjectData.aimsData?.improvementProcess ? 'Verbesserungsprozess definiert.' : 'Noch nicht bewertet.' },
+                    { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: getStatus(fullProjectData.aimsProgress?.step1_complete, !!(fullProjectData.aimsData as any)?.scope), details: (fullProjectData.aimsData as any)?.scope ? `Scope definiert.` : 'Noch nicht bewertet.' },
+                    { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: getStatus(fullProjectData.aimsProgress?.step2_complete, !!(fullProjectData.aimsData as any)?.policy && (fullProjectData.aimsData as any).policy.length > 20), details: (fullProjectData.aimsData as any)?.policy ? 'Policy vorhanden.' : 'Noch nicht bewertet.' },
+                    { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: getStatus(fullProjectData.aimsProgress?.step3_complete, (fullProjectData.aimsData as any)?.risks?.some((r: any) => r.description)), details: (fullProjectData.aimsData as any)?.risks?.length > 0 ? `${(fullProjectData.aimsData as any).risks.length} Risiken dokumentiert.` : 'Noch nicht bewertet.' },
+                    { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: getStatus(fullProjectData.aimsProgress?.step4_complete, (fullProjectData.aimsData as any)?.raci?.some((r: any) => r.task)), details: (fullProjectData.aimsData as any)?.raci?.length > 0 ? `${(fullProjectData.aimsData as any).raci.length} Verantwortlichkeiten definiert.` : 'Noch nicht bewertet.' },
+                    { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: getStatus(fullProjectData.aimsProgress?.step5_complete, !!(fullProjectData.aimsData as any)?.kpis), details: (fullProjectData.aimsData as any)?.kpis ? 'KPIs definiert.' : 'Noch nicht bewertet.' },
+                    { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: getStatus(fullProjectData.aimsProgress?.step6_complete, !!(fullProjectData.aimsData as any)?.improvementProcess), details: (fullProjectData.aimsData as any)?.improvementProcess ? 'Verbesserungsprozess definiert.' : 'Noch nicht bewertet.' },
                 ];
                 return aimsItems.map(item => ({
                     ...item,
@@ -175,9 +175,9 @@ function DashboardPageContent() {
                     portfolioComplianceData={portfolioComplianceData}
                     setPortfolioComplianceData={setPortfolioComplianceData}
                     aimsData={projectData?.aimsData || {}}
-                    aimsData={projectData?.aimsData || {}}
                     aimsProgress={projectData?.aimsProgress || {}}
                     wizardStatus={projectData?.wizardStatus || 'not_started'}
+                    policiesGenerated={projectData?.policiesGenerated}
                 />
             </main>
         </div>

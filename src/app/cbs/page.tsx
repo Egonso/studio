@@ -4,20 +4,20 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
-import { Loader2, Wand2, Share2 } from 'lucide-react';
+import { Loader2, Wand2, Share2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { PolicyEditor, type PolicyData, type Level } from '@/components/policy-editor';
 import { Button } from '@/components/ui/button';
-import { createSharedPolicy } from '@/lib/data-service';
+import { createSharedPolicy, savePolicyData } from '@/lib/data-service';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,8 +28,9 @@ function ComplianceInADayPageContent() {
     const { toast } = useToast();
 
     const [isSharing, setIsSharing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [shareUrl, setShareUrl] = useState('');
-    const [policyData, setPolicyData] = useState<{data: PolicyData, level: Level} | null>(null);
+    const [policyData, setPolicyData] = useState<{ data: PolicyData, level: Level } | null>(null);
 
     const handleShare = async () => {
         if (!policyData) return;
@@ -52,7 +53,28 @@ function ComplianceInADayPageContent() {
             });
         }
     };
-    
+
+    const handleSave = async () => {
+        if (!policyData) return;
+        setIsSaving(true);
+        try {
+            await savePolicyData(policyData.data, policyData.level);
+            toast({
+                title: 'Richtlinie gespeichert!',
+                description: 'Ihre Fortschritte wurden im Dashboard aktualisiert.'
+            });
+        } catch (error) {
+            console.error("Failed to save policy", error);
+            toast({
+                variant: 'destructive',
+                title: 'Fehler beim Speichern',
+                description: 'Bitte versuchen Sie es erneut.'
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleCopy = () => {
         navigator.clipboard.writeText(shareUrl);
         toast({
@@ -63,7 +85,7 @@ function ComplianceInADayPageContent() {
 
     if (authLoading || !user) {
         return (
-             <div className="flex h-screen w-full items-center justify-center">
+            <div className="flex h-screen w-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
             </div>
         );
@@ -74,7 +96,7 @@ function ComplianceInADayPageContent() {
             <AppHeader />
             <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
-                     <Card className="w-full shadow-lg bg-secondary border-none">
+                    <Card className="w-full shadow-lg bg-secondary border-none">
                         <CardHeader>
                             <div className="flex justify-between items-start">
                                 <div>
@@ -89,28 +111,28 @@ function ComplianceInADayPageContent() {
                             </div>
                         </CardHeader>
                         <CardContent>
-                           <p>
+                            <p>
                                 Beginnen Sie mit der Selbsteinschätzung, um die passende Richtlinien-Vorlage für Ihr Unternehmen zu finden. Füllen Sie die markierten Felder aus und schon haben Sie ein Dokument, das Sie intern verwenden und mit externen Partnern teilen können.
-                           </p>
+                            </p>
                         </CardContent>
-                         <CardFooter>
+                        <CardFooter>
                             <Dialog onOpenChange={(open) => !open && setShareUrl('')}>
                                 <DialogTrigger asChild>
-                                    <Button onClick={() => policyData && handleShare()} disabled={!policyData}>
+                                    <Button onClick={() => policyData && handleShare()} disabled={!policyData} variant="outline">
                                         <Share2 className="mr-2 h-4 w-4" />
                                         Aktuelle Richtlinie teilen
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                    <DialogTitle>Richtlinie teilen</DialogTitle>
-                                    <DialogDescription>
-                                        Jeder mit diesem Link kann eine schreibgeschützte Version Ihrer Richtlinie sehen.
-                                    </DialogDescription>
+                                        <DialogTitle>Richtlinie teilen</DialogTitle>
+                                        <DialogDescription>
+                                            Jeder mit diesem Link kann eine schreibgeschützte Version Ihrer Richtlinie sehen.
+                                        </DialogDescription>
                                     </DialogHeader>
                                     {isSharing ? (
                                         <div className="flex items-center gap-2">
-                                            <Loader2 className="h-4 w-4 animate-spin"/>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
                                             <p>Generiere Link...</p>
                                         </div>
                                     ) : shareUrl ? (
@@ -126,6 +148,10 @@ function ComplianceInADayPageContent() {
                                     )}
                                 </DialogContent>
                             </Dialog>
+                            <Button onClick={() => handleSave()} disabled={!policyData || isSaving}>
+                                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                                Richtlinie speichern & weiter
+                            </Button>
                         </CardFooter>
                     </Card>
 
@@ -140,7 +166,7 @@ function ComplianceInADayPageContent() {
 export default function ComplianceInADayPage() {
     return (
         <Suspense fallback={
-             <div className="flex flex-col min-h-screen bg-background">
+            <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin" />
