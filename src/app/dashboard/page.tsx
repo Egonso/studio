@@ -1,34 +1,90 @@
-
 "use client";
 
 import { AppHeader } from "@/components/app-header";
 import { Dashboard, type FullComplianceInfo } from "@/components/dashboard";
+import { DashboardStartArea } from "@/components/dashboard/dashboard-start-area";
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deriveComplianceState } from "@/lib/compliance-logic";
 import { useAuth } from "@/context/auth-context";
-import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjectId } from "@/lib/data-service";
+import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjectId, getUserProjects } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 
 function DashboardPageContent() {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const projectIdParam = searchParams.get('projectId');
+
+    // State 1: Global Loading (checking projects existence)
+    const [isGlobalLoading, setIsGlobalLoading] = useState(true);
+
+    // State 2: User Context (Has projects?)
+    const [hasProjects, setHasProjects] = useState<boolean>(false);
+
+    // State 3: Project Data (Only used if hasProjects === true)
     const [fullComplianceData, setFullComplianceData] = useState<FullComplianceInfo[] | null>(null);
     const [isoComplianceData, setIsoComplianceData] = useState<FullComplianceInfo[] | null>(null);
     const [portfolioComplianceData, setPortfolioComplianceData] = useState<FullComplianceInfo[] | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [projectName, setProjectName] = useState('');
     const [projectData, setProjectData] = useState<any>(null);
 
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const { user, loading: authLoading } = useAuth();
+    // Initial Bootstrap: Check User Projects
+    useEffect(() => {
+        if (authLoading) return;
+        if (!user) {
+            router.push('/login');
+            return;
+        }
 
-    const projectId = searchParams.get('projectId');
+        const bootstrapUser = async () => {
+            try {
+                const projects = await getUserProjects();
 
-    const loadData = useCallback(async (currentProjectId: string) => {
-        if (!user) return;
-        setIsLoading(true);
+                if (projects.length === 0) {
+                    setHasProjects(false);
+                    setIsGlobalLoading(false);
+                    return;
+                }
 
+                setHasProjects(true);
+
+                // Determine Active Project ID
+                // 1. URL Param
+                // 2. Local Storage (Last Active)
+                // 3. Fallback: First project in list
+                let targetId = projectIdParam || getActiveProjectId();
+
+                // Verify targetId exists in user's projects (security/integrity)
+                const projectExists = projects.find((p: any) => p.id === targetId);
+
+                if (!targetId || !projectExists) {
+                    targetId = projects[0].id; // Fallback to first project
+                }
+
+                if (targetId) {
+                    await loadProjectData(targetId);
+                }
+
+            } catch (error) {
+                console.error("Dashboard bootstrap failed:", error);
+                // Fallback to empty state on error to allow retry/recovery
+                setHasProjects(false);
+            } finally {
+                setIsGlobalLoading(false);
+            }
+        };
+
+        bootstrapUser();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, authLoading]); // Intentionally running once on mount/auth-ready
+
+    // Helper: Load Project Data
+    const loadProjectData = useCallback(async (currentProjectId: string) => {
         setActiveProjectId(currentProjectId);
+
+        // Ensure URL reflects active project without reloading
+        window.history.replaceState(null, '', `/dashboard?projectId=${currentProjectId}`);
 
         const fullProjectData = await getFullProject();
 
@@ -37,97 +93,58 @@ function DashboardPageContent() {
             setProjectData(fullProjectData);
 
             const answers = fullProjectData.assessmentAnswers;
-            if (!answers || Object.keys(answers).length === 0) {
-                router.push(`/assessment?projectId=${currentProjectId}`);
-                return;
-            }
-
             const savedChecklistState = fullProjectData.checklistState || {};
 
             // 1. AI Act Pillar
-            const derivedData = deriveComplianceState(answers);
-            const enrichedData: FullComplianceInfo[] = derivedData.map(item => ({
+            if (answers && Object.keys(answers).length > 0) {
+                const derivedData = deriveComplianceState(answers);
+                setFullComplianceData(derivedData.map(item => ({
+                    ...item,
+                    checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
+                })));
+            } else {
+                // Fallback if no assessment answers yet
+                setFullComplianceData([]);
+            }
+
+            // 2. ISO Pillar
+            const getStatus = (completed: boolean | undefined, hasData: boolean): 'Compliant' | 'At Risk' | 'Non-Compliant' => {
+                if (completed && hasData) return 'Compliant';
+                if (completed || hasData) return 'At Risk';
+                return 'Non-Compliant';
+            };
+            const aimsItems = [
+                { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: getStatus(fullProjectData.aimsProgress?.step1_complete, !!(fullProjectData.aimsData as any)?.scope), details: (fullProjectData.aimsData as any)?.scope ? `Scope definiert.` : 'Noch nicht bewertet.' },
+                { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: getStatus(fullProjectData.aimsProgress?.step2_complete, !!(fullProjectData.aimsData as any)?.policy && (fullProjectData.aimsData as any).policy.length > 20), details: (fullProjectData.aimsData as any)?.policy ? 'Policy vorhanden.' : 'Noch nicht bewertet.' },
+                { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: getStatus(fullProjectData.aimsProgress?.step3_complete, (fullProjectData.aimsData as any)?.risks?.some((r: any) => r.description)), details: (fullProjectData.aimsData as any)?.risks?.length > 0 ? `${(fullProjectData.aimsData as any).risks.length} Risiken dokumentiert.` : 'Noch nicht bewertet.' },
+                { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: getStatus(fullProjectData.aimsProgress?.step4_complete, (fullProjectData.aimsData as any)?.raci?.some((r: any) => r.task)), details: (fullProjectData.aimsData as any)?.raci?.length > 0 ? `${(fullProjectData.aimsData as any).raci.length} Verantwortlichkeiten definiert.` : 'Noch nicht bewertet.' },
+                { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: getStatus(fullProjectData.aimsProgress?.step5_complete, !!(fullProjectData.aimsData as any)?.kpis), details: (fullProjectData.aimsData as any)?.kpis ? 'KPIs definiert.' : 'Noch nicht bewertet.' },
+                { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: getStatus(fullProjectData.aimsProgress?.step6_complete, !!(fullProjectData.aimsData as any)?.improvementProcess), details: (fullProjectData.aimsData as any)?.improvementProcess ? 'Verbesserungsprozess definiert.' : 'Noch nicht bewertet.' },
+            ];
+            setIsoComplianceData(aimsItems.map(item => ({
                 ...item,
                 checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
-            }));
-            setFullComplianceData(enrichedData);
-
-            setFullComplianceData(enrichedData);
-
-            // 2. ISO Pillar (Uses aimsData logic but also needs checklistState)
-            // Note: Dashboard component has its own 'getIsoCategories' helper, but we need to mirror it here for state initialization
-            const getInitialIso = () => {
-                const getStatus = (completed: boolean | undefined, hasData: boolean): 'Compliant' | 'At Risk' | 'Non-Compliant' => {
-                    if (completed && hasData) return 'Compliant';
-                    if (completed || hasData) return 'At Risk';
-                    return 'Non-Compliant';
-                };
-                const aimsItems = [
-                    { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: getStatus(fullProjectData.aimsProgress?.step1_complete, !!(fullProjectData.aimsData as any)?.scope), details: (fullProjectData.aimsData as any)?.scope ? `Scope definiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: getStatus(fullProjectData.aimsProgress?.step2_complete, !!(fullProjectData.aimsData as any)?.policy && (fullProjectData.aimsData as any).policy.length > 20), details: (fullProjectData.aimsData as any)?.policy ? 'Policy vorhanden.' : 'Noch nicht bewertet.' },
-                    { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: getStatus(fullProjectData.aimsProgress?.step3_complete, (fullProjectData.aimsData as any)?.risks?.some((r: any) => r.description)), details: (fullProjectData.aimsData as any)?.risks?.length > 0 ? `${(fullProjectData.aimsData as any).risks.length} Risiken dokumentiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: getStatus(fullProjectData.aimsProgress?.step4_complete, (fullProjectData.aimsData as any)?.raci?.some((r: any) => r.task)), details: (fullProjectData.aimsData as any)?.raci?.length > 0 ? `${(fullProjectData.aimsData as any).raci.length} Verantwortlichkeiten definiert.` : 'Noch nicht bewertet.' },
-                    { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: getStatus(fullProjectData.aimsProgress?.step5_complete, !!(fullProjectData.aimsData as any)?.kpis), details: (fullProjectData.aimsData as any)?.kpis ? 'KPIs definiert.' : 'Noch nicht bewertet.' },
-                    { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: getStatus(fullProjectData.aimsProgress?.step6_complete, !!(fullProjectData.aimsData as any)?.improvementProcess), details: (fullProjectData.aimsData as any)?.improvementProcess ? 'Verbesserungsprozess definiert.' : 'Noch nicht bewertet.' },
-                ];
-                return aimsItems.map(item => ({
-                    ...item,
-                    checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
-                }));
-            };
-            setIsoComplianceData(getInitialIso());
+            })));
 
             // 3. Portfolio Pillar
-            const getInitialPortfolio = () => {
-                const portfolioItems = [
-                    { id: 'portfolio-strategy', title: 'Strategie & Vision', description: 'Definition der langfristigen KI-Ziele und Ausrichtung.', status: 'At Risk' as const, details: 'Initialphase' },
-                    { id: 'portfolio-usecases', title: 'Use Case Bewertung', description: 'Identifikation und Priorisierung von KI-Anwendungsfällen.', status: 'At Risk' as const, details: 'In Evaluierung' },
-                    { id: 'portfolio-roi', title: 'ROI & Wertbeitrag', description: 'Analyse des wirtschaftlichen Nutzens.', status: 'At Risk' as const, details: 'Noch nicht berechnet' },
-                    { id: 'portfolio-tech', title: 'Technologie & Infrastruktur', description: 'Bewertung der technischen Machbarkeit.', status: 'At Risk' as const, details: 'In Prüfung' },
-                ];
-                return portfolioItems.map(item => ({
-                    ...item,
-                    checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
-                }));
-            };
-            setPortfolioComplianceData(getInitialPortfolio());
-
-        } else {
-            console.warn("No project data found, redirecting to projects page.");
-            router.push('/projects');
-            return;
+            const portfolioItems = [
+                { id: 'portfolio-strategy', title: 'Strategie & Vision', description: 'Definition der langfristigen KI-Ziele und Ausrichtung.', status: 'At Risk' as const, details: 'Initialphase' },
+                { id: 'portfolio-usecases', title: 'Use Case Bewertung', description: 'Identifikation und Priorisierung von KI-Anwendungsfällen.', status: 'At Risk' as const, details: 'In Evaluierung' },
+                { id: 'portfolio-roi', title: 'ROI & Wertbeitrag', description: 'Analyse des wirtschaftlichen Nutzens.', status: 'At Risk' as const, details: 'Noch nicht berechnet' },
+                { id: 'portfolio-tech', title: 'Technologie & Infrastruktur', description: 'Bewertung der technischen Machbarkeit.', status: 'At Risk' as const, details: 'In Prüfung' },
+            ];
+            setPortfolioComplianceData(portfolioItems.map(item => ({
+                ...item,
+                checklistState: savedChecklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} }
+            })));
         }
-
-        setIsLoading(false);
-    }, [router, user]);
-
-    useEffect(() => {
-        if (authLoading) return;
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-
-        const activeProjectId = projectId || getActiveProjectId();
-
-        if (activeProjectId) {
-            if (activeProjectId !== projectId) {
-                // Ensure URL reflects the active project
-                router.push(`/dashboard?projectId=${activeProjectId}`);
-            } else {
-                loadData(activeProjectId);
-            }
-        } else {
-            router.push('/projects');
-        }
-    }, [router, user, authLoading, projectId, loadData]);
+    }, [setProjectName, setProjectData, setFullComplianceData, setIsoComplianceData, setPortfolioComplianceData]);
 
 
+    // Auto-Save Effect
     const updateChecklistStateInDb = useCallback(async () => {
-        if (!user || isLoading || !fullComplianceData || !isoComplianceData || !portfolioComplianceData) return;
-
+        if (!user || isGlobalLoading || !fullComplianceData || !isoComplianceData || !portfolioComplianceData) return;
         const allData = [...fullComplianceData, ...isoComplianceData, ...portfolioComplianceData];
-
         const checklistStateToSave = allData.reduce((acc, item) => {
             if (item.checklistState && (item.checklistState.data || Object.keys(item.checklistState.checkedTasks).length > 0)) {
                 acc[item.id] = {
@@ -141,7 +158,7 @@ function DashboardPageContent() {
         if (Object.keys(checklistStateToSave).length > 0) {
             await saveChecklistState(checklistStateToSave);
         }
-    }, [user, isLoading, fullComplianceData, isoComplianceData, portfolioComplianceData]);
+    }, [user, isGlobalLoading, fullComplianceData, isoComplianceData, portfolioComplianceData]);
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
@@ -151,7 +168,32 @@ function DashboardPageContent() {
     }, [fullComplianceData, isoComplianceData, portfolioComplianceData, updateChecklistStateInDb]);
 
 
-    if (isLoading || !fullComplianceData || !isoComplianceData || !portfolioComplianceData || authLoading) {
+    // Render
+    if (authLoading || isGlobalLoading) {
+        return (
+            <div className="flex h-screen w-full flex-col">
+                <AppHeader />
+                <div className="flex flex-1 items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            </div>
+        );
+    }
+
+    // Branch: Empty State (Onboarding)
+    if (!hasProjects) {
+        return (
+            <div className="flex flex-col min-h-screen bg-background">
+                <AppHeader />
+                <main className="flex-1">
+                    <DashboardStartArea />
+                </main>
+            </div>
+        );
+    }
+
+    // Branch: Dashboard Overview (Loading data for dashboard)
+    if (!fullComplianceData || !isoComplianceData || !portfolioComplianceData) {
         return (
             <div className="flex h-screen w-full flex-col">
                 <AppHeader />

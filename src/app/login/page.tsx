@@ -65,12 +65,12 @@ export default function LoginPage() {
 
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
-        toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zu Ihren Projekten...' });
-        router.push('/projects');
+        toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zum Dashboard...' });
+        router.push('/dashboard');
       } else { // signup
         await createUserWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
-        router.push('/projects');
+        router.push('/dashboard');
       }
     } catch (error: any) {
       console.error(`${action} failed`, error);

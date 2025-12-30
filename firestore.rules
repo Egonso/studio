@@ -7,20 +7,35 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
     // Simplified Org Access: In real app, check user claims or 'users' collection
     function canAccessOrg(orgId) {
-       return isSignedIn(); // Placeholder for now - allows authenticated users
+       return isSignedIn(); // Placeholder - allows authenticated users
     }
 
-    // --- OLD / COMPATIBILITY RULES ---
-    match /projects/{projectId} {
-      allow read, write: if isSignedIn();
-    }
+    // --- LEGACY DATA ---
+    // Allow access to user-specific project lists (Missing in previous version!)
     match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
+      allow read, write: if isOwner(userId);
+      
+      match /projects/{projectId} {
+        allow read, write: if isOwner(userId);
+        
+        // Allow access to subcollections of projects (legacy portfolio, etc.)
+        match /{document=**} {
+            allow read, write: if isOwner(userId);
+        }
+      }
+      
+      match /appData/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
-    // --- NEW ARCHITECTURE RULES ---
+    // --- NEW ARCHITECTURE ---
 
     // 1. Workspace Projects (Containers)
     match /workspaceProjects/{projectId} {
@@ -28,6 +43,7 @@ service cloud.firestore {
     }
     
     // 2. AI Systems (Core Object)
+    // Note: List queries MUST filter by 'orgId' for this rule to work strictly on lists.
     match /aiSystems/{systemId} {
       allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
       
@@ -40,6 +56,12 @@ service cloud.firestore {
     // 3. ISO AIMS (Org Singleton)
     match /isoAIMS/{aimsId} {
       allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
+    }
+    
+    // 4. Shared Policies (Used in CBS)
+    match /sharedPolicies/{policyId} {
+        allow read: if true; // Public read for sharing
+        allow create: if isSignedIn();
     }
   }
 }
