@@ -1,4 +1,3 @@
-```typescript
 import {
     doc,
     setDoc,
@@ -16,7 +15,7 @@ import { IsoAims } from '@/lib/types/db-types';
  */
 export async function saveIsoAims(orgId: string, data: Partial<IsoAims> & { wizardData?: any }) {
     const db = await getFirebaseDb();
-    const aimsId = `${ orgId } _main`; // Deterministic Singleton ID
+    const aimsId = `${orgId}_main`; // Deterministic Singleton ID
     const aimsRef = doc(db, 'isoAIMS', aimsId);
 
     // We store the generic wizard data inside 'wizardData' or flat, depends on preference.
@@ -47,7 +46,7 @@ export async function saveIsoAims(orgId: string, data: Partial<IsoAims> & { wiza
  */
 export async function getIsoAims(orgId: string): Promise<IsoAims | null> {
     const db = await getFirebaseDb();
-    const aimsId = `${ orgId } _main`;
+    const aimsId = `${orgId}_main`;
     const docRef = doc(db, 'isoAIMS', aimsId);
     const snap = await getDoc(docRef);
     if (snap.exists()) {
