@@ -4,6 +4,7 @@
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
+import { saveIsoAims, getIsoAims } from './aims-service';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 
@@ -59,6 +60,7 @@ export async function createProject(projectName: string, metadata: { sector: str
     const projectsCollectionRef = await getProjectsCollectionRef(userId);
     const docRef = await addDoc(projectsCollectionRef, {
         projectName,
+        orgId: userId, // Default Org ID for the user
         metadata: {
             ...metadata,
             createdAt: serverTimestamp(),
@@ -195,6 +197,7 @@ export interface AimsProgress {
 
 
 interface ProjectData {
+    orgId?: string; // Added for new architecture
     assessmentAnswers: Record<string, string>;
     companyContext: object;
     checklistState: object;
@@ -264,6 +267,8 @@ export async function getDesignCanvasData() {
 
 export async function saveAimsData(data: object, progress: AimsProgress) {
     const { serverTimestamp } = await import('firebase/firestore');
+
+    // 1. Save to Project (Legacy/Workspace Context)
     await saveProjectData({
         aimsData: data,
         aimsProgress: {
@@ -271,9 +276,23 @@ export async function saveAimsData(data: object, progress: AimsProgress) {
             updatedAt: serverTimestamp()
         }
     });
+
+    // 2. Dual-Write to ISO AIMS (Org-Wide Context) - New Architecture
+    const project = await getFullProject();
+    if (project?.orgId) {
+        await saveIsoAims(project.orgId, {
+            wizardData: data,
+            status: 'setup' // simplified status tracking
+        });
+    }
 }
 
 export async function getAimsData() {
+    // Strategy: Prefer Project-Local data for now to keep context isolation in "WorkspaceProject"
+    // But if we wanted to sync Org-Wide:
+    // const project = await getFullProject();
+    // if (project?.orgId) { const global = await getIsoAims(project.orgId); if(global) return global.wizardData; }
+
     return getProjectData('aimsData');
 }
 

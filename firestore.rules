@@ -1,23 +1,45 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow users to read and write their own data
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Simplified Org Access: In real app, check user claims or 'users' collection
+    function canAccessOrg(orgId) {
+       return isSignedIn(); // Placeholder for now - allows authenticated users
     }
 
-    // Rules for shared policies
-    match /sharedPolicies/{policyId} {
-      // Logged-in users can create a shared policy if they are the author.
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.authorId;
+    // --- OLD / COMPATIBILITY RULES ---
+    match /projects/{projectId} {
+      allow read, write: if isSignedIn();
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
 
-      // Anyone can read a specific shared policy if they have the link/ID.
-      allow get: if true;
+    // --- NEW ARCHITECTURE RULES ---
 
-      // Nobody can list all policies, update, or delete them.
-      allow list, update, delete: if false;
+    // 1. Workspace Projects (Containers)
+    match /workspaceProjects/{projectId} {
+      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
+    }
+    
+    // 2. AI Systems (Core Object)
+    match /aiSystems/{systemId} {
+      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
+      
+      // Subcollection: Assessments
+      match /assessments/{assessmentId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+    
+    // 3. ISO AIMS (Org Singleton)
+    match /isoAIMS/{aimsId} {
+      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
     }
   }
 }

@@ -9,7 +9,8 @@ import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { PolicyEditor, type PolicyData, type Level } from '@/components/policy-editor';
 import { Button } from '@/components/ui/button';
-import { createSharedPolicy, savePolicyData } from '@/lib/data-service';
+import { createSharedPolicy, savePolicyData, getActiveProjectId, getFullProject } from '@/lib/data-service';
+import { createOrLinkAiSystem } from '@/lib/ai-system-service';
 import { useToast } from '@/hooks/use-toast';
 import {
     Dialog,
@@ -58,11 +59,33 @@ function ComplianceInADayPageContent() {
         if (!policyData) return;
         setIsSaving(true);
         try {
+            // Updated Architecture Migration:
+            // 1. Ensure an AI System exists for this context
+            const projectId = getActiveProjectId();
+            const project = await getFullProject();
+            const orgId = project?.orgId || 'default-org'; // robust fallback 
+
+            if (projectId) {
+                // Create/Link a system representing this policy context
+                // For CBS, we treat the main policy as the "General AI Governance" system or similar, 
+                // but strictly speaking, CBS makes a *Policy*. 
+                // To fit the "AI System" architecture, we attach it to a system named after the project if generic.
+                const systemTitle = project?.projectName || "General AI System";
+
+                await createOrLinkAiSystem(orgId, projectId, systemTitle, "Governance");
+            }
+
+            // 2. Save Policy (Legacy + New logic inside savePolicyData if we updated it, but for now keeping legacy working)
             await savePolicyData(policyData.data, policyData.level);
+
             toast({
                 title: 'Richtlinie gespeichert!',
                 description: 'Ihre Fortschritte wurden im Dashboard aktualisiert.'
             });
+
+            // Redirect to Dashboard
+            router.push('/dashboard');
+
         } catch (error) {
             console.error("Failed to save policy", error);
             toast({
