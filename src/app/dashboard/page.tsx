@@ -2,7 +2,6 @@
 
 import { AppHeader } from "@/components/app-header";
 import { Dashboard, type FullComplianceInfo } from "@/components/dashboard";
-import { DashboardStartArea } from "@/components/dashboard/dashboard-start-area";
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deriveComplianceState } from "@/lib/compliance-logic";
@@ -180,20 +179,34 @@ function DashboardPageContent() {
         );
     }
 
-    // Branch: Empty State (Onboarding)
-    if (!hasProjects) {
-        return (
-            <div className="flex flex-col min-h-screen bg-background">
-                <AppHeader />
-                <main className="flex-1">
-                    <DashboardStartArea />
-                </main>
-            </div>
-        );
-    }
-
     // Branch: Dashboard Overview (Loading data for dashboard)
     if (!fullComplianceData || !isoComplianceData || !portfolioComplianceData) {
+        // Even if waiting for data, if we know we have NO projects, we can show the dashboard in "empty" state immediately
+        // BUT: hasProjects is set to true/false in bootstrap.
+        // If hasProjects is false, we don't need compliance data.
+        if (hasProjects === false) {
+            return (
+                <div className="flex flex-col min-h-screen bg-background">
+                    <AppHeader />
+                    <main className="flex-1">
+                        <Dashboard
+                            projectName=""
+                            complianceData={[]}
+                            setComplianceData={() => { }}
+                            isoComplianceData={[]}
+                            setIsoComplianceData={() => { }}
+                            portfolioComplianceData={[]}
+                            setPortfolioComplianceData={() => { }}
+                            aimsData={{}}
+                            aimsProgress={{}}
+                            wizardStatus="not_started"
+                            hasProjects={false}
+                        />
+                    </main>
+                </div>
+            );
+        }
+
         return (
             <div className="flex h-screen w-full flex-col">
                 <AppHeader />

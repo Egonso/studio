@@ -1,15 +1,17 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, FileText, CheckCircle2, ArrowRight } from "lucide-react";
+import { PlayCircle, FileText, CheckCircle2, ArrowRight, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateWizardStatus } from "@/lib/data-service";
 import { useState } from "react";
 import { getNextRecommendation } from "@/lib/recommendation/nextStep";
 import Link from "next/link";
+import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
+import { ProjectCreationWizard } from "@/components/wizard/project-creation-wizard";
 
 interface GuidanceFrameProps {
     projectId: string;
-    wizardStatus: 'not_started' | 'in_progress' | 'completed';
+    wizardStatus: 'not_started' | 'in_progress' | 'completed' | 'no_projects';
     projectName: string;
     policiesGenerated?: boolean;
     isoWizardStarted?: boolean;
@@ -24,6 +26,51 @@ export function DashboardGuidanceFrame({
 }: GuidanceFrameProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
+
+    // Special handling for "No Projects" state
+    if (wizardStatus === 'no_projects') {
+        return (
+            <Card className="w-full bg-slate-50 border-slate-200 dark:bg-slate-900/50 dark:border-slate-800 mb-8 overflow-hidden">
+                <CardContent className="p-6 md:p-8">
+                    <div className="flex flex-col items-center text-center gap-6 py-6">
+                        <div className="space-y-2">
+                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                                Willkommen beim AI Act Compass
+                            </h2>
+                            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">
+                                Starten Sie jetzt Ihre erste Bewertung. Wir führen Sie Schritt für Schritt durch den Prozess der EU AI Act Compliance.
+                            </p>
+                        </div>
+
+                        <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="lg" className="text-base py-6 px-8 shadow-md hover:shadow-lg transition-all">
+                                    <PlusCircle className="mr-2 h-5 w-5" />
+                                    Erstes Projekt anlegen
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>Neues Projekt erstellen</DialogTitle>
+                                    <DialogDescription>
+                                        Geben Sie die Basisdaten Ihres KI-Systems ein, um die Bewertung zu starten.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <ProjectCreationWizard
+                                    variant="card"
+                                    onComplete={(newProjectId) => {
+                                        setIsWizardOpen(false);
+                                        router.push(`/dashboard?projectId=${newProjectId}`);
+                                    }}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     const recommendation = getNextRecommendation({
         aiActBaseWizardCompleted: wizardStatus === 'completed',
@@ -60,9 +107,36 @@ export function DashboardGuidanceFrame({
                 <div className="flex flex-col gap-6">
                     {/* Header Section */}
                     <div className="space-y-2">
-                        <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
-                            {recommendation.headline}
-                        </h2>
+                        <div className="flex justify-between items-start">
+                            <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                                {recommendation.headline}
+                            </h2>
+                            {/* Tertiary Option: Create New Project */}
+                            <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="text-slate-500 hover:text-primary">
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Neues Projekt anlegen
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle>Neues Projekt erstellen</DialogTitle>
+                                        <DialogDescription>
+                                            Starten Sie eine neue Bewertung für ein weiteres KI-System.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <ProjectCreationWizard
+                                        variant="card"
+                                        onComplete={(newProjectId) => {
+                                            setIsWizardOpen(false);
+                                            // Force navigation to new project
+                                            window.location.href = `/dashboard?projectId=${newProjectId}`;
+                                        }}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                         {recommendation.acknowledgement ? (
                             <p className="text-slate-600 dark:text-slate-400 max-w-3xl whitespace-pre-line">
                                 {recommendation.acknowledgement}
