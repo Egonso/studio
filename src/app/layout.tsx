@@ -35,7 +35,7 @@ import { Terminal } from 'lucide-react';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'AI Act Compass',
+  title: 'AI Compliance OS',
   description: 'Navigate EU AI Act compliance with confidence. Get status checks, parameter configuration, and AI-powered advice for your SME.',
 };
 

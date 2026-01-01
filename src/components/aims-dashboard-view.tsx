@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldCheck, ShieldAlert, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Check, X, FileClock, History, Gauge, Shield } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldCheck, ShieldAlert, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Check, X, FileClock, History, Gauge, Shield, BookOpen } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -197,7 +197,7 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
             <div className="flex items-start justify-between space-y-2">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        AI Act Compass
+                        AI Compliance OS
                     </h1>
                     <p className="text-muted-foreground">
                         Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
@@ -243,7 +243,7 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                     </TabsTrigger>
                     <TabsTrigger value="cbs">
                         <Wand2 className="mr-2 h-4 w-4" />
-                        Compliance-in-a-Day
+                        Smart Policy Engine
                     </TabsTrigger>
                     <TabsTrigger value="kurs">
                         <BookOpen className="mr-2 h-4 w-4" />

@@ -70,7 +70,7 @@ function ComplianceInADayPageContent() {
                 // For CBS, we treat the main policy as the "General AI Governance" system or similar, 
                 // but strictly speaking, CBS makes a *Policy*. 
                 // To fit the "AI System" architecture, we attach it to a system named after the project if generic.
-                const systemTitle = project?.projectName || "General AI System";
+                const systemTitle = (project as any)?.projectName || "General AI System";
 
                 await createOrLinkAiSystem(orgId, projectId, systemTitle, "Governance");
             }
@@ -125,7 +125,7 @@ function ComplianceInADayPageContent() {
                                 <div>
                                     <CardTitle className="text-3xl font-bold text-primary flex items-center gap-2">
                                         <Wand2 />
-                                        Compliance-in-a-Day
+                                        Smart Policy Engine
                                     </CardTitle>
                                     <CardDescription className="text-lg mt-2 max-w-4xl">
                                         Erstellen Sie in wenigen Schritten eine verbindliche KI-Richtlinie für Ihr Unternehmen. Dieser Prozess hilft Ihnen, grundlegende Compliance-Anforderungen schnell und pragmatisch zu erfüllen.

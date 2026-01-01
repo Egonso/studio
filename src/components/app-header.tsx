@@ -37,7 +37,7 @@ export function AppHeader() {
           height={40}
           className="h-8 w-auto"
         />
-        <span className="font-bold text-lg hidden sm:inline-block">AI Act Compass</span>
+        <span className="font-bold text-lg hidden sm:inline-block">AI Compliance OS</span>
       </Link>
       {user && (
         <nav className="ml-auto flex gap-2 sm:gap-4 items-center">
@@ -51,7 +51,7 @@ export function AppHeader() {
           </Link>
           <Link href="/cbs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <Wand2 className="h-4 w-4" />
-            Compliance-in-a-Day
+            Smart Policy Engine
           </Link>
           <Link href="/kurs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <BookOpen className="h-4 w-4" />

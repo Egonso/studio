@@ -42,10 +42,10 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
             key: 'COMPLIANCE_IN_A_DAY',
             headline: "Guter Fortschritt – nächste sinnvolle Verdichtung",
             acknowledgement: "Sie haben die AI-Act-Basisdokumentation überprüft. Damit ist erstmals klar dokumentiert, wo und wie KI in Ihrem Unternehmen eingesetzt wird.",
-            primaryTitle: "Compliance greifbar machen: Richtlinien & Policies erstellen",
+            primaryTitle: "Smart Policy Engine: Richtlinien & Policies erstellen",
             primaryMeta: "ca. 10–20 Minuten · Vorlagen vorhanden · sofort verwendbar",
             primaryWhy: "In dieser Phase ist es wichtiger, dass Ihre KI-Nutzung schriftlich greifbar ist, als bereits formale Managementstrukturen aufzubauen. Richtlinien und Policies sind die Dokumente, die intern, extern und bei Prüfungen tatsächlich vorgelegt werden.",
-            primaryCtaLabel: "Compliance-in-a-Day starten",
+            primaryCtaLabel: "Smart Policy Engine starten",
             primaryHref: "/cbs",
             secondary: [
                 {
