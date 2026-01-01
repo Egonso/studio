@@ -28,7 +28,7 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
                 : "Empfohlene Vorgehensweise (EU AI Act)",
             // Lead text handles "Basierend auf..." in component, logic returns structure
             primaryTitle: "AI-Act-Basisdokumentation überprüfen",
-            primaryMeta: "ca. 10–20 Minuten · Grundlage für Nachweisfähigkeit und Haftungsbegrenzung",
+            primaryMeta: "unter 5 Minuten · Grundlage für Nachweisfähigkeit und Haftungsbegrenzung",
             primaryWhy: "Kernvoraussetzung für Nachweisfähigkeit, Haftungsbegrenzung und spätere Audit-Sicherheit.",
             primaryCtaLabel: "Basisdokumentation starten",
             primaryHref: "/assessment",

@@ -267,19 +267,29 @@ export function Dashboard({
                                 <div className="border-l border-gray-200 pl-4 md:pl-8">
                                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" /> KI Management (ISO)</h3><p className="text-sm text-muted-foreground mb-4">Strukturelle Prozesse & Governance nach ISO/IEC 42001.</p>
                                     <Accordion type="single" collapsible className="w-full">
-                                        {isoComplianceData.slice(0, 3).map((item) => {
-                                            const config = statusConfig[item.status];
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">{item.details}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-management")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
+                                        {(isoComplianceData.length > 0 ? isoComplianceData.slice(0, 3) : [
+                                            { id: 'iso-def-1', title: 'Kontext & Stakeholder', description: 'Kontext, Stakeholder und Geltungsbereich festlegen.', status: 'Not Started', details: 'Abschnitt 4' },
+                                            { id: 'iso-def-2', title: 'Leadership & Policy', description: 'Verantwortung der Leitung und AI Policy.', status: 'Not Started', details: 'Abschnitt 5' },
+                                            { id: 'iso-def-3', title: 'Planung', description: 'Risikobehandlung und Ziele.', status: 'Not Started', details: 'Abschnitt 6' }
+                                        ]).map((item: any) => {
+                                            const status = item.status as string;
+                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
+                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">{item.details}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-management")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
                                         })}
-                                        <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-management")}>Alle anzeigen</Button>
+                                        {isoComplianceData.length > 0 && <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-management")}>Alle anzeigen</Button>}
                                     </Accordion>
                                 </div>
                                 <div className="border-l border-gray-200 pl-4 md:pl-8">
                                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Portfolio Strategie</h3><p className="text-sm text-muted-foreground mb-4">Strategische Ausrichtung und Use Case Bewertung.</p>
                                     <Accordion type="single" collapsible className="w-full">
-                                        {portfolioComplianceData.map((item) => {
-                                            const config = statusConfig[item.status];
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("portfolio-strategy")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
+                                        {(portfolioComplianceData.length > 0 ? portfolioComplianceData : [
+                                            { id: 'port-def-1', title: 'Strategie & Vision', description: 'KI-Strategie und Ausrichtung definieren.', status: 'Not Started' },
+                                            { id: 'port-def-2', title: 'Use Case Bewertung', description: 'Potenzial und Machbarkeit bewerten.', status: 'Not Started' },
+                                            { id: 'port-def-3', title: 'ROI & Wertbeitrag', description: 'Geschäftswert analysieren.', status: 'Not Started' }
+                                        ]).map((item: any) => {
+                                            const status = item.status as string;
+                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
+                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("portfolio-strategy")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
                                         })}
                                     </Accordion>
                                 </div>
