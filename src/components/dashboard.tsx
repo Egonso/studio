@@ -248,11 +248,20 @@ export function Dashboard({
                                 <div>
                                     <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><ListChecks className="w-5 h-5 text-primary" /> AI Act Pflichten</h3><p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
                                     <Accordion type="single" collapsible className="w-full">
-                                        {finalComplianceItems.slice(0, 3).map((item) => {
-                                            const config = statusConfig[item.status];
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{item.status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-act-duties")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
+                                        {(finalComplianceItems.length > 0 ? finalComplianceItems : [
+                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started' },
+                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started' },
+                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started' },
+                                            { id: 'default-4', title: 'Technische Dokumentation', description: 'Erstellung der technischen Dokumentation vor Marktstart.', status: 'Not Started' },
+                                            { id: 'default-5', title: 'Menschliche Aufsicht', description: 'Ermöglichung effektiver menschlicher Aufsicht.', status: 'Not Started' },
+                                            { id: 'default-6', title: 'Genauigkeit & Robustheit', description: 'Sicherstellung von angemessener Genauigkeit, Robustheit und Cybersicherheit.', status: 'Not Started' },
+                                            { id: 'default-7', title: 'Transparenz', description: 'Transparenzpflichten gegenüber Nutzern.', status: 'Not Started' }
+                                        ]).map((item: any) => {
+                                            const status = item.status as string;
+                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
+                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-act-duties")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
                                         })}
-                                        <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-act-duties")}>Alle anzeigen</Button>
+                                        {finalComplianceItems.length > 0 && <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-act-duties")}>Alle anzeigen</Button>}
                                     </Accordion>
                                 </div>
                                 <div className="border-l border-gray-200 pl-4 md:pl-8">
