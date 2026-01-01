@@ -33,39 +33,78 @@ export function DashboardGuidanceFrame({
         return (
             <Card className="w-full bg-slate-50 border-slate-200 dark:bg-slate-900/50 dark:border-slate-800 mb-8 overflow-hidden">
                 <CardContent className="p-6 md:p-8">
-                    <div className="flex flex-col items-center text-center gap-6 py-6">
+                    <div className="flex flex-col gap-6">
+                        {/* Header Section */}
                         <div className="space-y-2">
-                            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                                Willkommen beim AI Act Compass
-                            </h2>
-                            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">
-                                Starten Sie jetzt Ihre erste Bewertung. Wir führen Sie Schritt für Schritt durch den Prozess der EU AI Act Compliance.
+                            <div className="flex justify-between items-start">
+                                <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                                    Empfohlene Vorgehensweise: Erstes Projekt anlegen
+                                </h2>
+                            </div>
+                            <p className="text-slate-600 dark:text-slate-400 max-w-3xl">
+                                Um den AI Act Compass zu nutzen, müssen Sie zunächst ein Projekt für Ihr KI-System erstellen.
                             </p>
                         </div>
 
-                        <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
-                            <DialogTrigger asChild>
-                                <Button size="lg" className="text-base py-6 px-8 shadow-md hover:shadow-lg transition-all">
-                                    <PlusCircle className="mr-2 h-5 w-5" />
-                                    Erstes Projekt anlegen
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                                <DialogHeader>
-                                    <DialogTitle>Neues Projekt erstellen</DialogTitle>
-                                    <DialogDescription>
-                                        Geben Sie die Basisdaten Ihres KI-Systems ein, um die Bewertung zu starten.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <ProjectCreationWizard
-                                    variant="card"
-                                    onComplete={(newProjectId) => {
-                                        setIsWizardOpen(false);
-                                        router.push(`/dashboard?projectId=${newProjectId}`);
-                                    }}
-                                />
-                            </DialogContent>
-                        </Dialog>
+                        <div className="grid md:grid-cols-5 gap-8 items-start mt-2">
+                            {/* Primary Action Section - Spans 3 columns */}
+                            <div className="md:col-span-3 space-y-6">
+                                <div className="bg-white dark:bg-slate-950 rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                                    <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">
+                                        Nächster empfohlener Schritt:
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                                Neues Projekt starten
+                                            </h3>
+                                            <p className="text-xs font-medium text-primary mt-1">
+                                                ca. 2 Minuten • Basisdaten erfassen
+                                            </p>
+                                        </div>
+
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                            Legen Sie Ihr erstes KI-Projekt an, um mit der Compliance-Prüfung und Dokumentation zu beginnen.
+                                        </p>
+
+                                        <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button size="lg" className="w-full md:w-auto text-base py-6 px-8 shadow-md hover:shadow-lg transition-all">
+                                                    <PlusCircle className="mr-2 h-5 w-5" />
+                                                    Erstes Projekt anlegen
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                                <DialogHeader>
+                                                    <DialogTitle>Neues Projekt erstellen</DialogTitle>
+                                                    <DialogDescription>
+                                                        Geben Sie die Basisdaten Ihres KI-Systems ein, um die Bewertung zu starten.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <ProjectCreationWizard
+                                                    variant="card"
+                                                    onComplete={(newProjectId) => {
+                                                        setIsWizardOpen(false);
+                                                        window.location.href = `/dashboard?projectId=${newProjectId}`;
+                                                    }}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Secondary Steps Section - Empty for new users */}
+                            <div className="md:col-span-2 space-y-6 pt-2">
+                                <div className="bg-slate-100/50 dark:bg-slate-800/50 p-4 rounded-lg">
+                                    <p className="text-sm text-slate-500 italic">
+                                        Nach der Projektanlage stehen Ihnen alle Funktionen des Dashboards zur Verfügung.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
