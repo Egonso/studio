@@ -14,21 +14,21 @@ import type { AimsProgress } from '@/lib/data-service';
 
 
 interface AimsExportData {
-  projectName: string;
-  scope: string;
-  systems: string;
-  factors: string;
-  departments: string;
-  stakeholders: any[];
-  policy: string;
-  raci: any[];
-  risks: any[];
-  kpis: string;
-  monitoringProcess: string;
-  auditRhythm: string;
-  improvementProcess: string;
-  aimsProgress: AimsProgress;
-  generatedAt: string;
+    projectName: string;
+    scope: string;
+    systems: string;
+    factors: string;
+    departments: string;
+    stakeholders: any[];
+    policy: string;
+    raci: any[];
+    risks: any[];
+    kpis: string;
+    monitoringProcess: string;
+    auditRhythm: string;
+    improvementProcess: string;
+    aimsProgress: AimsProgress;
+    generatedAt: string;
 }
 
 const generateMarkdown = (data: AimsExportData | null): string => {
@@ -46,7 +46,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
     md += `## 2. Stakeholder-Analyse\n`;
     if (data.stakeholders?.length > 0) {
         data.stakeholders.forEach((s, i) => {
-            md += `### 2.${i+1} ${s.name || 'Unbenannter Stakeholder'}\n`;
+            md += `### 2.${i + 1} ${s.name || 'Unbenannter Stakeholder'}\n`;
             md += `- **Erwartung/Interesse:** ${s.expectation || 'N/A'}\n`;
             md += `- **Einfluss:** ${s.influence || 'N/A'}\n`;
             md += `- **Risiko bei Nichterfüllung:** ${s.risk || 'N/A'}\n`;
@@ -74,7 +74,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
     md += `## 5. Risiko- & Chancenbewertung\n`;
     if (data.risks?.length > 0) {
         data.risks.forEach((r, i) => {
-            md += `### 5.${i+1} Risiko: ${r.description || 'Unbenanntes Risiko'}\n`;
+            md += `### 5.${i + 1} Risiko: ${r.description || 'Unbenanntes Risiko'}\n`;
             md += `- **Auswirkung:** ${r.impact || 'N/A'}\n`;
             md += `- **Eintrittswahrscheinlichkeit:** ${r.likelihood || 'N/A'}\n`;
             md += `- **Bestehende Kontrollen:** ${r.controls || 'N/A'}\n`;
@@ -83,7 +83,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
     } else {
         md += `_Keine Risiken definiert._\n\n`;
     }
-    
+
     md += `## 6. Monitoring & Verbesserung\n`;
     md += `**KPIs:** ${data.kpis || 'N/A'}\n`;
     md += `**Monitoring-Prozess:** ${data.monitoringProcess || 'N/A'}\n`;
@@ -99,7 +99,7 @@ const generateMarkdown = (data: AimsExportData | null): string => {
     return md;
 };
 
-export function AimsExportDialog() {
+export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isGeneratingDoc, setIsGeneratingDoc] = useState(false);
@@ -113,10 +113,10 @@ export function AimsExportDialog() {
             const fetchData = async () => {
                 setIsLoading(true);
                 const project = await getFullProject();
-                
+
                 if (project) {
                     const data: AimsExportData = {
-                        projectName: project.projectName || 'Unbenanntes Projekt',
+                        projectName: (project as any).projectName || 'Unbenanntes Projekt',
                         ...(project.aimsData as any),
                         aimsProgress: project.aimsProgress,
                         generatedAt: new Date().toISOString(),
@@ -130,7 +130,8 @@ export function AimsExportDialog() {
             fetchData();
         }
     }, [open]);
-    
+
+    // ... handleExportDocument, handleCopy, handleDownload remain the same but are not shown here for brevity if not changing
     const handleExportDocument = async (format: 'pdf' | 'docx') => {
         if (!exportData) return;
         setIsGeneratingDoc(true);
@@ -146,20 +147,20 @@ export function AimsExportDialog() {
             setIsGeneratingDoc(false);
             return;
         }
-        
+
         const payload = {
             document: 'jyhIyFKzOaQps7aWLoyX',
             format: format,
             data: {
-              ...exportData,
-              'aimsProgress.step1_complete': exportData.aimsProgress?.step1_complete ?? false,
-              'aimsProgress.step2_complete': exportData.aimsProgress?.step2_complete ?? false,
-              'aimsProgress.step3_complete': exportData.aimsProgress?.step3_complete ?? false,
-              'aimsProgress.step4_complete': exportData.aimsProgress?.step4_complete ?? false,
-              'aimsProgress.step5_complete': exportData.aimsProgress?.step5_complete ?? false,
-              'aimsProgress.step6_complete': exportData.aimsProgress?.step6_complete ?? false,
-              'aimsProgress.updatedAt': exportData.aimsProgress?.updatedAt ? new Date((exportData.aimsProgress.updatedAt as any).seconds * 1000).toLocaleString('de-DE') : '',
-               generatedAt: new Date(exportData.generatedAt).toLocaleString('de-DE'),
+                ...exportData,
+                'aimsProgress.step1_complete': exportData.aimsProgress?.step1_complete ?? false,
+                'aimsProgress.step2_complete': exportData.aimsProgress?.step2_complete ?? false,
+                'aimsProgress.step3_complete': exportData.aimsProgress?.step3_complete ?? false,
+                'aimsProgress.step4_complete': exportData.aimsProgress?.step4_complete ?? false,
+                'aimsProgress.step5_complete': exportData.aimsProgress?.step5_complete ?? false,
+                'aimsProgress.step6_complete': exportData.aimsProgress?.step6_complete ?? false,
+                'aimsProgress.updatedAt': exportData.aimsProgress?.updatedAt ? new Date((exportData.aimsProgress.updatedAt as any).seconds * 1000).toLocaleString('de-DE') : '',
+                generatedAt: new Date(exportData.generatedAt).toLocaleString('de-DE'),
             },
         };
 
@@ -183,7 +184,7 @@ export function AimsExportDialog() {
 
         } catch (error: any) {
             console.error("Documentero API call failed:", error);
-             toast({
+            toast({
                 title: `Fehler beim ${format.toUpperCase()}-Export`,
                 description: error.response?.data?.message || error.message || "Die Dokumentenerstellung ist fehlgeschlagen.",
                 variant: "destructive",
@@ -197,7 +198,7 @@ export function AimsExportDialog() {
         navigator.clipboard.writeText(content);
         toast({ title: 'Kopiert!', description: `Die ${type}-Daten wurden in die Zwischenablage kopiert.` });
     };
-    
+
     const handleDownload = (content: string, type: 'md' | 'json') => {
         const blob = new Blob([content], { type: type === 'md' ? 'text/markdown' : 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -213,10 +214,12 @@ export function AimsExportDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    AIMS-Daten exportieren
-                </Button>
+                {trigger ? trigger : (
+                    <Button variant="outline">
+                        <Download className="mr-2 h-4 w-4" />
+                        AIMS-Daten exportieren
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
@@ -234,14 +237,14 @@ export function AimsExportDialog() {
                     <Tabs defaultValue="markdown" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="markdown">
-                                <FileText className="mr-2 h-4 w-4"/> Markdown / Text
+                                <FileText className="mr-2 h-4 w-4" /> Markdown / Text
                             </TabsTrigger>
                             <TabsTrigger value="json">
-                                <FileJson className="mr-2 h-4 w-4"/> Datenstruktur (JSON)
+                                <FileJson className="mr-2 h-4 w-4" /> Datenstruktur (JSON)
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="markdown">
-                             <div className="flex justify-end gap-2 mb-2">
+                            <div className="flex justify-end gap-2 mb-2">
                                 <Button variant="ghost" size="sm" onClick={() => handleCopy(markdownContent, 'Markdown')}>
                                     <ClipboardCopy className="mr-2 h-4 w-4" /> In die Zwischenablage kopieren
                                 </Button>
@@ -252,7 +255,7 @@ export function AimsExportDialog() {
                             <Textarea readOnly value={markdownContent} className="h-80 w-full font-mono text-xs" />
                         </TabsContent>
                         <TabsContent value="json">
-                             <div className="flex justify-end gap-2 mb-2">
+                            <div className="flex justify-end gap-2 mb-2">
                                 <Button variant="ghost" size="sm" onClick={() => handleCopy(jsonContent, 'JSON')}>
                                     <ClipboardCopy className="mr-2 h-4 w-4" /> In die Zwischenablage kopieren
                                 </Button>
@@ -266,13 +269,13 @@ export function AimsExportDialog() {
                 )}
 
                 <DialogFooter className="sm:justify-between items-center pt-4">
-                     <div className="flex gap-2">
+                    <div className="flex gap-2">
                         <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc}>
-                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileType className="mr-2 h-4 w-4" />}
+                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType className="mr-2 h-4 w-4" />}
                             PDF-Export
                         </Button>
                         <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc}>
-                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <FileSignature className="mr-2 h-4 w-4" />}
+                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSignature className="mr-2 h-4 w-4" />}
                             DOCX-Export
                         </Button>
                     </div>

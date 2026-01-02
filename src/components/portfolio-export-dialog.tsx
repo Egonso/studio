@@ -53,7 +53,7 @@ const generateMarkdown = (data: PortfolioExportData | null): string => {
     return md;
 };
 
-export function PortfolioExportDialog() {
+export function PortfolioExportDialog({ trigger }: { trigger?: React.ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [exportData, setExportData] = useState<PortfolioExportData | null>(null);
@@ -118,10 +118,12 @@ export function PortfolioExportDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Portfolio exportieren
-                </Button>
+                {trigger ? trigger : (
+                    <Button variant="outline">
+                        <Download className="mr-2 h-4 w-4" />
+                        Portfolio exportieren
+                    </Button>
+                )}
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>

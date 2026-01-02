@@ -156,7 +156,8 @@ export function Dashboard({
         onPrimary,
         onSecondary,
         primaryLabel,
-        icon: Icon
+        icon: Icon,
+        exportAction
     }: {
         title: string,
         description: string,
@@ -164,29 +165,38 @@ export function Dashboard({
         onPrimary: () => void,
         onSecondary: () => void,
         primaryLabel: string,
-        icon: any
+        icon: any,
+        exportAction?: React.ReactNode
     }) => (
-        <Card className="flex flex-col h-full hover:shadow-lg transition-all border-l-4 border-l-primary/10">
+        <Card className="flex flex-col h-full transition-all duration-500 border border-transparent bg-slate-100/50 dark:bg-slate-900/50 opacity-80 hover:opacity-100 hover:bg-card hover:shadow-xl hover:scale-[1.01] hover:border-border group">
             <CardHeader>
                 <div className="flex justify-between items-start mb-2">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                        <Icon className="h-6 w-6 text-primary" />
+                    <div className="p-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <Icon className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
                     </div>
-                    <Badge variant={status === 'Done' ? 'default' : status === 'In Progress' ? 'secondary' : 'outline'}>
+                    <Badge variant={status === 'Done' ? 'default' : status === 'In Progress' ? 'secondary' : 'outline'} className="opacity-70 group-hover:opacity-100 transition-opacity">
                         {status}
                     </Badge>
                 </div>
-                <CardTitle className="text-xl">{title}</CardTitle>
-                <CardDescription className="text-sm line-clamp-2">{description}</CardDescription>
+                <CardTitle className="text-xl text-foreground/80 group-hover:text-foreground transition-colors">{title}</CardTitle>
+                <CardDescription className="text-sm line-clamp-2 group-hover:text-muted-foreground/80 transition-colors">{description}</CardDescription>
             </CardHeader>
-            <CardContent className="mt-auto flex flex-col gap-3">
-                <Button onClick={onPrimary} className="w-full">
+            <CardContent className="mt-auto flex flex-col gap-3 pt-4">
+                <Button onClick={onPrimary} className="w-full opacity-0 group-hover:opacity-100 bg-primary/90 hover:bg-primary transition-all duration-300 translate-y-2 group-hover:translate-y-0 text-sm h-9">
                     {primaryLabel}
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Button variant="ghost" onClick={onSecondary} className="w-full text-muted-foreground hover:text-foreground">
-                    Details ansehen
-                </Button>
+
+                <div className="flex gap-2 justify-between items-center opacity-60 group-hover:opacity-100 transition-all duration-300">
+                    <Button variant="ghost" size="sm" onClick={onSecondary} className="h-8 text-xs font-normal text-muted-foreground hover:text-foreground">
+                        Details
+                    </Button>
+                    {exportAction && (
+                        <div className="scale-95 hover:scale-100 transition-transform">
+                            {exportAction}
+                        </div>
+                    )}
+                </div>
             </CardContent>
         </Card>
     );
@@ -283,6 +293,13 @@ export function Dashboard({
                         onPrimary={() => { setDetailsView('ai-act'); /* Optionally scroll to details */ }}
                         onSecondary={() => setDetailsView('ai-act')}
                         icon={ListChecks}
+                        exportAction={hasProjects && wizardStatus !== 'not_started' ? (
+                            <Link href={`/audit-report?projectId=${searchParams.get('projectId') || ''}&type=ai-act`} passHref>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Audit-Dossier öffnen">
+                                    <FileText className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                </Button>
+                            </Link>
+                        ) : undefined}
                     />
                     <PillarCard
                         title="KI Management (ISO)"
@@ -292,6 +309,13 @@ export function Dashboard({
                         onPrimary={() => router.push('/aims')}
                         onSecondary={() => setDetailsView('iso-42001')}
                         icon={Sparkles}
+                        exportAction={hasProjects && completedSteps > 0 ? (
+                            <AimsExportDialog trigger={
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Dokumentation exportieren">
+                                    <GanttChartSquare className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                </Button>
+                            } />
+                        ) : undefined}
                     />
                     <PillarCard
                         title="KI-Portfolio Strategie"
@@ -301,6 +325,13 @@ export function Dashboard({
                         onPrimary={() => router.push('/portfolio')}
                         onSecondary={() => setDetailsView('portfolio')}
                         icon={Briefcase}
+                        exportAction={hasProjects && portfolioComplianceData.length > 0 ? (
+                            <PortfolioExportDialog trigger={
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Strategie exportieren">
+                                    <LineChart className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                </Button>
+                            } />
+                        ) : undefined}
                     />
                 </section>
 
