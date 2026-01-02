@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Tabs removed
 import { AimsExportDialog } from "./aims-export-dialog";
 import { PortfolioExportDialog } from "./portfolio-export-dialog";
 import { recalculateComplianceStatus } from "@/lib/compliance-logic";
@@ -80,7 +80,13 @@ export function Dashboard({
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [activeTab, setActiveTab] = useState("compliance-status");
+    // State for separate details view (no longer tabs for main nav)
+    const [detailsView, setDetailsView] = useState<'none' | 'ai-act' | 'iso-42001' | 'portfolio'>('none');
+
+    // Auto-open AI Act details if "Details" was clicked in a previous session or if default
+    // BUT user requested: structure first. So maybe default to none? 
+    // "Drei Säulen Cards (Startpunkte) ... Detailbereiche darunter"
+    // Let's keep detailsView state to toggle the bottom section.
 
     const finalComplianceItems = complianceData.map(item => ({ ...recalculateComplianceStatus(item, item.checklistState), checklistState: item.checklistState } as FullComplianceInfo));
 
@@ -143,330 +149,298 @@ export function Dashboard({
         router.push(`/task/${task.id}`);
     };
 
+    const PillarCard = ({
+        title,
+        description,
+        status,
+        onPrimary,
+        onSecondary,
+        primaryLabel,
+        icon: Icon
+    }: {
+        title: string,
+        description: string,
+        status: 'Not Started' | 'In Progress' | 'Done',
+        onPrimary: () => void,
+        onSecondary: () => void,
+        primaryLabel: string,
+        icon: any
+    }) => (
+        <Card className="flex flex-col h-full hover:shadow-lg transition-all border-l-4 border-l-primary/10">
+            <CardHeader>
+                <div className="flex justify-between items-start mb-2">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <Badge variant={status === 'Done' ? 'default' : status === 'In Progress' ? 'secondary' : 'outline'}>
+                        {status}
+                    </Badge>
+                </div>
+                <CardTitle className="text-xl">{title}</CardTitle>
+                <CardDescription className="text-sm line-clamp-2">{description}</CardDescription>
+            </CardHeader>
+            <CardContent className="mt-auto flex flex-col gap-3">
+                <Button onClick={onPrimary} className="w-full">
+                    {primaryLabel}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button variant="ghost" onClick={onSecondary} className="w-full text-muted-foreground hover:text-foreground">
+                    Details ansehen
+                </Button>
+            </CardContent>
+        </Card>
+    );
+
     return (
-        <div className="flex-1 space-y-6 p-4 md:p-8">
-            <div className="max-w-6xl mx-auto">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    <div className="flex flex-col gap-6">
-                        <DashboardGuidanceFrame
-                            projectId={new URLSearchParams(window.location.search).get('projectId') || ''}
-                            wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
-                            projectName={projectName}
-                            policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
-                        />
+        <div className="flex-1 space-y-8 p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950/50">
+            <div className="max-w-6xl mx-auto space-y-12">
 
+                {/* 1. GUIDANCE SECTION */}
+                <section>
+                    <DashboardGuidanceFrame
+                        projectId={new URLSearchParams(window.location.search).get('projectId') || ''}
+                        wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
+                        projectName={projectName}
+                        policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
+                    />
+                </section>
 
-                        {/* 3 Main Pillars Navigation */}
-                        <div className="opacity-60 hover:opacity-100 transition-opacity duration-500">
-                            <TabsList className="grid grid-cols-1 md:grid-cols-3 h-auto p-1 bg-muted rounded-xl">
-                                <TabsTrigger value="ai-act-duties" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
-                                    <ListChecks className="mr-2 h-5 w-5" />
-                                    AI Act Pflichten
-                                </TabsTrigger>
-                                <TabsTrigger value="ai-management" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
-                                    <Sparkles className="mr-2 h-5 w-5" />
-                                    KI Management (ISO)
-                                </TabsTrigger>
-                                <TabsTrigger value="portfolio-strategy" className="py-4 text-base font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all">
-                                    <Briefcase className="mr-2 h-5 w-5" />
-                                    KI-Portfolio Strategie
-                                </TabsTrigger>
-                            </TabsList>
+                {/* 2. OVERVIEW SECTION */}
+                <section className="space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight">Gesamtübersicht & Compliance-Status</h2>
+                        <p className="text-muted-foreground">Zusammenfassung der drei Säulen: AI Act, ISO 42001 und Portfolio-Strategie.</p>
+                    </div>
 
-                            {/* Sub-navigation / Wizards / Actions */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                                {/* Pillar 1 Actions */}
-                                <div className="flex gap-2 justify-center">
-                                    <Button variant={activeTab === 'ai-act-duties' ? "default" : "outline"} className={cn("w-full", activeTab !== 'ai-act-duties' && "opacity-50")} onClick={() => setActiveTab('ai-act-duties')}>
-                                        <Shield className="mr-2 h-4 w-4" />
-                                        AI Act Wizard
-                                    </Button>
-                                    <Link href={`/audit-report?projectId=${searchParams.get('projectId') || ''}&type=ai-act`} passHref className={cn("w-full", activeTab !== 'ai-act-duties' && "opacity-50 pointer-events-none")}>
-                                        <Button variant="outline" className="w-full">
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            Audit-Dossier
-                                        </Button>
-                                    </Link>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        {/* KPI Cards */}
+                        <Card className="shadow-sm border-slate-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle>
+                                <ShieldCheck className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{compliantCount}</div>
+                                <p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm border-slate-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle>
+                                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{atRiskCount}</div>
+                                <p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm border-slate-200">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle>
+                                <ShieldAlert className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{nonCompliantCount}</div>
+                                <p className="text-xs text-muted-foreground">kritische Probleme</p>
+                            </CardContent>
+                        </Card>
+
+                        {/* ISO Quick Status */}
+                        <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
+                                <Gauge className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold flex items-center gap-2">
+                                    <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
+                                    {auditability.label}
                                 </div>
+                                <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                                {/* Pillar 2 Actions */}
-                                <div className="flex gap-2 justify-center">
-                                    <Button variant={activeTab === 'ai-management' ? "default" : "outline"} className={cn("w-full", activeTab !== 'ai-management' && "opacity-50")} onClick={() => { setActiveTab('ai-management'); router.push('/aims'); }}>
-                                        <Shield className="mr-2 h-4 w-4" />
-                                        KI Management Setup
-                                    </Button>
-                                    <div className={cn("w-full", activeTab !== 'ai-management' && "opacity-50 pointer-events-none")}>
-                                        <AimsExportDialog />
-                                    </div>
-                                </div>
+                    {criticalAlerts.length > 0 && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Kritische Warnungen!</AlertTitle>
+                            <AlertDescription>
+                                {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.
+                                {complianceData.find(item => item.details.includes("verbotene Praktiken")) && " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </section>
 
-                                {/* Pillar 3 Actions */}
-                                <div className="flex gap-2 justify-center">
-                                    <Button variant={activeTab === 'portfolio-strategy' ? "default" : "outline"} className={cn("w-full", activeTab !== 'portfolio-strategy' && "opacity-50")} onClick={() => { setActiveTab('portfolio-strategy'); router.push('/portfolio'); }}>
-                                        <LineChart className="mr-2 h-4 w-4" />
-                                        Strategie Wizard
-                                    </Button>
-                                    <div className={cn("w-full", activeTab !== 'portfolio-strategy' && "opacity-50 pointer-events-none")}>
-                                        <PortfolioExportDialog />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                {/* 3. THREE PILLARS SECTION */}
+                <section className="grid md:grid-cols-3 gap-6">
+                    <PillarCard
+                        title="AI Act Pflichten"
+                        description="Gesetzliche Anforderungen prüfen, dokumentieren und lückenlos erfüllen."
+                        status={wizardStatus === 'completed' ? 'In Progress' : wizardStatus === 'not_started' ? 'Not Started' : 'In Progress'}
+                        primaryLabel={wizardStatus === 'completed' ? "Prüfung fortsetzen" : "Wizard starten"}
+                        onPrimary={() => { setDetailsView('ai-act'); /* Optionally scroll to details */ }}
+                        onSecondary={() => setDetailsView('ai-act')}
+                        icon={ListChecks}
+                    />
+                    <PillarCard
+                        title="KI Management (ISO)"
+                        description="Strukturelle Prozesse, Policies und Governance nach ISO/IEC 42001 etablieren."
+                        status={completedSteps > 0 ? 'In Progress' : 'Not Started'}
+                        primaryLabel="Setup starten / anpassen"
+                        onPrimary={() => router.push('/aims')}
+                        onSecondary={() => setDetailsView('iso-42001')}
+                        icon={Sparkles}
+                    />
+                    <PillarCard
+                        title="KI-Portfolio Strategie"
+                        description="Strategische Ausrichtung, Use-Case-Bewertung und ROI-Analyse."
+                        status={portfolioComplianceData.length > 0 ? 'In Progress' : 'Not Started'}
+                        primaryLabel="Strategie entwickeln"
+                        onPrimary={() => router.push('/portfolio')}
+                        onSecondary={() => setDetailsView('portfolio')}
+                        icon={Briefcase}
+                    />
+                </section>
 
-                        {/* Compliance Status Overview Button (acts as "Home" for the dashboard) */}
-                        <div className="flex justify-center mt-2">
-                            <Button
-                                variant={activeTab === 'compliance-status' ? "secondary" : "ghost"}
-                                onClick={() => setActiveTab('compliance-status')}
-                                className="w-full md:w-1/3"
-                            >
-                                <GanttChartSquare className="mr-2 h-4 w-4" />
-                                Gesamtübersicht & Compliance-Status
+                {/* 4. DETAILS SECTION (Conditional/Accordion-like) */}
+                {detailsView !== 'none' && (
+                    <section className="animate-in fade-in slide-in-from-top-4 duration-300 scroll-mt-8" id="details-section">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                {detailsView === 'ai-act' && <><ListChecks className="w-5 h-5" /> Detaillierte AI Act Pflichten</>}
+                                {detailsView === 'iso-42001' && <><Sparkles className="w-5 h-5" /> ISO 42001 Anforderungen</>}
+                                {detailsView === 'portfolio' && <><Briefcase className="w-5 h-5" /> Strategische Handlungsfelder</>}
+                            </h3>
+                            <Button variant="ghost" size="sm" onClick={() => setDetailsView('none')}>
+                                <X className="mr-2 h-4 w-4" /> Schließen
                             </Button>
                         </div>
 
-                        <TabsContent value="compliance-status" className="space-y-6 mt-6">
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle><ShieldCheck className="h-4 w-4 text-green-600" /></CardHeader><CardContent><div className="text-2xl font-bold">{compliantCount}</div><p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p></CardContent></Card>
-                                <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle><AlertTriangle className="h-4 w-4 text-yellow-600" /></CardHeader><CardContent><div className="text-2xl font-bold">{atRiskCount}</div><p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p></CardContent></Card>
-                                <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle><ShieldAlert className="h-4 w-4 text-red-600" /></CardHeader><CardContent><div className="text-2xl font-bold">{nonCompliantCount}</div><p className="text-xs text-muted-foreground">kritische Probleme</p></CardContent></Card>
-                            </div>
-
-                            <div>
-                                <h3 className="text-xl font-bold tracking-tight mb-2">KI Management System Status</h3>
-                                <p className="text-sm text-muted-foreground mb-4">ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.</p>
-                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">AIMS implementiert</CardTitle><FileClock className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{completedSteps}/6</div><p className="text-xs text-muted-foreground">Erfüllte Anforderungen</p></CardContent></Card>
-                                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Risiken dokumentiert</CardTitle><History className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className={cn("text-2xl font-bold flex items-center gap-2", risksDocumented ? "text-green-600" : "text-muted-foreground")}>{risksDocumented ? <Check /> : <X />}{risksDocumented ? 'Ja' : 'Nein'}</div><p className="text-xs text-muted-foreground">Risikobewertung nach ISO 42001</p></CardContent></Card>
-                                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Policies vorhanden</CardTitle><Building className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className={cn("text-2xl font-bold flex items-center gap-2", policiesExist ? "text-green-600" : "text-muted-foreground")}>{policiesExist ? <Check /> : <X />}{policiesExist ? 'Ja' : 'Nein'}</div><p className="text-xs text-muted-foreground">Grundlegende Richtlinien vorhanden</p></CardContent></Card>
-                                    <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5"><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Auditfähigkeit</CardTitle><Gauge className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold flex items-center gap-2"><div className={cn("w-4 h-4 rounded-full", auditability.color)} />{auditability.label}</div><p className="text-xs text-muted-foreground">Grad der ISO-Auditvorbereitung</p></CardContent></Card>
-                                </div>
-                            </div>
-
-                            {criticalAlerts.length > 0 && (<Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Kritische Warnungen!</AlertTitle><AlertDescription>{criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.{complianceData.find(item => item.details.includes("verbotene Praktiken")) && " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}</AlertDescription></Alert>)}
-                            <Card className="shadow-lg"><CardHeader><CardTitle>Übersicht des Compliance-Status</CardTitle><CardDescription>Zusammenfassung der drei Säulen: AI Act, ISO 42001 und Portfolio-Strategie.</CardDescription></CardHeader><CardContent className="grid md:grid-cols-3 gap-x-8 gap-y-4">
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><ListChecks className="w-5 h-5 text-primary" /> AI Act Pflichten</h3><p className="text-sm text-muted-foreground mb-4">Gesetzliche KI-Anforderungen nach EU AI Act.</p>
-                                    <Accordion type="single" collapsible className="w-full">
-                                        {(finalComplianceItems.length > 0 ? finalComplianceItems : [
-                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started' },
-                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started' },
-                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started' },
-                                            { id: 'default-4', title: 'Technische Dokumentation', description: 'Erstellung der technischen Dokumentation vor Marktstart.', status: 'Not Started' },
-                                            { id: 'default-5', title: 'Menschliche Aufsicht', description: 'Ermöglichung effektiver menschlicher Aufsicht.', status: 'Not Started' },
-                                            { id: 'default-6', title: 'Genauigkeit & Robustheit', description: 'Sicherstellung von angemessener Genauigkeit, Robustheit und Cybersicherheit.', status: 'Not Started' },
-                                            { id: 'default-7', title: 'Transparenz', description: 'Transparenzpflichten gegenüber Nutzern.', status: 'Not Started' }
-                                        ]).map((item: any) => {
-                                            const status = item.status as string;
-                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-act-duties")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
-                                        })}
-                                        {finalComplianceItems.length > 0 && <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-act-duties")}>Alle anzeigen</Button>}
-                                    </Accordion>
-                                </div>
-                                <div className="border-l border-gray-200 pl-4 md:pl-8">
-                                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" /> KI Management (ISO)</h3><p className="text-sm text-muted-foreground mb-4">Strukturelle Prozesse & Governance nach ISO/IEC 42001.</p>
-                                    <Accordion type="single" collapsible className="w-full">
-                                        {(isoComplianceData.length > 0 ? isoComplianceData.slice(0, 3) : [
-                                            { id: 'iso-def-1', title: 'Kontext & Stakeholder', description: 'Kontext, Stakeholder und Geltungsbereich festlegen.', status: 'Not Started', details: 'Abschnitt 4' },
-                                            { id: 'iso-def-2', title: 'Leadership & Policy', description: 'Verantwortung der Leitung und AI Policy.', status: 'Not Started', details: 'Abschnitt 5' },
-                                            { id: 'iso-def-3', title: 'Planung', description: 'Risikobehandlung und Ziele.', status: 'Not Started', details: 'Abschnitt 6' }
-                                        ]).map((item: any) => {
-                                            const status = item.status as string;
-                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">{item.details}</p><Button variant="link" size="sm" onClick={() => setActiveTab("ai-management")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
-                                        })}
-                                        {isoComplianceData.length > 0 && <Button variant="ghost" className="w-full mt-2" onClick={() => setActiveTab("ai-management")}>Alle anzeigen</Button>}
-                                    </Accordion>
-                                </div>
-                                <div className="border-l border-gray-200 pl-4 md:pl-8">
-                                    <h3 className="font-semibold text-lg mb-2 flex items-center gap-2"><Briefcase className="w-5 h-5 text-primary" /> Portfolio Strategie</h3><p className="text-sm text-muted-foreground mb-4">Strategische Ausrichtung und Use Case Bewertung.</p>
-                                    <Accordion type="single" collapsible className="w-full">
-                                        {(portfolioComplianceData.length > 0 ? portfolioComplianceData : [
-                                            { id: 'port-def-1', title: 'Strategie & Vision', description: 'KI-Strategie und Ausrichtung definieren.', status: 'Not Started' },
-                                            { id: 'port-def-2', title: 'Use Case Bewertung', description: 'Potenzial und Machbarkeit bewerten.', status: 'Not Started' },
-                                            { id: 'port-def-3', title: 'ROI & Wertbeitrag', description: 'Geschäftswert analysieren.', status: 'Not Started' }
-                                        ]).map((item: any) => {
-                                            const status = item.status as string;
-                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
-                                            return (<AccordionItem value={item.id} key={item.id}><AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span className="text-sm">{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-2 shrink-0 text-[10px] px-1 py-0">{status}</Badge></AccordionTrigger><AccordionContent className="pl-10 space-y-4 text-xs"><p className="text-muted-foreground">{item.description}</p><Button variant="link" size="sm" onClick={() => setActiveTab("portfolio-strategy")} className="p-0 h-auto">Details ansehen</Button></AccordionContent></AccordionItem>);
-                                        })}
-                                    </Accordion>
-                                </div>
-                            </CardContent></Card>
-                        </TabsContent>
-
-                        <TabsContent value="ai-act-duties">
-                            <Card>
-                                <CardHeader><CardTitle>Detaillierte AI Act Pflichten</CardTitle><CardDescription>Hier finden Sie eine detaillierte Aufschlüsselung aller gesetzlichen Anforderungen des EU AI Acts und können den Umsetzungsstand verfolgen.</CardDescription></CardHeader>
-                                <CardContent>
+                        <Card>
+                            <CardContent className="pt-6">
+                                {/* AI ACT DETAILS */}
+                                {detailsView === 'ai-act' && (
                                     <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = finalComplianceItems.find(i => i.id === value); if (item) { handleAccordionChange(item); } } }}>
-                                        {finalComplianceItems.map((item) => {
-                                            const config = statusConfig[item.status];
-                                            const isCompliant = item.status === 'Compliant';
-
+                                        {(finalComplianceItems.length > 0 ? finalComplianceItems : [
+                                            // Empty State Fallback
+                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
+                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
+                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
+                                        ]).map((item: any) => {
+                                            const status = item.status as string;
+                                            const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
                                             return (
                                                 <AccordionItem value={item.id} key={item.id}>
-                                                    <AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger>
+                                                    <AccordionTrigger className="hover:no-underline">
+                                                        <div className="flex items-center gap-3 flex-1 text-left">
+                                                            <config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} />
+                                                            <span>{item.title}</span>
+                                                        </div>
+                                                        <Badge variant={config.badgeVariant} className="ml-4 shrink-0">{status}</Badge>
+                                                    </AccordionTrigger>
                                                     <AccordionContent className="pl-10 space-y-4 text-sm">
-                                                        <p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">Status-Begründung: {item.details}</p>
-                                                        <Card className="mt-4 bg-secondary/50"><CardHeader><CardTitle className="text-lg flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" />{isCompliant ? "Erfüllte Kriterien" : "Umsetzbare Checkliste"}</CardTitle></CardHeader>
-                                                            <CardContent>
-                                                                {item.checklistState.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Generiere Checkliste...</div>}
-                                                                {item.checklistState.error && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertTitle>Fehler</AlertTitle><AlertDescription>{item.checklistState.error}</AlertDescription></Alert>}
-                                                                {item.checklistState.data && (
-                                                                    <div className="space-y-2">
-                                                                        {item.checklistState.data.checklist.map((task) => {
-                                                                            const isChecked = !!item.checklistState.checkedTasks[task.id];
-                                                                            return (
-                                                                                <div key={task.id} onClick={() => handleTaskClick(task, item)} className={cn("flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors", isCompliant ? 'cursor-default bg-background/50' : (isChecked ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default" : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer"))}>
+                                                        <p className="text-muted-foreground font-semibold">{item.description}</p>
+                                                        <p className="italic">Status-Begründung: {item.details}</p>
+
+                                                        {/* Checklist Rendering (Only if real item) */}
+                                                        {item.checklistState && (
+                                                            <Card className="mt-4 bg-secondary/50">
+                                                                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><ListChecks className="h-5 w-5 text-primary" />Checkliste</CardTitle></CardHeader>
+                                                                <CardContent>
+                                                                    {item.checklistState.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Lade...</div>}
+                                                                    {item.checklistState.data && (
+                                                                        <div className="space-y-2">
+                                                                            {item.checklistState.data.checklist.map((task: any) => (
+                                                                                <div key={task.id} onClick={() => handleTaskClick(task, item)} className="flex items-center justify-between space-x-3 p-3 rounded-md border bg-background/50 hover:bg-background cursor-pointer transition-colors">
                                                                                     <div className="flex items-start gap-4">
-                                                                                        {isCompliant || isChecked ? <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" /> : <AlertCircle className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />}
-                                                                                        <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}><StepContent content={task.description} /></p>
+                                                                                        <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+                                                                                        <p className="flex-1"><StepContent content={task.description} /></p>
                                                                                     </div>
-                                                                                    {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
                                                                                 </div>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                )}
-                                                            </CardContent>
-                                                        </Card>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </CardContent>
+                                                            </Card>
+                                                        )}
                                                     </AccordionContent>
                                                 </AccordionItem>
                                             );
                                         })}
                                     </Accordion>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
+                                )}
 
-                        <TabsContent value="ai-management">
-                            <div className="max-w-4xl mx-auto space-y-8">
-                                <Card className="w-full shadow-lg bg-secondary border-none"><CardHeader><div className="flex justify-between items-start"><div><CardTitle className="text-3xl font-bold text-primary">KI Management System (ISO 42001)</CardTitle><CardDescription className="text-lg mt-2 max-w-4xl">Hier verwalten und exportieren Sie die Dokumentation Ihres AI Management Systems.</CardDescription></div><AimsExportDialog /></div></CardHeader><CardContent><p>Die hier gesammelten Informationen bilden die Grundlage für ein auditierbares Managementsystem. Sie können die Daten jederzeit als strukturierte Text- oder JSON-Datei exportieren, um sie in internen Systemen weiterzuverarbeiten.</p></CardContent></Card>
-
-                                <Card>
-                                    <CardHeader><CardTitle>ISO 42001 Anforderungen</CardTitle></CardHeader>
-                                    <CardContent>
-                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = isoComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'iso-42001'); } } }}>
-                                            {isoComplianceData.map((item) => {
-                                                const config = statusConfig[item.status];
-                                                const isCompliant = item.status === 'Compliant';
-
-                                                return (
-                                                    <AccordionItem value={item.id} key={item.id}>
-                                                        <AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger>
-                                                        <AccordionContent className="pl-10 space-y-4 text-sm">
-                                                            <p className="text-muted-foreground font-semibold">{item.description}</p><p className="italic">Status: {item.details}</p>
-                                                            <Card className="mt-4 bg-secondary/50">
-                                                                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />{isCompliant ? "Erfüllte Kriterien" : "Handlungsempfehlungen"}</CardTitle></CardHeader>
-                                                                <CardContent>
-                                                                    {item.checklistState.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Generiere Empfehlungen...</div>}
-                                                                    {item.checklistState.error && <Alert variant="destructive" className="py-2"><AlertCircle className="h-4 w-4" /><AlertDescription className="text-xs">{item.checklistState.error}</AlertDescription></Alert>}
-                                                                    {item.checklistState.data && (
-                                                                        <div className="space-y-2">
-                                                                            {item.checklistState.data.checklist.map((task) => {
-                                                                                const isChecked = !!item.checklistState.checkedTasks[task.id];
-                                                                                return (
-                                                                                    <div key={task.id} onClick={() => handleTaskClick(task, item, 'iso-42001')} className={cn("flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors", isCompliant ? 'cursor-default bg-background/50' : (isChecked ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default" : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer"))}>
-                                                                                        <div className="flex items-start gap-4">
-                                                                                            {isCompliant || isChecked ? <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" /> : <Sparkles className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />}
-                                                                                            <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}><StepContent content={task.description} /></p>
-                                                                                        </div>
-                                                                                        {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
-                                                                                    </div>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    )}
-                                                                    <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => router.push('/aims')}>
-                                                                        <Edit className="mr-2 h-4 w-4" />
-                                                                        Im AIMS Wizard bearbeiten
-                                                                    </Button>
-                                                                </CardContent>
-                                                            </Card>
-                                                        </AccordionContent>
-                                                    </AccordionItem>
-                                                );
-                                            })}
-                                        </Accordion>
-                                    </CardContent >
-                                </Card >
-                            </div >
-                        </TabsContent >
-
-                        <TabsContent value="portfolio-strategy">
-                            <div className="max-w-4xl mx-auto space-y-8">
-                                <Card className="w-full shadow-lg bg-secondary border-none">
-                                    <CardHeader>
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <CardTitle className="text-3xl font-bold text-primary">KI-Portfolio Strategie</CardTitle>
-                                                <CardDescription className="text-lg mt-2 max-w-4xl">Entwickeln und überwachen Sie Ihre KI-Strategie und das Portfolio.</CardDescription>
-                                            </div>
-                                            <Button>
-                                                <FileText className="mr-2 h-4 w-4" />
-                                                Strategie-Paper erstellen
-                                            </Button>
+                                {/* ISO DETAILS */}
+                                {detailsView === 'iso-42001' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className="text-sm text-muted-foreground">Verwalten Sie hier Ihre ISO 42001 Dokumentation.</p>
+                                            <AimsExportDialog />
                                         </div>
-                                    </CardHeader>
-                                    <CardContent><p>Hier definieren Sie Ihre KI-Strategie, bewerten Use Cases und überwachen den ROI Ihrer KI-Initiativen.</p></CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardHeader><CardTitle>Strategische Handlungsfelder</CardTitle></CardHeader>
-                                    <CardContent>
-                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
-                                            {portfolioComplianceData.map((item) => {
-                                                const config = statusConfig[item.status];
-                                                const isCompliant = item.status === 'Compliant';
-
-                                                return (
-                                                    <AccordionItem value={item.id} key={item.id}>
-                                                        <AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-3 flex-1 text-left"><config.icon className={cn("h-5 w-5 shrink-0", config.iconClassName)} /><span>{item.title}</span></div><Badge variant={config.badgeVariant} className="ml-4 shrink-0">{item.status}</Badge></AccordionTrigger>
-                                                        <AccordionContent className="pl-10 space-y-4 text-sm">
-                                                            <p className="text-muted-foreground">{item.description}</p><p>Status: {item.details}</p>
-                                                            <Card className="mt-4 bg-secondary/50">
-                                                                <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />{isCompliant ? "Erreichte Meilensteine" : "Strategische Empfehlungen"}</CardTitle></CardHeader>
-                                                                <CardContent>
-                                                                    {item.checklistState.loading && <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Generiere Strategie...</div>}
-                                                                    {item.checklistState.error && <Alert variant="destructive" className="py-2"><AlertCircle className="h-4 w-4" /><AlertDescription className="text-xs">{item.checklistState.error}</AlertDescription></Alert>}
-                                                                    {item.checklistState.data && (
-                                                                        <div className="space-y-2">
-                                                                            {item.checklistState.data.checklist.map((task) => {
-                                                                                const isChecked = !!item.checklistState.checkedTasks[task.id];
-                                                                                return (
-                                                                                    <div key={task.id} onClick={() => handleTaskClick(task, item, 'portfolio')} className={cn("flex items-center justify-between space-x-3 p-3 rounded-md border transition-colors", isCompliant ? 'cursor-default bg-background/50' : (isChecked ? "bg-green-100/50 border-green-200/80 dark:bg-green-900/20 dark:border-green-800/50 hover:bg-green-100/60 dark:hover:bg-green-900/30 cursor-default" : "bg-background/50 border-border hover:bg-gray-50 dark:hover:bg-secondary/60 cursor-pointer"))}>
-                                                                                        <div className="flex items-start gap-4">
-                                                                                            {isCompliant || isChecked ? <CheckCircle2 className="h-5 w-5 text-green-600 mt-1 shrink-0" /> : <Sparkles className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />}
-                                                                                            <p className={cn("flex-1", isChecked && !isCompliant ? "line-through text-foreground/70" : "")}><StepContent content={task.description} /></p>
-                                                                                        </div>
-                                                                                        {!isCompliant && !isChecked && <ArrowRight className="h-5 w-5 text-muted-foreground shrink-0" />}
-                                                                                    </div>
-                                                                                );
-                                                                            })}
-                                                                        </div>
-                                                                    )}
-                                                                    <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => router.push('/portfolio')}>
-                                                                        <Edit className="mr-2 h-4 w-4" />
-                                                                        KI-Strategie bearbeiten
-                                                                    </Button>
-                                                                </CardContent>
-                                                            </Card>
-                                                        </AccordionContent>
-                                                    </AccordionItem>
-                                                );
-                                            })}
+                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = isoComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'iso-42001'); } } }}>
+                                            {isoComplianceData.map((item) => (
+                                                <AccordionItem value={item.id} key={item.id}>
+                                                    <AccordionTrigger className="hover:no-underline">
+                                                        <div className="flex items-center gap-3 flex-1 text-left">
+                                                            <Sparkles className="h-5 w-5 text-primary shrink-0" />
+                                                            <span>{item.title}</span>
+                                                        </div>
+                                                        <Badge variant="outline" className="ml-4">{item.status}</Badge>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="pl-10 space-y-4">
+                                                        <p className="text-muted-foreground">{item.description}</p>
+                                                        <p className="text-xs italic">{item.details}</p>
+                                                        {item.checklistState?.data && (
+                                                            <div className="mt-4 space-y-2 pl-4 border-l-2 border-primary/20">
+                                                                {item.checklistState.data.checklist.map((task: any) => (
+                                                                    <div key={task.id} className="text-sm py-1" onClick={() => handleTaskClick(task, item, 'iso-42001')}>
+                                                                        • {task.description}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
                                         </Accordion>
-                                    </CardContent >
-                                </Card >
-                            </div >
-                        </TabsContent >
+                                    </div>
+                                )}
 
-                    </div>
-                </Tabs>
-            </div >
-        </div >
+                                {/* PORTFOLIO DETAILS */}
+                                {detailsView === 'portfolio' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className="text-sm text-muted-foreground">Strategische Ausrichtung und Portfolio-Management.</p>
+                                            <PortfolioExportDialog />
+                                        </div>
+                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
+                                            {portfolioComplianceData.map((item) => (
+                                                <AccordionItem value={item.id} key={item.id}>
+                                                    <AccordionTrigger className="hover:no-underline">
+                                                        <div className="flex items-center gap-3 flex-1 text-left">
+                                                            <Briefcase className="h-5 w-5 text-primary shrink-0" />
+                                                            <span>{item.title}</span>
+                                                        </div>
+                                                        <Badge variant="outline" className="ml-4">{item.status}</Badge>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="pl-10 space-y-4">
+                                                        <p className="text-muted-foreground">{item.description}</p>
+                                                        <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/portfolio')}>Strategie bearbeiten</Button>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </section>
+                )}
+            </div>
+        </div>
     );
 }
 
