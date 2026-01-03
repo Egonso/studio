@@ -393,6 +393,9 @@ export function Dashboard({
                                                                             ))}
                                                                         </div>
                                                                     )}
+                                                                    <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800 text-xs text-muted-foreground italic text-center">
+                                                                        Hinweis: Für personalisierte Handlungsempfehlungen und Assistenten nutzen Sie bitte die Kacheln oben.
+                                                                    </div>
                                                                 </CardContent>
                                                             </Card>
                                                         )}
@@ -431,47 +434,53 @@ export function Dashboard({
                                                                     </div>
                                                                 ))}
                                                             </div>
+                                                            </div>
                                                         )}
-                                                        <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
-                                                    </AccordionContent>
+                                                    <div className="flex items-center justify-between mt-2">
+                                                        <Button size="sm" variant="outline" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
+                                                        <span className="text-[10px] text-muted-foreground italic">
+                                                            Nutzen Sie die Kacheln für geführte Empfehlungen.
+                                                        </span>
+                                                    </div>
+                                                </AccordionContent>
                                                 </AccordionItem>
                                             ))}
-                                        </Accordion>
+                                    </Accordion>
                                     </div>
                                 )}
 
-                                {/* PORTFOLIO DETAILS */}
-                                {detailsView === 'portfolio' && (
-                                    <div className="space-y-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <p className="text-sm text-muted-foreground">Strategische Ausrichtung und Portfolio-Management.</p>
-                                            <PortfolioExportDialog />
-                                        </div>
-                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
-                                            {portfolioComplianceData.map((item) => (
-                                                <AccordionItem value={item.id} key={item.id}>
-                                                    <AccordionTrigger className="hover:no-underline">
-                                                        <div className="flex items-center gap-3 flex-1 text-left">
-                                                            <Briefcase className="h-5 w-5 text-primary shrink-0" />
-                                                            <span>{item.title}</span>
-                                                        </div>
-                                                        <Badge variant="outline" className="ml-4">{item.status}</Badge>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent className="pl-10 space-y-4">
-                                                        <p className="text-muted-foreground">{item.description}</p>
-                                                        <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/portfolio')}>Strategie bearbeiten</Button>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            ))}
-                                        </Accordion>
+                            {/* PORTFOLIO DETAILS */}
+                            {detailsView === 'portfolio' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <p className="text-sm text-muted-foreground">Strategische Ausrichtung und Portfolio-Management.</p>
+                                        <PortfolioExportDialog />
                                     </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                                    <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
+                                        {portfolioComplianceData.map((item) => (
+                                            <AccordionItem value={item.id} key={item.id}>
+                                                <AccordionTrigger className="hover:no-underline">
+                                                    <div className="flex items-center gap-3 flex-1 text-left">
+                                                        <Briefcase className="h-5 w-5 text-primary shrink-0" />
+                                                        <span>{item.title}</span>
+                                                    </div>
+                                                    <Badge variant="outline" className="ml-4">{item.status}</Badge>
+                                                </AccordionTrigger>
+                                                <AccordionContent className="pl-10 space-y-4">
+                                                    <p className="text-muted-foreground">{item.description}</p>
+                                                    <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/portfolio')}>Strategie bearbeiten</Button>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                     </section>
                 )}
-            </div>
         </div>
+        </div >
     );
 }
 
