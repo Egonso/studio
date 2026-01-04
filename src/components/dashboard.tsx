@@ -434,7 +434,6 @@ export function Dashboard({
                                                                     </div>
                                                                 ))}
                                                             </div>
-                                                            </div>
                                                         )}
                                                     <div className="flex items-center justify-between mt-2">
                                                         <Button size="sm" variant="outline" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
@@ -480,7 +479,7 @@ export function Dashboard({
                     </section>
                 )}
         </div>
-        </div >
+        </div>
     );
 }
 
