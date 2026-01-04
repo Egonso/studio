@@ -59,6 +59,26 @@ export default function LoginPage() {
     const email = data.email.toLowerCase();
 
     try {
+      // For signup, verify purchase first
+      if (action === 'signup') {
+        const { getFirebaseDb } = await import('@/lib/firebase');
+        const db = await getFirebaseDb();
+        const { doc, getDoc } = await import('firebase/firestore');
+
+        const customerRef = doc(db, 'customers', email);
+        const customerSnap = await getDoc(customerRef);
+
+        if (!customerSnap.exists() || customerSnap.data()?.status !== 'active') {
+          toast({
+            variant: 'destructive',
+            title: 'Registrierung nicht möglich',
+            description: 'Diese E-Mail-Adresse hat keinen gültigen Kauf. Bitte kaufen Sie zuerst das Produkt auf eukigesetz.com.',
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const { getFirebaseAuth } = await import('@/lib/firebase');
       const auth = await getFirebaseAuth();
       const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import('firebase/auth');

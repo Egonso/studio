@@ -30,6 +30,11 @@ export interface FullComplianceInfo extends ComplianceItem {
     checklistState: ChecklistState;
 }
 
+import { UserCertificationStatus } from "./dashboard/user-certification-status";
+import type { UserStatus } from "@/hooks/use-user-status";
+
+// ... existing imports
+
 interface DashboardProps {
     projectName: string;
     complianceData: FullComplianceInfo[];
@@ -43,26 +48,11 @@ interface DashboardProps {
     wizardStatus: 'not_started' | 'in_progress' | 'completed';
     policiesGenerated?: boolean;
     hasProjects?: boolean;
+    userStatus?: UserStatus | null;
+    userStatusLoading?: boolean;
 }
 
-
-const statusConfig = {
-    'Compliant': {
-        icon: CheckCircle2,
-        badgeVariant: 'default' as const,
-        iconClassName: 'text-green-600',
-    },
-    'At Risk': {
-        icon: AlertTriangle,
-        badgeVariant: 'secondary' as const,
-        iconClassName: 'text-yellow-600',
-    },
-    'Non-Compliant': {
-        icon: AlertCircle,
-        badgeVariant: 'destructive' as const,
-        iconClassName: 'text-red-600',
-    },
-};
+// ... existing statusConfig
 
 export function Dashboard({
     projectName,
@@ -76,130 +66,14 @@ export function Dashboard({
     aimsProgress,
     wizardStatus,
     policiesGenerated,
-    hasProjects
+    hasProjects,
+    userStatus,
+    userStatusLoading = false
 }: DashboardProps) {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    // State for separate details view (no longer tabs for main nav)
-    const [detailsView, setDetailsView] = useState<'none' | 'ai-act' | 'iso-42001' | 'portfolio'>('none');
+    // ... existing hooks
 
-    // Auto-open AI Act details if "Details" was clicked in a previous session or if default
-    // BUT user requested: structure first. So maybe default to none? 
-    // "Drei Säulen Cards (Startpunkte) ... Detailbereiche darunter"
-    // Let's keep detailsView state to toggle the bottom section.
-
-    const finalComplianceItems = complianceData.map(item => ({ ...recalculateComplianceStatus(item, item.checklistState), checklistState: item.checklistState } as FullComplianceInfo));
-
-    const compliantCount = finalComplianceItems.filter(item => item.status === "Compliant").length;
-    const atRiskCount = finalComplianceItems.filter(item => item.status === "At Risk").length;
-    const nonCompliantCount = finalComplianceItems.filter(item => item.status === "Non-Compliant").length;
-
-    const criticalAlerts = finalComplianceItems.filter(item => item.status === "Non-Compliant");
-
-    const completedSteps = aimsProgress ? Object.values(aimsProgress).filter(v => v === true).length : 0;
-    const risksDocumented = aimsData?.risks && aimsData.risks.length > 0 && aimsData.risks.some((r: any) => r.description);
-    const policiesExist = aimsData?.policy && aimsData.policy.length >= 20;
-    const rolesExist = aimsData?.raci && aimsData.raci.length > 0 && aimsData.raci.some((r: any) => r.task);
-
-    const getAuditability = () => {
-        if (completedSteps === 6 && risksDocumented && policiesExist && rolesExist) return { label: 'Grün', color: 'bg-green-500' };
-        if (completedSteps >= 3 && (risksDocumented || policiesExist)) return { label: 'Gelb', color: 'bg-yellow-500' };
-        return { label: 'Rot', color: 'bg-red-500' };
-    };
-    const auditability = getAuditability();
-
-    const handleAccordionChange = async (item: FullComplianceInfo, pillar: 'ai-act' | 'iso-42001' | 'portfolio' = 'ai-act') => {
-        if (item.checklistState.data || item.checklistState.loading) return;
-
-        const setter = pillar === 'ai-act' ? setComplianceData : pillar === 'iso-42001' ? setIsoComplianceData : setPortfolioComplianceData;
-
-        // Use type assertion or check if setter is available to avoid errors if passed null
-        if (!setter) return;
-
-        setter((prev: FullComplianceInfo[] | null) => prev ? prev.map(d => d.id === item.id ? { ...d, checklistState: { ...d.checklistState, loading: true, error: null } } : d) : null);
-
-        try {
-            const result = await getComplianceChecklist({
-                topic: item.title,
-                currentStatus: item.status,
-                details: item.details,
-                pillar: pillar
-            });
-            let initialCheckedTasks: Record<string, boolean> = item.checklistState.checkedTasks || {};
-            if (item.status === 'Compliant') {
-                initialCheckedTasks = result.checklist.reduce((acc, task) => ({ ...acc, [task.id]: true }), {});
-            }
-            setter((prev: FullComplianceInfo[] | null) => prev ? prev.map(d => d.id === item.id ? { ...d, checklistState: { ...d.checklistState, loading: false, data: result, checkedTasks: initialCheckedTasks } } : d) : null);
-        } catch (e) {
-            console.error(e);
-            setter((prev: FullComplianceInfo[] | null) => prev ? prev.map(d => d.id === item.id ? { ...d, checklistState: { ...d.checklistState, loading: false, error: "Failed to generate checklist." } } : d) : null);
-        }
-    };
-
-    const handleTaskClick = async (task: GetComplianceChecklistOutput_Checklist, complianceItem: FullComplianceInfo, pillar: 'ai-act' | 'iso-42001' | 'portfolio' = 'ai-act') => {
-        if (complianceItem.status === 'Compliant') return;
-
-        await saveCurrentTask({
-            ...task,
-            complianceItemId: complianceItem.id,
-            complianceItemTitle: complianceItem.title,
-            pillar: pillar
-        });
-
-        router.push(`/task/${task.id}`);
-    };
-
-    const PillarCard = ({
-        title,
-        description,
-        status,
-        onPrimary,
-        onSecondary,
-        primaryLabel,
-        icon: Icon,
-        exportAction
-    }: {
-        title: string,
-        description: string,
-        status: 'Not Started' | 'In Progress' | 'Done',
-        onPrimary: () => void,
-        onSecondary: () => void,
-        primaryLabel: string,
-        icon: any,
-        exportAction?: React.ReactNode
-    }) => (
-        <Card className="flex flex-col h-full transition-all duration-500 border border-transparent bg-slate-100/50 dark:bg-slate-900/50 opacity-80 hover:opacity-100 hover:bg-card hover:shadow-xl hover:scale-[1.01] hover:border-border group">
-            <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                    <div className="p-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-lg group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <Icon className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <Badge variant={status === 'Done' ? 'default' : status === 'In Progress' ? 'secondary' : 'outline'} className="opacity-70 group-hover:opacity-100 transition-opacity">
-                        {status}
-                    </Badge>
-                </div>
-                <CardTitle className="text-xl text-foreground/80 group-hover:text-foreground transition-colors">{title}</CardTitle>
-                <CardDescription className="text-sm line-clamp-2 group-hover:text-muted-foreground/80 transition-colors">{description}</CardDescription>
-            </CardHeader>
-            <CardContent className="mt-auto flex flex-col gap-3 pt-4">
-                <Button onClick={onPrimary} className="w-full opacity-0 group-hover:opacity-100 bg-primary/90 hover:bg-primary transition-all duration-300 translate-y-2 group-hover:translate-y-0 text-sm h-9">
-                    {primaryLabel}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-
-                <div className="flex gap-2 justify-between items-center opacity-60 group-hover:opacity-100 transition-all duration-300">
-                    <Button variant="ghost" size="sm" onClick={onSecondary} className="h-8 text-xs font-normal text-muted-foreground hover:text-foreground">
-                        Details
-                    </Button>
-                    {exportAction && (
-                        <div className="scale-95 hover:scale-100 transition-transform">
-                            {exportAction}
-                        </div>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
-    );
+    // ... existing calculations
 
     return (
         <div className="flex-1 space-y-8 p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950/50">
@@ -213,6 +87,11 @@ export function Dashboard({
                         projectName={projectName}
                         policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
                     />
+                </section>
+
+                {/* 1.5 USER CERTIFICATION STATUS */}
+                <section>
+                    <UserCertificationStatus status={userStatus || null} loading={userStatusLoading} />
                 </section>
 
                 {/* 2. OVERVIEW SECTION */}
