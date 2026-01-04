@@ -59,38 +59,43 @@ export default function LoginPage() {
     const email = data.email.toLowerCase();
 
     try {
-      // For signup, verify purchase first
-      if (action === 'signup') {
-        const { getFirebaseDb } = await import('@/lib/firebase');
-        const db = await getFirebaseDb();
-        const { doc, getDoc } = await import('firebase/firestore');
-
-        const customerRef = doc(db, 'customers', email);
-        const customerSnap = await getDoc(customerRef);
-
-        if (!customerSnap.exists() || customerSnap.data()?.status !== 'active') {
-          toast({
-            variant: 'destructive',
-            title: 'Registrierung nicht möglich',
-            description: 'Diese E-Mail-Adresse hat keinen gültigen Kauf. Bitte kaufen Sie zuerst das Produkt auf eukigesetz.com.',
-          });
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const { getFirebaseAuth, getFirebaseDb } = await import('@/lib/firebase');
       const auth = await getFirebaseAuth();
-      const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = await import('firebase/auth');
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser, signOut } = await import('firebase/auth');
+      const { doc, getDoc } = await import('firebase/firestore');
 
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
         toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zum Dashboard...' });
         router.push('/dashboard');
       } else { // signup
-        await createUserWithEmailAndPassword(auth, email, data.password);
-        toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
-        router.push('/dashboard');
+        // 1. Create User (Log in immediately)
+        const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
+
+        // 2. Check Purchase Status (Now authenticated)
+        const db = await getFirebaseDb();
+        const customerRef = doc(db, 'customers', email);
+
+        // Slight delay to ensure Auth state propagates? Usually not needed but safe.
+        const customerSnap = await getDoc(customerRef);
+
+        if (!customerSnap.exists() || customerSnap.data()?.status !== 'active') {
+          // 3. Failed Check -> Cleanup
+          await userCredential.user.delete().catch(async () => {
+            // Fallback if delete fails (e.g. requires re-auth) -> just sign out
+            await signOut(auth);
+          });
+
+          toast({
+            variant: 'destructive',
+            title: 'Registrierung nicht möglich',
+            description: 'Diese E-Mail-Adresse hat keinen gültigen Kauf. Bitte kaufen Sie zuerst das Produkt auf eukigesetz.com.',
+          });
+        } else {
+          // 4. Success
+          toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
+          router.push('/dashboard');
+        }
       }
     } catch (error: any) {
       console.error(`${action} failed`, error);
