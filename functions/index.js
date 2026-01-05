@@ -179,12 +179,12 @@ app.get("/health", (_req, res) => {
 // ============================================
 
 // 1. Verify Customer - Prüft ob E-Mail einen gültigen Kauf hat
-app.post("/api/verify-customer", validateApiKey, async (req, res) => {
+app.post("/verify-customer", validateApiKey, async (req, res) => {
   const { email } = req.body;
-
   if (!email) {
     return res.status(400).json({ verified: false, error: "Email required" });
   }
+  // ... (rest of implementation logic is fine, just changing route path)
 
   try {
     const normalizedEmail = email.toLowerCase();
@@ -209,8 +209,9 @@ app.post("/api/verify-customer", validateApiKey, async (req, res) => {
 });
 
 // 2. Record Exam Result - Speichert Prüfungsergebnis von Landing Page
-app.post("/api/record-exam", validateApiKey, async (req, res) => {
+app.post("/record-exam", validateApiKey, async (req, res) => {
   const { email, examPassed, sectionScores, totalScore } = req.body;
+  // ... (implementation)
 
   if (!email) {
     return res.status(400).json({ success: false, error: "Email required" });
@@ -241,8 +242,7 @@ app.post("/api/record-exam", validateApiKey, async (req, res) => {
 });
 
 // 3. Record Certificate - Registriert Zertifikat von Landing Page
-// 3. Record Certificate - Registriert Zertifikat von Landing Page
-app.post("/api/record-certificate", validateApiKey, async (req, res) => {
+app.post("/record-certificate", validateApiKey, async (req, res) => {
   const {
     email,
     certificateCode,
@@ -297,7 +297,7 @@ app.post("/api/record-certificate", validateApiKey, async (req, res) => {
 });
 
 // 4. Get User Status - Holt kompletten User-Status für Dashboard
-app.get("/api/user-status/:email", async (req, res) => {
+app.get("/user-status/:email", async (req, res) => {
   const { email } = req.params;
 
   if (!email) {

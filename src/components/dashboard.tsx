@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertCircle, AlertTriangle, CheckCircle2, ShieldAlert, ShieldCheck, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Building, Shield, Check, X, FileClock, History, LineChart, Gauge, Briefcase, Edit } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { DashboardGuidanceFrame } from "./dashboard-guidance-frame";
-import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
+import { getComplianceChecklist, type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,10 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
-// Tabs removed
 import { AimsExportDialog } from "./aims-export-dialog";
 import { PortfolioExportDialog } from "./portfolio-export-dialog";
 import { recalculateComplianceStatus } from "@/lib/compliance-logic";
+import { UserCertificationStatus } from "./dashboard/user-certification-status";
+import type { UserStatus } from "@/hooks/use-user-status";
 
 export interface ChecklistState {
     loading: boolean;
@@ -29,11 +30,6 @@ export interface ChecklistState {
 export interface FullComplianceInfo extends ComplianceItem {
     checklistState: ChecklistState;
 }
-
-import { UserCertificationStatus } from "./dashboard/user-certification-status";
-import type { UserStatus } from "@/hooks/use-user-status";
-
-// ... existing imports
 
 interface DashboardProps {
     projectName: string;
@@ -52,7 +48,13 @@ interface DashboardProps {
     userStatusLoading?: boolean;
 }
 
-// ... existing statusConfig
+const statusConfig = {
+    'Compliant': { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-200', badgeVariant: 'default' as const, iconClassName: 'text-green-500' },
+    'At Risk': { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-500/10', border: 'border-yellow-200', badgeVariant: 'warning' as const, iconClassName: 'text-yellow-500' },
+    'Non-Compliant': { icon: ShieldAlert, color: 'text-red-500', bg: 'bg-red-500/10', border: 'border-red-200', badgeVariant: 'destructive' as const, iconClassName: 'text-red-500' },
+    'Not Started': { icon: AlertCircle, color: 'text-slate-400', bg: 'bg-slate-100', border: 'border-slate-200', badgeVariant: 'secondary' as const, iconClassName: 'text-slate-400' },
+    'In Progress': { icon: Loader2, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-200', badgeVariant: 'secondary' as const, iconClassName: 'text-blue-500 animate-spin-slow' },
+};
 
 export function Dashboard({
     projectName,
@@ -71,9 +73,81 @@ export function Dashboard({
     userStatusLoading = false
 }: DashboardProps) {
     const router = useRouter();
-    // ... existing hooks
+    const searchParams = useSearchParams();
+    const [detailsView, setDetailsView] = useState<'none' | 'ai-act' | 'iso-42001' | 'portfolio'>('none');
 
-    // ... existing calculations
+    // --- COMPLIANCE CALCULATIONS ---
+    const finalComplianceItems = complianceData || [];
+    const compliantCount = finalComplianceItems.filter(i => i.status === 'Compliant').length;
+    const atRiskCount = finalComplianceItems.filter(i => i.status === 'At Risk').length;
+    const nonCompliantCount = finalComplianceItems.filter(i => i.status === 'Non-Compliant').length;
+    const criticalAlerts = finalComplianceItems.filter(i => i.status === 'Non-Compliant');
+
+    const completedSteps = aimsProgress
+        ? Object.values(aimsProgress).filter(v => v === true).length
+        : 0;
+
+    const auditability = (() => {
+        if (completedSteps === 6) return { label: 'Audit-Bereit', color: 'bg-green-500' };
+        if (completedSteps >= 3) return { label: 'In Vorbereitung', color: 'bg-yellow-500' };
+        return { label: 'Nicht gestartet', color: 'bg-red-500' };
+    })();
+
+    // --- HANDLERS ---
+    const handleAccordionChange = async (item: FullComplianceInfo, type: 'ai-act' | 'iso-42001' | 'portfolio' = 'ai-act') => {
+        // Only fetch if no data yet and not loading
+        if (item.checklistState.data || item.checklistState.loading) return;
+
+        const updateState = (id: string, newState: Partial<ChecklistState>) => {
+            if (type === 'ai-act') {
+                setComplianceData(prev => prev ? prev.map(p => p.id === id ? { ...p, checklistState: { ...p.checklistState, ...newState } } : p) : null);
+            } else if (type === 'iso-42001') {
+                setIsoComplianceData(prev => prev ? prev.map(p => p.id === id ? { ...p, checklistState: { ...p.checklistState, ...newState } } : p) : null);
+            } else {
+                setPortfolioComplianceData(prev => prev ? prev.map(p => p.id === id ? { ...p, checklistState: { ...p.checklistState, ...newState } } : p) : null);
+            }
+        };
+
+        updateState(item.id, { loading: true, error: null });
+
+        try {
+            const result = await getComplianceChecklist(item.title, item.description, item.status, item.details);
+            updateState(item.id, { loading: false, data: result });
+        } catch (err) {
+            console.error("Failed to generate checklist:", err);
+            updateState(item.id, { loading: false, error: "Konnte Checkliste nicht laden." });
+        }
+    };
+
+    const handleTaskClick = async (task: any, item: FullComplianceInfo, type: 'ai-act' | 'iso-42001' | 'portfolio' = 'ai-act') => {
+        const toggleTask = (prevChecked: Record<string, boolean>) => {
+            const next = { ...prevChecked, [task.id]: !prevChecked[task.id] };
+            return next;
+        };
+
+        let newCheckedTasks = {};
+
+        if (type === 'ai-act') {
+            setComplianceData(prev => {
+                if (!prev) return null;
+                return prev.map(p => {
+                    if (p.id === item.id) {
+                        newCheckedTasks = toggleTask(p.checklistState.checkedTasks);
+                        return { ...p, checklistState: { ...p.checklistState, checkedTasks: newCheckedTasks } };
+                    }
+                    return p;
+                });
+            });
+        } else if (type === 'iso-42001') {
+            setIsoComplianceData(prev => prev ? prev.map(p => p.id === item.id ? { ...p, checklistState: { ...p.checklistState, checkedTasks: toggleTask(p.checklistState.checkedTasks) } } : p) : null);
+        } else {
+            setPortfolioComplianceData(prev => prev ? prev.map(p => p.id === item.id ? { ...p, checklistState: { ...p.checklistState, checkedTasks: toggleTask(p.checklistState.checkedTasks) } } : p) : null);
+        }
+
+        // Optimistic UI update done, now logic for side effects (like recalculating status) could go here
+        // For now, we rely on the useEffect in page.tsx to save the state
+    };
+
 
     return (
         <div className="flex-1 space-y-8 p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950/50">
@@ -82,7 +156,7 @@ export function Dashboard({
                 {/* 1. GUIDANCE SECTION */}
                 <section>
                     <DashboardGuidanceFrame
-                        projectId={new URLSearchParams(window.location.search).get('projectId') || ''}
+                        projectId={searchParams.get('projectId') || ''}
                         wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
                         projectName={projectName}
                         policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
@@ -169,7 +243,7 @@ export function Dashboard({
                         description="Gesetzliche Anforderungen prüfen, dokumentieren und lückenlos erfüllen."
                         status={wizardStatus === 'completed' ? 'In Progress' : wizardStatus === 'not_started' ? 'Not Started' : 'In Progress'}
                         primaryLabel={wizardStatus === 'completed' ? "Prüfung fortsetzen" : "Wizard starten"}
-                        onPrimary={() => { setDetailsView('ai-act'); /* Optionally scroll to details */ }}
+                        onPrimary={() => { setDetailsView('ai-act'); router.push('#details-section'); }}
                         onSecondary={() => setDetailsView('ai-act')}
                         icon={ListChecks}
                         exportAction={hasProjects && wizardStatus !== 'not_started' ? (
@@ -216,7 +290,7 @@ export function Dashboard({
 
                 {/* 4. DETAILS SECTION (Conditional/Accordion-like) */}
                 {detailsView !== 'none' && (
-                    <section className="animate-in fade-in slide-in-from-top-4 duration-300 scroll-mt-8" id="details-section">
+                    <section className="animate-in fade-in slide-in-from-top-4 duration-300 scroll-mt-24" id="details-section">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-xl font-bold flex items-center gap-2">
                                 {detailsView === 'ai-act' && <><ListChecks className="w-5 h-5" /> Detaillierte AI Act Pflichten</>}
@@ -235,9 +309,9 @@ export function Dashboard({
                                     <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = finalComplianceItems.find(i => i.id === value); if (item) { handleAccordionChange(item); } } }}>
                                         {(finalComplianceItems.length > 0 ? finalComplianceItems : [
                                             // Empty State Fallback
-                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
-                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
-                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.' },
+                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
+                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
+                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
                                         ]).map((item: any) => {
                                             const status = item.status as string;
                                             const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };
@@ -266,7 +340,10 @@ export function Dashboard({
                                                                                 <div key={task.id} onClick={() => handleTaskClick(task, item)} className="flex items-center justify-between space-x-3 p-3 rounded-md border bg-background/50 hover:bg-background cursor-pointer transition-colors">
                                                                                     <div className="flex items-start gap-4">
                                                                                         <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-                                                                                        <p className="flex-1"><StepContent content={task.description} /></p>
+                                                                                        <div className={cn("flex-1", item.checklistState.checkedTasks[task.id] && "line-through text-muted-foreground")}>
+                                                                                            <StepContent content={task.description} />
+                                                                                        </div>
+                                                                                        {item.checklistState.checkedTasks[task.id] && <Check className="h-4 w-4 text-green-500" />}
                                                                                     </div>
                                                                                 </div>
                                                                             ))}
@@ -308,60 +385,94 @@ export function Dashboard({
                                                         {item.checklistState?.data && (
                                                             <div className="mt-4 space-y-2 pl-4 border-l-2 border-primary/20">
                                                                 {item.checklistState.data.checklist.map((task: any) => (
-                                                                    <div key={task.id} className="text-sm py-1" onClick={() => handleTaskClick(task, item, 'iso-42001')}>
+                                                                    <div key={task.id} className={cn("text-sm py-1 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 px-2 rounded", item.checklistState.checkedTasks[task.id] && "line-through text-muted-foreground")} onClick={() => handleTaskClick(task, item, 'iso-42001')}>
                                                                         • {task.description}
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         )}
-                                                    <div className="flex items-center justify-between mt-2">
-                                                        <Button size="sm" variant="outline" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
-                                                        <span className="text-[10px] text-muted-foreground italic">
-                                                            Nutzen Sie die Kacheln für geführte Empfehlungen.
-                                                        </span>
-                                                    </div>
-                                                </AccordionContent>
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            <Button size="sm" variant="outline" onClick={() => router.push('/aims')}>Im Wizard bearbeiten</Button>
+                                                            <span className="text-[10px] text-muted-foreground italic">
+                                                                Nutzen Sie die Kacheln für geführte Empfehlungen.
+                                                            </span>
+                                                        </div>
+                                                    </AccordionContent>
                                                 </AccordionItem>
                                             ))}
-                                    </Accordion>
+                                        </Accordion>
                                     </div>
                                 )}
 
-                            {/* PORTFOLIO DETAILS */}
-                            {detailsView === 'portfolio' && (
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <p className="text-sm text-muted-foreground">Strategische Ausrichtung und Portfolio-Management.</p>
-                                        <PortfolioExportDialog />
+                                {/* PORTFOLIO DETAILS */}
+                                {detailsView === 'portfolio' && (
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className="text-sm text-muted-foreground">Strategische Ausrichtung und Portfolio-Management.</p>
+                                            <PortfolioExportDialog />
+                                        </div>
+                                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
+                                            {portfolioComplianceData.map((item) => (
+                                                <AccordionItem value={item.id} key={item.id}>
+                                                    <AccordionTrigger className="hover:no-underline">
+                                                        <div className="flex items-center gap-3 flex-1 text-left">
+                                                            <Briefcase className="h-5 w-5 text-primary shrink-0" />
+                                                            <span>{item.title}</span>
+                                                        </div>
+                                                        <Badge variant="outline" className="ml-4">{item.status}</Badge>
+                                                    </AccordionTrigger>
+                                                    <AccordionContent className="pl-10 space-y-4">
+                                                        <p className="text-muted-foreground">{item.description}</p>
+                                                        <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/portfolio')}>Strategie bearbeiten</Button>
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
                                     </div>
-                                    <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = portfolioComplianceData.find(i => i.id === value); if (item) { handleAccordionChange(item, 'portfolio'); } } }}>
-                                        {portfolioComplianceData.map((item) => (
-                                            <AccordionItem value={item.id} key={item.id}>
-                                                <AccordionTrigger className="hover:no-underline">
-                                                    <div className="flex items-center gap-3 flex-1 text-left">
-                                                        <Briefcase className="h-5 w-5 text-primary shrink-0" />
-                                                        <span>{item.title}</span>
-                                                    </div>
-                                                    <Badge variant="outline" className="ml-4">{item.status}</Badge>
-                                                </AccordionTrigger>
-                                                <AccordionContent className="pl-10 space-y-4">
-                                                    <p className="text-muted-foreground">{item.description}</p>
-                                                    <Button size="sm" variant="outline" className="mt-2" onClick={() => router.push('/portfolio')}>Strategie bearbeiten</Button>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        ))}
-                                    </Accordion>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                )}
+                            </CardContent>
+                        </Card>
                     </section>
                 )}
-        </div>
+            </div>
         </div>
     );
 }
 
+
+function PillarCard({ title, description, status, primaryLabel, onPrimary, onSecondary, icon: Icon, exportAction }: { title: string, description: string, status: string, primaryLabel: string, onPrimary: () => void, onSecondary?: () => void, icon: any, exportAction?: React.ReactNode }) {
+    return (
+        <Card className="flex flex-col h-full shadow-md border-slate-200 dark:border-slate-800 transition-all hover:shadow-lg">
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <Badge variant={status === 'Completed' || status === 'Compliant' ? 'default' : 'secondary'}>
+                        {status}
+                    </Badge>
+                </div>
+                <CardTitle className="mt-4 text-xl">{title}</CardTitle>
+                <CardDescription className="line-clamp-2">{description}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+                {/* Spacer */}
+            </CardContent>
+            <div className="p-6 pt-0 mt-auto flex items-center justify-between gap-2">
+                <Button onClick={onPrimary} className="flex-1 gap-2">
+                    {primaryLabel}
+                    <ArrowRight className="h-4 w-4" />
+                </Button>
+                {onSecondary && (
+                    <Button variant="outline" onClick={onSecondary} title="Details ansehen">
+                        Details
+                    </Button>
+                )}
+                {exportAction}
+            </div>
+        </Card>
+    );
+}
 
 const StepContent = ({ content }: { content: string }) => {
     const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
