@@ -72,14 +72,32 @@ export default function LoginPage() {
         // 1. Create User (Log in immediately)
         const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
 
-        // 2. Check Purchase Status (Now authenticated)
+        // 2. Check Purchase Status - Try Firestore first, then Stripe API fallback
         const db = await getFirebaseDb();
         const customerRef = doc(db, 'customers', email);
-
-        // Slight delay to ensure Auth state propagates? Usually not needed but safe.
         const customerSnap = await getDoc(customerRef);
 
-        if (!customerSnap.exists() || customerSnap.data()?.status !== 'active') {
+        let hasPurchased = customerSnap.exists() && customerSnap.data()?.status === 'active';
+
+        // Fallback: Check Stripe API directly if Firestore check fails
+        if (!hasPurchased) {
+          try {
+            const response = await fetch('https://api-smnzycso6q-uc.a.run.app/check-stripe-purchase', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+            });
+            const result = await response.json();
+            hasPurchased = result.hasPurchased === true;
+            if (hasPurchased) {
+              console.log('Purchase verified via Stripe API fallback:', result.source);
+            }
+          } catch (stripeError) {
+            console.error('Stripe API check failed:', stripeError);
+          }
+        }
+
+        if (!hasPurchased) {
           // 3. Failed Check -> Cleanup
           await userCredential.user.delete().catch(async () => {
             // Fallback if delete fails (e.g. requires re-auth) -> just sign out

@@ -208,6 +208,130 @@ app.post("/verify-customer", validateApiKey, async (req, res) => {
   }
 });
 
+// 1c. Check Stripe Purchase DIRECTLY - Fallback when webhook sync fails
+// This queries Stripe API directly to verify payment status
+app.post("/check-stripe-purchase", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ hasPurchased: false, error: "Email required" });
+  }
+
+  try {
+    const stripe = stripeLib(STRIPE_API_KEY.value());
+    const normalizedEmail = email.toLowerCase();
+
+    // First check Firestore (fast path)
+    const customerRef = db.collection("customers").doc(normalizedEmail);
+    const customerDoc = await customerRef.get();
+
+    if (customerDoc.exists && customerDoc.data().status === "active") {
+      return res.status(200).json({ hasPurchased: true, source: "firestore" });
+    }
+
+    // Fallback: Check Stripe directly
+    // Search for customers by email
+    const customers = await stripe.customers.list({
+      email: normalizedEmail,
+      limit: 1
+    });
+
+    if (customers.data.length === 0) {
+      // No customer found - check checkout sessions by email
+      const sessions = await stripe.checkout.sessions.list({
+        customer_email: normalizedEmail,
+        limit: 10,
+        status: 'complete'
+      });
+
+      if (sessions.data.length > 0) {
+        // Found a completed session! Save to Firestore for next time
+        const session = sessions.data[0];
+        await customerRef.set({
+          email: normalizedEmail,
+          name: session.customer_details?.name || null,
+          stripeId: session.customer || null,
+          status: "active",
+          purchaseAmount: session.amount_total,
+          productId: session.metadata?.productId || "eu-ai-act-certification",
+          canRegister: true,
+          created: admin.firestore.FieldValue.serverTimestamp(),
+          source: "stripe-api-recovery"
+        }, { merge: true });
+
+        console.log(`Recovered purchase for ${normalizedEmail} from Stripe API`);
+        return res.status(200).json({ hasPurchased: true, source: "stripe-recovered" });
+      }
+
+      return res.status(200).json({ hasPurchased: false, error: "No purchase found" });
+    }
+
+    // Customer exists in Stripe - check for successful payments
+    const customer = customers.data[0];
+    const charges = await stripe.charges.list({
+      customer: customer.id,
+      limit: 5
+    });
+
+    const successfulCharge = charges.data.find(c => c.status === 'succeeded' && !c.refunded);
+
+    if (successfulCharge) {
+      // Save to Firestore for next time
+      await customerRef.set({
+        email: normalizedEmail,
+        name: customer.name || null,
+        stripeId: customer.id,
+        status: "active",
+        purchaseAmount: successfulCharge.amount,
+        canRegister: true,
+        created: admin.firestore.FieldValue.serverTimestamp(),
+        source: "stripe-api-recovery"
+      }, { merge: true });
+
+      console.log(`Recovered purchase for ${normalizedEmail} from Stripe customer charges`);
+      return res.status(200).json({ hasPurchased: true, source: "stripe-recovered" });
+    }
+
+    return res.status(200).json({ hasPurchased: false, error: "No successful payment found" });
+  } catch (error) {
+    console.error("Stripe check error:", error);
+    return res.status(500).json({ hasPurchased: false, error: "Internal error" });
+  }
+});
+
+// 1b. Record Purchase (Internal/Trusted) - Erlaubt der Landing Page, Käufe direkt zu melden
+// Dies umgeht Probleme, wenn der Stripe Webhook nicht direkt an diese Function zeigt.
+app.post("/record-purchase", validateApiKey, async (req, res) => {
+  const { email, name, stripeId, amountTotal, productId } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, error: "Email required" });
+  }
+
+  try {
+    const normalizedEmail = email.toLowerCase();
+    const userRef = db.collection("customers").doc(normalizedEmail);
+
+    await userRef.set({
+      email: normalizedEmail,
+      name: name || null,
+      stripeId: stripeId || null,
+      status: "active",
+      purchaseAmount: amountTotal || 0,
+      productId: productId || "eu-ai-act-certification",
+      canRegister: true,
+      created: admin.firestore.FieldValue.serverTimestamp(),
+      source: "landing-page-webhook"
+    }, { merge: true });
+
+    console.log(`Purchase recorded via API for ${normalizedEmail}`);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Record purchase error:", error);
+    return res.status(500).json({ success: false, error: "Internal error" });
+  }
+});
+
 // 2. Record Exam Result - Speichert Prüfungsergebnis von Landing Page
 app.post("/record-exam", validateApiKey, async (req, res) => {
   const { email, examPassed, sectionScores, totalScore } = req.body;
