@@ -28,6 +28,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [authReady, setAuthReady] = useState(false);
+  const [isFromPurchase, setIsFromPurchase] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -50,6 +51,7 @@ export default function LoginPage() {
     if (emailFromQuery) {
       form.setValue('email', emailFromQuery);
       setActiveTab('signup');
+      setIsFromPurchase(true);
     }
   }, [searchParams, form]);
 
@@ -145,6 +147,29 @@ export default function LoginPage() {
         />
         <span className="font-bold text-2xl">AI Act Compass</span>
       </div>
+
+      {/* Welcome Banner for Post-Purchase Users */}
+      {isFromPurchase && (
+        <div className="w-full max-w-sm mb-6 p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-green-800 mb-1">Vielen Dank für Ihren Kauf! 🎉</h3>
+              <p className="text-sm text-green-700 mb-2">
+                Ihr Zugang zum <strong>AI Compliance OS</strong> ist bereit. Erstellen Sie jetzt Ihr Konto, um Ihre EU AI Act Compliance zu starten.
+              </p>
+              <p className="text-xs text-green-600">
+                📧 Bitte nutzen Sie die E-Mail-Adresse, mit der Sie gekauft haben. Eine Bestätigung wurde an Ihre E-Mail gesendet.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-sm">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Anmelden</TabsTrigger>
