@@ -239,6 +239,8 @@ function DashboardPageContent() {
                     policiesGenerated={projectData?.policiesGenerated}
                     userStatus={userStatus}
                     userStatusLoading={userStatusLoading}
+                    trustPortalConfig={projectData?.trustPortal}
+                    onTrustPortalUpdate={(newConfig) => setProjectData((prev: any) => ({ ...prev, trustPortal: newConfig }))}
                 />
             </main>
         </div>

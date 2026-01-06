@@ -18,7 +18,9 @@ import { AimsExportDialog } from "./aims-export-dialog";
 import { PortfolioExportDialog } from "./portfolio-export-dialog";
 import { recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { UserCertificationStatus } from "./dashboard/user-certification-status";
+import { TrustPortalTile } from "./dashboard/trust-portal-tile";
 import type { UserStatus } from "@/hooks/use-user-status";
+import type { TrustPortalConfig } from "@/lib/types";
 
 export interface ChecklistState {
     loading: boolean;
@@ -46,6 +48,8 @@ interface DashboardProps {
     hasProjects?: boolean;
     userStatus?: UserStatus | null;
     userStatusLoading?: boolean;
+    trustPortalConfig?: TrustPortalConfig;
+    onTrustPortalUpdate?: (config: TrustPortalConfig) => void;
 }
 
 const statusConfig = {
@@ -70,7 +74,9 @@ export function Dashboard({
     policiesGenerated,
     hasProjects,
     userStatus,
-    userStatusLoading = false
+    userStatusLoading = false,
+    trustPortalConfig,
+    onTrustPortalUpdate
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -160,6 +166,19 @@ export function Dashboard({
                         wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
                         projectName={projectName}
                         policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
+                    />
+                </section>
+
+                <section>
+                    <TrustPortalTile
+                        projectId={searchParams.get('projectId') || ''}
+                        config={trustPortalConfig}
+                        onConfigUpdate={(c) => onTrustPortalUpdate && onTrustPortalUpdate(c)}
+                        complianceData={{
+                            compliantCount: compliantCount,
+                            risksDocumented: aimsData?.risks && aimsData.risks.length > 0,
+                            policiesExist: aimsData?.policy && aimsData.policy.length >= 20
+                        }}
                     />
                 </section>
 

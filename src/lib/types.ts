@@ -7,3 +7,14 @@ export interface ComplianceItem {
   status: ComplianceStatus;
   details: string;
 }
+
+export interface TrustPortalConfig {
+  isPublished: boolean;
+  lastPublishedAt?: string;
+  urlSlug?: string;
+  governanceStatement: string;
+  contactEmail: string;
+  showRiskCategory: boolean;
+  showHumanOversight: boolean;
+  showPolicies: boolean;
+}

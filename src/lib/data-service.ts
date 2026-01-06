@@ -5,6 +5,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
 import { saveIsoAims, getIsoAims } from './aims-service';
+import type { TrustPortalConfig } from './types';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 
@@ -168,7 +169,7 @@ export async function getFullProject(): Promise<ProjectData | null> {
 }
 
 
-async function saveProjectData(data: Partial<ProjectData>): Promise<void> {
+export async function saveProjectData(data: Partial<ProjectData>): Promise<void> {
     const userId = await getUserId();
     const projectId = getActiveProjectId();
     if (!userId || !projectId) throw new Error("User or project not identified");
@@ -209,6 +210,7 @@ interface ProjectData {
     wizardStatus?: 'not_started' | 'in_progress' | 'completed';
     policiesGenerated?: boolean;
     isoWizardStarted?: boolean;
+    trustPortal?: TrustPortalConfig;
 }
 
 // These functions now operate on the active project
