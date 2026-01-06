@@ -207,7 +207,7 @@ function ComplianceInADayPageContent() {
                         </CardFooter>
                     </Card>
 
-                    <PolicyEditor onPolicyChange={setPolicyData} />
+                    <PolicyEditor onPolicyChange={setPolicyData} onSave={handleSave} isSaving={isSaving} />
 
                 </div>
             </main>

@@ -172,9 +172,11 @@ const parsePlaceholders = (text: string): string[] => {
 
 interface PolicyEditorProps {
   onPolicyChange?: (policyData: { data: PolicyData, level: Level }) => void;
+  onSave?: () => void;
+  isSaving?: boolean;
 }
 
-export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
+export function PolicyEditor({ onPolicyChange, onSave, isSaving }: PolicyEditorProps) {
   const [employeeCount, setEmployeeCount] = useState<'1-10' | '11-50' | '>50'>('1-10');
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
@@ -236,7 +238,12 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
     // Replace standard placeholders
     Object.entries(placeholders).forEach(([key, value]) => {
       if (value) {
-        filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value);
+        // Format date if key contains "datum"
+        const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
+          ? new Date(value).toLocaleDateString('de-DE')
+          : value;
+
+        filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);
       }
     });
 
@@ -306,7 +313,11 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
     let contentToCopy = policy.content;
 
     Object.entries(placeholders).forEach(([key, value]) => {
-      contentToCopy = contentToCopy.replace(new RegExp(`\\[${key}\\]`, 'g'), value || `[${key}]`);
+      const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
+        ? new Date(value).toLocaleDateString('de-DE')
+        : (value || `[${key}]`);
+
+      contentToCopy = contentToCopy.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);
     });
 
     const toolListText = aiTools.filter(tool => tool.name.trim() !== '').map(tool => {
@@ -336,7 +347,11 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
     let printableContent = policy.content;
 
     Object.entries(placeholders).forEach(([key, value]) => {
-      printableContent = printableContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value || `[${key}]`);
+      const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
+        ? new Date(value).toLocaleDateString('de-DE')
+        : (value || `[${key}]`);
+
+      printableContent = printableContent.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);
     });
 
     const toolListText = aiTools.filter(tool => tool.name.trim() !== '').map(tool => {
@@ -441,6 +456,7 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
                 <Input
                   id={p}
                   name={p}
+                  type={p.toLowerCase().includes('datum') || p.toLowerCase().includes('date') ? "date" : "text"}
                   value={placeholders[p] || ''}
                   onChange={handlePlaceholderChange}
                   placeholder={`Wert für '${p}' eingeben`}
@@ -542,9 +558,15 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
                       Als Text kopieren
                     </Button>
-                    <Button onClick={handlePrint}>
-                      <Printer className="mr-2 h-4 w-4" /> Als PDF speichern
+                    <Button onClick={handlePrint} variant="secondary">
+                      <Printer className="mr-2 h-4 w-4" /> Drucken / PDF
                     </Button>
+                    {onSave && (
+                      <Button onClick={onSave} disabled={isSaving} className="ml-auto bg-green-600 hover:bg-green-700 text-white">
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                        Speichern & Fertigstellen
+                      </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </TabsContent>
