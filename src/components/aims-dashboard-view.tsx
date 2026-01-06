@@ -309,6 +309,45 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                 </TabsContent>
 
                 <TabsContent value="ai-act-duties">
+                    <div className="grid gap-4 md:grid-cols-3 mb-6">
+                        <Card className="bg-secondary/20 border-l-4 border-l-primary">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex justify-between items-center">
+                                    Basis-Dokumentation
+                                    {compliantCount > 0 ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{Math.round((compliantCount / complianceItems.length) * 100)}%</div>
+                                <p className="text-xs text-muted-foreground">Konformität erreicht</p>
+                            </CardContent>
+                        </Card>
+                        <Card className={cn("bg-secondary/20 border-l-4", policiesExist ? "border-l-green-500" : "border-l-yellow-500")}>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex justify-between items-center">
+                                    KI-Policies
+                                    {policiesExist ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-yellow-500" />}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{policiesExist ? "Erledigt" : "Ausstehend"}</div>
+                                <p className="text-xs text-muted-foreground">{policiesExist ? "Richtlinien definiert" : "Noch keine Policy"}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className={cn("bg-secondary/20 border-l-4", risksDocumented ? "border-l-green-500" : "border-l-yellow-500")}>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex justify-between items-center">
+                                    Risikobewertung
+                                    {risksDocumented ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <AlertTriangle className="h-4 w-4 text-yellow-500" />}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{risksDocumented ? "Erledigt" : "Ausstehend"}</div>
+                                <p className="text-xs text-muted-foreground">{risksDocumented ? "Risiken analysiert" : "Risikoanalyse fehlt"}</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Detaillierte AI Act Pflichten</CardTitle>

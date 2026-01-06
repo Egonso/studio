@@ -218,7 +218,7 @@ export function AssessmentWizard() {
                 Weiterleiten...
               </>
             ) : (
-              currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum Kontext'
+              currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum nächsten Schritt'
             )}
           </Button>
         </CardFooter>

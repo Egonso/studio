@@ -12,12 +12,12 @@ import { Printer, PlusCircle, Trash2 } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
 
 export type Level = '1' | '2' | '3';
-export type AiTool = { name: string; isDsgvoCompliant: boolean; isEuAiActCompliant: boolean; };
+export type AiTool = { name: string; isDsgvoCompliant: boolean; isEuAiActCompliant: boolean; evidenceLink?: string; };
 
 export interface PolicyData {
-    title: string;
-    content: string;
-    placeholders: Record<string, string>;
+  title: string;
+  content: string;
+  placeholders: Record<string, string>;
 }
 
 const policies: Record<Level, { title: string; content: string }> = {
@@ -150,28 +150,28 @@ Unterschrift KI-Beauftragte/r: [Unterschrift KI-Beauftragte/r]
 };
 
 const placeholderDetails: Record<string, string> = {
-    "Firmenname": "nötig für alle Levels",
-    "Ort, Datum": "nötig für Level 1",
-    "Unterschrift Mitarbeitende/r": "nötig für Level 1",
-    "Name der Geschäftsführung": "nötig für Level 2",
-    "Name KI-Beauftragte/r": "nötig für Level 2 & 3",
-    "Name der Teamleitung": "nötig für Level 2",
-    "Datum Inkrafttreten": "nötig für Level 2",
-    "Unterschriften": "nötig für Level 2",
-    "Datum": "nötig für Level 3",
-    "Unterschrift Entwickler*in": "nötig für Level 3"
+  "Firmenname": "nötig für alle Levels",
+  "Ort, Datum": "nötig für Level 1",
+  "Unterschrift Mitarbeitende/r": "nötig für Level 1",
+  "Name der Geschäftsführung": "nötig für Level 2",
+  "Name KI-Beauftragte/r": "nötig für Level 2 & 3",
+  "Name der Teamleitung": "nötig für Level 2",
+  "Datum Inkrafttreten": "nötig für Level 2",
+  "Unterschriften": "nötig für Level 2",
+  "Datum": "nötig für Level 3",
+  "Unterschrift Entwickler*in": "nötig für Level 3"
 };
 
 const parsePlaceholders = (text: string): string[] => {
-    const regex = /\[(.*?)\]/g;
-    const matches = text.match(regex) || [];
-    const placeholderKeys = matches.map(p => p.slice(1, -1));
-    // Filter out the tool list placeholder
-    return [...new Set(placeholderKeys)].filter(p => p !== 'KI-Tool-Liste');
+  const regex = /\[(.*?)\]/g;
+  const matches = text.match(regex) || [];
+  const placeholderKeys = matches.map(p => p.slice(1, -1));
+  // Filter out the tool list placeholder
+  return [...new Set(placeholderKeys)].filter(p => p !== 'KI-Tool-Liste');
 };
 
 interface PolicyEditorProps {
-    onPolicyChange?: (policyData: {data: PolicyData, level: Level}) => void;
+  onPolicyChange?: (policyData: { data: PolicyData, level: Level }) => void;
 }
 
 export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
@@ -195,12 +195,12 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
   useEffect(() => {
     if (onPolicyChange) {
       onPolicyChange({
-          data: {
-              title: policies[activeTab].title,
-              content: policies[activeTab].content,
-              placeholders: placeholders
-          },
-          level: activeTab
+        data: {
+          title: policies[activeTab].title,
+          content: policies[activeTab].content,
+          placeholders: placeholders
+        },
+        level: activeTab
       })
     }
   }, [placeholders, aiTools, activeTab, onPolicyChange]);
@@ -218,21 +218,21 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
   };
 
   const addTool = () => {
-    setAiTools([...aiTools, { name: '', isDsgvoCompliant: false, isEuAiActCompliant: false }]);
+    setAiTools([...aiTools, { name: '', isDsgvoCompliant: false, isEuAiActCompliant: false, evidenceLink: '' }]);
   };
 
   const removeTool = (index: number) => {
     if (aiTools.length > 1) {
-        setAiTools(aiTools.filter((_, i) => i !== index));
+      setAiTools(aiTools.filter((_, i) => i !== index));
     } else {
-        // Clear the last remaining item instead of removing it
-        setAiTools([{ name: '', isDsgvoCompliant: false, isEuAiActCompliant: false }]);
+      // Clear the last remaining item instead of removing it
+      setAiTools([{ name: '', isDsgvoCompliant: false, isEuAiActCompliant: false, evidenceLink: '' }]);
     }
   };
 
   const renderPolicyContent = (content: string) => {
     let filledContent = content;
-    
+
     // Replace standard placeholders
     Object.entries(placeholders).forEach(([key, value]) => {
       if (value) {
@@ -242,16 +242,17 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
 
     // Generate and replace AI tool list
     const toolListText = aiTools.filter(tool => tool.name.trim() !== '').map(tool => {
-        const dsgvo = tool.isDsgvoCompliant ? '(DSGVO-konform)' : '';
-        const euAct = tool.isEuAiActCompliant ? '(EU-AI-Act-konform)' : '';
-        return `− ${tool.name.trim()} ${dsgvo} ${euAct}`.trim();
+      const dsgvo = tool.isDsgvoCompliant ? '(DSGVO-konform)' : '';
+      const euAct = tool.isEuAiActCompliant ? '(EU-AI-Act-konform)' : '';
+      const proof = tool.evidenceLink ? `[Beweis: ${tool.evidenceLink}]` : '';
+      return `− ${tool.name.trim()} ${dsgvo} ${euAct} ${proof}`.trim();
     }).join('\n');
-    
+
     if (toolListText) {
-        filledContent = filledContent.replace('[KI-Tool-Liste]', toolListText);
+      filledContent = filledContent.replace('[KI-Tool-Liste]', toolListText);
     } else {
-        filledContent = filledContent.replace('**4. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
-        filledContent = filledContent.replace('**2. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+      filledContent = filledContent.replace('**4. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+      filledContent = filledContent.replace('**2. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
     }
 
 
@@ -260,65 +261,66 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
     const groupedLines: (JSX.Element | string)[] = [];
 
     lines.forEach((line, index) => {
-        const uniqueKey = `line-${index}`;
-        if (line.trim() === '') {
-            if (listItems.length > 0) {
-                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
-                listItems = [];
-            }
-            groupedLines.push(<br key={uniqueKey} />);
-        } else if (line.startsWith('---')) {
-            if (listItems.length > 0) {
-                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
-                listItems = [];
-            }
-            groupedLines.push(<hr key={uniqueKey} className="my-4" />);
-        } else if (line.startsWith('**')) {
-            if (listItems.length > 0) {
-                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
-                listItems = [];
-            }
-            groupedLines.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
-        } else if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
-            const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
-            const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
-            listItems.push(<li key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</li>);
-        } else {
-             if (listItems.length > 0) {
-                groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
-                listItems = [];
-            }
-            const parts = line.split(/(\*\*.*?\*\*)/g);
-            groupedLines.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+      const uniqueKey = `line-${index}`;
+      if (line.trim() === '') {
+        if (listItems.length > 0) {
+          groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+          listItems = [];
         }
+        groupedLines.push(<br key={uniqueKey} />);
+      } else if (line.startsWith('---')) {
+        if (listItems.length > 0) {
+          groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+          listItems = [];
+        }
+        groupedLines.push(<hr key={uniqueKey} className="my-4" />);
+      } else if (line.startsWith('**')) {
+        if (listItems.length > 0) {
+          groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+          listItems = [];
+        }
+        groupedLines.push(<h3 key={uniqueKey} className="text-lg font-semibold mt-4">{line.replace(/\*\*/g, '')}</h3>);
+      } else if (line.startsWith('− ') || line.match(/^\d\./) || line.startsWith('* ')) {
+        const cleanedLine = line.replace(/^(− |\d\. |\* )/, '');
+        const parts = cleanedLine.split(/(\*\*.*?\*\*)/g);
+        listItems.push(<li key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</li>);
+      } else {
+        if (listItems.length > 0) {
+          groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+          listItems = [];
+        }
+        const parts = line.split(/(\*\*.*?\*\*)/g);
+        groupedLines.push(<p key={uniqueKey}>{parts.map((part, partIndex) => part.startsWith('**') ? <strong key={partIndex}>{part.slice(2, -2)}</strong> : <Fragment key={partIndex}>{part}</Fragment>)}</p>);
+      }
     });
 
     if (listItems.length > 0) {
-        groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
+      groupedLines.push(<ul key={`ul-${groupedLines.length}`} className="list-disc pl-5 space-y-1 my-2">{listItems}</ul>);
     }
-    
+
     return groupedLines;
   };
-  
+
   const handlePrint = () => {
     const policy = policies[activeTab];
     let printableContent = policy.content;
-    
+
     Object.entries(placeholders).forEach(([key, value]) => {
-        printableContent = printableContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value || `[${key}]`);
+      printableContent = printableContent.replace(new RegExp(`\\[${key}\\]`, 'g'), value || `[${key}]`);
     });
 
     const toolListText = aiTools.filter(tool => tool.name.trim() !== '').map(tool => {
-        const dsgvo = tool.isDsgvoCompliant ? '(DSGVO-konform)' : '';
-        const euAct = tool.isEuAiActCompliant ? '(EU-AI-Act-konform)' : '';
-        return ` - ${tool.name.trim()} ${dsgvo} ${euAct}`.trim();
+      const dsgvo = tool.isDsgvoCompliant ? '(DSGVO-konform)' : '';
+      const euAct = tool.isEuAiActCompliant ? '(EU-AI-Act-konform)' : '';
+      const proof = tool.evidenceLink ? `[Beweis: ${tool.evidenceLink}]` : '';
+      return ` - ${tool.name.trim()} ${dsgvo} ${euAct} ${proof}`.trim();
     }).join('\n');
 
     if (toolListText) {
-        printableContent = printableContent.replace('[KI-Tool-Liste]', `\n${toolListText}\n`);
+      printableContent = printableContent.replace('[KI-Tool-Liste]', `\n${toolListText}\n`);
     } else {
-        printableContent = printableContent.replace('**4. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
-        printableContent = printableContent.replace('**2. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+      printableContent = printableContent.replace('**4. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+      printableContent = printableContent.replace('**2. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
     }
 
     const printWindow = window.open('', '_blank');
@@ -394,79 +396,96 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
           </CardContent>
         </Card>
 
-         <Card>
-            <CardHeader>
-                <CardTitle>2. Platzhalter ausfüllen</CardTitle>
-                <CardDescription>Diese Werte werden in allen Policen automatisch ersetzt.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {parsePlaceholders(Object.values(policies).map(p => p.content).join('\n')).map(p => (
-                     <div key={p}>
-                        <Label htmlFor={p} className="capitalize flex justify-between items-center">
-                            <span>{p.replace(/_/g, ' ')}</span>
-                            <span className="text-xs text-muted-foreground font-normal">{placeholderDetails[p] || ''}</span>
-                        </Label>
-                        <Input 
-                            id={p} 
-                            name={p} 
-                            value={placeholders[p] || ''}
-                            onChange={handlePlaceholderChange} 
-                            placeholder={`Wert für '${p}' eingeben`}
-                            className="mt-1"
-                        />
-                    </div>
-                ))}
-            </CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>2. Platzhalter ausfüllen</CardTitle>
+            <CardDescription>Diese Werte werden in allen Policen automatisch ersetzt.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {parsePlaceholders(Object.values(policies).map(p => p.content).join('\n')).map(p => (
+              <div key={p}>
+                <Label htmlFor={p} className="capitalize flex justify-between items-center">
+                  <span>{p.replace(/_/g, ' ')}</span>
+                  <span className="text-xs text-muted-foreground font-normal">{placeholderDetails[p] || ''}</span>
+                </Label>
+                <Input
+                  id={p}
+                  name={p}
+                  value={placeholders[p] || ''}
+                  onChange={handlePlaceholderChange}
+                  placeholder={`Wert für '${p}' eingeben`}
+                  className="mt-1"
+                />
+              </div>
+            ))}
+          </CardContent>
         </Card>
-         <Card>
-            <CardHeader>
-                <CardTitle>3. Genutzte KI-Tools</CardTitle>
-                <CardDescription>Führen Sie hier eine Liste der KI-Tools, die im Unternehmen genutzt werden (erscheint in Level 2 & 3 Policen).</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {aiTools.map((tool, index) => (
-                    <div key={index} className="p-3 rounded-md border bg-secondary/50 space-y-3">
-                         <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor={`tool-name-${index}`} className="sr-only">Name des KI-Tools</Label>
-                                <Input 
-                                    id={`tool-name-${index}`}
-                                    placeholder="Name des KI-Tools (z.B. ChatGPT)"
-                                    value={tool.name}
-                                    onChange={(e) => handleToolChange(index, 'name', e.target.value)}
-                                    className="flex-grow"
-                                />
-                                <Button variant="ghost" size="icon" onClick={() => removeTool(index)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </div>
-                        </div>
-                         <div className="space-y-2">
-                            <Label className="text-xs">Konformitäts-Check (optional):</Label>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`dsgvo-${index}`} 
-                                    checked={tool.isDsgvoCompliant} 
-                                    onCheckedChange={(checked) => handleToolChange(index, 'isDsgvoCompliant', !!checked)}
-                                />
-                                <Label htmlFor={`dsgvo-${index}`} className="text-sm font-normal">DSGVO-konform</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`euai-${index}`}
-                                    checked={tool.isEuAiActCompliant}
-                                    onCheckedChange={(checked) => handleToolChange(index, 'isEuAiActCompliant', !!checked)}
-                                />
-                                <Label htmlFor={`euai-${index}`} className="text-sm font-normal">EU-AI-Act-konform</Label>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-                 <Button variant="outline" onClick={addTool} className="w-full">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Tool hinzufügen
-                </Button>
-            </CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>3. Genutzte KI-Tools</CardTitle>
+            <CardDescription>Führen Sie hier eine Liste der KI-Tools, die im Unternehmen genutzt werden (erscheint in Level 2 & 3 Policen).</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {aiTools.map((tool, index) => (
+              <div key={index} className="p-3 rounded-md border bg-secondary/50 space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor={`tool-name-${index}`} className="sr-only">Name des KI-Tools</Label>
+                    <Input
+                      id={`tool-name-${index}`}
+                      placeholder="Name des KI-Tools (z.B. ChatGPT)"
+                      value={tool.name}
+                      onChange={(e) => handleToolChange(index, 'name', e.target.value)}
+                      className="flex-grow"
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => removeTool(index)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Konformitäts-Check (optional):</Label>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`dsgvo-${index}`}
+                      checked={tool.isDsgvoCompliant}
+                      onCheckedChange={(checked) => handleToolChange(index, 'isDsgvoCompliant', !!checked)}
+                    />
+                    <Label htmlFor={`dsgvo-${index}`} className="text-sm font-normal">DSGVO-konform</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`euai-${index}`}
+                      checked={tool.isEuAiActCompliant}
+                      onCheckedChange={(checked) => handleToolChange(index, 'isEuAiActCompliant', !!checked)}
+                    />
+                    <Label htmlFor={`euai-${index}`} className="text-sm font-normal">EU-AI-Act-konform</Label>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`evidence-${index}`} className="text-xs">Beweis-Link (Trust Center / AGB)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={`evidence-${index}`}
+                      placeholder="https://openai.com/security"
+                      value={tool.evidenceLink || ''}
+                      onChange={(e) => handleToolChange(index, 'evidenceLink', e.target.value)}
+                      className="h-8 text-xs"
+                    />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                      <a href={`https://www.google.com/search?q=${encodeURIComponent(tool.name + ' trust center compliance')}`} target="_blank" rel="noopener noreferrer" title="Google Suche nach Compliance">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Button variant="outline" onClick={addTool} className="w-full">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Tool hinzufügen
+            </Button>
+          </CardContent>
         </Card>
       </div>
 
@@ -480,21 +499,21 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
           </TabsList>
           {(Object.keys(policies) as Level[]).map((level) => {
             return (
-            <TabsContent value={level} key={level}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>{policies[level].title}</CardTitle>
-                </CardHeader>
-                <CardContent className="prose prose-sm max-w-none printable-content">
+              <TabsContent value={level} key={level}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{policies[level].title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose prose-sm max-w-none printable-content">
                     {renderPolicyContent(policies[level].content)}
-                </CardContent>
-                <CardFooter className="flex gap-2 justify-end">
+                  </CardContent>
+                  <CardFooter className="flex gap-2 justify-end">
                     <Button onClick={handlePrint}>
-                        <Printer className="mr-2 h-4 w-4"/> Drucken / PDF
+                      <Printer className="mr-2 h-4 w-4" /> Drucken / PDF
                     </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
+                  </CardFooter>
+                </Card>
+              </TabsContent>
             );
           })}
         </Tabs>

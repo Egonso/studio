@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info } from "lucide-react";
+import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info, CheckCircle2 } from "lucide-react";
 import { getAimsData, saveAimsData, getActiveProjectId, type AimsProgress } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -258,7 +258,14 @@ export function AimsWizard({ initialStep = 1, onComplete }: AimsWizardProps) {
         <Card className="w-full max-w-4xl shadow-md mt-8">
             <CardHeader>
                 <div className="mb-4">
-                    <p className="font-semibold text-gray-700">Schritt {step} von {TOTAL_STEPS} ({completedSteps} abgeschlossen)</p>
+                    <p className="font-semibold text-gray-700 flex justify-between items-center">
+                        <span>Schritt {step} von {TOTAL_STEPS}</span>
+                        {(progress as any)[`step${step}_complete`] && (
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Bereits erledigt
+                            </span>
+                        )}
+                    </p>
                     <Progress value={progressPercentage} className="mt-2 w-full" />
                 </div>
                 <CardTitle>AI Management System Setup (ISO 42001)</CardTitle>

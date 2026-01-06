@@ -37,6 +37,10 @@ import { AuthProvider } from '@/context/auth-context';
 export const metadata: Metadata = {
   title: 'AI Compliance OS',
   description: 'Navigate EU AI Act compliance with confidence. Get status checks, parameter configuration, and AI-powered advice for your SME.',
+  icons: {
+    icon: 'https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp',
+    shortcut: 'https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp',
+  },
 };
 
 export default function RootLayout({

@@ -9,7 +9,7 @@ import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { PolicyEditor, type PolicyData, type Level } from '@/components/policy-editor';
 import { Button } from '@/components/ui/button';
-import { createSharedPolicy, savePolicyData, getActiveProjectId, getFullProject } from '@/lib/data-service';
+import { createSharedPolicy, savePolicyData, getActiveProjectId, getFullProject, getAimsData } from '@/lib/data-service';
 import { createOrLinkAiSystem } from '@/lib/ai-system-service';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -32,6 +32,19 @@ function ComplianceInADayPageContent() {
     const [isSaving, setIsSaving] = useState(false);
     const [shareUrl, setShareUrl] = useState('');
     const [policyData, setPolicyData] = useState<{ data: PolicyData, level: Level } | null>(null);
+    const [existingPolicyLevel, setExistingPolicyLevel] = useState<string | null>(null);
+    const [existingPolicyLastUpdated, setExistingPolicyLastUpdated] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function checkExisting() {
+            const data = await getAimsData() as any;
+            if (data?.policyLevel) {
+                setExistingPolicyLevel(data.policyLevel);
+                setExistingPolicyLastUpdated(data.policyUpdatedAt);
+            }
+        }
+        checkExisting();
+    }, []);
 
     const handleShare = async () => {
         if (!policyData) return;
@@ -119,6 +132,22 @@ function ComplianceInADayPageContent() {
             <AppHeader />
             <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
+                    {existingPolicyLevel && (
+                        <Card className="bg-green-50 border-green-200 shadow-sm">
+                            <CardContent className="flex items-center gap-4 py-4">
+                                <div className="bg-green-100 p-2 rounded-full"><CheckCircle2 className="h-6 w-6 text-green-600" /></div>
+                                <div>
+                                    <h3 className="font-semibold text-green-900">Policy Level {existingPolicyLevel} bereits aktiv</h3>
+                                    <p className="text-sm text-green-700">
+                                        Sie haben für dieses Projekt bereits {existingPolicyLastUpdated ? `am ${new Date(existingPolicyLastUpdated).toLocaleDateString()}` : ''} eine Policy erstellt.
+                                    </p>
+                                </div>
+                                <Button variant="outline" className="ml-auto bg-green-50 border-green-300 hover:bg-green-100 text-green-800" onClick={() => router.push('/dashboard')}>
+                                    Zum Dashboard
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
                     <Card className="w-full shadow-lg bg-secondary border-none">
                         <CardHeader>
                             <div className="flex justify-between items-start">
