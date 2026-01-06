@@ -15,23 +15,42 @@ interface TrustPortalTileProps {
         compliantCount: number;
         risksDocumented: boolean;
         policiesExist: boolean;
+        hasRefinedRoles?: boolean; // Hypothetical prop if we track this later
     };
 }
 
 export function TrustPortalTile({ projectId, config, onConfigUpdate, complianceData }: TrustPortalTileProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
 
-    // Trust Score Calculation
-    const hasGovernanceStatement = config?.governanceStatement && config.governanceStatement.length > 20;
-    const hasContactEmail = config?.contactEmail && config.contactEmail.includes('@');
+    // Trust Readiness Calculation (5 Dimensions, max 20 each)
 
-    // Points: Base (40%) + Transparency (60%)
-    const trustScore = Math.round(
-        (complianceData.policiesExist ? 20 : 0) +
-        (complianceData.risksDocumented ? 20 : 0) +
-        (hasGovernanceStatement ? 40 : 0) +
-        (hasContactEmail ? 20 : 0)
-    );
+    // 1. Transparency (0-20)
+    // +10 for having a governance statement
+    // +10 for enabling visibility of policies OR risk category
+    const transparencyScore =
+        ((config?.governanceStatement?.length || 0) > 20 ? 10 : 0) +
+        ((config?.showPolicies || config?.showRiskCategory) ? 10 : 0);
+
+    // 2. Human Oversight (0-20)
+    // +20 if 'showHumanOversight' is explicitly enabled (signaling willingness to show it)
+    const oversightScore = config?.showHumanOversight ? 20 : 0;
+
+    // 3. Risk Awareness (0-20)
+    // +10 if risks are documented in the system
+    // +10 if risk category visibility is enabled
+    const riskScore =
+        (complianceData.risksDocumented ? 10 : 0) +
+        (config?.showRiskCategory ? 10 : 0);
+
+    // 4. Competence (0-20)
+    // +20 if basic compliance items (policies) exist (proxy for competence for now)
+    const competenceScore = complianceData.policiesExist ? 20 : 0;
+
+    // 5. Relationship (0-20)
+    // +20 if a valid contact email is configured
+    const relationshipScore = (config?.contactEmail?.includes('@')) ? 20 : 0;
+
+    const trustScore = transparencyScore + oversightScore + riskScore + competenceScore + relationshipScore;
 
     return (
         <section className="mb-8">
@@ -45,11 +64,11 @@ export function TrustPortalTile({ projectId, config, onConfigUpdate, complianceD
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
                                 <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
-                                    New Feature
+                                    Trust Portal
                                 </span>
                                 {config?.isPublished && (
                                     <span className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
-                                        <Globe className="w-3 h-3" /> Published
+                                        <Globe className="w-3 h-3" /> Online
                                     </span>
                                 )}
                             </div>
@@ -69,6 +88,9 @@ export function TrustPortalTile({ projectId, config, onConfigUpdate, complianceD
                                     {trustScore}%
                                 </span>
                             </div>
+                            <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] leading-tight text-right ml-auto">
+                                Reflektiert dokumentierte Verantwortung, nicht rechtliche Konformität.
+                            </p>
                         </div>
                     </div>
                 </CardHeader>
