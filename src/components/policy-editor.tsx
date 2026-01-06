@@ -301,6 +301,36 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
     return groupedLines;
   };
 
+  const handleCopyText = async () => {
+    const policy = policies[activeTab];
+    let contentToCopy = policy.content;
+
+    Object.entries(placeholders).forEach(([key, value]) => {
+      contentToCopy = contentToCopy.replace(new RegExp(`\\[${key}\\]`, 'g'), value || `[${key}]`);
+    });
+
+    const toolListText = aiTools.filter(tool => tool.name.trim() !== '').map(tool => {
+      const dsgvo = tool.isDsgvoCompliant ? '(DSGVO-konform)' : '';
+      const euAct = tool.isEuAiActCompliant ? '(EU-AI-Act-konform)' : '';
+      const proof = tool.evidenceLink ? `[Beweis: ${tool.evidenceLink}]` : '';
+      return ` - ${tool.name.trim()} ${dsgvo} ${euAct} ${proof}`.trim();
+    }).join('\n');
+
+    if (toolListText) {
+      contentToCopy = contentToCopy.replace('[KI-Tool-Liste]', `\n${toolListText}\n`);
+    } else {
+      contentToCopy = contentToCopy.replace('**4. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+      contentToCopy = contentToCopy.replace('**2. Inventar der genutzten KI-Tools**\n[KI-Tool-Liste]\n', '');
+    }
+
+    try {
+      await navigator.clipboard.writeText(contentToCopy);
+      alert("Text in die Zwischenablage kopiert! Sie können ihn nun in Word oder Google Docs einfügen.");
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  };
+
   const handlePrint = () => {
     const policy = policies[activeTab];
     let printableContent = policy.content;
@@ -508,8 +538,12 @@ export function PolicyEditor({ onPolicyChange }: PolicyEditorProps) {
                     {renderPolicyContent(policies[level].content)}
                   </CardContent>
                   <CardFooter className="flex gap-2 justify-end">
+                    <Button onClick={handleCopyText} variant="outline">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                      Als Text kopieren
+                    </Button>
                     <Button onClick={handlePrint}>
-                      <Printer className="mr-2 h-4 w-4" /> Drucken / PDF
+                      <Printer className="mr-2 h-4 w-4" /> Als PDF speichern
                     </Button>
                   </CardFooter>
                 </Card>
