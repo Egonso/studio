@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import { getCourseProgress } from '@/lib/data-service';
+
 export interface UserStatus {
     hasPurchased: boolean;
     purchase: {
@@ -17,6 +19,7 @@ export interface UserStatus {
         validUntil: string;
         holderName: string;
     } | null;
+    courseProgress: string[]; // List of completed video IDs
 }
 
 export function useUserStatus(email: string | null | undefined) {
@@ -33,15 +36,21 @@ export function useUserStatus(email: string | null | undefined) {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // Using the deployed API endpoint
-                const response = await fetch(`https://us-central1-ai-act-compass-m6o05.cloudfunctions.net/api/user-status/${encodeURIComponent(email)}`);
 
-                if (!response.ok) {
+                // Fetch user status from API
+                const statusResponse = await fetch(`https://us-central1-ai-act-compass-m6o05.cloudfunctions.net/api/user-status/${encodeURIComponent(email)}`);
+                if (!statusResponse.ok) {
                     throw new Error('Failed to fetch user status');
                 }
+                const statusResult = await statusResponse.json();
 
-                const result = await response.json();
-                setData(result);
+                // Fetch course progress from Firestore (via data-service)
+                const courseProgress = await getCourseProgress();
+
+                setData({
+                    ...statusResult,
+                    courseProgress
+                });
                 setError(null);
             } catch (err) {
                 console.error('Error fetching user status:', err);

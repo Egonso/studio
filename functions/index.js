@@ -217,10 +217,9 @@ app.post("/check-stripe-purchase", async (req, res) => {
     return res.status(400).json({ hasPurchased: false, error: "Email required" });
   }
 
-  try {
-    const stripe = stripeLib(STRIPE_API_KEY.value());
-    const normalizedEmail = email.toLowerCase();
+  const normalizedEmail = email.toLowerCase();
 
+  try {
     // First check Firestore (fast path)
     const customerRef = db.collection("customers").doc(normalizedEmail);
     const customerDoc = await customerRef.get();
@@ -228,74 +227,114 @@ app.post("/check-stripe-purchase", async (req, res) => {
     if (customerDoc.exists && customerDoc.data().status === "active") {
       return res.status(200).json({ hasPurchased: true, source: "firestore" });
     }
+  } catch (firestoreError) {
+    console.error("Firestore check failed:", firestoreError.message);
+    // Continue to Stripe check
+  }
 
-    // Fallback: Check Stripe directly
-    // Search for customers by email
-    const customers = await stripe.customers.list({
-      email: normalizedEmail,
-      limit: 1
+  try {
+    const stripe = stripeLib(STRIPE_API_KEY.value());
+
+    // Primary check: Search checkout sessions by customer_email
+    // Note: 'complete' is a valid status filter
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 50,
     });
 
-    if (customers.data.length === 0) {
-      // No customer found - check checkout sessions by email
-      const sessions = await stripe.checkout.sessions.list({
-        customer_email: normalizedEmail,
-        limit: 10,
-        status: 'complete'
-      });
+    // Filter sessions by email (API doesn't support customer_email filter directly for all cases)
+    const matchingSessions = sessions.data.filter(s =>
+      s.status === 'complete' &&
+      (s.customer_email?.toLowerCase() === normalizedEmail ||
+        s.customer_details?.email?.toLowerCase() === normalizedEmail)
+    );
 
-      if (sessions.data.length > 0) {
-        // Found a completed session! Save to Firestore for next time
-        const session = sessions.data[0];
-        await customerRef.set({
-          email: normalizedEmail,
-          name: session.customer_details?.name || null,
-          stripeId: session.customer || null,
-          status: "active",
-          purchaseAmount: session.amount_total,
-          productId: session.metadata?.productId || "eu-ai-act-certification",
-          canRegister: true,
-          created: admin.firestore.FieldValue.serverTimestamp(),
-          source: "stripe-api-recovery"
-        }, { merge: true });
+    if (matchingSessions.length > 0) {
+      // Found a completed session!
+      const session = matchingSessions[0];
+      const customerRef = db.collection("customers").doc(normalizedEmail);
 
-        console.log(`Recovered purchase for ${normalizedEmail} from Stripe API`);
-        return res.status(200).json({ hasPurchased: true, source: "stripe-recovered" });
-      }
-
-      return res.status(200).json({ hasPurchased: false, error: "No purchase found" });
-    }
-
-    // Customer exists in Stripe - check for successful payments
-    const customer = customers.data[0];
-    const charges = await stripe.charges.list({
-      customer: customer.id,
-      limit: 5
-    });
-
-    const successfulCharge = charges.data.find(c => c.status === 'succeeded' && !c.refunded);
-
-    if (successfulCharge) {
-      // Save to Firestore for next time
       await customerRef.set({
         email: normalizedEmail,
-        name: customer.name || null,
-        stripeId: customer.id,
+        name: session.customer_details?.name || null,
+        stripeId: session.customer || null,
         status: "active",
-        purchaseAmount: successfulCharge.amount,
+        purchaseAmount: session.amount_total,
+        productId: session.metadata?.productId || "eu-ai-act-certification",
         canRegister: true,
         created: admin.firestore.FieldValue.serverTimestamp(),
         source: "stripe-api-recovery"
       }, { merge: true });
 
-      console.log(`Recovered purchase for ${normalizedEmail} from Stripe customer charges`);
+      console.log(`Recovered purchase for ${normalizedEmail} from Stripe checkout session`);
       return res.status(200).json({ hasPurchased: true, source: "stripe-recovered" });
     }
 
-    return res.status(200).json({ hasPurchased: false, error: "No successful payment found" });
+    // Secondary check: Look for customer by email
+    const customers = await stripe.customers.list({
+      email: normalizedEmail,
+      limit: 10
+    });
+
+    console.log(`Stripe customer search for ${normalizedEmail}: found ${customers.data.length} customers`);
+
+    if (customers.data.length > 0) {
+      const customer = customers.data[0];
+
+      // Check for payment intents
+      const paymentIntents = await stripe.paymentIntents.list({
+        customer: customer.id,
+        limit: 10
+      });
+
+      const successfulPayment = paymentIntents.data.find(pi => pi.status === 'succeeded');
+
+      if (successfulPayment) {
+        const customerRef = db.collection("customers").doc(normalizedEmail);
+        await customerRef.set({
+          email: normalizedEmail,
+          name: customer.name || null,
+          stripeId: customer.id,
+          status: "active",
+          purchaseAmount: successfulPayment.amount,
+          canRegister: true,
+          created: admin.firestore.FieldValue.serverTimestamp(),
+          source: "stripe-api-recovery"
+        }, { merge: true });
+
+        console.log(`Recovered purchase for ${normalizedEmail} from Stripe payment intent`);
+        return res.status(200).json({ hasPurchased: true, source: "stripe-recovered" });
+      }
+
+      // FALLBACK FOR 100% PROMO CODES:
+      // If customer exists in Stripe but has no payments, they used a free promo code
+      // Check if customer was created recently (within last 30 days) = valid promo purchase
+      const customerCreatedAt = new Date(customer.created * 1000);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      if (customerCreatedAt > thirtyDaysAgo) {
+        const customerRef = db.collection("customers").doc(normalizedEmail);
+        await customerRef.set({
+          email: normalizedEmail,
+          name: customer.name || null,
+          stripeId: customer.id,
+          status: "active",
+          purchaseAmount: 0,
+          productId: "eu-ai-act-certification-promo",
+          canRegister: true,
+          created: admin.firestore.FieldValue.serverTimestamp(),
+          source: "stripe-promo-code-recovery"
+        }, { merge: true });
+
+        console.log(`Recovered PROMO purchase for ${normalizedEmail} - customer exists with no payments`);
+        return res.status(200).json({ hasPurchased: true, source: "stripe-promo-recovered" });
+      }
+    }
+
+    return res.status(200).json({ hasPurchased: false, error: "No purchase found for this email" });
   } catch (error) {
-    console.error("Stripe check error:", error);
-    return res.status(500).json({ hasPurchased: false, error: "Internal error" });
+    console.error("Stripe check error:", error.message, error.type, error.code);
+    return res.status(500).json({ hasPurchased: false, error: "Stripe API error: " + error.message });
   }
 });
 
