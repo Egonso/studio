@@ -630,3 +630,68 @@ export async function getTaskGuide(taskId: string) {
 
     return docSnap.exists() ? docSnap.data().guide : null;
 }
+
+// --- Public Trust Portal Functions ---
+
+export async function publishTrustPortal(
+    config: TrustPortalConfig,
+    trustScore: number,
+    aiSystems: any[] // We can type this properly later or reuse PublicTrustPortal definition
+) {
+    const userId = await getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const db = await getDb();
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
+    // 1. Save config to internal project data
+    await saveProjectData({ trustPortal: config });
+
+    // 2. Create Public Snapshot
+    const publicData = {
+        projectId,
+        publishedAt: serverTimestamp(),
+
+        // Content from Config
+        title: config.portalTitle,
+        introduction: config.introduction,
+        governanceStatement: config.governanceStatement,
+        responsibilityText: config.responsibilityText,
+        contactText: config.contactText,
+        contactEmail: config.contactEmail,
+
+        // Computed/Snapshotted Data
+        trustScore,
+        aiSystems, // This should be the filtered, sanitized list of systems
+
+        // Visibility Flags (redundant but helpful for client-side filtering if needed)
+        showRiskCategory: config.showRiskCategory,
+        showHumanOversight: config.showHumanOversight,
+        showPolicies: config.showPolicies,
+    };
+
+    // We write to a top-level 'publicTrustPortals' collection
+    // Keyed by projectId for easy lookup
+    const publicDocRef = doc(db, 'publicTrustPortals', projectId);
+    await setDoc(publicDocRef, publicData);
+}
+
+export async function getPublicTrustPortal(projectId: string) {
+    if (!projectId) return null;
+    const db = await getDb();
+    const { doc, getDoc } = await import('firebase/firestore');
+    const docRef = doc(db, 'publicTrustPortals', projectId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Convert Timestamp to string if needed or handle in component
+        return {
+            id: docSnap.id,
+            ...data,
+            publishedAt: data.publishedAt?.toDate().toISOString()
+        };
+    }
+    return null;
+}

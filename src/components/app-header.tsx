@@ -31,7 +31,7 @@ export function AppHeader() {
     <header className="px-4 lg:px-6 h-14 flex items-center bg-background border-b sticky top-0 z-50">
       <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
         <Image
-          src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
+          src="/logo.png"
           alt="AI Act Compass Logo"
           width={40}
           height={40}

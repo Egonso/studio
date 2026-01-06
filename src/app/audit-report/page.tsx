@@ -76,12 +76,12 @@ function AuditReportPageContent() {
             const answers = await getAssessmentAnswers();
             const checklistStateData = await getChecklistState();
             const insightsData = await getExportedInsights();
-            
+
             if (!answers || Object.keys(answers).length === 0) {
                 router.push('/assessment');
                 return;
             }
-            
+
             setAssessmentAnswersData(answers);
             setExportedInsights(insightsData);
             const checklistState: ChecklistState = checklistStateData || {};
@@ -104,8 +104,8 @@ function AuditReportPageContent() {
                                     details: item.details,
                                 });
                                 checklist = result.checklist;
-                                checkedTasks = item.status === 'Compliant' 
-                                    ? result.checklist.reduce((acc, task) => ({...acc, [task.id]: true}), {})
+                                checkedTasks = item.status === 'Compliant'
+                                    ? result.checklist.reduce((acc, task) => ({ ...acc, [task.id]: true }), {})
                                     : {};
                             } catch (e) {
                                 console.error("Error fetching checklist for report:", e);
@@ -113,7 +113,7 @@ function AuditReportPageContent() {
                                 checkedTasks = {};
                             }
                         }
-                        
+
                         return { ...item, checklist, checkedTasks };
                     })
                 );
@@ -127,7 +127,7 @@ function AuditReportPageContent() {
         generateReport();
 
     }, [router, user, authLoading, projectId]);
-    
+
     if (isLoading || authLoading) {
         return (
             <div className="flex flex-col min-h-screen bg-background">
@@ -164,11 +164,11 @@ function AuditReportPageContent() {
                                     <CardTitle className="text-2xl">Compliance-Bericht zum EU AI Act</CardTitle>
                                     <CardDescription>Automatisch generiert am {new Date().toLocaleDateString('de-DE')}</CardDescription>
                                 </div>
-                                <img src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp" alt="Logo" className="h-16 w-16" />
+                                <img src="/logo.png" alt="AI Act Compass Logo" className="h-16 w-16" />
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-8">
-                             {assessmentAnswers && (
+                            {assessmentAnswers && (
                                 <div>
                                     <h2 className="text-xl font-semibold mb-4">Ergebnisse der Erstbewertung</h2>
                                     <div className="space-y-2 text-sm p-4 rounded-lg bg-secondary">
@@ -180,7 +180,7 @@ function AuditReportPageContent() {
                             )}
 
                             <Separator />
-                            
+
                             <div>
                                 <h2 className="text-xl font-semibold mb-4">Detaillierte Compliance-Analyse</h2>
                                 <div className="space-y-6">
@@ -192,7 +192,7 @@ function AuditReportPageContent() {
                                                 <Badge variant={statusConfig[item.status].badgeVariant}>{item.status}</Badge>
                                             </div>
                                             <p className="text-sm text-muted-foreground italic mb-3">Begründung: {item.details}</p>
-                                            
+
                                             <h4 className="font-semibold mb-2">Checkliste der Anforderungen:</h4>
                                             <ul className="space-y-2 text-sm">
                                                 {item.checklist?.map(task => {
@@ -212,7 +212,7 @@ function AuditReportPageContent() {
                                     ))}
                                 </div>
                             </div>
-                            
+
                             {exportedInsights.length > 0 && (
                                 <>
                                     <Separator />
@@ -245,7 +245,7 @@ function AuditReportPageContent() {
 export default function AuditReportPage() {
     return (
         <Suspense fallback={
-             <div className="flex flex-col min-h-screen bg-background">
+            <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin" />

@@ -30,7 +30,7 @@ function ComplianceByDesignPageContent() {
             <AppHeader />
             <main className="flex-1 p-4 md:p-8">
                 <div className="max-w-6xl mx-auto space-y-8">
-                    
+
                     {/* Header Card */}
                     <Card className="w-full shadow-lg bg-secondary border-none">
                         <CardHeader>
@@ -41,18 +41,18 @@ function ComplianceByDesignPageContent() {
                                         {manifest.introduction[0]}
                                     </CardDescription>
                                 </div>
-                                <img src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp" alt="AI Act Compass Siegel" className="h-24 w-24 hidden md:block" />
+                                <img src="/logo.png" alt="AI Act Compass Siegel" className="h-24 w-24 hidden md:block" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                           <blockquote className="mt-2 border-l-2 pl-6 italic text-sm">
+                            <blockquote className="mt-2 border-l-2 pl-6 italic text-sm">
                                 {manifest.epilog}
                                 <footer className="text-xs text-right block w-full mt-2">{manifest.epilogSource}</footer>
                             </blockquote>
                         </CardContent>
                     </Card>
 
-                   {/* Interactive Canvas */}
+                    {/* Interactive Canvas */}
                     <DesignCanvas />
 
                 </div>
@@ -64,7 +64,7 @@ function ComplianceByDesignPageContent() {
 export default function ComplianceByDesignPage() {
     return (
         <Suspense fallback={
-             <div className="flex flex-col min-h-screen bg-background">
+            <div className="flex flex-col min-h-screen bg-background">
                 <AppHeader />
                 <div className="flex-1 flex items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin" />

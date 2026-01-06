@@ -20,17 +20,17 @@ export default function Home() {
 
   useEffect(() => {
     if (!loading && user) {
-        // If a user is logged in, always redirect to the project selection page.
-        // This ensures a project context is always established.
-        router.push('/projects');
+      // If a user is logged in, always redirect to the project selection page.
+      // This ensures a project context is always established.
+      router.push('/projects');
     }
   }, [user, loading, router]);
-  
+
   if (loading || user) {
     return (
-        <div className="flex h-screen w-full items-center justify-center bg-background">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
     );
   }
 
@@ -41,8 +41,8 @@ export default function Home() {
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-32">
           <div className="container px-4 md:px-6">
             <div className="grid gap-12 lg:grid-cols-2 lg:gap-24">
-              
-              <motion.div 
+
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -66,7 +66,7 @@ export default function Home() {
                   </Link>
                 </div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -76,7 +76,7 @@ export default function Home() {
                 <Card className="w-full max-w-md shadow-2xl rounded-2xl overflow-hidden bg-background">
                   <CardContent className="p-8 flex flex-col items-center justify-center text-center">
                     <Image
-                      src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
+                      src="/logo.png"
                       width="200"
                       height="200"
                       alt="AI Act Compass Siegel"
@@ -88,18 +88,18 @@ export default function Home() {
                       Vom Status-Check bis zum fertigen Audit-Dossier – alles an einem Ort.
                     </p>
                     <ul className="mt-6 space-y-3 text-left w-full">
-                        <li className="flex items-center gap-3">
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <span>Automatisierte Risikoanalyse</span>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <span>KI-gestützte Checklisten</span>
-                        </li>
-                         <li className="flex items-center gap-3">
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <span>Audit-sicheres Dossier</span>
-                        </li>
+                      <li className="flex items-center gap-3">
+                        <ShieldCheck className="h-5 w-5 text-primary" />
+                        <span>Automatisierte Risikoanalyse</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <ShieldCheck className="h-5 w-5 text-primary" />
+                        <span>KI-gestützte Checklisten</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <ShieldCheck className="h-5 w-5 text-primary" />
+                        <span>Audit-sicheres Dossier</span>
+                      </li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -113,4 +113,3 @@ export default function Home() {
   );
 }
 
-    

@@ -139,7 +139,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="flex items-center justify-center gap-2 mb-8">
         <Image
-          src="https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp"
+          src="/logo.png"
           alt="AI Act Compass Logo"
           width={50}
           height={50}
