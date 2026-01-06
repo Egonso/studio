@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Award, FileText, XCircle, AlertCircle, Download, ExternalLink } from "lucide-react";
 import type { UserStatus } from "@/hooks/use-user-status";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserCertificationStatusProps {
     status: UserStatus | null;
@@ -10,6 +11,8 @@ interface UserCertificationStatusProps {
 }
 
 export function UserCertificationStatus({ status, loading }: UserCertificationStatusProps) {
+    const { toast } = useToast();
+
     if (loading) {
         return (
             <Card className="border-slate-200">
@@ -128,8 +131,11 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                         </p>
                         {hasCertificate && status.certificate && (
                             <Button variant="secondary" size="sm" className="w-full" onClick={() => {
-                                // TODO: Copy link to clipboard
                                 navigator.clipboard.writeText(`https://app.eukigesetz.com/verify/${status.certificate!.code}`);
+                                toast({
+                                    title: "Link kopiert",
+                                    description: "Der Verifizierungs-Link wurde in die Zwischenablage kopiert.",
+                                });
                             }}>
                                 Verifizierungs-Link kopieren
                             </Button>
