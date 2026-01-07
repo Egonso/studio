@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Globe, Save, Info, Sparkles, AlertTriangle, Copy, Code } from "lucide-react";
 import { type TrustPortalConfig, type TrustTonePreset } from "@/lib/types";
-import { saveProjectData, publishTrustPortal } from "@/lib/data-service";
+import { saveProjectData, publishTrustPortal, getPortfolioProjects } from "@/lib/data-service";
+import { calculateTrustScore } from "@/lib/trust-score";
+import { type AIProject } from "@/lib/types-portfolio";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -24,11 +26,13 @@ interface TrustPortalConfigDialogProps {
     // Additional data for generation context (optional but helpful if passed down)
     // We'll trust the component to infer or use placeholders for now if not passed
     projectTitle?: string;
+    policiesExist?: boolean;
 }
 
-export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, projectId, onConfigSaved, projectTitle }: TrustPortalConfigDialogProps) {
+export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, projectId, onConfigSaved, projectTitle, policiesExist = false }: TrustPortalConfigDialogProps) {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [portfolioProjects, setPortfolioProjects] = useState<AIProject[]>([]);
 
     // Extended State Configuration
     const [config, setConfig] = useState<TrustPortalConfig>({
@@ -49,7 +53,7 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
     const [publishConfirmation, setPublishConfirmation] = useState(false);
     const [showPublishDialog, setShowPublishDialog] = useState(false);
 
-    // Reset state when dialog opens with new config
+    // Reset state and fetch data when dialog opens
     useEffect(() => {
         if (open) {
             setConfig({
@@ -67,6 +71,11 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
                 ...currentConfig
             });
             setPublishConfirmation(currentConfig?.isPublished || false);
+
+            // Fetch Portfolio Projects for AI Systems Snapshot
+            getPortfolioProjects().then(projects => {
+                setPortfolioProjects(projects);
+            }).catch(err => console.error("Failed to load portfolio projects:", err));
         }
     }, [open, currentConfig]);
 
@@ -117,25 +126,17 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
                 newConfig.lastPublishedAt = new Date().toISOString();
 
                 // IMPORTANT: Calculate Trust Score & Get Systems Snapshot here
-                // For this demo implementation, we mock the score/systems passed to publish
-                // Ideally, these come from props or a holistic 'ProjectData' context
-                // We'll compute a basic score based on the config itself for now + defaults
-                // In a real app, 'TrustPortalTile' logic should be shared logic
-                const mockTrustScore =
-                    ((newConfig.governanceStatement.length > 20 ? 10 : 0) +
-                        (newConfig.showPolicies || newConfig.showRiskCategory ? 10 : 0) +
-                        (newConfig.showHumanOversight ? 20 : 0) +
-                        (newConfig.contactEmail ? 20 : 0) + 20); // Base competence mock
+                // Use real portfolio data mapped to the simplified public structure
+                const aiSystemsSnapshot = portfolioProjects.map(p => ({
+                    name: p.title,
+                    purpose: p.description,
+                    riskCategory: p.aiActRiskClass,
+                    humanOversight: p.businessOwner || "Projektverantwortliche"
+                }));
 
-                // Mock snapshot of systems (Internal logic would pull from project use cases)
-                const mockAiSystems = [{
-                    name: "Primary AI Assistant",
-                    purpose: "Unterstützung bei Prozessdokumentation",
-                    riskCategory: "Begrenztes Risiko (Limited Risk)",
-                    humanOversight: "Vier-Augen-Prinzip durch Fachabteilung"
-                }];
+                const trustScore = calculateTrustScore(newConfig, aiSystemsSnapshot.length > 0, policiesExist);
 
-                await publishTrustPortal(newConfig, Math.min(100, mockTrustScore), mockAiSystems);
+                await publishTrustPortal(newConfig, trustScore, aiSystemsSnapshot);
                 toast({ title: "Portal veröffentlicht", description: "Die öffentliche Seite ist nun aktualisiert." });
             } else {
                 // Just save config locally

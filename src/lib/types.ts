@@ -36,6 +36,7 @@ export interface TrustPortalConfig {
 export interface PublicTrustPortal {
   id: string; // usually projectId
   projectId: string;
+  ownerId: string; // Added for security rules
   publishedAt: string;
 
   title: string;

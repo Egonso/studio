@@ -651,6 +651,7 @@ export async function publishTrustPortal(
     // 2. Create Public Snapshot
     const publicData = {
         projectId,
+        ownerId: userId,
         publishedAt: serverTimestamp(),
 
         // Content from Config

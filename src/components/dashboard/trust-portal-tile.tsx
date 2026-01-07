@@ -9,45 +9,35 @@ import type { TrustPortalConfig, ComplianceItem } from "@/lib/types";
 
 interface TrustPortalTileProps {
     projectId: string;
+    projectName?: string; // Add optional projectName
     config: TrustPortalConfig | undefined;
     onConfigUpdate: (newConfig: TrustPortalConfig) => void;
     complianceData: {
         compliantCount: number;
         risksDocumented: boolean;
         policiesExist: boolean;
-        hasRefinedRoles?: boolean; // Hypothetical prop if we track this later
+        hasRefinedRoles?: boolean;
     };
 }
 
-export function TrustPortalTile({ projectId, config, onConfigUpdate, complianceData }: TrustPortalTileProps) {
+export function TrustPortalTile({ projectId, projectName, config, onConfigUpdate, complianceData }: TrustPortalTileProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
 
     // Trust Readiness Calculation (5 Dimensions, max 20 each)
-
-    // 1. Transparency (0-20)
-    // +10 for having a governance statement
-    // +10 for enabling visibility of policies OR risk category
+    // ... (rest of calculation can remain or be replaced by utility, but keeping it here for UI display consistency is fine for now)
     const transparencyScore =
         ((config?.governanceStatement?.length || 0) > 20 ? 10 : 0) +
         ((config?.showPolicies || config?.showRiskCategory) ? 10 : 0);
 
-    // 2. Human Oversight (0-20)
-    // +20 if 'showHumanOversight' is explicitly enabled (signaling willingness to show it)
     const oversightScore = config?.showHumanOversight ? 20 : 0;
 
-    // 3. Risk Awareness (0-20)
-    // +10 if risks are documented in the system
-    // +10 if risk category visibility is enabled
     const riskScore =
         (complianceData.risksDocumented ? 10 : 0) +
         (config?.showRiskCategory ? 10 : 0);
 
-    // 4. Competence (0-20)
-    // +20 if basic compliance items (policies) exist (proxy for competence for now)
     const competenceScore = complianceData.policiesExist ? 20 : 0;
 
-    // 5. Relationship (0-20)
-    // +20 if a valid contact email is configured
+    // Contact email score
     const relationshipScore = (config?.contactEmail?.includes('@')) ? 20 : 0;
 
     const trustScore = transparencyScore + oversightScore + riskScore + competenceScore + relationshipScore;
@@ -133,6 +123,8 @@ export function TrustPortalTile({ projectId, config, onConfigUpdate, complianceD
                 onOpenChange={setDialogOpen}
                 currentConfig={config}
                 projectId={projectId}
+                projectTitle={projectName}
+                policiesExist={complianceData.policiesExist}
                 onConfigSaved={(newConfig) => {
                     onConfigUpdate(newConfig);
                     // The dialog calls saveProjectData internally, but we update local state too

@@ -84,7 +84,7 @@ function AuditReportPageContent() {
 
             setAssessmentAnswersData(answers);
             setExportedInsights(insightsData);
-            const checklistState: ChecklistState = checklistStateData || {};
+            const checklistState: Record<string, ChecklistState> = (checklistStateData as Record<string, ChecklistState>) || {};
             const initialComplianceData = deriveComplianceState(answers);
 
             const fetchAllChecklists = async () => {
@@ -102,6 +102,7 @@ function AuditReportPageContent() {
                                     topic: item.title,
                                     currentStatus: item.status,
                                     details: item.details,
+                                    pillar: 'ai-act', // Explicitly set default pillar
                                 });
                                 checklist = result.checklist;
                                 checkedTasks = item.status === 'Compliant'

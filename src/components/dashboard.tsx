@@ -172,6 +172,7 @@ export function Dashboard({
                 <section>
                     <TrustPortalTile
                         projectId={searchParams.get('projectId') || ''}
+                        projectName={projectName}
                         config={trustPortalConfig}
                         onConfigUpdate={(c) => onTrustPortalUpdate && onTrustPortalUpdate(c)}
                         complianceData={{
