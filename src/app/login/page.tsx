@@ -160,20 +160,24 @@ export default function LoginPage() {
 
       {/* Welcome Banner for Post-Purchase Users */}
       {isFromPurchase && (
-        <div className="w-full max-w-sm mb-6 p-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-full max-w-sm mb-6 p-5 rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 shadow-sm">
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-2">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <div>
-              <h3 className="font-semibold text-green-800 mb-1">Vielen Dank für Ihren Kauf! 🎉</h3>
-              <p className="text-sm text-green-700 mb-2">
-                Ihr Zugang zum <strong>AI Compliance OS</strong> ist bereit. Erstellen Sie jetzt Ihr Konto, um Ihre EU AI Act Compliance zu starten.
-              </p>
-              <p className="text-xs text-green-600">
-                📧 Bitte nutzen Sie die E-Mail-Adresse, mit der Sie gekauft haben. Eine Bestätigung wurde an Ihre E-Mail gesendet.
+            <h3 className="font-bold text-xl text-slate-800">Willkommen bei AI Compliance OS!</h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              <strong className="text-blue-700">Wir machen verantwortungsvolle KI skalierbar.</strong><br />
+              Verwandeln Sie Bürokratie in einen audit-sicheren Wettbewerbsvorteil.
+            </p>
+            <div className="pt-2 border-t border-slate-200 mt-3">
+              <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5">
+                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Eine Bestätigungs-E-Mail wurde gesendet. Bitte verwenden Sie die gleiche E-Mail-Adresse wie beim Kauf.
               </p>
             </div>
           </div>
