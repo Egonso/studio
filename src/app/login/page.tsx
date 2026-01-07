@@ -48,10 +48,20 @@ export default function LoginPage() {
     loadAuth();
 
     const emailFromQuery = searchParams.get('email');
+    const isPurchaseFlow = searchParams.get('purchase') === 'true';
+
     if (emailFromQuery) {
       form.setValue('email', emailFromQuery);
+    }
+
+    if (isPurchaseFlow) {
       setActiveTab('signup');
       setIsFromPurchase(true);
+    } else if (emailFromQuery) {
+      // Optional: if just email is present (e.g. invite), maybe still default to signup? 
+      // For now, let's keep it consistent: email usually implies intent to sign in or sign up.
+      // But let's only force signup if purchase flow or explicitly requested.
+      setActiveTab('signup');
     }
   }, [searchParams, form]);
 
