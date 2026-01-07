@@ -10,6 +10,14 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Printer, PlusCircle, Trash2 } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog"
 
 export type Level = '1' | '2' | '3';
 export type AiTool = { name: string; isDsgvoCompliant: boolean; isEuAiActCompliant: boolean; evidenceLink?: string; };
@@ -23,6 +31,14 @@ export interface PolicyData {
 const policies: Record<Level, { title: string; content: string }> = {
   '1': {
     title: 'Policy Level 1: AI‐Commitment Statement',
+    // ... (rest of policies object remains same, skipping for brevity in replacement if possible, but tool requires full block if I selected range. I'll make sure StartLine/EndLine matches correctly or I'm replacing the top block.)
+
+    // Wait, I can't skip content in ReplacementContent if I'm replacing a block. 
+    // However, I can target just the imports and the component start.
+
+    // Let's split this into two replacements if needed or just replace the top imports and the component start.
+    // I'll replace imports first, then Main Component start.
+
     content: `
 **Titel**: Verpflichtung zur verantwortungsbewussten Nutzung von KI-Systemen
 
@@ -47,7 +63,8 @@ Wir, [Firmenname], erkennen an, dass der EU AI Act neue Anforderungen an den Ein
 ---
 
 **Unterschriften**
-Ort, Datum: [Ort, Datum]
+Ort: [Ort]
+Datum: [Datum]
 Unterschrift Mitarbeitende/r: [Unterschrift Mitarbeitende/r]
     `,
   },
@@ -151,15 +168,16 @@ Unterschrift KI-Beauftragte/r: [Unterschrift KI-Beauftragte/r]
 
 const placeholderDetails: Record<string, string> = {
   "Firmenname": "nötig für alle Levels",
-  "Ort, Datum": "nötig für Level 1",
+  "Ort": "nötig für Level 1",
+  "Datum": "nötig für Level 1 & 3",
   "Unterschrift Mitarbeitende/r": "nötig für Level 1",
   "Name der Geschäftsführung": "nötig für Level 2",
   "Name KI-Beauftragte/r": "nötig für Level 2 & 3",
   "Name der Teamleitung": "nötig für Level 2",
   "Datum Inkrafttreten": "nötig für Level 2",
   "Unterschriften": "nötig für Level 2",
-  "Datum": "nötig für Level 3",
-  "Unterschrift Entwickler*in": "nötig für Level 3"
+  "Unterschrift Entwickler*in": "nötig für Level 3",
+  "Unterschrift KI-Beauftragte/r": "nötig für Level 3"
 };
 
 const parsePlaceholders = (text: string): string[] => {
@@ -181,6 +199,27 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving }: PolicyEditorP
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
   const [aiTools, setAiTools] = useState<AiTool[]>([{ name: '', isDsgvoCompliant: false, isEuAiActCompliant: false }]);
+
+  // --- Signature Modal State ---
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [currentSignaturePlaceholder, setCurrentSignaturePlaceholder] = useState<string | null>(null);
+  const [signatureName, setSignatureName] = useState('');
+  const [signatureConsent, setSignatureConsent] = useState(false);
+
+  const openSignatureModal = (placeholder: string) => {
+    setCurrentSignaturePlaceholder(placeholder);
+    setSignatureName(placeholders[placeholder] || '');
+    setIsSignatureModalOpen(true);
+    setSignatureConsent(false);
+  };
+
+  const confirmSignature = () => {
+    if (currentSignaturePlaceholder && signatureName && signatureConsent) {
+      setPlaceholders(prev => ({ ...prev, [currentSignaturePlaceholder]: signatureName }));
+      setIsSignatureModalOpen(false);
+    }
+  };
+  // -----------------------------
 
   const recommendedLevel: Level = useMemo(() => {
     if (employeeCount === '>50' || aiComplexity === 'high') return '3';
@@ -453,19 +492,81 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving }: PolicyEditorP
                   <span>{p.replace(/_/g, ' ')}</span>
                   <span className="text-xs text-muted-foreground font-normal">{placeholderDetails[p] || ''}</span>
                 </Label>
-                <Input
-                  id={p}
-                  name={p}
-                  type={p.toLowerCase().includes('datum') || p.toLowerCase().includes('date') ? "date" : "text"}
-                  value={placeholders[p] || ''}
-                  onChange={handlePlaceholderChange}
-                  placeholder={`Wert für '${p}' eingeben`}
-                  className="mt-1"
-                />
+                {p.toLowerCase().includes('unterschrift') ? (
+                  <div className="flex gap-2">
+                    <Input
+                      id={p}
+                      name={p}
+                      readOnly
+                      value={placeholders[p] || ''}
+                      placeholder="Zum Unterschreiben klicken..."
+                      className="mt-1 cursor-pointer font-['Brush_Script_MT',_cursive] text-xl text-blue-800"
+                      onClick={() => openSignatureModal(p)}
+                    />
+                    <Button variant="outline" className="mt-1" onClick={() => openSignatureModal(p)}>
+                      ✐
+                    </Button>
+                  </div>
+                ) : (
+                  <Input
+                    id={p}
+                    name={p}
+                    type={p.toLowerCase().includes('datum') || p.toLowerCase().includes('date') ? "date" : "text"}
+                    value={placeholders[p] || ''}
+                    onChange={handlePlaceholderChange}
+                    placeholder={`Wert für '${p}' eingeben`}
+                    className="mt-1"
+                  />
+                )}
               </div>
             ))}
           </CardContent>
         </Card>
+
+        <Dialog open={isSignatureModalOpen} onOpenChange={setIsSignatureModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Digitale Unterschrift</DialogTitle>
+              <DialogDescription>
+                Bitte bestätigen Sie Ihre Identität und die Rechtsgültigkeit dieser Unterschrift.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="sig-name">Ihr Name (in Druckbuchstaben)</Label>
+                <Input
+                  id="sig-name"
+                  value={signatureName}
+                  onChange={(e) => setSignatureName(e.target.value)}
+                  placeholder="Vorname Nachname"
+                />
+              </div>
+
+              <div className="p-4 bg-secondary/30 rounded-lg border border-dashed border-gray-300 text-center">
+                <Label className="text-xs text-muted-foreground mb-2 block">Vorschau</Label>
+                <p className="text-3xl font-['Brush_Script_MT',_cursive] text-blue-800 min-h-[40px]">
+                  {signatureName || 'Ihre Unterschrift'}
+                </p>
+              </div>
+
+              <div className="flex items-start space-x-2 pt-2">
+                <Checkbox
+                  id="sig-consent"
+                  checked={signatureConsent}
+                  onCheckedChange={(c) => setSignatureConsent(!!c)}
+                />
+                <Label htmlFor="sig-consent" className="text-sm leading-tight text-muted-foreground font-normal">
+                  Ich bestätige, dass diese digitale Unterschrift meiner handschriftlichen Unterschrift gleichgestellt ist und ich den Inhalt des Dokuments verstanden und akzeptiert habe.
+                </Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsSignatureModalOpen(false)}>Abbrechen</Button>
+              <Button onClick={confirmSignature} disabled={!signatureName || !signatureConsent}>Unterschreiben</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Card>
           <CardHeader>
             <CardTitle>3. Genutzte KI-Tools</CardTitle>

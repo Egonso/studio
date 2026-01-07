@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Loader2, PlusCircle, Trash2, ChevronsRight, Info, CheckCircle2, Printer } from "lucide-react";
 import { getAimsData, saveAimsData, getActiveProjectId, type AimsProgress } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -154,12 +154,46 @@ export function AimsWizard({ initialStep = 1, onComplete }: AimsWizardProps) {
         setValidationError(false);
     }, [data]);
 
-    const handleSave = async (showToast: boolean = true) => {
+    const handleSave = async (showToast: boolean = true, redirect: boolean = false) => {
         setIsSaving(true);
         await saveAimsData(data, progress);
         setIsSaving(false);
         if (showToast) {
             toast({ title: "Fortschritt gespeichert!", description: "Ihre Eingaben wurden gesichert." });
+        }
+        if (redirect) {
+            router.push(`/dashboard?projectId=${getActiveProjectId()}`);
+        }
+    };
+
+    const handlePrintPolicy = () => {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>AI Policy - AIMS</title>
+                    <style>
+                        body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #333; }
+                        h1 { font-size: 24px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+                        .content { white-space: pre-wrap; font-size: 11pt; line-height: 1.6; }
+                        .meta { margin-top: 40px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 10px; color: #888; }
+                        @media print {
+                            body { padding: 20px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>AI Policy Statement</h1>
+                    <div class="content">${data.policy ? data.policy.replace(/\n/g, '<br>') : 'Keine Policy definiert.'}</div>
+                    <div class="meta">Generiert mit AI Compliance OS • ${new Date().toLocaleDateString()}</div>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
     };
 
@@ -325,9 +359,26 @@ export function AimsWizard({ initialStep = 1, onComplete }: AimsWizardProps) {
                     )}
                     {step === 3 && (
                         <motion.div key={3} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} transition={{ duration: 0.3 }} className="space-y-4">
-                            <h3 className="font-semibold text-lg">Grundlegende KI-Policy</h3>
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-semibold text-lg">Grundlegende KI-Policy</h3>
+                                {data.policy && data.policy.length > 20 && (
+                                    <Button variant="outline" size="sm" onClick={handlePrintPolicy} className="gap-2">
+                                        <Printer className="h-4 w-4" /> PDF / Drucken
+                                    </Button>
+                                )}
+                            </div>
+
+                            {data.policy && (
+                                <Alert className="bg-blue-50 border-blue-200 mb-2">
+                                    <Info className="h-4 w-4 text-blue-600" />
+                                    <AlertDescription className="text-blue-800 text-xs">
+                                        Diese Policy basiert auf Ihren gespeicherten Daten. Änderungen werden beim Speichern übernommen.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
                             <p className="text-sm text-gray-700 mb-4">Formulieren Sie die Leitlinien für den verantwortungsvollen KI-Einsatz. (Mindestens 20 Zeichen)</p>
-                            <Textarea className="min-h-[300px]" placeholder="Beschreiben Sie Prinzipien zu Sicherheit, Transparenz, Fairness, Verantwortlichkeiten..." value={data.policy} onChange={(e) => setData({ ...data, policy: e.target.value })} />
+                            <Textarea className="min-h-[300px] font-mono text-sm" placeholder="Beschreiben Sie Prinzipien zu Sicherheit, Transparenz, Fairness, Verantwortlichkeiten..." value={data.policy} onChange={(e) => setData({ ...data, policy: e.target.value })} />
                         </motion.div>
                     )}
                     {step === 4 && (
@@ -435,8 +486,8 @@ export function AimsWizard({ initialStep = 1, onComplete }: AimsWizardProps) {
                 <Button variant="outline" onClick={prevStep} disabled={step <= 1}>
                     <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
                 </Button>
-                <Button variant="secondary" onClick={() => handleSave()} disabled={isSaving}>
-                    {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Speichern...</> : 'Speichern & später fortfahren'}
+                <Button variant="secondary" onClick={() => handleSave(true, true)} disabled={isSaving}>
+                    {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Speichern...</> : 'Zwischenspeichern & Beenden'}
                 </Button>
                 <div className="flex flex-col items-center">
                     {step < TOTAL_STEPS ? (

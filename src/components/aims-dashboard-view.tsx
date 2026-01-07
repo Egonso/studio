@@ -528,9 +528,66 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Detailansicht</CardTitle></CardHeader>
-                            <CardContent>
-                                <p className="text-muted-foreground">In zukünftigen Versionen werden Sie hier eine detaillierte Ansicht und Bearbeitungsmöglichkeiten für die einzelnen Bereiche Ihres AI Management Systems finden.</p>
+                            <CardHeader>
+                                <CardTitle>Handlungsempfehlungen zur ISO 42001</CardTitle>
+                                <CardDescription>Basierend auf Ihrem aktuellen Fortschritt empfehlen wir folgende nächste Schritte.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {[
+                                    {
+                                        title: "Geltungsbereich definieren",
+                                        desc: "Legen Sie fest, für welche Bereiche und Systeme das AIMS gilt.",
+                                        done: !!aimsData?.scope && !!aimsData?.systems,
+                                        step: 1
+                                    },
+                                    {
+                                        title: "Stakeholder-Analyse durchführen",
+                                        desc: "Identifizieren Sie interne und externe Interessengruppen und deren Erwartungen.",
+                                        done: aimsData?.stakeholders?.length > 0 && aimsData?.stakeholders[0]?.name !== '',
+                                        step: 2
+                                    },
+                                    {
+                                        title: "KI-Policy erstellen & verabschieden",
+                                        desc: "Formulieren Sie verbindliche Leitlinien für den KI-Einsatz.",
+                                        done: aimsData?.policy && aimsData.policy.length > 20,
+                                        step: 3
+                                    },
+                                    {
+                                        title: "Verantwortlichkeiten (RACI) klären",
+                                        desc: "Weisen Sie Rollen für AI-Governance-Aufgaben zu.",
+                                        done: aimsData?.raci?.length > 0 && aimsData?.raci[0]?.task !== '',
+                                        step: 4
+                                    },
+                                    {
+                                        title: "Risikobewertung durchführen",
+                                        desc: "Analysieren Sie Risiken und Chancen Ihrer KI-Systeme systematisch.",
+                                        done: aimsData?.risks?.length > 0 && aimsData?.risks[0]?.description !== '',
+                                        step: 5
+                                    },
+                                    {
+                                        title: "Monitoring & Audit-Planung",
+                                        desc: "Definieren Sie KPIs und Audit-Intervalle zur Überwachung.",
+                                        done: !!aimsData?.monitoringProcess && !!aimsData?.auditRhythm,
+                                        step: 6
+                                    }
+                                ].map((rec, i) => (
+                                    <div key={i} className={cn("flex items-start gap-4 p-4 rounded-lg border transition-colors", rec.done ? "bg-secondary/40 border-transparent opacity-70" : "bg-card border-l-4 border-l-primary shadow-sm")}>
+                                        <div className="mt-1">
+                                            {rec.done ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <AlertCircle className="h-5 w-5 text-primary" />}
+                                        </div>
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex justify-between">
+                                                <p className={cn("font-medium leading-none", rec.done && "line-through text-muted-foreground")}>{rec.title}</p>
+                                                {!rec.done && (
+                                                    <Badge variant="outline" className="text-xs cursor-pointer hover:bg-secondary" onClick={() => router.push('/aims')}>
+                                                        Schritt {rec.step} starten <ArrowRight className="ml-1 h-3 w-3" />
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">{rec.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </CardContent>
                         </Card>
 
