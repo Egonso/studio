@@ -12,7 +12,7 @@ try {
 }
 
 const db = admin.firestore();
-const email = "free100@free100.com";
+const email = process.argv[2] || "test130@test100.com";
 
 async function checkUser() {
     console.log(`Checking for user: ${email}`);

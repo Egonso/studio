@@ -60,3 +60,70 @@ export interface PublicTrustPortal {
   showHumanOversight: boolean;
   showPolicies: boolean;
 }
+
+export interface ComplianceCheckResult {
+  gdpr_compliance_claimed: boolean;
+  ai_act_mentioned: boolean;
+  trust_center_available: boolean;
+  key_findings: string[];
+  summary: string;
+  citations?: string[];
+  lastCheckedAt?: string; // ISO date string
+}
+
+export type ToolType = 'saas' | 'model' | 'internal' | 'other';
+export type ReviewStatus = 'pending' | 'reviewed' | 'approved_internal' | 'approved_public' | 'rejected';
+export type ConfidenceLevel = 'low' | 'medium' | 'high';
+export type FlagStatus = 'yes' | 'no' | 'not_found';
+
+export interface ToolReview {
+  status: ReviewStatus;
+  reviewedBy: string | null; // User ID or Name
+  reviewedAt: string | null; // ISO Date
+  notes: string | null;
+}
+
+export interface PublicInfoSource {
+  title: string;
+  url: string;
+  type: 'trust_center' | 'privacy' | 'terms' | 'dpa' | 'scc' | 'blog' | 'other';
+  accessedAt: string; // ISO Date
+}
+
+export interface ToolPublicInfo {
+  lastCheckedAt: string | null; // ISO Date
+  checker: 'perplexity' | 'manual' | 'web' | null;
+  summary: string | null; // Max 300 chars, neutral
+  flags: {
+    gdprClaim: FlagStatus;
+    aiActClaim: FlagStatus;
+    trustCenterFound: FlagStatus;
+    privacyPolicyFound: FlagStatus;
+    dpaOrSccMention: FlagStatus;
+  };
+  confidence: ConfidenceLevel;
+  sources: PublicInfoSource[];
+  disclaimerVersion: string; // e.g. "v1"
+}
+
+export interface ProjectTool {
+  id: string; // Firestore Doc ID
+  name: string;
+  vendor: string | null;
+  type: ToolType;
+  url: string | null;
+  category: string | null; // UX grouping
+
+  dataCategories: {
+    personal: boolean;
+    sensitive: boolean;
+    none: boolean;
+    unknown: boolean;
+  };
+
+  review: ToolReview;
+  publicInfo: ToolPublicInfo | null; // Can be null if never checked
+
+  createdAt: string; // ISO Date
+  updatedAt: string; // ISO Date
+}

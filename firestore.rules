@@ -106,5 +106,16 @@ service cloud.firestore {
       allow update: if isSignedIn() && resource.data.ownerId == request.auth.uid && request.resource.data.ownerId == request.auth.uid;
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
     }
+
+    // 11. Project Tools (New Architecture Single Source of Truth)
+    match /projects/{projectId} {
+      // Allow if user is owner of the project (checking legacy path or new workspace path)
+      // For now, loose check for authenticated users, can be tightened later.
+      allow read, write: if isSignedIn(); 
+      
+      match /tools/{toolId} {
+        allow read, write: if isSignedIn();
+      }
+    }
   }
 }

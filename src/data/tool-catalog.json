@@ -1,0 +1,212 @@
+[
+    {
+        "name": "ChatGPT (OpenAI)",
+        "vendor": "OpenAI",
+        "homepageUrl": "https://openai.com/chatgpt",
+        "category": "Chatbot / LLM",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Microsoft Copilot",
+        "vendor": "Microsoft",
+        "homepageUrl": "https://copilot.microsoft.com",
+        "category": "Productivity Assistant",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Google Gemini",
+        "vendor": "Google",
+        "homepageUrl": "https://gemini.google.com",
+        "category": "Chatbot / LLM",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Midjourney",
+        "vendor": "Midjourney, Inc.",
+        "homepageUrl": "https://www.midjourney.com",
+        "category": "Image Generation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "DeepL",
+        "vendor": "DeepL SE",
+        "homepageUrl": "https://www.deepl.com",
+        "category": "Translation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Jasper.ai",
+        "vendor": "Jasper AI, Inc.",
+        "homepageUrl": "https://www.jasper.ai",
+        "category": "Content Creation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Claude (Anthropic)",
+        "vendor": "Anthropic, PBC",
+        "homepageUrl": "https://www.anthropic.com",
+        "category": "Chatbot / LLM",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Perplexity",
+        "vendor": "Perplexity AI",
+        "homepageUrl": "https://www.perplexity.ai",
+        "category": "Search / Research",
+        "defaultType": "saas"
+    },
+    {
+        "name": "GitHub Copilot",
+        "vendor": "GitHub (Microsoft)",
+        "homepageUrl": "https://github.com/features/copilot",
+        "category": "Code Assistant",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Canva Magic Studio",
+        "vendor": "Canva",
+        "homepageUrl": "https://www.canva.com",
+        "category": "Design",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Grammarly",
+        "vendor": "Grammarly Inc.",
+        "homepageUrl": "https://www.grammarly.com",
+        "category": "Writing Assistant",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Otter.ai",
+        "vendor": "Otter.ai",
+        "homepageUrl": "https://otter.ai",
+        "category": "Transcription",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Beautiful.ai",
+        "vendor": "Beautiful.ai",
+        "homepageUrl": "https://www.beautiful.ai",
+        "category": "Presentation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Synthesia",
+        "vendor": "Synthesia",
+        "homepageUrl": "https://www.synthesia.io",
+        "category": "Video Generation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Runway",
+        "vendor": "Runway AI, Inc.",
+        "homepageUrl": "https://runwayml.com",
+        "category": "Video / Creative",
+        "defaultType": "saas"
+    },
+    {
+        "name": "HeyGen",
+        "vendor": "HeyGen",
+        "homepageUrl": "https://www.heygen.com",
+        "category": "Video Generation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Copy.ai",
+        "vendor": "CopyAI, Inc.",
+        "homepageUrl": "https://www.copy.ai",
+        "category": "Content Creation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Writesonic",
+        "vendor": "Writesonic",
+        "homepageUrl": "https://writesonic.com",
+        "category": "Content Creation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Descript",
+        "vendor": "Descript",
+        "homepageUrl": "https://www.descript.com",
+        "category": "Audio/Video Editor",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Fireflies.ai",
+        "vendor": "Fireflies.ai",
+        "homepageUrl": "https://fireflies.ai",
+        "category": "Meeting Assistant",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Loom AI",
+        "vendor": "Loom (Atlassian)",
+        "homepageUrl": "https://www.loom.com",
+        "category": "Video Messaging",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Notion AI",
+        "vendor": "Notion Labs, Inc.",
+        "homepageUrl": "https://www.notion.so",
+        "category": "Productivity / Writing",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Salesforce Einstein",
+        "vendor": "Salesforce",
+        "homepageUrl": "https://www.salesforce.com/products/einstein/overview/",
+        "category": "CRM / Sales",
+        "defaultType": "saas"
+    },
+    {
+        "name": "HubSpot AI",
+        "vendor": "HubSpot",
+        "homepageUrl": "https://www.hubspot.com/products/artificial-intelligence",
+        "category": "CRM / Marketing",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Adobe Firefly",
+        "vendor": "Adobe",
+        "homepageUrl": "https://www.adobe.com/sensei/generative-ai/firefly.html",
+        "category": "Design / Creative",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Zoom AI Companion",
+        "vendor": "Zoom Video Communications",
+        "homepageUrl": "https://www.zoom.us/ai-companion",
+        "category": "Meeting Assistant",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Zapier Central",
+        "vendor": "Zapier",
+        "homepageUrl": "https://zapier.com/central",
+        "category": "Automation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Suno",
+        "vendor": "Suno, Inc.",
+        "homepageUrl": "https://suno.com",
+        "category": "Audio Generation",
+        "defaultType": "saas"
+    },
+    {
+        "name": "ElevenLabs",
+        "vendor": "ElevenLabs",
+        "homepageUrl": "https://elevenlabs.io",
+        "category": "Voice Synthesis",
+        "defaultType": "saas"
+    },
+    {
+        "name": "Hugging Face (Models)",
+        "vendor": "Hugging Face",
+        "homepageUrl": "https://huggingface.co",
+        "category": "Model Repository",
+        "defaultType": "model"
+    }
+]

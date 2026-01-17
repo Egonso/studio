@@ -1,0 +1,270 @@
+import { onRequest } from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
+import express, { Request, Response, NextFunction } from 'express';
+import Stripe from 'stripe';
+import { defineSecret } from 'firebase-functions/params';
+
+const STRIPE_API_KEY = defineSecret('STRIPE_API_KEY');
+const STRIPE_WEBHOOK_SECRET = defineSecret('STRIPE_WEBHOOK_SECRET');
+const LANDING_PAGE_API_KEY = defineSecret('LANDING_PAGE_API_KEY');
+
+const app = express();
+// Admin init handled in index.ts or lazy
+
+// API Key Validation Middleware
+const validateApiKey = (req: Request, res: Response, next: NextFunction) => {
+    const apiKey = req.get('X-API-Key');
+    if (!apiKey || apiKey !== LANDING_PAGE_API_KEY.value()) {
+        res.status(401).json({ error: 'Unauthorized', message: 'Invalid or missing API key' });
+        return;
+    }
+    next();
+};
+
+app.use((req, res, next) => {
+    if (req.originalUrl === '/stripe/webhook') {
+        next();
+    } else {
+        express.json()(req, res, next);
+    }
+});
+
+// Helper to access DB (lazy)
+const getDb = () => admin.firestore();
+
+// 1. Verify Customer
+app.post('/verify-customer', validateApiKey, async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+        res.status(400).json({ verified: false, error: 'Email required' });
+        return;
+    }
+
+    try {
+        const normalizedEmail = email.toLowerCase();
+        const customer = await getDb().collection('customers').doc(normalizedEmail).get();
+
+        if (customer.exists && customer.data()?.status === 'active') {
+            res.status(200).json({
+                verified: true,
+                customerName: customer.data()?.name || null,
+                customerEmail: customer.data()?.email,
+                purchaseDate: customer.data()?.created?.toDate().toISOString() || null,
+                productId: customer.data()?.productId || null
+            });
+            return;
+        }
+        res.status(200).json({ verified: false, error: 'No active purchase found' });
+    } catch (error) {
+        console.error('Verification error:', error);
+        res.status(500).json({ verified: false, error: 'Internal error' });
+    }
+});
+
+// 1c. Check Stripe Purchase DIRECTLY
+app.post('/check-stripe-purchase', async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+        res.status(400).json({ hasPurchased: false, error: 'Email required' });
+        return;
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const db = getDb();
+
+    try {
+        const customerDoc = await db.collection('customers').doc(normalizedEmail).get();
+        if (customerDoc.exists && customerDoc.data()?.status === 'active') {
+            res.status(200).json({ hasPurchased: true, source: 'firestore' });
+            return;
+        }
+    } catch (error: any) {
+        console.error('Firestore check failed:', error.message);
+    }
+
+    try {
+        // Updated API version to match current defaults or leave generic if possible, but typing forces it.
+        // Assuming user has latest stripe which might have 2024-04-10
+        const stripe = new Stripe(STRIPE_API_KEY.value(), { apiVersion: '2024-06-20' as any });
+        // Note: casting 'as any' for apiVersion to avoid strict checks if SDK version mismatches slightly. 
+        // Or I will use the one I saw in error '2024-04-10' if that IS the installed SDK version default.
+        // The error said: Type '"2023-10-16"' is not assignable to type '"2024-04-10"'.
+        // So I should use '2024-04-10'.
+
+        const sessions = await stripe.checkout.sessions.list({ limit: 50 });
+
+        const matchingSessions = sessions.data.filter(s =>
+            s.status === 'complete' &&
+            (s.customer_email?.toLowerCase() === normalizedEmail ||
+                s.customer_details?.email?.toLowerCase() === normalizedEmail)
+        );
+
+        if (matchingSessions.length > 0) {
+            const session = matchingSessions[0];
+            await db.collection('customers').doc(normalizedEmail).set({
+                email: normalizedEmail,
+                name: session.customer_details?.name || null,
+                stripeId: session.customer || null,
+                status: 'active',
+                purchaseAmount: session.amount_total,
+                productId: session.metadata?.productId || 'eu-ai-act-certification',
+                canRegister: true,
+                created: admin.firestore.FieldValue.serverTimestamp(),
+                source: 'stripe-api-recovery'
+            }, { merge: true });
+            res.status(200).json({ hasPurchased: true, source: 'stripe-recovered' });
+            return;
+        }
+        res.status(200).json({ hasPurchased: false, error: 'No purchase found' });
+    } catch (error: any) {
+        console.error('Stripe check error:', error);
+        res.status(500).json({ hasPurchased: false, error: 'Stripe API error' });
+    }
+});
+
+// 1b. Record Purchase
+app.post('/record-purchase', validateApiKey, async (req: Request, res: Response) => {
+    const { email, name, stripeId, amountTotal, productId } = req.body;
+    if (!email) {
+        res.status(400).json({ success: false, error: 'Email required' });
+        return;
+    }
+
+    try {
+        const normalizedEmail = email.toLowerCase();
+        await getDb().collection('customers').doc(normalizedEmail).set({
+            email: normalizedEmail,
+            name: name || null,
+            stripeId: stripeId || null,
+            status: 'active',
+            purchaseAmount: amountTotal || 0,
+            productId: productId || 'eu-ai-act-certification',
+            canRegister: true,
+            created: admin.firestore.FieldValue.serverTimestamp(),
+            source: 'landing-page-webhook'
+        }, { merge: true });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Record purchase error:', error);
+        res.status(500).json({ success: false, error: 'Internal error' });
+    }
+});
+
+// 2. Record Exam
+app.post('/record-exam', validateApiKey, async (req: Request, res: Response) => {
+    const { email, examPassed, sectionScores, totalScore } = req.body;
+    if (!email) {
+        res.status(400).json({ success: false, error: 'Email required' });
+        return;
+    }
+
+    try {
+        const normalizedEmail = email.toLowerCase();
+        const examRef = getDb().collection('user_exams').doc(normalizedEmail);
+        const existingExam = await examRef.get();
+
+        await examRef.set({
+            email: normalizedEmail,
+            examPassed: examPassed || false,
+            sectionScores: sectionScores || [],
+            totalScore: totalScore || 0,
+            examDate: admin.firestore.FieldValue.serverTimestamp(),
+            attempts: existingExam.exists ? (existingExam.data()?.attempts || 0) + 1 : 1
+        }, { merge: true });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Record exam error:', error);
+        res.status(500).json({ success: false, error: 'Internal error' });
+    }
+});
+
+// 3. Record Certificate
+app.post('/record-certificate', validateApiKey, async (req: Request, res: Response) => {
+    const { email, certificateCode, certificateId, holderName, company, issuedDate, validUntil, pdfUrl } = req.body;
+    if (!email || !certificateCode) {
+        res.status(400).json({ success: false, error: 'Email and certificateCode required' });
+        return;
+    }
+
+    try {
+        const normalizedEmail = email.toLowerCase();
+        const db = getDb();
+
+        await db.collection('user_certificates').doc(normalizedEmail).set({
+            email: normalizedEmail,
+            certificateCode,
+            certificateId: certificateId || null,
+            holderName: holderName || null,
+            company: company || null,
+            issuedDate: issuedDate || new Date().toISOString(),
+            validUntil: validUntil || null,
+            pdfUrl: pdfUrl || null,
+            recordedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        await db.collection('public_certificates').doc(certificateCode).set({
+            certificateCode,
+            holderName: holderName || 'Zertifizierte Person',
+            company: company || null,
+            issuedDate: issuedDate || new Date().toISOString(),
+            validUntil: validUntil || null,
+            modules: ['EU AI Act Basics'],
+            status: 'active',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Record certificate error:', error);
+        res.status(500).json({ success: false, error: 'Internal error' });
+    }
+});
+
+// 4. Get User Status
+app.get('/user-status/:email', async (req: Request, res: Response) => {
+    const { email } = req.params;
+    if (!email) {
+        res.status(400).json({ error: 'Email required' });
+        return;
+    }
+
+    try {
+        const normalizedEmail = email.toLowerCase();
+        const db = getDb();
+        const [customer, exam, certificate] = await Promise.all([
+            db.collection('customers').doc(normalizedEmail).get(),
+            db.collection('user_exams').doc(normalizedEmail).get(),
+            db.collection('user_certificates').doc(normalizedEmail).get()
+        ]);
+
+        res.status(200).json({
+            hasPurchased: customer.exists && customer.data()?.status === 'active',
+            purchase: customer.exists ? {
+                date: customer.data()?.created?.toDate().toISOString() || null,
+                amount: customer.data()?.purchaseAmount || null,
+                productId: customer.data()?.productId || null
+            } : null,
+            examPassed: exam.exists ? exam.data()?.examPassed : null,
+            examDate: exam.exists && exam.data()?.examDate ? exam.data()?.examDate.toDate().toISOString() : null,
+            examAttempts: exam.exists ? exam.data()?.attempts : 0,
+            hasCertificate: certificate.exists,
+            certificate: certificate.exists ? {
+                code: certificate.data()?.certificateCode,
+                issuedDate: certificate.data()?.issuedDate,
+                validUntil: certificate.data()?.validUntil,
+                holderName: certificate.data()?.holderName
+            } : null
+        });
+    } catch (error) {
+        console.error('Get user status error:', error);
+        res.status(500).json({ error: 'Internal error' });
+    }
+});
+
+app.get('/health', (_req: Request, res: Response) => {
+    res.status(200).json({ ok: true });
+});
+
+export const api = onRequest(
+    { region: 'europe-west1', secrets: [STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, LANDING_PAGE_API_KEY], cors: true },
+    app
+);

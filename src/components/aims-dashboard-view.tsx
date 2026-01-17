@@ -23,9 +23,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
+import { saveCurrentTask, type AimsProgress, getProjectTools } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AimsExportDialog } from "@/components/aims-export-dialog";
+import { ProjectToolsManager } from "./project-tools-manager";
+import { Cpu, Search, CheckSquare } from "lucide-react";
 
 export interface ChecklistState {
     [itemId: string]: {
@@ -44,6 +46,7 @@ interface DashboardProps {
     aimsData: any;
     aimsProgress: AimsProgress;
     onRestartWizard?: () => void;
+    projectId?: string; // Add projectId here
 }
 
 const statusConfig = {
@@ -97,10 +100,29 @@ const StepContent = ({ content }: { content: string }) => {
     );
 };
 
-export function AimsDashboardView({ projectName, complianceItems, checklistState, setChecklistState, aimsData, aimsProgress, onRestartWizard }: DashboardProps) {
+export function AimsDashboardView({
+    projectName,
+    complianceItems,
+    checklistState,
+    setChecklistState,
+    aimsData,
+    aimsProgress,
+    onRestartWizard,
+    projectId = "demo"
+}: DashboardProps) {
     const router = useRouter();
     // Default to ai-management tab since this is the view shown when completed
     const [activeTab, setActiveTab] = useState("ai-management");
+
+    // Tools State for Dashboard Card
+    const [tools, setTools] = useState<import("@/lib/types").ProjectTool[]>([]);
+
+    // Fetch tools on mount
+    useEffect(() => {
+        if (projectId) {
+            getProjectTools(projectId).then((data: any) => setTools(data)).catch((err: any) => console.error(err));
+        }
+    }, [projectId]);
 
     const compliantCount = complianceItems.filter(
         (item) => item.status === "Compliant"
@@ -252,6 +274,10 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                     <TabsTrigger value="exam">
                         <GraduationCap className="mr-2 h-4 w-4" />
                         Zertifizierung
+                    </TabsTrigger>
+                    <TabsTrigger value="tools">
+                        <Cpu className="mr-2 h-4 w-4" />
+                        Tools & Systeme
                     </TabsTrigger>
                 </TabsList>
 
@@ -446,6 +472,12 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                     </Card>
                 </TabsContent>
 
+                <TabsContent value="tools">
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        <ProjectToolsManager projectId={projectId} />
+                    </div>
+                </TabsContent>
+
                 <TabsContent value="ai-management">
                     <div className="max-w-4xl mx-auto space-y-8">
                         <div>
@@ -501,6 +533,21 @@ export function AimsDashboardView({ projectName, complianceItems, checklistState
                                             {auditability.label}
                                         </div>
                                         <p className="text-xs text-muted-foreground">Grad der ISO-Auditvorbereitung</p>
+                                    </CardContent>
+                                </Card>
+
+                                <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5 cursor-pointer bg-blue-50/50 border-blue-200" onClick={() => setActiveTab('tools')}>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium text-blue-900">KI-Sortiment</CardTitle>
+                                        <Cpu className="h-4 w-4 text-blue-700" />
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold text-blue-900">
+                                            {tools.length} <span className="text-sm font-normal text-blue-700">Systeme</span>
+                                        </div>
+                                        <p className="text-xs text-blue-700/80">
+                                            {tools.filter(t => t.review?.status === 'pending').length} Review ausstehend
+                                        </p>
                                     </CardContent>
                                 </Card>
                             </div>

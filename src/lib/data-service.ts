@@ -696,3 +696,62 @@ export async function getPublicTrustPortal(projectId: string) {
     }
     return null;
 }
+
+// --- Project Tools Management ---
+
+export async function getProjectTools(projectId: string): Promise<import('./types').ProjectTool[]> {
+    const userId = await getUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const db = await getDb();
+    const { collection, getDocs, query, orderBy } = await import('firebase/firestore');
+
+    // Check if tools collection exists, if not, migration logic might be needed (handled in UI)
+    const toolsRef = collection(db, `users/${userId}/projects/${projectId}/tools`);
+    const q = query(toolsRef, orderBy('name'));
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as import('./types').ProjectTool));
+}
+
+export async function addProjectTool(projectId: string, tool: Omit<import('./types').ProjectTool, 'id' | 'createdAt' | 'updatedAt'>) {
+    const userId = await getUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const db = await getDb();
+    const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+
+    const toolsRef = collection(db, `users/${userId}/projects/${projectId}/tools`);
+    const docRef = await addDoc(toolsRef, {
+        ...tool,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    });
+
+    return docRef.id;
+}
+
+export async function updateProjectTool(projectId: string, toolId: string, updates: Partial<import('./types').ProjectTool>) {
+    const userId = await getUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const db = await getDb();
+    const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+
+    const toolRef = doc(db, `users/${userId}/projects/${projectId}/tools`, toolId);
+    await updateDoc(toolRef, {
+        ...updates,
+        updatedAt: serverTimestamp()
+    });
+}
+
+export async function deleteProjectTool(projectId: string, toolId: string) {
+    const userId = await getUserId();
+    if (!userId) throw new Error("User not authenticated");
+
+    const db = await getDb();
+    const { doc, deleteDoc } = await import('firebase/firestore');
+
+    const toolRef = doc(db, `users/${userId}/projects/${projectId}/tools`, toolId);
+    await deleteDoc(toolRef);
+}
