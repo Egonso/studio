@@ -14,7 +14,7 @@ const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
 // ... (existing imports)
 
-export const stripeWebhook = onRequest({ cors: true, secrets: [stripeSecretKey, stripeWebhookSecret] }, async (req, res) => {
+export const stripeWebhook = onRequest({ cors: true, region: 'europe-west1', secrets: [stripeSecretKey, stripeWebhookSecret] }, async (req, res) => {
   const db = admin.firestore();
 
   // Initialize Stripe inside handler to use secret
