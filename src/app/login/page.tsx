@@ -49,12 +49,27 @@ export default function LoginPage() {
 
     const emailFromQuery = searchParams.get('email');
     const isPurchaseFlow = searchParams.get('purchase') === 'true';
+    const sessionId = searchParams.get('session_id');
+
+    // If we have a Stripe session_id, fetch the email from it
+    if (sessionId && !emailFromQuery) {
+      fetch(`/api/stripe-session?session_id=${encodeURIComponent(sessionId)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.customer_email) {
+            form.setValue('email', data.customer_email);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch email from Stripe session:', err);
+        });
+    }
 
     if (emailFromQuery) {
       form.setValue('email', emailFromQuery);
     }
 
-    if (isPurchaseFlow) {
+    if (isPurchaseFlow || sessionId) {
       setActiveTab('signup');
       setIsFromPurchase(true);
     } else if (emailFromQuery) {
@@ -64,6 +79,7 @@ export default function LoginPage() {
       setActiveTab('signup');
     }
   }, [searchParams, form]);
+
 
 
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
