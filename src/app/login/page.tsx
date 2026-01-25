@@ -252,9 +252,6 @@ export default function LoginPage() {
           <Card>
             <CardHeader>
               <CardTitle>Neues Konto erstellen</CardTitle>
-              <CardDescription>
-                Jeder kann sich mit einer gültigen E-Mail-Adresse registrieren.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>
