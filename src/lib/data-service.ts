@@ -675,7 +675,7 @@ export async function publishTrustPortal(
     // We write to a top-level 'publicTrustPortals' collection
     // Keyed by projectId for easy lookup
     const publicDocRef = doc(db, 'publicTrustPortals', projectId);
-    await setDoc(publicDocRef, publicData);
+    await setDoc(publicDocRef, publicData, { merge: true });
 }
 
 export async function getPublicTrustPortal(projectId: string) {
