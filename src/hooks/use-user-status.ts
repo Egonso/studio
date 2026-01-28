@@ -38,7 +38,7 @@ export function useUserStatus(email: string | null | undefined) {
                 setLoading(true);
 
                 // Fetch user status from API
-                const statusResponse = await fetch(`https://us-central1-ai-act-compass-m6o05.cloudfunctions.net/api/user-status/${encodeURIComponent(email)}`);
+                const statusResponse = await fetch(`https://europe-west1-ai-act-compass-m6o05.cloudfunctions.net/api/user-status/${encodeURIComponent(email)}`);
                 if (!statusResponse.ok) {
                     throw new Error('Failed to fetch user status');
                 }
