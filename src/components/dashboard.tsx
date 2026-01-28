@@ -180,6 +180,11 @@ export function Dashboard({
                             risksDocumented: aimsData?.risks && aimsData.risks.length > 0,
                             policiesExist: aimsData?.policy && aimsData.policy.length >= 20
                         }}
+                        certificationStatus={
+                            userStatus?.examPassed ? 'certified' :
+                                (userStatus?.courseProgress && userStatus.courseProgress.length > 0) ? 'in_progress' :
+                                    'none'
+                        }
                     />
                 </section>
 

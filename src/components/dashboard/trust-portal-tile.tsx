@@ -18,9 +18,10 @@ interface TrustPortalTileProps {
         policiesExist: boolean;
         hasRefinedRoles?: boolean;
     };
+    certificationStatus?: 'none' | 'in_progress' | 'certified';
 }
 
-export function TrustPortalTile({ projectId, projectName, config, onConfigUpdate, complianceData }: TrustPortalTileProps) {
+export function TrustPortalTile({ projectId, projectName, config, onConfigUpdate, complianceData, certificationStatus = 'none' }: TrustPortalTileProps) {
     const [dialogOpen, setDialogOpen] = useState(false);
 
     // Trust Readiness Calculation (5 Dimensions, max 20 each)
@@ -40,7 +41,10 @@ export function TrustPortalTile({ projectId, projectName, config, onConfigUpdate
     // Contact email score
     const relationshipScore = (config?.contactEmail?.includes('@')) ? 20 : 0;
 
-    const trustScore = transparencyScore + oversightScore + riskScore + competenceScore + relationshipScore;
+    // Certification score (max 15)
+    const certScore = certificationStatus === 'certified' ? 15 : certificationStatus === 'in_progress' ? 5 : 0;
+
+    const trustScore = Math.min(100, transparencyScore + oversightScore + riskScore + competenceScore + relationshipScore + certScore);
 
     return (
         <section className="mb-8">

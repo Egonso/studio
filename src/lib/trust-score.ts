@@ -8,12 +8,14 @@ import { TrustPortalConfig } from "./types";
  * @param config The current Trust Portal configuration
  * @param hasAiSystems Whether any AI systems are listed/visible (from Portfolio)
  * @param hasPolicies Whether governance policies are generated/visible
+ * @param certificationStatus User's certification status: 'none', 'in_progress', or 'certified'
  * @returns number between 0 and 100
  */
 export function calculateTrustScore(
     config: TrustPortalConfig,
     hasAiSystems: boolean,
-    hasPolicies: boolean
+    hasPolicies: boolean,
+    certificationStatus: 'none' | 'in_progress' | 'certified' = 'none'
 ): number {
     let score = 20; // Base score for having the portal enabled
 
@@ -30,6 +32,10 @@ export function calculateTrustScore(
     // Data Integration (max 30)
     if (hasAiSystems) score += 15; // Showing actual systems is great transparency
     if (config.showPolicies && hasPolicies) score += 15; // Showing policies builds trust
+
+    // Certification Factor (max 15) - Personal competence verification
+    if (certificationStatus === 'certified') score += 15;
+    else if (certificationStatus === 'in_progress') score += 5;
 
     return Math.min(100, score);
 }
