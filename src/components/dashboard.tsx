@@ -117,7 +117,12 @@ export function Dashboard({
         updateState(item.id, { loading: true, error: null });
 
         try {
-            const result = await getComplianceChecklist(item.title, item.description, item.status, item.details);
+            const result = await getComplianceChecklist({
+                topic: item.title,
+                currentStatus: item.status,
+                details: item.details,
+                pillar: type
+            });
             updateState(item.id, { loading: false, data: result });
         } catch (err) {
             console.error("Failed to generate checklist:", err);
