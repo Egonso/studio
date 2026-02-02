@@ -44,10 +44,11 @@ const admin = __importStar(require("firebase-admin"));
 const stripe_1 = __importDefault(require("stripe"));
 const sendWelcomeEmail_1 = require("./sendWelcomeEmail");
 Object.defineProperty(exports, "sendWelcomeEmailOnPurchase", { enumerable: true, get: function () { return sendWelcomeEmail_1.sendWelcomeEmailOnPurchase; } });
-const https_1 = require("firebase-functions/v2/https");
-const params_1 = require("firebase-functions/params");
 // Initialize Firebase Admin
 admin.initializeApp();
+// Initialize Stripe
+const https_1 = require("firebase-functions/v2/https");
+const params_1 = require("firebase-functions/params");
 const stripeSecretKey = (0, params_1.defineSecret)('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = (0, params_1.defineSecret)('STRIPE_WEBHOOK_SECRET');
 // ... (existing imports)
@@ -145,7 +146,7 @@ exports.stripeWebhook = (0, https_1.onRequest)({ cors: true, region: 'europe-wes
                         type: 'checkout',
                         id: session.id,
                         amount: session.amount_total ? session.amount_total / 100 : 0,
-                        timestamp: new Date().toISOString()
+                        timestamp: admin.firestore.FieldValue.serverTimestamp()
                     })
                 }, { merge: true });
                 console.log(`Updated ${email} in both 'customers' (Studio) and 'allowlist' (Compass)`);
@@ -177,7 +178,7 @@ exports.stripeWebhook = (0, https_1.onRequest)({ cors: true, region: 'europe-wes
                         type: 'invoice',
                         id: invoice.id,
                         amount: invoice.amount_paid ? invoice.amount_paid / 100 : 0,
-                        timestamp: new Date().toISOString()
+                        timestamp: admin.firestore.FieldValue.serverTimestamp()
                     })
                 }, { merge: true });
                 console.log(`Added ${email} to allowlist from Stripe subscription`);

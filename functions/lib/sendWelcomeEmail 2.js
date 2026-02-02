@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendWelcomeEmailOnPurchase = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
-const sgMail = __importStar(require("@sendgrid/mail"));
+const sgMail = require('@sendgrid/mail');
 // SendGrid configuration
 const SENDGRID_API_KEY = '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';
 const WELCOME_EMAIL_TEMPLATE_ID = 'd-31f1e6dcfac74aa7bcb399622afce289';

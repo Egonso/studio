@@ -1,13 +1,11 @@
 import * as admin from 'firebase-admin';
 import Stripe from 'stripe';
 import { sendWelcomeEmailOnPurchase } from './sendWelcomeEmail';
+import { onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 
 // Initialize Firebase Admin
 admin.initializeApp();
-
-// Initialize Stripe
-import { onRequest } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
 
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
@@ -123,7 +121,7 @@ export const stripeWebhook = onRequest({ cors: true, region: 'europe-west1', sec
             type: 'checkout',
             id: session.id,
             amount: session.amount_total ? session.amount_total / 100 : 0,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
+            timestamp: new Date().toISOString()
           })
         }, { merge: true });
 
@@ -159,7 +157,7 @@ export const stripeWebhook = onRequest({ cors: true, region: 'europe-west1', sec
             type: 'invoice',
             id: invoice.id,
             amount: invoice.amount_paid ? invoice.amount_paid / 100 : 0,
-            timestamp: admin.firestore.FieldValue.serverTimestamp()
+            timestamp: new Date().toISOString()
           })
         }, { merge: true });
 

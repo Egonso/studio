@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
-const sgMail = require('@sendgrid/mail');
+import * as sgMail from '@sendgrid/mail';
 
 // SendGrid configuration
 const SENDGRID_API_KEY = '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';
