@@ -195,6 +195,9 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
                                 wenn Sie erneut "Veröffentlichen" klicken.
                             </AlertDescription>
                         </Alert>
+                        <p className="text-xs text-muted-foreground">
+                            <strong>Hinweis:</strong> Sie können das Portal jederzeit aktualisieren, offline nehmen oder Inhalte bearbeiten.
+                        </p>
                         <div className="flex items-start space-x-2 pt-2">
                             <Checkbox id="confirm" checked={publishConfirmation} onCheckedChange={(c) => setPublishConfirmation(!!c)} />
                             <Label htmlFor="confirm" className="text-sm font-normal leading-tight cursor-pointer">
