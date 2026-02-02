@@ -485,7 +485,7 @@ export function AimsDashboardView({
                             <p className="text-sm text-muted-foreground mb-4">
                                 ISO 42001 ist ein KI-Managementsystem, das langfristige Compliance und Prozesssicherheit gewährleistet.
                             </p>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                                 <Card className="transition-all hover:shadow-xl hover:-translate-y-0.5">
                                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                         <CardTitle className="text-sm font-medium">AIMS implementiert</CardTitle>

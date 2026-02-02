@@ -15,6 +15,7 @@ interface GuidanceFrameProps {
     projectName: string;
     policiesGenerated?: boolean;
     isoWizardStarted?: boolean;
+    isoWizardCompleted?: boolean;
 }
 
 export function DashboardGuidanceFrame({
@@ -22,7 +23,8 @@ export function DashboardGuidanceFrame({
     wizardStatus,
     projectName,
     policiesGenerated = false,
-    isoWizardStarted = false
+    isoWizardStarted = false,
+    isoWizardCompleted = false
 }: GuidanceFrameProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -115,6 +117,7 @@ export function DashboardGuidanceFrame({
         aiActBaseWizardCompleted: wizardStatus === 'completed',
         policiesGenerated,
         isoWizardStarted,
+        isoWizardCompleted,
         projectName
     });
 

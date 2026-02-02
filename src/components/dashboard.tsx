@@ -99,6 +99,8 @@ export function Dashboard({
         return { label: 'Nicht gestartet', color: 'bg-red-500' };
     })();
 
+    const isoWizardCompleted = completedSteps === 6;
+
     // --- HANDLERS ---
     const handleAccordionChange = async (item: FullComplianceInfo, type: 'ai-act' | 'iso-42001' | 'portfolio' = 'ai-act') => {
         // Only fetch if no data yet and not loading
@@ -171,6 +173,8 @@ export function Dashboard({
                         wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
                         projectName={projectName}
                         policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
+                        isoWizardStarted={completedSteps > 0}
+                        isoWizardCompleted={isoWizardCompleted}
                     />
                 </section>
 

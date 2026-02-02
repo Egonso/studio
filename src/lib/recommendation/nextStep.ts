@@ -2,12 +2,13 @@
 export interface ProjectProgress {
     aiActBaseWizardCompleted: boolean;
     policiesGenerated: boolean;
-    isoWizardStarted: boolean;
+    isoWizardStarted: boolean; // Retained for backward compatibility/logic flow
+    isoWizardCompleted?: boolean;
     projectName?: string; // For headline personalization
 }
 
 export interface Recommendation {
-    key: 'AI_ACT_BASE' | 'COMPLIANCE_IN_A_DAY' | 'ISO_WIZARD';
+    key: 'AI_ACT_BASE' | 'COMPLIANCE_IN_A_DAY' | 'ISO_WIZARD' | 'MAINTENANCE';
     headline: string;
     acknowledgement?: string; // Optional
     primaryTitle: string;
@@ -19,6 +20,32 @@ export interface Recommendation {
 }
 
 export function getNextRecommendation(progress: ProjectProgress): Recommendation {
+    // STATE 4: ISO Wizard Completed (Maintenance Mode)
+    if (progress.isoWizardCompleted) {
+        return {
+            key: 'MAINTENANCE',
+            headline: "KI-System erfolgreich etabliert",
+            acknowledgement: "Gratulation! Sie haben ein ISO 42001 konformes Management-System aufgesetzt.",
+            primaryTitle: "Audit-Dossier & Monitoring",
+            primaryMeta: "Laufende Überwachung",
+            primaryWhy: "Ihr System ist aktiv. Nutzen Sie jetzt das Dashboard, um neue Tools zu prüfen und das Compliance-Level zu halten.",
+            primaryCtaLabel: "Zum Dashboard",
+            primaryHref: "/ai-management", // Redirects to dashboard view since completed
+            secondary: [
+                {
+                    title: "Neues KI-Projekt prüfen",
+                    subtitle: "High-Risk Klassifizierung.",
+                    href: "/assessment"
+                },
+                {
+                    title: "Strategie anpassen",
+                    subtitle: "Portfolio-Management.",
+                    href: "/portfolio"
+                }
+            ]
+        };
+    }
+
     // STATE 0: Base Wizard Incomplete (Default)
     if (!progress.aiActBaseWizardCompleted) {
         return {
