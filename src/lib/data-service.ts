@@ -640,12 +640,19 @@ export async function publishTrustPortal(
 ) {
     const userId = await getUserId();
     const projectId = getActiveProjectId();
-    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    console.log('[TrustPortal] Starting publish...', { userId, projectId });
+
+    if (!userId || !projectId) {
+        console.error('[TrustPortal] Missing userId or projectId', { userId, projectId });
+        throw new Error("User or project not identified");
+    }
 
     const db = await getDb();
     const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
 
     // 1. Save config to internal project data
+    console.log('[TrustPortal] Saving internal config...');
     await saveProjectData({ trustPortal: config });
 
     // 2. Create Public Snapshot
@@ -672,10 +679,18 @@ export async function publishTrustPortal(
         showPolicies: config.showPolicies,
     };
 
+    console.log('[TrustPortal] Writing to publicTrustPortals...', { projectId, ownerId: userId });
+
     // We write to a top-level 'publicTrustPortals' collection
     // Keyed by projectId for easy lookup
-    const publicDocRef = doc(db, 'publicTrustPortals', projectId);
-    await setDoc(publicDocRef, publicData, { merge: true });
+    try {
+        const publicDocRef = doc(db, 'publicTrustPortals', projectId);
+        await setDoc(publicDocRef, publicData, { merge: true });
+        console.log('[TrustPortal] Successfully published!');
+    } catch (firestoreError: any) {
+        console.error('[TrustPortal] Firestore write failed:', firestoreError.code, firestoreError.message);
+        throw firestoreError;
+    }
 }
 
 export async function getPublicTrustPortal(projectId: string) {
