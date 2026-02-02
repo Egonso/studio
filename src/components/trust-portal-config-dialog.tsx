@@ -401,14 +401,62 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
                         <Button variant="ghost" onClick={() => onOpenChange(false)}>Schließen</Button>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant={config.isPublished ? "destructive" : "default"} onClick={handlePublishClick} disabled={loading}>
-                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {config.isPublished ? "Veröffentlichung aufheben" : "Speichern & Portal Veröffentlichen"}
-                        </Button>
-                        <Button variant="secondary" onClick={() => handleSave(config.isPublished)} disabled={loading}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Nur Speichern (Entwurf)
-                        </Button>
+                        {config.isPublished ? (
+                            <>
+                                {/* When already published: show Update, Unpublish, Save Draft */}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => handleSave(false)}
+                                    disabled={loading}
+                                    className="text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                    Offline nehmen
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        // Save locally without republishing
+                                        saveProjectData({ trustPortal: { ...config, isPublished: true } });
+                                        toast({ title: "Entwurf gespeichert", description: "Änderungen sind lokal gesichert. Klicken Sie 'Aktualisieren' um sie zu veröffentlichen." });
+                                        onOpenChange(false);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Entwurf speichern
+                                </Button>
+                                <Button
+                                    onClick={() => handleSave(true)}
+                                    disabled={loading}
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
+                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Globe className="mr-2 h-4 w-4" />
+                                    Aktualisieren & Veröffentlichen
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                {/* When not published: show Publish and Save Draft */}
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        saveProjectData({ trustPortal: config });
+                                        toast({ title: "Entwurf gespeichert", description: "Konfiguration wurde lokal gesichert." });
+                                        onOpenChange(false);
+                                    }}
+                                    disabled={loading}
+                                >
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Nur Speichern (Entwurf)
+                                </Button>
+                                <Button onClick={handlePublishClick} disabled={loading}>
+                                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    <Globe className="mr-2 h-4 w-4" />
+                                    Portal veröffentlichen
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </DialogFooter>
             </DialogContent>
