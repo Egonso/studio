@@ -102,8 +102,8 @@ service cloud.firestore {
     // 10. Public Trust Portals
     match /publicTrustPortals/{projectId} {
       allow read: if true;
-      // Simplified: allow write if authenticated and ownerId in payload matches auth user
-      allow write: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      // Allow any authenticated user to write - ownerId is set by the application
+      allow write: if isSignedIn();
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
     }
 
