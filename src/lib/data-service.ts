@@ -655,28 +655,35 @@ export async function publishTrustPortal(
     console.log('[TrustPortal] Saving internal config...');
     await saveProjectData({ trustPortal: config });
 
-    // 2. Create Public Snapshot
+    // 2. Create Public Snapshot - Sanitize all values to prevent undefined
+    const sanitizedAiSystems = (aiSystems || []).map((system: any) => ({
+        name: system.name || '',
+        purpose: system.purpose || '',
+        riskCategory: system.riskCategory || 'nicht klassifiziert',
+        humanOversight: system.humanOversight || 'Projektverantwortliche'
+    }));
+
     const publicData = {
         projectId,
         ownerId: userId,
         publishedAt: serverTimestamp(),
 
-        // Content from Config
-        title: config.portalTitle,
-        introduction: config.introduction,
-        governanceStatement: config.governanceStatement,
-        responsibilityText: config.responsibilityText,
-        contactText: config.contactText,
-        contactEmail: config.contactEmail,
+        // Content from Config - with defaults for undefined
+        title: config.portalTitle || 'AI Trust Portal',
+        introduction: config.introduction || '',
+        governanceStatement: config.governanceStatement || '',
+        responsibilityText: config.responsibilityText || '',
+        contactText: config.contactText || '',
+        contactEmail: config.contactEmail || '',
 
         // Computed/Snapshotted Data
-        trustScore,
-        aiSystems, // This should be the filtered, sanitized list of systems
+        trustScore: trustScore || 0,
+        aiSystems: sanitizedAiSystems,
 
-        // Visibility Flags (redundant but helpful for client-side filtering if needed)
-        showRiskCategory: config.showRiskCategory,
-        showHumanOversight: config.showHumanOversight,
-        showPolicies: config.showPolicies,
+        // Visibility Flags - with boolean defaults
+        showRiskCategory: config.showRiskCategory ?? true,
+        showHumanOversight: config.showHumanOversight ?? true,
+        showPolicies: config.showPolicies ?? false,
     };
 
     console.log('[TrustPortal] Writing to publicTrustPortals...', { projectId, ownerId: userId });
