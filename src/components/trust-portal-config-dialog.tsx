@@ -37,6 +37,7 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
     // Extended State Configuration
     const [config, setConfig] = useState<TrustPortalConfig>({
         isPublished: false,
+        organizationName: "",
         tonePreset: "standard",
         portalTitle: "AI Trust & Accountability Portal",
         introduction: "",
@@ -58,6 +59,7 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
         if (open) {
             setConfig({
                 isPublished: false,
+                organizationName: projectTitle || "",
                 tonePreset: "standard",
                 portalTitle: "AI Trust & Accountability Portal",
                 introduction: "",
@@ -318,6 +320,16 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
                         <AccordionItem value="content-sections">
                             <AccordionTrigger>2. Textinhalte bearbeiten</AccordionTrigger>
                             <AccordionContent className="space-y-4 pt-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="org-name">Name Ihrer Organisation</Label>
+                                    <Input
+                                        id="org-name"
+                                        placeholder="z.B. Musterfirma GmbH"
+                                        value={config.organizationName}
+                                        onChange={e => setConfig({ ...config, organizationName: e.target.value })}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Wird prominent im Trust Portal angezeigt</p>
+                                </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="portal-title">Seitentitel</Label>
                                     <Input id="portal-title" value={config.portalTitle} onChange={e => setConfig({ ...config, portalTitle: e.target.value })} />

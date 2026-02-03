@@ -16,6 +16,7 @@ export interface TrustPortalConfig {
   urlSlug?: string;
 
   // Content
+  organizationName: string;
   tonePreset: TrustTonePreset;
   portalTitle: string;
   introduction: string;
@@ -39,6 +40,7 @@ export interface PublicTrustPortal {
   ownerId: string; // Added for security rules
   publishedAt: string;
 
+  organizationName: string;
   title: string;
   introduction: string;
   governanceStatement: string;

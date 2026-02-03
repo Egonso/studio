@@ -57,6 +57,7 @@ export default function PublicTrustPortalPage() {
     }
 
     const {
+        organizationName,
         title,
         introduction,
         governanceStatement,
@@ -85,8 +86,9 @@ export default function PublicTrustPortalPage() {
                     </div>
 
                     <div className="text-xs text-slate-500 flex items-center gap-2">
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                            Verifiziert am {formattedDate}
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                            <ShieldCheck className="h-3 w-3" />
+                            Verifiziert durch AI Compliance OS
                         </span>
                     </div>
                 </div>
@@ -100,12 +102,18 @@ export default function PublicTrustPortalPage() {
                         <Globe className="h-3.5 w-3.5" />
                         Transparenz-Bericht
                     </div>
+                    {organizationName && (
+                        <div className="text-lg font-semibold text-indigo-600 mb-1">{organizationName}</div>
+                    )}
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
                         {title}
                     </h1>
                     <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-3xl">
                         {introduction}
                     </p>
+                    {formattedDate && (
+                        <p className="text-sm text-slate-400">Zuletzt aktualisiert: {formattedDate}</p>
+                    )}
                 </section>
 
                 <div className="grid md:grid-cols-3 gap-8 md:gap-12">
@@ -227,11 +235,15 @@ export default function PublicTrustPortalPage() {
                             </div>
                         )}
 
-                        <div className="text-center pt-8">
-                            <div className="inline-flex items-center gap-2 text-xs text-slate-400 grayscale hover:grayscale-0 transition-all opacity-60 hover:opacity-100">
-                                <span className="font-semibold">Powered by</span>
-                                <Image src="/logo.png" alt="AI Act Compass" width={20} height={20} className="h-4 w-auto" />
-                                <span className="font-medium">AI Act Compass</span>
+                        <div className="text-center pt-8 space-y-2">
+                            <div className="inline-flex items-center gap-2 text-xs text-slate-500">
+                                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                                <span className="font-medium">Verifiziert durch AI Compliance OS</span>
+                            </div>
+                            <div className="text-xs text-slate-400">
+                                <a href="https://eukigesetz.com" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
+                                    Mehr Infos unter eukigesetz.com
+                                </a>
                             </div>
                         </div>
 

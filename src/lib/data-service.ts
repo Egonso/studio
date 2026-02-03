@@ -668,6 +668,9 @@ export async function publishTrustPortal(
         ownerId: userId,
         publishedAt: serverTimestamp(),
 
+        // Organization branding
+        organizationName: config.organizationName || '',
+
         // Content from Config - with defaults for undefined
         title: config.portalTitle || 'AI Trust Portal',
         introduction: config.introduction || '',
