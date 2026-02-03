@@ -153,9 +153,10 @@ export function TrustPortalConfigDialog({ open, onOpenChange, currentConfig, pro
             } else {
                 onOpenChange(false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to save trust portal config:", error);
-            toast({ variant: "destructive", title: "Fehler", description: "Speichern fehlgeschlagen." });
+            const errorMsg = error?.code || error?.message || "Unbekannter Fehler";
+            toast({ variant: "destructive", title: "Fehler", description: `Speichern fehlgeschlagen: ${errorMsg}` });
         } finally {
             setLoading(false);
         }
