@@ -123,24 +123,24 @@ IMPORTANT: You must always maintain a helpful but professional tone.
 If the model is asked for legal advice, explicitly state: "I am an AI assistant. My responses are for informational purposes only and do not constitute legal advice."
     `;
 
-        // Prepare full message history including system prompt
-        const messages = input.messages.map(m => ({
+        // Prepare full message history, FILTERING OUT any existing system messages from input
+        const userHistory = input.messages.filter(m => m.role !== 'system').map(m => ({
             role: m.role,
             content: [{ text: m.content }]
         }));
 
-        // System Prompt
-        const systemMessage = { role: 'system', content: [{ text: systemPrompt }] };
+        // Combine System Prompt and Context into ONE single string
+        let combinedSystemText = systemPrompt;
+        if (input.currentPath) {
+            combinedSystemText += `\n\nUser Context:\nUser is currently on page: ${input.currentPath}`;
+        }
 
-        // Context message (if path is present)
-        const contextMessage = input.currentPath
-            ? { role: 'system', content: [{ text: `User is currently on page: ${input.currentPath}` }] }
-            : null;
+        // Create the SINGLE system message at the start
+        const systemMessage = { role: 'system', content: [{ text: combinedSystemText }] };
 
         const fullMessages = [
             systemMessage,
-            ...(contextMessage ? [contextMessage] : []),
-            ...messages
+            ...userHistory
         ] as any[];
 
         // Call the model

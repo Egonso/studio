@@ -27,26 +27,30 @@ export function LawContent({ data }: LawContentProps) {
                 <h2 className="text-2xl font-bold mb-4">Verfügender Teil</h2>
                 {data.chapters.map((chapter) => (
                     <div key={chapter.id} id={chapter.id} className="mb-8 scroll-mt-24">
-                        <div className="sticky top-14 bg-background/95 backdrop-blur py-4 z-10 border-b mb-6 shadow-sm">
+                        {/* Increased z-index to 20 to stay above content but below AppHeader (z-50) */}
+                        <div className="sticky top-14 bg-background/95 backdrop-blur py-4 z-20 border-b mb-6 shadow-sm">
                             <h3 className="text-xl font-bold">{chapter.title}</h3>
                         </div>
 
                         <div className="space-y-8">
                             {chapter.articles.map((article) => {
-                                // Separate actual text from Title if possible (parser now provides 'title' field)
-                                // Use the title field from JSON if available, otherwise fallback
                                 const displayTitle = article.title || article.id;
+                                // Check if title is very long (like Article 3 definitions), if so, style differently
+                                const isLongTitle = displayTitle.length > 80;
 
                                 return (
                                     <article key={article.id} id={article.id} className="scroll-mt-28">
                                         <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border hover:border-primary/20 transition-colors relative group">
-                                            <h4 className="text-lg font-semibold text-primary mb-3">
+                                            {/* Handle long titles with clamp or different size */}
+                                            <h4 className={cn(
+                                                "font-semibold text-primary mb-3",
+                                                isLongTitle ? "text-base leading-snug" : "text-lg"
+                                            )}>
                                                 {displayTitle}
                                             </h4>
                                             <div className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
                                                 {article.text}
                                             </div>
-                                            {/* Anchor for linking */}
                                             <a href={`#${article.id}`} className="opacity-0 group-hover:opacity-100 absolute top-4 right-4 text-muted-foreground hover:text-primary transition-opacity" title="Direct Link">#</a>
                                         </div>
                                     </article>
