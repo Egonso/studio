@@ -249,37 +249,39 @@ export function AimsDashboardView({
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
-                    <TabsTrigger value="ai-management">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        AI Management
-                    </TabsTrigger>
-                    <TabsTrigger value="compliance-status">
-                        <GanttChartSquare className="mr-2 h-4 w-4" />
-                        Compliance-Status
-                    </TabsTrigger>
-                    <TabsTrigger value="ai-act-duties">
-                        <ListChecks className="mr-2 h-4 w-4" />
-                        AI Act Pflichten
-                    </TabsTrigger>
-                    <TabsTrigger value="cbs">
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        Smart Policy Engine
-                    </TabsTrigger>
-                    <TabsTrigger value="kurs">
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Kurs
-                    </TabsTrigger>
-                    <TabsTrigger value="exam">
-                        <GraduationCap className="mr-2 h-4 w-4" />
-                        Zertifizierung
-                    </TabsTrigger>
-                    <TabsTrigger value="tools">
-                        <Cpu className="mr-2 h-4 w-4" />
-                        Tools & Systeme
-                    </TabsTrigger>
-                </TabsList>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+                <div className="w-full overflow-x-auto pb-2 -mb-2 scrollbar-hide">
+                    <TabsList className="inline-flex h-11 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground w-auto min-w-full sm:min-w-0">
+                        <TabsTrigger value="ai-management" className="gap-2 px-4">
+                            <Sparkles className="h-4 w-4" />
+                            AI Management
+                        </TabsTrigger>
+                        <TabsTrigger value="compliance-status" className="gap-2 px-4">
+                            <GanttChartSquare className="h-4 w-4" />
+                            Compliance-Status
+                        </TabsTrigger>
+                        <TabsTrigger value="ai-act-duties" className="gap-2 px-4">
+                            <ListChecks className="h-4 w-4" />
+                            AI Act Pflichten
+                        </TabsTrigger>
+                        <TabsTrigger value="cbs" className="gap-2 px-4">
+                            <Wand2 className="h-4 w-4" />
+                            Smart Policy Engine
+                        </TabsTrigger>
+                        <TabsTrigger value="kurs" className="gap-2 px-4">
+                            <BookOpen className="h-4 w-4" />
+                            Kurs
+                        </TabsTrigger>
+                        <TabsTrigger value="exam" className="gap-2 px-4">
+                            <GraduationCap className="h-4 w-4" />
+                            Zertifizierung
+                        </TabsTrigger>
+                        <TabsTrigger value="tools" className="gap-2 px-4">
+                            <Cpu className="h-4 w-4" />
+                            Tools & Systeme
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="compliance-status" className="space-y-6">
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
