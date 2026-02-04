@@ -57,9 +57,20 @@ export function SiteChatbotWidget() {
         setIsLoading(true);
 
         try {
+            // Filter out the initial greeting if it's the first message and from model
+            // The API expects either strict (user-first) or handles system separately.
+            // Safe bet: Only send user/model conversation history, starting with a user message if possible.
+            // Or better: Just allow the server to filter. But the error "First content should be with role 'user'" comes from the Genkit client likely validating.
+
+            const historyToSend = [...messages, userMsg].filter((m, i) => {
+                // Filter out initial model message if it's "Hallo!..."
+                if (i === 0 && m.role === 'model') return false;
+                return true;
+            });
+
             // Call the Server Action wrapper
             const response = await callChatbotAction({
-                messages: [...messages, userMsg],
+                messages: historyToSend,
                 currentPath: pathname
             });
 
