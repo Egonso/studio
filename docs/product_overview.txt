@@ -1,0 +1,202 @@
+# AI Compliance OS – Produktübersicht
+
+> **Ziel:** Diese Übersicht dient als Grundlage für Verkaufs- und Informationspräsentationen.
+
+---
+
+## 1. High-Level View (Elevator Pitch)
+
+```mermaid
+graph TD
+    A["🏢 Unternehmen mit KI-Einsatz"] --> B["AI Compliance OS"]
+    B --> C["✅ EU AI Act Konformität"]
+    B --> D["📄 ISO 42001 Zertifizierbarkeit"]
+    B --> E["🔒 Trust Portal für Stakeholder"]
+    style B fill:#3b82f6,color:#fff
+```
+
+**Kernaussage:**
+> AI Compliance OS ist die All-in-One-Plattform für KI-Governance. Wir verwandeln Compliance-Bürokratie in einen automatisierten, audit-sicheren Wettbewerbsvorteil.
+
+**Zielgruppe:** Unternehmen, die KI einsetzen und regulatorische Sicherheit (EU AI Act) sowie optionale Zertifizierungen (ISO 42001) anstreben.
+
+---
+
+## 2. Hauptfunktionen & Unterfunktionen
+
+### A. 🎯 AI Act Compliance Engine
+
+**Zweck:** Gesetzliche Anforderungen des EU AI Act erfüllen.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Risikoklassen-Assessment** | Interaktiver Wizard zur Bestimmung der Risikoklasse (Verboten / Hochrisiko / Begrenzt / Minimal) |
+| **Compliance-Status Dashboard** | Echtzeit-Übersicht: Compliant / At Risk / Non-Compliant |
+| **KI-gestützte Checklisten** | Automatisch generierte Aufgabenlisten pro Anforderung |
+| **Task-Bearbeitung** | Deep-Dive in einzelne Aufgaben mit Kontexthilfe |
+
+---
+
+### B. 🏛️ ISO 42001 Management System (AIMS)
+
+**Zweck:** Aufbau eines zertifizierungsfähigen KI-Managementsystems.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **6-Schritte-Wizard** | Geführter Prozess: Scope → Stakeholder → Policy → RACI → Risiken → Monitoring |
+| **Fortschritts-Tracking** | Visueller Progress-Ring, Timeline-Ansicht |
+| **Dokumenten-Export** | PDF/JSON-Export der gesamten AIMS-Dokumentation |
+| **Handlungsempfehlungen** | Personalisierte Next Steps basierend auf Fortschritt |
+
+---
+
+### C. 📊 AI Portfolio Management
+
+**Zweck:** Alle KI-Projekte zentral verwalten und priorisieren.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Projekterfassung** | Wizard für neue AI-Projekte (Name, Department, Use Case, Status) |
+| **Value-Risk-Matrix** | Interaktive Positionierung nach Geschäftswert vs. Governance-Risiko |
+| **Goal-Setting** | Ziel-Quadranten wählen → Personalisierte Empfehlungen erhalten |
+| **Decision Log** | Automatische Protokollierung aller Änderungen |
+| **Portfolio-Export** | Gesamtübersicht als Report |
+
+---
+
+### D. ⚙️ Smart Policy Engine
+
+**Zweck:** KI-Richtlinien erstellen und verwalten.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Policy-Generator** | KI-gestützte Erstellung von Use-Case-Policies |
+| **Template-Bibliothek** | Vorgefertigte Richtlinien-Vorlagen |
+| **Versionierung** | Änderungshistorie aller Policies |
+| **Approval-Workflow** | Freigabeprozess für neue Richtlinien |
+
+---
+
+### E. 🛡️ Trust Portal
+
+**Zweck:** Öffentliche Transparenz für Stakeholder.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Konfiguration** | Auswahl sichtbarer Inhalte (Score, Dokumente, Badges) |
+| **Öffentliche URL** | Teilbare Seite für Kunden, Partner, Auditoren |
+| **Trust Score** | Automatisch berechneter Compliance-Grad |
+| **Branding** | Logo und Unternehmensname integrierbar |
+
+---
+
+### F. 🧰 Tools & Systeme Register
+
+**Zweck:** Inventar aller genutzten KI-Tools.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Tool-Erfassung** | Name, Anbieter, Risikoklasse, Einsatzbereich |
+| **Public Info Check** | Automatische Recherche zu bekannten Compliance-Infos |
+| **Review-Workflow** | Pending / Approved / Rejected Status |
+| **Export** | Liste aller Tools für Audit-Zwecke |
+
+---
+
+### G. 🎓 Zertifizierungskurs
+
+**Zweck:** Mitarbeiter-Schulung zur KI-Compliance.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Video-Kurs** | Modularer E-Learning-Kurs zum EU AI Act |
+| **Fortschritt** | Tracking abgeschlossener Videos |
+| **Prüfung** | Multiple-Choice-Exam mit Zertifikat |
+| **Zertifikat** | Nachweis für Audit & HR |
+
+---
+
+### H. 📄 Audit-Dossier Generator
+
+**Zweck:** Audit-sichere Dokumentation auf Knopfdruck.
+
+| Unterfunktion | Beschreibung |
+|---------------|--------------|
+| **Report-Builder** | Zusammenstellung aller relevanten Dokumente |
+| **PDF-Export** | Formatierter Report für Auditoren |
+| **Changelog** | Wann wurde was dokumentiert? |
+
+---
+
+## 3. Idealtypische User Journey
+
+```mermaid
+journey
+    title User Journey: Vom Erstkontakt zur Audit-Sicherheit
+    section Onboarding
+      Registrierung: 5: Nutzer
+      Erstes Projekt anlegen: 4: Nutzer
+      Branche & Systemtyp wählen: 4: Nutzer
+    section Assessment
+      Risikoklassen-Wizard durchlaufen: 3: Nutzer
+      Compliance-Status erhalten: 5: Nutzer, System
+    section Governance aufbauen
+      ISO 42001 Wizard starten: 3: Nutzer
+      Policies erstellen: 3: Nutzer
+      Rollen zuweisen (RACI): 3: Nutzer
+      Risiken dokumentieren: 3: Nutzer
+    section Portfolio managen
+      AI-Projekte erfassen: 4: Nutzer
+      In Matrix positionieren: 4: Nutzer
+      Empfehlungen umsetzen: 4: Nutzer
+    section Trust & Audit
+      Trust Portal konfigurieren: 4: Nutzer
+      Audit-Dossier exportieren: 5: Nutzer
+      Zertifizierungsprüfung ablegen: 5: Nutzer
+```
+
+### Schritt-für-Schritt
+
+| Phase | Aktion | Ergebnis |
+|-------|--------|----------|
+| **1. Start** | Nutzer registriert sich und erstellt ein Projekt | Projektkontext etabliert |
+| **2. Assessment** | Beantwortet Fragen zu KI-System (Wizard) | Risikoklasse bestimmt (z.B. "Hochrisiko") |
+| **3. Dashboard** | Sieht Compliance-Status im Dashboard | Überblick: 3 Compliant, 2 At Risk, 1 Non-Compliant |
+| **4. AI Management** | Startet ISO 42001 Wizard | Scope, Policies, Risiken dokumentiert |
+| **5. Portfolio** | Erfasst alle KI-Projekte | Priorisierung via Value-Risk-Matrix |
+| **6. Policies** | Nutzt Policy Engine | Fertige Richtlinien für jeden Use Case |
+| **7. Schulung** | Team absolviert Kurs + Prüfung | Zertifikate für alle Mitarbeiter |
+| **8. Trust Portal** | Konfiguriert öffentliche Seite | Stakeholder können Compliance einsehen |
+| **9. Audit** | Exportiert Dossier | Audit-sichere Dokumentation bereit |
+
+---
+
+## 4. Key Value Propositions
+
+| Benefit | Beschreibung |
+|---------|--------------|
+| **Zeitersparnis** | Automatisierte Checklisten & Dossier-Generierung vs. manuelles Dokumentieren |
+| **Rechtssicherheit** | Alle AI Act Anforderungen abgedeckt, regelmäßig aktualisiert |
+| **Zertifizierbarkeit** | ISO 42001 strukturiert vorbereitet, nicht nur "irgendwie dokumentiert" |
+| **Transparenz** | Trust Portal für Kunden-/Partner-Kommunikation |
+| **Audit-Readiness** | Jederzeit exportierbares Dossier mit Changelog |
+
+---
+
+## 5. Technische Eckdaten
+
+| Aspekt | Details |
+|--------|---------|
+| **Stack** | Next.js 15, React, TypeScript, Firebase (Auth + Firestore) |
+| **Hosting** | Netlify (Frontend), Firebase Functions (Backend) |
+| **AI** | Genkit (Gemini-basiert) für Checklisten & Policy-Generierung |
+| **Sicherheit** | Firestore Security Rules, Row-Level Security per User/Project |
+
+---
+
+## 6. Nächste Schritte für Präsentation
+
+1. **Screenshots** der wichtigsten Screens (Dashboard, Matrix, Trust Portal)
+2. **Live-Demo-Flow** basierend auf User Journey
+3. **Pricing-Slide** (falls relevant)
+4. **Case Study / Testimonial** (falls vorhanden)

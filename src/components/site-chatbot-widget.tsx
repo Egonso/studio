@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 // or via a generic action wrapper. For this project context, I'll assume we can call the flow directly if we import it,
 // OR use a utility to call it. 
 // Given the project structure likely uses standard Genkit server actions:
-import { siteChatbotFlow } from '@/ai/flows/site-chatbot';
+import { callChatbotAction } from '@/ai/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -50,15 +50,20 @@ export function SiteChatbotWidget() {
         setIsLoading(true);
 
         try {
-            // Call the Server Flow
-            // We pass the full history for context (simplified)
-            const result = await siteChatbotFlow({
+            // Call the Server Action wrapper
+            const response = await callChatbotAction({
                 messages: [...messages, userMsg],
                 currentPath: pathname
             });
 
+            if (!response.success) {
+                throw new Error(response.error);
+            }
+
+            const result = response.data;
+
             // Check for navigation command
-            let responseText = result;
+            let responseText = result || '';
 
             // Basic parsing for the [NAVIGATE:/path] marker we added in the flow
             const navMatch = responseText.match(/\[NAVIGATE:(.*?)\]/);
