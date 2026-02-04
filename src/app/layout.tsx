@@ -33,6 +33,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { AuthProvider } from '@/context/auth-context';
+import { SiteChatbotWidget } from '@/components/site-chatbot-widget';
 
 export const metadata: Metadata = {
   title: 'AI Compliance OS',
@@ -62,6 +63,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster />
+          <SiteChatbotWidget />
           <Footer />
         </AuthProvider>
       </body>

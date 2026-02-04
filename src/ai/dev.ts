@@ -10,3 +10,4 @@ import '@/ai/flows/design-advisor.ts';
 import '@/ai/flows/anti-pattern-detector.ts';
 import '@/ai/flows/value-tension-advisor.ts';
 import '@/ai/flows/value-influence-analyzer.ts';
+import '@/ai/flows/site-chatbot.ts';
