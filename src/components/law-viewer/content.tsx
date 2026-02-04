@@ -27,20 +27,31 @@ export function LawContent({ data }: LawContentProps) {
                 <h2 className="text-2xl font-bold mb-4">Verfügender Teil</h2>
                 {data.chapters.map((chapter) => (
                     <div key={chapter.id} id={chapter.id} className="mb-8 scroll-mt-24">
-                        <h3 className="text-xl font-bold mb-4 sticky top-16 bg-background/95 backdrop-blur py-2 z-10 border-b">
-                            {chapter.title}
-                        </h3>
+                        <div className="sticky top-14 bg-background/95 backdrop-blur py-4 z-10 border-b mb-6 shadow-sm">
+                            <h3 className="text-xl font-bold">{chapter.title}</h3>
+                        </div>
+
                         <div className="space-y-8">
-                            {chapter.articles.map((article) => (
-                                <article key={article.id} id={article.id} className="scroll-mt-24">
-                                    {/* We might want to parse the text to extract the Title if it's strictly formatted, 
-                       but for now displaying full extracted text is safer. 
-                       Usually the text starts with "Artikel X Title..." */}
-                                    <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border">
-                                        <div className="whitespace-pre-wrap">{article.text}</div>
-                                    </div>
-                                </article>
-                            ))}
+                            {chapter.articles.map((article) => {
+                                // Separate actual text from Title if possible (parser now provides 'title' field)
+                                // Use the title field from JSON if available, otherwise fallback
+                                const displayTitle = article.title || article.id;
+
+                                return (
+                                    <article key={article.id} id={article.id} className="scroll-mt-28">
+                                        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border hover:border-primary/20 transition-colors relative group">
+                                            <h4 className="text-lg font-semibold text-primary mb-3">
+                                                {displayTitle}
+                                            </h4>
+                                            <div className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
+                                                {article.text}
+                                            </div>
+                                            {/* Anchor for linking */}
+                                            <a href={`#${article.id}`} className="opacity-0 group-hover:opacity-100 absolute top-4 right-4 text-muted-foreground hover:text-primary transition-opacity" title="Direct Link">#</a>
+                                        </div>
+                                    </article>
+                                );
+                            })}
                         </div>
                     </div>
                 ))}
