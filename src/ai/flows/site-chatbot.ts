@@ -79,10 +79,10 @@ If the user asks for legal advice, you MUST explicitly state: "I am an AI assist
         const response = await ai.generate({
             model: 'googleai/gemini-3-flash-preview',
             prompt: [
-                { role: 'system', content: { text: systemPrompt } },
-                ...input.messages.map(m => ({ role: m.role, content: { text: m.content } })),
+                { role: 'system', content: [{ text: systemPrompt }] },
+                ...input.messages.map(m => ({ role: m.role, content: [{ text: m.content }] })),
                 // Add current context if needed
-                ...(input.currentPath ? [{ role: 'system', content: { text: `User is currently on page: ${input.currentPath}` } }] : [])
+                ...(input.currentPath ? [{ role: 'system', content: [{ text: `User is currently on page: ${input.currentPath}` }] }] : [])
             ] as any, // Cast to any to avoid strict typing issues with the message structure if needed
             tools: [navigateTool],
             config: {
