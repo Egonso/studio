@@ -136,7 +136,55 @@ export function SiteChatbotWidget() {
                                         ? 'bg-primary text-primary-foreground rounded-tr-none'
                                         : 'bg-muted text-foreground rounded-tl-none border'}
                 `}>
-                                    {msg.content}
+                                    {msg.role === 'model' ? (
+                                        // Render with citation links
+                                        (() => {
+                                            const parts = msg.content.split(/(\[\[(?:Art\.|Erw\.)\s*\d+\]\])/g);
+                                            return (
+                                                <span className="whitespace-pre-wrap">
+                                                    {parts.map((part, i) => {
+                                                        const matchArt = part.match(/\[\[Art\.\s*(\d+)\]\]/);
+                                                        const matchRec = part.match(/\[\[Erw\.\s*(\d+)\]\]/);
+
+                                                        if (matchArt) {
+                                                            const num = matchArt[1];
+                                                            return (
+                                                                <a
+                                                                    key={i}
+                                                                    href={`/gesetz#art_${num}`}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        router.push(`/gesetz#art_${num}`);
+                                                                    }}
+                                                                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                >
+                                                                    {part.replace('[[', '').replace(']]', '')}
+                                                                </a>
+                                                            );
+                                                        } else if (matchRec) {
+                                                            const num = matchRec[1];
+                                                            return (
+                                                                <a
+                                                                    key={i}
+                                                                    href={`/gesetz#rct_${num}`}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        router.push(`/gesetz#rct_${num}`);
+                                                                    }}
+                                                                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                >
+                                                                    {part.replace('[[', '').replace(']]', '')}
+                                                                </a>
+                                                            );
+                                                        }
+                                                        return part;
+                                                    })}
+                                                </span>
+                                            );
+                                        })()
+                                    ) : (
+                                        msg.content
+                                    )}
                                 </div>
                             </div>
                         ))}

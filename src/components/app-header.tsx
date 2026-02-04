@@ -57,6 +57,10 @@ export function AppHeader() {
             <BookOpen className="h-4 w-4" />
             Kurs
           </Link>
+          <Link href="/gesetz" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+            <BookOpen className="h-4 w-4" />
+            Gesetz
+          </Link>
           <Link href="/exam" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <GraduationCap className="h-4 w-4" />
             Zertifizierung
