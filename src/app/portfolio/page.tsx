@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { AppHeader } from "@/components/app-header";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { getActiveProjectId, createPortfolioProject, getPortfolioProjects, updatePortfolioProjectAssessment, addPortfolioDecision, getPortfolioDecisions, getFullProject } from "@/lib/data-service";
+import { getActiveProjectId, createPortfolioProject, getPortfolioProjects, updatePortfolioProjectAssessment, updatePortfolioProjectStatus, addPortfolioDecision, getPortfolioDecisions, getFullProject } from "@/lib/data-service";
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from "@/lib/types-portfolio";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -15,10 +15,43 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Save, TrendingUp, AlertTriangle, Shield, Check, FileText, Activity, Info } from "lucide-react";
+import { ArrowLeft, Plus, Save, TrendingUp, AlertTriangle, Shield, Check, FileText, Activity, Info, Target, ArrowRight, Lightbulb, Edit2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+// Quadrant types for goal-setting
+type Quadrant = 'high-value-low-risk' | 'high-value-high-risk' | 'low-value-low-risk' | 'low-value-high-risk' | null;
+
+// Recommendations based on current position and goal
+const getRecommendations = (currentValue: number, currentRisk: number, goalQuadrant: Quadrant): string[] => {
+    if (!goalQuadrant) return [];
+
+    const recommendations: string[] = [];
+    const isHighValue = currentValue >= 3;
+    const isHighRisk = currentRisk >= 3;
+
+    // If moving to low-risk quadrant
+    if (goalQuadrant.includes('low-risk') && isHighRisk) {
+        recommendations.push("→ Policies im Smart Policy Engine definieren");
+        recommendations.push("→ Human Oversight Struktur dokumentieren");
+        recommendations.push("→ AI Act Risikoklasse bestätigen und Maßnahmen ableiten");
+        recommendations.push("→ Datenschutz-Folgenabschätzung durchführen");
+    }
+
+    // If moving to high-value quadrant  
+    if (goalQuadrant.includes('high-value') && !isHighValue) {
+        recommendations.push("→ Business Case mit konkretem ROI dokumentieren");
+        recommendations.push("→ KPIs für Erfolgsmessung definieren");
+        recommendations.push("→ Stakeholder-Buy-in sichern");
+        recommendations.push("→ Pilotprojekt mit messbaren Ergebnissen planen");
+    }
+
+    // Status progression recommendations
+    recommendations.push("→ Status auf nächste Stufe setzen wenn Meilensteine erreicht");
+
+    return recommendations;
+};
 
 export default function PortfolioPage() {
     const { user, loading } = useAuth();
@@ -37,6 +70,9 @@ export default function PortfolioPage() {
     const [selectedProject, setSelectedProject] = useState<(AIProject & { assessment?: AIProjectAssessment }) | null>(null);
     const [decisions, setDecisions] = useState<AIProjectDecisionLog[]>([]);
     const [newDecision, setNewDecision] = useState<Partial<AIProjectDecisionLog>>({ type: 'start' });
+
+    // Goal-Setting Matrix State
+    const [goalQuadrant, setGoalQuadrant] = useState<Quadrant>(null);
 
     useEffect(() => {
         if (!loading && !user) {
@@ -167,34 +203,121 @@ export default function PortfolioPage() {
                             </div>
 
                             <div className="grid gap-6 md:grid-cols-2">
-                                <Card className="h-[500px]">
-                                    <CardHeader><CardTitle>Portfolio Matrix (Value vs. Risk)</CardTitle><CardDescription>Y-Achse: Business Value, X-Achse: Governance Risiko</CardDescription></CardHeader>
-                                    <CardContent className="h-[400px] relative border rounded-md m-4 bg-slate-50 dark:bg-slate-900">
-                                        {/* Grid Lines */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Target className="h-5 w-5 text-indigo-600" />
+                                            Portfolio Matrix (Klicken Sie auf Ihr Ziel)
+                                        </CardTitle>
+                                        <CardDescription>Klicken Sie auf einen Quadranten um Empfehlungen zu erhalten</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="h-[400px] relative border rounded-md bg-slate-50 dark:bg-slate-900">
+                                        {/* Clickable Quadrants */}
                                         <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                                            <div className="border-r border-b border-dashed border-gray-300 p-2 text-xs text-gray-400">Low Value / Low Risk</div>
-                                            <div className="border-b border-dashed border-gray-300 p-2 text-xs text-gray-400 text-right">Low Value / High Risk</div>
-                                            <div className="border-r border-dashed border-gray-300 p-2 text-xs text-gray-400 flex items-end">High Value / Low Risk</div>
-                                            <div className="p-2 text-xs text-gray-400 flex items-end justify-end">High Value / High Risk</div>
-                                        </div>
-                                        {/* Labels */}
-                                        <div className="absolute -left-8 top-1/2 -rotate-90 text-sm font-bold text-muted-foreground">Business Value</div>
-                                        <div className="absolute bottom-[-2rem] left-1/2 -translate-x-1/2 text-sm font-bold text-muted-foreground">Governance Risiko</div>
+                                            {/* Low Value / Low Risk */}
+                                            <div
+                                                className={cn(
+                                                    "border-r border-b border-dashed border-gray-300 p-3 cursor-pointer transition-all hover:bg-yellow-50",
+                                                    goalQuadrant === 'low-value-low-risk' && "bg-yellow-100 ring-2 ring-yellow-400"
+                                                )}
+                                                onClick={() => setGoalQuadrant('low-value-low-risk')}
+                                            >
+                                                <div className="text-xs font-semibold text-gray-500">Niedriger Wert</div>
+                                                <div className="text-xs text-gray-400">Niedriges Risiko</div>
+                                                <div className="mt-2 text-xs text-yellow-600 font-medium">→ Pausieren</div>
+                                            </div>
 
-                                        {/* Plot Points */}
+                                            {/* Low Value / High Risk */}
+                                            <div
+                                                className={cn(
+                                                    "border-b border-dashed border-gray-300 p-3 cursor-pointer transition-all hover:bg-red-50",
+                                                    goalQuadrant === 'low-value-high-risk' && "bg-red-100 ring-2 ring-red-400"
+                                                )}
+                                                onClick={() => setGoalQuadrant('low-value-high-risk')}
+                                            >
+                                                <div className="text-xs font-semibold text-gray-500 text-right">Niedriger Wert</div>
+                                                <div className="text-xs text-gray-400 text-right">Hohes Risiko</div>
+                                                <div className="mt-2 text-xs text-red-600 font-medium text-right">→ Stoppen?</div>
+                                            </div>
+
+                                            {/* High Value / Low Risk - GOAL */}
+                                            <div
+                                                className={cn(
+                                                    "border-r border-dashed border-gray-300 p-3 cursor-pointer transition-all hover:bg-green-50",
+                                                    goalQuadrant === 'high-value-low-risk' && "bg-green-100 ring-2 ring-green-400"
+                                                )}
+                                                onClick={() => setGoalQuadrant('high-value-low-risk')}
+                                            >
+                                                <div className="text-xs font-semibold text-gray-500 flex items-end h-full">Hoher Wert</div>
+                                                <div className="absolute bottom-3 left-3">
+                                                    <div className="text-xs text-gray-400">Niedriges Risiko</div>
+                                                    <div className="text-xs text-green-600 font-bold flex items-center gap-1">
+                                                        🎯 ZIEL!
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* High Value / High Risk */}
+                                            <div
+                                                className={cn(
+                                                    "p-3 cursor-pointer transition-all hover:bg-orange-50",
+                                                    goalQuadrant === 'high-value-high-risk' && "bg-orange-100 ring-2 ring-orange-400"
+                                                )}
+                                                onClick={() => setGoalQuadrant('high-value-high-risk')}
+                                            >
+                                                <div className="text-xs font-semibold text-gray-500 text-right flex items-end justify-end h-full">Hoher Wert</div>
+                                                <div className="absolute bottom-3 right-3">
+                                                    <div className="text-xs text-gray-400 text-right">Hohes Risiko</div>
+                                                    <div className="text-xs text-orange-600 font-medium text-right">→ Braucht Arbeit</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Labels */}
+                                        <div className="absolute -left-8 top-1/2 -rotate-90 text-xs font-bold text-muted-foreground whitespace-nowrap">Business Value ↑</div>
+                                        <div className="absolute bottom-[-1.5rem] left-1/2 -translate-x-1/2 text-xs font-bold text-muted-foreground">Governance Risiko →</div>
+
+                                        {/* Project Points */}
                                         {projects.map((p) => {
                                             const pos = getMatrixPosition(p.assessment?.businessValue || 1, p.assessment?.governanceRisk || 1);
                                             return (
                                                 <div
                                                     key={p.id}
-                                                    className="absolute w-4 h-4 rounded-full bg-primary hover:scale-150 transition-transform cursor-pointer shadow-md"
+                                                    className="absolute w-5 h-5 rounded-full bg-blue-600 hover:scale-125 transition-transform cursor-pointer shadow-lg border-2 border-white z-10 flex items-center justify-center"
                                                     style={{ bottom: pos.bottom, left: pos.left, transform: 'translate(-50%, 50%)' }}
-                                                    title={`${p.title} (Val: ${p.assessment?.businessValue}, Risk: ${p.assessment?.governanceRisk})`}
+                                                    title={`${p.title} (Wert: ${p.assessment?.businessValue}, Risiko: ${p.assessment?.governanceRisk})`}
                                                     onClick={() => { setSelectedProject(p); loadDecisions(p.id); setActiveTab('details'); }}
-                                                />
+                                                >
+                                                    <span className="text-[8px] text-white font-bold">{p.title.substring(0, 2).toUpperCase()}</span>
+                                                </div>
                                             );
                                         })}
                                     </CardContent>
+
+                                    {/* Recommendations Panel */}
+                                    {goalQuadrant && projects.length > 0 && (
+                                        <CardFooter className="flex-col items-start border-t bg-slate-50/50 p-4">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Lightbulb className="h-4 w-4 text-amber-500" />
+                                                <span className="font-semibold text-sm">Empfehlungen für Ihr Ziel:</span>
+                                                <Button variant="ghost" size="sm" className="ml-auto h-6 px-2" onClick={() => setGoalQuadrant(null)}>
+                                                    Schließen
+                                                </Button>
+                                            </div>
+                                            <ul className="space-y-1.5 text-sm text-slate-700">
+                                                {getRecommendations(
+                                                    projects[0]?.assessment?.businessValue || 3,
+                                                    projects[0]?.assessment?.governanceRisk || 3,
+                                                    goalQuadrant
+                                                ).map((rec, i) => (
+                                                    <li key={i} className="flex items-start gap-2">
+                                                        <ArrowRight className="h-3 w-3 mt-1 text-indigo-500 flex-shrink-0" />
+                                                        {rec.replace('→ ', '')}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </CardFooter>
+                                    )}
                                 </Card>
 
                                 <Card>
@@ -325,18 +448,116 @@ export default function PortfolioPage() {
                                 <div className="space-y-6">
                                     <Card>
                                         <CardHeader>
-                                            <div className="flex justify-between">
+                                            <div className="flex justify-between items-start">
                                                 <div>
                                                     <CardTitle>{selectedProject.title}</CardTitle>
                                                     <CardDescription>{selectedProject.description}</CardDescription>
                                                 </div>
-                                                <Badge className="h-fit">{selectedProject.status}</Badge>
+                                                {/* Editable Status Dropdown */}
+                                                <div className="flex items-center gap-2">
+                                                    <Edit2 className="h-3 w-3 text-muted-foreground" />
+                                                    <Select
+                                                        value={selectedProject.status}
+                                                        onValueChange={async (v: 'idea' | 'poc' | 'pilot' | 'rollout' | 'live') => {
+                                                            await updatePortfolioProjectStatus(selectedProject.id, v);
+                                                            // Auto-log the status change
+                                                            await addPortfolioDecision(selectedProject.id, {
+                                                                type: 'continue',
+                                                                justification: `Status geändert: ${selectedProject.status} → ${v}`,
+                                                                supervisor: user?.email || 'Unknown',
+                                                                approvedBy: user?.email || 'Unknown',
+                                                            });
+                                                            setSelectedProject({ ...selectedProject, status: v });
+                                                            loadProjects();
+                                                            loadDecisions(selectedProject.id);
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className="w-[180px]">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="idea">💡 Idee</SelectItem>
+                                                            <SelectItem value="poc">🧪 PoC</SelectItem>
+                                                            <SelectItem value="pilot">🚀 Pilot</SelectItem>
+                                                            <SelectItem value="rollout">📈 Rollout</SelectItem>
+                                                            <SelectItem value="live">✅ Live</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             </div>
                                         </CardHeader>
-                                        <CardContent className="grid md:grid-cols-3 gap-4">
-                                            <div><Label className="text-xs text-muted-foreground">Owner</Label><p>{selectedProject.businessOwner}</p></div>
-                                            <div><Label className="text-xs text-muted-foreground">Department</Label><p>{selectedProject.department}</p></div>
-                                            <div><Label className="text-xs text-muted-foreground">Risk Class</Label><p>{selectedProject.aiActRiskClass || 'Nicht klassifiziert'}</p></div>
+                                        <CardContent className="space-y-6">
+                                            <div className="grid md:grid-cols-3 gap-4">
+                                                <div><Label className="text-xs text-muted-foreground">Owner</Label><p>{selectedProject.businessOwner}</p></div>
+                                                <div><Label className="text-xs text-muted-foreground">Department</Label><p>{selectedProject.department}</p></div>
+                                                <div><Label className="text-xs text-muted-foreground">Risk Class</Label><p>{selectedProject.aiActRiskClass || 'Nicht klassifiziert'}</p></div>
+                                            </div>
+
+                                            {/* Editable Assessment Sliders */}
+                                            <div className="border-t pt-4">
+                                                <h4 className="font-medium mb-4 flex items-center gap-2">
+                                                    <Target className="h-4 w-4 text-indigo-600" />
+                                                    Bewertung anpassen
+                                                </h4>
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <div className="flex justify-between">
+                                                            <Label>Business Value</Label>
+                                                            <span className="font-bold text-green-600">{selectedProject.assessment?.businessValue || 3}/5</span>
+                                                        </div>
+                                                        <Slider
+                                                            min={1}
+                                                            max={5}
+                                                            step={1}
+                                                            value={[selectedProject.assessment?.businessValue || 3]}
+                                                            onValueChange={async (v) => {
+                                                                const newAssessment = {
+                                                                    businessValue: v[0],
+                                                                    implementationEffort: selectedProject.assessment?.implementationEffort || 3,
+                                                                    governanceRisk: selectedProject.assessment?.governanceRisk || 3
+                                                                };
+                                                                await updatePortfolioProjectAssessment(selectedProject.id, newAssessment);
+                                                                setSelectedProject({
+                                                                    ...selectedProject,
+                                                                    assessment: { ...selectedProject.assessment, ...newAssessment, projectId: selectedProject.id, updatedAt: new Date() } as any
+                                                                });
+                                                                loadProjects();
+                                                            }}
+                                                        />
+                                                        <p className="text-xs text-muted-foreground">Höher = Mehr Wert für das Unternehmen</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <div className="flex justify-between">
+                                                            <Label>Governance Risiko</Label>
+                                                            <span className={cn(
+                                                                "font-bold",
+                                                                (selectedProject.assessment?.governanceRisk || 3) >= 4 ? "text-red-600" :
+                                                                    (selectedProject.assessment?.governanceRisk || 3) >= 3 ? "text-orange-600" : "text-green-600"
+                                                            )}>{selectedProject.assessment?.governanceRisk || 3}/5</span>
+                                                        </div>
+                                                        <Slider
+                                                            min={1}
+                                                            max={5}
+                                                            step={1}
+                                                            value={[selectedProject.assessment?.governanceRisk || 3]}
+                                                            onValueChange={async (v) => {
+                                                                const newAssessment = {
+                                                                    businessValue: selectedProject.assessment?.businessValue || 3,
+                                                                    implementationEffort: selectedProject.assessment?.implementationEffort || 3,
+                                                                    governanceRisk: v[0]
+                                                                };
+                                                                await updatePortfolioProjectAssessment(selectedProject.id, newAssessment);
+                                                                setSelectedProject({
+                                                                    ...selectedProject,
+                                                                    assessment: { ...selectedProject.assessment, ...newAssessment, projectId: selectedProject.id, updatedAt: new Date() } as any
+                                                                });
+                                                                loadProjects();
+                                                            }}
+                                                        />
+                                                        <p className="text-xs text-muted-foreground">Niedriger = Weniger Compliance-Risiken</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </CardContent>
                                     </Card>
 

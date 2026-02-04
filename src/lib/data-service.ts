@@ -569,6 +569,17 @@ export async function updatePortfolioProjectAssessment(portfolioProjectId: strin
     await setDoc(docRef, { assessment: { ...assessment, updatedAt: serverTimestamp() } }, { merge: true });
 }
 
+export async function updatePortfolioProjectStatus(portfolioProjectId: string, status: 'idea' | 'poc' | 'pilot' | 'rollout' | 'live') {
+    const userId = await getUserId();
+    const projectId = getActiveProjectId();
+    if (!userId || !projectId) throw new Error("User or project not identified");
+
+    const db = await getDb();
+    const { doc, updateDoc } = await import('firebase/firestore');
+    const docRef = doc(db, `users/${userId}/projects/${projectId}/portfolio`, portfolioProjectId);
+    await updateDoc(docRef, { status });
+}
+
 export async function addPortfolioDecision(portfolioProjectId: string, decision: Omit<AIProjectDecisionLog, 'id' | 'projectId' | 'date'>) {
     const userId = await getUserId();
     const projectId = getActiveProjectId();
