@@ -107,117 +107,243 @@ export function SiteChatbotWidget() {
     }
 
     return (
-        <Card className="fixed bottom-4 right-4 w-[350px] sm:w-[400px] h-[500px] shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom-2 duration-300 border-primary/20">
-            <CardHeader className="p-3 border-b flex flex-row items-center justify-between bg-muted/30">
-                <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 p-1 rounded-full">
-                        <Bot className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-sm font-medium">EuKIGesetz Assistant</CardTitle>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
-                    <Minimize2 className="h-4 w-4" />
-                    <span className="sr-only">Minimieren</span>
+// ... (imports remain)
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    import { Textarea } from "@/components/ui/textarea";
+
+    // ... (interfaces remain)
+
+    export function SiteChatbotWidget() {
+        const [isOpen, setIsOpen] = useState(false);
+        const [messages, setMessages] = useState<Message[]>([
+            { role: 'model', content: 'Hallo! Ich bin dein AI-Assistent für das EuKIGesetz Studio. Wie kann ich dir helfen?' }
+        ]);
+        const [inputValue, setInputValue] = useState('');
+        const [isLoading, setIsLoading] = useState(false);
+
+        // Feedback State
+        const [feedbackType, setFeedbackType] = useState('feature'); // feature, bug, support
+        const [feedbackText, setFeedbackText] = useState('');
+        const [feedbackSent, setFeedbackSent] = useState(false);
+
+        const scrollAreaRef = useRef<HTMLDivElement>(null);
+        const pathname = usePathname();
+        const router = useRouter();
+
+        // ... (useEffect for scroll remains)
+        // ... (handleSendMessage remains)
+        // ... (handleKeyDown remains)
+
+        const handleSendFeedback = async () => {
+            if (!feedbackText.trim()) return;
+            setFeedbackSent(true);
+            // Mock sending feedback for now (or implement server action)
+            console.log("Feedback sent:", { type: feedbackType, text: feedbackText, path: pathname });
+
+            setTimeout(() => {
+                setFeedbackText('');
+                setFeedbackSent(false); // Reset after delay or keep success state
+                // Switch back to chat or show toast
+            }, 2000);
+        };
+
+        if (!isOpen) {
+            return (
+                <Button
+                    onClick={() => setIsOpen(true)}
+                    className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg z-50 p-0 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
+                >
+                    <MessageCircle className="h-8 w-8 text-primary-foreground" />
+                    <span className="sr-only">Chatbot öffnen</span>
                 </Button>
-            </CardHeader>
+            );
+        }
 
-            <CardContent className="flex-1 p-0 overflow-hidden relative">
-                <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
-                    <div className="flex flex-col gap-3">
-                        {messages.map((msg, idx) => (
-                            <div
-                                key={idx}
-                                className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'
-                                    }`}
-                            >
-                                <div className={`
-                  p-2 text-sm rounded-lg shadow-sm
-                  ${msg.role === 'user'
-                                        ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                        : 'bg-muted text-foreground rounded-tl-none border'}
-                `}>
-                                    {msg.role === 'model' ? (
-                                        // Render with citation links
-                                        (() => {
-                                            const parts = msg.content.split(/(\[\[(?:Art\.|Erw\.)\s*\d+\]\])/g);
-                                            return (
-                                                <span className="whitespace-pre-wrap">
-                                                    {parts.map((part, i) => {
-                                                        const matchArt = part.match(/\[\[Art\.\s*(\d+)\]\]/);
-                                                        const matchRec = part.match(/\[\[Erw\.\s*(\d+)\]\]/);
-
-                                                        if (matchArt) {
-                                                            const num = matchArt[1];
-                                                            return (
-                                                                <a
-                                                                    key={i}
-                                                                    href={`/gesetz#art_${num}`}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        router.push(`/gesetz#art_${num}`);
-                                                                    }}
-                                                                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                                                                >
-                                                                    {part.replace('[[', '').replace(']]', '')}
-                                                                </a>
-                                                            );
-                                                        } else if (matchRec) {
-                                                            const num = matchRec[1];
-                                                            return (
-                                                                <a
-                                                                    key={i}
-                                                                    href={`/gesetz#rct_${num}`}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault();
-                                                                        router.push(`/gesetz#rct_${num}`);
-                                                                    }}
-                                                                    className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                                                                >
-                                                                    {part.replace('[[', '').replace(']]', '')}
-                                                                </a>
-                                                            );
-                                                        }
-                                                        return part;
-                                                    })}
-                                                </span>
-                                            );
-                                        })()
-                                    ) : (
-                                        msg.content
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div className="flex gap-2 self-start animate-pulse">
-                                <div className="bg-muted p-2 rounded-lg rounded-tl-none text-xs text-muted-foreground border">
-                                    Tippt...
-                                </div>
-                            </div>
-                        )}
-                        {/* Simple Legal Disclaimer Footer in chat */}
-                        <div className="mt-4 text-[10px] text-center text-muted-foreground opacity-70">
-                            Hinweis: AI-Antworten dienen nur zur Information und stellen keine Rechtsberatung dar.
+        return (
+            <Card className="fixed bottom-4 right-4 w-[350px] sm:w-[400px] h-[550px] shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom-2 duration-300 border-primary/20">
+                <CardHeader className="p-3 border-b flex flex-row items-center justify-between bg-muted/30">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 p-1 rounded-full">
+                            <Bot className="h-5 w-5 text-primary" />
                         </div>
+                        <CardTitle className="text-sm font-medium">EuKIGesetz Assistant</CardTitle>
                     </div>
-                </ScrollArea>
-            </CardContent>
-
-            <CardFooter className="p-3 border-t bg-background">
-                <div className="flex w-full gap-2">
-                    <Input
-                        placeholder="Frag mich etwas..."
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="flex-1"
-                        autoFocus
-                    />
-                    <Button size="icon" onClick={handleSendMessage} disabled={isLoading || !inputValue.trim()}>
-                        <Send className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
+                        <Minimize2 className="h-4 w-4" />
+                        <span className="sr-only">Minimieren</span>
                     </Button>
-                </div>
-            </CardFooter>
-        </Card>
-    );
-}
+                </CardHeader>
+
+                <Tabs defaultValue="chat" className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-4 pt-2">
+                        <TabsList className="w-full grid grid-cols-2">
+                            <TabsTrigger value="chat">Chat</TabsTrigger>
+                            <TabsTrigger value="support">Support & Feedback</TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-0 m-0 data-[state=inactive]:hidden text-sm">
+                        <CardContent className="flex-1 p-0 overflow-hidden relative">
+                            <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
+                                <div className="flex flex-col gap-3 pb-4">
+                                    {messages.map((msg, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`flex gap-2 max-w-[85%] ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'
+                                                }`}
+                                        >
+                                            <div className={`
+                        p-2 text-sm rounded-lg shadow-sm
+                        ${msg.role === 'user'
+                                                    ? 'bg-primary text-primary-foreground rounded-tr-none'
+                                                    : 'bg-muted text-foreground rounded-tl-none border'}
+                        `}>
+                                                {msg.role === 'model' ? (
+                                                    // Render with citation links
+                                                    (() => {
+                                                        const parts = msg.content.split(/(\[\[(?:Art\.|Erw\.)\s*\d+\]\])/g);
+                                                        return (
+                                                            <span className="whitespace-pre-wrap">
+                                                                {parts.map((part, i) => {
+                                                                    const matchArt = part.match(/\[\[Art\.\s*(\d+)\]\]/);
+                                                                    const matchRec = part.match(/\[\[Erw\.\s*(\d+)\]\]/);
+
+                                                                    if (matchArt) {
+                                                                        const num = matchArt[1];
+                                                                        return (
+                                                                            <a
+                                                                                key={i}
+                                                                                href={`/gesetz#art_${num}`}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault();
+                                                                                    router.push(`/gesetz#art_${num}`);
+                                                                                }}
+                                                                                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                            >
+                                                                                {part.replace('[[', '').replace(']]', '')}
+                                                                            </a>
+                                                                        );
+                                                                    } else if (matchRec) {
+                                                                        const num = matchRec[1];
+                                                                        return (
+                                                                            <a
+                                                                                key={i}
+                                                                                href={`/gesetz#rct_${num}`}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault();
+                                                                                    router.push(`/gesetz#rct_${num}`);
+                                                                                }}
+                                                                                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                            >
+                                                                                {part.replace('[[', '').replace(']]', '')}
+                                                                            </a>
+                                                                        );
+                                                                    }
+                                                                    return part;
+                                                                })}
+                                                            </span>
+                                                        );
+                                                    })()
+                                                ) : (
+                                                    msg.content
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isLoading && (
+                                        <div className="flex gap-2 self-start animate-pulse">
+                                            <div className="bg-muted p-2 rounded-lg rounded-tl-none text-xs text-muted-foreground border">
+                                                Tippt...
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="mt-4 text-[10px] text-center text-muted-foreground opacity-70">
+                                        Hinweis: AI-Antworten dienen nur zur Information und stellen keine Rechtsberatung dar.
+                                    </div>
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+
+                        <CardFooter className="p-3 border-t bg-background mt-auto">
+                            <div className="flex w-full gap-2">
+                                <Input
+                                    placeholder="Frag mich etwas..."
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    className="flex-1"
+                                    autoFocus
+                                />
+                                <Button size="icon" onClick={handleSendMessage} disabled={isLoading || !inputValue.trim()}>
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </CardFooter>
+                    </TabsContent>
+
+                    <TabsContent value="support" className="flex-1 p-4 overflow-y-auto data-[state=inactive]:hidden">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <h3 className="font-medium">Feedback & Support</h3>
+                                <p className="text-xs text-muted-foreground">
+                                    Helfen Sie uns, EuKIGesetz Studio zu verbessern. Reichen Sie Feature-Wünsche ein oder melden Sie Fehler.
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-2">
+                                {['feature', 'bug', 'support'].map((type) => (
+                                    <Button
+                                        key={type}
+                                        variant={feedbackType === type ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setFeedbackType(type)}
+                                        className="capitalize"
+                                    >
+                                        {type === 'feature' ? 'Feature' : type === 'bug' ? 'Bug' : 'Hilfe'}
+                                    </Button>
+                                ))}
+                            </div>
+
+                            <Textarea
+                                placeholder={
+                                    feedbackType === 'feature' ? "Ich wünsche mir..." :
+                                        feedbackType === 'bug' ? "Hier funktioniert etwas nicht..." :
+                                            "Ich brauche Hilfe bei..."
+                                }
+                                className="min-h-[120px]"
+                                value={feedbackText}
+                                onChange={(e) => setFeedbackText(e.target.value)}
+                            />
+
+                            {feedbackSent ? (
+                                <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-md text-sm text-center font-medium">
+                                    Danke! Wir haben deine Nachricht erhalten.
+                                </div>
+                            ) : (
+                                <Button className="w-full" onClick={handleSendFeedback} disabled={!feedbackText.trim()}>
+                                    Absenden
+                                </Button>
+                            )}
+
+                            <div className="mt-6 pt-6 border-t">
+                                <h4 className="font-medium text-sm mb-2">Roadmap & Status</h4>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Sehen Sie, woran wir gerade arbeiten. (Admin-Center Link coming soon)
+                                </p>
+                                <div className="space-y-2">
+                                    <div className="text-xs flex justify-between items-center bg-muted p-2 rounded">
+                                        <span>Gesetz-Viewer Mobile</span>
+                                        <span className="text-green-600 font-bold bg-green-100 dark:bg-green-900 px-1.5 rounded">Live</span>
+                                    </div>
+                                    <div className="text-xs flex justify-between items-center bg-muted p-2 rounded">
+                                        <span>Deep-Linking Zitate</span>
+                                        <span className="text-blue-600 font-bold bg-blue-100 dark:bg-blue-900 px-1.5 rounded">In Arbeit</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </Card>
+        );
+    }
