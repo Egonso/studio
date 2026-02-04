@@ -1,4 +1,3 @@
-
 'use server';
 
 import { ai } from '@/ai/genkit';
@@ -124,38 +123,30 @@ IMPORTANT: You must always maintain a helpful but professional tone.
 If the model is asked for legal advice, explicitly state: "I am an AI assistant. My responses are for informational purposes only and do not constitute legal advice."
     `;
 
-        // Call the model
-        // Note: We use 'googleai/gemini-3-flash-preview' as requested.
-        // Prepare history and prompt
+        // Prepare full message history including system prompt
         const messages = input.messages.map(m => ({
             role: m.role,
             content: [{ text: m.content }]
         }));
 
-        // Extract the last message as the prompt
-        const lastMessage = messages[messages.length - 1];
-        const history = messages.slice(0, messages.length - 1);
-
-        // Add System Prompt to history (Gemini supports system instructions via history or config, 
-        // but 'system' role in history is the standard Genkit way for chat models that support it)
+        // System Prompt
         const systemMessage = { role: 'system', content: [{ text: systemPrompt }] };
 
-        // Context message (if path is present) - add as a system message before the last prompt or in history
+        // Context message (if path is present)
         const contextMessage = input.currentPath
             ? { role: 'system', content: [{ text: `User is currently on page: ${input.currentPath}` }] }
             : null;
 
-        const fullHistory = [
+        const fullMessages = [
             systemMessage,
-            ...history,
-            ...(contextMessage ? [contextMessage] : [])
-        ] as any[]; // Type cast to satisfy generic history requirements if strictly typed
+            ...(contextMessage ? [contextMessage] : []),
+            ...messages
+        ] as any[];
 
         // Call the model
         const response = await ai.generate({
             model: 'googleai/gemini-3-flash-preview',
-            history: fullHistory,
-            prompt: lastMessage.content, // Pass the content parts directly
+            messages: fullMessages,
             tools: [navigateTool],
             config: {
                 temperature: 0.5,
