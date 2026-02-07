@@ -27,6 +27,18 @@ Sicher entwickeln, auf Preview deployen, erst nach Abnahme in `main` mergen.
 - Mindestens 1 Review.
 - Status Checks müssen grün sein.
 
+## Branch-Protection anwenden (Admin)
+
+```bash
+cd /Users/zoltangal/Desktop/METAProjekt/Programmieren/studio
+
+# PR-Schutz ohne required checks
+./scripts/setup_github_branch_protection.sh Egonso/studio main
+
+# PR-Schutz mit required checks (Beispiel)
+./scripts/setup_github_branch_protection.sh Egonso/studio main "lint" "typecheck"
+```
+
 ## Empfohlene Status Checks
 
 - `npm run lint`
@@ -49,4 +61,3 @@ Vor größeren Merges optional Tag setzen:
 
 - `git tag pre-register-first-YYYYMMDD`
 - `git push origin pre-register-first-YYYYMMDD`
-
