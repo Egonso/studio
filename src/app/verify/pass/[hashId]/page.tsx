@@ -3,26 +3,21 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, XCircle, CheckCircle2, Shield } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UseCasePassCard } from "@/components/register/use-case-pass-card";
-import type { UseCaseCard } from "@/lib/register-first";
-import {
-  getByPublicHashIdFirestore,
-  createStaticToolRegistryService,
-} from "@/lib/register-first";
+import { RegisterStatusBadge } from "@/components/register/status-badge";
+import type { PublicUseCaseIndexEntry } from "@/lib/register-first";
+import { lookupPublicUseCase } from "@/lib/register-first/register-repository";
 
-type LoadingState = "loading" | "found" | "not_found" | "error" | "private";
-
-const toolRegistry = createStaticToolRegistryService();
+type LoadingState = "loading" | "found" | "not_found" | "error";
 
 export default function VerifyPassPage() {
   const params = useParams();
   const hashId = params.hashId as string;
 
   const [state, setState] = useState<LoadingState>("loading");
-  const [card, setCard] = useState<UseCaseCard | null>(null);
-  const [resolvedToolName, setResolvedToolName] = useState<string | null>(null);
+  const [entry, setEntry] = useState<PublicUseCaseIndexEntry | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,30 +26,16 @@ export default function VerifyPassPage() {
       return;
     }
 
-    const fetchCard = async () => {
+    const fetchEntry = async () => {
       try {
-        const result = await getByPublicHashIdFirestore(hashId);
+        const result = await lookupPublicUseCase(hashId);
 
         if (!result) {
           setState("not_found");
           return;
         }
 
-        if (!result.card.isPublicVisible) {
-          setState("private");
-          return;
-        }
-
-        setCard(result.card);
-
-        // Resolve tool name
-        if (result.card.toolId && result.card.toolId !== "other") {
-          const tool = await toolRegistry.getToolById(result.card.toolId);
-          if (tool) {
-            setResolvedToolName(tool.productName);
-          }
-        }
-
+        setEntry(result);
         setState("found");
       } catch (err) {
         console.error("Verify pass error:", err);
@@ -63,7 +44,7 @@ export default function VerifyPassPage() {
       }
     };
 
-    void fetchCard();
+    void fetchEntry();
   }, [hashId]);
 
   if (state === "loading") {
@@ -102,27 +83,6 @@ export default function VerifyPassPage() {
     );
   }
 
-  if (state === "private") {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
-        <Card className="w-full max-w-md border-amber-200 shadow-lg">
-          <CardHeader className="pb-2 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-              <Shield className="h-6 w-6 text-amber-600" />
-            </div>
-            <CardTitle className="text-xl text-amber-700">Nicht oeffentlich</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="mb-6 text-muted-foreground">
-              Dieser Use-Case Pass ist nicht als oeffentlich sichtbar markiert.
-              Der Ersteller kann die Sichtbarkeit im Register aendern.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (state === "error") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
@@ -144,6 +104,18 @@ export default function VerifyPassPage() {
   }
 
   // state === "found"
+  const dataCategoryLabels: Record<string, string> = {
+    NONE: "Keine besonderen Daten",
+    INTERNAL: "Interne Daten",
+    PERSONAL: "Personenbezogene Daten",
+    SENSITIVE: "Sensible Daten",
+  };
+
+  const dataCategoryColors: Record<string, string> = {
+    PERSONAL: "border-transparent bg-amber-100 text-amber-900 hover:bg-amber-100/80",
+    SENSITIVE: "border-transparent bg-red-100 text-red-900 hover:bg-red-100/80",
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
       <div className="mb-8 text-center">
@@ -167,8 +139,58 @@ export default function VerifyPassPage() {
           </CardHeader>
         </Card>
 
-        {card && (
-          <UseCasePassCard card={card} resolvedToolName={resolvedToolName} />
+        {entry && (
+          <Card className="w-full max-w-md border-2">
+            <CardHeader className="space-y-2 pb-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1">
+                  <CardTitle className="text-base leading-tight">{entry.purpose}</CardTitle>
+                  <p className="font-mono text-xs text-muted-foreground">
+                    {entry.globalUseCaseId}
+                  </p>
+                </div>
+                <RegisterStatusBadge status={entry.status} />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <Badge variant="outline" className="text-xs">
+                  v{entry.formatVersion}
+                </Badge>
+                {entry.dataCategory && (
+                  <Badge
+                    variant="outline"
+                    className={dataCategoryColors[entry.dataCategory] ?? ""}
+                  >
+                    {dataCategoryLabels[entry.dataCategory] ?? entry.dataCategory}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="divide-y text-sm">
+              <div className="flex items-baseline justify-between gap-4 py-1">
+                <span className="shrink-0 text-xs font-medium text-muted-foreground">Tool</span>
+                <span className="text-right text-sm">{entry.toolName}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-1">
+                <span className="shrink-0 text-xs font-medium text-muted-foreground">Public Hash</span>
+                <span className="text-right font-mono text-sm">{entry.publicHashId}</span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-1">
+                <span className="shrink-0 text-xs font-medium text-muted-foreground">Erstellt</span>
+                <span className="text-right text-sm">
+                  {new Date(entry.createdAt).toLocaleDateString("de-DE")}
+                </span>
+              </div>
+              {entry.verification && (
+                <div className="flex items-baseline justify-between gap-4 py-1">
+                  <span className="shrink-0 text-xs font-medium text-muted-foreground">Verifikation</span>
+                  <span className="text-right text-sm">
+                    {entry.verification.isReal ? "Realer Einsatz" : "Test/Demo"}
+                    {entry.verification.isCurrent ? " (aktuell)" : ""}
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
       </div>
 
