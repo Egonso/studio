@@ -6,9 +6,10 @@ import { PlusSquare } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
-import { getActiveProjectId } from "@/lib/active-project-client";
+import { getActiveProjectId } from "@/lib/data-service";
 import {
   buildCaptureHref,
+  buildStandaloneCaptureHref,
   isHybridEntryEnabled,
 } from "@/lib/register-first/entry-links";
 import { registerFirstFlags } from "@/lib/register-first/flags";
@@ -34,7 +35,13 @@ export function RegisterHybridEntryLauncher() {
 
   const projectId = searchParams.get("projectId") ?? getActiveProjectId();
 
-  const captureHref = useMemo(() => buildCaptureHref(projectId), [projectId]);
+  const captureHref = useMemo(
+    () =>
+      registerFirstFlags.standaloneMode
+        ? buildStandaloneCaptureHref()
+        : buildCaptureHref(projectId),
+    [projectId],
+  );
 
   const isHybridEnabled = isHybridEntryEnabled(registerFirstFlags);
 

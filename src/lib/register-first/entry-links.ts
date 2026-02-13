@@ -29,6 +29,14 @@ export function buildVerifyPassAbsoluteUrl(
   return `${base}/verify/pass/${encodeURIComponent(publicHashId)}`;
 }
 
+export function buildStandaloneCaptureHref(): string {
+  return "/capture";
+}
+
+export function buildMyRegisterHref(): string {
+  return "/my-register";
+}
+
 export function isHybridEntryEnabled(flags: RegisterFirstFeatureFlags): boolean {
   return flags.enabled && flags.hybridEntry;
 }

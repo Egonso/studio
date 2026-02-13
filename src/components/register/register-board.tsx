@@ -42,6 +42,7 @@ import {
 } from "@/lib/register-first";
 import { RegisterStatusBadge } from "./status-badge";
 import { registerFirstFlags } from "@/lib/register-first/flags";
+import { registerService } from "@/lib/register-first/register-service";
 
 const toolRegistry = createStaticToolRegistryService();
 
@@ -54,6 +55,7 @@ const dataCategoryLabels: Record<string, string> = {
 
 interface RegisterBoardProps {
   projectId?: string;
+  mode?: "dashboard" | "standalone";
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
@@ -173,7 +175,8 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-export function RegisterBoard({ projectId }: RegisterBoardProps) {
+export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardProps) {
+  const isStandalone = mode === "standalone";
   const { toast } = useToast();
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -199,11 +202,17 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
     setError(null);
 
     try {
-      const items = await registerFirstService.listUseCases(projectId, {
-        status: statusFilter === "ALL" ? undefined : statusFilter,
-        searchText: searchQuery,
-        limit: 150,
-      });
+      const items = isStandalone
+        ? await registerService.listUseCases(undefined, {
+            status: statusFilter === "ALL" ? undefined : statusFilter,
+            searchText: searchQuery,
+            limit: 150,
+          })
+        : await registerFirstService.listUseCases(projectId, {
+            status: statusFilter === "ALL" ? undefined : statusFilter,
+            searchText: searchQuery,
+            limit: 150,
+          });
       setUseCases(items);
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
@@ -217,7 +226,7 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [projectId, searchQuery, statusFilter]);
+  }, [isStandalone, projectId, searchQuery, statusFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -244,12 +253,20 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
     setUpdateErrorById((prev) => ({ ...prev, [card.useCaseId]: undefined }));
 
     try {
-      await registerFirstService.updateUseCaseStatusManual({
-        projectId,
-        useCaseId: card.useCaseId,
-        nextStatus,
-        actor: "HUMAN",
-      });
+      if (isStandalone) {
+        await registerService.updateUseCaseStatusManual({
+          useCaseId: card.useCaseId,
+          nextStatus,
+          actor: "HUMAN",
+        });
+      } else {
+        await registerFirstService.updateUseCaseStatusManual({
+          projectId,
+          useCaseId: card.useCaseId,
+          nextStatus,
+          actor: "HUMAN",
+        });
+      }
 
       setSelectedNextStatusById((prev) => {
         const nextMap = { ...prev };
@@ -346,11 +363,18 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
 
   const handleTogglePublicVisibility = async (card: UseCaseCard) => {
     try {
-      await registerFirstService.setPublicVisibility({
-        projectId,
-        useCaseId: card.useCaseId,
-        isPublicVisible: !(card.isPublicVisible ?? false),
-      });
+      if (isStandalone) {
+        await registerService.setPublicVisibility({
+          useCaseId: card.useCaseId,
+          isPublicVisible: !(card.isPublicVisible ?? false),
+        });
+      } else {
+        await registerFirstService.setPublicVisibility({
+          projectId,
+          useCaseId: card.useCaseId,
+          isPublicVisible: !(card.isPublicVisible ?? false),
+        });
+      }
       await loadUseCases();
     } catch {
       toast({
@@ -394,15 +418,26 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
     setProofErrorById((prev) => ({ ...prev, [card.useCaseId]: undefined }));
 
     try {
-      await registerFirstService.updateProofMetaManual({
-        projectId,
-        useCaseId: card.useCaseId,
-        verifyUrl: validation.normalized.verifyUrl,
-        isReal: draft.isReal === "YES",
-        isCurrent: draft.isCurrent === "YES",
-        scope: validation.normalized.scope,
-        actor: "HUMAN",
-      });
+      if (isStandalone) {
+        await registerService.updateProofMetaManual({
+          useCaseId: card.useCaseId,
+          verifyUrl: validation.normalized.verifyUrl,
+          isReal: draft.isReal === "YES",
+          isCurrent: draft.isCurrent === "YES",
+          scope: validation.normalized.scope,
+          actor: "HUMAN",
+        });
+      } else {
+        await registerFirstService.updateProofMetaManual({
+          projectId,
+          useCaseId: card.useCaseId,
+          verifyUrl: validation.normalized.verifyUrl,
+          isReal: draft.isReal === "YES",
+          isCurrent: draft.isCurrent === "YES",
+          scope: validation.normalized.scope,
+          actor: "HUMAN",
+        });
+      }
 
       await loadUseCases();
     } catch (saveError) {
@@ -578,7 +613,7 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
             Aktualisieren
           </Button>
           <Button asChild>
-            <Link href={projectId ? `/register/capture?projectId=${projectId}` : "/register/capture"}>
+            <Link href={isStandalone ? "/capture" : (projectId ? `/register/capture?projectId=${projectId}` : "/register/capture")}>
               Neuer Einsatzfall
             </Link>
           </Button>
@@ -607,7 +642,7 @@ export function RegisterBoard({ projectId }: RegisterBoardProps) {
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link href={projectId ? `/register/capture?projectId=${projectId}` : "/register/capture"}>
+              <Link href={isStandalone ? "/capture" : (projectId ? `/register/capture?projectId=${projectId}` : "/register/capture")}>
                 Zum Capture
               </Link>
             </Button>

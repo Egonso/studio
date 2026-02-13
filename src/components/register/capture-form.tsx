@@ -29,10 +29,13 @@ import {
   shouldShowAffectedParties,
   type CaptureFormDraft,
   type CaptureFieldErrors,
+  type UseCaseCard,
 } from "@/lib/register-first";
 
 interface CaptureFormProps {
   projectId?: string;
+  /** When provided, the caller controls the service call (standalone mode). */
+  onSubmit?: (payload: unknown) => Promise<UseCaseCard>;
 }
 
 type ResponsibilityChoice = "YES" | "NO";
@@ -59,7 +62,7 @@ const dataCategoryOptions: Array<{ value: DataCategory; label: string; hint: str
   { value: "SENSITIVE", label: "Sensible Daten", hint: "Gesundheit, Finanzen, etc." },
 ];
 
-function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | null {
+function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | "REGISTER_NOT_FOUND" | null {
   if (error && typeof error === "object" && "code" in error) {
     const value = String((error as { code: unknown }).code);
     if (
@@ -69,7 +72,8 @@ function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | nu
       value === "INVALID_STATUS_TRANSITION" ||
       value === "AUTOMATION_FORBIDDEN" ||
       value === "VALIDATION_FAILED" ||
-      value === "PERSISTENCE_FAILED"
+      value === "PERSISTENCE_FAILED" ||
+      value === "REGISTER_NOT_FOUND"
     ) {
       return value;
     }
@@ -77,7 +81,7 @@ function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | nu
   return null;
 }
 
-export function CaptureForm({ projectId }: CaptureFormProps) {
+export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureFormProps) {
   const [draft, setDraft] = useState<CaptureFormDraft>(createEmptyCaptureDraft());
   const [errors, setErrors] = useState<CaptureFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,11 +130,14 @@ export function CaptureForm({ projectId }: CaptureFormProps) {
     setIsSubmitting(true);
 
     try {
-      const result = await submitCaptureDraft(draft, async (payload) =>
-        registerFirstService.createUseCaseFromCapture(payload, {
-          projectId,
-        })
-      );
+      const serviceFn = externalSubmit
+        ? async (payload: unknown) => externalSubmit(payload)
+        : async (payload: unknown) =>
+            registerFirstService.createUseCaseFromCapture(payload, {
+              projectId,
+            });
+
+      const result = await submitCaptureDraft(draft, serviceFn);
 
       if (!result.ok) {
         setErrors(result.errors);
@@ -141,7 +148,11 @@ export function CaptureForm({ projectId }: CaptureFormProps) {
       setDraft(createEmptyCaptureDraft());
     } catch (error) {
       const code = mapServiceErrorCode(error);
-      if (code === "PROJECT_CONTEXT_MISSING") {
+      if (code === "REGISTER_NOT_FOUND") {
+        setSubmitError(
+          "Kein Register gefunden. Bitte erstelle zuerst ein Register."
+        );
+      } else if (code === "PROJECT_CONTEXT_MISSING") {
         setSubmitError(
           "Kein Projektkontext gefunden. Bitte öffne zuerst ein Projekt im Dashboard."
         );

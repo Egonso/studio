@@ -14,6 +14,17 @@ export * from "./tool-registry-service";
 export * from "./id-generation";
 export * from "./migration";
 export * from "./use-case-builder";
-export * from "./register-repository";
+export {
+  type RegisterScope,
+  type RegisterRepository,
+  type PublicIndexRepository,
+  createFirestoreRegisterRepository,
+  createFirestoreRegisterUseCaseRepo,
+  createFirestorePublicIndexRepo,
+  lookupPublicUseCase,
+  createInMemoryRegisterRepository,
+  createInMemoryRegisterUseCaseRepo,
+  createInMemoryPublicIndexRepo,
+} from "./register-repository";
 export * from "./register-service";
 export * from "./register-settings-client";

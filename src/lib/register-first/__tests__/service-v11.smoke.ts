@@ -192,6 +192,7 @@ export async function runServiceV11Smoke() {
     hybridEntry: true,
     stickyLauncher: false,
     proofGate: true,
+    standaloneMode: false,
   };
 
   const unreviewedState = getStatusGatedOutputState("UNREVIEWED", flags);
