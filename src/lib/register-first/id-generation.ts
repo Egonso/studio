@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+// Uses Web Crypto API (works in both browser and Node.js 18+)
 
 // ── Public Hash ID ──────────────────────────────────────────────────────────
 // 12-character, URL-safe, crypto-random identifier for verify links.
@@ -9,7 +9,8 @@ const HASH_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
 const HASH_LENGTH = 12;
 
 export function generatePublicHashId(): string {
-  const bytes = randomBytes(HASH_LENGTH);
+  const bytes = new Uint8Array(HASH_LENGTH);
+  crypto.getRandomValues(bytes);
   let result = "";
   for (let i = 0; i < HASH_LENGTH; i++) {
     result += HASH_ALPHABET[bytes[i] % HASH_ALPHABET.length];
