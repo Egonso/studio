@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/context/auth-context";
 import { RegisterBoard } from "@/components/register/register-board";
+import { GovernanceHeader } from "@/components/register/governance-header";
+import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
 import {
   registerService,
   type RegisterServiceErrorCode,
 } from "@/lib/register-first/register-service";
+import type { UseCaseCard } from "@/lib/register-first/types";
 
 type OnboardingState = "loading" | "no_register" | "ready";
 
@@ -32,6 +35,9 @@ export default function MyRegisterPage() {
   const [registerName, setRegisterName] = useState("Mein Register");
   const [isCreatingRegister, setIsCreatingRegister] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -79,6 +85,14 @@ export default function MyRegisterPage() {
     }
   };
 
+  const handleCaptured = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  const handleUseCasesLoaded = useCallback((cards: UseCaseCard[]) => {
+    setUseCases(cards);
+  }, []);
+
   if (authLoading || onboardingState === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -92,9 +106,9 @@ export default function MyRegisterPage() {
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Erstelle dein erstes Register</CardTitle>
+            <CardTitle>AI Governance Register erstellen</CardTitle>
             <CardDescription>
-              Ein Register sammelt deine KI-Einsatzfaelle. Du kannst spaeter weitere anlegen.
+              Ein Register sammelt deine KI-Einsatzfälle. Governance entsteht nur durch menschliche Entscheidungen.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -110,7 +124,7 @@ export default function MyRegisterPage() {
                 id="registerName"
                 value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
-                placeholder="z. B. Mein Register"
+                placeholder="z. B. AI Governance Register"
               />
             </div>
             <Button
@@ -130,13 +144,20 @@ export default function MyRegisterPage() {
   return (
     <div className="min-h-screen p-4 pt-12">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Mein Register</h1>
-          <p className="text-sm text-muted-foreground">
-            Alle erfassten KI-Einsatzfaelle im Ueberblick.
-          </p>
-        </div>
-        <RegisterBoard mode="standalone" />
+        <GovernanceHeader
+          useCases={useCases}
+          onQuickCapture={() => setCaptureOpen(true)}
+        />
+        <RegisterBoard
+          mode="standalone"
+          refreshKey={refreshKey}
+          onUseCasesLoaded={handleUseCasesLoaded}
+        />
+        <QuickCaptureModal
+          open={captureOpen}
+          onOpenChange={setCaptureOpen}
+          onCaptured={handleCaptured}
+        />
       </div>
     </div>
   );

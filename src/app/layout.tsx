@@ -34,6 +34,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { AuthProvider } from '@/context/auth-context';
 import { SiteChatbotWidget } from '@/components/site-chatbot-widget';
+import { CommandPalette } from '@/components/register/command-palette';
 
 export const metadata: Metadata = {
   title: 'AI Compliance OS',
@@ -63,6 +64,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster />
+          <CommandPalette />
           <SiteChatbotWidget />
           <Footer />
         </AuthProvider>

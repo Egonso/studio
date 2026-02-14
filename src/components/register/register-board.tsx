@@ -1,11 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -27,7 +34,7 @@ import {
   getStatusGatedOutputState,
   getUseCasePassFileName,
   getUseCasePassV11FileName,
-  getOutputProfileByStatus,
+
   registerFirstService,
   registerUseCaseStatusLabels,
   registerUseCaseStatusOrder,
@@ -56,6 +63,8 @@ const dataCategoryLabels: Record<string, string> = {
 interface RegisterBoardProps {
   projectId?: string;
   mode?: "dashboard" | "standalone";
+  refreshKey?: number;
+  onUseCasesLoaded?: (cards: UseCaseCard[]) => void;
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
@@ -175,7 +184,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardProps) {
+export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, onUseCasesLoaded }: RegisterBoardProps) {
   const isStandalone = mode === "standalone";
   const { toast } = useToast();
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
@@ -204,15 +213,15 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
     try {
       const items = isStandalone
         ? await registerService.listUseCases(undefined, {
-            status: statusFilter === "ALL" ? undefined : statusFilter,
-            searchText: searchQuery,
-            limit: 150,
-          })
+          status: statusFilter === "ALL" ? undefined : statusFilter,
+          searchText: searchQuery,
+          limit: 150,
+        })
         : await registerFirstService.listUseCases(projectId, {
-            status: statusFilter === "ALL" ? undefined : statusFilter,
-            searchText: searchQuery,
-            limit: 150,
-          });
+          status: statusFilter === "ALL" ? undefined : statusFilter,
+          searchText: searchQuery,
+          limit: 150,
+        });
       setUseCases(items);
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
@@ -230,7 +239,11 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
 
   useEffect(() => {
     void loadUseCases();
-  }, [loadUseCases]);
+  }, [loadUseCases, refreshKey]);
+
+  useEffect(() => {
+    onUseCasesLoaded?.(useCases);
+  }, [useCases, onUseCasesLoaded]);
 
   const handleApplyFilters = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -341,10 +354,10 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
         projectId ?? "unknown",
         resolvedTool
           ? {
-              vendor: resolvedTool.vendor,
-              productName: resolvedTool.productName,
-              toolType: resolvedTool.toolType,
-            }
+            vendor: resolvedTool.vendor,
+            productName: resolvedTool.productName,
+            toolType: resolvedTool.toolType,
+          }
           : {}
       );
 
@@ -509,17 +522,17 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
     const previewCard =
       validation.isValid
         ? {
-            ...card,
-            proof: {
-              verifyUrl: validation.normalized.verifyUrl,
-              generatedAt: card.proof?.generatedAt ?? new Date().toISOString(),
-              verification: {
-                isReal: draft.isReal === "YES",
-                isCurrent: draft.isCurrent === "YES",
-                scope: validation.normalized.scope,
-              },
+          ...card,
+          proof: {
+            verifyUrl: validation.normalized.verifyUrl,
+            generatedAt: card.proof?.generatedAt ?? new Date().toISOString(),
+            verification: {
+              isReal: draft.isReal === "YES",
+              isCurrent: draft.isCurrent === "YES",
+              scope: validation.normalized.scope,
             },
-          }
+          },
+        }
         : card;
 
     if (!previewCard.proof) {
@@ -556,69 +569,45 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
     }
   };
 
+
   return (
-    <div className="space-y-6">
-      <Alert>
-        <AlertTitle>Governance bleibt manuell</AlertTitle>
-        <AlertDescription>
-          Statuswechsel werden nur durch explizite menschliche Entscheidungen gesetzt.
-          Keine automatische Review-Pflicht, Eskalation oder Policy-Generierung.
-        </AlertDescription>
-      </Alert>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter</CardTitle>
-          <CardDescription>
-            Suche und Statusfilter fuer Register-Einsatzfaelle im aktuellen Projekt.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleApplyFilters} className="grid gap-3 md:grid-cols-[2fr_1fr_auto_auto]">
-            <Input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Suche nach Zweck, Verantwortung oder Hinweis"
-            />
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusFilterOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit">Anwenden</Button>
-            <Button type="button" variant="outline" onClick={handleResetFilters}>
-              Zuruecksetzen
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          {useCases.length} Einsatzfall{useCases.length === 1 ? "" : "e"} gefunden.
-        </p>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" onClick={() => void loadUseCases()}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Aktualisieren
-          </Button>
-          <Button asChild>
-            <Link href={isStandalone ? "/capture" : (projectId ? `/register/capture?projectId=${projectId}` : "/register/capture")}>
-              Neuer Einsatzfall
-            </Link>
+    <div className="space-y-4">
+      {/* Filter bar */}
+      <form onSubmit={handleApplyFilters} className="flex flex-wrap items-center gap-2">
+        <Input
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
+          placeholder="Use Case suchen…"
+          className="h-9 max-w-xs text-sm"
+        />
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+        >
+          <SelectTrigger className="h-9 w-40 text-sm">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            {statusFilterOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button type="submit" size="sm" className="h-9">Filtern</Button>
+        <Button type="button" variant="ghost" size="sm" className="h-9" onClick={handleResetFilters}>
+          Zurücksetzen
+        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {useCases.length} Use Case{useCases.length === 1 ? "" : "s"}
+          </span>
+          <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => void loadUseCases()}>
+            <RefreshCw className="h-3.5 w-3.5" />
           </Button>
         </div>
-      </div>
+      </form>
 
       {error && (
         <Alert variant="destructive">
@@ -635,24 +624,16 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
       ) : useCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Noch keine Register-Eintraege</CardTitle>
+            <CardTitle>Noch keine Use Cases erfasst</CardTitle>
             <CardDescription>
-              Lege den ersten Einsatzfall an. Startpunkt ist der Capture-Flow.
+              Erfasse den ersten Use Case mit <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> oder dem Button oben.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <Link href={isStandalone ? "/capture" : (projectId ? `/register/capture?projectId=${projectId}` : "/register/capture")}>
-                Zum Capture
-              </Link>
-            </Button>
-          </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {useCases.map((card) => {
             const nextStatuses = getNextManualStatuses(card.status);
-            const outputProfile = getOutputProfileByStatus(card.status);
             const outputState = getStatusGatedOutputState(
               card.status,
               registerFirstFlags
@@ -660,392 +641,174 @@ export function RegisterBoard({ projectId, mode = "dashboard" }: RegisterBoardPr
             const proofPdfState = getProofPackPdfState(card, registerFirstFlags);
             const selectedNextStatus = selectedNextStatusById[card.useCaseId];
             const isUpdating = updatingUseCaseId === card.useCaseId;
-            const proofDraft = proofDraftById[card.useCaseId] ?? createProofMetaDraft(card);
-            const isSavingProof = savingProofUseCaseId === card.useCaseId;
-            const proofValidation = validateVerifyLinkInput({
-              verifyUrl: proofDraft.verifyUrl,
-              scope: proofDraft.scope,
-            });
-            const hasProofDraftChanges = hasUnsavedProofDraft(
-              card,
-              proofDraft,
-              proofValidation.normalized
-            );
-            const canPreviewProofPdf =
-              card.status === "PROOF_READY" &&
-              registerFirstFlags.proofGate &&
-              (Boolean(card.proof) || proofValidation.isValid);
-            const previewUsesDraft = proofValidation.isValid;
-            const previewVerifyUrl =
-              proofValidation.normalized.verifyUrl || card.proof?.verifyUrl || "nicht gesetzt";
-            const previewScope =
-              proofValidation.normalized.scope ||
-              card.proof?.verification.scope ||
-              "nicht gesetzt";
-            const previewIsReal = previewUsesDraft
-              ? proofDraft.isReal === "YES"
-              : (card.proof?.verification.isReal ?? false);
-            const previewIsCurrent = previewUsesDraft
-              ? proofDraft.isCurrent === "YES"
-              : (card.proof?.verification.isCurrent ?? false);
 
             return (
-              <Card key={card.useCaseId}>
-                <CardHeader className="space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <CardTitle className="text-lg">{card.purpose}</CardTitle>
-                    <RegisterStatusBadge status={card.status} />
-                  </div>
-                  <CardDescription>
-                    ID: {card.useCaseId}
-                    {card.cardVersion === "1.1" && (
-                      <span className="ml-1 text-xs">
-                        | v1.1{card.globalUseCaseId ? ` | ${card.globalUseCaseId}` : ""}
-                      </span>
-                    )}
-                    {" "}| Aktualisiert: {formatDate(card.updatedAt)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-3 text-sm md:grid-cols-2">
-                    <div>
-                      <p className="font-medium">Wirkungskontext</p>
-                      <p className="text-muted-foreground">
-                        {card.usageContexts.map((value) => usageContextLabels[value]).join(", ")}
-                      </p>
+              <Card key={card.useCaseId} className="overflow-hidden">
+                <div className="flex items-start justify-between gap-2 p-4 pb-2">
+                  {/* Line 1: Purpose + Status + Visibility */}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate text-sm font-semibold">{card.purpose}</h3>
+                      <RegisterStatusBadge status={card.status} />
+                      <Badge
+                        variant={card.isPublicVisible ? "default" : "secondary"}
+                        className="shrink-0 text-[10px]"
+                      >
+                        {card.isPublicVisible ? "Öffentlich" : "Privat"}
+                      </Badge>
                     </div>
-                    <div>
-                      <p className="font-medium">Output-Status</p>
-                      <p className="text-muted-foreground">
-                        {outputProfile.artifactName}: {outputProfile.description}
-                      </p>
-                    </div>
-                  </div>
 
-                  {card.cardVersion === "1.1" && (
-                    <div className="grid gap-3 text-sm md:grid-cols-2 lg:grid-cols-4">
+                    {/* Line 2: Badges */}
+                    <div className="flex flex-wrap gap-1.5">
                       {card.toolId && (
-                        <div>
-                          <p className="font-medium">Tool</p>
-                          <p className="text-muted-foreground">
-                            {card.toolId === "other"
-                              ? card.toolFreeText ?? "Anderes Tool"
-                              : card.toolId}
-                          </p>
-                        </div>
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {card.toolId === "other"
+                            ? card.toolFreeText ?? "Anderes Tool"
+                            : card.toolId}
+                        </Badge>
                       )}
-                      {card.dataCategory && (
-                        <div>
-                          <p className="font-medium">Datenkategorie</p>
-                          <p className="text-muted-foreground">
-                            {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
-                          </p>
-                        </div>
+                      {card.dataCategory && card.dataCategory !== "NONE" && (
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
+                        </Badge>
                       )}
-                      {card.globalUseCaseId && (
-                        <div>
-                          <p className="font-medium">Global ID</p>
-                          <p className="font-mono text-xs text-muted-foreground">
-                            {card.globalUseCaseId}
-                          </p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium">Sichtbarkeit</p>
-                        <p className="text-muted-foreground">
-                          {card.isPublicVisible ? "Oeffentlich" : "Privat"}
-                        </p>
-                      </div>
+                      {card.usageContexts.map((ctx) => (
+                        <Badge key={ctx} variant="outline" className="text-[10px] font-normal">
+                          {usageContextLabels[ctx]}
+                        </Badge>
+                      ))}
                     </div>
-                  )}
 
-                  <div className="space-y-2 rounded-md border p-3">
-                    <p className="text-sm font-medium">Statusgesteuerte Ausgaben</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
+                    {/* Line 3: Meta */}
+                    <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                      {card.globalUseCaseId && (
+                        <span className="font-mono">{card.globalUseCaseId}</span>
+                      )}
+                      <span>Aktualisiert: {formatDate(card.updatedAt)}</span>
+                      {card.reviews.length > 0 && (
+                        <span>
+                          Letzte Entscheidung: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem
                         onClick={() => handleExportUseCasePass(card)}
                         disabled={!outputState.cardJsonEnabled}
                       >
                         Use-Case Pass (JSON)
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExportProofPackDraft(card)}
-                        disabled={!outputState.proofPackDraftEnabled}
-                      >
-                        Proof-Pack Entwurf (JSON)
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExportProofPackPdf(card)}
-                        disabled={!proofPdfState.enabled}
-                      >
-                        Proof Pack (PDF)
-                      </Button>
+                      </DropdownMenuItem>
                       {card.cardVersion === "1.1" && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
+                        <DropdownMenuItem
                           onClick={() => void handleExportUseCasePassV11(card)}
                           disabled={!outputState.cardJsonEnabled}
                         >
                           Use-Case Pass v1.1 (JSON)
-                        </Button>
+                        </DropdownMenuItem>
                       )}
-                    </div>
-                    {card.cardVersion === "1.1" && (
-                      <div className="flex items-center gap-2 pt-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void handleTogglePublicVisibility(card)}
+                      <DropdownMenuItem
+                        onClick={() => handleExportProofPackDraft(card)}
+                        disabled={!outputState.proofPackDraftEnabled}
+                      >
+                        Proof-Pack Entwurf (JSON)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleExportProofPackPdf(card)}
+                        disabled={!proofPdfState.enabled}
+                      >
+                        Proof Pack (PDF)
+                      </DropdownMenuItem>
+                      {card.status === "PROOF_READY" && (
+                        <DropdownMenuItem
+                          onClick={() => handlePreviewProofPackPdf(card)}
                         >
-                          {card.isPublicVisible
-                            ? "Oeffentlich sichtbar (deaktivieren)"
-                            : "Als oeffentlich markieren"}
-                        </Button>
-                        {card.publicHashId && card.isPublicVisible && (
-                          <a
-                            href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-mono text-xs text-blue-600 underline hover:text-blue-800"
-                          >
-                            Verify-Link oeffnen
-                          </a>
-                        )}
-                        {card.publicHashId && card.isPublicVisible && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
+                          PDF Vorschau
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => void handleTogglePublicVisibility(card)}
+                      >
+                        {card.isPublicVisible
+                          ? "Auf privat setzen"
+                          : "Öffentlich machen"}
+                      </DropdownMenuItem>
+                      {card.publicHashId && card.isPublicVisible && (
+                        <>
+                          <DropdownMenuItem
                             onClick={() => {
                               const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
                               void copyTextToClipboard(url).then(() =>
-                                toast({
-                                  title: "Verify-Link kopiert",
-                                  description: url,
-                                })
+                                toast({ title: "Verify-Link kopiert", description: url })
                               );
                             }}
                           >
-                            <ClipboardCopy className="mr-1 h-3.5 w-3.5" />
-                            Link kopieren
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                    {card.status === "PROOF_READY" && (
-                      <div className="space-y-2 rounded-md border border-dashed p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-xs font-medium">Proof-Pack Vorschau</p>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePreviewProofPackPdf(card)}
-                            disabled={!canPreviewProofPdf}
-                          >
-                            <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                            PDF Vorschau
-                          </Button>
-                        </div>
-                        <div className="grid gap-1 text-xs text-muted-foreground">
-                          <p>
-                            Quelle: {previewUsesDraft ? "aktueller Entwurf" : "gespeicherter Stand"}
-                          </p>
-                          <p>URL: {previewVerifyUrl}</p>
-                          <p>Scope: {previewScope}</p>
-                          <p>Echt: {previewIsReal ? "Ja" : "Nein"}</p>
-                          <p>Aktuell: {previewIsCurrent ? "Ja" : "Nein"}</p>
-                        </div>
-                        {hasProofDraftChanges && (
-                          <p className="text-xs text-amber-600">
-                            Ungespeicherte Aenderungen vorhanden. Vorschau kann bereits den Entwurf
-                            zeigen, Download bleibt bis zum Speichern statusgesteuert.
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    {outputState.proofPackDraftBlockedReason && (
-                      <p className="text-xs text-muted-foreground">
-                        {outputState.proofPackDraftBlockedReason}
-                      </p>
-                    )}
-                    {proofPdfState.blockedReason && (
-                      <p className="text-xs text-muted-foreground">
-                        {proofPdfState.blockedReason}
-                      </p>
+                            <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
+                            Verify-Link kopieren
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                              Verify-Link öffnen
+                            </a>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Status Setter */}
+                {nextStatuses.length > 0 && (
+                  <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2">
+                    <Select
+                      value={selectedNextStatus}
+                      onValueChange={(value) =>
+                        setSelectedNextStatusById((prev) => ({
+                          ...prev,
+                          [card.useCaseId]: value as RegisterUseCaseStatus,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="h-8 max-w-[200px] text-xs">
+                        <SelectValue placeholder="Status setzen" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {nextStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {registerUseCaseStatusLabels[status]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => void handleUpdateStatus(card)}
+                      disabled={!selectedNextStatus || isUpdating}
+                    >
+                      {isUpdating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                      Setzen
+                    </Button>
+                    {updateErrorById[card.useCaseId] && (
+                      <p className="text-xs text-destructive">{updateErrorById[card.useCaseId]}</p>
                     )}
                   </div>
-
-                  {card.status === "PROOF_READY" && (
-                    <div className="space-y-3 rounded-md border p-3">
-                      <p className="text-sm font-medium">Verify-Link Daten (echt / aktuell / scope)</p>
-                      <div className="grid gap-3 md:grid-cols-2">
-                        <div className="space-y-1">
-                          <Input
-                            placeholder="Verify URL (https://...)"
-                            value={proofDraft.verifyUrl}
-                            onChange={(event) =>
-                              handleProofDraftChange(
-                                card.useCaseId,
-                                { verifyUrl: event.target.value },
-                                card
-                              )
-                            }
-                            aria-invalid={Boolean(proofValidation.errors.verifyUrl)}
-                          />
-                          {proofValidation.errors.verifyUrl && (
-                            <p className="text-xs text-destructive">
-                              {proofValidation.errors.verifyUrl}
-                            </p>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <Input
-                            placeholder="Scope"
-                            value={proofDraft.scope}
-                            onChange={(event) =>
-                              handleProofDraftChange(
-                                card.useCaseId,
-                                { scope: event.target.value },
-                                card
-                              )
-                            }
-                            aria-invalid={Boolean(proofValidation.errors.scope)}
-                          />
-                          {proofValidation.errors.scope && (
-                            <p className="text-xs text-destructive">
-                              {proofValidation.errors.scope}
-                            </p>
-                          )}
-                        </div>
-                        <Select
-                          value={proofDraft.isReal}
-                          onValueChange={(value) =>
-                            handleProofDraftChange(
-                              card.useCaseId,
-                              { isReal: value as ProofBooleanChoice },
-                              card
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Echt" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="YES">Echt: Ja</SelectItem>
-                            <SelectItem value="NO">Echt: Nein</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select
-                          value={proofDraft.isCurrent}
-                          onValueChange={(value) =>
-                            handleProofDraftChange(
-                              card.useCaseId,
-                              { isCurrent: value as ProofBooleanChoice },
-                              card
-                            )
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Aktuell" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="YES">Aktuell: Ja</SelectItem>
-                            <SelectItem value="NO">Aktuell: Nein</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => void handleSaveProofMeta(card)}
-                          disabled={isSavingProof || !proofValidation.isValid}
-                        >
-                          {isSavingProof && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Verify-Link speichern
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => void handleCopyVerifyUrl(card)}
-                        >
-                          <ClipboardCopy className="mr-2 h-4 w-4" />
-                          Verify-Link kopieren
-                        </Button>
-                        {card.proof && (
-                          <p className="text-xs text-muted-foreground">
-                            Letzter Stand: {formatDate(card.proof.generatedAt)}
-                          </p>
-                        )}
-                      </div>
-
-                      {proofErrorById[card.useCaseId] && (
-                        <p className="text-xs text-destructive">
-                          {proofErrorById[card.useCaseId]}
-                        </p>
-                      )}
-                    </div>
-                  )}
-
-                  {nextStatuses.length > 0 && (
-                    <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-                      <Select
-                        value={selectedNextStatus}
-                        onValueChange={(value) =>
-                          setSelectedNextStatusById((prev) => ({
-                            ...prev,
-                            [card.useCaseId]: value as RegisterUseCaseStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Naechsten Status waehlen" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {nextStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {registerUseCaseStatusLabels[status]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Button
-                        type="button"
-                        onClick={() => void handleUpdateStatus(card)}
-                        disabled={!selectedNextStatus || isUpdating}
-                      >
-                        {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Status manuell setzen
-                      </Button>
-                    </div>
-                  )}
-
-                  {updateErrorById[card.useCaseId] && (
-                    <p className="text-xs text-destructive">{updateErrorById[card.useCaseId]}</p>
-                  )}
-
-                  {outputProfile.requiresManualDecision && (
-                    <p className="text-xs text-muted-foreground">
-                      Dieser Status ist eine explizite menschliche Governance-Entscheidung.
-                    </p>
-                  )}
-                </CardContent>
+                )}
               </Card>
             );
           })}
