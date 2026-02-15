@@ -42,7 +42,7 @@ export function AppHeader() {
       </Link>
       {user && (
         <nav className="ml-auto flex gap-2 sm:gap-4 items-center">
-          {user.email && ADMIN_EMAILS.includes(user.email) && (
+          {user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()) && (
             <Link href="/admin" className="text-sm font-bold text-red-500 hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
               <GanttChartSquare className="h-4 w-4" />
               Admin

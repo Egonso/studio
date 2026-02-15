@@ -36,13 +36,12 @@ export default function AdminPage() {
             return;
         }
 
-        if (user.email && ADMIN_EMAILS.includes(user.email)) {
+        if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
             setIsAuthorized(true);
             fetchData();
-        } else {
-            // Not authorized
-            router.push('/dashboard');
         }
+        // If not authorized, we just stay in loading state false, authorized false
+        // and render the access denied message below
     }, [user, loading, router]);
 
     const fetchData = async () => {
@@ -73,11 +72,27 @@ export default function AdminPage() {
         setStats(newStats);
     };
 
-    if (loading || !isAuthorized) {
+
+    if (loading) {
         return (
             <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
                 <Loader2 className="h-8 w-8 animate-spin" />
                 <p className="text-muted-foreground text-sm">Verifiziere Admin-Rechte...</p>
+            </div>
+        );
+    }
+
+    if (!isAuthorized) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
+                <AlertCircle className="h-12 w-12 text-red-500" />
+                <h1 className="text-xl font-bold">Zugriff verweigert</h1>
+                <p className="text-muted-foreground text-center max-w-md">
+                    Dein Account <span className="font-mono font-bold text-foreground bg-muted px-1 rounded">{user?.email}</span> hat keine Admin-Rechte.
+                </p>
+                <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                    Zurück zum Dashboard
+                </Button>
             </div>
         );
     }
