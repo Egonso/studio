@@ -145,7 +145,7 @@ If the model is asked for legal advice, explicitly state: "I am an AI assistant.
 
         // Call the model
         const response = await ai.generate({
-            model: 'googleai/gemini-3-flash-preview',
+            model: 'googleai/gemini-2.0-flash',
             messages: fullMessages,
             tools: [navigateTool],
             config: {
