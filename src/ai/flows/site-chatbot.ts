@@ -143,43 +143,34 @@ If the model is asked for legal advice, explicitly state: "I am an AI assistant.
             ...userHistory
         ] as any[];
 
-        // Call the model
-        const response = await ai.generate({
-            model: 'googleai/gemini-2.0-flash',
-            messages: fullMessages,
-            tools: [navigateTool],
-            config: {
-                temperature: 0.5,
-            },
-        });
+        try {
+            // Call the model
+            const response = await ai.generate({
+                model: 'googleai/gemini-3-flash-preview',
+                messages: fullMessages,
+                tools: [navigateTool],
+                config: {
+                    temperature: 0.5,
+                },
+            });
 
-        // Handle tool calls in the response if any (Genkit usually auto-executes if configured, but here we might want to pass the signal)
-        // For a simple chatbot, if the tool execution returns a "NAVIGATE_TO" command, we might want to append that to the text
-        // or handle it in the frontend by parsing the tool calls.
-        // For this implementation, let's return the output text.
-        // If the tool was called, Genkit's 'generate' with auto-execution would run it. 
-        // However, since 'navigate' is a client-side action, the server-side tool execution is just a placeholder.
-        // A better pattern for client-actions is to let the model output the tool call, and the client executes it.
-        // But since we are inside a server flow, we can let the tool return a specific marker.
+            // Genkit response handling - tool calls logic
+            const outputToolCalls = (response as any).toolCalls || (response.output as any)?.toolCalls;
 
-        // Genkit response handling - tool calls logic
-        // Depending on genkit version, toolCalls might be directly on response or inside output/message
-        // The previous error was specifically about input format, so that's covered.
-        // For toolCalls, let's keep it safe.
-        const outputToolCalls = (response as any).toolCalls || (response.output as any)?.toolCalls;
+            let finalText = response.text;
 
-        let finalText = response.text;
-
-        if (outputToolCalls && outputToolCalls.length > 0) {
-            // Check for navigate tool
-            const navCall = outputToolCalls.find((tc: any) => tc.toolName === 'navigateTool');
-            if (navCall) {
-                // We append a special marker for the frontend
-                const args = navCall.args as any;
-                finalText += `\n[NAVIGATE:${args.path}]`;
+            if (outputToolCalls && outputToolCalls.length > 0) {
+                const navCall = outputToolCalls.find((tc: any) => tc.toolName === 'navigateTool');
+                if (navCall) {
+                    const args = navCall.args as any;
+                    finalText += `\n[NAVIGATE:${args.path}]`;
+                }
             }
-        }
 
-        return finalText;
+            return finalText;
+        } catch (genError: any) {
+            console.error("Chatbot ai.generate error:", genError);
+            return "Entschuldigung, der Assistent ist momentan nicht erreichbar. Bitte versuche es später erneut.";
+        }
     }
 );
