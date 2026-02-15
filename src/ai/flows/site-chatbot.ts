@@ -50,7 +50,7 @@ export const siteChatbotFlow = ai.defineFlow(
         outputSchema: z.string(), // We'll return the text response directly for simplicity in the stream
     },
     async (input, { sendChunk }) => {
-        // Load Law Data
+        // Load Law Data — SELECTIVE retrieval to prevent oversized prompts
         const fs = await import('fs');
         const path = await import('path');
 
@@ -60,24 +60,77 @@ export const siteChatbotFlow = ai.defineFlow(
             if (fs.existsSync(filePath)) {
                 const lawData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
-                // Format for context (optimized for token usage/readability)
-                lawContext = "EU AI ACT FULL TEXT START:\n";
+                // Extract the user's last message for keyword matching
+                const lastUserMsg = input.messages
+                    .filter((m: any) => m.role === 'user')
+                    .pop()?.content?.toLowerCase() ?? "";
 
-                // Add Recitals
-                lawContext += "RECITALS (Erwägungsgründe):\n";
-                lawData.recitals.forEach((r: any) => {
-                    lawContext += `[RECITAL:${r.id}] (${r.number}) ${r.text}\n`;
-                });
+                // Check for specific article/recital references (e.g. "artikel 4", "art. 5", "erwägungsgrund 12")
+                const artMatches = [...lastUserMsg.matchAll(/(?:artikel|art\.?)\s*(\d+)/gi)].map(m => parseInt(m[1]));
+                const recMatches = [...lastUserMsg.matchAll(/(?:erwägungsgrund|erw\.?|recital)\s*(\d+)/gi)].map(m => parseInt(m[1]));
 
-                // Add Articles
-                lawContext += "\nARTICLES (Gesetzestext):\n";
-                lawData.chapters.forEach((c: any) => {
-                    lawContext += `CHAPTER: ${c.title}\n`;
-                    c.articles.forEach((a: any) => {
-                        lawContext += `[ARTICLE:${a.id}] ${a.text}\n`;
+                // Keywords from user message for fuzzy matching
+                const stopwords = new Set(["der", "die", "das", "und", "oder", "ist", "ein", "eine", "was", "wie", "wer", "wo", "sagt", "steht", "dazu", "über", "zum", "zur", "bei", "mit", "von", "für", "auf", "in", "an", "zu", "es", "sich", "den", "dem", "des", "als", "auch", "nach", "noch", "nur", "aber", "wenn", "dann", "kann", "muss", "wird", "hat", "sind", "ich", "du", "sie", "er", "wir"]);
+                const keywords = lastUserMsg
+                    .replace(/[^a-zäöüß\s]/gi, " ")
+                    .split(/\s+/)
+                    .filter((w: string) => w.length > 3 && !stopwords.has(w));
+
+                // Collect matching articles
+                const matchedArticles: string[] = [];
+                const allArticleTitles: string[] = [];
+
+                lawData.chapters?.forEach((c: any) => {
+                    c.articles?.forEach((a: any) => {
+                        const artNum = parseInt(String(a.id).replace(/\D/g, ''));
+                        allArticleTitles.push(`Art. ${artNum}: ${a.title ?? ''}`);
+
+                        // Match by explicit reference
+                        if (artMatches.includes(artNum)) {
+                            matchedArticles.push(`[ARTICLE ${artNum}] ${a.title ?? ''}\n${a.text}`);
+                            return;
+                        }
+
+                        // Match by keyword in title/text (limit to prevent overload)
+                        if (matchedArticles.length < 20 && keywords.length > 0) {
+                            const searchText = `${a.title ?? ''} ${a.text}`.toLowerCase();
+                            const hits = keywords.filter((kw: string) => searchText.includes(kw));
+                            if (hits.length >= 2 || (hits.length >= 1 && keywords.length <= 2)) {
+                                matchedArticles.push(`[ARTICLE ${artNum}] ${a.title ?? ''}\n${a.text}`);
+                            }
+                        }
                     });
                 });
-                lawContext += "EU AI ACT FULL TEXT END.\n";
+
+                // Collect matching recitals
+                const matchedRecitals: string[] = [];
+                lawData.recitals?.forEach((r: any) => {
+                    const recNum = parseInt(String(r.number));
+                    if (recMatches.includes(recNum)) {
+                        matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
+                        return;
+                    }
+                    if (matchedRecitals.length < 10 && keywords.length > 0) {
+                        const hits = keywords.filter((kw: string) => r.text.toLowerCase().includes(kw));
+                        if (hits.length >= 2) {
+                            matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
+                        }
+                    }
+                });
+
+                // Build compact context
+                if (matchedArticles.length > 0 || matchedRecitals.length > 0) {
+                    lawContext = "EU AI ACT — RELEVANTE ABSCHNITTE:\n\n";
+                    if (matchedArticles.length > 0) {
+                        lawContext += matchedArticles.join("\n\n") + "\n\n";
+                    }
+                    if (matchedRecitals.length > 0) {
+                        lawContext += "ERWÄGUNGSGRÜNDE:\n" + matchedRecitals.join("\n\n") + "\n\n";
+                    }
+                }
+
+                // Always add compact article index so model knows what exists
+                lawContext += "\nVERFÜGBARE ARTIKEL (Index):\n" + allArticleTitles.join("\n") + "\n";
             }
         } catch (e) {
             console.error("Failed to load law data for chatbot:", e);
@@ -89,8 +142,9 @@ You are the intelligent assistant for "EuKIGesetz Studio".
 Your role is to help users navigate the platform, understand the EU AI Act tools we offer, and find specific content.
 
 **Context - EU AI Act:**
-You have access to the FULL text of the EU AI Act below. Use this to answer questions about the law.
-When quoting or referencing the law, you MUST provide citations in the following format:
+You have access to RELEVANT sections of the EU AI Act below, selected based on the user's question.
+You also have a full article index showing all available articles.
+When quoting or referencing the law, provide citations in this format:
 - For Recitals: [[Recital X]](id:rct_X) -> Output as [[Erwagungsgrund X]] and I will handle it? No, output as plaintext [[Erw. X]] or whatever, but preferably consistent ID.
 - BETTER INSTRUCTION: 
   - If referring to Article 5, write "Artikel 5 [[Art. 5]]".
