@@ -45,7 +45,7 @@ interface QuickDraft {
 
 const EMPTY_DRAFT: QuickDraft = {
     purpose: "",
-    toolId: "",
+    toolId: "__placeholder__",
     toolFreeText: "",
     usageContext: "INTERNAL_ONLY",
     dataCategory: "NONE",
@@ -70,7 +70,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
         }).catch(() => { });
     }, []);
 
-    const canSave = draft.purpose.trim().length > 0 && draft.toolId.length > 0;
+    const canSave = draft.purpose.trim().length > 0 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
 
     const handleSave = async () => {
         if (!canSave) return;
@@ -149,13 +149,19 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                             Tool <span className="text-destructive">*</span>
                         </Label>
                         <Select
-                            value={draft.toolId || undefined}
-                            onValueChange={(v) => patch({ toolId: v })}
+                            value={draft.toolId}
+                            onValueChange={(v) => {
+                                if (v === "__placeholder__") return;
+                                patch({ toolId: v });
+                            }}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Tool auswählen" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="__placeholder__" className="hidden">
+                                    Tool auswählen
+                                </SelectItem>
                                 {toolOptions.map((t) => (
                                     <SelectItem key={t.value} value={t.value}>
                                         {t.label}
