@@ -120,10 +120,12 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             <DialogContent
                 className="sm:max-w-[480px]"
                 onKeyDown={handleKeyDown}
+                aria-describedby="qc-dialog-desc"
+                aria-labelledby="qc-dialog-title"
             >
                 <DialogHeader>
-                    <DialogTitle className="text-lg">Quick Capture</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle id="qc-dialog-title" className="text-lg">Quick Capture</DialogTitle>
+                    <DialogDescription id="qc-dialog-desc">
                         Erfasse nur das Minimum. Du kannst später ergänzen.
                     </DialogDescription>
                 </DialogHeader>

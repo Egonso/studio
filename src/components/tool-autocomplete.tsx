@@ -35,11 +35,16 @@ export function ToolAutocomplete({ value, onChange, disabled }: ToolAutocomplete
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const filteredTools = inputValue === ""
-        ? toolCatalog
-        : toolCatalog.filter((tool) =>
-            tool.name.toLowerCase().includes(inputValue.toLowerCase())
+    const safelyFilteredTools = React.useMemo(() => {
+        const catalog = Array.isArray(toolCatalog) ? toolCatalog : [];
+        if (inputValue === "") return catalog;
+        return catalog.filter((tool) =>
+            tool.name && tool.name.toLowerCase().includes(inputValue.toLowerCase())
         );
+    }, [inputValue]);
+
+    // Alias to keep existing render logic working
+    const filteredTools = safelyFilteredTools;
 
     const handleSelect = (tool: any) => {
         setInputValue(tool.name);
