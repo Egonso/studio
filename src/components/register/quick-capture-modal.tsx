@@ -149,7 +149,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                             Tool <span className="text-destructive">*</span>
                         </Label>
                         <Select
-                            value={draft.toolId}
+                            value={draft.toolId || undefined}
                             onValueChange={(v) => patch({ toolId: v })}
                         >
                             <SelectTrigger>
