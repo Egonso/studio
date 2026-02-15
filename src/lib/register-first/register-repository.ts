@@ -29,6 +29,11 @@ export interface RegisterRepository {
   ): Promise<Register>;
   getRegister(userId: string, registerId: string): Promise<Register | null>;
   listRegisters(userId: string): Promise<Register[]>;
+  updateRegister(
+    userId: string,
+    registerId: string,
+    partial: Partial<Pick<Register, "name" | "organisationName" | "organisationUnit" | "publicOrganisationDisclosure">>
+  ): Promise<void>;
 }
 
 export interface RegisterUseCaseRepository {
@@ -142,6 +147,15 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       const q = query(registersRef, orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
       return snapshot.docs.map((d) => d.data() as Register);
+    },
+
+    async updateRegister(userId, registerId, partial) {
+      const { getFirebaseDb } = await import("@/lib/firebase");
+      const db = await getFirebaseDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+
+      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      await updateDoc(docRef, partial);
     },
   };
 }
@@ -295,6 +309,14 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
         }
       }
       return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+
+    async updateRegister(userId, registerId, partial) {
+      const key = `${userId}/${registerId}`;
+      const existing = registers.get(key);
+      if (existing) {
+        registers.set(key, { ...existing, ...partial });
+      }
     },
   };
 }

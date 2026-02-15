@@ -151,6 +151,11 @@ export default function VerifyPassPage() {
                 </div>
                 <RegisterStatusBadge status={entry.status} />
               </div>
+              {entry.organisationName && (
+                <p className="text-xs text-muted-foreground">
+                  Organisation: <span className="font-medium text-foreground">{entry.organisationName}</span>
+                </p>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 <Badge variant="outline" className="text-xs">
                   v{entry.formatVersion}

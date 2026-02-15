@@ -88,8 +88,8 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             });
 
             toast({
-                title: "Gespeichert",
-                description: `„${card.purpose}" – Status: Ungeprüft`,
+                title: "Registereintrag erstellt",
+                description: `„${card.purpose}" – Status: Formale Prüfung ausstehend`,
             });
 
             setDraft({ ...EMPTY_DRAFT });

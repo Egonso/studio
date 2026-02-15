@@ -1,15 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
-import { Activity, Eye, FileCheck, AlertTriangle, BarChart3 } from "lucide-react";
-import type { UseCaseCard, RegisterUseCaseStatus } from "@/lib/register-first/types";
+import { useMemo, useState } from "react";
+import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings } from "lucide-react";
+import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import { GovernanceSettingsDialog } from "./governance-settings-dialog";
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const REGISTER_VERSION = "1.0";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface GovernanceHeaderProps {
     useCases: UseCaseCard[];
+    register?: Register | null;
     onQuickCapture?: () => void;
+    onRegisterUpdated?: (partial: Partial<Register>) => void;
 }
 
 interface KpiItem {
@@ -22,10 +29,10 @@ interface KpiItem {
 // ── Status Colors ────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<RegisterUseCaseStatus, string> = {
-    UNREVIEWED: "#94a3b8",       // slate-400
-    REVIEW_RECOMMENDED: "#f59e0b", // amber-500
-    REVIEWED: "#3b82f6",          // blue-500
-    PROOF_READY: "#10b981",       // emerald-500
+    UNREVIEWED: "#94a3b8",
+    REVIEW_RECOMMENDED: "#f59e0b",
+    REVIEWED: "#3b82f6",
+    PROOF_READY: "#10b981",
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -54,7 +61,9 @@ function formatLastActivity(useCases: UseCaseCard[]): { time: string; name: stri
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function GovernanceHeader({ useCases, onQuickCapture }: GovernanceHeaderProps) {
+export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated }: GovernanceHeaderProps) {
+    const [settingsOpen, setSettingsOpen] = useState(false);
+
     const counts = useMemo(() => {
         const byStatus: Record<RegisterUseCaseStatus, number> = {
             UNREVIEWED: 0,
@@ -75,31 +84,31 @@ export function GovernanceHeader({ useCases, onQuickCapture }: GovernanceHeaderP
 
     const kpis: KpiItem[] = [
         {
-            label: "Use Cases",
+            label: "Registrierte Einsatzfälle",
             value: counts.total,
             icon: <BarChart3 className="h-4 w-4" />,
             color: "text-foreground",
         },
         {
-            label: "Ungeprüft",
+            label: "Formale Prüfung ausstehend",
             value: counts.byStatus.UNREVIEWED,
             icon: <AlertTriangle className="h-4 w-4" />,
             color: counts.byStatus.UNREVIEWED > 0 ? "text-amber-500" : "text-muted-foreground",
         },
         {
-            label: "Review empf.",
+            label: "Prüfung empfohlen",
             value: counts.byStatus.REVIEW_RECOMMENDED,
             icon: <FileCheck className="h-4 w-4" />,
             color: counts.byStatus.REVIEW_RECOMMENDED > 0 ? "text-blue-500" : "text-muted-foreground",
         },
         {
-            label: "Proof-ready",
+            label: "Nachweisfähig",
             value: counts.byStatus.PROOF_READY,
             icon: <FileCheck className="h-4 w-4" />,
             color: counts.byStatus.PROOF_READY > 0 ? "text-emerald-500" : "text-muted-foreground",
         },
         {
-            label: "Öffentlich",
+            label: "Öffentlich verifiziert",
             value: counts.publicCount,
             icon: <Eye className="h-4 w-4" />,
             color: counts.publicCount > 0 ? "text-violet-500" : "text-muted-foreground",
@@ -109,13 +118,13 @@ export function GovernanceHeader({ useCases, onQuickCapture }: GovernanceHeaderP
     // Next action CTA
     const nextAction = useMemo(() => {
         if (counts.byStatus.UNREVIEWED > 0) {
-            return `${counts.byStatus.UNREVIEWED} ungeprüft → jetzt sichten`;
+            return `${counts.byStatus.UNREVIEWED} formale Prüfung ausstehend`;
         }
         if (counts.byStatus.REVIEW_RECOMMENDED > 0) {
-            return `${counts.byStatus.REVIEW_RECOMMENDED} Review empfohlen → prüfen`;
+            return `${counts.byStatus.REVIEW_RECOMMENDED} Prüfung empfohlen`;
         }
         if (counts.total === 0) {
-            return "Ersten Use Case erfassen";
+            return "Ersten Einsatzfall erfassen";
         }
         return null;
     }, [counts]);
@@ -134,27 +143,64 @@ export function GovernanceHeader({ useCases, onQuickCapture }: GovernanceHeaderP
             }));
     }, [counts]);
 
+    // Org scope
+    const orgName = register?.organisationName;
+    const orgUnit = register?.organisationUnit;
+
     return (
         <div className="space-y-4">
-            {/* Title */}
+            {/* Title + Scope */}
             <div className="flex items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">AI Governance Register</h1>
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2.5">
+                        <span
+                            className="flex h-8 w-8 items-center justify-center rounded-md border bg-muted font-mono text-sm font-bold text-foreground"
+                            aria-hidden="true"
+                        >
+                            [/]
+                        </span>
+                        <h1 className="text-2xl font-bold tracking-tight">AI Governance Register</h1>
+                    </div>
                     <p className="text-sm text-muted-foreground">
-                        Governance entsteht nur durch menschliche Entscheidungen.
+                        Verbindliche Dokumentation aller KI-Einsatzfälle.
                     </p>
+                    {/* Org scope block */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 pt-1 text-xs text-muted-foreground">
+                        {orgName ? (
+                            <>
+                                <span>Organisation: <span className="font-medium text-foreground">{orgName}</span></span>
+                                {orgUnit && (
+                                    <span>Organisationseinheit: <span className="font-medium text-foreground">{orgUnit}</span></span>
+                                )}
+                            </>
+                        ) : (
+                            <span>Scope: Private Registerinstanz</span>
+                        )}
+                        <span>Register-Version: {REGISTER_VERSION}</span>
+                    </div>
                 </div>
-                {onQuickCapture && (
-                    <button
-                        onClick={onQuickCapture}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                    >
-                        + Erfassen
-                        <kbd className="hidden rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-mono sm:inline-block">
-                            ⌘K
-                        </kbd>
-                    </button>
-                )}
+                <div className="flex items-center gap-2">
+                    {register && (
+                        <button
+                            onClick={() => setSettingsOpen(true)}
+                            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            title="Governance-Einstellungen"
+                        >
+                            <Settings className="h-4 w-4" />
+                        </button>
+                    )}
+                    {onQuickCapture && (
+                        <button
+                            onClick={onQuickCapture}
+                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        >
+                            + Erfassen
+                            <kbd className="hidden rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-mono sm:inline-block">
+                                ⌘K
+                            </kbd>
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* KPI Bar */}
@@ -223,6 +269,16 @@ export function GovernanceHeader({ useCases, onQuickCapture }: GovernanceHeaderP
                     </button>
                 )}
             </div>
+
+            {/* Settings Dialog */}
+            {register && (
+                <GovernanceSettingsDialog
+                    open={settingsOpen}
+                    onOpenChange={setSettingsOpen}
+                    register={register}
+                    onSaved={onRegisterUpdated}
+                />
+            )}
         </div>
     );
 }

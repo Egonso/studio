@@ -16,7 +16,7 @@ import {
   registerService,
   type RegisterServiceErrorCode,
 } from "@/lib/register-first/register-service";
-import type { UseCaseCard } from "@/lib/register-first/types";
+import type { Register, UseCaseCard } from "@/lib/register-first/types";
 
 type OnboardingState = "loading" | "no_register" | "ready";
 
@@ -32,11 +32,12 @@ export default function MyRegisterPage() {
   const router = useRouter();
 
   const [onboardingState, setOnboardingState] = useState<OnboardingState>("loading");
-  const [registerName, setRegisterName] = useState("Mein Register");
+  const [registerName, setRegisterName] = useState("");
   const [isCreatingRegister, setIsCreatingRegister] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [captureOpen, setCaptureOpen] = useState(false);
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
+  const [register, setRegister] = useState<Register | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [hasChecked, setHasChecked] = useState(false);
@@ -49,9 +50,14 @@ export default function MyRegisterPage() {
   if (!authLoading && user && !hasChecked) {
     setHasChecked(true);
     registerService
-      .listRegisters()
-      .then((registers) => {
-        setOnboardingState(registers.length > 0 ? "ready" : "no_register");
+      .getFirstRegister()
+      .then((reg) => {
+        if (reg) {
+          setRegister(reg);
+          setOnboardingState("ready");
+        } else {
+          setOnboardingState("no_register");
+        }
       })
       .catch((err) => {
         const code = mapErrorCode(err);
@@ -64,14 +70,23 @@ export default function MyRegisterPage() {
   }
 
   const handleCreateRegister = async () => {
-    const name = registerName.trim();
-    if (!name) return;
-
     setIsCreatingRegister(true);
     setCreateError(null);
 
     try {
-      await registerService.createRegister(name);
+      const orgName = registerName.trim() || null;
+      const displayName = orgName ?? "AI Governance Register";
+      const reg = await registerService.createRegister(displayName);
+
+      // Store org name if provided
+      if (orgName) {
+        await registerService.updateRegisterProfile(reg.registerId, {
+          organisationName: orgName,
+        });
+        reg.organisationName = orgName;
+      }
+
+      setRegister(reg);
       setOnboardingState("ready");
     } catch (err) {
       const code = mapErrorCode(err);
@@ -119,17 +134,17 @@ export default function MyRegisterPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="registerName">Name des Registers</Label>
+              <Label htmlFor="registerName">Organisationseinheit (optional)</Label>
               <Input
                 id="registerName"
                 value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
-                placeholder="z. B. AI Governance Register"
+                placeholder="z. B. Müller GmbH"
               />
             </div>
             <Button
               onClick={() => void handleCreateRegister()}
-              disabled={isCreatingRegister || !registerName.trim()}
+              disabled={isCreatingRegister}
               className="w-full"
             >
               {isCreatingRegister && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -146,7 +161,11 @@ export default function MyRegisterPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <GovernanceHeader
           useCases={useCases}
+          register={register}
           onQuickCapture={() => setCaptureOpen(true)}
+          onRegisterUpdated={(partial) => {
+            setRegister((prev) => prev ? { ...prev, ...partial } : prev);
+          }}
         />
         <RegisterBoard
           mode="standalone"

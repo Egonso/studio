@@ -9,10 +9,10 @@ export const registerUseCaseStatusOrder: RegisterUseCaseStatus[] = [
 
 export const registerUseCaseStatusLabels: Record<RegisterUseCaseStatus, string> =
   Object.freeze({
-    UNREVIEWED: "Ungeprueft",
-    REVIEW_RECOMMENDED: "Review empfohlen",
-    REVIEWED: "Geprueft",
-    PROOF_READY: "Proof-ready",
+    UNREVIEWED: "Formale Prüfung ausstehend",
+    REVIEW_RECOMMENDED: "Prüfung empfohlen",
+    REVIEWED: "Prüfung abgeschlossen",
+    PROOF_READY: "Nachweisfähig",
   });
 
 const statusTransitions: Record<RegisterUseCaseStatus, RegisterUseCaseStatus[]> =

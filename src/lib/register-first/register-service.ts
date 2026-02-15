@@ -104,6 +104,11 @@ export interface SetVisibilityInput {
 export interface RegisterService {
   createRegister(name: string, linkedProjectId?: string | null): Promise<Register>;
   listRegisters(): Promise<Register[]>;
+  getFirstRegister(): Promise<Register | null>;
+  updateRegisterProfile(
+    registerId: string,
+    profile: Partial<Pick<Register, "organisationName" | "organisationUnit" | "publicOrganisationDisclosure">>
+  ): Promise<void>;
   createUseCaseFromCapture(
     input: unknown,
     options?: CreateUseCaseOptions
@@ -252,6 +257,25 @@ export function createRegisterService(
       try {
         const userId = await resolveUserIdOrThrow();
         return registerRepo.listRegisters(userId);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async getFirstRegister() {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        const registers = await registerRepo.listRegisters(userId);
+        return registers.length > 0 ? registers[0] : null;
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async updateRegisterProfile(registerId, profile) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        await registerRepo.updateRegister(userId, registerId, profile);
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -416,6 +440,13 @@ export function createRegisterService(
 
         // Dual-Write: Public Index
         if (input.isPublicVisible && saved.publicHashId) {
+          // Fetch register to check org disclosure
+          const reg = await registerRepo.getRegister(scope.userId, scope.registerId);
+          const orgName =
+            reg?.publicOrganisationDisclosure && reg?.organisationName
+              ? reg.organisationName
+              : null;
+
           const indexEntry: PublicUseCaseIndexEntry = {
             publicHashId: saved.publicHashId,
             globalUseCaseId: saved.globalUseCaseId ?? "",
@@ -427,6 +458,7 @@ export function createRegisterService(
             createdAt: saved.createdAt,
             ownerId: scope.userId,
             verification: saved.proof?.verification ?? null,
+            organisationName: orgName,
           };
           await publicIndexRepo.publishToIndex(indexEntry);
         } else if (!input.isPublicVisible && saved.publicHashId) {

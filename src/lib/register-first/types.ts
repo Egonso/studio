@@ -106,6 +106,9 @@ export interface Register {
   name: string;
   createdAt: string;
   linkedProjectId?: string | null;
+  organisationName?: string | null;
+  organisationUnit?: string | null;
+  publicOrganisationDisclosure?: boolean;
 }
 
 export interface PublicUseCaseIndexEntry {
@@ -119,4 +122,5 @@ export interface PublicUseCaseIndexEntry {
   createdAt: string;
   ownerId: string;
   verification: { isReal: boolean; isCurrent: boolean; scope: string } | null;
+  organisationName?: string | null;
 }

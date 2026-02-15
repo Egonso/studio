@@ -3,6 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw } from "lucide-react";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -199,6 +209,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     Record<string, RegisterUseCaseStatus | undefined>
   >({});
   const [updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
+  const [confirmingStatusCard, setConfirmingStatusCard] = useState<UseCaseCard | null>(null);
   const [updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
     {}
   );
@@ -601,7 +612,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         </Button>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {useCases.length} Use Case{useCases.length === 1 ? "" : "s"}
+            {useCases.length} Einsatzf{useCases.length === 1 ? "all" : "älle"}
           </span>
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => void loadUseCases()}>
             <RefreshCw className="h-3.5 w-3.5" />
@@ -624,9 +635,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
       ) : useCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Noch keine Use Cases erfasst</CardTitle>
+            <CardTitle>Noch keine Einsatzfälle erfasst</CardTitle>
             <CardDescription>
-              Erfasse den ersten Use Case mit <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> oder dem Button oben.
+              Erfasse den ersten Einsatzfall mit <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> oder dem Button oben.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -654,7 +665,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                         variant={card.isPublicVisible ? "default" : "secondary"}
                         className="shrink-0 text-[10px]"
                       >
-                        {card.isPublicVisible ? "Öffentlich" : "Privat"}
+                        {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
                       </Badge>
                     </div>
 
@@ -684,13 +695,27 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                       {card.globalUseCaseId && (
                         <span className="font-mono">{card.globalUseCaseId}</span>
                       )}
-                      <span>Aktualisiert: {formatDate(card.updatedAt)}</span>
-                      {card.reviews.length > 0 && (
+                      {card.reviews.length > 0 ? (
                         <span>
-                          Letzte Entscheidung: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
+                          Statusentscheidung zuletzt am: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
                         </span>
+                      ) : (
+                        <span>Erfasst am: {formatDate(card.createdAt)}</span>
                       )}
                     </div>
+
+                    {/* Audit mini-log: last review */}
+                    {card.reviews.length > 0 && (() => {
+                      const lastReview = card.reviews[card.reviews.length - 1];
+                      return (
+                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
+                          <span>Letzte Entscheidung:</span>
+                          <span className="font-medium">{registerUseCaseStatusLabels[lastReview.nextStatus]}</span>
+                          <span>→</span>
+                          <span>{formatDate(lastReview.reviewedAt)}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Actions Dropdown */}
@@ -794,11 +819,16 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                         ))}
                       </SelectContent>
                     </Select>
+
+
                     <Button
                       type="button"
                       size="sm"
                       className="h-8 text-xs"
-                      onClick={() => void handleUpdateStatus(card)}
+                      onClick={() => {
+                        if (!selectedNextStatus) return;
+                        setConfirmingStatusCard(card);
+                      }}
                       disabled={!selectedNextStatus || isUpdating}
                     >
                       {isUpdating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
@@ -814,6 +844,34 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           })}
         </div>
       )}
+
+      {/* Status change confirmation dialog */}
+      <AlertDialog
+        open={confirmingStatusCard !== null}
+        onOpenChange={(open) => { if (!open) setConfirmingStatusCard(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Statusänderung bestätigen</AlertDialogTitle>
+            <AlertDialogDescription>
+              Diese Statusänderung dokumentiert eine formale Entscheidung. Fortfahren?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmingStatusCard) {
+                  void handleUpdateStatus(confirmingStatusCard);
+                  setConfirmingStatusCard(null);
+                }
+              }}
+            >
+              Bestätigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
