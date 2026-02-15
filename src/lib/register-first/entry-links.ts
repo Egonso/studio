@@ -25,7 +25,7 @@ export function buildVerifyPassAbsoluteUrl(
 ): string {
   const base =
     baseUrl ??
-    (typeof window !== "undefined" ? window.location.origin : "https://studio.eukigesetz.com");
+    (typeof window !== "undefined" ? window.location.origin : "https://fortbildung.eukigesetz.com");
   return `${base}/verify/pass/${encodeURIComponent(publicHashId)}`;
 }
 
