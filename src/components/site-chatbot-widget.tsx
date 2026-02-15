@@ -6,6 +6,8 @@ import React, { useState, useRef, useEffect } from 'react';
 // OR use a utility to call it. 
 // Given the project structure likely uses standard Genkit server actions:
 import { callChatbotAction } from '@/ai/actions';
+import { submitFeedback } from '@/app/actions/feedback';
+import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +23,7 @@ interface Message {
 }
 
 export function SiteChatbotWidget() {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         { role: 'model', content: 'Hallo! Ich bin dein AI-Assistent für das EuKIGesetz Studio. Wie kann ich dir helfen?' }
@@ -114,15 +117,29 @@ export function SiteChatbotWidget() {
 
     const handleSendFeedback = async () => {
         if (!feedbackText.trim()) return;
-        setFeedbackSent(true);
-        // Mock sending feedback for now (or implement server action)
-        console.log("Feedback sent:", { type: feedbackType, text: feedbackText, path: pathname });
 
-        setTimeout(() => {
-            setFeedbackText('');
-            setFeedbackSent(false); // Reset after delay or keep success state
-            // Switch back to chat or show toast
-        }, 2000);
+        try {
+            const res = await submitFeedback({
+                type: feedbackType as any,
+                message: feedbackText,
+                path: pathname,
+                userEmail: user?.email || '',
+                userId: user?.uid,
+                metadata: { userAgent: navigator.userAgent }
+            });
+
+            if (res.success) {
+                setFeedbackSent(true);
+                setTimeout(() => {
+                    setFeedbackText('');
+                    setFeedbackSent(false); // Reset after delay
+                }, 2000);
+            } else {
+                console.error("Feedback submission failed:", res.error);
+            }
+        } catch (error) {
+            console.error("Feedback error:", error);
+        }
     };
 
     if (!isOpen) {

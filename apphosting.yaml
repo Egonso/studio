@@ -5,3 +5,19 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+env:
+  - variable: PERPLEXITY_API_KEY
+    secret: PERPLEXITY_API_KEY
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+  - variable: NEXT_PUBLIC_REGISTER_FIRST_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY
+    value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER
+    value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE
+    value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_FIRST_STANDALONE
+    value: "true"
