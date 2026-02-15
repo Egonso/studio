@@ -35,13 +35,14 @@ import { Terminal } from 'lucide-react';
 import { AuthProvider } from '@/context/auth-context';
 import { SiteChatbotWidget } from '@/components/site-chatbot-widget';
 import { CommandPalette } from '@/components/register/command-palette';
+import { DynamicFavicon } from '@/components/dynamic-favicon';
 
 export const metadata: Metadata = {
   title: 'AI Compliance OS',
   description: 'Navigate EU AI Act compliance with confidence. Get status checks, parameter configuration, and AI-powered advice for your SME.',
   icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
+    icon: '/logo.png',
+    shortcut: '/logo.png',
   },
 };
 
@@ -57,11 +58,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-        <link rel="icon" href="/favicon.png" />
-        <link rel="shortcut icon" href="/favicon.png" />
+        <link rel="icon" href="/logo.png" />
+        <link rel="shortcut icon" href="/logo.png" />
       </head>
       <body className="font-body antialiased bg-background">
         <AuthProvider>
+          <DynamicFavicon />
           {children}
           <Toaster />
           <CommandPalette />
