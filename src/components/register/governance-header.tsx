@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings } from "lucide-react";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
@@ -153,12 +154,13 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2.5">
-                        <span
-                            className="flex h-8 w-8 items-center justify-center rounded-md border bg-muted font-mono text-sm font-bold text-foreground"
-                            aria-hidden="true"
-                        >
-                            [/]
-                        </span>
+                        <Image
+                            src="/register-logo.png"
+                            alt="AI Governance Register"
+                            width={32}
+                            height={32}
+                            className="h-8 w-8 dark:invert"
+                        />
                         <h1 className="text-2xl font-bold tracking-tight">AI Governance Register</h1>
                     </div>
                     <p className="text-sm text-muted-foreground">
