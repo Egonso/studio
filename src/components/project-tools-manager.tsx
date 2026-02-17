@@ -88,10 +88,22 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
 
         setCheckingCompliance(prev => ({ ...prev, [tool.id]: true }));
         try {
+            // Get Auth Token
+            const { getFirebaseAuth } = await import("@/lib/firebase");
+            const auth = await getFirebaseAuth();
+            const token = await auth.currentUser?.getIdToken();
+
+            if (!token) {
+                throw new Error("Sie sind nicht eingeloggt.");
+            }
+
             // Updated Endpoint
             const response = await fetch('/api/tools/public-info-check', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 // Updated Body format
                 body: JSON.stringify({
                     projectId,
