@@ -48,15 +48,15 @@ export function AppHeader() {
               Admin
             </Link>
           )}
+          <Link href="/my-register" className="mr-2">
+            <Button size="sm" className="h-8 gap-1 px-3" variant="default">
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">KI-Anwendung erfassen</span>
+            </Button>
+          </Link>
           <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <GanttChartSquare className="h-4 w-4" />
             Dashboard
-          </Link>
-          <Link href="/my-register" className="ml-2">
-            <Button size="sm" className="h-8 gap-1 px-3" variant="default">
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">App erfassen</span>
-            </Button>
           </Link>
           <Link href="/projects" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <LayoutDashboard className="h-4 w-4" />

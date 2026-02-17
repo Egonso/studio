@@ -191,7 +191,7 @@ Beispiel: "Wo kann ich ein Projekt anlegen?" → navigateTool mit path="/project
         try {
             // Call the model
             const response = await ai.generate({
-                model: 'googleai/gemini-3-flash-preview',
+                model: 'googleai/gemini-2.0-flash',
                 messages: fullMessages,
                 tools: [navigateTool],
                 config: {
