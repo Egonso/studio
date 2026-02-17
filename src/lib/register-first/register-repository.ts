@@ -178,7 +178,9 @@ export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository 
       const { doc, setDoc } = await import("firebase/firestore");
       const collectionRef = await getUseCasesCollectionRef(scope);
       const docRef = doc(collectionRef, card.useCaseId);
-      await setDoc(docRef, card, { merge: false });
+      // Sanitize undefined values (Firestore rejects them by default)
+      const cleanCard = JSON.parse(JSON.stringify(card));
+      await setDoc(docRef, cleanCard, { merge: false });
       return parseUseCaseCard(card);
     },
 
@@ -206,7 +208,9 @@ export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository 
       const { doc, setDoc } = await import("firebase/firestore");
       const collectionRef = await getUseCasesCollectionRef(scope);
       const docRef = doc(collectionRef, card.useCaseId);
-      await setDoc(docRef, card, { merge: false });
+      // Sanitize undefined values
+      const cleanCard = JSON.parse(JSON.stringify(card));
+      await setDoc(docRef, cleanCard, { merge: false });
       return parseUseCaseCard(card);
     },
   };
