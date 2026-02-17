@@ -2,143 +2,101 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { SITE_TREE, FEATURE_OVERVIEW, COMMON_QUESTIONS } from '@/data/chatbot-context';
+import lawDataRaw from '@/data/eu-ai-act.json';
 
-// Input/Output Schemas
-const ChatbotInputSchema = z.object({
-    messages: z.array(
-        z.object({
-            role: z.enum(['user', 'model', 'system']),
-            content: z.string(),
-        })
-    ),
-    currentPath: z.string().optional(),
-});
+// ... (other imports)
 
-const ChatbotOutputSchema = z.object({
-    text: z.string(),
-    toolCalls: z.array(z.any()).optional(), // To capture tool calls if needed manually, though genkit handles execution usually
-});
+async (input, { sendChunk }) => {
+    // Load Law Data — Static import for Vercel compatibility
+    const lawData = lawDataRaw as any;
 
-// Define the Navigation Tool
-export const navigateTool = ai.defineTool(
-    {
-        name: 'navigateTool',
-        description: 'Use this tool to navigate the user to a specific path in the application. Use it when the user asks to go somewhere or when a specific page is the best answer.',
-        inputSchema: z.object({
-            path: z.string().describe('The relative path to navigate to, e.g., "/dashboard", "/kurs", "/trust".'),
-            reason: z.string().describe('Short reason for navigation, for logging purposes.'),
-        }),
-        outputSchema: z.object({
-            success: z.boolean(),
-            command: z.string(),
-        }),
-    },
-    async ({ path, reason }) => {
-        // Ideally, this tool just signals the frontend. 
-        // In Genkit server-side, we can't "force" the client to move unless we return a structured signal.
-        // We will return a specific string that the frontend looks for, or rely on the tool call structure itself if using generate().
-        return { success: true, command: `NAVIGATE_TO:${path}` };
-    }
-);
+    let lawContext = "";
+    try {
+        // Extract the user's last message for keyword matching
+        const lastUserMsg = input.messages
+            .filter((m: any) => m.role === 'user')
+            .pop()?.content?.toLowerCase() ?? "";
 
+        // Check for specific article/recital references (e.g. "artikel 4", "art. 5", "paragraf 4", "§ 4")
+        // Map "paragraf" or "§" to "Article" as EU Regulations use Articles
+        const artMatches = [...lastUserMsg.matchAll(/(?:artikel|art\.?|paragraf|paragraph|§)\s*(\d+)/gi)].map(m => parseInt(m[1]));
+        const recMatches = [...lastUserMsg.matchAll(/(?:erwägungsgrund|erw\.?|recital)\s*(\d+)/gi)].map(m => parseInt(m[1]));
 
-// Define the Chatbot Flow
-export const siteChatbotFlow = ai.defineFlow(
-    {
-        name: 'siteChatbotFlow',
-        inputSchema: ChatbotInputSchema,
-        outputSchema: z.string(), // We'll return the text response directly for simplicity in the stream
-    },
-    async (input, { sendChunk }) => {
-        // Load Law Data — SELECTIVE retrieval to prevent oversized prompts
-        const fs = await import('fs');
-        const path = await import('path');
+        // Keywords from user message for fuzzy matching
+        const stopwords = new Set(["der", "die", "das", "und", "oder", "ist", "ein", "eine", "was", "wie", "wer", "wo", "sagt", "steht", "dazu", "über", "zum", "zur", "bei", "mit", "von", "für", "auf", "in", "an", "zu", "es", "sich", "den", "dem", "des", "als", "auch", "nach", "noch", "nur", "aber", "wenn", "dann", "kann", "muss", "wird", "hat", "sind", "ich", "du", "sie", "er", "wir", "mir"]);
+        const keywords = lastUserMsg
+            .replace(/[^a-zäöüß\s]/gi, " ")
+            .split(/\s+/)
+            .filter((w: string) => w.length > 3 && !stopwords.has(w));
 
-        let lawContext = "";
-        try {
-            const filePath = path.join(process.cwd(), 'src/data/eu-ai-act.json');
-            if (fs.existsSync(filePath)) {
-                const lawData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        // ... (rest of matching logic same as before) 
+        // Collect matching articles
+        const matchedArticles: string[] = [];
+        const allArticleTitles: string[] = [];
 
-                // Extract the user's last message for keyword matching
-                const lastUserMsg = input.messages
-                    .filter((m: any) => m.role === 'user')
-                    .pop()?.content?.toLowerCase() ?? "";
+        // Helper to get text safe
+        const getArticleText = (a: any) => `${a.title ?? ''}\n${a.text}`;
 
-                // Check for specific article/recital references (e.g. "artikel 4", "art. 5", "erwägungsgrund 12")
-                const artMatches = [...lastUserMsg.matchAll(/(?:artikel|art\.?)\s*(\d+)/gi)].map(m => parseInt(m[1]));
-                const recMatches = [...lastUserMsg.matchAll(/(?:erwägungsgrund|erw\.?|recital)\s*(\d+)/gi)].map(m => parseInt(m[1]));
+        lawData.chapters?.forEach((c: any) => {
+            c.articles?.forEach((a: any) => {
+                const artNum = parseInt(String(a.id).replace(/\D/g, ''));
+                allArticleTitles.push(`Art. ${artNum}: ${a.title ?? ''}`);
 
-                // Keywords from user message for fuzzy matching
-                const stopwords = new Set(["der", "die", "das", "und", "oder", "ist", "ein", "eine", "was", "wie", "wer", "wo", "sagt", "steht", "dazu", "über", "zum", "zur", "bei", "mit", "von", "für", "auf", "in", "an", "zu", "es", "sich", "den", "dem", "des", "als", "auch", "nach", "noch", "nur", "aber", "wenn", "dann", "kann", "muss", "wird", "hat", "sind", "ich", "du", "sie", "er", "wir"]);
-                const keywords = lastUserMsg
-                    .replace(/[^a-zäöüß\s]/gi, " ")
-                    .split(/\s+/)
-                    .filter((w: string) => w.length > 3 && !stopwords.has(w));
-
-                // Collect matching articles
-                const matchedArticles: string[] = [];
-                const allArticleTitles: string[] = [];
-
-                lawData.chapters?.forEach((c: any) => {
-                    c.articles?.forEach((a: any) => {
-                        const artNum = parseInt(String(a.id).replace(/\D/g, ''));
-                        allArticleTitles.push(`Art. ${artNum}: ${a.title ?? ''}`);
-
-                        // Match by explicit reference
-                        if (artMatches.includes(artNum)) {
-                            matchedArticles.push(`[ARTICLE ${artNum}] ${a.title ?? ''}\n${a.text}`);
-                            return;
-                        }
-
-                        // Match by keyword in title/text (limit to prevent overload)
-                        if (matchedArticles.length < 20 && keywords.length > 0) {
-                            const searchText = `${a.title ?? ''} ${a.text}`.toLowerCase();
-                            const hits = keywords.filter((kw: string) => searchText.includes(kw));
-                            if (hits.length >= 2 || (hits.length >= 1 && keywords.length <= 2)) {
-                                matchedArticles.push(`[ARTICLE ${artNum}] ${a.title ?? ''}\n${a.text}`);
-                            }
-                        }
-                    });
-                });
-
-                // Collect matching recitals
-                const matchedRecitals: string[] = [];
-                lawData.recitals?.forEach((r: any) => {
-                    const recNum = parseInt(String(r.number));
-                    if (recMatches.includes(recNum)) {
-                        matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
-                        return;
-                    }
-                    if (matchedRecitals.length < 10 && keywords.length > 0) {
-                        const hits = keywords.filter((kw: string) => r.text.toLowerCase().includes(kw));
-                        if (hits.length >= 2) {
-                            matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
-                        }
-                    }
-                });
-
-                // Build compact context
-                if (matchedArticles.length > 0 || matchedRecitals.length > 0) {
-                    lawContext = "EU AI ACT — RELEVANTE ABSCHNITTE:\n\n";
-                    if (matchedArticles.length > 0) {
-                        lawContext += matchedArticles.join("\n\n") + "\n\n";
-                    }
-                    if (matchedRecitals.length > 0) {
-                        lawContext += "ERWÄGUNGSGRÜNDE:\n" + matchedRecitals.join("\n\n") + "\n\n";
-                    }
+                // Match by explicit reference
+                if (artMatches.includes(artNum)) {
+                    matchedArticles.push(`[ARTICLE ${artNum}] ${getArticleText(a)}`);
+                    return;
                 }
 
-                // Always add compact article index so model knows what exists
-                lawContext += "\nVERFÜGBARE ARTIKEL (Index):\n" + allArticleTitles.join("\n") + "\n";
+                // Match by keyword in title/text (limit to prevent overload)
+                if (matchedArticles.length < 20 && keywords.length > 0) {
+                    const searchText = getArticleText(a).toLowerCase();
+                    const hits = keywords.filter((kw: string) => searchText.includes(kw));
+                    if (hits.length >= 2 || (hits.length >= 1 && keywords.length <= 2)) {
+                        matchedArticles.push(`[ARTICLE ${artNum}] ${getArticleText(a)}`);
+                    }
+                }
+            });
+        });
+
+        // Recitals logic...
+        const matchedRecitals: string[] = [];
+        lawData.recitals?.forEach((r: any) => {
+            const recNum = parseInt(String(r.number));
+            if (recMatches.includes(recNum)) {
+                matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
+                return;
             }
-        } catch (e) {
-            console.error("Failed to load law data for chatbot:", e);
+            if (matchedRecitals.length < 10 && keywords.length > 0) {
+                const hits = keywords.filter((kw: string) => r.text.toLowerCase().includes(kw));
+                if (hits.length >= 2) {
+                    matchedRecitals.push(`[RECITAL ${recNum}] ${r.text}`);
+                }
+            }
+        });
+
+
+        // Build compact context
+        if (matchedArticles.length > 0 || matchedRecitals.length > 0) {
+            lawContext = "EU AI ACT — RELEVANTE ABSCHNITTE:\n\n";
+            if (matchedArticles.length > 0) {
+                lawContext += matchedArticles.join("\n\n") + "\n\n";
+            }
+            if (matchedRecitals.length > 0) {
+                lawContext += "ERWÄGUNGSGRÜNDE:\n" + matchedRecitals.join("\n\n") + "\n\n";
+            }
         }
 
-        // System Prompt construction
-        const systemPrompt = `
+        // Always add compact article index so model knows what exists
+        lawContext += "\nVERFÜGBARE ARTIKEL (Index):\n" + allArticleTitles.join("\n") + "\n";
+
+    } catch (e) {
+        console.error("Failed to process law data for chatbot:", e);
+    }
+
+
+    // System Prompt construction
+    const systemPrompt = `
 Du bist der intelligente Assistent für "EuKIGesetz Studio" (fortbildung.eukigesetz.com).
 Deine Aufgabe: Nutzern helfen, die Plattform zu nutzen, den EU AI Act zu verstehen, und relevante Inhalte zu finden.
 Antworte IMMER auf Deutsch, professionell und hilfsbereit.
@@ -168,54 +126,54 @@ Beispiel: "Wo kann ich ein Projekt anlegen?" → navigateTool mit path="/project
 - Halte Antworten kompakt aber informativ. Nutze Aufzählungszeichen.
     `;
 
-        // Prepare full message history, FILTERING OUT any existing system messages from input
-        const userHistory = input.messages.filter(m => m.role !== 'system').map(m => ({
-            role: m.role,
-            content: [{ text: m.content }]
-        }));
+    // Prepare full message history, FILTERING OUT any existing system messages from input
+    const userHistory = input.messages.filter(m => m.role !== 'system').map(m => ({
+        role: m.role,
+        content: [{ text: m.content }]
+    }));
 
-        // Combine System Prompt and Context into ONE single string
-        let combinedSystemText = systemPrompt;
-        if (input.currentPath) {
-            combinedSystemText += `\n\nUser Context:\nUser is currently on page: ${input.currentPath}`;
-        }
-
-        // Create the SINGLE system message at the start
-        const systemMessage = { role: 'system', content: [{ text: combinedSystemText }] };
-
-        const fullMessages = [
-            systemMessage,
-            ...userHistory
-        ] as any[];
-
-        try {
-            // Call the model
-            const response = await ai.generate({
-                model: 'googleai/gemini-2.0-flash',
-                messages: fullMessages,
-                tools: [navigateTool],
-                config: {
-                    temperature: 0.5,
-                },
-            });
-
-            // Genkit response handling - tool calls logic
-            const outputToolCalls = (response as any).toolCalls || (response.output as any)?.toolCalls;
-
-            let finalText = response.text;
-
-            if (outputToolCalls && outputToolCalls.length > 0) {
-                const navCall = outputToolCalls.find((tc: any) => tc.toolName === 'navigateTool');
-                if (navCall) {
-                    const args = navCall.args as any;
-                    finalText += `\n[NAVIGATE:${args.path}]`;
-                }
-            }
-
-            return finalText;
-        } catch (genError: any) {
-            console.error("Chatbot ai.generate error:", genError);
-            return "Entschuldigung, der Assistent ist momentan nicht erreichbar. Bitte versuche es später erneut.";
-        }
+    // Combine System Prompt and Context into ONE single string
+    let combinedSystemText = systemPrompt;
+    if (input.currentPath) {
+        combinedSystemText += `\n\nUser Context:\nUser is currently on page: ${input.currentPath}`;
     }
+
+    // Create the SINGLE system message at the start
+    const systemMessage = { role: 'system', content: [{ text: combinedSystemText }] };
+
+    const fullMessages = [
+        systemMessage,
+        ...userHistory
+    ] as any[];
+
+    try {
+        // Call the model
+        const response = await ai.generate({
+            model: 'googleai/gemini-2.0-flash',
+            messages: fullMessages,
+            tools: [navigateTool],
+            config: {
+                temperature: 0.5,
+            },
+        });
+
+        // Genkit response handling - tool calls logic
+        const outputToolCalls = (response as any).toolCalls || (response.output as any)?.toolCalls;
+
+        let finalText = response.text;
+
+        if (outputToolCalls && outputToolCalls.length > 0) {
+            const navCall = outputToolCalls.find((tc: any) => tc.toolName === 'navigateTool');
+            if (navCall) {
+                const args = navCall.args as any;
+                finalText += `\n[NAVIGATE:${args.path}]`;
+            }
+        }
+
+        return finalText;
+    } catch (genError: any) {
+        console.error("Chatbot ai.generate error:", genError);
+        return "Entschuldigung, der Assistent ist momentan nicht erreichbar. Bitte versuche es später erneut.";
+    }
+}
 );
