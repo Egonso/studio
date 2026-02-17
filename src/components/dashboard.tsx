@@ -55,6 +55,7 @@ interface DashboardProps {
     // Register-First data
     useCaseCount?: number;
     pendingReviewCount?: number;
+    lastEntry?: { name: string; date: string; } | null;
     onUseCaseCaptured?: () => void;
 }
 
@@ -85,6 +86,7 @@ export function Dashboard({
     onTrustPortalUpdate,
     useCaseCount = 0,
     pendingReviewCount = 0,
+    lastEntry,
     onUseCaseCaptured,
 }: DashboardProps) {
     const router = useRouter();
@@ -179,6 +181,25 @@ export function Dashboard({
         <div className="flex-1 space-y-8 p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950/50">
             <div className="max-w-6xl mx-auto space-y-12">
 
+                {/* 0. REGISTER SECTION (Paket A - Moved to Top) */}
+                <section>
+                    <RegisterTile
+                        projectId={searchParams.get('projectId') || ''}
+                        useCaseCount={useCaseCount}
+                        pendingReviewCount={pendingReviewCount}
+                        lastEntry={lastEntry}
+                        onCaptureClick={() => setIsQuickCaptureOpen(true)}
+                    />
+                    <QuickCaptureModal
+                        open={isQuickCaptureOpen}
+                        onOpenChange={setIsQuickCaptureOpen}
+                        onCaptured={() => {
+                            setIsQuickCaptureOpen(false);
+                            onUseCaseCaptured?.();
+                        }}
+                    />
+                </section>
+
                 {/* 1. GUIDANCE SECTION */}
                 <section>
                     <DashboardGuidanceFrame
@@ -215,23 +236,8 @@ export function Dashboard({
                     <UserCertificationStatus status={userStatus || null} loading={userStatusLoading} />
                 </section>
 
-                {/* 1.6 REGISTER SECTION (Paket A) */}
-                <section>
-                    <RegisterTile
-                        projectId={searchParams.get('projectId') || ''}
-                        useCaseCount={useCaseCount}
-                        pendingReviewCount={pendingReviewCount}
-                        onCaptureClick={() => setIsQuickCaptureOpen(true)}
-                    />
-                    <QuickCaptureModal
-                        open={isQuickCaptureOpen}
-                        onOpenChange={setIsQuickCaptureOpen}
-                        onCaptured={() => {
-                            setIsQuickCaptureOpen(false);
-                            onUseCaseCaptured?.();
-                        }}
-                    />
-                </section>
+                {/* 1.6 REGISTER SECTION (Moved to top) */}
+                {/* Removed from here */}
 
                 {/* 2. OVERVIEW SECTION */}
                 <section className="space-y-6">

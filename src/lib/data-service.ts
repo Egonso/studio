@@ -198,6 +198,7 @@ export interface AimsProgress {
 
 
 interface ProjectData {
+    projectName?: string; // Added to match firestore doc
     orgId?: string; // Added for new architecture
     assessmentAnswers: Record<string, string>;
     companyContext: object;

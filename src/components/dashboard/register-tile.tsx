@@ -3,13 +3,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, PlusCircle, ArrowRight, AlertCircle } from "lucide-react";
+import { ClipboardList, PlusCircle, ArrowRight, AlertCircle, Clock } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface RegisterTileProps {
     projectId: string;
     useCaseCount: number;
     pendingReviewCount: number;
+    lastEntry?: {
+        name: string;
+        date: string;
+    } | null;
     onCaptureClick: () => void;
 }
 
@@ -17,62 +22,95 @@ export function RegisterTile({
     projectId,
     useCaseCount,
     pendingReviewCount,
+    lastEntry,
     onCaptureClick,
 }: RegisterTileProps) {
     const isEmpty = useCaseCount === 0;
 
     return (
-        <Card className="shadow-md border-slate-200 dark:border-slate-800 overflow-hidden">
-            <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <ClipboardList className="h-6 w-6 text-primary" />
+        <Card className="shadow-md border-slate-200 dark:border-slate-800 overflow-hidden bg-white/50 dark:bg-slate-950/50">
+            <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+
+                    {/* Left: Title & Main CTA */}
+                    <div className="space-y-4 flex-1">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <ClipboardList className="h-6 w-6 text-primary" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                                    AI Use Register
+                                </h3>
+                                <p className="text-sm text-muted-foreground">
+                                    Erfassen, prüfen und verwalten Sie KI-Anwendungen.
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <CardTitle className="text-xl">AI Use Register</CardTitle>
-                            <CardDescription>
-                                Erfassen, prüfen und verwalten Sie KI-Anwendungen (Use Cases).
-                            </CardDescription>
+
+                        <div className="flex items-center gap-3 pt-1">
+                            <Button onClick={onCaptureClick} className="shadow-sm">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                KI-Anwendung erfassen
+                            </Button>
+                            <Link href={`/my-register?projectId=${projectId}`}>
+                                <Button variant="outline">
+                                    Register öffnen
+                                </Button>
+                            </Link>
                         </div>
                     </div>
-                    {!isEmpty && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Badge variant="secondary" className="font-mono">
-                                {useCaseCount} Use Case{useCaseCount !== 1 ? "s" : ""}
-                            </Badge>
-                            {pendingReviewCount > 0 && (
-                                <Badge variant="outline" className="text-yellow-600 border-yellow-300">
-                                    {pendingReviewCount} Prüfung{pendingReviewCount !== 1 ? "en" : ""} ausstehend
-                                </Badge>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {isEmpty && (
-                    <div className="flex items-start gap-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
-                        <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                            Noch keine KI-Anwendungen erfasst. Starten Sie mit einem Use Case,
-                            damit Dokumentation und weitere Schritte sinnvoll werden.
-                        </p>
+
+                    {/* Right: Stats & Metadata */}
+                    <div className="flex flex-col gap-3 min-w-[280px] border-l pl-0 md:pl-6 border-slate-100 dark:border-slate-800">
+                        {isEmpty ? (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground bg-slate-50 dark:bg-slate-900 p-3 rounded-md">
+                                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                                <span className="leading-snug">
+                                    Noch keine Einträge. Starten Sie jetzt mit Ihrer ersten Erfassung.
+                                </span>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Dokumentiert:</span>
+                                        <Badge variant="secondary" className="font-mono bg-slate-100 text-slate-700 hover:bg-slate-100">
+                                            {useCaseCount} Use Case{useCaseCount !== 1 && 's'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-muted-foreground">Offene Prüfungen:</span>
+                                        {pendingReviewCount > 0 ? (
+                                            <Badge variant="outline" className="text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/10">
+                                                {pendingReviewCount} offen
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-green-600 text-xs flex items-center gap-1">
+                                                <CheckCircle2 className="h-3 w-3" /> Aktuell
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {lastEntry && (
+                                    <div className="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                                            <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                            <span className="line-clamp-1">
+                                                Letzter Eintrag: <span className="font-medium text-slate-700 dark:text-slate-300">{lastEntry.name}</span>
+                                                <span className="opacity-50 ml-1">({lastEntry.date})</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
-                )}
-                <div className="flex items-center gap-3">
-                    <Button onClick={onCaptureClick} className="gap-2">
-                        <PlusCircle className="h-4 w-4" />
-                        KI-Anwendung erfassen
-                    </Button>
-                    <Link href={`/register?projectId=${projectId}`}>
-                        <Button variant="outline" className="gap-2">
-                            Register öffnen
-                            <ArrowRight className="h-4 w-4" />
-                        </Button>
-                    </Link>
                 </div>
             </CardContent>
         </Card>
     );
 }
+
+import { CheckCircle2 } from "lucide-react";
