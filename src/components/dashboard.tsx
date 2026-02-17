@@ -19,6 +19,8 @@ import { PortfolioExportDialog } from "./portfolio-export-dialog";
 import { recalculateComplianceStatus } from "@/lib/compliance-logic";
 import { UserCertificationStatus } from "./dashboard/user-certification-status";
 import { TrustPortalTile } from "./dashboard/trust-portal-tile";
+import { RegisterTile } from "./dashboard/register-tile";
+import { QuickCaptureModal } from "./register/quick-capture-modal";
 import type { UserStatus } from "@/hooks/use-user-status";
 import type { TrustPortalConfig } from "@/lib/types";
 
@@ -50,6 +52,10 @@ interface DashboardProps {
     userStatusLoading?: boolean;
     trustPortalConfig?: TrustPortalConfig;
     onTrustPortalUpdate?: (config: TrustPortalConfig) => void;
+    // Register-First data
+    useCaseCount?: number;
+    pendingReviewCount?: number;
+    onUseCaseCaptured?: () => void;
 }
 
 const statusConfig = {
@@ -76,11 +82,18 @@ export function Dashboard({
     userStatus,
     userStatusLoading = false,
     trustPortalConfig,
-    onTrustPortalUpdate
+    onTrustPortalUpdate,
+    useCaseCount = 0,
+    pendingReviewCount = 0,
+    onUseCaseCaptured,
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [detailsView, setDetailsView] = useState<'none' | 'ai-act' | 'iso-42001' | 'portfolio'>('none');
+    const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+
+    // AI Act: Wizard has real data?
+    const wizardHasData = wizardStatus === 'completed' || wizardStatus === 'in_progress';
 
     // --- COMPLIANCE CALCULATIONS ---
     const finalComplianceItems = complianceData || [];
@@ -202,6 +215,24 @@ export function Dashboard({
                     <UserCertificationStatus status={userStatus || null} loading={userStatusLoading} />
                 </section>
 
+                {/* 1.6 REGISTER SECTION (Paket A) */}
+                <section>
+                    <RegisterTile
+                        projectId={searchParams.get('projectId') || ''}
+                        useCaseCount={useCaseCount}
+                        pendingReviewCount={pendingReviewCount}
+                        onCaptureClick={() => setIsQuickCaptureOpen(true)}
+                    />
+                    <QuickCaptureModal
+                        open={isQuickCaptureOpen}
+                        onOpenChange={setIsQuickCaptureOpen}
+                        onCaptured={() => {
+                            setIsQuickCaptureOpen(false);
+                            onUseCaseCaptured?.();
+                        }}
+                    />
+                </section>
+
                 {/* 2. OVERVIEW SECTION */}
                 <section className="space-y-6">
                     <div>
@@ -209,54 +240,88 @@ export function Dashboard({
                         <p className="text-muted-foreground">Zusammenfassung der drei Säulen: AI Act, ISO 42001 und Portfolio-Strategie.</p>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        {/* KPI Cards */}
-                        <Card className="shadow-sm border-slate-200">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle>
-                                <ShieldCheck className="h-4 w-4 text-green-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{compliantCount}</div>
-                                <p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="shadow-sm border-slate-200">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle>
-                                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{atRiskCount}</div>
-                                <p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="shadow-sm border-slate-200">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle>
-                                <ShieldAlert className="h-4 w-4 text-red-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{nonCompliantCount}</div>
-                                <p className="text-xs text-muted-foreground">kritische Probleme</p>
-                            </CardContent>
-                        </Card>
+                    {/* Paket B: AI Act Empty State – nur UI-Conditional */}
+                    {!wizardHasData ? (
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            {/* AI Act: Nicht gestartet */}
+                            <Card className="shadow-sm border-slate-200 md:col-span-3">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">AI Act Bewertung</CardTitle>
+                                    <ShieldAlert className="h-4 w-4 text-slate-400" />
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    <div className="text-2xl font-bold text-slate-400">Nicht gestartet</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Bitte starten Sie die AI-Act-Basisprüfung oder erfassen Sie zuerst einen Use Case im Register.
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                        {/* ISO Quick Status */}
-                        <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
-                                <Gauge className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold flex items-center gap-2">
-                                    <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
-                                    {auditability.label}
-                                </div>
-                                <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            {/* ISO Quick Status */}
+                            <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
+                                    <Gauge className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold flex items-center gap-2">
+                                        <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
+                                        {auditability.label}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ) : (
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            {/* KPI Cards – nur wenn Wizard-Daten vorhanden */}
+                            <Card className="shadow-sm border-slate-200">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle>
+                                    <ShieldCheck className="h-4 w-4 text-green-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{compliantCount}</div>
+                                    <p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p>
+                                </CardContent>
+                            </Card>
+                            <Card className="shadow-sm border-slate-200">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle>
+                                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{atRiskCount}</div>
+                                    <p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p>
+                                </CardContent>
+                            </Card>
+                            <Card className="shadow-sm border-slate-200">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle>
+                                    <ShieldAlert className="h-4 w-4 text-red-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{nonCompliantCount}</div>
+                                    <p className="text-xs text-muted-foreground">kritische Probleme</p>
+                                </CardContent>
+                            </Card>
+
+                            {/* ISO Quick Status */}
+                            <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
+                                    <Gauge className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold flex items-center gap-2">
+                                        <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
+                                        {auditability.label}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
 
                     {criticalAlerts.length > 0 && (
                         <Alert variant="destructive">
@@ -276,7 +341,7 @@ export function Dashboard({
                         title="AI Act Pflichten"
                         description="Gesetzliche Anforderungen prüfen, dokumentieren und lückenlos erfüllen."
                         status={wizardStatus === 'completed' ? 'In Progress' : wizardStatus === 'not_started' ? 'Not Started' : 'In Progress'}
-                        primaryLabel={wizardStatus === 'completed' ? "Prüfung fortsetzen" : "Wizard starten"}
+                        primaryLabel={wizardHasData ? "Prüfung fortsetzen" : "Prüfung starten"}
                         onPrimary={() => { setDetailsView('ai-act'); router.push('#details-section'); }}
                         onSecondary={() => setDetailsView('ai-act')}
                         icon={ListChecks}

@@ -9,6 +9,7 @@ import { useAuth } from "@/context/auth-context";
 import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjectId, getUserProjects } from "@/lib/data-service";
 import { Loader2 } from "lucide-react";
 import { useUserStatus } from "@/hooks/use-user-status";
+import { registerService } from "@/lib/register-first/register-service";
 
 function DashboardPageContent() {
     const { user, loading: authLoading } = useAuth();
@@ -28,6 +29,10 @@ function DashboardPageContent() {
     const [portfolioComplianceData, setPortfolioComplianceData] = useState<FullComplianceInfo[] | null>(null);
     const [projectName, setProjectName] = useState('');
     const [projectData, setProjectData] = useState<any>(null);
+
+    // State 3b: Register-First data
+    const [useCaseCount, setUseCaseCount] = useState(0);
+    const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
     // State 4: User Certification Status
     const { data: userStatus, loading: userStatusLoading } = useUserStatus(user?.email);
@@ -68,6 +73,9 @@ function DashboardPageContent() {
                 if (targetId) {
                     await loadProjectData(targetId);
                 }
+
+                // Load Register-First data (independent of project)
+                await loadUseCaseData();
 
             } catch (error) {
                 console.error("Dashboard bootstrap failed:", error);
@@ -143,6 +151,23 @@ function DashboardPageContent() {
         }
     }, [setProjectName, setProjectData, setFullComplianceData, setIsoComplianceData, setPortfolioComplianceData]);
 
+    // Helper: Load UseCase data from Register
+    const loadUseCaseData = useCallback(async () => {
+        try {
+            const useCases = await registerService.listUseCases();
+            setUseCaseCount(useCases.length);
+            // Count pending reviews: UNREVIEWED or REVIEW_RECOMMENDED
+            const pending = useCases.filter(
+                (uc) => uc.status === "UNREVIEWED" || uc.status === "REVIEW_RECOMMENDED"
+            ).length;
+            setPendingReviewCount(pending);
+        } catch {
+            // No register exists yet or other error – default to 0
+            setUseCaseCount(0);
+            setPendingReviewCount(0);
+        }
+    }, []);
+
 
     // Auto-Save Effect
     const updateChecklistStateInDb = useCallback(async () => {
@@ -205,6 +230,9 @@ function DashboardPageContent() {
                             hasProjects={false}
                             userStatus={userStatus}
                             userStatusLoading={userStatusLoading}
+                            useCaseCount={useCaseCount}
+                            pendingReviewCount={pendingReviewCount}
+                            onUseCaseCaptured={loadUseCaseData}
                         />
                     </main>
                 </div>
@@ -241,6 +269,9 @@ function DashboardPageContent() {
                     userStatusLoading={userStatusLoading}
                     trustPortalConfig={projectData?.trustPortal}
                     onTrustPortalUpdate={(newConfig) => setProjectData((prev: any) => ({ ...prev, trustPortal: newConfig }))}
+                    useCaseCount={useCaseCount}
+                    pendingReviewCount={pendingReviewCount}
+                    onUseCaseCaptured={loadUseCaseData}
                 />
             </main>
         </div>

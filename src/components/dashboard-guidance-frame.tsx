@@ -156,9 +156,9 @@ export function DashboardGuidanceFrame({
                             {/* Tertiary Option: Create New Project */}
                             <Dialog open={isWizardOpen} onOpenChange={setIsWizardOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="text-slate-500 hover:text-primary">
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Neues Projekt anlegen
+                                    <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-600 text-xs">
+                                        <PlusCircle className="mr-1 h-3 w-3" />
+                                        Projekt hinzufügen
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
