@@ -1,25 +1,44 @@
 import type { ToolRegistryEntry, ToolType } from "./tool-registry-types";
-import { TOOL_ID_OTHER } from "./tool-registry-types";
+import { TOOL_ID_OTHER, toToolSlug } from "./tool-registry-types";
 
 // ── Static catalog import (client-safe, tree-shakeable) ─────────────────────
 import catalogData from "@/data/tool-catalog.json";
 
 interface CatalogJsonEntry {
   name: string;
-  toolId: string;
+  toolId?: string; // Optional in JSON
   vendor: string;
   homepageUrl: string | null;
   category: string;
-  toolType: string;
+  toolType?: string;
   defaultType: string;
 }
 
+function mapCategoryToToolType(category: string): ToolType {
+  const c = category.toLowerCase();
+  if (c.includes("chat")) return "LLM";
+  if (c.includes("code")) return "CODE_ASSISTANT";
+  if (c.includes("image") || c.includes("design")) return "IMAGE_GEN";
+  if (c.includes("video")) return "VIDEO_GEN";
+  if (c.includes("audio") || c.includes("voice")) return "AUDIO_GEN";
+  if (c.includes("translation")) return "TRANSLATION";
+  if (c.includes("search")) return "SEARCH";
+  if (c.includes("automation")) return "AUTOMATION";
+  if (c.includes("ocr")) return "OCR";
+  if (c.includes("rpa")) return "RPA";
+  if (c.includes("productivity") || c.includes("suite")) return "GENAI_SUITE";
+  return "OTHER";
+}
+
 function catalogEntryToRegistryEntry(entry: CatalogJsonEntry): ToolRegistryEntry {
+  // Generate ID if missing using standard slug function
+  const generatedId = entry.toolId || toToolSlug(entry.name);
+
   return {
-    toolId: entry.toolId,
+    toolId: generatedId,
     vendor: entry.vendor,
     productName: entry.name,
-    toolType: entry.toolType as ToolType,
+    toolType: entry.toolType ? (entry.toolType as ToolType) : mapCategoryToToolType(entry.category),
     homepage: entry.homepageUrl ?? null,
     isActive: true,
     createdAtISO: "2025-01-01T00:00:00.000Z",
