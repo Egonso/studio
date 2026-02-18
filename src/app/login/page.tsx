@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -29,6 +30,9 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState('login');
   const [authReady, setAuthReady] = useState(false);
   const [isFromPurchase, setIsFromPurchase] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -81,6 +85,29 @@ export default function LoginPage() {
   }, [searchParams, form]);
 
 
+
+  const handlePasswordReset = async () => {
+    if (!resetEmail) {
+      toast({ variant: 'destructive', title: 'Fehler', description: 'Bitte geben Sie Ihre E-Mail-Adresse ein.' });
+      return;
+    }
+    setIsResetting(true);
+    try {
+      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const auth = await getFirebaseAuth();
+      const { sendPasswordResetEmail } = await import('firebase/auth');
+      await sendPasswordResetEmail(auth, resetEmail.toLowerCase());
+      toast({ title: 'E-Mail gesendet', description: 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Reset-Link gesendet.' });
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } catch {
+      toast({ title: 'E-Mail gesendet', description: 'Falls ein Konto mit dieser E-Mail existiert, wurde ein Reset-Link gesendet.' });
+      setShowForgotPassword(false);
+      setResetEmail('');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const handleAuthAction = async (data: FormData, action: 'login' | 'signup') => {
     setIsLoading(true);
@@ -245,6 +272,35 @@ export default function LoginPage() {
                   </Button>
                 </form>
               </Form>
+              <div className="mt-4">
+                {!showForgotPassword ? (
+                  <button
+                    type="button"
+                    className="text-sm text-muted-foreground hover:text-primary underline-offset-4 hover:underline w-full text-center"
+                    onClick={() => { setShowForgotPassword(true); setResetEmail(form.getValues('email')); }}
+                  >
+                    Passwort vergessen?
+                  </button>
+                ) : (
+                  <div className="space-y-3 pt-2 border-t">
+                    <p className="text-sm text-muted-foreground">Geben Sie Ihre E-Mail-Adresse ein, um einen Reset-Link zu erhalten.</p>
+                    <Input
+                      type="email"
+                      placeholder="ihre@email.de"
+                      value={resetEmail}
+                      onChange={e => setResetEmail(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => setShowForgotPassword(false)}>
+                        Abbrechen
+                      </Button>
+                      <Button size="sm" className="flex-1" disabled={isResetting} onClick={handlePasswordReset}>
+                        {isResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Reset-Link senden'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

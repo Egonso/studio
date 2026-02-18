@@ -5,10 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { GanttChartSquare, LayoutDashboard, Database, Scale, KeyRound, LogOut, GraduationCap, Link as LinkIcon, PlusCircle, Wand2, BookOpen } from "lucide-react";
+import { GanttChartSquare, LayoutDashboard, Database, Scale, KeyRound, LogOut, GraduationCap, Link as LinkIcon, PlusCircle, Wand2, BookOpen, Settings, UserCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { clearActiveProjectId } from "@/lib/data-service";
 import { ADMIN_EMAILS } from "@/lib/admin-config";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 
 export function AppHeader() {
@@ -78,9 +79,29 @@ export function AppHeader() {
             <GraduationCap className="h-4 w-4" />
             Zertifizierung
           </Link>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Logout
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <UserCircle className="h-4 w-4" />
+                <span className="hidden sm:inline text-sm max-w-[120px] truncate">{user.email}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel className="font-normal text-xs text-muted-foreground truncate">{user.email}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
+                  <Settings className="h-4 w-4" />
+                  Einstellungen
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4" />
+                Abmelden
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
       )}
     </header>
