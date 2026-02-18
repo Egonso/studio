@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { AlertCircle, AlertTriangle, CheckCircle2, ShieldCheck, ShieldAlert, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Check, X, FileClock, History, Gauge, Shield, BookOpen } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
@@ -23,10 +24,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { saveCurrentTask, type AimsProgress, getProjectTools } from "@/lib/data-service";
+import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AimsExportDialog } from "@/components/aims-export-dialog";
-import { ProjectToolsManager } from "./project-tools-manager";
+import { RegisterToolsManager } from "./register-tools-manager";
 import { Cpu, Search, CheckSquare } from "lucide-react";
 
 export interface ChecklistState {
@@ -114,15 +115,24 @@ export function AimsDashboardView({
     // Default to ai-management tab since this is the view shown when completed
     const [activeTab, setActiveTab] = useState("ai-management");
 
-    // Tools State for Dashboard Card
-    const [tools, setTools] = useState<import("@/lib/types").ProjectTool[]>([]);
+    // Register Use Cases State for Dashboard Card
+    const [useCasesCount, setUseCasesCount] = useState<number>(0);
+    const [hasReviewPending, setHasReviewPending] = useState<boolean>(false);
 
-    // Fetch tools on mount
+    // Fetch register use cases on mount
     useEffect(() => {
-        if (projectId) {
-            getProjectTools(projectId).then((data: any) => setTools(data)).catch((err: any) => console.error(err));
-        }
-    }, [projectId]);
+        const loadRegisterData = async () => {
+            try {
+                const { registerService } = await import("@/lib/register-first/register-service");
+                const cases = await registerService.listUseCases();
+                setUseCasesCount(cases.length);
+                setHasReviewPending(cases.some(c => c.status === 'REVIEW_RECOMMENDED'));
+            } catch (error) {
+                console.error("Failed to load register use cases:", error);
+            }
+        };
+        loadRegisterData();
+    }, []);
 
     const compliantCount = complianceItems.filter(
         (item) => item.status === "Compliant"
@@ -277,8 +287,14 @@ export function AimsDashboardView({
                             Zertifizierung
                         </TabsTrigger>
                         <TabsTrigger value="tools" className="gap-2 px-4">
-                            <Cpu className="h-4 w-4" />
-                            Tools & Systeme
+                            <Image
+                                src="/register-logo.png"
+                                alt="Register"
+                                width={16}
+                                height={16}
+                                className="h-4 w-4"
+                            />
+                            KI-Register
                         </TabsTrigger>
                     </TabsList>
                 </div>
@@ -476,7 +492,7 @@ export function AimsDashboardView({
 
                 <TabsContent value="tools">
                     <div className="max-w-4xl mx-auto space-y-4">
-                        <ProjectToolsManager projectId={projectId} />
+                        <RegisterToolsManager />
                     </div>
                 </TabsContent>
 
@@ -687,7 +703,13 @@ export function AimsDashboardView({
                                 <CardHeader>
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                                            <Cpu className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                            <Image
+                                                src="/register-logo.png"
+                                                alt="Register Logo"
+                                                width={20}
+                                                height={20}
+                                                className="h-5 w-5"
+                                            />
                                         </div>
                                         <h3 className="font-bold text-lg text-blue-900 dark:text-blue-100">KI-Register</h3>
                                     </div>
@@ -699,12 +721,12 @@ export function AimsDashboardView({
                                     <div className="space-y-4">
                                         <div className="flex items-end justify-between">
                                             <div>
-                                                <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">{tools.length}</span>
-                                                <span className="text-muted-foreground ml-2 text-sm">Systeme</span>
+                                                <span className="text-4xl font-bold text-blue-600 dark:text-blue-400">{useCasesCount}</span>
+                                                <span className="text-muted-foreground ml-2 text-sm">Anwendungsfälle</span>
                                             </div>
-                                            {tools.some(t => t.review?.status === 'pending') && (
+                                            {hasReviewPending && (
                                                 <Badge variant="destructive" className="animate-pulse">
-                                                    Approval nötig
+                                                    Review empfohlen
                                                 </Badge>
                                             )}
                                         </div>
