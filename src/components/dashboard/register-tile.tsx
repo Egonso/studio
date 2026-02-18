@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, PlusCircle, ArrowRight, AlertCircle, Clock } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface RegisterTileProps {
@@ -36,7 +37,13 @@ export function RegisterTile({
                     <div className="space-y-4 flex-1">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-lg">
-                                <ClipboardList className="h-6 w-6 text-primary" />
+                                <Image
+                                    src="/register-logo.png"
+                                    alt="Register Logo"
+                                    width={24}
+                                    height={24}
+                                    className="h-6 w-6"
+                                />
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
