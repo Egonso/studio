@@ -55,13 +55,17 @@ export function AppHeader() {
               <span className="hidden sm:inline">KI-Anwendung erfassen</span>
             </Button>
           </Link>
+          <Link href="/my-register" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+            <Database className="h-4 w-4" />
+            Register
+          </Link>
           <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <GanttChartSquare className="h-4 w-4" />
             Dashboard
           </Link>
-          <Link href="/projects" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+          <Link href="/projects" className="text-sm font-medium text-muted-foreground hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <LayoutDashboard className="h-4 w-4" />
-            Meine Projekte
+            Projekte
           </Link>
           <Link href="/cbs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <Wand2 className="h-4 w-4" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw } from "lucide-react";
 import {
   AlertDialog,
@@ -78,6 +78,8 @@ interface RegisterBoardProps {
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
+type SortField = "updatedAt" | "purpose" | "owner" | "status";
+type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
 type ProofBooleanChoice = "YES" | "NO";
 
 interface ProofMetaDraft {
@@ -204,6 +206,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField>("updatedAt");
+  const [viewMode, setViewMode] = useState<ViewMode>("ALL");
 
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
@@ -266,6 +270,36 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     setSearchQuery("");
     setStatusFilter("ALL");
   };
+
+  const sortedUseCases = useMemo(() => {
+    const sorted = [...useCases];
+    sorted.sort((a, b) => {
+      switch (sortField) {
+        case "purpose": return a.purpose.localeCompare(b.purpose);
+        case "owner": return (a.responsibility.responsibleParty ?? "").localeCompare(b.responsibility.responsibleParty ?? "");
+        case "status": return registerUseCaseStatusOrder.indexOf(a.status) - registerUseCaseStatusOrder.indexOf(b.status);
+        default: return b.updatedAt.localeCompare(a.updatedAt);
+      }
+    });
+    return sorted;
+  }, [useCases, sortField]);
+
+  const groupedUseCases = useMemo(() => {
+    if (viewMode === "ALL") return null;
+    const groups = new Map<string, UseCaseCard[]>();
+    for (const uc of sortedUseCases) {
+      let key: string;
+      switch (viewMode) {
+        case "BY_OWNER": key = uc.responsibility.responsibleParty || "Nicht zugewiesen"; break;
+        case "BY_ORG": key = uc.organisation || "Keine Organisation"; break;
+        case "BY_STATUS": key = registerUseCaseStatusLabels[uc.status]; break;
+        default: key = "Alle";
+      }
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(uc);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [sortedUseCases, viewMode]);
 
   const handleUpdateStatus = async (card: UseCaseCard) => {
     const nextStatus = selectedNextStatusById[card.useCaseId];
@@ -606,6 +640,28 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             ))}
           </SelectContent>
         </Select>
+        <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+          <SelectTrigger className="h-9 w-36 text-sm">
+            <SelectValue placeholder="Sortierung" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updatedAt">Datum</SelectItem>
+            <SelectItem value="purpose">Name</SelectItem>
+            <SelectItem value="owner">Verantwortlich</SelectItem>
+            <SelectItem value="status">Status</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+          <SelectTrigger className="h-9 w-44 text-sm">
+            <SelectValue placeholder="Ansicht" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Alle</SelectItem>
+            <SelectItem value="BY_OWNER">Nach Verantwortlich</SelectItem>
+            <SelectItem value="BY_ORG">Nach Organisation</SelectItem>
+            <SelectItem value="BY_STATUS">Nach Status</SelectItem>
+          </SelectContent>
+        </Select>
         <Button type="submit" size="sm" className="h-9">Filtern</Button>
         <Button type="button" variant="ghost" size="sm" className="h-9" onClick={handleResetFilters}>
           Zurücksetzen
@@ -643,7 +699,39 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         </Card>
       ) : (
         <div className="space-y-3">
-          {useCases.map((card) => {
+          {/* Group headers (when grouped view is active) */}
+          {sortedUseCases.map((card, idx) => {
+            // Determine group header
+            let groupHeader: string | null = null;
+            if (groupedUseCases) {
+              let currentGroup: string;
+              switch (viewMode) {
+                case "BY_OWNER": currentGroup = card.responsibility.responsibleParty || "Nicht zugewiesen"; break;
+                case "BY_ORG": currentGroup = card.organisation || "Keine Organisation"; break;
+                case "BY_STATUS": currentGroup = registerUseCaseStatusLabels[card.status]; break;
+                default: currentGroup = "";
+              }
+              const prev = idx > 0 ? sortedUseCases[idx - 1] : null;
+              let prevGroup = "";
+              if (prev) {
+                switch (viewMode) {
+                  case "BY_OWNER": prevGroup = prev.responsibility.responsibleParty || "Nicht zugewiesen"; break;
+                  case "BY_ORG": prevGroup = prev.organisation || "Keine Organisation"; break;
+                  case "BY_STATUS": prevGroup = registerUseCaseStatusLabels[prev.status]; break;
+                }
+              }
+              if (!prev || currentGroup !== prevGroup) {
+                const count = sortedUseCases.filter((uc) => {
+                  switch (viewMode) {
+                    case "BY_OWNER": return (uc.responsibility.responsibleParty || "Nicht zugewiesen") === currentGroup;
+                    case "BY_ORG": return (uc.organisation || "Keine Organisation") === currentGroup;
+                    case "BY_STATUS": return registerUseCaseStatusLabels[uc.status] === currentGroup;
+                    default: return true;
+                  }
+                }).length;
+                groupHeader = `${currentGroup} (${count})`;
+              }
+            }
             const nextStatuses = getNextManualStatuses(card.status);
             const outputState = getStatusGatedOutputState(
               card.status,
@@ -654,7 +742,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             const isUpdating = updatingUseCaseId === card.useCaseId;
 
             return (
-              <Card key={card.useCaseId} className="overflow-hidden">
+              <div key={card.useCaseId}>
+                {groupHeader && (
+                  <h3 className="mb-2 mt-4 flex items-center gap-2 text-sm font-semibold first:mt-0">
+                    {groupHeader}
+                  </h3>
+                )}
+              <Card className="overflow-hidden">
                 <div className="flex items-start justify-between gap-2 p-4 pb-2">
                   {/* Line 1: Purpose + Status + Visibility */}
                   <div className="min-w-0 flex-1 space-y-1">
@@ -852,6 +946,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                   </div>
                 )}
               </Card>
+              </div>
             );
           })}
         </div>
