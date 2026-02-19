@@ -117,6 +117,40 @@ const evidenceReferenceSchema = z.object({
   uri: z.string().url().optional(),
 });
 
+const flagStatusSchema = z.enum(["yes", "no", "not_found"]);
+const confidenceLevelSchema = z.enum(["low", "medium", "high"]);
+
+const publicInfoSourceSchema = z.object({
+  title: z.string(),
+  url: z.string(),
+  type: z.enum([
+    "trust_center",
+    "privacy",
+    "terms",
+    "dpa",
+    "scc",
+    "blog",
+    "other",
+  ]),
+  accessedAt: z.string().datetime(),
+});
+
+export const toolPublicInfoSchema = z.object({
+  lastCheckedAt: z.string().datetime().nullable(),
+  checker: z.enum(["perplexity", "manual", "web"]).nullable(),
+  summary: z.string().max(300).nullable(),
+  flags: z.object({
+    gdprClaim: flagStatusSchema,
+    aiActClaim: flagStatusSchema,
+    trustCenterFound: flagStatusSchema,
+    privacyPolicyFound: flagStatusSchema,
+    dpaOrSccMention: flagStatusSchema,
+  }),
+  confidence: confidenceLevelSchema,
+  sources: z.array(publicInfoSourceSchema),
+  disclaimerVersion: z.string(),
+});
+
 // ── UseCaseCard Schema (accepts both v1.0 and v1.1) ─────────────────────────
 export const useCaseCardSchema = z
   .object({
@@ -169,6 +203,7 @@ export const useCaseCardSchema = z
     dataCategory: dataCategorySchema.optional(),
     publicHashId: z.string().min(8).max(24).optional(),
     isPublicVisible: z.boolean().optional(),
+    publicInfo: toolPublicInfoSchema.optional().nullable(),
   })
   .superRefine((value, ctx) => {
     // v1.1: if toolId is "other", toolFreeText is required

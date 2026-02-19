@@ -90,6 +90,33 @@ export interface UseCaseCard {
   dataCategory?: DataCategory;
   publicHashId?: string;
   isPublicVisible?: boolean;
+  publicInfo?: ToolPublicInfo | null;
+}
+
+export type ConfidenceLevel = "low" | "medium" | "high";
+export type FlagStatus = "yes" | "no" | "not_found";
+
+export interface PublicInfoSource {
+  title: string;
+  url: string;
+  type: "trust_center" | "privacy" | "terms" | "dpa" | "scc" | "blog" | "other";
+  accessedAt: string; // ISO Date
+}
+
+export interface ToolPublicInfo {
+  lastCheckedAt: string | null; // ISO Date
+  checker: "perplexity" | "manual" | "web" | null;
+  summary: string | null; // Max 300 chars, neutral
+  flags: {
+    gdprClaim: FlagStatus;
+    aiActClaim: FlagStatus;
+    trustCenterFound: FlagStatus;
+    privacyPolicyFound: FlagStatus;
+    dpaOrSccMention: FlagStatus;
+  };
+  confidence: ConfidenceLevel;
+  sources: PublicInfoSource[];
+  disclaimerVersion: string; // e.g. "v1"
 }
 
 export const REGISTER_FIRST_GOVERNANCE_POLICY = Object.freeze({
