@@ -33,6 +33,8 @@ export interface CaptureInput {
   toolId?: string;
   toolFreeText?: string;
   dataCategory?: DataCategory;
+  // v1.2 fields (Register-First: flat metadata)
+  organisation?: string | null;
 }
 
 export type DataCategory = "NONE" | "INTERNAL" | "PERSONAL" | "SENSITIVE";
@@ -91,6 +93,9 @@ export interface UseCaseCard {
   publicHashId?: string;
   isPublicVisible?: boolean;
   publicInfo?: ToolPublicInfo | null;
+  // ── v1.2 fields (Register-First: flat metadata) ───────────────────
+  organisation?: string | null;
+  standardVersion?: string;
 }
 
 export type ConfidenceLevel = "low" | "medium" | "high";
@@ -126,6 +131,19 @@ export const REGISTER_FIRST_GOVERNANCE_POLICY = Object.freeze({
   decisionMode: "MANUAL_ONLY" as const,
 });
 
+// ── Company Profile (Organisation Onboarding) ───────────────────────────────
+
+export interface CompanyProfile {
+  firmenname: string;
+  branche: string;
+  mitarbeiterAnzahl: string;
+  ansprechpartner: { name: string; email: string };
+  abteilung: string;
+  bestehendeKiNutzung: boolean;
+  euAiActRelevant: "ja" | "nein" | "unsicher";
+  datenschutzbeauftragter?: string | null;
+}
+
 // ── Standalone Register (User-Scoped) ───────────────────────────────────────
 
 export interface Register {
@@ -136,7 +154,23 @@ export interface Register {
   organisationName?: string | null;
   organisationUnit?: string | null;
   publicOrganisationDisclosure?: boolean;
+  companyProfile?: CompanyProfile | null;
 }
+
+// ── Access Codes (Hybrid Auth) ───────────────────────────────────────────────
+
+export interface RegisterAccessCode {
+  code: string;
+  registerId: string;
+  ownerId: string;
+  createdAt: string;
+  expiresAt: string | null;
+  label: string;
+  usageCount: number;
+  isActive: boolean;
+}
+
+// ── Public Index ─────────────────────────────────────────────────────────────
 
 export interface PublicUseCaseIndexEntry {
   publicHashId: string;

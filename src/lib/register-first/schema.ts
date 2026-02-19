@@ -51,6 +51,8 @@ export const captureInputSchema = z
     toolId: z.string().min(1).max(100).optional(),
     toolFreeText: z.string().trim().min(1).max(300).optional(),
     dataCategory: dataCategorySchema.optional(),
+    // v1.2 capture fields (Register-First: flat metadata)
+    organisation: z.string().trim().max(200).optional().nullable(),
   })
   .superRefine((value, ctx) => {
     if (
@@ -204,6 +206,9 @@ export const useCaseCardSchema = z
     publicHashId: z.string().min(8).max(24).optional(),
     isPublicVisible: z.boolean().optional(),
     publicInfo: toolPublicInfoSchema.optional().nullable(),
+    // ── v1.2 fields (Register-First: flat metadata) ─────────────────
+    organisation: z.string().trim().max(200).optional().nullable(),
+    standardVersion: z.string().max(20).optional(),
   })
   .superRefine((value, ctx) => {
     // v1.1: if toolId is "other", toolFreeText is required
@@ -318,5 +323,8 @@ export function createUseCaseCardV11Draft(
     dataCategory: capture.dataCategory ?? "INTERNAL",
     publicHashId: params.publicHashId,
     isPublicVisible: false,
+    // v1.2 fields
+    organisation: capture.organisation ?? null,
+    standardVersion: "EUKI-UC-1.2",
   });
 }

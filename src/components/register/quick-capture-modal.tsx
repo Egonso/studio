@@ -36,6 +36,8 @@ interface QuickCaptureModalProps {
 
 interface QuickDraft {
     purpose: string;
+    ownerName: string;
+    organisation: string;
     toolId: string;
     toolFreeText: string;
     usageContext: CaptureUsageContext;
@@ -45,6 +47,8 @@ interface QuickDraft {
 
 const EMPTY_DRAFT: QuickDraft = {
     purpose: "",
+    ownerName: "",
+    organisation: "",
     toolId: "__placeholder__",
     toolFreeText: "",
     usageContext: "INTERNAL_ONLY",
@@ -70,7 +74,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
         }).catch(() => { });
     }, []);
 
-    const canSave = draft.purpose.trim().length > 0 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
+    const canSave = draft.purpose.trim().length > 0 && draft.ownerName.trim().length >= 2 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
 
     const handleSave = async () => {
         if (!canSave) return;
@@ -83,8 +87,10 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                 toolFreeText: draft.toolId === "other" ? draft.toolFreeText.trim() : undefined,
                 usageContexts: [draft.usageContext],
                 dataCategory: draft.dataCategory,
-                isCurrentlyResponsible: true,
+                isCurrentlyResponsible: false,
+                responsibleParty: draft.ownerName.trim(),
                 decisionImpact: "UNSURE",
+                organisation: draft.organisation.trim() || null,
             });
 
             toast({
@@ -145,7 +151,31 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         />
                     </div>
 
-                    {/* 2. Tool (required) */}
+                    {/* 2. Owner (required) */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="qc-owner">
+                            Verantwortlich <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="qc-owner"
+                            placeholder="Name eingeben"
+                            value={draft.ownerName}
+                            onChange={(e) => patch({ ownerName: e.target.value })}
+                        />
+                    </div>
+
+                    {/* 3. Organisation (optional) */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="qc-org">Organisation</Label>
+                        <Input
+                            id="qc-org"
+                            placeholder="Firma / Abteilung (optional)"
+                            value={draft.organisation}
+                            onChange={(e) => patch({ organisation: e.target.value })}
+                        />
+                    </div>
+
+                    {/* 4. Tool (required) */}
                     <div className="space-y-1.5">
                         <Label>
                             Tool <span className="text-destructive">*</span>
@@ -182,7 +212,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         )}
                     </div>
 
-                    {/* 3. Usage Context */}
+                    {/* 5. Usage Context */}
                     <div className="space-y-1.5">
                         <Label>Wirkungskontext</Label>
                         <Select
@@ -201,7 +231,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         </Select>
                     </div>
 
-                    {/* 4. Data Category */}
+                    {/* 6. Data Category */}
                     <div className="space-y-1.5">
                         <Label>Datenkategorie</Label>
                         <Select
@@ -220,7 +250,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         </Select>
                     </div>
 
-                    {/* 5. Description (optional) */}
+                    {/* 7. Description (optional) */}
                     <div className="space-y-1.5">
                         <Label htmlFor="qc-desc">Kurzbeschreibung</Label>
                         <Textarea

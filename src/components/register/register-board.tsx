@@ -690,7 +690,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                       ))}
                     </div>
 
-                    {/* Line 3: Meta */}
+                    {/* Line 3: Owner + Organisation */}
+                    <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                      {card.responsibility.responsibleParty && (
+                        <span>
+                          Verantwortlich: <span className="font-medium text-foreground">{card.responsibility.responsibleParty}</span>
+                        </span>
+                      )}
+                      {card.organisation && (
+                        <span>{card.organisation}</span>
+                      )}
+                    </div>
+
+                    {/* Line 4: Meta */}
                     <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
                       {card.globalUseCaseId && (
                         <span className="font-mono">{card.globalUseCaseId}</span>

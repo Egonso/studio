@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase-admin';
+import { db, auth } from '@/lib/firebase-admin';
 import { ToolPublicInfo, FlagStatus } from '@/lib/types';
 import { UseCaseCard } from '@/lib/register-first/types';
 
@@ -22,13 +22,19 @@ function parseFlag(value: string | undefined): FlagStatus {
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Authorization
+        // 1. Authorization – verify Firebase ID token
         const authHeader = req.headers.get('Authorization');
         if (!authHeader?.startsWith('Bearer ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        // Ideally verify token here with admin SDK, but we trust the client for this PoC scope constraint
-        // (In production: await auth.verifyIdToken(token))
+        const token = authHeader.replace('Bearer ', '');
+        let userId: string;
+        try {
+            const decodedToken = await auth.verifyIdToken(token);
+            userId = decodedToken.uid;
+        } catch {
+            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+        }
 
         const body = await req.json();
         // Support Legacy (projectId + toolIds) OR New (registerId + useCaseId)
@@ -67,21 +73,25 @@ export async function POST(req: NextRequest) {
         let existingInfo: ToolPublicInfo | undefined;
 
         if (isRegister) {
-            // New Register Path
-            targetDocRef = db.collection(`registers/${registerId}/useCases`).doc(useCaseId);
+            // Register Path – scoped to authenticated user
+            const registerDoc = await db.doc(`users/${userId}/registers/${registerId}`).get();
+            if (!registerDoc.exists) {
+                return NextResponse.json({ error: 'Register not found or access denied' }, { status: 403 });
+            }
+            targetDocRef = db.collection(`users/${userId}/registers/${registerId}/useCases`).doc(useCaseId);
             const doc = await targetDocRef.get();
             if (!doc.exists) return NextResponse.json({ error: 'Use Case not found' }, { status: 404 });
 
             const data = doc.data() as UseCaseCard;
             toolName = data.toolFreeText || data.toolId || data.purpose || "AI Tool";
             toolVendor = (data.toolId && data.toolId !== 'other') ? data.toolId : "Generic / Unknown";
-            existingInfo = data.publicInfo;
+            existingInfo = data.publicInfo ?? undefined;
         } else {
             // Legacy Path
             // Only processing first toolId for now in this unified logic
             // (Loop logic removed for clarity/unification, assuming batching isn't heavily used by UI anymore)
             const toolId = toolIds[0];
-            targetDocRef = db.collection(`projects/${projectId}/tools`).doc(toolId);
+            targetDocRef = db.collection(`users/${userId}/projects/${projectId}/tools`).doc(toolId);
             const doc = await targetDocRef.get();
             if (!doc.exists) return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
 

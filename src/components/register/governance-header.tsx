@@ -174,6 +174,12 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
                                 {orgUnit && (
                                     <span>Organisationseinheit: <span className="font-medium text-foreground">{orgUnit}</span></span>
                                 )}
+                                {register?.companyProfile?.branche && (
+                                    <span>Branche: <span className="font-medium text-foreground">{register.companyProfile.branche}</span></span>
+                                )}
+                                {register?.companyProfile?.ansprechpartner?.name && (
+                                    <span>Kontakt: <span className="font-medium text-foreground">{register.companyProfile.ansprechpartner.name}</span></span>
+                                )}
                             </>
                         ) : (
                             <span>Scope: Private Registerinstanz</span>
