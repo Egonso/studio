@@ -29,7 +29,7 @@ export default function UseCaseDetailPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await registerService.getUseCaseById(useCaseId);
+      const result = await registerService.getUseCase(undefined, useCaseId);
       if (!result) {
         setError("Einsatzfall nicht gefunden.");
       } else {
