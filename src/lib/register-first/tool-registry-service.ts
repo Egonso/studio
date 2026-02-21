@@ -1,4 +1,4 @@
-import type { ToolRegistryEntry, ToolType } from "./tool-registry-types";
+import type { ToolRegistryEntry, ToolType, AiToolsRegistryEntry } from "./tool-registry-types";
 import { TOOL_ID_OTHER, toToolSlug } from "./tool-registry-types";
 
 // ── Static catalog import (client-safe, tree-shakeable) ─────────────────────
@@ -151,6 +151,47 @@ export function createInMemoryToolRegistryService(
 
     async getToolById(toolId: string) {
       return byId.get(toolId) ?? null;
+    },
+  };
+}
+
+// ── AI Tools Registry (with EU AI Act metadata) ─────────────────────────────
+// Uses ai-tools-registry.json with risk levels, GDPR compliance, and EU AI Act categories.
+
+import aiToolsRegistryData from "@/data/ai-tools-registry.json";
+
+export interface AiToolsRegistryService {
+  getAll(): AiToolsRegistryEntry[];
+  getById(toolId: string): AiToolsRegistryEntry | null;
+  search(query: string): AiToolsRegistryEntry[];
+}
+
+export function createAiToolsRegistryService(): AiToolsRegistryService {
+  const entries = aiToolsRegistryData as AiToolsRegistryEntry[];
+  const byId = new Map<string, AiToolsRegistryEntry>();
+  for (const entry of entries) {
+    byId.set(entry.toolId, entry);
+  }
+
+  return {
+    getAll() {
+      return entries;
+    },
+
+    getById(toolId: string) {
+      return byId.get(toolId) ?? null;
+    },
+
+    search(query: string) {
+      if (!query.trim()) return entries;
+      const lower = query.toLowerCase();
+      return entries.filter(
+        (entry) =>
+          entry.productName.toLowerCase().includes(lower) ||
+          entry.vendor.toLowerCase().includes(lower) ||
+          entry.category.toLowerCase().includes(lower) ||
+          entry.description.toLowerCase().includes(lower)
+      );
     },
   };
 }

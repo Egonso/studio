@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
 import {
   AlertDialog,
@@ -198,6 +199,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
 
 export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, onUseCasesLoaded }: RegisterBoardProps) {
   const isStandalone = mode === "standalone";
+  const router = useRouter();
   const { toast } = useToast();
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -780,7 +782,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                     {groupHeader}
                   </h3>
                 )}
-                <Card className={`overflow-hidden ${card.isDeleted ? "opacity-60 grayscale" : ""}`}>
+                <Card
+                  className={`cursor-pointer overflow-hidden transition-shadow hover:shadow-md ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
+                  onClick={() => router.push(`/my-register/${card.useCaseId}`)}
+                >
                   <div className="flex items-start justify-between gap-2 p-4 pb-2">
                     {/* Line 1: Purpose + Status + Visibility */}
                     <div className="min-w-0 flex-1 space-y-1">
@@ -861,10 +866,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                       })()}
                     </div>
 
-                    {/* Actions Dropdown */}
+                    {/* Actions Dropdown - stop propagation to prevent card navigation */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={(e) => e.stopPropagation()}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -950,9 +955,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                     </DropdownMenu>
                   </div>
 
-                  {/* Status Setter */}
+                  {/* Status Setter - stop propagation to prevent card navigation */}
                   {nextStatuses.length > 0 && (
-                    <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2">
+                    <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2" onClick={(e) => e.stopPropagation()}>
                       <Select
                         value={selectedNextStatus}
                         onValueChange={(value) =>

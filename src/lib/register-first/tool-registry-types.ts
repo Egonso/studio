@@ -78,5 +78,51 @@ export function toToolSlug(name: string): string {
     .replace(/(^_|_$)/g, "");
 }
 
+// ── EU AI Act Risk Levels ───────────────────────────────────────────────────
+export const EU_AI_ACT_RISK_LEVELS = [
+  "minimal",
+  "limited",
+  "high",
+  "unacceptable",
+] as const;
+
+export type EuAiActRiskLevel = (typeof EU_AI_ACT_RISK_LEVELS)[number];
+
+export const EU_AI_ACT_CATEGORIES = [
+  "general_purpose_ai",
+  "limited_risk",
+  "high_risk",
+  "prohibited",
+] as const;
+
+export type EuAiActCategory = (typeof EU_AI_ACT_CATEGORIES)[number];
+
+export const riskLevelLabels: Record<EuAiActRiskLevel, string> = {
+  minimal: "Minimales Risiko",
+  limited: "Begrenztes Risiko",
+  high: "Hohes Risiko",
+  unacceptable: "Unannehmbares Risiko",
+};
+
+export const riskLevelColors: Record<EuAiActRiskLevel, string> = {
+  minimal: "bg-green-100 text-green-800",
+  limited: "bg-yellow-100 text-yellow-800",
+  high: "bg-orange-100 text-orange-800",
+  unacceptable: "bg-red-100 text-red-800",
+};
+
+// ── AI Tools Registry Entry (with EU AI Act metadata) ───────────────────────
+export interface AiToolsRegistryEntry {
+  toolId: string;
+  productName: string;
+  vendor: string;
+  category: ToolType;
+  homepage: string | null;
+  riskLevel: EuAiActRiskLevel;
+  gdprCompliant: boolean;
+  euAiActCategory: EuAiActCategory;
+  description: string;
+}
+
 // ── OTHER sentinel ──────────────────────────────────────────────────────────
 export const TOOL_ID_OTHER = "other" as const;

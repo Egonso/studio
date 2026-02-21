@@ -16,9 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ToolAutocomplete } from "@/components/tool-autocomplete";
+import { ToolRegistrySelect } from "@/components/register/tool-registry-select";
 import {
   CAPTURE_STEP_3_LABEL,
+  TOOL_ID_OTHER,
   type AffectedParty,
   type CaptureUsageContext,
   type DataCategory,
@@ -363,34 +364,20 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
 
           <section className="space-y-2">
             <Label>Welches KI-Tool verwendest du? (optional)</Label>
-            <ToolAutocomplete
-              value={
-                draft.toolId === "other"
-                  ? "Anderes Tool"
-                  : draft.toolId
-                    ? draft.toolId
-                    : ""
-              }
-              onChange={(displayName, toolData) => {
-                if (toolData?.toolId) {
-                  setDraft((prev) => ({
-                    ...prev,
-                    toolId: toolData.toolId,
-                    toolFreeText: toolData.toolId === "other" ? prev.toolFreeText : "",
-                  }));
-                } else {
-                  setDraft((prev) => ({
-                    ...prev,
-                    toolId: displayName.length > 0 ? "other" : "",
-                    toolFreeText: displayName,
-                  }));
-                }
+            <ToolRegistrySelect
+              value={draft.toolId}
+              onChange={(toolId) => {
+                setDraft((prev) => ({
+                  ...prev,
+                  toolId,
+                  toolFreeText: toolId === TOOL_ID_OTHER ? prev.toolFreeText : "",
+                }));
               }}
             />
             <p className="text-xs text-muted-foreground">
               Waehle ein Tool aus dem Katalog oder gib einen eigenen Namen ein.
             </p>
-            {draft.toolId === "other" && (
+            {draft.toolId === TOOL_ID_OTHER && (
               <div className="space-y-1">
                 <Label htmlFor="toolFreeText">Tool-Name (Freitext)</Label>
                 <Input

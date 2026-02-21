@@ -1,0 +1,134 @@
+[
+  {
+    "toolId": "chatgpt",
+    "productName": "ChatGPT",
+    "vendor": "OpenAI",
+    "category": "LLM",
+    "homepage": "https://openai.com/chatgpt",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "Allgemeiner KI-Chatbot fuer Text, Analyse und Codierung"
+  },
+  {
+    "toolId": "github_copilot",
+    "productName": "GitHub Copilot",
+    "vendor": "GitHub (Microsoft)",
+    "category": "CODE_ASSISTANT",
+    "homepage": "https://github.com/features/copilot",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "KI-Programmierassistent fuer Code-Vervollstaendigung"
+  },
+  {
+    "toolId": "midjourney",
+    "productName": "Midjourney",
+    "vendor": "Midjourney, Inc.",
+    "category": "IMAGE_GEN",
+    "homepage": "https://www.midjourney.com",
+    "riskLevel": "limited",
+    "gdprCompliant": false,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "KI-Bildgenerierung aus Textbeschreibungen"
+  },
+  {
+    "toolId": "claude",
+    "productName": "Claude",
+    "vendor": "Anthropic",
+    "category": "LLM",
+    "homepage": "https://www.anthropic.com",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "KI-Assistent fuer Text, Analyse und Codierung"
+  },
+  {
+    "toolId": "google_gemini",
+    "productName": "Google Gemini",
+    "vendor": "Google",
+    "category": "LLM",
+    "homepage": "https://gemini.google.com",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "Multimodaler KI-Assistent von Google"
+  },
+  {
+    "toolId": "microsoft_copilot",
+    "productName": "Microsoft Copilot",
+    "vendor": "Microsoft",
+    "category": "GENAI_SUITE",
+    "homepage": "https://copilot.microsoft.com",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "KI-Assistent integriert in Microsoft 365"
+  },
+  {
+    "toolId": "deepl",
+    "productName": "DeepL",
+    "vendor": "DeepL SE",
+    "category": "TRANSLATION",
+    "homepage": "https://www.deepl.com",
+    "riskLevel": "minimal",
+    "gdprCompliant": true,
+    "euAiActCategory": "limited_risk",
+    "description": "KI-gestuetzte Uebersetzung mit hoher Qualitaet"
+  },
+  {
+    "toolId": "dall_e",
+    "productName": "DALL-E",
+    "vendor": "OpenAI",
+    "category": "IMAGE_GEN",
+    "homepage": "https://openai.com/dall-e",
+    "riskLevel": "limited",
+    "gdprCompliant": true,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "KI-Bildgenerierung von OpenAI"
+  },
+  {
+    "toolId": "stable_diffusion",
+    "productName": "Stable Diffusion",
+    "vendor": "Stability AI",
+    "category": "IMAGE_GEN",
+    "homepage": "https://stability.ai",
+    "riskLevel": "limited",
+    "gdprCompliant": false,
+    "euAiActCategory": "general_purpose_ai",
+    "description": "Open-Source KI-Bildgenerierung"
+  },
+  {
+    "toolId": "perplexity",
+    "productName": "Perplexity",
+    "vendor": "Perplexity AI",
+    "category": "SEARCH",
+    "homepage": "https://www.perplexity.ai",
+    "riskLevel": "minimal",
+    "gdprCompliant": true,
+    "euAiActCategory": "limited_risk",
+    "description": "KI-gestuetzte Suchmaschine und Recherche-Tool"
+  },
+  {
+    "toolId": "notion_ai",
+    "productName": "Notion AI",
+    "vendor": "Notion Labs, Inc.",
+    "category": "GENAI_SUITE",
+    "homepage": "https://www.notion.so",
+    "riskLevel": "minimal",
+    "gdprCompliant": true,
+    "euAiActCategory": "limited_risk",
+    "description": "KI-Assistent integriert in Notion Workspace"
+  },
+  {
+    "toolId": "grammarly",
+    "productName": "Grammarly",
+    "vendor": "Grammarly Inc.",
+    "category": "GENAI_SUITE",
+    "homepage": "https://www.grammarly.com",
+    "riskLevel": "minimal",
+    "gdprCompliant": true,
+    "euAiActCategory": "limited_risk",
+    "description": "KI-gestuetzter Schreibassistent und Grammatikpruefung"
+  }
+]

@@ -113,6 +113,10 @@ export interface RegisterService {
     input: unknown,
     options?: CreateUseCaseOptions
   ): Promise<UseCaseCard>;
+  getUseCaseById(
+    useCaseId: string,
+    registerId?: string
+  ): Promise<UseCaseCard | null>;
   listUseCases(
     registerId?: string,
     filters?: RegisterUseCaseFilters
@@ -292,6 +296,15 @@ export function createRegisterService(
           now: now(),
         });
         return useCaseRepo.create(scope, card);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async getUseCaseById(useCaseId, registerId) {
+      try {
+        const scope = await resolveScope(registerId);
+        return useCaseRepo.getById(scope, useCaseId);
       } catch (error) {
         throw mapServiceError(error);
       }
