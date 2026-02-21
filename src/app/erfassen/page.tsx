@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -123,9 +124,17 @@ export default function ErfassenPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-6 flex items-center gap-2">
-        <Image src="/logo.png" alt="Logo" width={32} height={32} className="h-8 w-8" />
-        <span className="text-lg font-semibold">KI-Einsatzfall erfassen</span>
+      <div className="mb-6 flex w-full max-w-lg items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Image src="/register-logo.png" alt="Logo" width={32} height={32} className="h-8 w-8 dark:invert" />
+          <span className="text-lg font-semibold">KI-Einsatzfall erfassen</span>
+        </div>
+        <Link
+          href="/my-register"
+          className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Zum Register
+        </Link>
       </div>
 
       {/* Loading */}

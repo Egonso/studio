@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { GanttChartSquare, LayoutDashboard, Database, Scale, KeyRound, LogOut, GraduationCap, Link as LinkIcon, PlusCircle, Wand2, BookOpen, Settings, UserCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { clearActiveProjectId } from "@/lib/data-service";
@@ -14,7 +14,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 
 export function AppHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
+
+  const isRegisterContext = pathname?.startsWith('/my-register') || pathname?.startsWith('/erfassen');
 
   const handleLogout = async () => {
     try {
@@ -33,8 +36,8 @@ export function AppHeader() {
     <header className="px-4 lg:px-6 h-14 flex items-center bg-background border-b sticky top-0 z-50">
       <Link href="/dashboard" className="flex items-center justify-center gap-2" prefetch={false}>
         <Image
-          src="/logo.png"
-          alt="AI Act Compass Logo"
+          src={isRegisterContext ? "/register-logo.png" : "/logo.png"}
+          alt="Logo"
           width={40}
           height={40}
           className="h-8 w-auto"

@@ -2,8 +2,9 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -117,8 +118,17 @@ export default function MyRegisterPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 pt-12">
+    <div className="min-h-screen p-4 pt-8">
       <div className="mx-auto max-w-5xl space-y-6">
+        <div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück zum Dashboard
+          </Link>
+        </div>
         {/* Register Selector (wenn mehrere Register) */}
         {registers.length > 1 && (
           <div className="flex items-center gap-3">

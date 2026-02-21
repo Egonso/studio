@@ -14,7 +14,6 @@ import { useAuth } from '@/context/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { AccessCodeManager } from '@/components/register/access-code-manager';
 import { registerService } from '@/lib/register-first/register-service';
 import type { Register } from '@/lib/register-first/types';
 
@@ -258,21 +257,6 @@ export default function SettingsPage() {
             </Form>
           </CardContent>
         </Card>
-
-        {/* Zugangscodes */}
-        {registers.length > 0 && (
-          <div className="space-y-6 pt-4">
-            <div>
-              <h2 className="text-xl font-bold">Register Einstellungen</h2>
-              <p className="text-muted-foreground text-sm mt-1">
-                Verwalten Sie den Zugriff auf Ihre AI Governance Register.
-              </p>
-            </div>
-            {registers.map((r) => (
-              <AccessCodeManager key={r.registerId} registerId={r.registerId} />
-            ))}
-          </div>
-        )}
       </main>
     </div>
   );
