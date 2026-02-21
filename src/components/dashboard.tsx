@@ -57,6 +57,8 @@ interface DashboardProps {
     pendingReviewCount?: number;
     lastEntry?: { name: string; date: string; } | null;
     onUseCaseCaptured?: () => void;
+    /** Current user UID – forwarded to TrustPortalTile for live aggregation */
+    ownerId?: string;
 }
 
 const statusConfig = {
@@ -88,6 +90,7 @@ export function Dashboard({
     pendingReviewCount = 0,
     lastEntry,
     onUseCaseCaptured,
+    ownerId,
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -218,16 +221,7 @@ export function Dashboard({
                         projectName={projectName}
                         config={trustPortalConfig}
                         onConfigUpdate={(c) => onTrustPortalUpdate && onTrustPortalUpdate(c)}
-                        complianceData={{
-                            compliantCount: compliantCount,
-                            risksDocumented: aimsData?.risks && aimsData.risks.length > 0,
-                            policiesExist: aimsData?.policy && aimsData.policy.length >= 20
-                        }}
-                        certificationStatus={
-                            userStatus?.examPassed ? 'certified' :
-                                (userStatus?.courseProgress && userStatus.courseProgress.length > 0) ? 'in_progress' :
-                                    'none'
-                        }
+                        ownerId={ownerId}
                     />
                 </section>
 

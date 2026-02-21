@@ -1,139 +1,185 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Globe, ExternalLink, Shield } from "lucide-react";
+import { Globe, ExternalLink, Shield, Loader2 } from "lucide-react";
 import { TrustPortalConfigDialog } from "@/components/trust-portal-config-dialog";
-import type { TrustPortalConfig, ComplianceItem } from "@/lib/types";
+import type { TrustPortalConfig } from "@/lib/types";
+import {
+  fetchPublicUseCasesByOwner,
+  computePortalKpis,
+  computeLiveTrustScore,
+} from "@/lib/register-first/trust-portal-aggregator";
+import { EukiBadge } from "@/components/trust-portal/euki-badge";
 
 interface TrustPortalTileProps {
-    projectId: string;
-    projectName?: string; // Add optional projectName
-    config: TrustPortalConfig | undefined;
-    onConfigUpdate: (newConfig: TrustPortalConfig) => void;
-    complianceData: {
-        compliantCount: number;
-        risksDocumented: boolean;
-        policiesExist: boolean;
-        hasRefinedRoles?: boolean;
-    };
-    certificationStatus?: 'none' | 'in_progress' | 'certified';
+  projectId: string;
+  projectName?: string;
+  config: TrustPortalConfig | undefined;
+  onConfigUpdate: (newConfig: TrustPortalConfig) => void;
+  /** The current user's UID – needed for live aggregation */
+  ownerId?: string;
 }
 
-export function TrustPortalTile({ projectId, projectName, config, onConfigUpdate, complianceData, certificationStatus = 'none' }: TrustPortalTileProps) {
-    const [dialogOpen, setDialogOpen] = useState(false);
+export function TrustPortalTile({
+  projectId,
+  projectName,
+  config,
+  onConfigUpdate,
+  ownerId,
+}: TrustPortalTileProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [liveTrustScore, setLiveTrustScore] = useState<number | null>(null);
+  const [liveSystemCount, setLiveSystemCount] = useState<number>(0);
+  const [scoreLoading, setScoreLoading] = useState(false);
 
-    // Trust Readiness Calculation (5 Dimensions, max 20 each)
-    // ... (rest of calculation can remain or be replaced by utility, but keeping it here for UI display consistency is fine for now)
-    const transparencyScore =
-        ((config?.governanceStatement?.length || 0) > 20 ? 10 : 0) +
-        ((config?.showPolicies || config?.showRiskCategory) ? 10 : 0);
+  // Compute live trust score from publicUseCases
+  useEffect(() => {
+    if (!ownerId) return;
 
-    const oversightScore = config?.showHumanOversight ? 20 : 0;
+    const loadLiveScore = async () => {
+      setScoreLoading(true);
+      try {
+        const entries = await fetchPublicUseCasesByOwner(ownerId);
+        if (entries.length > 0) {
+          const kpis = computePortalKpis(entries);
+          const score = computeLiveTrustScore(
+            kpis,
+            !!(config?.organizationName)
+          );
+          setLiveTrustScore(score);
+          setLiveSystemCount(kpis.totalSystems);
+        } else {
+          setLiveTrustScore(0);
+          setLiveSystemCount(0);
+        }
+      } catch (err) {
+        console.warn("[TrustPortalTile] Live score failed:", err);
+        setLiveTrustScore(null);
+      } finally {
+        setScoreLoading(false);
+      }
+    };
+    loadLiveScore();
+  }, [ownerId, config?.organizationName]);
 
-    const riskScore =
-        (complianceData.risksDocumented ? 10 : 0) +
-        (config?.showRiskCategory ? 10 : 0);
+  const displayScore = liveTrustScore ?? 0;
 
-    const competenceScore = complianceData.policiesExist ? 20 : 0;
+  return (
+    <section className="mb-8">
+      <Card className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/20 dark:to-background border-indigo-200 dark:border-indigo-800 shadow-sm overflow-hidden relative">
+        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+          <Shield className="w-32 h-32 text-indigo-600" />
+        </div>
 
-    // Contact email score
-    const relationshipScore = (config?.contactEmail?.includes('@')) ? 20 : 0;
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
+                  Trust Portal
+                </span>
+                {config?.isPublished && (
+                  <span className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
+                    <Globe className="w-3 h-3" /> Online
+                  </span>
+                )}
+                <EukiBadge
+                  governanceLevel={null}
+                  standardVersion="EUKI-GOV-1.0"
+                  compact
+                />
+              </div>
+              <CardTitle className="text-2xl text-indigo-950 dark:text-indigo-100 flex items-center gap-2">
+                <Shield className="w-6 h-6 text-indigo-600" />
+                AI Trust & Accountability Portal
+              </CardTitle>
+              <CardDescription className="text-indigo-900/70 dark:text-indigo-300/70 max-w-2xl">
+                Live-Transparenz basierend auf Ihrem KI-Register.{" "}
+                {liveSystemCount > 0 && (
+                  <span className="font-medium">
+                    {liveSystemCount} öffentliche Use Case
+                    {liveSystemCount !== 1 ? "s" : ""}.
+                  </span>
+                )}
+              </CardDescription>
+            </div>
 
-    // Certification score (max 15)
-    const certScore = certificationStatus === 'certified' ? 15 : certificationStatus === 'in_progress' ? 5 : 0;
+            <div className="text-right hidden sm:block z-10">
+              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+                Trust Readiness
+              </span>
+              <div className="flex items-end justify-end gap-1">
+                {scoreLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+                ) : (
+                  <span className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                    {displayScore}%
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] leading-tight text-right ml-auto">
+                Live-Score aus Review-Abdeckung, Nachweisfähigkeit und
+                Dokumentation.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
 
-    const trustScore = Math.min(100, transparencyScore + oversightScore + riskScore + competenceScore + relationshipScore + certScore);
+        <CardContent className="relative z-10">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <Button
+              size="lg"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none"
+              onClick={() => setDialogOpen(true)}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              {config?.isPublished ? "Portal verwalten" : "Portal vorbereiten"}
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+              disabled={!config?.isPublished}
+              onClick={() => window.open(`/trust/${projectId}`, "_blank")}
+              title={
+                config?.isPublished
+                  ? "Öffentliches Portal ansehen"
+                  : "Erst veröffentlichen um anzusehen"
+              }
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Zum öffentlichen Portal
+            </Button>
+          </div>
+        </CardContent>
 
-    return (
-        <section className="mb-8">
-            <Card className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/20 dark:to-background border-indigo-200 dark:border-indigo-800 shadow-sm overflow-hidden relative">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                    <Shield className="w-32 h-32 text-indigo-600" />
-                </div>
+        {/* Progress Bar */}
+        <div className="absolute bottom-0 left-0 h-1 bg-indigo-100 w-full dark:bg-indigo-900/30">
+          <div
+            className="h-full bg-indigo-500 transition-all duration-1000 ease-out"
+            style={{ width: `${displayScore}%` }}
+          />
+        </div>
+      </Card>
 
-                <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                                <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
-                                    Trust Portal
-                                </span>
-                                {config?.isPublished && (
-                                    <span className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
-                                        <Globe className="w-3 h-3" /> Online
-                                    </span>
-                                )}
-                            </div>
-                            <CardTitle className="text-2xl text-indigo-950 dark:text-indigo-100 flex items-center gap-2">
-                                <Shield className="w-6 h-6 text-indigo-600" />
-                                AI Trust & Accountability Portal
-                            </CardTitle>
-                            <CardDescription className="text-indigo-900/70 dark:text-indigo-300/70 max-w-2xl">
-                                Stellen Sie Transparenz her und bauen Sie Vertrauen auf. Erstellen Sie ein öffentliches Portal basierend auf Ihren Compliance-Daten.
-                            </CardDescription>
-                        </div>
-
-                        <div className="text-right hidden sm:block z-10">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Trust Readiness</span>
-                            <div className="flex items-end justify-end gap-1">
-                                <span className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">
-                                    {trustScore}%
-                                </span>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] leading-tight text-right ml-auto">
-                                Reflektiert dokumentierte Verantwortung, nicht rechtliche Konformität.
-                            </p>
-                        </div>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="relative z-10">
-                    <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                        <Button
-                            size="lg"
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none"
-                            onClick={() => setDialogOpen(true)}
-                        >
-                            <Globe className="mr-2 h-4 w-4" />
-                            {config?.isPublished ? "Portal verwalten" : "Portal vorbereiten"}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
-                            disabled={!config?.isPublished}
-                            onClick={() => window.open(`/trust/${projectId}`, '_blank')}
-                            title={config?.isPublished ? "Öffentliches Portal ansehen" : "Erst veröffentlichen um anzusehen"}
-                        >
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Zum öffentlichen Portal
-                        </Button>
-                    </div>
-                </CardContent>
-
-                {/* Progress Bar Background */}
-                <div className="absolute bottom-0 left-0 h-1 bg-indigo-100 w-full dark:bg-indigo-900/30">
-                    <div
-                        className="h-full bg-indigo-500 transition-all duration-1000 ease-out"
-                        style={{ width: `${trustScore}%` }}
-                    />
-                </div>
-            </Card>
-
-            <TrustPortalConfigDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                currentConfig={config}
-                projectId={projectId}
-                projectTitle={projectName}
-                policiesExist={complianceData.policiesExist}
-                onConfigSaved={(newConfig) => {
-                    onConfigUpdate(newConfig);
-                    // The dialog calls saveProjectData internally, but we update local state too
-                }}
-            />
-        </section>
-    );
+      <TrustPortalConfigDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        currentConfig={config}
+        projectId={projectId}
+        projectTitle={projectName}
+        onConfigSaved={(newConfig) => {
+          onConfigUpdate(newConfig);
+        }}
+      />
+    </section>
+  );
 }

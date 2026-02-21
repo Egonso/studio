@@ -259,6 +259,7 @@ function DashboardPageContent() {
                             pendingReviewCount={pendingReviewCount}
                             lastEntry={lastEntry}
                             onUseCaseCaptured={loadUseCaseData}
+                            ownerId={user?.uid}
                         />
                     </main>
                 </div>
@@ -299,6 +300,7 @@ function DashboardPageContent() {
                     pendingReviewCount={pendingReviewCount}
                     lastEntry={lastEntry}
                     onUseCaseCaptured={loadUseCaseData}
+                    ownerId={user?.uid}
                 />
             </main>
         </div>
