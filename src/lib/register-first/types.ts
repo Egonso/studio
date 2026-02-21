@@ -66,6 +66,15 @@ export interface EvidenceReference {
 
 export type CardVersion = "1.0" | "1.1";
 
+export interface StatusChange {
+  from: RegisterUseCaseStatus;
+  to: RegisterUseCaseStatus;
+  changedAt: string;
+  changedBy: string;
+  changedByName: string;
+  reason?: string;
+}
+
 export interface UseCaseCard {
   cardVersion: CardVersion;
   useCaseId: string;
@@ -97,6 +106,12 @@ export interface UseCaseCard {
   organisation?: string | null;
   standardVersion?: string;
   isDeleted?: boolean;
+  // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
+  statusHistory?: StatusChange[];
+  capturedBy?: string;
+  capturedByName?: string;
+  capturedViaCode?: boolean;
+  accessCodeLabel?: string;
 }
 
 export type ConfidenceLevel = "low" | "medium" | "high";

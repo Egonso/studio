@@ -165,6 +165,11 @@ export async function POST(req: NextRequest) {
       standardVersion: "EUKI-UC-1.2",
       formatVersion: "v1.1",
       isPublicVisible: false,
+      // Audit metadata
+      capturedBy: "ANONYMOUS",
+      capturedByName: ownerName.trim(),
+      capturedViaCode: true,
+      accessCodeLabel: codeData.label,
     };
 
     // Write to Firestore under admin's register

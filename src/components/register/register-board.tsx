@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
+import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,7 +79,7 @@ interface RegisterBoardProps {
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
-type SortField = "updatedAt" | "purpose" | "owner" | "status";
+type SortField = "updatedAt" | "createdAt" | "purpose" | "owner" | "status" | "tool";
 type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
 type ProofBooleanChoice = "YES" | "NO";
 
@@ -209,6 +209,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("updatedAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
   const [showDeleted, setShowDeleted] = useState(false);
 
@@ -279,15 +280,20 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const sortedUseCases = useMemo(() => {
     const sorted = [...useCases];
     sorted.sort((a, b) => {
+      let cmp = 0;
       switch (sortField) {
-        case "purpose": return a.purpose.localeCompare(b.purpose);
-        case "owner": return (a.responsibility.responsibleParty ?? "").localeCompare(b.responsibility.responsibleParty ?? "");
-        case "status": return registerUseCaseStatusOrder.indexOf(a.status) - registerUseCaseStatusOrder.indexOf(b.status);
-        default: return b.updatedAt.localeCompare(a.updatedAt);
+        case "purpose": cmp = a.purpose.localeCompare(b.purpose); break;
+        case "owner": cmp = (a.responsibility.responsibleParty ?? "").localeCompare(b.responsibility.responsibleParty ?? ""); break;
+        case "status": cmp = registerUseCaseStatusOrder.indexOf(a.status) - registerUseCaseStatusOrder.indexOf(b.status); break;
+        case "tool": cmp = (a.toolFreeText || a.toolId || "").localeCompare(b.toolFreeText || b.toolId || ""); break;
+        case "createdAt": cmp = a.createdAt.localeCompare(b.createdAt); break;
+        case "updatedAt":
+        default: cmp = a.updatedAt.localeCompare(b.updatedAt); break;
       }
+      return sortDir === "asc" ? cmp : -cmp; // flip if desc
     });
     return sorted;
-  }, [useCases, sortField]);
+  }, [useCases, sortField, sortDir]);
 
   const groupedUseCases = useMemo(() => {
     if (viewMode === "ALL") return null;
@@ -665,17 +671,31 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             ))}
           </SelectContent>
         </Select>
-        <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
-          <SelectTrigger className="h-9 w-36 text-sm">
-            <SelectValue placeholder="Sortierung" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="updatedAt">Datum</SelectItem>
-            <SelectItem value="purpose">Name</SelectItem>
-            <SelectItem value="owner">Verantwortlich</SelectItem>
-            <SelectItem value="status">Status</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1">
+          <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
+            <SelectTrigger className="h-9 w-36 text-sm">
+              <SelectValue placeholder="Sortierung" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="updatedAt">Zuletzt geändert</SelectItem>
+              <SelectItem value="createdAt">Erstellt am</SelectItem>
+              <SelectItem value="purpose">Name</SelectItem>
+              <SelectItem value="owner">Verantwortlich</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+              <SelectItem value="tool">Tool</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 w-9 p-0"
+            onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+            title={sortDir === "asc" ? "Aufsteigend" : "Absteigend"}
+          >
+            {sortDir === "asc" ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
+          </Button>
+        </div>
         <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
           <SelectTrigger className="h-9 w-44 text-sm">
             <SelectValue placeholder="Ansicht" />

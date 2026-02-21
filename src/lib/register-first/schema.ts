@@ -153,6 +153,15 @@ export const toolPublicInfoSchema = z.object({
   disclaimerVersion: z.string(),
 });
 
+export const statusChangeSchema = z.object({
+  from: registerUseCaseStatusSchema,
+  to: registerUseCaseStatusSchema,
+  changedAt: z.string().datetime(),
+  changedBy: z.string(),
+  changedByName: z.string(),
+  reason: z.string().optional(),
+});
+
 // ── UseCaseCard Schema (accepts both v1.0 and v1.1) ─────────────────────────
 export const useCaseCardSchema = z
   .object({
@@ -210,6 +219,12 @@ export const useCaseCardSchema = z
     organisation: z.string().trim().max(200).optional().nullable(),
     standardVersion: z.string().max(20).optional(),
     isDeleted: z.boolean().optional(),
+    // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
+    statusHistory: z.array(statusChangeSchema).optional(),
+    capturedBy: z.string().optional(),
+    capturedByName: z.string().optional(),
+    capturedViaCode: z.boolean().optional(),
+    accessCodeLabel: z.string().optional(),
   })
   .superRefine((value, ctx) => {
     // v1.1: if toolId is "other", toolFreeText is required

@@ -35,6 +35,7 @@ import type {
   Register,
   RegisterUseCaseStatus,
   ReviewEvent,
+  StatusChange,
   UseCaseCard,
 } from "./types";
 
@@ -72,6 +73,10 @@ export class RegisterServiceError extends Error {
 export interface CreateUseCaseOptions {
   registerId?: string;
   useCaseId?: string;
+  capturedBy?: string;
+  capturedByName?: string;
+  capturedViaCode?: boolean;
+  accessCodeLabel?: string;
 }
 
 export interface UpdateStatusInput {
@@ -288,9 +293,16 @@ export function createRegisterService(
       try {
         const scope = await resolveScope(options.registerId);
         const useCaseId = options.useCaseId ?? useCaseIdGenerator();
-        const card = prepareUseCaseForStorage(input, {
+        const cardDraft = prepareUseCaseForStorage(input, {
           useCaseId,
           now: now(),
+        });
+        const card = parseUseCaseCard({
+          ...cardDraft,
+          capturedBy: options.capturedBy ?? scope.userId,
+          capturedByName: options.capturedByName,
+          capturedViaCode: options.capturedViaCode,
+          accessCodeLabel: options.accessCodeLabel,
         });
         return useCaseRepo.create(scope, card);
       } catch (error) {
@@ -361,11 +373,21 @@ export function createRegisterService(
           notes: input.reason,
         };
 
+        const statusChange: StatusChange = {
+          from: existing.status,
+          to: input.nextStatus,
+          changedAt: now().toISOString(),
+          changedBy: input.reviewedBy || scope.userId,
+          changedByName: "Admin",
+          reason: input.reason,
+        };
+
         const updated = parseUseCaseCard({
           ...existing,
           status: input.nextStatus,
           updatedAt: now().toISOString(),
           reviews: [...existing.reviews, reviewEvent],
+          statusHistory: [...(existing.statusHistory || []), statusChange],
         });
 
         return useCaseRepo.save(scope, updated);
