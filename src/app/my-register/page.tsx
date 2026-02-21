@@ -16,7 +16,6 @@ import { RegisterBoard } from "@/components/register/register-board";
 import { GovernanceHeader } from "@/components/register/governance-header";
 import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
 import { CompanyOnboardingWizard } from "@/components/register/company-onboarding-wizard";
-import { AccessCodeManager } from "@/components/register/access-code-manager";
 import {
   registerService,
   type RegisterServiceErrorCode,
@@ -176,9 +175,6 @@ export default function MyRegisterPage() {
           refreshKey={refreshKey}
           onUseCasesLoaded={handleUseCasesLoaded}
         />
-        {activeRegister && (
-          <AccessCodeManager registerId={activeRegister.registerId} />
-        )}
         <QuickCaptureModal
           open={captureOpen}
           onOpenChange={setCaptureOpen}

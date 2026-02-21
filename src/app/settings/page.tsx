@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,9 @@ import { useAuth } from '@/context/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { AccessCodeManager } from '@/components/register/access-code-manager';
+import { registerService } from '@/lib/register-first/register-service';
+import type { Register } from '@/lib/register-first/types';
 
 const emailSchema = z.object({
   newEmail: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -38,6 +41,13 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [registers, setRegisters] = useState<Register[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      registerService.listRegisters().then(setRegisters).catch(console.error);
+    }
+  }, [user]);
 
   const emailForm = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -248,6 +258,21 @@ export default function SettingsPage() {
             </Form>
           </CardContent>
         </Card>
+
+        {/* Zugangscodes */}
+        {registers.length > 0 && (
+          <div className="space-y-6 pt-4">
+            <div>
+              <h2 className="text-xl font-bold">Register Einstellungen</h2>
+              <p className="text-muted-foreground text-sm mt-1">
+                Verwalten Sie den Zugriff auf Ihre AI Governance Register.
+              </p>
+            </div>
+            {registers.map((r) => (
+              <AccessCodeManager key={r.registerId} registerId={r.registerId} />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
