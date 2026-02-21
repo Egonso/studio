@@ -1,4 +1,4 @@
-import { parseUseCaseCard } from "./schema.ts";
+import { parseUseCaseCard } from "./schema";
 import type { RegisterUseCaseStatus, UseCaseCard } from "./types";
 
 export interface RegisterUseCaseScope {
@@ -10,6 +10,7 @@ export interface RegisterUseCaseFilters {
   status?: RegisterUseCaseStatus;
   searchText?: string;
   limit?: number;
+  includeDeleted?: boolean;
 }
 
 export interface RegisterUseCaseRepository {
@@ -25,6 +26,10 @@ function normalizeSearch(value: string): string {
 
 function applyFilters(cards: UseCaseCard[], filters: RegisterUseCaseFilters = {}): UseCaseCard[] {
   let result = [...cards];
+
+  if (!filters.includeDeleted) {
+    result = result.filter((card) => !card.isDeleted);
+  }
 
   if (filters.status) {
     result = result.filter((card) => card.status === filters.status);

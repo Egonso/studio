@@ -96,6 +96,7 @@ export interface UseCaseCard {
   // ── v1.2 fields (Register-First: flat metadata) ───────────────────
   organisation?: string | null;
   standardVersion?: string;
+  isDeleted?: boolean;
 }
 
 export type ConfidenceLevel = "low" | "medium" | "high";

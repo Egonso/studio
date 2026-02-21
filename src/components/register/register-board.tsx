@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw } from "lucide-react";
+import { AlertCircle, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -208,6 +208,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("updatedAt");
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
+  const [showDeleted, setShowDeleted] = useState(false);
 
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
@@ -231,11 +232,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           status: statusFilter === "ALL" ? undefined : statusFilter,
           searchText: searchQuery,
           limit: 150,
+          includeDeleted: showDeleted,
         })
         : await registerFirstService.listUseCases(projectId, {
           status: statusFilter === "ALL" ? undefined : statusFilter,
           searchText: searchQuery,
           limit: 150,
+          includeDeleted: showDeleted,
         });
       setUseCases(items);
     } catch (loadError) {
@@ -250,7 +253,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     } finally {
       setIsLoading(false);
     }
-  }, [isStandalone, projectId, searchQuery, statusFilter]);
+  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted]);
 
   useEffect(() => {
     void loadUseCases();
@@ -348,6 +351,26 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
       }));
     } finally {
       setUpdatingUseCaseId(null);
+    }
+  };
+
+  const handleSoftDelete = async (card: UseCaseCard) => {
+    try {
+      await registerService.softDeleteUseCase(isStandalone ? undefined : projectId, card.useCaseId);
+      await loadUseCases();
+      toast({ title: "Gelöscht", description: "Use Case wurde in den Papierkorb verschoben." });
+    } catch {
+      toast({ variant: "destructive", title: "Fehler", description: "Use Case konnte nicht gelöscht werden." });
+    }
+  };
+
+  const handleRestore = async (card: UseCaseCard) => {
+    try {
+      await registerService.restoreUseCase(isStandalone ? undefined : projectId, card.useCaseId);
+      await loadUseCases();
+      toast({ title: "Wiederhergestellt", description: "Use Case ist wieder aktiv." });
+    } catch {
+      toast({ variant: "destructive", title: "Fehler", description: "Use Case konnte nicht wiederhergestellt werden." });
     }
   };
 
@@ -666,6 +689,15 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         <Button type="button" variant="ghost" size="sm" className="h-9" onClick={handleResetFilters}>
           Zurücksetzen
         </Button>
+        <Button
+          type="button"
+          variant={showDeleted ? "secondary" : "ghost"}
+          size="sm"
+          className="h-9"
+          onClick={() => setShowDeleted(!showDeleted)}
+        >
+          {showDeleted ? "Gelöschte ausblenden" : "Gelöschte anzeigen"}
+        </Button>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {useCases.length} Einsatzf{useCases.length === 1 ? "all" : "älle"}
@@ -748,204 +780,220 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                     {groupHeader}
                   </h3>
                 )}
-              <Card className="overflow-hidden">
-                <div className="flex items-start justify-between gap-2 p-4 pb-2">
-                  {/* Line 1: Purpose + Status + Visibility */}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="truncate text-sm font-semibold">{card.purpose}</h3>
-                      <RegisterStatusBadge status={card.status} />
-                      <Badge
-                        variant={card.isPublicVisible ? "default" : "secondary"}
-                        className="shrink-0 text-[10px]"
-                      >
-                        {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
-                      </Badge>
-                    </div>
-
-                    {/* Line 2: Badges */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {card.toolId && (
-                        <Badge variant="outline" className="text-[10px] font-normal">
-                          {card.toolId === "other"
-                            ? card.toolFreeText ?? "Anderes Tool"
-                            : card.toolId}
+                <Card className={`overflow-hidden ${card.isDeleted ? "opacity-60 grayscale" : ""}`}>
+                  <div className="flex items-start justify-between gap-2 p-4 pb-2">
+                    {/* Line 1: Purpose + Status + Visibility */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className={`truncate text-sm font-semibold ${card.isDeleted ? "line-through" : ""}`}>{card.purpose}</h3>
+                        {card.isDeleted && (
+                          <Badge variant="destructive" className="shrink-0 text-[10px]">
+                            Gelöscht
+                          </Badge>
+                        )}
+                        <RegisterStatusBadge status={card.status} />
+                        <Badge
+                          variant={card.isPublicVisible ? "default" : "secondary"}
+                          className="shrink-0 text-[10px]"
+                        >
+                          {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
                         </Badge>
-                      )}
-                      {card.dataCategory && card.dataCategory !== "NONE" && (
-                        <Badge variant="outline" className="text-[10px] font-normal">
-                          {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
-                        </Badge>
-                      )}
-                      {card.usageContexts.map((ctx) => (
-                        <Badge key={ctx} variant="outline" className="text-[10px] font-normal">
-                          {usageContextLabels[ctx]}
-                        </Badge>
-                      ))}
+                      </div>
+
+                      {/* Line 2: Badges */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {card.toolId && (
+                          <Badge variant="outline" className="text-[10px] font-normal">
+                            {card.toolId === "other"
+                              ? card.toolFreeText ?? "Anderes Tool"
+                              : card.toolId}
+                          </Badge>
+                        )}
+                        {card.dataCategory && card.dataCategory !== "NONE" && (
+                          <Badge variant="outline" className="text-[10px] font-normal">
+                            {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
+                          </Badge>
+                        )}
+                        {card.usageContexts.map((ctx) => (
+                          <Badge key={ctx} variant="outline" className="text-[10px] font-normal">
+                            {usageContextLabels[ctx]}
+                          </Badge>
+                        ))}
+                      </div>
+
+                      {/* Line 3: Owner + Organisation */}
+                      <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                        {card.responsibility.responsibleParty && (
+                          <span>
+                            Verantwortlich: <span className="font-medium text-foreground">{card.responsibility.responsibleParty}</span>
+                          </span>
+                        )}
+                        {card.organisation && (
+                          <span>{card.organisation}</span>
+                        )}
+                      </div>
+
+                      {/* Line 4: Meta */}
+                      <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                        {card.globalUseCaseId && (
+                          <span className="font-mono">{card.globalUseCaseId}</span>
+                        )}
+                        {card.reviews.length > 0 ? (
+                          <span>
+                            Statusentscheidung zuletzt am: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
+                          </span>
+                        ) : (
+                          <span>Erfasst am: {formatDate(card.createdAt)}</span>
+                        )}
+                      </div>
+
+                      {/* Audit mini-log: last review */}
+                      {card.reviews.length > 0 && (() => {
+                        const lastReview = card.reviews[card.reviews.length - 1];
+                        return (
+                          <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
+                            <span>Letzte Entscheidung:</span>
+                            <span className="font-medium">{registerUseCaseStatusLabels[lastReview.nextStatus]}</span>
+                            <span>→</span>
+                            <span>{formatDate(lastReview.reviewedAt)}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
-                    {/* Line 3: Owner + Organisation */}
-                    <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                      {card.responsibility.responsibleParty && (
-                        <span>
-                          Verantwortlich: <span className="font-medium text-foreground">{card.responsibility.responsibleParty}</span>
-                        </span>
-                      )}
-                      {card.organisation && (
-                        <span>{card.organisation}</span>
-                      )}
-                    </div>
-
-                    {/* Line 4: Meta */}
-                    <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
-                      {card.globalUseCaseId && (
-                        <span className="font-mono">{card.globalUseCaseId}</span>
-                      )}
-                      {card.reviews.length > 0 ? (
-                        <span>
-                          Statusentscheidung zuletzt am: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
-                        </span>
-                      ) : (
-                        <span>Erfasst am: {formatDate(card.createdAt)}</span>
-                      )}
-                    </div>
-
-                    {/* Audit mini-log: last review */}
-                    {card.reviews.length > 0 && (() => {
-                      const lastReview = card.reviews[card.reviews.length - 1];
-                      return (
-                        <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
-                          <span>Letzte Entscheidung:</span>
-                          <span className="font-medium">{registerUseCaseStatusLabels[lastReview.nextStatus]}</span>
-                          <span>→</span>
-                          <span>{formatDate(lastReview.reviewedAt)}</span>
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Actions Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuItem
-                        onClick={() => handleExportUseCasePass(card)}
-                        disabled={!outputState.cardJsonEnabled}
-                      >
-                        Use-Case Pass (JSON)
-                      </DropdownMenuItem>
-                      {card.cardVersion === "1.1" && (
+                    {/* Actions Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuItem
-                          onClick={() => void handleExportUseCasePassV11(card)}
+                          onClick={() => handleExportUseCasePass(card)}
                           disabled={!outputState.cardJsonEnabled}
                         >
-                          Use-Case Pass v1.1 (JSON)
+                          Use-Case Pass (JSON)
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => handleExportProofPackDraft(card)}
-                        disabled={!outputState.proofPackDraftEnabled}
-                      >
-                        Proof-Pack Entwurf (JSON)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleExportProofPackPdf(card)}
-                        disabled={!proofPdfState.enabled}
-                      >
-                        Proof Pack (PDF)
-                      </DropdownMenuItem>
-                      {card.status === "PROOF_READY" && (
-                        <DropdownMenuItem
-                          onClick={() => handlePreviewProofPackPdf(card)}
-                        >
-                          PDF Vorschau
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => void handleTogglePublicVisibility(card)}
-                      >
-                        {card.isPublicVisible
-                          ? "Auf privat setzen"
-                          : "Öffentlich machen"}
-                      </DropdownMenuItem>
-                      {card.publicHashId && card.isPublicVisible && (
-                        <>
+                        {card.cardVersion === "1.1" && (
                           <DropdownMenuItem
-                            onClick={() => {
-                              const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
-                              void copyTextToClipboard(url).then(() =>
-                                toast({ title: "Verify-Link kopiert", description: url })
-                              );
-                            }}
+                            onClick={() => void handleExportUseCasePassV11(card)}
+                            disabled={!outputState.cardJsonEnabled}
                           >
-                            <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
-                            Verify-Link kopieren
+                            Use-Case Pass v1.1 (JSON)
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <a
-                              href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => handleExportProofPackDraft(card)}
+                          disabled={!outputState.proofPackDraftEnabled}
+                        >
+                          Proof-Pack Entwurf (JSON)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleExportProofPackPdf(card)}
+                          disabled={!proofPdfState.enabled}
+                        >
+                          Proof Pack (PDF)
+                        </DropdownMenuItem>
+                        {card.status === "PROOF_READY" && (
+                          <DropdownMenuItem
+                            onClick={() => handlePreviewProofPackPdf(card)}
+                          >
+                            PDF Vorschau
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => void handleTogglePublicVisibility(card)}
+                        >
+                          {card.isPublicVisible
+                            ? "Auf privat setzen"
+                            : "Öffentlich machen"}
+                        </DropdownMenuItem>
+                        {card.isDeleted ? (
+                          <DropdownMenuItem onClick={() => void handleRestore(card)}>
+                            <Undo2 className="mr-2 h-3.5 w-3.5" />
+                            Wiederherstellen
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onClick={() => void handleSoftDelete(card)} className="text-destructive focus:bg-destructive/10">
+                            <Trash2 className="mr-2 h-3.5 w-3.5" />
+                            Löschen
+                          </DropdownMenuItem>
+                        )}
+                        {card.publicHashId && card.isPublicVisible && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
+                                void copyTextToClipboard(url).then(() =>
+                                  toast({ title: "Verify-Link kopiert", description: url })
+                                );
+                              }}
                             >
-                              <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                              Verify-Link öffnen
-                            </a>
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Status Setter */}
-                {nextStatuses.length > 0 && (
-                  <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2">
-                    <Select
-                      value={selectedNextStatus}
-                      onValueChange={(value) =>
-                        setSelectedNextStatusById((prev) => ({
-                          ...prev,
-                          [card.useCaseId]: value as RegisterUseCaseStatus,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="h-8 max-w-[200px] text-xs">
-                        <SelectValue placeholder="Status setzen" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {nextStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {registerUseCaseStatusLabels[status]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        if (!selectedNextStatus) return;
-                        setConfirmingStatusCard(card);
-                      }}
-                      disabled={!selectedNextStatus || isUpdating}
-                    >
-                      {isUpdating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                      Setzen
-                    </Button>
-                    {updateErrorById[card.useCaseId] && (
-                      <p className="text-xs text-destructive">{updateErrorById[card.useCaseId]}</p>
-                    )}
+                              <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
+                              Verify-Link kopieren
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <a
+                                href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                Verify-Link öffnen
+                              </a>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                )}
-              </Card>
+
+                  {/* Status Setter */}
+                  {nextStatuses.length > 0 && (
+                    <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2">
+                      <Select
+                        value={selectedNextStatus}
+                        onValueChange={(value) =>
+                          setSelectedNextStatusById((prev) => ({
+                            ...prev,
+                            [card.useCaseId]: value as RegisterUseCaseStatus,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="h-8 max-w-[200px] text-xs">
+                          <SelectValue placeholder="Status setzen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nextStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {registerUseCaseStatusLabels[status]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          if (!selectedNextStatus) return;
+                          setConfirmingStatusCard(card);
+                        }}
+                        disabled={!selectedNextStatus || isUpdating}
+                      >
+                        {isUpdating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                        Setzen
+                      </Button>
+                      {updateErrorById[card.useCaseId] && (
+                        <p className="text-xs text-destructive">{updateErrorById[card.useCaseId]}</p>
+                      )}
+                    </div>
+                  )}
+                </Card>
               </div>
             );
           })}

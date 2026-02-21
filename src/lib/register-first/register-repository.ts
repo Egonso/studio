@@ -1,4 +1,4 @@
-import { parseUseCaseCard } from "./schema.ts";
+import { parseUseCaseCard } from "./schema";
 import type {
   Register,
   RegisterUseCaseStatus,
@@ -17,6 +17,7 @@ export interface RegisterUseCaseFilters {
   status?: RegisterUseCaseStatus;
   searchText?: string;
   limit?: number;
+  includeDeleted?: boolean;
 }
 
 // ── Repository Interfaces ───────────────────────────────────────────────────
@@ -68,6 +69,10 @@ function applyFilters(
   filters: RegisterUseCaseFilters = {}
 ): UseCaseCard[] {
   let result = [...cards];
+
+  if (!filters.includeDeleted) {
+    result = result.filter((card) => !card.isDeleted);
+  }
 
   if (filters.status) {
     result = result.filter((card) => card.status === filters.status);
@@ -263,7 +268,7 @@ export async function lookupPublicUseCase(
   if (entry) return entry;
 
   // 2. Legacy fallback: Collection Group Query on registerUseCases
-  const { getByPublicHashIdFirestore } = await import("./repository.ts");
+  const { getByPublicHashIdFirestore } = await import("./repository");
   const legacyResult = await getByPublicHashIdFirestore(publicHashId);
   if (!legacyResult) return null;
 

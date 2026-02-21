@@ -10,9 +10,9 @@ import { ZodError } from "zod";
 import {
   assertManualGovernanceDecision,
   parseUseCaseCard,
-} from "./schema.ts";
-import { isStatusTransitionAllowed } from "./status-flow.ts";
-import { prepareUseCaseForStorage } from "./use-case-builder.ts";
+} from "./schema";
+import { isStatusTransitionAllowed } from "./status-flow";
+import { prepareUseCaseForStorage } from "./use-case-builder";
 import {
   createFirestoreRegisterRepository,
   createFirestoreRegisterUseCaseRepo,
@@ -22,13 +22,13 @@ import {
   type PublicIndexRepository,
   type RegisterScope,
   type RegisterUseCaseFilters,
-} from "./register-repository.ts";
+} from "./register-repository";
 import {
   getActiveRegisterId,
   setActiveRegisterId,
   getDefaultRegisterId,
   setDefaultRegisterId,
-} from "./register-settings-client.ts";
+} from "./register-settings-client";
 import type {
   GovernanceDecisionActor,
   PublicUseCaseIndexEntry,
@@ -120,6 +120,8 @@ export interface RegisterService {
   updateUseCaseStatusManual(input: UpdateStatusInput): Promise<UseCaseCard>;
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
   setPublicVisibility(input: SetVisibilityInput): Promise<UseCaseCard>;
+  softDeleteUseCase(registerId: string | undefined, useCaseId: string): Promise<void>;
+  restoreUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard>;
 }
 
 // ── Dependencies ────────────────────────────────────────────────────────────
@@ -466,6 +468,58 @@ export function createRegisterService(
         }
 
         return saved;
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async softDeleteUseCase(registerId, useCaseId) {
+      try {
+        const scope = await resolveScope(registerId);
+        const existing = await useCaseRepo.getById(scope, useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${useCaseId}' was not found.`
+          );
+        }
+
+        const updated = parseUseCaseCard({
+          ...existing,
+          isDeleted: true,
+          updatedAt: now().toISOString(),
+        });
+
+        await useCaseRepo.save(scope, updated);
+
+        // Remove from public index if it was visible
+        if (existing.isPublicVisible && existing.publicHashId) {
+          await publicIndexRepo.unpublishFromIndex(existing.publicHashId);
+          await useCaseRepo.save(scope, parseUseCaseCard({ ...updated, isPublicVisible: false }));
+        }
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async restoreUseCase(registerId, useCaseId) {
+      try {
+        const scope = await resolveScope(registerId);
+        const existing = await useCaseRepo.getById(scope, useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${useCaseId}' was not found.`
+          );
+        }
+
+        const updated = parseUseCaseCard({
+          ...existing,
+          isDeleted: false,
+          updatedAt: now().toISOString(),
+        });
+
+        return useCaseRepo.save(scope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }

@@ -5,7 +5,7 @@ import type {
   RegisterUseCaseStatus,
   UseCaseCard,
 } from "./types";
-import { dataCategorySchema } from "./tool-registry-types.ts";
+import { dataCategorySchema } from "./tool-registry-types";
 
 const registerUseCaseStatusValues = [
   "UNREVIEWED",
@@ -209,6 +209,7 @@ export const useCaseCardSchema = z
     // ── v1.2 fields (Register-First: flat metadata) ─────────────────
     organisation: z.string().trim().max(200).optional().nullable(),
     standardVersion: z.string().max(20).optional(),
+    isDeleted: z.boolean().optional(),
   })
   .superRefine((value, ctx) => {
     // v1.1: if toolId is "other", toolFreeText is required

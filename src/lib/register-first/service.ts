@@ -2,15 +2,15 @@ import { ZodError } from "zod";
 import {
   assertManualGovernanceDecision,
   parseUseCaseCard,
-} from "./schema.ts";
+} from "./schema";
 import {
   createFirestoreRegisterUseCaseRepository,
   type RegisterUseCaseFilters,
   type RegisterUseCaseRepository,
   type RegisterUseCaseScope,
-} from "./repository.ts";
-import { isStatusTransitionAllowed } from "./status-flow.ts";
-import { prepareUseCaseForStorage } from "./use-case-builder.ts";
+} from "./repository";
+import { isStatusTransitionAllowed } from "./status-flow";
+import { prepareUseCaseForStorage } from "./use-case-builder";
 import type {
   GovernanceDecisionActor,
   RegisterUseCaseStatus,
