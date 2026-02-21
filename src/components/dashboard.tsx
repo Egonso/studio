@@ -21,8 +21,10 @@ import { UserCertificationStatus } from "./dashboard/user-certification-status";
 import { TrustPortalTile } from "./dashboard/trust-portal-tile";
 import { RegisterTile } from "./dashboard/register-tile";
 import { QuickCaptureModal } from "./register/quick-capture-modal";
+import { MaturityDashboard } from "./dashboard/maturity-dashboard";
 import type { UserStatus } from "@/hooks/use-user-status";
 import type { TrustPortalConfig } from "@/lib/types";
+import type { Register, UseCaseCard } from "@/lib/register-first/types";
 
 export interface ChecklistState {
     loading: boolean;
@@ -57,6 +59,11 @@ interface DashboardProps {
     pendingReviewCount?: number;
     lastEntry?: { name: string; date: string; } | null;
     onUseCaseCaptured?: () => void;
+    // Maturity Dashboard data
+    register?: Register | null;
+    allUseCases?: UseCaseCard[];
+    isUseCaseLoading?: boolean;
+    onRefreshUseCases?: () => void;
 }
 
 const statusConfig = {
@@ -88,6 +95,10 @@ export function Dashboard({
     pendingReviewCount = 0,
     lastEntry,
     onUseCaseCaptured,
+    register = null,
+    allUseCases = [],
+    isUseCaseLoading = false,
+    onRefreshUseCases,
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -197,6 +208,16 @@ export function Dashboard({
                             setIsQuickCaptureOpen(false);
                             onUseCaseCaptured?.();
                         }}
+                    />
+                </section>
+
+                {/* 0b. MATURITY DASHBOARD (Register-First Aggregation) */}
+                <section>
+                    <MaturityDashboard
+                        register={register}
+                        useCases={allUseCases}
+                        isLoading={isUseCaseLoading}
+                        onRefresh={onRefreshUseCases}
                     />
                 </section>
 

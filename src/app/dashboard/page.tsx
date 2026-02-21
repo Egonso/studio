@@ -34,6 +34,9 @@ function DashboardPageContent() {
     const [useCaseCount, setUseCaseCount] = useState(0);
     const [pendingReviewCount, setPendingReviewCount] = useState(0);
     const [lastEntry, setLastEntry] = useState<{ name: string; date: string } | null>(null);
+    const [allUseCases, setAllUseCases] = useState<import("@/lib/register-first/types").UseCaseCard[]>([]);
+    const [currentRegister, setCurrentRegister] = useState<import("@/lib/register-first/types").Register | null>(null);
+    const [isUseCaseLoading, setIsUseCaseLoading] = useState(false);
 
     // State 4: User Certification Status
     const { data: userStatus, loading: userStatusLoading } = useUserStatus(user?.email);
@@ -154,8 +157,14 @@ function DashboardPageContent() {
 
     // Helper: Load UseCase data from Register
     const loadUseCaseData = useCallback(async () => {
+        setIsUseCaseLoading(true);
         try {
+            // Load register metadata
+            const reg = await registerService.getFirstRegister();
+            setCurrentRegister(reg);
+
             const useCases = await registerService.listUseCases();
+            setAllUseCases(useCases);
             setUseCaseCount(useCases.length);
 
             // Count pending reviews: UNREVIEWED or REVIEW_RECOMMENDED
@@ -187,9 +196,13 @@ function DashboardPageContent() {
             }
         } catch {
             // No register exists yet or other error – default to 0
+            setAllUseCases([]);
+            setCurrentRegister(null);
             setUseCaseCount(0);
             setPendingReviewCount(0);
             setLastEntry(null);
+        } finally {
+            setIsUseCaseLoading(false);
         }
     }, []);
 
@@ -259,6 +272,10 @@ function DashboardPageContent() {
                             pendingReviewCount={pendingReviewCount}
                             lastEntry={lastEntry}
                             onUseCaseCaptured={loadUseCaseData}
+                            register={currentRegister}
+                            allUseCases={allUseCases}
+                            isUseCaseLoading={isUseCaseLoading}
+                            onRefreshUseCases={loadUseCaseData}
                         />
                     </main>
                 </div>
@@ -299,6 +316,10 @@ function DashboardPageContent() {
                     pendingReviewCount={pendingReviewCount}
                     lastEntry={lastEntry}
                     onUseCaseCaptured={loadUseCaseData}
+                    register={currentRegister}
+                    allUseCases={allUseCases}
+                    isUseCaseLoading={isUseCaseLoading}
+                    onRefreshUseCases={loadUseCaseData}
                 />
             </main>
         </div>
