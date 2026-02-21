@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UseCaseAssessmentWizard } from "./use-case-assessment-wizard";
+import { ToolkitUpsellButton } from "../toolkit-upsell-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +68,7 @@ export function UseCaseMetadataSection({
     organisation: card.organisation ?? "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
   const toolDisplayName =
@@ -91,10 +94,59 @@ export function UseCaseMetadataSection({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Metadaten</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-base">Metadaten & EUKI Core</CardTitle>
+        {!isEditing && (
+          <Button variant="outline" size="sm" onClick={() => setIsWizardOpen(true)}>
+            EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
+          </Button>
+        )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-2">
+
+        {/* Governance Core Alert / Status */}
+        {card.governanceAssessment?.core ? (
+          <div className="rounded-md border p-3 bg-secondary/30 space-y-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              EUKI Governance Core 1.0
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-3 border-t border-border/50 pt-3">
+              <div>
+                <span className="text-muted-foreground block mb-1">Kategorie:</span>
+                <strong className={card.governanceAssessment.core.aiActCategory === "Verboten" ? "text-red-600" : ""}>{card.governanceAssessment.core.aiActCategory}</strong>
+              </div>
+              <div>
+                <span className="text-muted-foreground block mb-1">Aufsicht:</span>
+                {card.governanceAssessment.core.oversightDefined ? (
+                  "Ja"
+                ) : (
+                  <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
+                )}
+              </div>
+              <div>
+                <span className="text-muted-foreground block mb-1">Review:</span>
+                {card.governanceAssessment.core.reviewCycleDefined ? (
+                  "Ja"
+                ) : (
+                  <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
+                )}
+              </div>
+              <div>
+                <span className="text-muted-foreground block mb-1">Doku:</span>
+                {card.governanceAssessment.core.documentationLevelDefined ? (
+                  "Ja"
+                ) : (
+                  <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            <strong>Action Required:</strong> Noch nicht auf EU AI Act Konformität geprüft. Bitte das Assessment starten.
+          </div>
+        )}
+
         {/* Purpose */}
         <div className="space-y-1.5">
           <Label className="text-xs font-medium text-muted-foreground">Zweck</Label>
@@ -244,6 +296,16 @@ export function UseCaseMetadataSection({
           </div>
         )}
       </CardContent>
+
+      <UseCaseAssessmentWizard
+        card={card}
+        open={isWizardOpen}
+        onOpenChange={setIsWizardOpen}
+        onComplete={async () => {
+          // Trigger a silent save with empty updates just to reload data
+          await onSave({});
+        }}
+      />
     </Card>
   );
 }

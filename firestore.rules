@@ -21,6 +21,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       
+      // --- LEGACY PROJECTS (Deprecated: Removed in Sprint 7) ---
+      // These rules are only left active so the Sprint 1 automatic migration script can read them.
       match /projects/{projectId} {
         allow read, write: if isOwner(userId);
         
@@ -140,10 +142,9 @@ service cloud.firestore {
       allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
     }
 
-    // 11. Project Tools (New Architecture Single Source of Truth)
+    // 11. Legacy Global Projects (Deprecated: Removed in Sprint 7)
+    // Only active for Sprint 1 Migration Script. Use Register-First /registers/{registerId}/useCases
     match /projects/{projectId} {
-      // Allow if user is owner of the project (checking legacy path or new workspace path)
-      // For now, loose check for authenticated users, can be tightened later.
       allow read, write: if isSignedIn(); 
       
       match /tools/{toolId} {

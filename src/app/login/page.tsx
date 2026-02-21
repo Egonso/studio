@@ -236,7 +236,7 @@ export default function LoginPage() {
           <Card>
             <CardHeader>
               <CardTitle>Anmelden</CardTitle>
-              <CardDescription>Geben Sie Ihre Daten ein, um auf Ihre Projekte zuzugreifen.</CardDescription>
+              <CardDescription>Geben Sie Ihre Daten ein, um auf Ihr Register zuzugreifen.</CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...form}>

@@ -98,6 +98,14 @@ export interface UpdateProofInput {
   actor?: GovernanceDecisionActor;
 }
 
+export interface UpdateAssessmentInput {
+  registerId?: string;
+  useCaseId: string;
+  actor?: GovernanceDecisionActor;
+  core: NonNullable<UseCaseCard["governanceAssessment"]>["core"];
+  flex?: NonNullable<UseCaseCard["governanceAssessment"]>["flex"];
+}
+
 export interface SetVisibilityInput {
   registerId?: string;
   useCaseId: string;
@@ -125,6 +133,7 @@ export interface RegisterService {
   ): Promise<UseCaseCard[]>;
   updateUseCaseStatusManual(input: UpdateStatusInput): Promise<UseCaseCard>;
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
+  updateAssessmentManual(input: UpdateAssessmentInput): Promise<UseCaseCard>;
   setPublicVisibility(input: SetVisibilityInput): Promise<UseCaseCard>;
   softDeleteUseCase(registerId: string | undefined, useCaseId: string): Promise<void>;
   restoreUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard>;
@@ -436,6 +445,50 @@ export function createRegisterService(
               isCurrent: input.isCurrent,
               scope: input.scope.trim(),
             },
+          },
+        });
+
+        return useCaseRepo.save(scope, updated);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async updateAssessmentManual(input) {
+      try {
+        assertManualGovernanceDecision(input.actor ?? "HUMAN");
+      } catch (error) {
+        throw new RegisterServiceError(
+          "AUTOMATION_FORBIDDEN",
+          "Automated governance decisions are prohibited.",
+          { cause: error }
+        );
+      }
+
+      try {
+        const scope = await resolveScope(input.registerId);
+        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${input.useCaseId}' was not found.`
+          );
+        }
+
+        const timestamp = now().toISOString();
+
+        // Merge the existing flex with the new flex (if provided)
+        const updatedFlex = {
+          ...(existing.governanceAssessment?.flex || {}),
+          ...(input.flex || {}),
+        };
+
+        const updated = parseUseCaseCard({
+          ...existing,
+          updatedAt: timestamp,
+          governanceAssessment: {
+            core: input.core,
+            flex: updatedFlex,
           },
         });
 

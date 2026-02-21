@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
 import {
@@ -25,6 +25,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -212,6 +220,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
   const [showDeleted, setShowDeleted] = useState(false);
+  const [riskFilter, setRiskFilter] = useState<string>("ALL");
 
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
@@ -230,7 +239,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     setError(null);
 
     try {
-      const items = isStandalone
+      let items = isStandalone
         ? await registerService.listUseCases(undefined, {
           status: statusFilter === "ALL" ? undefined : statusFilter,
           searchText: searchQuery,
@@ -243,6 +252,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           limit: 150,
           includeDeleted: showDeleted,
         });
+
+      if (riskFilter !== "ALL") {
+        items = items.filter((uc) => {
+          const cat = uc.governanceAssessment?.core?.aiActCategory || "Unbekannt";
+          if (riskFilter === "Unbekannt") return cat === "Unbekannt";
+          return cat === riskFilter;
+        });
+      }
       setUseCases(items);
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
@@ -256,7 +273,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     } finally {
       setIsLoading(false);
     }
-  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted]);
+  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted, riskFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -275,6 +292,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     setSearchInput("");
     setSearchQuery("");
     setStatusFilter("ALL");
+    setRiskFilter("ALL");
   };
 
   const sortedUseCases = useMemo(() => {
@@ -671,6 +689,22 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             ))}
           </SelectContent>
         </Select>
+        <Select
+          value={riskFilter}
+          onValueChange={(value) => setRiskFilter(value)}
+        >
+          <SelectTrigger className="h-9 w-40 text-sm">
+            <SelectValue placeholder="Risikoklasse" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Alle Risikoklassen</SelectItem>
+            <SelectItem value="Minimal Risk">Minimal Risk</SelectItem>
+            <SelectItem value="High Risk">High Risk</SelectItem>
+            <SelectItem value="Unacceptable Risk">Unacceptable Risk</SelectItem>
+            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+            <SelectItem value="Unbekannt">Unbekannt</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="flex items-center gap-1">
           <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
             <SelectTrigger className="h-9 w-36 text-sm">
@@ -752,276 +786,277 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           </CardHeader>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {/* Group headers (when grouped view is active) */}
-          {sortedUseCases.map((card, idx) => {
-            // Determine group header
-            let groupHeader: string | null = null;
-            if (groupedUseCases) {
-              let currentGroup: string;
-              switch (viewMode) {
-                case "BY_OWNER": currentGroup = card.responsibility.responsibleParty || "Nicht zugewiesen"; break;
-                case "BY_ORG": currentGroup = card.organisation || "Keine Organisation"; break;
-                case "BY_STATUS": currentGroup = registerUseCaseStatusLabels[card.status]; break;
-                default: currentGroup = "";
-              }
-              const prev = idx > 0 ? sortedUseCases[idx - 1] : null;
-              let prevGroup = "";
-              if (prev) {
-                switch (viewMode) {
-                  case "BY_OWNER": prevGroup = prev.responsibility.responsibleParty || "Nicht zugewiesen"; break;
-                  case "BY_ORG": prevGroup = prev.organisation || "Keine Organisation"; break;
-                  case "BY_STATUS": prevGroup = registerUseCaseStatusLabels[prev.status]; break;
-                }
-              }
-              if (!prev || currentGroup !== prevGroup) {
-                const count = sortedUseCases.filter((uc) => {
+        <div className="rounded-md border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[300px]">System & Meta</TableHead>
+                <TableHead>Status & Sichtbarkeit</TableHead>
+                <TableHead>Zugehörigkeit</TableHead>
+                <TableHead>Risikoklasse</TableHead>
+                <TableHead>Aktivität</TableHead>
+                <TableHead className="w-[80px] text-right">Aktionen</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedUseCases.map((card, idx) => {
+                let showGroupHeader = false;
+                let groupHeader: string | null = null;
+                if (groupedUseCases) {
+                  let currentGroup: string;
                   switch (viewMode) {
-                    case "BY_OWNER": return (uc.responsibility.responsibleParty || "Nicht zugewiesen") === currentGroup;
-                    case "BY_ORG": return (uc.organisation || "Keine Organisation") === currentGroup;
-                    case "BY_STATUS": return registerUseCaseStatusLabels[uc.status] === currentGroup;
-                    default: return true;
+                    case "BY_OWNER": currentGroup = card.responsibility.responsibleParty || "Nicht zugewiesen"; break;
+                    case "BY_ORG": currentGroup = card.organisation || "Keine Organisation"; break;
+                    case "BY_STATUS": currentGroup = registerUseCaseStatusLabels[card.status]; break;
+                    default: currentGroup = "";
                   }
-                }).length;
-                groupHeader = `${currentGroup} (${count})`;
-              }
-            }
-            const nextStatuses = getNextManualStatuses(card.status);
-            const outputState = getStatusGatedOutputState(
-              card.status,
-              registerFirstFlags
-            );
-            const proofPdfState = getProofPackPdfState(card, registerFirstFlags);
-            const selectedNextStatus = selectedNextStatusById[card.useCaseId];
-            const isUpdating = updatingUseCaseId === card.useCaseId;
+                  const prev = idx > 0 ? sortedUseCases[idx - 1] : null;
+                  let prevGroup = "";
+                  if (prev) {
+                    switch (viewMode) {
+                      case "BY_OWNER": prevGroup = prev.responsibility.responsibleParty || "Nicht zugewiesen"; break;
+                      case "BY_ORG": prevGroup = prev.organisation || "Keine Organisation"; break;
+                      case "BY_STATUS": prevGroup = registerUseCaseStatusLabels[prev.status]; break;
+                    }
+                  }
+                  if (!prev || currentGroup !== prevGroup) {
+                    const count = sortedUseCases.filter((uc) => {
+                      switch (viewMode) {
+                        case "BY_OWNER": return (uc.responsibility.responsibleParty || "Nicht zugewiesen") === currentGroup;
+                        case "BY_ORG": return (uc.organisation || "Keine Organisation") === currentGroup;
+                        case "BY_STATUS": return registerUseCaseStatusLabels[uc.status] === currentGroup;
+                        default: return true;
+                      }
+                    }).length;
+                    groupHeader = `${currentGroup} (${count})`;
+                    showGroupHeader = true;
+                  }
+                }
 
-            return (
-              <div key={card.useCaseId}>
-                {groupHeader && (
-                  <h3 className="mb-2 mt-4 flex items-center gap-2 text-sm font-semibold first:mt-0">
-                    {groupHeader}
-                  </h3>
-                )}
-                <Card
-                  className={`cursor-pointer overflow-hidden transition-shadow hover:shadow-md ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
-                  onClick={() => router.push(`/my-register/${card.useCaseId}`)}
-                >
-                  <div className="flex items-start justify-between gap-2 p-4 pb-2">
-                    {/* Line 1: Purpose + Status + Visibility */}
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className={`truncate text-sm font-semibold ${card.isDeleted ? "line-through" : ""}`}>{card.purpose}</h3>
-                        {card.isDeleted && (
-                          <Badge variant="destructive" className="shrink-0 text-[10px]">
-                            Gelöscht
-                          </Badge>
-                        )}
-                        <RegisterStatusBadge status={card.status} />
-                        <Badge
-                          variant={card.isPublicVisible ? "default" : "secondary"}
-                          className="shrink-0 text-[10px]"
-                        >
-                          {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
-                        </Badge>
-                      </div>
+                const nextStatuses = getNextManualStatuses(card.status);
+                const outputState = getStatusGatedOutputState(
+                  card.status,
+                  registerFirstFlags
+                );
+                const proofPdfState = getProofPackPdfState(card, registerFirstFlags);
 
-                      {/* Line 2: Badges */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {card.toolId && (
-                          <Badge variant="outline" className="text-[10px] font-normal">
-                            {card.toolId === "other"
-                              ? card.toolFreeText ?? "Anderes Tool"
-                              : card.toolId}
-                          </Badge>
-                        )}
-                        {card.dataCategory && card.dataCategory !== "NONE" && (
-                          <Badge variant="outline" className="text-[10px] font-normal">
-                            {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
-                          </Badge>
-                        )}
-                        {card.usageContexts.map((ctx) => (
-                          <Badge key={ctx} variant="outline" className="text-[10px] font-normal">
-                            {usageContextLabels[ctx]}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      {/* Line 3: Owner + Organisation */}
-                      <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                        {card.responsibility.responsibleParty && (
-                          <span>
-                            Verantwortlich: <span className="font-medium text-foreground">{card.responsibility.responsibleParty}</span>
-                          </span>
-                        )}
-                        {card.organisation && (
-                          <span>{card.organisation}</span>
-                        )}
-                      </div>
-
-                      {/* Line 4: Meta */}
-                      <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
-                        {card.globalUseCaseId && (
-                          <span className="font-mono">{card.globalUseCaseId}</span>
-                        )}
-                        {card.reviews.length > 0 ? (
-                          <span>
-                            Statusentscheidung zuletzt am: {formatDate(card.reviews[card.reviews.length - 1].reviewedAt)}
-                          </span>
-                        ) : (
-                          <span>Erfasst am: {formatDate(card.createdAt)}</span>
-                        )}
-                      </div>
-
-                      {/* Audit mini-log: last review */}
-                      {card.reviews.length > 0 && (() => {
-                        const lastReview = card.reviews[card.reviews.length - 1];
-                        return (
-                          <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
-                            <span>Letzte Entscheidung:</span>
-                            <span className="font-medium">{registerUseCaseStatusLabels[lastReview.nextStatus]}</span>
-                            <span>→</span>
-                            <span>{formatDate(lastReview.reviewedAt)}</span>
+                return (
+                  <React.Fragment key={card.useCaseId}>
+                    {showGroupHeader && groupHeader && (
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableCell colSpan={6} className="h-10 text-xs font-semibold uppercase text-muted-foreground">
+                          {groupHeader}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    <TableRow
+                      onClick={() => router.push(`/my-register/${card.useCaseId}`)}
+                      className={`cursor-pointer group ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
+                    >
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-medium ${card.isDeleted ? "line-through" : ""}`}>
+                              {card.purpose}
+                            </span>
+                            {card.isDeleted && (
+                              <Badge variant="destructive" className="shrink-0 text-[10px]">Gelöscht</Badge>
+                            )}
                           </div>
-                        );
-                      })()}
-                    </div>
 
-                    {/* Actions Dropdown - stop propagation to prevent card navigation */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 shrink-0 p-0" onClick={(e) => e.stopPropagation()}>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem
-                          onClick={() => handleExportUseCasePass(card)}
-                          disabled={!outputState.cardJsonEnabled}
-                        >
-                          Use-Case Pass (JSON)
-                        </DropdownMenuItem>
-                        {card.cardVersion === "1.1" && (
-                          <DropdownMenuItem
-                            onClick={() => void handleExportUseCasePassV11(card)}
-                            disabled={!outputState.cardJsonEnabled}
+                          <div className="flex flex-wrap gap-1">
+                            {card.toolId && (
+                              <Badge variant="outline" className="text-[10px] font-normal bg-background/50">
+                                {card.toolId === "other" ? card.toolFreeText ?? "Anderes Tool" : card.toolId}
+                              </Badge>
+                            )}
+                            {card.labels?.map(label => (
+                              <Badge key={label.key} variant="secondary" className="text-[10px] font-normal opacity-80">
+                                {label.value}
+                              </Badge>
+                            ))}
+                            {card.dataCategory && card.dataCategory !== "NONE" && (
+                              <Badge variant="outline" className="text-[10px] font-normal bg-background/50">
+                                {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
+                              </Badge>
+                            )}
+                            {card.usageContexts.map((ctx) => (
+                              <Badge key={ctx} variant="outline" className="text-[10px] font-normal bg-background/50">
+                                {usageContextLabels[ctx]}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5 items-start">
+                          <RegisterStatusBadge status={card.status} />
+                          <Badge
+                            variant={card.isPublicVisible ? "default" : "secondary"}
+                            className="shrink-0 text-[10px]"
                           >
-                            Use-Case Pass v1.1 (JSON)
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => handleExportProofPackDraft(card)}
-                          disabled={!outputState.proofPackDraftEnabled}
-                        >
-                          Proof-Pack Entwurf (JSON)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleExportProofPackPdf(card)}
-                          disabled={!proofPdfState.enabled}
-                        >
-                          Proof Pack (PDF)
-                        </DropdownMenuItem>
-                        {card.status === "PROOF_READY" && (
-                          <DropdownMenuItem
-                            onClick={() => handlePreviewProofPackPdf(card)}
-                          >
-                            PDF Vorschau
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => void handleTogglePublicVisibility(card)}
-                        >
-                          {card.isPublicVisible
-                            ? "Auf privat setzen"
-                            : "Öffentlich machen"}
-                        </DropdownMenuItem>
-                        {card.isDeleted ? (
-                          <DropdownMenuItem onClick={() => void handleRestore(card)}>
-                            <Undo2 className="mr-2 h-3.5 w-3.5" />
-                            Wiederherstellen
-                          </DropdownMenuItem>
+                            {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col text-xs text-muted-foreground gap-1">
+                          {card.responsibility.responsibleParty ? (
+                            <span className="text-foreground">{card.responsibility.responsibleParty}</span>
+                          ) : (
+                            <span>Nicht zugewiesen</span>
+                          )}
+                          {card.organisation && (
+                            <span className="truncate max-w-[150px]" title={card.organisation}>{card.organisation}</span>
+                          )}
+                        </div>
+                      </TableCell>
+
+                      <TableCell>
+                        {card.governanceAssessment?.core?.aiActCategory ? (
+                          <Badge variant="outline" className="font-normal text-[11px]">
+                            {card.governanceAssessment.core.aiActCategory}
+                          </Badge>
                         ) : (
-                          <DropdownMenuItem onClick={() => void handleSoftDelete(card)} className="text-destructive focus:bg-destructive/10">
-                            <Trash2 className="mr-2 h-3.5 w-3.5" />
-                            Löschen
-                          </DropdownMenuItem>
+                          <span className="text-xs text-muted-foreground">Unbekannt</span>
                         )}
-                        {card.publicHashId && card.isPublicVisible && (
-                          <>
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex flex-col text-[11px] text-muted-foreground gap-1">
+                          <span>
+                            Aktualisiert: {formatDate(card.updatedAt)}
+                          </span>
+                          <span>
+                            Erstellt: {formatDate(card.createdAt)}
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-right align-middle" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 hover:bg-muted">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+
+                            {/* Embedded Status Setter */}
+                            {nextStatuses.length > 0 && (
+                              <div className="p-2 border-b mb-1">
+                                <p className="text-xs text-muted-foreground mb-1 font-medium">Status ändern</p>
+                                <Select
+                                  onValueChange={(value) => {
+                                    setSelectedNextStatusById((prev) => ({
+                                      ...prev,
+                                      [card.useCaseId]: value as RegisterUseCaseStatus,
+                                    }));
+                                    setConfirmingStatusCard(card);
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Neuer Status" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {nextStatuses.map((status) => (
+                                      <SelectItem key={status} value={status}>
+                                        {registerUseCaseStatusLabels[status]}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+
                             <DropdownMenuItem
-                              onClick={() => {
-                                const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
-                                void copyTextToClipboard(url).then(() =>
-                                  toast({ title: "Verify-Link kopiert", description: url })
-                                );
-                              }}
+                              onClick={() => handleExportUseCasePass(card)}
+                              disabled={!outputState.cardJsonEnabled}
                             >
-                              <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
-                              Verify-Link kopieren
+                              Use-Case Pass (JSON)
                             </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <a
-                                href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            {card.cardVersion === "1.1" && (
+                              <DropdownMenuItem
+                                onClick={() => void handleExportUseCasePassV11(card)}
+                                disabled={!outputState.cardJsonEnabled}
                               >
-                                <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                                Verify-Link öffnen
-                              </a>
+                                Use-Case Pass v1.1 (JSON)
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                              onClick={() => handleExportProofPackDraft(card)}
+                              disabled={!outputState.proofPackDraftEnabled}
+                            >
+                              Proof-Pack Entwurf (JSON)
                             </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Status Setter - stop propagation to prevent card navigation */}
-                  {nextStatuses.length > 0 && (
-                    <div className="flex items-center gap-2 border-t bg-muted/30 px-4 py-2" onClick={(e) => e.stopPropagation()}>
-                      <Select
-                        value={selectedNextStatus}
-                        onValueChange={(value) =>
-                          setSelectedNextStatusById((prev) => ({
-                            ...prev,
-                            [card.useCaseId]: value as RegisterUseCaseStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="h-8 max-w-[200px] text-xs">
-                          <SelectValue placeholder="Status setzen" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {nextStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {registerUseCaseStatusLabels[status]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="h-8 text-xs"
-                        onClick={() => {
-                          if (!selectedNextStatus) return;
-                          setConfirmingStatusCard(card);
-                        }}
-                        disabled={!selectedNextStatus || isUpdating}
-                      >
-                        {isUpdating && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-                        Setzen
-                      </Button>
-                      {updateErrorById[card.useCaseId] && (
-                        <p className="text-xs text-destructive">{updateErrorById[card.useCaseId]}</p>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              </div>
-            );
-          })}
+                            <DropdownMenuItem
+                              onClick={() => handleExportProofPackPdf(card)}
+                              disabled={!proofPdfState.enabled}
+                            >
+                              Proof Pack (PDF)
+                            </DropdownMenuItem>
+                            {card.status === "PROOF_READY" && (
+                              <DropdownMenuItem
+                                onClick={() => handlePreviewProofPackPdf(card)}
+                              >
+                                PDF Vorschau
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => void handleTogglePublicVisibility(card)}
+                            >
+                              {card.isPublicVisible
+                                ? "Auf privat setzen"
+                                : "Öffentlich machen"}
+                            </DropdownMenuItem>
+                            {card.isDeleted ? (
+                              <DropdownMenuItem onClick={() => void handleRestore(card)}>
+                                <Undo2 className="mr-2 h-3.5 w-3.5" />
+                                Wiederherstellen
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => void handleSoftDelete(card)} className="text-destructive focus:bg-destructive/10">
+                                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                Löschen
+                              </DropdownMenuItem>
+                            )}
+                            {card.publicHashId && card.isPublicVisible && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
+                                    void copyTextToClipboard(url).then(() =>
+                                      toast({ title: "Verify-Link kopiert", description: url })
+                                    );
+                                  }}
+                                >
+                                  <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
+                                  Verify-Link kopieren
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={buildVerifyPassAbsoluteUrl(card.publicHashId)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                    Verify-Link öffnen
+                                  </a>
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
 

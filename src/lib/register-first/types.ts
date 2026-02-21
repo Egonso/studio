@@ -102,10 +102,33 @@ export interface UseCaseCard {
   publicHashId?: string;
   isPublicVisible?: boolean;
   publicInfo?: ToolPublicInfo | null;
-  // ── v1.2 fields (Register-First: flat metadata) ───────────────────
+  // ── v1.2 fields (Register-First: flat metadata & generic tags) ────────
   organisation?: string | null;
+  labels?: { key: string; value: string }[];
   standardVersion?: string;
   isDeleted?: boolean;
+
+  // ── Register-First Architecture: Assessment ─────────────────────────────
+  governanceAssessment?: {
+    core: {
+      aiActCategory?: string | null;
+      oversightDefined?: boolean;
+      reviewCycleDefined?: boolean;
+      documentationLevelDefined?: boolean;
+      coreVersion?: string;
+      assessedAt?: string;
+    };
+    flex: {
+      maturityLevel?: "Level 1" | "Level 2" | "Level 3" | null;
+      oversightModel?: string | null;
+      reviewFrequency?: string | null;
+      riskControls?: string[];
+      trainingRequired?: boolean;
+      policyLinks?: string[];
+      incidentProcessDefined?: boolean;
+    };
+  };
+
   // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
   statusHistory?: StatusChange[];
   capturedBy?: string;
@@ -171,6 +194,9 @@ export interface Register {
   organisationUnit?: string | null;
   publicOrganisationDisclosure?: boolean;
   companyProfile?: CompanyProfile | null;
+
+  // ── Register-First Architecture: Org Baseline ─────────────────────────────
+  governanceMaturityLevel?: 1 | 2 | 3; // Baseline Level for all enclosed Use Cases
 }
 
 // ── Access Codes (Hybrid Auth) ───────────────────────────────────────────────

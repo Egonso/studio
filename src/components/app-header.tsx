@@ -66,10 +66,6 @@ export function AppHeader() {
             <GanttChartSquare className="h-4 w-4" />
             Dashboard
           </Link>
-          <Link href="/projects" className="text-sm font-medium text-muted-foreground hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
-            <LayoutDashboard className="h-4 w-4" />
-            Projekte
-          </Link>
           <Link href="/cbs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <Wand2 className="h-4 w-4" />
             Smart Policy Engine
