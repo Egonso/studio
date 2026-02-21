@@ -228,3 +228,20 @@ export interface PublicUseCaseIndexEntry {
   verification: { isReal: boolean; isCurrent: boolean; scope: string } | null;
   organisationName?: string | null;
 }
+
+// ── Dashboard Metrics ────────────────────────────────────────────────────────
+
+export interface RegisterMetrics {
+  totalUseCases: number;
+  activeUseCases: number;
+  publicUseCases: number;
+  riskDistribution: {
+    prohibited: number;
+    high: number;
+    limited: number;
+    minimal: number;
+    unassessed: number;
+  };
+  maturityScore: number;
+  actionItemsCount: number;
+}

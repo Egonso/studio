@@ -1,5 +1,5 @@
 import type { UseCaseCard } from "./types";
-import { generateGlobalUseCaseId, generatePublicHashId } from "./id-generation.ts";
+import { generateGlobalUseCaseId, generatePublicHashId } from "./id-generation";
 
 /**
  * Migrates a v1.0 UseCaseCard to v1.1 by filling in default values

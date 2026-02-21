@@ -25,7 +25,7 @@ export function FirebaseErrorListener() {
     }, []);
 
     useEffect(() => {
-        const handler = (error: FirestorePermissionError) => {
+        const handler = (error: any) => {
             const devErrorMessage = `
                 Firestore Permission Error:
                 - Operation: ${error.context.operation}

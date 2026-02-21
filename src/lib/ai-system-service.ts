@@ -48,7 +48,7 @@ export async function createOrLinkAiSystem(
     }
 
     // 2. Create NEW System
-    const newSystemData: StatusCode<AiSystem> = { // Omit ID handled by Firestore
+    const newSystemData: Omit<AiSystem, 'id'> = { // Omit ID handled by Firestore
         orgId,
         primaryWorkspaceId: workspaceId,
         title: title.trim(),

@@ -3,20 +3,20 @@ import {
   assertManualGovernanceDecision,
   createUseCaseCardDraft,
   parseCaptureInput,
-} from "../schema.ts";
+} from "../schema";
 import {
   getRegisterFirstFeatureFlags,
   registerFirstDefaultFlags,
-} from "../flags.ts";
+} from "../flags";
 import {
   getNextManualStatuses,
   getOutputProfileByStatus,
-} from "../status-flow.ts";
+} from "../status-flow";
 import {
   buildCaptureHref,
   buildRegisterHref,
   isHybridEntryEnabled,
-} from "../entry-links.ts";
+} from "../entry-links";
 import {
   createProofPackDraftExport,
   createUseCasePassExport,
@@ -24,20 +24,20 @@ import {
   getProofPackDraftFileName,
   getStatusGatedOutputState,
   getUseCasePassFileName,
-} from "../output.ts";
+} from "../output";
 import {
   createProofPackDocument,
   createProofPackPdfBlob,
   getProofPackPdfFileName,
-} from "../proof-pack.ts";
-import { validateVerifyLinkInput } from "../verify-link.ts";
+} from "../proof-pack";
+import { validateVerifyLinkInput } from "../verify-link";
 import {
   createEmptyCaptureDraft,
   shouldShowAffectedParties,
   submitCaptureDraft,
   type CaptureFormDraft,
   validateCaptureDraft,
-} from "../capture-flow.ts";
+} from "../capture-flow";
 
 export async function runFoundationSmoke() {
   const parsed = parseCaptureInput({

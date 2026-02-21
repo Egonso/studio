@@ -27,17 +27,17 @@ const ValueInfluenceAnalysisInputSchema = z.object({
 export type ValueInfluenceAnalysisInput = z.infer<typeof ValueInfluenceAnalysisInputSchema>;
 
 const AnalysisResultSchema = z.object({
-    principleId: z.string().describe("The ID of the principle being analyzed (e.g., 'p1', 'p2')."),
-    priority: z.enum(['High', 'Medium', 'Low', 'None']).describe("The assessed priority of this principle for the stakeholder."),
-    rationale: z.string().describe("A brief, clear rationale for the assigned priority, based on the stakeholder's concerns."),
+  principleId: z.string().describe("The ID of the principle being analyzed (e.g., 'p1', 'p2')."),
+  priority: z.enum(['High', 'Medium', 'Low', 'None']).describe("The assessed priority of this principle for the stakeholder."),
+  rationale: z.string().describe("A brief, clear rationale for the assigned priority, based on the stakeholder's concerns."),
 });
 
 const ValueInfluenceAnalysisOutputSchema = z.object({
-    results: z.array(z.object({
-        stakeholderId: z.string(),
-        stakeholderName: z.string(),
-        analysis: z.array(AnalysisResultSchema),
-    })),
+  results: z.array(z.object({
+    stakeholderId: z.string(),
+    stakeholderName: z.string(),
+    analysis: z.array(AnalysisResultSchema),
+  })),
 });
 export type ValueInfluenceAnalysisOutput = z.infer<typeof ValueInfluenceAnalysisOutputSchema>;
 
@@ -51,7 +51,7 @@ export async function analyzeValueInfluence(
 
 const prompt = ai.definePrompt({
   name: 'valueInfluenceAnalyzerPrompt',
-  input: { schema: ValueInfluenceAnalysisInputSchema },
+  input: { schema: z.any() },
   output: { schema: ValueInfluenceAnalysisOutputSchema },
   prompt: `You are an expert ethics and compliance consultant, specialized in mapping stakeholder needs to the principles of trustworthy AI according to the EU AI Act.
 
@@ -94,10 +94,8 @@ const valueInfluenceAnalyzerFlow = ai.defineFlow(
   },
   async (input) => {
     const result = await prompt({
-        ...input,
-        context: {
-            principles: principlesData
-        }
+      ...input,
+      principles: principlesData
     });
     return result.output!;
   }

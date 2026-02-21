@@ -105,18 +105,18 @@ function AuditReportPageContent() {
                                     details: item.details,
                                     pillar: 'ai-act', // Explicitly set default pillar
                                 });
-                                checklist = result.checklist;
+                                itemChecklist = result.checklist;
                                 checkedTasks = item.status === 'Compliant'
                                     ? result.checklist.reduce((acc, task) => ({ ...acc, [task.id]: true }), {})
                                     : {};
                             } catch (e) {
                                 console.error("Error fetching checklist for report:", e);
-                                checklist = [];
+                                itemChecklist = [];
                                 checkedTasks = {};
                             }
                         }
 
-                        return { ...item, checklist, checkedTasks };
+                        return { ...item, checklist: itemChecklist, checkedTasks };
                     })
                 );
                 setReportData(fullData);

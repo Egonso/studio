@@ -6,11 +6,11 @@ import {
   parseCaptureInput,
   createUseCaseCardDraft,
   createUseCaseCardV11Draft,
-} from "./schema.ts";
+} from "./schema";
 import {
   generateGlobalUseCaseId,
   generatePublicHashId,
-} from "./id-generation.ts";
+} from "./id-generation";
 import type { UseCaseCard } from "./types";
 
 export interface PrepareUseCaseOptions {

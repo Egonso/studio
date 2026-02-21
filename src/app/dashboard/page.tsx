@@ -10,6 +10,7 @@ import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjec
 import { Loader2 } from "lucide-react";
 import { useUserStatus } from "@/hooks/use-user-status";
 import { registerService } from "@/lib/register-first/register-service";
+import type { RegisterMetrics } from "@/lib/register-first/types";
 
 function DashboardPageContent() {
     const { user, loading: authLoading } = useAuth();
@@ -34,6 +35,7 @@ function DashboardPageContent() {
     const [useCaseCount, setUseCaseCount] = useState(0);
     const [pendingReviewCount, setPendingReviewCount] = useState(0);
     const [lastEntry, setLastEntry] = useState<{ name: string; date: string } | null>(null);
+    const [metrics, setMetrics] = useState<RegisterMetrics | undefined>(undefined);
 
     // State 4: User Certification Status
     const { data: userStatus, loading: userStatusLoading } = useUserStatus(user?.email);
@@ -156,6 +158,9 @@ function DashboardPageContent() {
     const loadUseCaseData = useCallback(async () => {
         try {
             const useCases = await registerService.listUseCases();
+            const fetchedMetrics = await registerService.getRegisterMetrics();
+
+            setMetrics(fetchedMetrics);
             setUseCaseCount(useCases.length);
 
             // Count pending reviews: UNREVIEWED or REVIEW_RECOMMENDED
@@ -190,6 +195,7 @@ function DashboardPageContent() {
             setUseCaseCount(0);
             setPendingReviewCount(0);
             setLastEntry(null);
+            setMetrics(undefined);
         }
     }, []);
 
@@ -260,6 +266,7 @@ function DashboardPageContent() {
                             lastEntry={lastEntry}
                             onUseCaseCaptured={loadUseCaseData}
                             ownerId={user?.uid}
+                            metrics={metrics}
                         />
                     </main>
                 </div>
@@ -301,6 +308,7 @@ function DashboardPageContent() {
                     lastEntry={lastEntry}
                     onUseCaseCaptured={loadUseCaseData}
                     ownerId={user?.uid}
+                    metrics={metrics}
                 />
             </main>
         </div>

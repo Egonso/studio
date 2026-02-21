@@ -44,7 +44,7 @@ async function testApi() {
             return;
         }
 
-        const data = await response.json();
+        const data = await response.json() as any;
         console.log('Success!', JSON.stringify(data, null, 2));
 
         // Assertions

@@ -1,0 +1,56 @@
+scripts/test-perplexity.ts(51,13): error TS18046: 'data' is of type 'unknown'.
+scripts/test-perplexity.ts(51,29): error TS18046: 'data' is of type 'unknown'.
+scripts/test-perplexity.ts(52,26): error TS18046: 'data' is of type 'unknown'.
+src/ai/flows/value-influence-analyzer.ts(98,9): error TS2353: Object literal may only specify known properties, and 'context' does not exist in type '{ projectContext: string; stakeholders: { type: "internal" | "external" | "societal"; name: string; id: string; concerns: string; }[]; }'.
+src/app/audit-report/page.tsx(108,33): error TS2304: Cannot find name 'checklist'.
+src/app/audit-report/page.tsx(114,33): error TS2304: Cannot find name 'checklist'.
+src/app/audit-report/page.tsx(119,43): error TS18004: No value exists in scope for the shorthand property 'checklist'. Either declare one or provide an initializer.
+src/components/design-canvas.tsx(422,35): error TS2345: Argument of type '(prev: DesignCanvasData) => { stakeholders: { id: string; name: string; type: string; concerns: string; }[]; valueTensions: ValueTension[]; requirements: Requirement[]; ... 5 more ...; valueMapping: ValueMapping; }' is not assignable to parameter of type 'SetStateAction<DesignCanvasData>'.
+  Type '(prev: DesignCanvasData) => { stakeholders: { id: string; name: string; type: string; concerns: string; }[]; valueTensions: ValueTension[]; requirements: Requirement[]; ... 5 more ...; valueMapping: ValueMapping; }' is not assignable to type '(prevState: DesignCanvasData) => DesignCanvasData'.
+    Call signature return types '{ stakeholders: { id: string; name: string; type: string; concerns: string; }[]; valueTensions: ValueTension[]; requirements: Requirement[]; valueInfluenceAnalysis: { ...; } | null; ... 4 more ...; valueMapping: ValueMapping; }' and 'DesignCanvasData' are incompatible.
+      The types of 'stakeholders' are incompatible between these types.
+        Type '{ id: string; name: string; type: string; concerns: string; }[]' is not assignable to type 'Stakeholder[]'.
+          Type '{ id: string; name: string; type: string; concerns: string; }' is not assignable to type 'Stakeholder'.
+            Types of property 'type' are incompatible.
+              Type 'string' is not assignable to type '"internal" | "external" | "societal"'.
+src/components/FirebaseErrorListener.tsx(52,45): error TS2345: Argument of type '(error: FirestorePermissionError) => never' is not assignable to parameter of type '(error: Error) => void'.
+  Types of parameters 'error' and 'error' are incompatible.
+    Property 'context' is missing in type 'Error' but required in type 'FirestorePermissionError'.
+src/components/FirebaseErrorListener.tsx(55,50): error TS2345: Argument of type '(error: FirestorePermissionError) => never' is not assignable to parameter of type '(error: Error) => void'.
+  Types of parameters 'error' and 'error' are incompatible.
+    Property 'context' is missing in type 'Error' but required in type 'FirestorePermissionError'.
+src/components/law-viewer/content.tsx(37,62): error TS2339: Property 'title' does not exist on type 'Article'.
+src/components/law-viewer/sidebar.tsx(81,59): error TS2339: Property 'title' does not exist on type 'Article'.
+src/lib/ai-system-service.ts(51,26): error TS2304: Cannot find name 'StatusCode'.
+src/lib/register-first/__tests__/register-standalone.smoke.ts(7,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/register-standalone.smoke.ts(11,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/register-standalone.smoke.ts(12,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(1,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(2,33): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(3,38): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(4,35): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(5,36): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/run-all-smoke.ts(6,44): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service-v11.smoke.ts(3,57): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service-v11.smoke.ts(7,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service-v11.smoke.ts(15,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service-v11.smoke.ts(23,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service.smoke.ts(3,57): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/service.smoke.ts(7,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(6,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(10,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(14,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(19,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(27,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(32,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(33,41): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/smoke.ts(40,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/tool-registry.smoke.ts(11,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/v11-schema.smoke.ts(7,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/v11-schema.smoke.ts(13,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/v11-schema.smoke.ts(18,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/__tests__/v11-schema.smoke.ts(23,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/migration.ts(2,63): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/output.ts(2,42): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/use-case-builder.ts(9,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.
+src/lib/register-first/use-case-builder.ts(13,8): error TS5097: An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled.

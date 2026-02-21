@@ -78,7 +78,7 @@ export function LawSidebar({ data, className }: LawSidebarProps) {
                             <ul className="pl-4 space-y-0.5 border-l ml-2">
                                 {chapter.articles.map(article => {
                                     // Use extracted Title or fallback
-                                    const label = article.title || article.id;
+                                    const label = (article as any).title || article.id;
                                     // Shorten label if too long for sidebar
                                     const shortLabel = label.length > 40 ? label.substring(0, 37) + "..." : label;
 

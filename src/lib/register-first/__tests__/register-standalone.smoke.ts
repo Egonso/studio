@@ -4,12 +4,12 @@ import {
   createInMemoryRegisterRepository,
   createInMemoryRegisterUseCaseRepo,
   createInMemoryPublicIndexRepo,
-} from "../register-repository.ts";
+} from "../register-repository";
 import {
   createRegisterService,
   RegisterServiceError,
-} from "../register-service.ts";
-import { prepareUseCaseForStorage } from "../use-case-builder.ts";
+} from "../register-service";
+import { prepareUseCaseForStorage } from "../use-case-builder";
 
 const baseNow = Date.parse("2026-02-10T10:00:00.000Z");
 let tick = 0;

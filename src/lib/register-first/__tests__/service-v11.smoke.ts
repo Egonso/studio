@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { createInMemoryRegisterUseCaseRepository } from "../repository.ts";
+import { createInMemoryRegisterUseCaseRepository } from "../repository";
 import {
   createRegisterFirstService,
   RegisterFirstServiceError,
-} from "../service.ts";
+} from "../service";
 import {
   createUseCasePassExport,
   createUseCasePassV11Export,
@@ -12,7 +12,7 @@ import {
   getUseCasePassV11FileName,
   getStatusGatedOutputState,
   serializePrettyJson,
-} from "../output.ts";
+} from "../output";
 import {
   createProofPackDocument,
   createProofPackV11Document,
@@ -20,8 +20,8 @@ import {
   createProofPackV11PdfBlob,
   getProofPackPdfFileName,
   getProofPackV11PdfFileName,
-} from "../proof-pack.ts";
-import type { RegisterFirstFeatureFlags } from "../flags.ts";
+} from "../proof-pack";
+import type { RegisterFirstFeatureFlags } from "../flags";
 
 const baseNow = Date.parse("2026-02-10T10:00:00.000Z");
 let tick = 0;

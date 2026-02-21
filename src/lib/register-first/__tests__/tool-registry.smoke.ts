@@ -8,7 +8,7 @@ import {
   dataCategorySchema,
   toolRegistryEntrySchema,
   type ToolRegistryEntry,
-} from "../tool-registry-types.ts";
+} from "../tool-registry-types";
 
 export async function runToolRegistrySmoke() {
   // ── Slug generation ─────────────────────────────────────────────────────

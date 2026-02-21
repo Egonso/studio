@@ -59,6 +59,7 @@ interface DashboardProps {
     onUseCaseCaptured?: () => void;
     /** Current user UID – forwarded to TrustPortalTile for live aggregation */
     ownerId?: string;
+    metrics?: import('@/lib/register-first/types').RegisterMetrics;
 }
 
 const statusConfig = {
@@ -91,6 +92,7 @@ export function Dashboard({
     lastEntry,
     onUseCaseCaptured,
     ownerId,
+    metrics,
 }: DashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -241,7 +243,7 @@ export function Dashboard({
                     </div>
 
                     {/* Paket B: AI Act Empty State – nur UI-Conditional */}
-                    {!wizardHasData ? (
+                    {(!wizardHasData && (!metrics || metrics.activeUseCases === 0)) ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                             {/* AI Act: Nicht gestartet */}
                             <Card className="shadow-sm border-slate-200 md:col-span-3">
@@ -277,32 +279,32 @@ export function Dashboard({
                             {/* KPI Cards – nur wenn Wizard-Daten vorhanden */}
                             <Card className="shadow-sm border-slate-200">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Compliant (AI Act)</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Transparenz / Minimal</CardTitle>
                                     <ShieldCheck className="h-4 w-4 text-green-600" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{compliantCount}</div>
-                                    <p className="text-xs text-muted-foreground">von {finalComplianceItems.length} Anforderungen</p>
+                                    <div className="text-2xl font-bold">{metrics ? metrics.riskDistribution.limited + metrics.riskDistribution.minimal : compliantCount}</div>
+                                    <p className="text-xs text-muted-foreground">Low Risk Use Cases</p>
                                 </CardContent>
                             </Card>
                             <Card className="shadow-sm border-slate-200">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">At Risk (AI Act)</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Hochrisiko Systeme</CardTitle>
                                     <AlertTriangle className="h-4 w-4 text-yellow-600" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{atRiskCount}</div>
-                                    <p className="text-xs text-muted-foreground">erfordern Aufmerksamkeit</p>
+                                    <div className="text-2xl font-bold">{metrics?.riskDistribution.high || 0}</div>
+                                    <p className="text-xs text-muted-foreground">Erfordern strengere Kontrollen</p>
                                 </CardContent>
                             </Card>
                             <Card className="shadow-sm border-slate-200">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Non-Compliant (AI Act)</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Unvollständige Assessments</CardTitle>
                                     <ShieldAlert className="h-4 w-4 text-red-600" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{nonCompliantCount}</div>
-                                    <p className="text-xs text-muted-foreground">kritische Probleme</p>
+                                    <div className="text-2xl font-bold">{metrics?.actionItemsCount || 0}</div>
+                                    <p className="text-xs text-muted-foreground">Fehlende Core-Bewertungen</p>
                                 </CardContent>
                             </Card>
 
@@ -323,13 +325,13 @@ export function Dashboard({
                         </div>
                     )}
 
-                    {criticalAlerts.length > 0 && (
+                    {(metrics?.actionItemsCount || 0) > 0 && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Kritische Warnungen!</AlertTitle>
                             <AlertDescription>
-                                {criticalAlerts.length > 1 ? `Sie haben ${criticalAlerts.length} nicht konforme Punkte` : 'Sie haben einen nicht konformen Punkt'}, die sofortige Aufmerksamkeit erfordern.
-                                {complianceData.find(item => item.details.includes("verbotene Praktiken")) && " Eines Ihrer Systeme scheint verbotene Praktiken nach Art. 5 anzuwenden. Dies erfordert sofortiges Handeln."}
+                                Sie haben {metrics?.actionItemsCount} Use Cases mit unvollständigem Assessment oder Hochrisiko-Einstufungen ohne menschliche Aufsicht. Gehen Sie in Ihr <b>EUKI Register</b>, um die Lücken zu schließen.
+                                {(metrics?.riskDistribution.prohibited || 0) > 0 && " Eines Ihrer Systeme wurde als verboten (Prohibited) eingestuft. Dies erfordert sofortiges Handeln."}
                             </AlertDescription>
                         </Alert>
                     )}

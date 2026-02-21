@@ -37,6 +37,7 @@ import type {
   ReviewEvent,
   StatusChange,
   UseCaseCard,
+  RegisterMetrics,
 } from "./types";
 
 // ── Error Types ─────────────────────────────────────────────────────────────
@@ -137,6 +138,7 @@ export interface RegisterService {
   setPublicVisibility(input: SetVisibilityInput): Promise<UseCaseCard>;
   softDeleteUseCase(registerId: string | undefined, useCaseId: string): Promise<void>;
   restoreUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard>;
+  getRegisterMetrics(registerId?: string): Promise<RegisterMetrics>;
 }
 
 // ── Dependencies ────────────────────────────────────────────────────────────
@@ -609,6 +611,60 @@ export function createRegisterService(
         throw mapServiceError(error);
       }
     },
+
+    async getRegisterMetrics(registerId?: string): Promise<RegisterMetrics> {
+      try {
+        const scope = await resolveScope(registerId);
+        const activeUseCases = await useCaseRepo.list(scope, { includeDeleted: false });
+
+        let publicCount = 0;
+        let prohibited = 0;
+        let high = 0;
+        let limited = 0;
+        let minimal = 0;
+        let unassessed = 0;
+        let actionItemsCount = 0;
+
+        activeUseCases.forEach((uc) => {
+          if (uc.isPublicVisible) publicCount++;
+
+          const cat = uc.governanceAssessment?.core?.aiActCategory;
+          if (cat === "Verboten") prohibited++;
+          else if (cat === "Hochrisiko") high++;
+          else if (cat === "Transparenzpflichten") limited++;
+          else if (cat === "Minimales Risiko") minimal++;
+          else unassessed++;
+
+          // A simple rule for action items: if it's high risk but lacks oversight
+          if (cat === "Hochrisiko" && (!uc.governanceAssessment?.core?.oversightDefined || !uc.governanceAssessment?.core?.reviewCycleDefined)) {
+            actionItemsCount++;
+          } else if (!cat) {
+            actionItemsCount++; // Unassessed implies action required
+          }
+        });
+
+        // Simple maturity calculation based on assessed KIs vs total active
+        const assessedCount = activeUseCases.length - unassessed;
+        let maturityScore = activeUseCases.length > 0 ? Math.round((assessedCount / activeUseCases.length) * 100) : 100;
+
+        return {
+          totalUseCases: activeUseCases.length,
+          activeUseCases: activeUseCases.length,
+          publicUseCases: publicCount,
+          riskDistribution: {
+            prohibited,
+            high,
+            limited,
+            minimal,
+            unassessed
+          },
+          maturityScore,
+          actionItemsCount
+        };
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    }
   };
 }
 

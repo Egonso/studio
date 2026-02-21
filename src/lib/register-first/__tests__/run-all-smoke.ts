@@ -1,9 +1,9 @@
-import { runFoundationSmoke } from "./smoke.ts";
-import { runServiceSmoke } from "./service.smoke.ts";
-import { runToolRegistrySmoke } from "./tool-registry.smoke.ts";
-import { runV11SchemaSmoke } from "./v11-schema.smoke.ts";
-import { runServiceV11Smoke } from "./service-v11.smoke.ts";
-import { runRegisterStandaloneSmoke } from "./register-standalone.smoke.ts";
+import { runFoundationSmoke } from "./smoke";
+import { runServiceSmoke } from "./service.smoke";
+import { runToolRegistrySmoke } from "./tool-registry.smoke";
+import { runV11SchemaSmoke } from "./v11-schema.smoke";
+import { runServiceV11Smoke } from "./service-v11.smoke";
+import { runRegisterStandaloneSmoke } from "./register-standalone.smoke";
 
 async function runAll() {
   await runFoundationSmoke();

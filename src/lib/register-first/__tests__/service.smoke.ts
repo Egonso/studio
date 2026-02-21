@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { createInMemoryRegisterUseCaseRepository } from "../repository.ts";
+import { createInMemoryRegisterUseCaseRepository } from "../repository";
 import {
   createRegisterFirstService,
   RegisterFirstServiceError,
-} from "../service.ts";
+} from "../service";
 
 const baseNow = Date.parse("2026-02-07T12:00:00.000Z");
 let tick = 0;

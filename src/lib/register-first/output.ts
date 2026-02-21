@@ -1,5 +1,5 @@
 import type { RegisterFirstFeatureFlags } from "./flags";
-import { getOutputProfileByStatus } from "./status-flow.ts";
+import { getOutputProfileByStatus } from "./status-flow";
 import type { DataCategory, RegisterUseCaseStatus, UseCaseCard } from "./types";
 import type { ToolType } from "./tool-registry-types";
 

@@ -121,12 +121,18 @@ export default function PublicTrustPortalPage() {
   // Use live score if available, otherwise fall back to snapshot
   const displayTrustScore = liveTrustScore ?? snapshotTrustScore;
 
+  const getGovernanceLevel = (score: number) => {
+    if (score >= 80) return 3;
+    if (score >= 40) return 2;
+    return 1;
+  };
+
   const formattedDate = publishedAt
     ? new Date(publishedAt).toLocaleDateString("de-DE", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      })
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
     : "";
 
   return (
@@ -145,7 +151,7 @@ export default function PublicTrustPortalPage() {
 
           <div className="flex items-center gap-3">
             <EukiBadge
-              governanceLevel={null}
+              governanceLevel={displayTrustScore !== null ? getGovernanceLevel(displayTrustScore) : null}
               standardVersion="EUKI-GOV-1.0"
               compact
             />
@@ -231,10 +237,10 @@ export default function PublicTrustPortalPage() {
                   ))}
                   {(!portalData.aiSystems ||
                     portalData.aiSystems.length === 0) && (
-                    <p className="text-slate-500 italic p-4 bg-slate-50 rounded-lg">
-                      Keine spezifischen Systeme öffentlich gelistet.
-                    </p>
-                  )}
+                      <p className="text-slate-500 italic p-4 bg-slate-50 rounded-lg">
+                        Keine spezifischen Systeme öffentlich gelistet.
+                      </p>
+                    )}
                 </div>
               )}
             </section>
@@ -285,7 +291,7 @@ export default function PublicTrustPortalPage() {
 
             {/* EUKI Badge (full) */}
             <EukiBadge
-              governanceLevel={null}
+              governanceLevel={displayTrustScore !== null ? getGovernanceLevel(displayTrustScore) : null}
               standardVersion="EUKI-GOV-1.0"
             />
 

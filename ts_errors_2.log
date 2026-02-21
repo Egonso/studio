@@ -1,0 +1,6 @@
+scripts/test-perplexity.ts(51,13): error TS18046: 'data' is of type 'unknown'.
+scripts/test-perplexity.ts(51,29): error TS18046: 'data' is of type 'unknown'.
+scripts/test-perplexity.ts(52,26): error TS18046: 'data' is of type 'unknown'.
+src/components/law-viewer/content.tsx(37,62): error TS2339: Property 'title' does not exist on type 'Article'.
+src/components/law-viewer/sidebar.tsx(81,59): error TS2339: Property 'title' does not exist on type 'Article'.
+src/lib/ai-system-service.ts(51,26): error TS2304: Cannot find name 'StatusCode'.

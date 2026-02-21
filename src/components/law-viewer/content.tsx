@@ -34,7 +34,7 @@ export function LawContent({ data }: LawContentProps) {
 
                         <div className="space-y-8">
                             {chapter.articles.map((article) => {
-                                const displayTitle = article.title || article.id;
+                                const displayTitle = (article as any).title || article.id;
                                 // Check if title is very long (like Article 3 definitions), if so, style differently
                                 const isLongTitle = displayTitle.length > 80;
 

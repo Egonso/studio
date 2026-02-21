@@ -4,23 +4,23 @@ import {
   parseUseCaseCard,
   createUseCaseCardDraft,
   createUseCaseCardV11Draft,
-} from "../schema.ts";
+} from "../schema";
 import {
   generatePublicHashId,
   generateGlobalUseCaseId,
   isValidGlobalUseCaseId,
   isValidPublicHashId,
-} from "../id-generation.ts";
+} from "../id-generation";
 import {
   migrateCardToV1_1,
   needsMigrationToV1_1,
   ensureV1_1Shape,
-} from "../migration.ts";
+} from "../migration";
 import {
   createEmptyCaptureDraft,
   validateCaptureDraft,
   toCaptureInput,
-} from "../capture-flow.ts";
+} from "../capture-flow";
 
 export async function runV11SchemaSmoke() {
   const now = new Date("2026-02-10T10:00:00.000Z");
