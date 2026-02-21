@@ -80,7 +80,7 @@ export default function PortfolioPage() {
             return;
         }
         if (!loading && user && !getActiveProjectId()) {
-            router.push('/projects');
+            router.push('/my-register');
             return;
         }
         if (user) {

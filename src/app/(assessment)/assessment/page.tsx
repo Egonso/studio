@@ -18,12 +18,12 @@ export default function AssessmentPage() {
       return;
     }
     if (!loading && user && !getActiveProjectId()) {
-        router.push('/projects');
+      router.push('/my-register');
     }
   }, [user, loading, router]);
-  
+
   if (loading || !user) {
-      return null;
+    return null;
   }
 
   return (
@@ -36,4 +36,3 @@ export default function AssessmentPage() {
   );
 }
 
-    

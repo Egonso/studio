@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Sparkles, Search, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { UseCaseAssessmentWizard } from "./use-case-assessment-wizard";
 import { ToolkitUpsellButton } from "../toolkit-upsell-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +70,8 @@ export function UseCaseMetadataSection({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [isCheckingCompliance, setIsCheckingCompliance] = useState(false);
+  const { toast } = useToast();
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
   const toolDisplayName =
@@ -89,6 +92,51 @@ export function UseCaseMetadataSection({
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const runComplianceCheck = async () => {
+    setIsCheckingCompliance(true);
+    try {
+      const { getFirebaseAuth } = await import("@/lib/firebase");
+      const auth = await getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+
+      if (!token) throw new Error("Nicht eingeloggt");
+
+      const { getActiveRegisterId } = await import("@/lib/register-first/register-settings-client");
+      const activeRegId = getActiveRegisterId();
+
+      const response = await fetch('/api/tools/public-info-check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          registerId: activeRegId,
+          useCaseId: card.useCaseId,
+          force: true
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Check failed');
+
+      toast({
+        title: "Smart Hint bereit",
+        description: `Compliance-Daten für ${toolDisplayName} ausgelesen.`,
+      });
+      // Force reload UI by passing empty updates
+      await onSave({});
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: e.message || "Failed to fetch smart hint."
+      });
+    } finally {
+      setIsCheckingCompliance(false);
     }
   };
 
@@ -147,8 +195,47 @@ export function UseCaseMetadataSection({
           </div>
         )}
 
+        {/* Smart Hint (Perplexity) */}
+        {!isEditing && (
+          <div className="rounded-md border border-blue-100 p-3 bg-blue-50/50 space-y-2 mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-blue-500" /> Smart Hint (Perplexity)
+              </h4>
+              <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600 hover:text-blue-800" onClick={runComplianceCheck} disabled={isCheckingCompliance}>
+                {isCheckingCompliance ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Search className="w-3 h-3 mr-1" />}
+                {card.publicInfo ? "Aktualisieren" : "Prüfen"}
+              </Button>
+            </div>
+            {card.publicInfo ? (
+              <div className="text-sm">
+                <div className="flex gap-2 flex-wrap mb-2">
+                  <Badge variant="outline" className={card.publicInfo.flags.gdprClaim === 'yes' ? 'bg-green-50 text-green-700 border-green-200' : 'text-muted-foreground border-slate-200'}>
+                    DSGVO {card.publicInfo.flags.gdprClaim === 'yes' ? '✅' : '❓'}
+                  </Badge>
+                  <Badge variant="outline" className={card.publicInfo.flags.aiActClaim === 'yes' ? 'bg-green-50 text-green-700 border-green-200' : 'text-muted-foreground border-slate-200'}>
+                    AI Act {card.publicInfo.flags.aiActClaim === 'yes' ? '✅' : '❓'}
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground text-xs leading-relaxed">{card.publicInfo.summary}</p>
+                {card.publicInfo.sources && card.publicInfo.sources.length > 0 && (
+                  <div className="flex gap-3 mt-2">
+                    {card.publicInfo.sources.slice(0, 2).map((s, i) => (
+                      <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                        <ExternalLink className="w-3 h-3" /> Quelle {i + 1}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Lassen Sie die KI nach öffentlich verfügbaren Compliance-Informationen (z.B. AI Act Statements, Privacy Policies) für dieses Tool suchen.</p>
+            )}
+          </div>
+        )}
+
         {/* Purpose */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 pt-2">
           <Label className="text-xs font-medium text-muted-foreground">Zweck</Label>
           {isEditing ? (
             <Textarea

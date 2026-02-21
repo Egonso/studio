@@ -22,7 +22,9 @@ export default function Home() {
     if (!loading && user) {
       // If a user is logged in, always redirect to the project selection page.
       // This ensures a project context is always established.
-      router.push('/projects');
+      router.push('/my-register');
+    } else {
+      router.push('/login');
     }
   }, [user, loading, router]);
 

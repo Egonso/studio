@@ -67,7 +67,7 @@ function AuditReportPageContent() {
         }
 
         if (!projectId) {
-            router.push('/projects');
+            router.push('/my-register');
             return;
         }
         setActiveProjectId(projectId);
@@ -91,10 +91,11 @@ function AuditReportPageContent() {
                 const fullData: FullComplianceInfo[] = await Promise.all(
                     initialComplianceData.map(async (item) => {
                         const state = checklistState[item.id];
-                        let checklist, checkedTasks;
+                        let itemChecklist: GetComplianceChecklistOutput_Checklist[] = [];
+                        let checkedTasks: Record<string, boolean> = {};
 
                         if (state?.data) {
-                            checklist = state.data.checklist;
+                            itemChecklist = state.data.checklist;
                             checkedTasks = state.checkedTasks;
                         } else {
                             try {

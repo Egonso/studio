@@ -217,8 +217,23 @@ export const useCaseCardSchema = z
     publicInfo: toolPublicInfoSchema.optional().nullable(),
     // ── v1.2 fields (Register-First: flat metadata) ─────────────────
     organisation: z.string().trim().max(200).optional().nullable(),
+    labels: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
     standardVersion: z.string().max(20).optional(),
     isDeleted: z.boolean().optional(),
+    // ── Register-First Architecture: Assessment ─────────────────────────────
+    governanceAssessment: z.object({
+      core: z.object({
+        aiActCategory: z.string().nullable().optional(),
+        oversightDefined: z.boolean().optional(),
+        reviewCycleDefined: z.boolean().optional(),
+        documentationLevelDefined: z.boolean().optional(),
+        trainingCompleted: z.boolean().optional(),
+        incidentProcessDefined: z.boolean().optional(),
+        coreVersion: z.string().optional(),
+        assessedAt: z.string().datetime().optional()
+      }).optional(),
+      flex: z.record(z.any()).optional()
+    }).optional(),
     // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
     statusHistory: z.array(statusChangeSchema).optional(),
     capturedBy: z.string().optional(),

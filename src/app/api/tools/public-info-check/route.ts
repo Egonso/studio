@@ -167,8 +167,17 @@ export async function POST(req: NextRequest) {
         const pData = await pRes.json();
         let content = pData.choices[0].message.content;
 
-        // Strip markdown
+        // Strip <think> tags from reasoning models and markdown
+        content = content.replace(/<think>[\s\S]*?<\/think>/, '');
         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        // Find the first { and last } to ensure pure JSON
+        const firstBrace = content.indexOf('{');
+        const lastBrace = content.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+            content = content.substring(firstBrace, lastBrace + 1);
+        }
+
         const research = JSON.parse(content);
 
         // Map Result

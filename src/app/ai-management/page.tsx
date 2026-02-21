@@ -49,7 +49,7 @@ function AiManagementPageContent() {
                 if (fullProjectData.checklistState) {
                     const loadedState: ChecklistState = {};
                     derivedData.forEach(item => {
-                        loadedState[item.id] = fullProjectData.checklistState[item.id] || { loading: false, error: null, data: null, checkedTasks: {} };
+                        loadedState[item.id] = (fullProjectData.checklistState as Record<string, any>)[item.id] || { loading: false, error: null, data: null, checkedTasks: {} };
                     });
                     setChecklistState(loadedState);
                 }
@@ -117,7 +117,7 @@ function AiManagementPageContent() {
                 loadData(activeProjectId);
             }
         } else {
-            router.push('/projects');
+            router.push('/my-register');
         }
     }, [router, user, authLoading, projectId, loadData]);
 

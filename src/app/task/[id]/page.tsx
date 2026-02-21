@@ -86,7 +86,7 @@ export default function TaskPage() {
         }
         if (user) {
             if (!getActiveProjectId()) {
-                router.push('/projects');
+                router.push('/my-register');
                 return;
             }
             loadTask();
@@ -149,7 +149,7 @@ export default function TaskPage() {
     const handleMarkAsDone = async () => {
         if (!task || !user) return;
 
-        const currentState = (await getChecklistState()) || {};
+        const currentState: Record<string, any> = (await getChecklistState()) || {};
         const complianceItemId = task.complianceItemId;
         const taskId = task.id;
 
