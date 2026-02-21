@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardCopy, Loader2, Plus, XCircle } from "lucide-react";
+import { ClipboardCopy, Loader2, Plus, XCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Card,
   CardContent,
@@ -14,7 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { accessCodeService } from "@/lib/register-first/access-code-service";
+import { accessCodeService, type AccessCodeOptions } from "@/lib/register-first/access-code-service";
 import type { RegisterAccessCode } from "@/lib/register-first/types";
 
 interface AccessCodeManagerProps {
@@ -26,6 +28,7 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newLabel, setNewLabel] = useState("");
+  const [expiryOption, setExpiryOption] = useState<AccessCodeOptions['expiryOption']>('90_DAYS');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,7 +53,10 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
     try {
       const code = await accessCodeService.generateCode(
         registerId,
-        newLabel.trim() || undefined
+        {
+          label: newLabel.trim() || undefined,
+          expiryOption
+        }
       );
       setCodes((prev) => [code, ...prev]);
       setNewLabel("");
@@ -102,32 +108,72 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Generate new code */}
-        <div className="flex items-end gap-2">
-          <div className="flex-1 space-y-1.5">
-            <Label htmlFor="code-label" className="text-xs">
-              Bezeichnung (optional)
-            </Label>
-            <Input
-              id="code-label"
-              placeholder="z. B. Marketing-Team"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              className="h-9 text-sm"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="code-label" className="text-xs">
+                Bezeichnung (optional)
+              </Label>
+              <Input
+                id="code-label"
+                placeholder="z. B. Marketing-Team"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                className="h-9 text-sm"
+              />
+            </div>
           </div>
-          <Button
-            size="sm"
-            onClick={() => void handleGenerate()}
-            disabled={isGenerating}
-            className="h-9"
-          >
-            {isGenerating ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+
+          <div className="space-y-3">
+            <Label className="text-xs">Ablaufdatum</Label>
+            <RadioGroup
+              value={expiryOption}
+              onValueChange={(v: any) => setExpiryOption(v)}
+              className="flex flex-wrap gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="30_DAYS" id="exp-30" />
+                <Label htmlFor="exp-30" className="text-sm font-normal cursor-pointer">30 Tage</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="90_DAYS" id="exp-90" />
+                <Label htmlFor="exp-90" className="text-sm font-normal cursor-pointer">90 Tage (Empfohlen)</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="365_DAYS" id="exp-365" />
+                <Label htmlFor="exp-365" className="text-sm font-normal cursor-pointer">1 Jahr</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="UNLIMITED" id="exp-unlimited" />
+                <Label htmlFor="exp-unlimited" className="text-sm font-normal cursor-pointer">Unbegrenzt</Label>
+              </div>
+            </RadioGroup>
+
+            {expiryOption === 'UNLIMITED' && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  Nicht empfohlen: Codes ohne Ablaufdatum stellen ein Sicherheitsrisiko dar.
+                </AlertDescription>
+              </Alert>
             )}
-            Code erstellen
-          </Button>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              size="sm"
+              onClick={() => void handleGenerate()}
+              disabled={isGenerating}
+              className="h-9"
+            >
+              {isGenerating ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              Code erstellen
+            </Button>
+          </div>
         </div>
 
         {/* Loading */}

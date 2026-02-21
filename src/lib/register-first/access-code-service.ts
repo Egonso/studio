@@ -3,6 +3,12 @@
 import { getFirebaseDb, getFirebaseAuth } from "@/lib/firebase";
 import type { RegisterAccessCode } from "./types";
 
+export interface AccessCodeOptions {
+  label?: string;
+  maxUses?: number;
+  expiryOption: '30_DAYS' | '90_DAYS' | '365_DAYS' | 'UNLIMITED';
+}
+
 // ── Code Generation ──────────────────────────────────────────────────────────
 
 function generateAccessCode(): string {
@@ -26,7 +32,7 @@ async function resolveUserId(): Promise<string> {
 export const accessCodeService = {
   async generateCode(
     registerId: string,
-    label?: string
+    options: AccessCodeOptions
   ): Promise<RegisterAccessCode> {
     const userId = await resolveUserId();
     const db = await getFirebaseDb();
@@ -35,14 +41,32 @@ export const accessCodeService = {
     const code = generateAccessCode();
     const now = new Date().toISOString();
 
+    let expiresAt: string | null = null;
+    if (options.expiryOption !== 'UNLIMITED') {
+      const expiryDate = new Date();
+      switch (options.expiryOption) {
+        case '30_DAYS':
+          expiryDate.setDate(expiryDate.getDate() + 30);
+          break;
+        case '90_DAYS':
+          expiryDate.setDate(expiryDate.getDate() + 90);
+          break;
+        case '365_DAYS':
+          expiryDate.setDate(expiryDate.getDate() + 365);
+          break;
+      }
+      expiresAt = expiryDate.toISOString();
+    }
+
     const entry: RegisterAccessCode = {
       code,
       registerId,
       ownerId: userId,
       createdAt: now,
-      expiresAt: null,
-      label: label || "Allgemeiner Zugang",
+      expiresAt,
+      label: options.label || "Team Access",
       usageCount: 0,
+      maxUsageCount: options.maxUses || null,
       isActive: true,
     };
 

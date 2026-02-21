@@ -167,6 +167,7 @@ export interface RegisterAccessCode {
   expiresAt: string | null;
   label: string;
   usageCount: number;
+  maxUsageCount?: number | null;
   isActive: boolean;
 }
 

@@ -13,6 +13,32 @@ interface CaptureByCodeBody {
   organisation?: string;
 }
 
+// Simple in-memory rate limiting (use Redis for production scale)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+const RATE_LIMIT_PER_CODE = 10; // 10 submissions per hour per code
+const RATE_LIMIT_PER_IP = 100; // 100 submissions per day per IP
+const RATE_WINDOW_CODE = 60 * 60 * 1000; // 1 hour
+const RATE_WINDOW_IP = 24 * 60 * 60 * 1000; // 24 hours
+
+function checkRateLimit(key: string, limit: number, window: number): boolean {
+  const now = Date.now();
+  const rateData = rateLimitMap.get(key);
+
+  if (!rateData || now > rateData.resetAt) {
+    // Reset or first request
+    rateLimitMap.set(key, { count: 1, resetAt: now + window });
+    return true;
+  }
+
+  if (rateData.count >= limit) {
+    return false; // Rate limit exceeded
+  }
+
+  rateData.count++;
+  return true;
+}
+
 // GET: Validate code and return register info
 export async function GET(req: NextRequest) {
   try {
@@ -60,6 +86,23 @@ export async function POST(req: NextRequest) {
   try {
     const body: CaptureByCodeBody = await req.json();
     const { code, purpose, toolId, toolFreeText, usageContext, dataCategory, ownerName, organisation } = body;
+
+    if (code) {
+      if (!checkRateLimit(`code:${code}`, RATE_LIMIT_PER_CODE, RATE_WINDOW_CODE)) {
+        return NextResponse.json(
+          { error: "Zu viele Anfragen. Bitte versuchen Sie es später erneut." },
+          { status: 429 }
+        );
+      }
+    }
+
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
+    if (!checkRateLimit(`ip:${ip}`, RATE_LIMIT_PER_IP, RATE_WINDOW_IP)) {
+      return NextResponse.json(
+        { error: "Zu viele Anfragen von Ihrer IP-Adresse." },
+        { status: 429 }
+      );
+    }
 
     // Validate required fields
     if (!code || !purpose?.trim() || !ownerName?.trim()) {

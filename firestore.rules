@@ -45,9 +45,9 @@ service cloud.firestore {
     }
 
     // Register Access Codes (Hybrid Auth – employees capture without login)
-    // Anyone can read (to validate a code). Only authenticated owner can write.
+    // Client cannot read lists. Only validate server-side via API or if owner.
     match /registerAccessCodes/{code} {
-      allow read: if true;
+      allow read: if isSignedIn() && resource.data.ownerId == request.auth.uid;
       allow create: if isSignedIn()
         && request.resource.data.ownerId == request.auth.uid;
       allow update: if isSignedIn()
