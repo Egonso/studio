@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, PlusCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -35,6 +35,8 @@ function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
 export default function MyRegisterPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get("filter") as string | undefined;
 
   const [onboardingState, setOnboardingState] = useState<OnboardingState>("loading");
   const [captureOpen, setCaptureOpen] = useState(false);
@@ -182,6 +184,7 @@ export default function MyRegisterPage() {
           mode="standalone"
           refreshKey={refreshKey}
           onUseCasesLoaded={handleUseCasesLoaded}
+          initialFilter={initialFilter}
         />
         <QuickCaptureModal
           open={captureOpen}

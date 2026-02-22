@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2 } from "lucide-react";
+import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -84,6 +84,7 @@ interface RegisterBoardProps {
   mode?: "dashboard" | "standalone";
   refreshKey?: number;
   onUseCasesLoaded?: (cards: UseCaseCard[]) => void;
+  initialFilter?: string;
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
@@ -205,7 +206,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, onUseCasesLoaded }: RegisterBoardProps) {
+export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
   const isStandalone = mode === "standalone";
   const router = useRouter();
   const { toast } = useToast();
@@ -213,6 +214,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [activeCustomFilter, setActiveCustomFilter] = useState<string | null>(initialFilter || null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -260,6 +262,32 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           return cat === riskFilter;
         });
       }
+
+      // Apply Custom initialFilters (Dashboard Lenses)
+      if (activeCustomFilter) {
+        items = items.filter((uc) => {
+          const core = uc.governanceAssessment?.core;
+          const risk = (uc as any).riskScore || 0;
+          const val = (uc as any).valueScore || 0;
+
+          switch (activeCustomFilter) {
+            case 'missing_ai_act_category':
+              return !core || !core.aiActCategory;
+            case 'critical_ai_act_gaps':
+              return core?.aiActCategory === 'Hochrisiko' && !core.oversightDefined;
+            case 'iso_micro_gaps':
+            case 'missing_review_cycle':
+              return !core?.reviewCycleDefined || !uc.responsibility?.responsibleParty;
+            case 'high_value_high_risk':
+              return val > 60 && risk > 60;
+            case 'low_risk_high_value':
+              return val > 60 && risk < 40;
+            default:
+              return true;
+          }
+        });
+      }
+
       setUseCases(items);
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
@@ -273,7 +301,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     } finally {
       setIsLoading(false);
     }
-  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted, riskFilter]);
+  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted, riskFilter, activeCustomFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -293,6 +321,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     setSearchQuery("");
     setStatusFilter("ALL");
     setRiskFilter("ALL");
+    setActiveCustomFilter(null);
   };
 
   const sortedUseCases = useMemo(() => {
@@ -754,6 +783,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         >
           {showDeleted ? "Gelöschte ausblenden" : "Gelöschte anzeigen"}
         </Button>
+        {activeCustomFilter && (
+          <Badge variant="secondary" className="h-9 px-3 text-sm flex items-center gap-1 cursor-pointer" onClick={() => setActiveCustomFilter(null)}>
+            Filter: {activeCustomFilter.replace(/_/g, ' ')}
+            <X className="h-3 w-3 ml-1" />
+          </Badge>
+        )}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
             {useCases.length} Einsatzf{useCases.length === 1 ? "all" : "älle"}
