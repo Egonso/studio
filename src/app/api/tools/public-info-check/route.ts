@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, auth } from '@/lib/firebase-admin';
 import { ToolPublicInfo, FlagStatus } from '@/lib/types';
-import { UseCaseCard } from '@/lib/register-first/types';
 
 // Rate Limiting: Simple in-memory map (Note: resets on serverless cold start)
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
 const MAX_REQUESTS = 10;
 const rateLimitMap = new Map<string, { count: number; firstRequest: number }>();
-
-export const maxDuration = 60; // Allow longer timeout for Perplexity
 
 /**
  * Helper to ensure strictly typed FlagStatus
@@ -22,38 +18,17 @@ function parseFlag(value: string | undefined): FlagStatus {
 
 export async function POST(req: NextRequest) {
     try {
-        // 1. Authorization – verify Firebase ID token
-        const authHeader = req.headers.get('Authorization');
-        if (!authHeader?.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-        const token = authHeader.replace('Bearer ', '');
-        let userId: string;
-        try {
-            const decodedToken = await auth.verifyIdToken(token);
-            userId = decodedToken.uid;
-        } catch {
-            return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
-        }
-
         const body = await req.json();
-        // Support Legacy (projectId + toolIds) OR New (registerId + useCaseId)
-        const { projectId, toolIds, registerId, useCaseId, force } = body;
+        const { toolName, toolVendor, force } = body;
 
-        // Validation
-        const isLegacy = !!projectId && !!toolIds;
-        const isRegister = !!registerId && !!useCaseId;
-
-        if (!isLegacy && !isRegister) {
-            return NextResponse.json({ error: 'Invalid request: detailed context required (Project or Register)' }, { status: 400 });
+        if (!toolName) {
+            return NextResponse.json({ error: 'Invalid request: toolName required' }, { status: 400 });
         }
 
-        // Scope for Rate Limiting
-        const scopeId = projectId || registerId;
-
-        // 2. Rate Limiting
+        // Rate Limiting (using IP)
+        const ip = req.headers.get('x-forwarded-for') || 'anonymous';
         const now = Date.now();
-        const rateData = rateLimitMap.get(scopeId) || { count: 0, firstRequest: now };
+        const rateData = rateLimitMap.get(ip) || { count: 0, firstRequest: now };
 
         if (now - rateData.firstRequest > RATE_LIMIT_WINDOW) {
             rateData.count = 0;
@@ -64,81 +39,45 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 });
         }
 
-        rateLimitMap.set(scopeId, { ...rateData, count: rateData.count + 1 });
+        rateLimitMap.set(ip, { ...rateData, count: rateData.count + 1 });
 
-        // 3. Prepare Target
-        let targetDocRef: FirebaseFirestore.DocumentReference;
-        let toolName: string = "Unknown Tool";
-        let toolVendor: string = "Unknown Vendor";
-        let existingInfo: ToolPublicInfo | undefined;
-
-        if (isRegister) {
-            // Register Path – scoped to authenticated user
-            const registerDoc = await db.doc(`users/${userId}/registers/${registerId}`).get();
-            if (!registerDoc.exists) {
-                return NextResponse.json({ error: 'Register not found or access denied' }, { status: 403 });
-            }
-            targetDocRef = db.collection(`users/${userId}/registers/${registerId}/useCases`).doc(useCaseId);
-            const doc = await targetDocRef.get();
-            if (!doc.exists) return NextResponse.json({ error: 'Use Case not found' }, { status: 404 });
-
-            const data = doc.data() as UseCaseCard;
-            toolName = data.toolFreeText || data.toolId || data.purpose || "AI Tool";
-            toolVendor = (data.toolId && data.toolId !== 'other') ? data.toolId : "Generic / Unknown";
-            existingInfo = data.publicInfo ?? undefined;
-        } else {
-            // Legacy Path
-            // Only processing first toolId for now in this unified logic
-            // (Loop logic removed for clarity/unification, assuming batching isn't heavily used by UI anymore)
-            const toolId = toolIds[0];
-            targetDocRef = db.collection(`users/${userId}/projects/${projectId}/tools`).doc(toolId);
-            const doc = await targetDocRef.get();
-            if (!doc.exists) return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
-
-            const data = doc.data();
-            toolName = data?.name || "Unknown";
-            toolVendor = data?.vendor || "Unknown";
-            existingInfo = data?.publicInfo;
-        }
-
-        // Cache Check
-        const lastChecked = existingInfo?.lastCheckedAt ? new Date(existingInfo.lastCheckedAt).getTime() : 0;
-        const daysSinceCheck = (now - lastChecked) / (1000 * 60 * 60 * 24);
-
-        if (existingInfo && daysSinceCheck < 14 && !force) {
-            return NextResponse.json({ success: true, results: { [useCaseId || toolIds[0]]: existingInfo }, cached: true });
-        }
-
-        // 4. Perplexity API Call
+        // Perplexity API Call
         const apiKey = process.env.PERPLEXITY_API_KEY;
         if (!apiKey) {
             console.error('PERPLEXITY_API_KEY missing');
-            return NextResponse.json({ error: 'Server configuration error (API Key)' }, { status: 500 });
+            return NextResponse.json({ error: 'Configuration Error: Perplexity API Key missing.' }, { status: 500 });
         }
 
         console.log(`Checking Perplexity for: ${toolName} (${toolVendor})`);
 
         const prompt = `
-        Research compliance info for the AI tool "${toolName}" (Vendor: "${toolVendor}").
-        Search for: Trust Center, Privacy Policy, GDPR statements, EU AI Act mentions, DPA/SCC availability.
-        
-        Output JSON ONLY with this schema:
-        {
-          "summary": "Short neutral summary (max 300 chars) of compliance status IN GERMAN.",
-          "flags": {
-            "trustCenterFound": "yes"|"no",
-            "privacyPolicyFound": "yes"|"no",
-            "gdprClaim": "yes"|"no"|"not_found",
-            "aiActClaim": "yes"|"no"|"not_found",
-            "dpaOrSccMention": "yes"|"no"|"not_found"
-          },
-          "confidence": "low"|"medium"|"high",
-          "sources": [
-             { "title": "Page Title", "url": "URL", "type": "trust_center"|"privacy"|"terms"|"dpa"|"scc"|"blog"|"other" }
-          ]
-        }
-        NO markdown code blocks. Just the raw JSON string.
-        `;
+Act as a strict compliance researcher specialized in the EU AI Act and GDPR.
+Research the AI tool "${toolName}" (Vendor: ${toolVendor}).
+
+Focus ONLY on official or highly credible sources (vendor website, privacy policy, trust center, DPA).
+
+Answer these questions:
+1. Does the vendor have a public Trust Center or Security Portal?
+2. Is there a public Privacy Policy?
+3. Does the vendor explicitly claim GDPR compliance?
+4. Does the vendor explicitly mention EU AI Act compliance?
+5. Does the vendor offer a Data Processing Agreement (DPA) or mention Standard Contractual Clauses (SCCs)?
+
+Respond ONLY with a valid JSON object matching this structure (no markdown formatting, no explanations outside the JSON):
+{
+  "summary": "A concise 2-3 sentence summary of your findings regarding compliance.",
+  "flags": {
+    "trustCenterFound": "yes" | "no" | "not_found",
+    "privacyPolicyFound": "yes" | "no" | "not_found",
+    "gdprClaim": "yes" | "no" | "not_found",
+    "aiActClaim": "yes" | "no" | "not_found",
+    "dpaOrSccMention": "yes" | "no" | "not_found"
+  },
+  "confidence": "high" | "medium" | "low",
+  "sources": [
+    { "url": "https://...", "title": "Page Title" }
+  ]
+}`;
 
         const pRes = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
@@ -147,11 +86,12 @@ export async function POST(req: NextRequest) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "sonar-reasoning-pro",
+                model: 'sonar-pro',
                 messages: [
-                    { role: "system", content: "You are a precise data compliance research assistant. Output strict JSON only. No preamble." },
-                    { role: "user", content: prompt }
+                    { role: 'system', content: 'You are a precise JSON-only API.' },
+                    { role: 'user', content: prompt }
                 ],
+                max_tokens: 1000,
                 temperature: 0.1
             })
         });
@@ -160,27 +100,33 @@ export async function POST(req: NextRequest) {
             const errText = await pRes.text();
             console.error('Perplexity API Error:', pRes.status, errText);
 
-            // Graceful Fallback or Error
+            if (pRes.status === 401) {
+                return NextResponse.json({ error: 'Perplexity API Key invalid or expired.' }, { status: 500 });
+            }
             throw new Error(`Perplexity API Error: ${pRes.status}`);
         }
 
         const pData = await pRes.json();
-        let content = pData.choices[0].message.content;
+        let content = pData.choices?.[0]?.message?.content || "";
 
-        // Strip <think> tags from reasoning models and markdown
-        content = content.replace(/<think>[\s\S]*?<\/think>/, '');
+        // Clean up markdown/think tags
+        content = content.replace(/<think>[\s\S]*?<\/think>/g, '');
         content = content.replace(/```json/g, '').replace(/```/g, '').trim();
 
-        // Find the first { and last } to ensure pure JSON
         const firstBrace = content.indexOf('{');
         const lastBrace = content.lastIndexOf('}');
         if (firstBrace !== -1 && lastBrace !== -1) {
             content = content.substring(firstBrace, lastBrace + 1);
         }
 
-        const research = JSON.parse(content);
+        let research;
+        try {
+            research = JSON.parse(content);
+        } catch (e) {
+            console.error('Failed to parse Perplexity JSON:', content);
+            throw new Error('Invalid JSON response from Perplexity');
+        }
 
-        // Map Result
         const publicInfo: ToolPublicInfo = {
             lastCheckedAt: new Date().toISOString(),
             checker: 'perplexity',
@@ -202,12 +148,7 @@ export async function POST(req: NextRequest) {
             disclaimerVersion: 'v1'
         };
 
-        // Write to DB
-        await targetDocRef.update({
-            publicInfo: publicInfo
-        });
-
-        return NextResponse.json({ success: true, results: { [useCaseId || toolIds[0]]: publicInfo } });
+        return NextResponse.json({ success: true, result: publicInfo });
 
     } catch (error: any) {
         console.error('API Route Error:', error);

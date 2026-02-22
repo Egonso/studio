@@ -114,8 +114,8 @@ export function UseCaseMetadataSection({
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          registerId: activeRegId,
-          useCaseId: card.useCaseId,
+          toolName: toolDisplayName,
+          toolVendor: toolEntry?.vendor || "Unknown / Generic",
           force: true
         })
       });
@@ -123,12 +123,14 @@ export function UseCaseMetadataSection({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Check failed');
 
+      if (!data.result) throw new Error("Keine Ergebnisse vom Server empfangen.");
+
+      await onSave({ publicInfo: data.result });
+
       toast({
         title: "Smart Hint bereit",
-        description: `Compliance-Daten für ${toolDisplayName} ausgelesen.`,
+        description: `Compliance-Daten für ${toolDisplayName} gespeichert.`,
       });
-      // Force reload UI by passing empty updates
-      await onSave({});
     } catch (e: any) {
       toast({
         variant: "destructive",

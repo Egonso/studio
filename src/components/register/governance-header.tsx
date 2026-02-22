@@ -11,20 +11,19 @@ import { GovernanceSettingsDialog } from "./governance-settings-dialog";
 
 const REGISTER_VERSION = "1.0";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+interface KpiItem {
+    label: string;
+    value: number;
+    icon: React.ReactNode;
+    color: string;
+}
 
 interface GovernanceHeaderProps {
     useCases: UseCaseCard[];
     register?: Register | null;
     onQuickCapture?: () => void;
     onRegisterUpdated?: (partial: Partial<Register>) => void;
-}
-
-interface KpiItem {
-    label: string;
-    value: number;
-    icon: React.ReactNode;
-    color: string;
+    children?: React.ReactNode;
 }
 
 // ── Status Colors ────────────────────────────────────────────────────────────
@@ -62,7 +61,7 @@ function formatLastActivity(useCases: UseCaseCard[]): { time: string; name: stri
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated }: GovernanceHeaderProps) {
+export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated, children }: GovernanceHeaderProps) {
     const [settingsOpen, setSettingsOpen] = useState(false);
 
     const counts = useMemo(() => {
@@ -210,6 +209,12 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
                     )}
                 </div>
             </div>
+
+            {children && (
+                <div className="pt-2">
+                    {children}
+                </div>
+            )}
 
             {/* KPI Bar */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

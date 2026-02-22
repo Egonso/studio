@@ -129,49 +129,6 @@ export default function MyRegisterPage() {
             Zurück zum Dashboard
           </Link>
         </div>
-        {/* Register Selector (wenn mehrere Register) */}
-        {registers.length > 1 && (
-          <div className="flex items-center gap-3">
-            <Select
-              value={activeRegister?.registerId ?? ""}
-              onValueChange={handleSwitchRegister}
-            >
-              <SelectTrigger className="w-[280px]">
-                <SelectValue placeholder="Register auswählen" />
-              </SelectTrigger>
-              <SelectContent>
-                {registers.map((r) => (
-                  <SelectItem key={r.registerId} value={r.registerId}>
-                    {r.organisationName || r.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowWizard(true)}
-            >
-              <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
-              Neues Register
-            </Button>
-          </div>
-        )}
-
-        {/* Neues Register Button (wenn nur ein Register) */}
-        {registers.length === 1 && (
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowWizard(true)}
-            >
-              <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
-              Weiteres Register erstellen
-            </Button>
-          </div>
-        )}
-
         <GovernanceHeader
           useCases={useCases}
           register={activeRegister}
@@ -179,7 +136,48 @@ export default function MyRegisterPage() {
           onRegisterUpdated={(partial) => {
             setActiveRegister((prev) => prev ? { ...prev, ...partial } : prev);
           }}
-        />
+        >
+          {registers.length > 1 && (
+            <div className="flex items-center gap-3">
+              <Select
+                value={activeRegister?.registerId ?? ""}
+                onValueChange={handleSwitchRegister}
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Register auswählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  {registers.map((r) => (
+                    <SelectItem key={r.registerId} value={r.registerId}>
+                      {r.organisationName || r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowWizard(true)}
+              >
+                <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                Neues Register
+              </Button>
+            </div>
+          )}
+          {registers.length === 1 && (
+            <div className="flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground w-auto px-0 hover:bg-transparent"
+                onClick={() => setShowWizard(true)}
+              >
+                <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                Weiteres Register erstellen
+              </Button>
+            </div>
+          )}
+        </GovernanceHeader>
         <RegisterBoard
           mode="standalone"
           refreshKey={refreshKey}
