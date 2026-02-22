@@ -35,6 +35,9 @@ import {
 } from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
+import { BadgeSnippet } from "@/components/trust-portal/badge-snippet";
+import { useUserStatus } from "@/hooks/use-user-status";
+import { useAuth } from "@/context/auth-context";
 
 interface TrustPortalConfigDialogProps {
   open: boolean;
@@ -55,6 +58,8 @@ export function TrustPortalConfigDialog({
   projectTitle,
 }: TrustPortalConfigDialogProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: userStatus } = useUserStatus(user?.email);
   const [loading, setLoading] = useState(false);
 
   // Config state – visibility toggles removed (now driven by live register data)
@@ -318,29 +323,11 @@ export function TrustPortalConfigDialog({
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="pt-2 border-t border-green-100">
-                <p className="text-xs text-green-800 font-medium mb-1 flex items-center gap-1">
-                  <Code className="h-3 w-3" /> Embed Code (Website Integration)
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    value={`<iframe src="${publicUrl}" width="100%" height="800" frameborder="0"></iframe>`}
-                    readOnly
-                    className="bg-white h-8 text-xs font-mono text-muted-foreground"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8"
-                    onClick={() =>
-                      copyToClipboard(
-                        `<iframe src="${publicUrl}" width="100%" height="800" frameborder="0"></iframe>`
-                      )
-                    }
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
+              <div className="pt-4 border-t border-green-200 mt-2">
+                <BadgeSnippet
+                  projectId={projectId}
+                  level={(userStatus?.examPassed && userStatus?.hasCertificate) ? "Basis" : "Ungeprüft"}
+                />
               </div>
             </div>
           )}
@@ -383,11 +370,10 @@ export function TrustPortalConfigDialog({
               className="grid grid-cols-1 sm:grid-cols-3 gap-4"
             >
               <div
-                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${
-                  config.tonePreset === "standard"
-                    ? "border-indigo-500 bg-indigo-50/50"
-                    : ""
-                }`}
+                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "standard"
+                  ? "border-indigo-500 bg-indigo-50/50"
+                  : ""
+                  }`}
               >
                 <RadioGroupItem
                   value="standard"
@@ -402,11 +388,10 @@ export function TrustPortalConfigDialog({
                 </Label>
               </div>
               <div
-                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${
-                  config.tonePreset === "human"
-                    ? "border-indigo-500 bg-indigo-50/50"
-                    : ""
-                }`}
+                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "human"
+                  ? "border-indigo-500 bg-indigo-50/50"
+                  : ""
+                  }`}
               >
                 <RadioGroupItem
                   value="human"
@@ -421,11 +406,10 @@ export function TrustPortalConfigDialog({
                 </Label>
               </div>
               <div
-                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${
-                  config.tonePreset === "conservative"
-                    ? "border-indigo-500 bg-indigo-50/50"
-                    : ""
-                }`}
+                className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "conservative"
+                  ? "border-indigo-500 bg-indigo-50/50"
+                  : ""
+                  }`}
               >
                 <RadioGroupItem
                   value="conservative"

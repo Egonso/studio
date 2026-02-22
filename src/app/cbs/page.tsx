@@ -22,10 +22,13 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUserStatus } from '@/hooks/use-user-status';
+import { capabilityChecker } from '@/lib/compliance-engine/capability/featureChecker';
 
 function ComplianceInADayPageContent() {
     const router = useRouter();
     const { user, loading: authLoading } = useAuth();
+    const { data: userStatus } = useUserStatus(user?.email);
     const { toast } = useToast();
 
     const [isSharing, setIsSharing] = useState(false);
@@ -207,7 +210,12 @@ function ComplianceInADayPageContent() {
                         </CardFooter>
                     </Card>
 
-                    <PolicyEditor onPolicyChange={setPolicyData} onSave={handleSave} isSaving={isSaving} />
+                    <PolicyEditor
+                        onPolicyChange={setPolicyData}
+                        onSave={handleSave}
+                        isSaving={isSaving}
+                        canGeneratePolicy={userStatus ? capabilityChecker.canGeneratePolicy(userStatus.purchase?.productId ? 'pro' : 'core') : true}
+                    />
 
                 </div>
             </main>

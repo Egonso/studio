@@ -20,6 +20,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { saveAssessmentAnswers, getActiveProjectId, updateWizardStatus } from "@/lib/data-service";
+import { useUserStatus } from "@/hooks/use-user-status";
+import { useAuth } from "@/context/auth-context";
+import { capabilityChecker } from "@/lib/compliance-engine/capability/featureChecker";
+import { ShieldAlert } from "lucide-react";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
 
@@ -120,6 +124,8 @@ export function AssessmentWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const { data: userStatus } = useUserStatus(user?.email);
 
   const currentStepId = stepHistory[stepHistory.length - 1];
   const currentQuestionDef = questions[currentStepId];
@@ -211,16 +217,23 @@ export function AssessmentWizard() {
           <p>{currentQuestionDef.description}</p>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Weiterleiten...
-              </>
-            ) : (
-              currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum nächsten Schritt'
-            )}
-          </Button>
+          {(!userStatus || capabilityChecker.canTakeIsoAssessment(userStatus.purchase?.productId ? 'pro' : 'core')) ? (
+            <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Weiterleiten...
+                </>
+              ) : (
+                currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum nächsten Schritt'
+              )}
+            </Button>
+          ) : (
+            <Button disabled className="bg-slate-300 text-slate-600 cursor-not-allowed">
+              <ShieldAlert className="mr-2 h-4 w-4" />
+              Pro-Plan erforderlich
+            </Button>
+          )}
         </CardFooter>
       </Card>
     )

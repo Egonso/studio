@@ -66,3 +66,24 @@ export function getRequiredPlanForCapability(feature: FeatureCapability): Subscr
     }
     return 'enterprise';
 }
+
+/**
+ * Helper to determine the plan from a Strip productId.
+ */
+export function getPlanFromProductId(productId: string | null | undefined): SubscriptionPlan {
+    if (!productId) return 'core';
+
+    // Example logic based on typical Stripe Product IDs or mapping.
+    // If you have specific IDs for Pro or Enterprise, map them here.
+    if (productId.includes('pro') || productId === 'prod_proIdHere') return 'pro';
+    if (productId.includes('ent') || productId.includes('enterprise')) return 'enterprise';
+
+    return 'core'; // Default paid plan fallback if unknown
+}
+
+export const capabilityChecker = {
+    canExportAudit: (plan: SubscriptionPlan) => hasCapability(plan, 'auditExport'),
+    canGeneratePolicy: (plan: SubscriptionPlan) => hasCapability(plan, 'customPolicyFramework'),
+    canTakeIsoAssessment: (plan: SubscriptionPlan) => hasCapability(plan, 'iso42001Mapping'),
+    canEmbedTrustPortal: (plan: SubscriptionPlan) => hasCapability(plan, 'trustPortalLive'),
+};

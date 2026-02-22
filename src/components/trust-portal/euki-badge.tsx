@@ -11,6 +11,8 @@ interface EukiBadgeProps {
   /** Compact mode for inline use */
   compact?: boolean;
   className?: string;
+  /** URL to the public Trust Portal for verification */
+  href?: string;
 }
 
 const levelLabels: Record<number, string> = {
@@ -30,12 +32,13 @@ export function EukiBadge({
   standardVersion = "EUKI-GOV-1.0",
   compact = false,
   className,
+  href,
 }: EukiBadgeProps) {
   const level = governanceLevel ?? null;
   const colors = level ? levelColors[level] : { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
 
   if (compact) {
-    return (
+    const compactContent = (
       <div
         className={cn(
           "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium",
@@ -55,9 +58,19 @@ export function EukiBadge({
         )}
       </div>
     );
+
+    if (href) {
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-block transition-transform hover:scale-[1.02]">
+          {compactContent}
+        </a>
+      );
+    }
+
+    return compactContent;
   }
 
-  return (
+  const renderContent = () => (
     <div
       className={cn(
         "rounded-xl border p-5 space-y-3",
@@ -108,4 +121,14 @@ export function EukiBadge({
       )}
     </div>
   );
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="block transition-transform hover:scale-[1.02]">
+        {renderContent()}
+      </a>
+    );
+  }
+
+  return renderContent();
 }

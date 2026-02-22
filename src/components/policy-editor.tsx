@@ -198,9 +198,10 @@ interface PolicyEditorProps {
   onSave?: () => void;
   isSaving?: boolean;
   projectId?: string;
+  canGeneratePolicy?: boolean;
 }
 
-export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId }: PolicyEditorProps) {
+export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canGeneratePolicy = true }: PolicyEditorProps) {
   const router = useRouter();
   const [employeeCount, setEmployeeCount] = useState<'1-10' | '11-50' | '>50'>('1-10');
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
@@ -709,10 +710,17 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId }: Po
                         <Printer className="mr-2 h-4 w-4" /> Drucken / PDF
                       </Button>
                       {onSave && (
-                        <Button onClick={onSave} disabled={isSaving} className="ml-auto bg-green-600 hover:bg-green-700 text-white">
-                          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
-                          Speichern & Fertigstellen
-                        </Button>
+                        canGeneratePolicy === false ? (
+                          <Button disabled className="ml-auto bg-slate-300 text-slate-600 cursor-not-allowed">
+                            <ShieldAlert className="mr-2 h-4 w-4" />
+                            Pro-Plan erforderlich
+                          </Button>
+                        ) : (
+                          <Button onClick={onSave} disabled={isSaving} className="ml-auto bg-green-600 hover:bg-green-700 text-white">
+                            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
+                            Speichern & Fertigstellen
+                          </Button>
+                        )
                       )}
                     </CardFooter>
                   </Card>
