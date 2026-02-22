@@ -126,6 +126,25 @@ export interface UseCaseCard {
       trainingRequired?: boolean;
       policyLinks?: string[];
       incidentProcessDefined?: boolean;
+
+      // Sprint 18: Strict ISO-Micro Schema (Registers-First)
+      iso?: {
+        reviewCycle: "annual" | "semiannual" | "quarterly" | "monthly" | "ad_hoc" | "unknown";
+        oversightModel: "HITL" | "HOTL" | "HUMAN_REVIEW" | "NO_HUMAN" | "unknown";
+        documentationLevel: "minimal" | "standard" | "extended" | "unknown";
+        lifecycleStatus: "pilot" | "active" | "retired" | "unknown";
+        lastReviewedAt?: string | null;
+        nextReviewAt?: string | null;
+      };
+
+      // Sprint 18: Strict Portfolio-Micro Schema
+      portfolio?: {
+        valueScore: 0 | 1 | 2 | 3 | 4 | 5 | null;
+        valueRationale: string | null; // max 300 chars
+        riskScore: 0 | 1 | 2 | 3 | 4 | 5 | null;
+        riskRationale: string | null; // max 300 chars
+        strategyTag: "pilot" | "scale" | "monitor" | "stop" | null;
+      };
     };
   };
 

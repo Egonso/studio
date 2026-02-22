@@ -33,7 +33,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Sie müssen festlegen, wer im Fall einer KI-Fehlfunktion (Verletzung der Grundrechte) im Unternehmen entscheidet.',
             impactIncreaseEstimate: 30,
             severity: 'medium',
-            href: '/settings'
+            href: '/my-register?openSettings=true'
         });
     }
 
@@ -47,7 +47,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Weisen Sie klare Rollen (z.B. AI Officer, Legal) für die Freigabe und Überwachung von KI-Systemen zu.',
             impactIncreaseEstimate: 30,
             severity: 'medium',
-            href: '/settings'
+            href: '/my-register?openSettings=true'
         });
     }
 

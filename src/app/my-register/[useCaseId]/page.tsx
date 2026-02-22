@@ -73,11 +73,16 @@ export default function UseCaseDetailPage() {
 
   const handleSaveMetadata = async (updates: Partial<UseCaseCard>) => {
     if (!card) return;
-    // For now, reload after status-level updates. Metadata editing
-    // requires a dedicated service method (future sprint).
-    // This is a placeholder that demonstrates the pattern.
-    await loadUseCase();
-    setIsEditing(false);
+    try {
+      await registerService.updateUseCase(card.useCaseId, updates);
+      await loadUseCase();
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to save metadata", err);
+      // We don't necessarily want to replace the whole page with an error, 
+      // but if we do, setting error works:
+      setError("Fehler beim Speichern der Änderungen.");
+    }
   };
 
   if (authLoading || isLoading) {

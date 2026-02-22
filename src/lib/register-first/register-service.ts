@@ -132,6 +132,10 @@ export interface RegisterService {
     registerId?: string,
     filters?: RegisterUseCaseFilters
   ): Promise<UseCaseCard[]>;
+  updateUseCase(
+    useCaseId: string,
+    updates: Partial<UseCaseCard>
+  ): Promise<UseCaseCard>;
   updateUseCaseStatusManual(input: UpdateStatusInput): Promise<UseCaseCard>;
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
   updateAssessmentManual(input: UpdateAssessmentInput): Promise<UseCaseCard>;
@@ -334,6 +338,38 @@ export function createRegisterService(
       try {
         const scope = await resolveScope(registerId);
         return useCaseRepo.list(scope, filters);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async updateUseCase(useCaseId, updates) {
+      try {
+        const scope = await resolveScope();
+        const existing = await useCaseRepo.getById(scope, useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError("USE_CASE_NOT_FOUND", "Use case not found.");
+        }
+
+        const nowIso = now().toISOString();
+        const merged: UseCaseCard = {
+          ...existing,
+          ...updates,
+          responsibility: {
+            ...existing.responsibility,
+            ...(updates.responsibility || {})
+          },
+          governanceAssessment: {
+            ...existing.governanceAssessment,
+            core: existing.governanceAssessment?.core || {},
+            flex: existing.governanceAssessment?.flex || {},
+            ...(updates.governanceAssessment || {})
+          },
+          updatedAt: nowIso
+        };
+
+        const parsed = parseUseCaseCard(merged);
+        return await useCaseRepo.save(scope, parsed);
       } catch (error) {
         throw mapServiceError(error);
       }

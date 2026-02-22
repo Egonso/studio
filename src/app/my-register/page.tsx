@@ -135,6 +135,7 @@ export default function MyRegisterPage() {
           useCases={useCases}
           register={activeRegister}
           onQuickCapture={() => setCaptureOpen(true)}
+          initialOpenSettings={searchParams.get('openSettings') === 'true'}
           onRegisterUpdated={(partial) => {
             setActiveRegister((prev) => prev ? { ...prev, ...partial } : prev);
           }}

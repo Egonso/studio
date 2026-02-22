@@ -24,6 +24,7 @@ interface GovernanceHeaderProps {
     onQuickCapture?: () => void;
     onRegisterUpdated?: (partial: Partial<Register>) => void;
     children?: React.ReactNode;
+    initialOpenSettings?: boolean;
 }
 
 // ── Status Colors ────────────────────────────────────────────────────────────
@@ -61,8 +62,8 @@ function formatLastActivity(useCases: UseCaseCard[]): { time: string; name: stri
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated, children }: GovernanceHeaderProps) {
-    const [settingsOpen, setSettingsOpen] = useState(false);
+export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated, children, initialOpenSettings }: GovernanceHeaderProps) {
+    const [settingsOpen, setSettingsOpen] = useState(initialOpenSettings || false);
 
     const counts = useMemo(() => {
         const byStatus: Record<RegisterUseCaseStatus, number> = {

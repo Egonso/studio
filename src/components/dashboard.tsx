@@ -403,7 +403,7 @@ export function Dashboard({
                         primaryVariant={(!analytics.iso.macroFlags.aiPolicyExists || !analytics.iso.macroFlags.raciExists) ? "destructive" : "default"}
                         onPrimary={() => {
                             if (analytics.iso.targetDestination === 'settings:governance') {
-                                router.push('/?openSettings=true'); // Temporary mapping depending on real settings URL
+                                router.push('/my-register?openSettings=true');
                             } else if (analytics.iso.targetDestination) {
                                 router.push(`/my-register?filter=${analytics.iso.targetDestination}`);
                             } else {
