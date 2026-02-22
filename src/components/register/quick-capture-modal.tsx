@@ -31,7 +31,7 @@ import type { ToolRegistryEntry } from "@/lib/register-first/tool-registry-types
 interface QuickCaptureModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onCaptured?: () => void;
+    onCaptured?: (useCaseId?: string) => void;
 }
 
 interface QuickDraft {
@@ -99,7 +99,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             });
 
             setDraft({ ...EMPTY_DRAFT });
-            onCaptured?.();
+            onCaptured?.(card.useCaseId);
             onOpenChange(false);
         } catch {
             toast({

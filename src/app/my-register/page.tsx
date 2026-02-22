@@ -63,7 +63,25 @@ export default function MyRegisterPage() {
           setActiveRegister(regs[0]);
           setOnboardingState("ready");
         } else {
-          setOnboardingState("no_register");
+          // Zero-Friction Onboarding: Auto-create default register
+          registerService.createRegister("Meine Organisation").then(reg => {
+            return registerService.updateRegisterProfile(reg.registerId, {
+              organisationName: "Meine Organisation",
+              orgSettings: {
+                organisationName: "Meine Organisation",
+                industry: "",
+                contactPerson: { name: "", email: "" }
+              }
+            }).then(() => {
+              setRegisters([reg]);
+              setActiveRegister(reg);
+              setOnboardingState("ready");
+              setCaptureOpen(true); // Drop right into Quick Capture
+            });
+          }).catch(err => {
+            console.error(err);
+            setOnboardingState("no_register");
+          });
         }
       })
       .catch((err) => {
@@ -93,9 +111,12 @@ export default function MyRegisterPage() {
     }
   };
 
-  const handleCaptured = useCallback(() => {
+  const handleCaptured = useCallback((useCaseId?: string) => {
     setRefreshKey((k) => k + 1);
-  }, []);
+    if (useCaseId) {
+      router.push(`/pass/${useCaseId}`);
+    }
+  }, [router]);
 
   const handleUseCasesLoaded = useCallback((cards: UseCaseCard[]) => {
     setUseCases(cards);
@@ -135,10 +156,6 @@ export default function MyRegisterPage() {
           useCases={useCases}
           register={activeRegister}
           onQuickCapture={() => setCaptureOpen(true)}
-          initialOpenSettings={searchParams.get('openSettings') === 'true'}
-          onRegisterUpdated={(partial) => {
-            setActiveRegister((prev) => prev ? { ...prev, ...partial } : prev);
-          }}
         >
           {registers.length > 1 && (
             <div className="flex items-center gap-3">

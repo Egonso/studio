@@ -63,8 +63,6 @@ interface DashboardProps {
     metrics?: import('@/lib/register-first/types').RegisterMetrics;
 }
 
-import { DiagnosticBoard } from './diagnostic-board';
-import { EngineContext } from '@/lib/compliance-engine/types';
 import { useDashboardAnalytics } from "@/hooks/use-dashboard-analytics";
 
 const statusConfig = {
@@ -222,216 +220,68 @@ export function Dashboard({
                     />
                 </section>
 
-                {/* 1. DIAGNOSTIC BOARD (Engine) */}
-                <section>
-                    {hasProjects === false ? (
-                        <DiagnosticBoard
-                            workspaceId={searchParams.get('projectId') || ''}
-                            organizationName={projectName || 'Neue Organisation'}
-                            context={{
-                                useCases: useCases || [],
-                                orgStatus: {
-                                    hasPolicy: false,
-                                    hasIncidentProcess: false,
-                                    hasRaciDefined: false,
-                                    trustPortalActive: false
+
+
+                {/* 2. THREE LENSES SECTION (Operational Risk Analytics) */}
+                <section className="space-y-4">
+                    <h2 className="text-2xl font-bold tracking-tight">Haftungsmonitor</h2>
+                    <p className="text-muted-foreground">Behalten Sie kritische Lücken in der Prozessdurchsetzung und Transparenz im Blick.</p>
+
+                    <div className="grid md:grid-cols-3 gap-6 pt-4">
+                        {/* A) Metric 1: System ohne Prüfhistorie */}
+                        <LensCard
+                            title={analytics.metric1.title}
+                            description={analytics.metric1.description}
+                            primaryLabel={analytics.metric1.primaryAction}
+                            primaryVariant={analytics.metric1.count > 0 ? "outline" : "default"}
+                            onPrimary={() => {
+                                if (analytics.metric1.filterKey) {
+                                    router.push(`/my-register?filter=${analytics.metric1.filterKey}`);
+                                } else {
+                                    router.push(`/my-register`);
                                 }
                             }}
+                            icon={ListChecks}
+                            progressPercent={analytics.totalUseCases > 0 ? Math.round(((analytics.totalUseCases - analytics.metric1.count) / analytics.totalUseCases) * 100) : 100}
+                            footerText={`${analytics.metric1.count} Lücken`}
                         />
-                    ) : (
-                        <DiagnosticBoard
-                            workspaceId={searchParams.get('projectId') || ''}
-                            organizationName={projectName || 'Organisation'}
-                            context={{
-                                useCases: useCases || [],
-                                orgStatus: {
-                                    hasPolicy: policiesGenerated || !!(aimsData?.policy && aimsData.policy.length >= 20),
-                                    hasIncidentProcess: false, // Could be derived from aims progress
-                                    hasRaciDefined: !!(aimsData?.raci && aimsData.raci.length > 0),
-                                    trustPortalActive: !!(trustPortalConfig && trustPortalConfig.isPublished)
+
+                        {/* B) Metric 2: Hochrisiko ohne Prüfhistorie */}
+                        <LensCard
+                            title={analytics.metric2.title}
+                            description={analytics.metric2.description}
+                            primaryLabel={analytics.metric2.primaryAction}
+                            primaryVariant={analytics.metric2.count > 0 ? "destructive" : "default"}
+                            onPrimary={() => {
+                                if (analytics.metric2.filterKey) {
+                                    router.push(`/my-register?filter=${analytics.metric2.filterKey}`);
+                                } else {
+                                    router.push(`/my-register`);
                                 }
                             }}
+                            icon={AlertTriangle}
+                            progressPercent={analytics.totalUseCases > 0 ? Math.round(((analytics.totalUseCases - analytics.metric2.count) / analytics.totalUseCases) * 100) : 100}
+                            footerText={`${analytics.metric2.count} kritische Lücken`}
                         />
-                    )}
-                </section>
 
-                <section>
-                    <TrustPortalTile
-                        projectId={searchParams.get('projectId') || ''}
-                        projectName={projectName}
-                        config={trustPortalConfig}
-                        onConfigUpdate={(c: TrustPortalConfig) => onTrustPortalUpdate && onTrustPortalUpdate(c)}
-                        ownerId={ownerId}
-                    />
-                </section>
-
-                {/* 1.5 USER CERTIFICATION STATUS */}
-                <section>
-                    <UserCertificationStatus status={userStatus || null} loading={userStatusLoading} />
-                </section>
-
-                {/* 1.6 REGISTER SECTION (Moved to top) */}
-                {/* Removed from here */}
-
-                {/* 2. OVERVIEW SECTION */}
-                <section className="space-y-6">
-                    <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Gesamtübersicht & Compliance-Status</h2>
-                        <p className="text-muted-foreground">Zusammenfassung der drei Säulen: AI Act, ISO 42001 und Portfolio-Strategie.</p>
+                        {/* C) Metric 3: Externe Systeme ohne Beweis-Dossier */}
+                        <LensCard
+                            title={analytics.metric3.title}
+                            description={analytics.metric3.description}
+                            primaryLabel={analytics.metric3.primaryAction}
+                            primaryVariant={analytics.metric3.count > 0 ? "destructive" : "default"}
+                            onPrimary={() => {
+                                if (analytics.metric3.filterKey) {
+                                    router.push(`/my-register?filter=${analytics.metric3.filterKey}`);
+                                } else {
+                                    router.push(`/my-register`);
+                                }
+                            }}
+                            icon={ShieldAlert}
+                            progressPercent={analytics.totalUseCases > 0 ? Math.round(((analytics.totalUseCases - analytics.metric3.count) / analytics.totalUseCases) * 100) : 100}
+                            footerText={`${analytics.metric3.count} Transparenz-Lücken`}
+                        />
                     </div>
-
-                    {/* Paket B: AI Act Empty State – nur UI-Conditional */}
-                    {(!wizardHasData && (!metrics || metrics.activeUseCases === 0)) ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {/* AI Act: Nicht gestartet */}
-                            <Card className="shadow-sm border-slate-200 md:col-span-3">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">AI Act Bewertung</CardTitle>
-                                    <ShieldAlert className="h-4 w-4 text-slate-400" />
-                                </CardHeader>
-                                <CardContent className="space-y-3">
-                                    <div className="text-2xl font-bold text-slate-400">Nicht gestartet</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Bitte starten Sie die AI-Act-Basisprüfung oder erfassen Sie zuerst einen Use Case im Register.
-                                    </p>
-                                </CardContent>
-                            </Card>
-
-                            {/* ISO Quick Status */}
-                            <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
-                                    <Gauge className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold flex items-center gap-2">
-                                        <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
-                                        {auditability.label}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    ) : (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {/* KPI Cards – nur wenn Wizard-Daten vorhanden */}
-                            <Card className="shadow-sm border-slate-200">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Transparenz / Minimal</CardTitle>
-                                    <ShieldCheck className="h-4 w-4 text-green-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{metrics ? metrics.riskDistribution.limited + metrics.riskDistribution.minimal : compliantCount}</div>
-                                    <p className="text-xs text-muted-foreground">Low Risk Use Cases</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="shadow-sm border-slate-200">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Hochrisiko Systeme</CardTitle>
-                                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{metrics?.riskDistribution.high || 0}</div>
-                                    <p className="text-xs text-muted-foreground">Erfordern strengere Kontrollen</p>
-                                </CardContent>
-                            </Card>
-                            <Card className="shadow-sm border-slate-200">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Unvollständige Assessments</CardTitle>
-                                    <ShieldAlert className="h-4 w-4 text-red-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{metrics?.actionItemsCount || 0}</div>
-                                    <p className="text-xs text-muted-foreground">Fehlende Core-Bewertungen</p>
-                                </CardContent>
-                            </Card>
-
-                            {/* ISO Quick Status */}
-                            <Card className="shadow-sm border-slate-200 bg-slate-50 dark:bg-slate-900">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">ISO Auditfähigkeit</CardTitle>
-                                    <Gauge className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold flex items-center gap-2">
-                                        <div className={cn("w-3 h-3 rounded-full", auditability.color)} />
-                                        {auditability.label}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Fortschritt: {completedSteps}/6 Schritte</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {(metrics?.actionItemsCount || 0) > 0 && (
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Kritische Warnungen!</AlertTitle>
-                            <AlertDescription>
-                                Sie haben {metrics?.actionItemsCount} Use Cases mit unvollständigem Assessment oder Hochrisiko-Einstufungen ohne menschliche Aufsicht. Gehen Sie in Ihr <b>EUKI Register</b>, um die Lücken zu schließen.
-                                {(metrics?.riskDistribution.prohibited || 0) > 0 && " Eines Ihrer Systeme wurde als verboten (Prohibited) eingestuft. Dies erfordert sofortiges Handeln."}
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                </section>
-
-                {/* 3. THREE LENSES SECTION (Register-First Analytics) */}
-                <section className="grid md:grid-cols-3 gap-6">
-                    {/* A) AI Act Analyse Lens */}
-                    <LensCard
-                        title="AI Act Analyse"
-                        description="Legislative AI Act Klassifizierung & gesetzliche Pflichten."
-                        primaryLabel={analytics.aiAct.primaryAction}
-                        primaryVariant={analytics.aiAct.criticalCount > 0 ? "destructive" : "default"}
-                        onPrimary={() => {
-                            if (analytics.aiAct.filterKey) {
-                                router.push(`/my-register?filter=${analytics.aiAct.filterKey}`);
-                            } else {
-                                router.push(`/audit-report?projectId=${searchParams.get('projectId') || ''}&type=ai-act`);
-                            }
-                        }}
-                        icon={ListChecks}
-                        progressPercent={analytics.aiAct.coveragePercent}
-                        footerText="AI Act Abdeckung"
-                    />
-
-                    {/* B) ISO-Struktur-Analyse Lens */}
-                    <LensCard
-                        title="ISO-Struktur-Analyse"
-                        description="ISO 42001 Strukturqualität & Management-System."
-                        primaryLabel={analytics.iso.primaryAction}
-                        primaryVariant={(!analytics.iso.macroFlags.aiPolicyExists || !analytics.iso.macroFlags.raciExists) ? "destructive" : "default"}
-                        onPrimary={() => {
-                            if (analytics.iso.targetDestination === 'settings:governance') {
-                                router.push('/my-register?openSettings=true');
-                            } else if (analytics.iso.targetDestination) {
-                                router.push(`/my-register?filter=${analytics.iso.targetDestination}`);
-                            } else {
-                                router.push(`/my-register`);
-                            }
-                        }}
-                        icon={Building}
-                        progressPercent={analytics.iso.macroFlags.aiPolicyExists && analytics.iso.macroFlags.raciExists ? 100 : 33}
-                        footerText="ISO 42001 Makro-Reife"
-                    />
-
-                    {/* C) Portfolio-Analyse Lens */}
-                    <LensCard
-                        title="Portfolio-Analyse"
-                        description="Strategische Auswertung nach Nutzen (Value) vs. Risiko."
-                        primaryLabel={analytics.portfolio.primaryAction}
-                        primaryVariant="default"
-                        onPrimary={() => {
-                            if (analytics.portfolio.filterKey) {
-                                router.push(`/my-register?filter=${analytics.portfolio.filterKey}`);
-                            } else {
-                                router.push(`/my-register`);
-                            }
-                        }}
-                        icon={Briefcase}
-                        progressPercent={(analytics.portfolio.highValueHighRiskCount + analytics.portfolio.quickWinsCount) > 0 ? 100 : 0}
-                        footerText="Strategische Signale"
-                    />
                 </section>
 
                 <p className="text-center text-xs text-muted-foreground mt-4 mb-12">

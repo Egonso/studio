@@ -270,7 +270,25 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           const risk = (uc as any).riskScore || 0;
           const val = (uc as any).valueScore || 0;
 
+          const toolEntry = uc.toolId ? toolRegistry.getById(uc.toolId) : null;
+          const isHighRisk = toolEntry?.riskLevel === "high" || toolEntry?.riskLevel === "unacceptable" || core?.aiActCategory === "Hochrisiko" || core?.aiActCategory === "Verboten";
+          const isExternal = uc.usageContexts.includes("CUSTOMER_FACING") || uc.usageContexts.includes("EXTERNAL_PUBLIC");
+
+          const hasHistory = false;
+          const hasReminders = false;
+          const isPruefhistorie = hasHistory && hasReminders;
+          const hasTrustPortal = false;
+          const isExternBelegbar = false && hasTrustPortal;
+
           switch (activeCustomFilter) {
+            case 'missing_history':
+              return !isPruefhistorie;
+            case 'high_risk_missing_history':
+              return isHighRisk && !isPruefhistorie;
+            case 'external_missing_dossier':
+              return isExternal && !isExternBelegbar;
+
+            // Legacy filters
             case 'missing_ai_act_category':
               return !core || !core.aiActCategory;
             case 'critical_ai_act_gaps':
@@ -785,7 +803,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         </Button>
         {activeCustomFilter && (
           <Badge variant="secondary" className="h-9 px-3 text-sm flex items-center gap-1 cursor-pointer" onClick={() => setActiveCustomFilter(null)}>
-            Filter: {activeCustomFilter.replace(/_/g, ' ')}
+            Filter: {activeCustomFilter === 'missing_history' ? 'Fehlende Prüfhistorie' : activeCustomFilter === 'high_risk_missing_history' ? 'Hochrisiko Haftungslücke' : activeCustomFilter === 'external_missing_dossier' ? 'Transparenz Risiko' : activeCustomFilter.replace(/_/g, ' ')}
             <X className="h-3 w-3 ml-1" />
           </Badge>
         )}

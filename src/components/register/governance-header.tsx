@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
-import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings, Link2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
-import { GovernanceSettingsDialog } from "./governance-settings-dialog";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -24,7 +25,6 @@ interface GovernanceHeaderProps {
     onQuickCapture?: () => void;
     onRegisterUpdated?: (partial: Partial<Register>) => void;
     children?: React.ReactNode;
-    initialOpenSettings?: boolean;
 }
 
 // ── Status Colors ────────────────────────────────────────────────────────────
@@ -62,8 +62,9 @@ function formatLastActivity(useCases: UseCaseCard[]): { time: string; name: stri
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function GovernanceHeader({ useCases, register, onQuickCapture, onRegisterUpdated, children, initialOpenSettings }: GovernanceHeaderProps) {
-    const [settingsOpen, setSettingsOpen] = useState(initialOpenSettings || false);
+export function GovernanceHeader({ useCases, register, onQuickCapture, children }: GovernanceHeaderProps) {
+    const router = useRouter();
+    const { toast } = useToast();
 
     const counts = useMemo(() => {
         const byStatus: Record<RegisterUseCaseStatus, number> = {
@@ -147,6 +148,25 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
     // Org scope
     const orgName = register?.organisationName;
     const orgUnit = register?.organisationUnit;
+    const orgSettings = register?.orgSettings;
+
+    const handleSupplierRequest = async () => {
+        if (!register?.registerId) return;
+        const link = `${window.location.origin}/request/${register.registerId}`;
+        try {
+            await navigator.clipboard.writeText(link);
+            toast({
+                title: "Magic Link kopiert",
+                description: "Der Anfrage-Link für Lieferanten wurde in die Zwischenablage kopiert. Sie können diesen nun per E-Mail versenden.",
+            });
+        } catch (e) {
+            toast({
+                variant: "destructive",
+                title: "Fehler",
+                description: "Link konnte nicht kopiert werden.",
+            });
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -174,11 +194,11 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
                                 {orgUnit && (
                                     <span>Organisationseinheit: <span className="font-medium text-foreground">{orgUnit}</span></span>
                                 )}
-                                {register?.companyProfile?.branche && (
-                                    <span>Branche: <span className="font-medium text-foreground">{register.companyProfile.branche}</span></span>
+                                {orgSettings?.industry && (
+                                    <span>Branche: <span className="font-medium text-foreground">{orgSettings.industry}</span></span>
                                 )}
-                                {register?.companyProfile?.ansprechpartner?.name && (
-                                    <span>Kontakt: <span className="font-medium text-foreground">{register.companyProfile.ansprechpartner.name}</span></span>
+                                {orgSettings?.contactPerson?.name && (
+                                    <span>Kontakt: <span className="font-medium text-foreground">{orgSettings.contactPerson.name}</span></span>
                                 )}
                             </>
                         ) : (
@@ -190,11 +210,20 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
                 <div className="flex items-center gap-2">
                     {register && (
                         <button
-                            onClick={() => setSettingsOpen(true)}
+                            onClick={() => router.push('/settings/governance')}
                             className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                             title="Governance-Einstellungen"
                         >
                             <Settings className="h-4 w-4" />
+                        </button>
+                    )}
+                    {register && (
+                        <button
+                            onClick={handleSupplierRequest}
+                            className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                        >
+                            <Link2 className="h-4 w-4" />
+                            <span className="hidden sm:inline">Lieferant anfragen</span>
                         </button>
                     )}
                     {onQuickCapture && (
@@ -283,16 +312,6 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, onRegiste
                     </button>
                 )}
             </div>
-
-            {/* Settings Dialog */}
-            {register && (
-                <GovernanceSettingsDialog
-                    open={settingsOpen}
-                    onOpenChange={setSettingsOpen}
-                    register={register}
-                    onSaved={onRegisterUpdated}
-                />
-            )}
         </div>
     );
 }

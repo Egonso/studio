@@ -1,162 +1,107 @@
 import { useMemo } from 'react';
 import type { UseCaseCard, Register } from '@/lib/register-first/types';
+import { createAiToolsRegistryService } from '@/lib/register-first';
 
 export type DashboardLensFilter =
-    | 'missing_ai_act_category'
-    | 'critical_ai_act_gaps'
-    | 'missing_review_cycle'
-    | 'missing_owner'
-    | 'iso_micro_gaps'
-    | 'high_value_high_risk'
-    | 'low_risk_high_value'
-    | 'ai_act_ok'
+    | 'missing_history'
+    | 'high_risk_missing_history'
+    | 'external_missing_dossier'
     | null;
 
 export interface DashboardAnalytics {
     totalUseCases: number;
 
-    aiAct: {
-        coveragePercent: number;
-        criticalCount: number;
-        totalNeedsCategory: number;
-        primaryAction: string;
+    metric1: {
+        count: number;
         filterKey: DashboardLensFilter;
+        title: string;
+        description: string;
+        primaryAction: string;
     };
 
-    iso: {
-        macroFlags: {
-            aiPolicyExists: boolean;
-            incidentProcessExists: boolean;
-            raciExists: boolean;
-            reviewStandardDefined: boolean;
-        };
-        microGapsCount: number;
+    metric2: {
+        count: number;
+        filterKey: DashboardLensFilter;
+        title: string;
+        description: string;
         primaryAction: string;
-        // Can be a filter key string or a settings tab routing string
-        targetDestination: DashboardLensFilter | 'settings:governance';
     };
 
-    portfolio: {
-        quickWinsCount: number;
-        highValueHighRiskCount: number;
-        primaryAction: string;
+    metric3: {
+        count: number;
         filterKey: DashboardLensFilter;
+        title: string;
+        description: string;
+        primaryAction: string;
     };
 }
+
+const aiRegistry = createAiToolsRegistryService();
 
 export function useDashboardAnalytics(useCases: UseCaseCard[], register: Register | null): DashboardAnalytics {
     return useMemo(() => {
         const totalUseCases = useCases.length;
 
-        // --- 1. AI Act Lens ---
-        let uncategorizedCount = 0;
-        let criticalGapsCount = 0; // z.B. Hochrisiko ohne Oversight
-
-        // --- 2. ISO Lens (Micro) ---
-        let isoMicroGapsCount = 0; // z.B. kein Review-Zyklus definiert, kein Owner
-
-        // --- 3. Portfolio Lens ---
-        let quickWinsCount = 0; // Low Risk / High Value
-        let highRiskHighValueCount = 0; // High Risk / High Value
+        // Metrik 1: Registrierte Systeme ohne Prüfhistorie
+        let missingHistoryCount = 0;
+        // Metrik 2: Hochrisiko-Systeme ohne belastbare Historie
+        let highRiskMissingHistoryCount = 0;
+        // Metrik 3: Externe Systeme ohne Beweis-Dossier
+        let externalMissingDossierCount = 0;
 
         useCases.forEach(uc => {
-            const core = uc.governanceAssessment?.core;
+            const toolEntry = uc.toolId ? aiRegistry.getById(uc.toolId) : null;
+            const isHighRisk = toolEntry?.riskLevel === "high" || toolEntry?.riskLevel === "unacceptable" || uc.governanceAssessment?.core?.aiActCategory === "Hochrisiko" || uc.governanceAssessment?.core?.aiActCategory === "Verboten";
+            const isExternal = uc.usageContexts.includes("CUSTOMER_FACING") || uc.usageContexts.includes("EXTERNAL_PUBLIC");
 
-            // AI Act Analysis
-            if (!core || !core.aiActCategory) {
-                uncategorizedCount++;
-            } else if (core.aiActCategory === 'Hochrisiko' && !core.oversightDefined) {
-                criticalGapsCount++;
+            const iso = uc.governanceAssessment?.flex?.iso;
+
+            // For now mock checks
+            const hasHistory = false; // logic would check uc.reviewHistory?.length > 0
+            const hasReminders = false;
+            const isPruefhistorie = hasHistory && hasReminders;
+            const hasTrustPortal = false; // logic would check trust portal config / published state
+            const isExternBelegbar = false && hasTrustPortal; // and hasAuditDossier
+
+            // Metric 1 Check (Systems that are fully registered but lack history)
+            // Simplified: just missing history
+            if (!isPruefhistorie) {
+                missingHistoryCount++;
             }
 
-            // ISO Micro Analysis (Focusing on execution per system)
-            if (!core?.reviewCycleDefined || !uc.responsibility?.responsibleParty) {
-                isoMicroGapsCount++;
+            // Metric 2 Check
+            if (isHighRisk && !isPruefhistorie) {
+                highRiskMissingHistoryCount++;
             }
 
-            // Portfolio Analysis
-            // Fallback logic for when riskScore / valueScore aren't available on the direct type yet
-            const risk = (uc as any).riskScore || 0;
-            const val = (uc as any).valueScore || 0;
-            if (val > 60 && risk < 40) quickWinsCount++;
-            if (val > 60 && risk > 60) highRiskHighValueCount++;
+            // Metric 3 Check
+            if (isExternal && !isExternBelegbar) {
+                externalMissingDossierCount++;
+            }
         });
-
-        const aiActCoverage = totalUseCases > 0
-            ? Math.round(((totalUseCases - uncategorizedCount) / totalUseCases) * 100)
-            : 0;
-
-        let aiActFilter: DashboardLensFilter = null;
-        let aiActAction = "Status in Ordnung";
-        if (criticalGapsCount > 0) {
-            aiActFilter = 'critical_ai_act_gaps';
-            aiActAction = `${criticalGapsCount} kritische Lücken beheben`;
-        } else if (uncategorizedCount > 0) {
-            aiActFilter = 'missing_ai_act_category';
-            aiActAction = `${uncategorizedCount} Systeme klassifizieren`;
-        } else if (totalUseCases > 0) {
-            aiActFilter = 'ai_act_ok';
-            aiActAction = "Report anzeigen";
-        } else {
-            aiActAction = "Erste Anwendung erfassen";
-        }
-
-        // --- ISO Macro Analysis (from orgSettings directly) ---
-        // Extracting from available settings or defaulting for demo purposes until full org settings are synced
-        const macroFlags = {
-            aiPolicyExists: !!(register?.companyProfile as any)?.aiPolicyUrl,
-            incidentProcessExists: !!(register?.companyProfile as any)?.incidentProcessUrl,
-            raciExists: !!(register?.companyProfile as any)?.raciDocUrl,
-            // Fallback for demo simplicity. Ideally this would be a real field setting the review rhythm globally.
-            reviewStandardDefined: true
-        };
-
-        let isoAction = "Struktur prüfen";
-        let isoTarget: DashboardAnalytics['iso']['targetDestination'] = null;
-
-        if (!macroFlags.aiPolicyExists || !macroFlags.incidentProcessExists || !macroFlags.raciExists) {
-            isoAction = "Governance-Fundament schwach";
-            isoTarget = 'settings:governance';
-        } else if (isoMicroGapsCount > 0) {
-            isoAction = `${isoMicroGapsCount} Lücken in Anwendungen`;
-            isoTarget = 'iso_micro_gaps';
-        } else if (totalUseCases === 0) {
-            isoAction = "Erste Anwendung erfassen";
-        }
-
-        // --- Portfolio Matrix Analysis ---
-        let portfolioAction = "Portfolio-Matrix laden";
-        let portfolioTarget: DashboardLensFilter = null;
-        if (highRiskHighValueCount > 0) {
-            portfolioAction = `${highRiskHighValueCount} High-Risk/High-Value Systeme prüfen`;
-            portfolioTarget = 'high_value_high_risk';
-        } else if (quickWinsCount > 0) {
-            portfolioAction = `${quickWinsCount} Quick-Wins skalieren`;
-            portfolioTarget = 'low_risk_high_value';
-        } else if (totalUseCases === 0) {
-            portfolioAction = "Strategie starten";
-        }
 
         return {
             totalUseCases,
-            aiAct: {
-                coveragePercent: aiActCoverage,
-                criticalCount: criticalGapsCount,
-                totalNeedsCategory: uncategorizedCount,
-                primaryAction: aiActAction,
-                filterKey: aiActFilter
+            metric1: {
+                count: missingHistoryCount,
+                filterKey: missingHistoryCount > 0 ? 'missing_history' : null,
+                title: "Fehlende Prüfhistorie",
+                description: "Systeme ohne kontinuierliche Prozessdurchsetzung.",
+                primaryAction: missingHistoryCount > 0 ? `${missingHistoryCount} Systeme absichern` : "Alles abgesichert"
             },
-            iso: {
-                macroFlags,
-                microGapsCount: isoMicroGapsCount,
-                primaryAction: isoAction,
-                targetDestination: isoTarget
+            metric2: {
+                count: highRiskMissingHistoryCount,
+                filterKey: highRiskMissingHistoryCount > 0 ? 'high_risk_missing_history' : null,
+                title: "Kritische Haftungslücke",
+                description: "Hochrisiko-Systeme ohne menschliche Aufsichtshistorie.",
+                primaryAction: highRiskMissingHistoryCount > 0 ? `${highRiskMissingHistoryCount} Lücken schließen` : "Keine Lücken"
             },
-            portfolio: {
-                quickWinsCount,
-                highValueHighRiskCount: highRiskHighValueCount,
-                primaryAction: portfolioAction,
-                filterKey: portfolioTarget
+            metric3: {
+                count: externalMissingDossierCount,
+                filterKey: externalMissingDossierCount > 0 ? 'external_missing_dossier' : null,
+                title: "Transparenzrisiko",
+                description: "Externe Systeme ohne externes Beweis-Dossier.",
+                primaryAction: externalMissingDossierCount > 0 ? `${externalMissingDossierCount} Dossiers erstellen` : "Voll transparent"
             }
         };
     }, [useCases, register]);

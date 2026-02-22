@@ -121,7 +121,7 @@ export interface RegisterService {
   getFirstRegister(): Promise<Register | null>;
   updateRegisterProfile(
     registerId: string,
-    profile: Partial<Pick<Register, "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "companyProfile">>
+    profile: Partial<Pick<Register, "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
   ): Promise<void>;
   createUseCaseFromCapture(
     input: unknown,

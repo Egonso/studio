@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Check, Loader2, Sparkles, Search, ExternalLink, AlertCircle } from "lucide-react";
+import { Check, Loader2, Sparkles, Search, ExternalLink, AlertCircle, FileBadge, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -114,6 +114,19 @@ export function UseCaseMetadataSection({
     loadRegister();
   }, []);
 
+  const handleInvite = () => {
+    const orgName = register?.organisationName || "unserer Organisation";
+    const toolNameStr = toolDisplayName;
+    const subject = encodeURIComponent(`Einladung: Review / Freigabe für KI-System "${toolNameStr}"`);
+    const link = `https://fortbildung.eukigesetz.com/my-register/${card.useCaseId}`;
+    const body = encodeURIComponent(`Hallo,\n\nbitte überprüfe als Verantwortliche:r den Use-Case "${toolNameStr}" in unserem EUKI AI Governance Register für ${orgName}.\n\nKlicke hier, um dem Register beizutreten und den Use-Case zu verwalten:\n${link}\n\nViele Grüße`);
+
+    const emailMatch = card.responsibility.responsibleParty?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+    const to = emailMatch ? emailMatch[0] : "";
+
+    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -199,11 +212,12 @@ export function UseCaseMetadataSection({
     }
   };
 
+  const orgSettings = register?.orgSettings;
   const macroFlags = {
-    aiPolicyExists: !!(register?.companyProfile as any)?.aiPolicyUrl,
-    incidentProcessExists: !!(register?.companyProfile as any)?.incidentProcessUrl,
-    raciExists: !!(register?.companyProfile as any)?.raciDocUrl || !!register?.companyProfile?.datenschutzbeauftragter,
-    reviewStandardDefined: true // Mocked fallback
+    aiPolicyExists: !!orgSettings?.aiPolicy?.url,
+    incidentProcessExists: !!orgSettings?.incidentProcess?.url,
+    raciExists: !!orgSettings?.rolesFramework?.docUrl || orgSettings?.rolesFramework?.booleanDefined === true,
+    reviewStandardDefined: !!orgSettings?.reviewStandard
   };
 
   const hasMacroGaps = !macroFlags.aiPolicyExists || !macroFlags.incidentProcessExists || !macroFlags.raciExists;
@@ -213,9 +227,15 @@ export function UseCaseMetadataSection({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <CardTitle className="text-base">Use Case Konfiguration</CardTitle>
         {!isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsWizardOpen(true)}>
-            EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/20" onClick={() => router.push(`/pass/${card.useCaseId}`)}>
+              <FileBadge className="w-4 h-4 mr-2" />
+              Use-Case Pass
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsWizardOpen(true)}>
+              EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
+            </Button>
+          </div>
         )}
       </CardHeader>
 
@@ -242,49 +262,6 @@ export function UseCaseMetadataSection({
 
           {/* TAB: UEBERBLICK & CORE */}
           <TabsContent value="überblick" className="space-y-6 m-0 border-0 p-0 focus-visible:ring-0">
-            {/* Governance Core Alert / Status */}
-            {card.governanceAssessment?.core ? (
-              <div className="rounded-md border p-3 bg-secondary/30 space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  EUKI Governance Core 1.0
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-3 border-t border-border/50 pt-3">
-                  <div>
-                    <span className="text-muted-foreground block mb-1">Kategorie:</span>
-                    <strong className={card.governanceAssessment.core.aiActCategory === "Verboten" ? "text-red-600" : ""}>{card.governanceAssessment.core.aiActCategory}</strong>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block mb-1">Aufsicht:</span>
-                    {card.governanceAssessment.core.oversightDefined ? (
-                      "Ja"
-                    ) : (
-                      <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block mb-1">Review:</span>
-                    {card.governanceAssessment.core.reviewCycleDefined ? (
-                      "Ja"
-                    ) : (
-                      <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block mb-1">Doku:</span>
-                    {card.governanceAssessment.core.documentationLevelDefined ? (
-                      "Ja"
-                    ) : (
-                      <ToolkitUpsellButton label="Toolkit aktivieren" variant="link" className="text-red-600 h-auto p-0 font-medium whitespace-normal text-left" />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-                <strong>Action Required:</strong> Noch nicht auf EU AI Act Konformität geprüft. Bitte das Assessment starten.
-              </div>
-            )}
-
             {/* Smart Hint (Perplexity) */}
             {!isEditing && (
               <div className="rounded-md border border-blue-100 p-3 bg-blue-50/50 space-y-2 mt-4">
@@ -411,7 +388,7 @@ export function UseCaseMetadataSection({
                   <AlertTitle className="text-sm font-semibold">Organisationsebene unvollständig</AlertTitle>
                   <AlertDescription className="text-xs text-muted-foreground mt-1 flex flex-col gap-2">
                     <p>Macro-Governance Bestimmungen (AI Policy, Incident Process, RACI) sollten zentral in den Einstellungen der Organisation gepflegt werden. Sie wirken sich automatisch auf alle Use Cases aus.</p>
-                    <Button variant="outline" size="sm" className="w-fit" onClick={() => router.push('/my-register?openSettings=true')}>
+                    <Button variant="outline" size="sm" className="w-fit" onClick={() => router.push('/settings/governance')}>
                       Zu Organisationseinstellungen
                     </Button>
                   </AlertDescription>
@@ -440,11 +417,17 @@ export function UseCaseMetadataSection({
                       placeholder="z. B. Max Mustermann"
                     />
                   ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">
-                      {card.responsibility.isCurrentlyResponsible
-                        ? "Erfasser:in (selbst)"
-                        : card.responsibility.responsibleParty || "Nicht zugewiesen"}
-                    </p>
+                    <div className="flex items-center justify-between pb-2 border-b">
+                      <p className="text-sm text-muted-foreground truncate mr-2">
+                        {card.responsibility.isCurrentlyResponsible
+                          ? "Erfasser:in (selbst)"
+                          : card.responsibility.responsibleParty || "Nicht zugewiesen"}
+                      </p>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs text-primary hover:bg-primary/10" onClick={handleInvite}>
+                        <Mail className="w-3 h-3 mr-1" />
+                        Einladen
+                      </Button>
+                    </div>
                   )}
                 </div>
 

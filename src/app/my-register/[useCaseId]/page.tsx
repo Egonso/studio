@@ -9,6 +9,7 @@ import { UseCaseHeader } from "@/components/register/detail/use-case-header";
 import { UseCaseMetadataSection } from "@/components/register/detail/use-case-metadata-section";
 import { ReviewSection } from "@/components/register/detail/review-section";
 import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
+import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
 import { registerService } from "@/lib/register-first/register-service";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 
@@ -130,8 +131,9 @@ export default function UseCaseDetailPage() {
             />
           </div>
 
-          {/* Right column: Review + Audit */}
+          {/* Right column: Review + Audit + Liability */}
           <div className="space-y-6">
+            <GovernanceLiabilitySection card={card} />
             <ReviewSection card={card} onStatusChange={handleStatusChange} />
             <AuditTrailSection card={card} />
           </div>

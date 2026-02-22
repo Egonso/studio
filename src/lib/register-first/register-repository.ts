@@ -33,7 +33,7 @@ export interface RegisterRepository {
   updateRegister(
     userId: string,
     registerId: string,
-    partial: Partial<Pick<Register, "name" | "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "companyProfile">>
+    partial: Partial<Pick<Register, "name" | "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
   ): Promise<void>;
 }
 
