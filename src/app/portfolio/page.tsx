@@ -44,7 +44,7 @@ const getRecommendations = (currentValue: number, currentRisk: number, goalQuadr
         recommendations.push("→ Business Case mit konkretem ROI dokumentieren");
         recommendations.push("→ KPIs für Erfolgsmessung definieren");
         recommendations.push("→ Stakeholder-Buy-in sichern");
-        recommendations.push("→ Pilotprojekt mit messbaren Ergebnissen planen");
+        recommendations.push("→ Pilotorganisation mit messbaren Ergebnissen planen");
     }
 
     // Status progression recommendations
@@ -181,7 +181,7 @@ export default function PortfolioPage() {
                     </div>
                     {activeTab === 'dashboard' && (
                         <Button onClick={() => setActiveTab('wizard')}>
-                            <Plus className="mr-2 h-4 w-4" /> Neues Projekt erfassen
+                            <Plus className="mr-2 h-4 w-4" /> Neues Organisation erfassen
                         </Button>
                     )}
                 </div>
@@ -191,12 +191,12 @@ export default function PortfolioPage() {
                         <TabsList>
                             <TabsTrigger value="dashboard">Portfolio Dashboard</TabsTrigger>
                             <TabsTrigger value="wizard">Erfassungs-Wizard</TabsTrigger>
-                            <TabsTrigger value="details" disabled={!selectedProject}>Projektdetails & Entscheidungen</TabsTrigger>
+                            <TabsTrigger value="details" disabled={!selectedProject}>Organisationdetails & Entscheidungen</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="dashboard" className="space-y-6">
                             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                                <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Gesamtprojekte</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{projects.length}</div></CardContent></Card>
+                                <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Gesamtorganisatione</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{projects.length}</div></CardContent></Card>
                                 <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Hoher Wert / Niedriges Risiko</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600">{projects.filter(p => (p.assessment?.businessValue || 0) >= 4 && (p.assessment?.governanceRisk || 0) <= 2).length}</div></CardContent></Card>
                                 <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Hohes Risiko</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-600">{projects.filter(p => (p.assessment?.governanceRisk || 0) >= 4).length}</div></CardContent></Card>
                                 <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Live / Rollout</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{projects.filter(p => ['live', 'rollout'].includes(p.status)).length}</div></CardContent></Card>
@@ -321,7 +321,7 @@ export default function PortfolioPage() {
                                 </Card>
 
                                 <Card>
-                                    <CardHeader><CardTitle>Projektliste</CardTitle></CardHeader>
+                                    <CardHeader><CardTitle>Organisationliste</CardTitle></CardHeader>
                                     <CardContent>
                                         <div className="space-y-4">
                                             {projects.map(project => (
@@ -339,7 +339,7 @@ export default function PortfolioPage() {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {projects.length === 0 && <p className="text-center text-muted-foreground py-8">Keine Projekte vorhanden.</p>}
+                                            {projects.length === 0 && <p className="text-center text-muted-foreground py-8">Keine Organisatione vorhanden.</p>}
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -349,7 +349,7 @@ export default function PortfolioPage() {
                         <TabsContent value="wizard">
                             <Card className="max-w-2xl mx-auto">
                                 <CardHeader>
-                                    <CardTitle>Neues KI-Projekt erfassen</CardTitle>
+                                    <CardTitle>Neues KI-Organisation erfassen</CardTitle>
                                     <CardDescription>Schritt {wizardStep} von 2</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-6">
@@ -358,15 +358,15 @@ export default function PortfolioPage() {
                                             {mainProjectTitle && (
                                                 <Alert className="mb-6 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
                                                     <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                                    <AlertTitle className="text-blue-800 dark:text-blue-300">Projekt-Kontext erkannt</AlertTitle>
+                                                    <AlertTitle className="text-blue-800 dark:text-blue-300">Organisation-Kontext erkannt</AlertTitle>
                                                     <AlertDescription className="text-blue-700 dark:text-blue-400">
-                                                        Sie erfassen die Portfolio-Strategie für Ihr bestehendes Projekt <strong>{mainProjectTitle}</strong>.
+                                                        Sie erfassen die Portfolio-Strategie für Ihr bestehendes Organisation <strong>{mainProjectTitle}</strong>.
                                                         Basisdaten wurden übernommen.
                                                     </AlertDescription>
                                                 </Alert>
                                             )}
                                             <div className="space-y-2">
-                                                <Label>Projekttitel</Label>
+                                                <Label>Organisationtitel</Label>
                                                 <Input
                                                     value={newProject.title || ''}
                                                     onChange={e => setNewProject({ ...newProject, title: e.target.value })}
@@ -437,7 +437,7 @@ export default function PortfolioPage() {
                                     {wizardStep < 2 ? (
                                         <Button onClick={() => setWizardStep(wizardStep + 1)}>Weiter</Button>
                                     ) : (
-                                        <Button onClick={handleCreateProject}>Projekt speichern</Button>
+                                        <Button onClick={handleCreateProject}>Organisation speichern</Button>
                                     )}
                                 </CardFooter>
                             </Card>

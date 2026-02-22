@@ -232,7 +232,7 @@ export function AimsDashboardView({
                         AI Compliance OS
                     </h1>
                     <p className="text-muted-foreground">
-                        Projekt-Dashboard für: <span className="font-semibold">{projectName}</span>
+                        Organisation-Dashboard für: <span className="font-semibold">{projectName}</span>
                     </p>
                     <p className="text-xs text-muted-foreground mt-4 max-w-2xl">
                         Dieses Dashboard verbindet gesetzliche EU-KI-Compliance (AI Act) mit dem optionalen, international anerkannten Managementsystem ISO/IEC 42001.

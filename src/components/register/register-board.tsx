@@ -264,7 +264,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
       if (code === "PROJECT_CONTEXT_MISSING") {
-        setError("Kein Projektkontext gefunden. Oeffne zuerst ein Projekt im Dashboard.");
+        setError("Kein Organisationkontext gefunden. Oeffne zuerst ein Organisation im Dashboard.");
       } else if (code === "UNAUTHENTICATED") {
         setError("Du bist nicht angemeldet. Bitte melde dich erneut an.");
       } else {

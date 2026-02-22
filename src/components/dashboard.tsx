@@ -53,6 +53,7 @@ interface DashboardProps {
     trustPortalConfig?: TrustPortalConfig;
     onTrustPortalUpdate?: (config: TrustPortalConfig) => void;
     // Register-First data
+    useCases?: import('@/lib/register-first/types').UseCaseCard[];
     useCaseCount?: number;
     pendingReviewCount?: number;
     lastEntry?: { name: string; date: string; } | null;
@@ -61,6 +62,9 @@ interface DashboardProps {
     ownerId?: string;
     metrics?: import('@/lib/register-first/types').RegisterMetrics;
 }
+
+import { DiagnosticBoard } from './diagnostic-board';
+import { EngineContext } from '@/lib/compliance-engine/types';
 
 const statusConfig = {
     'Compliant': { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-500/10', border: 'border-green-200', badgeVariant: 'default' as const, iconClassName: 'text-green-500' },
@@ -87,6 +91,7 @@ export function Dashboard({
     userStatusLoading = false,
     trustPortalConfig,
     onTrustPortalUpdate,
+    useCases,
     useCaseCount = 0,
     pendingReviewCount = 0,
     lastEntry,
@@ -205,16 +210,37 @@ export function Dashboard({
                     />
                 </section>
 
-                {/* 1. GUIDANCE SECTION */}
+                {/* 1. DIAGNOSTIC BOARD (Engine) */}
                 <section>
-                    <DashboardGuidanceFrame
-                        projectId={searchParams.get('projectId') || ''}
-                        wizardStatus={hasProjects === false ? 'no_projects' : wizardStatus}
-                        projectName={projectName}
-                        policiesGenerated={policiesGenerated || (aimsData?.policy && aimsData.policy.length >= 20)}
-                        isoWizardStarted={completedSteps > 0}
-                        isoWizardCompleted={isoWizardCompleted}
-                    />
+                    {hasProjects === false ? (
+                        <DiagnosticBoard
+                            workspaceId={searchParams.get('projectId') || ''}
+                            organizationName={projectName || 'Neue Organisation'}
+                            context={{
+                                useCases: useCases || [],
+                                orgStatus: {
+                                    hasPolicy: false,
+                                    hasIncidentProcess: false,
+                                    hasRaciDefined: false,
+                                    trustPortalActive: false
+                                }
+                            }}
+                        />
+                    ) : (
+                        <DiagnosticBoard
+                            workspaceId={searchParams.get('projectId') || ''}
+                            organizationName={projectName || 'Organisation'}
+                            context={{
+                                useCases: useCases || [],
+                                orgStatus: {
+                                    hasPolicy: policiesGenerated || !!(aimsData?.policy && aimsData.policy.length >= 20),
+                                    hasIncidentProcess: false, // Could be derived from aims progress
+                                    hasRaciDefined: !!(aimsData?.raci && aimsData.raci.length > 0),
+                                    trustPortalActive: !!(trustPortalConfig && trustPortalConfig.isPublished)
+                                }
+                            }}
+                        />
+                    )}
                 </section>
 
                 <section>
@@ -410,9 +436,9 @@ export function Dashboard({
                                     <Accordion type="single" collapsible className="w-full" onValueChange={(value) => { if (value) { const item = finalComplianceItems.find(i => i.id === value); if (item) { handleAccordionChange(item); } } }}>
                                         {(finalComplianceItems.length > 0 ? finalComplianceItems : [
                                             // Empty State Fallback
-                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
-                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
-                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started', details: 'Lege ein Projekt an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
+                                            { id: 'default-1', title: 'Verbotene Praktiken', description: 'Prüfen Sie, ob Ihr System verbotene KI-Praktiken einsetzt.', status: 'Not Started', details: 'Lege ein Organisation an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
+                                            { id: 'default-2', title: 'Hochrisiko-Klassifizierung', description: 'Bestimmen Sie, ob Ihr System als Hochrisiko-KI gilt.', status: 'Not Started', details: 'Lege ein Organisation an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
+                                            { id: 'default-3', title: 'Daten-Governance', description: 'Anforderungen an Trainings-, Validierungs- und Testdaten.', status: 'Not Started', details: 'Lege ein Organisation an, um Anforderungen zu laden.', checklistState: { loading: false, error: null, data: null, checkedTasks: {} } },
                                         ]).map((item: any) => {
                                             const status = item.status as string;
                                             const config = (statusConfig as any)[status] || { icon: ArrowRight, badgeVariant: 'secondary', iconClassName: 'text-gray-400' };

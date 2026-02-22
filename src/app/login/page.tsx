@@ -166,7 +166,7 @@ export default function LoginPage() {
           });
         } else {
           // 4. Success
-          toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Projekt zu erstellen.' });
+          toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Organisation zu erstellen.' });
           router.push('/dashboard');
         }
       }

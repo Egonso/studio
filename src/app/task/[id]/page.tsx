@@ -324,7 +324,7 @@ export default function TaskPage() {
                                 KI-gestützter Dokumenten-Check
                             </CardTitle>
                             <CardDescription>
-                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten. Hochgeladene Dateien werden zum Projektkontext hinzugefügt.
+                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten. Hochgeladene Dateien werden zum Organisationkontext hinzugefügt.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">

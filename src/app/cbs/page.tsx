@@ -139,7 +139,7 @@ function ComplianceInADayPageContent() {
                                 <div>
                                     <h3 className="font-semibold text-green-900">Policy Level {existingPolicyLevel} bereits aktiv</h3>
                                     <p className="text-sm text-green-700">
-                                        Sie haben für dieses Projekt bereits {existingPolicyLastUpdated ? `am ${new Date(existingPolicyLastUpdated).toLocaleDateString()}` : ''} eine Policy erstellt.
+                                        Sie haben für dieses Organisation bereits {existingPolicyLastUpdated ? `am ${new Date(existingPolicyLastUpdated).toLocaleDateString()}` : ''} eine Policy erstellt.
                                     </p>
                                 </div>
                                 <Button variant="outline" className="ml-auto bg-green-50 border-green-300 hover:bg-green-100 text-green-800" onClick={() => router.push('/dashboard')}>

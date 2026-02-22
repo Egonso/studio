@@ -101,12 +101,12 @@ const questions: Record<QuestionId, Question | { final: boolean, title: string, 
   q_final_compliant: {
     final: true,
     title: "Kein direkter Handlungsbedarf",
-    description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Projekt weiter, das diesen Status widerspiegelt.",
+    description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Organisation weiter, das diesen Status widerspiegelt.",
   },
   q_final_review: {
     final: true,
     title: "Bewertung abgeschlossen",
-    description: "Vielen Dank. Ihre Antworten wurden für dieses Projekt aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
+    description: "Vielen Dank. Ihre Antworten wurden für dieses Organisation aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
   }
 };
 
@@ -231,7 +231,7 @@ export function AssessmentWizard() {
       <CardHeader>
         <CardTitle>Compliance-Bewertung</CardTitle>
         <CardDescription>
-          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI Acts für Ihr Projekt.
+          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI Acts für Ihr Organisation.
         </CardDescription>
         <Progress value={progress} className="mt-2" />
       </CardHeader>

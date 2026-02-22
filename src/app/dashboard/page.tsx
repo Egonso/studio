@@ -10,7 +10,7 @@ import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjec
 import { Loader2 } from "lucide-react";
 import { useUserStatus } from "@/hooks/use-user-status";
 import { registerService } from "@/lib/register-first/register-service";
-import type { RegisterMetrics } from "@/lib/register-first/types";
+import type { UseCaseCard, RegisterMetrics } from "@/lib/register-first/types";
 
 function DashboardPageContent() {
     const { user, loading: authLoading } = useAuth();
@@ -32,6 +32,7 @@ function DashboardPageContent() {
     const [projectData, setProjectData] = useState<any>(null);
 
     // State 3b: Register-First data
+    const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
     const [useCaseCount, setUseCaseCount] = useState(0);
     const [pendingReviewCount, setPendingReviewCount] = useState(0);
     const [lastEntry, setLastEntry] = useState<{ name: string; date: string } | null>(null);
@@ -160,6 +161,7 @@ function DashboardPageContent() {
             const useCases = await registerService.listUseCases();
             const fetchedMetrics = await registerService.getRegisterMetrics();
 
+            setUseCases(useCases);
             setMetrics(fetchedMetrics);
             setUseCaseCount(useCases.length);
 
@@ -261,6 +263,7 @@ function DashboardPageContent() {
                             hasProjects={false}
                             userStatus={userStatus}
                             userStatusLoading={userStatusLoading}
+                            useCases={useCases}
                             useCaseCount={useCaseCount}
                             pendingReviewCount={pendingReviewCount}
                             lastEntry={lastEntry}
@@ -303,6 +306,7 @@ function DashboardPageContent() {
                     userStatusLoading={userStatusLoading}
                     trustPortalConfig={projectData?.trustPortal}
                     onTrustPortalUpdate={(newConfig) => setProjectData((prev: any) => ({ ...prev, trustPortal: newConfig }))}
+                    useCases={useCases}
                     useCaseCount={useCaseCount}
                     pendingReviewCount={pendingReviewCount}
                     lastEntry={lastEntry}

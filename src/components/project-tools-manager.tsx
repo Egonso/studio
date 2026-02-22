@@ -65,7 +65,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
             setNewToolUrl("");
             setIsAdding(false);
             loadTools();
-            toast({ title: "Tool hinzugefügt", description: "Das KI-Tool wurde dem Projekt hinzugefügt." });
+            toast({ title: "Tool hinzugefügt", description: "Das KI-Tool wurde dem Organisation hinzugefügt." });
         } catch (error) {
             console.error(error);
             toast({ variant: "destructive", title: "Fehler", description: "Konnte Tool nicht hinzufügen." });
@@ -150,7 +150,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
             <CardHeader className="flex flex-row items-center justify-between px-0">
                 <div>
                     <CardTitle>KI-Tools & Systeme</CardTitle>
-                    <CardDescription>Single Source of Truth für alle KI-Dienste in diesem Projekt.</CardDescription>
+                    <CardDescription>Single Source of Truth für alle KI-Dienste in diesem Organisation.</CardDescription>
                 </div>
                 {!isAdding && (
                     <Button onClick={() => setIsAdding(true)} size="sm">

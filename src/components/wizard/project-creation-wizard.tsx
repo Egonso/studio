@@ -52,19 +52,19 @@ export function ProjectCreationWizard({ variant = 'card', onComplete }: ProjectC
         <Container className={containerClasses}>
             <Header className={isEmbedded ? "mb-6 text-center" : ""}>
                 <Title className={isEmbedded ? "text-2xl font-bold" : ""}>
-                    {isEmbedded ? "Legen Sie Ihr erstes KI-Projekt an" : "Neues Projekt starten"}
+                    {isEmbedded ? "Legen Sie Ihr erstes KI-Organisation an" : "Neues Organisation starten"}
                 </Title>
                 <Description className={isEmbedded ? "text-muted-foreground mt-2" : ""}>
                     {isEmbedded
                         ? "Es dauert nur wenige Minuten, um eine erste Risikoeinschätzung zu erhalten."
-                        : "Erstellen Sie ein neues Projekt, um den Status Ihrer KI-Systeme zu bewerten."
+                        : "Erstellen Sie ein neues Organisation, um den Status Ihrer KI-Systeme zu bewerten."
                     }
                 </Description>
             </Header>
 
             <Content className={isEmbedded ? "space-y-6" : "space-y-6"}>
                 <div className="space-y-2">
-                    <Label htmlFor="project-name">Projekt- oder Produktname</Label>
+                    <Label htmlFor="project-name">Organisation- oder Produktname</Label>
                     <Input
                         id="project-name"
                         placeholder="z.B. 'Marketing-Chatbot v2' oder 'HR-Analyse-Tool'"
@@ -138,12 +138,12 @@ export function ProjectCreationWizard({ variant = 'card', onComplete }: ProjectC
                     {isSubmitting ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Projekt wird erstellt...
+                            Organisation wird erstellt...
                         </>
                     ) : (
                         <>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            <span>Projekt erstellen & Bewertung starten</span>
+                            <span>Organisation erstellen & Bewertung starten</span>
                         </>
                     )}
                 </Button>

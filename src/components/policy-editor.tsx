@@ -79,7 +79,7 @@ Unterschrift Mitarbeitende/r: [Unterschrift Mitarbeitende/r]
 **Titel**: Richtlinie zur Governance und Nutzung von KI-Systemen
 
 **1. Geltungsbereich & Zielsetzung**
-Diese Richtlinie gilt für alle Abteilungen, Projekte, Tools und Systeme, die KI einsetzen oder mit KI in Berührung kommen. Ziel ist, den KI-Einsatz in Übereinstimmung mit dem EU AI Act zu steuern, Verantwortlichkeiten zu definieren und Risiken systematisch zu kontrollieren.
+Diese Richtlinie gilt für alle Abteilungen, Organisatione, Tools und Systeme, die KI einsetzen oder mit KI in Berührung kommen. Ziel ist, den KI-Einsatz in Übereinstimmung mit dem EU AI Act zu steuern, Verantwortlichkeiten zu definieren und Risiken systematisch zu kontrollieren.
 
 **2. Rollen & Verantwortlichkeiten**
 * **Geschäftsführung / Leitung**: [Name der Geschäftsführung]
@@ -479,7 +479,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId }: Po
         <div className="ml-2">
           <AlertTitle className="text-blue-900 font-semibold">Zentrale Verwaltung</AlertTitle>
           <AlertDescription className="text-blue-800">
-            Diese Richtlinie bezieht sich auf das zuvor angelegte KI-Projekt.
+            Diese Richtlinie bezieht sich auf das zuvor angelegte KI-Organisation.
             Die Tools werden nun zentral im "Tools & Systeme" Tab verwaltet und hier automatisch synchronisiert.
           </AlertDescription>
         </div>
@@ -634,9 +634,9 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId }: Po
                   <Info className="h-4 w-4 text-amber-800" />
                   <AlertTitle className="text-amber-900">Alte Daten gefunden</AlertTitle>
                   <AlertDescription className="text-amber-800 block">
-                    Wir haben {legacyTools.length} Tools in Ihrer lokalen Policy gefunden, aber das Projekt ist noch leer.
+                    Wir haben {legacyTools.length} Tools in Ihrer lokalen Policy gefunden, aber das Organisation ist noch leer.
                     <Button size="sm" variant="outline" className="mt-2 w-full border-amber-300 hover:bg-amber-100 text-amber-900" onClick={handleImportLegacy}>
-                      Diese Tools jetzt in das Projekt importieren
+                      Diese Tools jetzt in das Organisation importieren
                     </Button>
                   </AlertDescription>
                 </Alert>
@@ -644,7 +644,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId }: Po
 
               {projectTools.length === 0 ? (
                 <div className="text-center p-6 text-muted-foreground border border-dashed rounded bg-muted/30">
-                  <p className="text-sm">Keine Tools im Projekt hinterlegt.</p>
+                  <p className="text-sm">Keine Tools im Organisation hinterlegt.</p>
                   <p className="text-xs mt-1">Gehen Sie zum Dashboard, um Tools hinzuzufügen.</p>
                 </div>
               ) : (

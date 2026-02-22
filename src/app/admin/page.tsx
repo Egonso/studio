@@ -147,12 +147,12 @@ export default function AdminPage() {
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Projekte</CardTitle>
+                            <CardTitle className="text-sm font-medium">Organisatione</CardTitle>
                             <ListTodo className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.projects}</div>
-                            <p className="text-xs text-muted-foreground">Aktive Projekte</p>
+                            <p className="text-xs text-muted-foreground">Aktive Organisatione</p>
                         </CardContent>
                     </Card>
                 </div>

@@ -546,7 +546,7 @@ export function DesignCanvas() {
         const newRequirement: Requirement = {
             id: new Date().getTime().toString(),
             title: `Anforderung für: ${principle.title}`,
-            description: `Definieren Sie die technischen und organisatorischen Maßnahmen, um das Prinzip "${principle.title}" im Projektkontext sicherzustellen.\n\nAkzeptanzkriterien:\n- \n- `,
+            description: `Definieren Sie die technischen und organisatorischen Maßnahmen, um das Prinzip "${principle.title}" im Organisationkontext sicherzustellen.\n\nAkzeptanzkriterien:\n- \n- `,
             responsible: '',
             evidence: '',
             lifecyclePhase: '',
@@ -587,7 +587,7 @@ export function DesignCanvas() {
                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (
                             <>
                                 <div className="space-y-2">
-                                    <Label htmlFor="project-context">Ihre Idee / Ihr Projektkontext</Label>
+                                    <Label htmlFor="project-context">Ihre Idee / Ihr Organisationkontext</Label>
                                     <Textarea
                                         id="project-context"
                                         placeholder="z.B. 'Ein KI-Chatbot für den Kundenservice' oder 'Ein Tool zur Analyse von Bewerbungsunterlagen'."
@@ -729,7 +729,7 @@ export function DesignCanvas() {
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><Wand2 className="text-primary" /> 3. Werte-Mapping</CardTitle>
-                        <CardDescription>Definieren Sie die Priorität der ethischen Werte für Ihr Projekt.</CardDescription>
+                        <CardDescription>Definieren Sie die Priorität der ethischen Werte für Ihr Organisation.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {isInitializing ? <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" /> : (

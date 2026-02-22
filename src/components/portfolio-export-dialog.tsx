@@ -23,19 +23,19 @@ const generateMarkdown = (data: PortfolioExportData | null): string => {
     md += `_Generiert am: ${new Date(data.generatedAt).toLocaleString('de-DE')}_\n\n`;
 
     md += `## Zusammenfassung\n`;
-    md += `- **Gesamtzahl Projekte:** ${data.projects.length}\n`;
+    md += `- **Gesamtzahl Organisatione:** ${data.projects.length}\n`;
     const highValue = data.projects.filter(p => (p.assessment?.businessValue || 0) >= 4).length;
     const highRisk = data.projects.filter(p => (p.assessment?.governanceRisk || 0) >= 4).length;
-    md += `- **Projekte mit hohem Business Value (≥4):** ${highValue}\n`;
-    md += `- **Projekte mit hohem Risiko (≥4):** ${highRisk}\n\n`;
+    md += `- **Organisatione mit hohem Business Value (≥4):** ${highValue}\n`;
+    md += `- **Organisatione mit hohem Risiko (≥4):** ${highRisk}\n\n`;
 
-    md += `## Projektübersicht\n\n`;
+    md += `## Organisationübersicht\n\n`;
 
     if (data.projects.length === 0) {
-        md += `_Keine KI-Projekte im Portfolio._\n\n`;
+        md += `_Keine KI-Organisatione im Portfolio._\n\n`;
     } else {
         data.projects.forEach((project, i) => {
-            md += `### ${i + 1}. ${project.title || 'Unbenanntes Projekt'}\n`;
+            md += `### ${i + 1}. ${project.title || 'Unbenanntes Organisation'}\n`;
             md += `- **Status:** ${project.status || 'N/A'}\n`;
             md += `- **Business Owner:** ${project.businessOwner || 'N/A'}\n`;
             md += `- **Fachbereich:** ${project.department || 'N/A'}\n`;

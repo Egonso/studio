@@ -116,7 +116,7 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
 
                 if (project) {
                     const data: AimsExportData = {
-                        projectName: (project as any).projectName || 'Unbenanntes Projekt',
+                        projectName: (project as any).projectName || 'Unbenanntes Organisation',
                         ...(project.aimsData as any),
                         aimsProgress: project.aimsProgress,
                         generatedAt: new Date().toISOString(),
@@ -270,14 +270,27 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
 
                 <DialogFooter className="sm:justify-between items-center pt-4">
                     <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc}>
-                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType className="mr-2 h-4 w-4" />}
-                            PDF-Export
-                        </Button>
-                        <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc}>
-                            {isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSignature className="mr-2 h-4 w-4" />}
-                            DOCX-Export
-                        </Button>
+                        {/* Capability Gating Example: Audit Export is a Pro Feature */}
+                        {(() => {
+                            const { hasCapability, getRequiredPlanForCapability } = require('@/lib/compliance-engine/capability/featureChecker');
+                            const { Lock } = require('lucide-react');
+                            const userPlan = 'core'; // TODO: Get from auth context
+                            const canExport = hasCapability(userPlan, 'auditExport');
+                            const requiredPlan = getRequiredPlanForCapability('auditExport');
+
+                            return (
+                                <>
+                                    <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc || !canExport}>
+                                        {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType className="mr-2 h-4 w-4" />}
+                                        {canExport ? 'PDF-Export' : `PDF-Export (ab ${requiredPlan})`}
+                                    </Button>
+                                    <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc || !canExport}>
+                                        {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSignature className="mr-2 h-4 w-4" />}
+                                        {canExport ? 'DOCX-Export' : `DOCX-Export (ab ${requiredPlan})`}
+                                    </Button>
+                                </>
+                            );
+                        })()}
                     </div>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">Schließen</Button>

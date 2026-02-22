@@ -155,7 +155,7 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
         );
       } else if (code === "PROJECT_CONTEXT_MISSING") {
         setSubmitError(
-          "Kein Projektkontext gefunden. Bitte öffne zuerst ein Projekt im Dashboard."
+          "Kein Organisationkontext gefunden. Bitte öffne zuerst ein Organisation im Dashboard."
         );
       } else if (code === "UNAUTHENTICATED") {
         setSubmitError("Du bist nicht angemeldet. Bitte melde dich erneut an.");

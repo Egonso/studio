@@ -108,7 +108,7 @@ export default function ProjectsPage() {
             <main className="flex-1 flex flex-col items-center p-4 md:p-8">
                 <div className="w-full max-w-4xl">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold">Meine Projekte</h1>
+                        <h1 className="text-3xl font-bold">Meine Organisatione</h1>
                         {projects.length > 0 && (
                             <Button onClick={handleJumpToLatest} variant="secondary">
                                 <CornerDownRight className="mr-2 h-4 w-4" /> Zum letzten Dashboard springen
@@ -118,7 +118,7 @@ export default function ProjectsPage() {
                     
                     {projects.length > 0 && (
                          <div className="mb-12">
-                            <h2 className="text-2xl font-bold mb-4">Bestehende Projekte</h2>
+                            <h2 className="text-2xl font-bold mb-4">Bestehende Organisatione</h2>
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {projects.map(project => (
                                     <Card key={project.id} className="flex flex-col justify-between hover:shadow-xl transition-shadow">
@@ -144,7 +144,7 @@ export default function ProjectsPage() {
 
                     <Card className="shadow-lg mt-8">
                         <CardHeader>
-                            <CardTitle>Neues Projekt starten</CardTitle>
+                            <CardTitle>Neues Organisation starten</CardTitle>
                             <CardDescription>
                                 {projects.length > 0 
                                 ? "Oder beginnen Sie eine neue Compliance-Bewertung für ein weiteres Produkt oder System."
@@ -154,7 +154,7 @@ export default function ProjectsPage() {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
-                                <Label htmlFor="project-name">Projekt- oder Produktname</Label>
+                                <Label htmlFor="project-name">Organisation- oder Produktname</Label>
                                 <Input
                                     id="project-name"
                                     placeholder="z.B. 'Marketing-Chatbot v2' oder 'HR-Analyse-Tool'"
@@ -222,12 +222,12 @@ export default function ProjectsPage() {
                                 {isCreating ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Projekt wird erstellt...
+                                        Organisation wird erstellt...
                                     </>
                                 ) : (
                                     <>
                                         <PlusCircle className="mr-2 h-4 w-4" />
-                                        Projekt erstellen & Bewertung starten
+                                        Organisation erstellen & Bewertung starten
                                     </>
                                 )}
                             </Button>
@@ -236,7 +236,7 @@ export default function ProjectsPage() {
 
                     {projects.length === 0 && !isLoading && (
                         <div className="text-center py-12 px-6 border-2 border-dashed rounded-lg mt-8">
-                            <p className="text-muted-foreground">Sie haben noch keine Projekte. Starten Sie Ihr erstes Projekt oben.</p>
+                            <p className="text-muted-foreground">Sie haben noch keine Organisatione. Starten Sie Ihr erstes Organisation oben.</p>
                         </div>
                     )}
                 </div>
