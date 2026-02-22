@@ -131,8 +131,8 @@ function IndexMetric({ title, value, description, icon, inverse = false }: { tit
     // Inverse means 0 is good, 100 is bad (like Exposure)
     const normalizedProgress = inverse ? (100 - value) : value;
     const colorClass = inverse
-        ? (value > 50 ? 'bg-red-500' : value > 0 ? 'bg-yellow-500' : 'bg-green-500')
-        : (value > 80 ? 'bg-green-500' : value > 40 ? 'bg-yellow-500' : 'bg-red-500');
+        ? (value > 50 ? 'bg-red-500' : value > 0 ? 'bg-amber-500' : 'bg-emerald-500')
+        : (value > 80 ? 'bg-emerald-500' : value > 40 ? 'bg-amber-500' : 'bg-red-500');
 
     return (
         <div className="p-6 space-y-4">
@@ -141,9 +141,12 @@ function IndexMetric({ title, value, description, icon, inverse = false }: { tit
                     {icon}
                     <h3 className="font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
                 </div>
-                <span className="text-2xl font-bold">{value}%</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold">{value}%</span>
+                    <div className={`w-2.5 h-2.5 rounded-full ${colorClass}`} />
+                </div>
             </div>
-            <Progress value={normalizedProgress} className="h-2" indicatorClassName={colorClass} />
+            <Progress value={normalizedProgress} className="h-1.5 bg-slate-100 dark:bg-slate-800" indicatorClassName="bg-slate-800 dark:bg-slate-200" />
             <p className="text-xs text-slate-500">{description}</p>
         </div>
     );
@@ -152,32 +155,32 @@ function IndexMetric({ title, value, description, icon, inverse = false }: { tit
 function PrimaryActionCard({ action, workspaceId }: { action: ActionItem, workspaceId: string }) {
     const router = useRouter();
 
-    const severityColor = {
-        critical: 'bg-red-50 border-red-200 text-red-900 dark:bg-red-950/20 dark:border-red-900/50 dark:text-red-200',
-        high: 'bg-orange-50 border-orange-200 text-orange-900 dark:bg-orange-950/20 dark:border-orange-900/50 dark:text-orange-200',
-        medium: 'bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-950/20 dark:border-blue-900/50 dark:text-blue-200',
-        low: 'bg-slate-50 border-slate-200 text-slate-900 dark:bg-slate-900/50 dark:border-slate-800 dark:text-slate-200'
+    const severityBorder = {
+        critical: 'bg-red-500',
+        high: 'bg-orange-500',
+        medium: 'bg-blue-500',
+        low: 'bg-slate-400'
     }[action.severity];
 
     const Icon = action.severity === 'critical' ? AlertTriangle : ArrowRight;
 
     return (
-        <div className={`rounded-xl p-6 border shadow-sm relative overflow-hidden ${severityColor}`}>
-            <div className={`absolute top-0 left-0 w-1 h-full ${action.severity === 'critical' ? 'bg-red-500' : 'bg-orange-500'}`} />
+        <div className="rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden bg-white dark:bg-slate-950">
+            <div className={`absolute top-0 left-0 w-1 h-full ${severityBorder}`} />
 
             <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Icon className="h-5 w-5 opacity-70" />
+                <h3 className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
+                    <Icon className="h-5 w-5 text-slate-500" />
                     {action.title}
                 </h3>
                 {action.impactReductionEstimate ? (
-                    <Badge variant="outline" className="bg-white/50 backdrop-blur font-mono text-xs">
+                    <Badge variant="outline" className="font-mono text-xs">
                         -{action.impactReductionEstimate} Exposure
                     </Badge>
                 ) : null}
             </div>
 
-            <p className="text-sm opacity-90 leading-relaxed mb-6">
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
                 {action.description}
             </p>
 

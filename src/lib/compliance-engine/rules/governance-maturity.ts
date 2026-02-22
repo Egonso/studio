@@ -19,7 +19,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Ohne eine zentrale Richtlinie haben Ihre Mitarbeiter keine Handlungssicherheit beim Einsatz von KI.',
             impactIncreaseEstimate: 40,
             severity: 'high',
-            href: '/dashboard/cbs' // Example route to policy generation
+            href: '/cbs'
         });
     }
 
@@ -33,7 +33,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Sie müssen festlegen, wer im Fall einer KI-Fehlfunktion (Verletzung der Grundrechte) im Unternehmen entscheidet.',
             impactIncreaseEstimate: 30,
             severity: 'medium',
-            href: '/dashboard/incidents' // Placeholder
+            href: '/settings'
         });
     }
 
@@ -47,7 +47,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Weisen Sie klare Rollen (z.B. AI Officer, Legal) für die Freigabe und Überwachung von KI-Systemen zu.',
             impactIncreaseEstimate: 30,
             severity: 'medium',
-            href: '/dashboard/settings' // Placeholder
+            href: '/settings'
         });
     }
 
@@ -61,7 +61,7 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
             description: 'Eine Governance-Strategie ohne erfasste Systeme (Schatten-IT) ist wirkungslos. Erfassen Sie Ihr erstes KI-Tool.',
             impactIncreaseEstimate: 20,
             severity: 'high',
-            href: '/my-register' // Trigger blank state quick-capture
+            href: '/my-register'
         });
     }
 

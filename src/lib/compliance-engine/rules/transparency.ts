@@ -30,8 +30,8 @@ export function evaluateTransparency(context: EngineContext): { index: number; a
         actions.push({
             id: 'use_cases_uncategorized',
             type: 'use_cases_uncategorized',
-            title: `${unclassifiedCount} Radar-Systeme nicht klassifiziert`,
-            description: 'Systeme ohne klare Risikoklasse (High/Minimal/etc.) senken die interne Transparenz und Audit-Fähigkeit.',
+            title: `Risikoklasse für ${unclassifiedCount} Systeme nachtragen`,
+            description: 'Gehen Sie ins Register und klassifizieren Sie diese Systeme (Risiko-Tab), um Audit-Fähigkeit sicherzustellen.',
             impactIncreaseEstimate: penalty,
             severity: 'high',
             href: '/my-register'
