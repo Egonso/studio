@@ -1,89 +1,123 @@
-export type SubscriptionPlan = 'core' | 'pro' | 'enterprise';
+import type { SubscriptionPlan } from '@/lib/register-first/types';
+
+// ── Feature Capabilities ────────────────────────────────────────────────────
+// Every gated feature in the Governance OS. Grouped for clarity.
 
 export type FeatureCapability =
-    | 'auditExport'
-    | 'iso42001Mapping'
-    | 'roleManagement'
-    | 'reviewWorkflow'
-    | 'versionHistory'
-    | 'consultantMode'
-    | 'trustPortalLive'
-    | 'benchmarkInsights'
-    | 'apiAccess'
-    | 'executiveReporting'
-    | 'insuranceReport'
-    | 'multiOrgStructure'
-    | 'customPolicyFramework';
+    // ── Use Case Editing ────────────────────────────────────────────────────
+    | 'editUseCase'           // Edit any field on a Use Case
+    | 'isoLifecycleTab'       // ISO Lifecycle tab in Use Case detail
+    | 'portfolioTab'          // Portfolio tab in Use Case detail
+    | 'assessmentWizard'      // EUKI Assessment on Use Case
 
-/**
- * Maps which plans have access to which capabilities.
- * Core = Legal baseline is always accessible, so only premium features are listed here.
- */
+    // ── Organisation Settings (Extended) ────────────────────────────────────
+    | 'extendedOrgSettings'   // RACI, Incident, Review, Scope, Competency
+    | 'governanceWizard'      // Guided Governance Setup wizard
+
+    // ── Policy & Compliance ──────────────────────────────────────────────────
+    | 'policyEngine'          // Smart Policy Engine (Level 1+)
+    | 'auditExport'           // PDF/JSON Audit Dossier export
+
+    // ── ISO & Standards ──────────────────────────────────────────────────────
+    | 'isoAlignmentPack'      // ISO 27001 / 42001 Mapping
+    | 'competencyMatrix'      // Competency requirements tracking
+
+    // ── Enterprise Features ──────────────────────────────────────────────────
+    | 'trustPortal'           // Public Trust Portal
+    | 'benchmarkInsights'     // Anonymized benchmark data
+    | 'apiAccess'             // API integrations
+    | 'executiveReporting'    // Board-level reporting
+    | 'multiOrgStructure'     // Multiple organizations
+    | 'supplyChainAssessment';// Lieferketten-Bewertung
+
+// ── Plan → Feature Mapping ──────────────────────────────────────────────────
+// Core principle from Monetarisierungsstrategie:
+//   "Regulatorische Pflicht = Immer enthalten."
+//   Monetized: Governance-Fähigkeiten, Komfort, externe Signalgebung.
+
 const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
-    core: [], // Core gets all the baseline but none of the premium capabilities above.
+    free: [],
+    // Free gets: Register, Quick Capture, Read-Only Use Case View, Basic Org Settings
+
     pro: [
+        'editUseCase',
+        'isoLifecycleTab',
+        'portfolioTab',
+        'assessmentWizard',
+        'extendedOrgSettings',
+        'governanceWizard',
+        'policyEngine',
         'auditExport',
-        'iso42001Mapping',
-        'roleManagement',
-        'reviewWorkflow',
-        'versionHistory',
-        'consultantMode'
+        'isoAlignmentPack',
+        'competencyMatrix',
     ],
+
     enterprise: [
+        // All pro features +
+        'editUseCase',
+        'isoLifecycleTab',
+        'portfolioTab',
+        'assessmentWizard',
+        'extendedOrgSettings',
+        'governanceWizard',
+        'policyEngine',
         'auditExport',
-        'iso42001Mapping',
-        'roleManagement',
-        'reviewWorkflow',
-        'versionHistory',
-        'consultantMode',
-        'trustPortalLive',
+        'isoAlignmentPack',
+        'competencyMatrix',
+        // Enterprise-only:
+        'trustPortal',
         'benchmarkInsights',
         'apiAccess',
         'executiveReporting',
-        'insuranceReport',
         'multiOrgStructure',
-        'customPolicyFramework'
-    ]
+        'supplyChainAssessment',
+    ],
 };
 
+// ── Public API ──────────────────────────────────────────────────────────────
+
 /**
- * Checks if the given plan has access to the requested feature.
- * @param plan The user's active subscription plan
- * @param feature The target feature to check
- * @returns boolean True if allowed, false if locked
+ * Check if a plan grants access to a feature.
+ * Strict separation from compliance/legal ruleEngine (Monetarisierungsstrategie §4.3).
  */
-export function hasCapability(plan: SubscriptionPlan | undefined, feature: FeatureCapability): boolean {
-    const activePlan = plan || 'core'; // fallback
+export function hasCapability(
+    plan: SubscriptionPlan | undefined | null,
+    feature: FeatureCapability,
+): boolean {
+    const activePlan: SubscriptionPlan = plan || 'free';
     return PLAN_CAPABILITIES[activePlan].includes(feature);
 }
 
 /**
- * Gets the minimum plan required for a particular feature to display in lock UI.
+ * What's the minimum plan required for a feature?
+ * Used in lock-UI to show "Verfügbar im Pro-Plan" or "Enterprise".
  */
-export function getRequiredPlanForCapability(feature: FeatureCapability): SubscriptionPlan {
-    if (PLAN_CAPABILITIES.pro.includes(feature)) {
-        return 'pro';
-    }
-    return 'enterprise';
+export function getRequiredPlan(feature: FeatureCapability): SubscriptionPlan {
+    if (PLAN_CAPABILITIES.pro.includes(feature)) return 'pro';
+    if (PLAN_CAPABILITIES.enterprise.includes(feature)) return 'enterprise';
+    return 'free';
 }
 
 /**
- * Helper to determine the plan from a Strip productId.
+ * Human-readable plan label for UI.
  */
-export function getPlanFromProductId(productId: string | null | undefined): SubscriptionPlan {
-    if (!productId) return 'core';
-
-    // Example logic based on typical Stripe Product IDs or mapping.
-    // If you have specific IDs for Pro or Enterprise, map them here.
-    if (productId.includes('pro') || productId === 'prod_proIdHere') return 'pro';
-    if (productId.includes('ent') || productId.includes('enterprise')) return 'enterprise';
-
-    return 'core'; // Default paid plan fallback if unknown
+export function getPlanLabel(plan: SubscriptionPlan): string {
+    switch (plan) {
+        case 'free': return 'Register (Free)';
+        case 'pro': return 'Governance Toolkit';
+        case 'enterprise': return 'Enterprise';
+    }
 }
 
-export const capabilityChecker = {
-    canExportAudit: (plan: SubscriptionPlan) => hasCapability(plan, 'auditExport'),
-    canGeneratePolicy: (plan: SubscriptionPlan) => hasCapability(plan, 'customPolicyFramework'),
-    canTakeIsoAssessment: (plan: SubscriptionPlan) => hasCapability(plan, 'iso42001Mapping'),
-    canEmbedTrustPortal: (plan: SubscriptionPlan) => hasCapability(plan, 'trustPortalLive'),
-};
+/**
+ * Get all features NOT available in the current plan (for upsell suggestions).
+ */
+export function getLockedFeatures(plan: SubscriptionPlan | undefined | null): FeatureCapability[] {
+    const activePlan: SubscriptionPlan = plan || 'free';
+    const allFeatures: FeatureCapability[] = [
+        ...PLAN_CAPABILITIES.pro,
+        ...PLAN_CAPABILITIES.enterprise,
+    ];
+    const uniqueFeatures = [...new Set(allFeatures)];
+    return uniqueFeatures.filter(f => !PLAN_CAPABILITIES[activePlan].includes(f));
+}

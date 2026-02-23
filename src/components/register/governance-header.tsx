@@ -3,10 +3,14 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings, Link2 } from "lucide-react";
+import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import { aggregateOrgScores, getExposureColor } from "@/lib/compliance-engine/scores";
+import { FeatureGate } from "@/components/register/feature-gate";
+import { generateAuditExport, auditToCSV } from "@/lib/compliance-engine/audit/audit-export";
+import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -83,6 +87,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
     }, [useCases]);
 
     const lastActivity = useMemo(() => formatLastActivity(useCases), [useCases]);
+    const orgScores = useMemo(() => aggregateOrgScores(useCases), [useCases]);
 
     const kpis: KpiItem[] = [
         {
@@ -168,6 +173,22 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         }
     };
 
+    const { allowed: canExport } = useCapability('auditExport');
+
+    const handleAuditExport = () => {
+        if (!register || !canExport) return;
+        const audit = generateAuditExport(register, useCases, register.organisationName || 'User');
+        const csv = auditToCSV(audit);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-export-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast({ title: 'Audit-Export', description: 'CSV-Datei heruntergeladen.' });
+    };
+
     return (
         <div className="space-y-4">
             {/* Title + Scope */}
@@ -217,6 +238,16 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                             <Settings className="h-4 w-4" />
                         </button>
                     )}
+                    {register && canExport && (
+                        <button
+                            onClick={handleAuditExport}
+                            className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                            title="Audit-Export als CSV herunterladen"
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="hidden sm:inline">Audit-Export</span>
+                        </button>
+                    )}
                     {register && (
                         <button
                             onClick={handleSupplierRequest}
@@ -261,6 +292,71 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     </div>
                 ))}
             </div>
+
+            {/* Dual Score Indicators (Pro/Enterprise) */}
+            {useCases.length > 0 && (
+                <FeatureGate feature="assessmentWizard" mode="replace">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Governance Quality */}
+                        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
+                            <div className="relative flex items-center justify-center">
+                                <svg className="h-14 w-14 -rotate-90" viewBox="0 0 36 36">
+                                    <path
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        className="text-muted/30"
+                                    />
+                                    <path
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2.5"
+                                        strokeDasharray={`${orgScores.avgQuality}, 100`}
+                                        className={orgScores.avgQuality >= 60 ? 'text-emerald-500' : orgScores.avgQuality >= 40 ? 'text-amber-500' : 'text-red-400'}
+                                    />
+                                </svg>
+                                <span className="absolute text-xs font-bold tabular-nums">{orgScores.avgQuality}%</span>
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-1.5">
+                                    <Shield className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="text-sm font-medium">Governance Quality</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">{orgScores.avgQualityLabel} · Ø über {orgScores.totalUseCases} Einsatzfälle</p>
+                            </div>
+                        </div>
+
+                        {/* Exposure Level */}
+                        <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
+                            <div
+                                className="flex h-14 w-14 items-center justify-center rounded-full"
+                                style={{ backgroundColor: `${getExposureColor(orgScores.maxExposure)}15` }}
+                            >
+                                <Zap className="h-6 w-6" style={{ color: getExposureColor(orgScores.maxExposure) }} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-sm font-medium">Exposure</span>
+                                    <span
+                                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
+                                        style={{ backgroundColor: getExposureColor(orgScores.maxExposure) }}
+                                    >
+                                        {orgScores.maxExposureLabel}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                    {orgScores.exposureDistribution.critical > 0 && `${orgScores.exposureDistribution.critical} kritisch · `}
+                                    {orgScores.exposureDistribution.high > 0 && `${orgScores.exposureDistribution.high} hoch · `}
+                                    {orgScores.exposureDistribution.medium > 0 && `${orgScores.exposureDistribution.medium} mittel · `}
+                                    {orgScores.exposureDistribution.low > 0 && `${orgScores.exposureDistribution.low} gering`}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </FeatureGate>
+            )}
 
             {/* Status Distribution Bar */}
             {segments.length > 0 && (

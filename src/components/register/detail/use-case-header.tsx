@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Pencil, Trash2, X } from "lucide-react";
+import { ArrowLeft, Lock, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { ToolkitPaywallDialog } from "@/components/register/toolkit-paywall-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +31,8 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
   const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { allowed: canEdit } = useCapability('editUseCase');
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -39,6 +43,14 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    if (canEdit) {
+      onToggleEdit();
+    } else {
+      setShowPaywall(true);
     }
   };
 
@@ -85,16 +97,21 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
             <Button
               variant={isEditing ? "default" : "outline"}
               size="sm"
-              onClick={onToggleEdit}
+              onClick={handleEditClick}
             >
               {isEditing ? (
                 <>
                   <X className="mr-1.5 h-3.5 w-3.5" />
                   Abbrechen
                 </>
-              ) : (
+              ) : canEdit ? (
                 <>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                  Bearbeiten
+                </>
+              ) : (
+                <>
+                  <Lock className="mr-1.5 h-3.5 w-3.5" />
                   Bearbeiten
                 </>
               )}
@@ -112,6 +129,8 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
           </div>
         </div>
       </div>
+
+      <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
