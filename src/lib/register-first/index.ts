@@ -28,3 +28,5 @@ export {
 } from "./register-repository";
 export * from "./register-service";
 export * from "./register-settings-client";
+export * from "./trust-portal-service";
+export * from "./review-service";
