@@ -23,8 +23,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { registerService } from "@/lib/register-first/register-service";
 import { createStaticToolRegistryService } from "@/lib/register-first/tool-registry-service";
-import type { CaptureUsageContext, DataCategory } from "@/lib/register-first/types";
+import type { CaptureUsageContext, DataCategory, OrgSettings } from "@/lib/register-first/types";
 import type { ToolRegistryEntry } from "@/lib/register-first/tool-registry-types";
+import { applyOrgDefaults } from "@/lib/register-first/inheritance";
+import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,6 +68,9 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
     const [draft, setDraft] = useState<QuickDraft>({ ...EMPTY_DRAFT });
     const [isSaving, setIsSaving] = useState(false);
     const [toolOptions, setToolOptions] = useState<{ value: string; label: string }[]>([]);
+    const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
+    const [inheritanceApplied, setInheritanceApplied] = useState(false);
+    const { allowed: canInherit } = useCapability("extendedOrgSettings");
     const { toast } = useToast();
 
     useEffect(() => {
@@ -73,6 +78,23 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             setToolOptions(tools.map((t) => ({ value: t.toolId, label: t.productName })));
         }).catch(() => { });
     }, []);
+
+    // Load orgSettings from active register for inheritance
+    useEffect(() => {
+        if (!canInherit) return;
+        registerService.listRegisters().then((regs) => {
+            if (regs.length > 0 && regs[0].orgSettings) {
+                setOrgSettings(regs[0].orgSettings);
+                // Check if any defaults would be applied
+                const merged = applyOrgDefaults(regs[0].orgSettings);
+                const hasDefaults = merged.reviewCycle !== "unknown" ||
+                    merged.policyLinks.length > 0 ||
+                    merged.incidentProcessDefined ||
+                    merged.oversightDefined;
+                setInheritanceApplied(hasDefaults);
+            }
+        }).catch(() => { });
+    }, [canInherit]);
 
     const canSave = draft.purpose.trim().length > 0 && draft.ownerName.trim().length >= 2 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
 
@@ -93,9 +115,37 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                 organisation: draft.organisation.trim() || null,
             });
 
+            // Apply org defaults + provenance if inheritance is active
+            if (canInherit && orgSettings && inheritanceApplied) {
+                const merged = applyOrgDefaults(orgSettings);
+                await registerService.updateUseCase(card.useCaseId, {
+                    governanceAssessment: {
+                        core: {
+                            ...card.governanceAssessment?.core,
+                            oversightDefined: merged.oversightDefined,
+                        },
+                        flex: {
+                            ...card.governanceAssessment?.flex,
+                            policyLinks: merged.policyLinks,
+                            incidentProcessDefined: merged.incidentProcessDefined,
+                            iso: {
+                                ...card.governanceAssessment?.flex?.iso,
+                                reviewCycle: merged.reviewCycle,
+                                oversightModel: card.governanceAssessment?.flex?.iso?.oversightModel ?? "unknown",
+                                documentationLevel: card.governanceAssessment?.flex?.iso?.documentationLevel ?? "unknown",
+                                lifecycleStatus: card.governanceAssessment?.flex?.iso?.lifecycleStatus ?? "unknown",
+                            },
+                        },
+                    },
+                    fieldProvenance: merged.provenance,
+                });
+            }
+
             toast({
                 title: "Registereintrag erstellt",
-                description: `„${card.purpose}" – Status: Formale Prüfung ausstehend`,
+                description: inheritanceApplied
+                    ? `„${card.purpose}" – Organisations-Vorgaben übernommen`
+                    : `„${card.purpose}" – Status: Formale Prüfung ausstehend`,
             });
 
             setDraft({ ...EMPTY_DRAFT });
@@ -265,6 +315,17 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                             {draft.description.length}/160
                         </p>
                     </div>
+                    {/* Inheritance Hint */}
+                    {canInherit && inheritanceApplied && (
+                        <div className="rounded-md border border-blue-100 bg-blue-50/50 px-3 py-2">
+                            <p className="text-xs text-blue-700 font-medium">
+                                Basierend auf Organisations-Vorgaben
+                            </p>
+                            <p className="text-[11px] text-blue-600/80 mt-0.5">
+                                Review-Zyklus, Richtlinien und Aufsichtsmodell werden aus den Organisationseinstellungen übernommen.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Actions */}

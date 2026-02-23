@@ -148,6 +148,14 @@ export interface UseCaseCard {
     };
   };
 
+  // ── Inheritance Provenance (Sprint S3) ────────────────────────────────────
+  fieldProvenance?: Record<string, {
+    source: 'inherit' | 'override';
+    overrideReason?: string;
+    approvedBy?: string;
+    timestamp: string;
+  }>;
+
   // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
   statusHistory?: StatusChange[];
   capturedBy?: string;
@@ -212,7 +220,66 @@ export interface OrgSettings {
   } | null;
 
   reviewStandard?: "annual" | "semiannual" | "risk-based" | null;
+
+  // ── Extended Governance Settings (Pro/Enterprise) ─────────────────────────
+
+  /** Organizational scope of AI governance */
+  scope?: ('INTERNAL' | 'EXTERNAL' | 'PRODUCT_AI' | 'SUPPLY_CHAIN')[];
+
+  /** Structured RACI roles for AI governance */
+  raci?: {
+    aiOwner?: RoleEntry | null;
+    complianceOwner?: RoleEntry | null;
+    technicalOwner?: RoleEntry | null;
+    incidentOwner?: RoleEntry | null;
+    reviewOwner?: RoleEntry | null;
+    dpo?: RoleEntry | null;
+    securityOfficer?: RoleEntry | null;
+    productOwner?: RoleEntry | null;
+  };
+
+  /** Risk assessment methodology */
+  riskMethodology?: 'basis' | 'extended';
+
+  /** Detailed incident management configuration */
+  incidentConfig?: {
+    reportingPath?: string;
+    escalationLevel?: string;
+    documentationRequired?: boolean;
+    responseTimeframe?: string;
+  } | null;
+
+  /** Review cycle configuration */
+  reviewCycle?: {
+    type: 'fixed' | 'risk_based' | 'event_based';
+    interval?: string;
+  } | null;
+
+  /** Competency and training requirements */
+  competencyMatrix?: {
+    euAiActTrainingRequired?: boolean;
+    technicalAiCompetency?: boolean;
+    dataPrivacyTraining?: boolean;
+    incidentTraining?: boolean;
+  } | null;
+
+  /** ISO standard alignment flags */
+  isoFlags?: {
+    iso27001Alignment?: boolean;
+    iso42001Preparation?: boolean;
+  } | null;
 }
+
+/** A named role holder in the RACI matrix */
+export interface RoleEntry {
+  name: string;
+  email?: string;
+  department?: string;
+}
+
+// ── Subscription Plans ──────────────────────────────────────────────────────
+
+export type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
 
 // ── Standalone Register (User-Scoped) ───────────────────────────────────────
 
@@ -225,6 +292,9 @@ export interface Register {
   organisationUnit?: string | null;
   publicOrganisationDisclosure?: boolean;
   orgSettings?: OrgSettings | null;
+
+  // ── Subscription & Feature Gating ─────────────────────────────────────────
+  plan?: SubscriptionPlan; // 'free' (default) | 'pro' | 'enterprise'
 
   // ── Register-First Architecture: Org Baseline ─────────────────────────────
   governanceMaturityLevel?: 1 | 2 | 3; // Baseline Level for all enclosed Use Cases

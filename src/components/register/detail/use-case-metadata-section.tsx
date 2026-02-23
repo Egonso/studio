@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
-import { Check, Loader2, Sparkles, Search, ExternalLink, AlertCircle, FileBadge, Mail } from "lucide-react";
+import { Check, Loader2, Sparkles, Search, ExternalLink, AlertCircle, FileBadge, Mail, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { UseCaseAssessmentWizard } from "./use-case-assessment-wizard";
-import { ToolkitUpsellButton } from "../toolkit-upsell-button";
+import { FeatureGate } from "../feature-gate";
+import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { ToolkitPaywallDialog } from "../toolkit-paywall-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +34,13 @@ import {
   riskLevelColors,
 } from "@/lib/register-first";
 import { registerService } from "@/lib/register-first/register-service";
+import {
+  computeProvenanceMap,
+  deriveOrgDefaults,
+  hasOverride as checkFieldOverride,
+  createProvenance,
+  type FieldProvenance,
+} from "@/lib/register-first/inheritance";
 
 const aiRegistry = createAiToolsRegistryService();
 
@@ -61,6 +70,92 @@ interface UseCaseMetadataSectionProps {
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
 }
 
+// ── Inheritance: ORG Badge + Override Reason ─────────────────────────────────
+
+/** Fields where override-reason is mandatory */
+const MANDATORY_OVERRIDE_REASON_FIELDS = new Set([
+  "reviewCycle",       // Scope-Änderung
+  "oversightDefined",  // Risiko-Änderung
+]);
+
+function OrgBadge({ fieldKey, provenance }: { fieldKey: string; provenance: Record<string, FieldProvenance> | undefined }) {
+  const entry = provenance?.[fieldKey];
+  if (!entry || entry.source !== "inherit") return null;
+  return (
+    <Badge
+      variant="outline"
+      className="ml-2 text-[9px] font-semibold bg-violet-50 text-violet-700 border-violet-200 py-0 px-1.5 uppercase tracking-wider"
+    >
+      ORG
+    </Badge>
+  );
+}
+
+function OverrideReasonInput({
+  fieldKey,
+  value,
+  onChange,
+  required,
+}: {
+  fieldKey: string;
+  value: string;
+  onChange: (val: string) => void;
+  required: boolean;
+}) {
+  return (
+    <div className="mt-1.5 space-y-1">
+      <Label className="text-[10px] text-amber-700 font-medium">
+        Begründung für Abweichung {required && <span className="text-red-500">*</span>}
+      </Label>
+      <Input
+        placeholder="Warum weicht dieser Use Case von der Org-Vorgabe ab?"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-7 text-xs border-amber-200 focus:border-amber-400 bg-amber-50/50"
+      />
+    </div>
+  );
+}
+
+/** Gated assessment buttons – Pass is always free, Assessment requires pro */
+function AssessmentButtons({
+  card,
+  onPassClick,
+  onAssessmentClick,
+}: {
+  card: UseCaseCard;
+  onPassClick: () => void;
+  onAssessmentClick: () => void;
+}) {
+  const { allowed: canAssess } = useCapability('assessmentWizard');
+  const [showPaywall, setShowPaywall] = useState(false);
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/20"
+          onClick={onPassClick}
+        >
+          <FileBadge className="w-4 h-4 mr-2" />
+          Use-Case Pass
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={canAssess ? onAssessmentClick : () => setShowPaywall(true)}
+        >
+          {!canAssess && <Lock className="w-3.5 h-3.5 mr-1.5" />}
+          EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
+        </Button>
+      </div>
+      <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+    </>
+  );
+}
+
 export function UseCaseMetadataSection({
   card,
   isEditing,
@@ -84,12 +179,19 @@ export function UseCaseMetadataSection({
     portfolio_riskScore: card.governanceAssessment?.flex?.portfolio?.riskScore ?? null,
     portfolio_riskRationale: card.governanceAssessment?.flex?.portfolio?.riskRationale ?? "",
     portfolio_strategyTag: card.governanceAssessment?.flex?.portfolio?.strategyTag ?? null,
+
+    // Sprint S3: Override reasons
+    overrideReason_reviewCycle: "",
+    overrideReason_oversightDefined: "",
+    overrideReason_policyLinks: "",
+    overrideReason_incidentProcessDefined: "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isCheckingCompliance, setIsCheckingCompliance] = useState(false);
   const [register, setRegister] = useState<Register | null>(null);
+  const { allowed: canInherit } = useCapability("extendedOrgSettings");
   const { toast } = useToast();
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
@@ -128,8 +230,66 @@ export function UseCaseMetadataSection({
   };
 
   const handleSave = async () => {
+    // Validate mandatory override reasons
+    if (canInherit && isOverridingReviewCycle && !editDraft.overrideReason_reviewCycle.trim()) {
+      toast({ variant: "destructive", title: "Begründung erforderlich", description: "Bitte geben Sie eine Begründung für die Abweichung beim Review-Zyklus an." });
+      return;
+    }
+    if (canInherit && isOverridingOversight && !editDraft.overrideReason_oversightDefined.trim()) {
+      toast({ variant: "destructive", title: "Begründung erforderlich", description: "Bitte geben Sie eine Begründung für die Abweichung beim Aufsichtsmodell an." });
+      return;
+    }
+
     setIsSaving(true);
     try {
+      // Build provenance updates
+      const ts = new Date().toISOString();
+      const updatedProvenance: Record<string, FieldProvenance> = { ...(card.fieldProvenance || {}) };
+
+      if (canInherit && orgDefaults) {
+        const overrideFields = [
+          { key: "reviewCycle", current: editDraft.iso_reviewCycle, orgVal: orgDefaults.reviewCycle, reason: editDraft.overrideReason_reviewCycle },
+          { key: "oversightDefined", current: editDraft.iso_oversightModel !== "unknown" ? true : undefined, orgVal: orgDefaults.oversightDefined, reason: editDraft.overrideReason_oversightDefined },
+          { key: "policyLinks", current: undefined, orgVal: orgDefaults.policyLinks, reason: editDraft.overrideReason_policyLinks },
+          { key: "incidentProcessDefined", current: undefined, orgVal: orgDefaults.incidentProcessDefined, reason: editDraft.overrideReason_incidentProcessDefined },
+        ] as const;
+
+        for (const f of overrideFields) {
+          const isOverridden = checkFieldOverride(f.current, f.orgVal);
+          updatedProvenance[f.key] = createProvenance(
+            isOverridden ? "override" : "inherit",
+            isOverridden ? f.reason || undefined : undefined,
+            undefined,
+            ts
+          );
+        }
+      }
+
+      // Build audit trail entry for overrides
+      const overrideStatusChanges = [...(card.statusHistory || [])];
+      if (canInherit) {
+        if (isOverridingReviewCycle && editDraft.overrideReason_reviewCycle) {
+          overrideStatusChanges.push({
+            from: card.status,
+            to: card.status,
+            changedAt: ts,
+            changedBy: card.capturedBy || "unknown",
+            changedByName: card.capturedByName || "System",
+            reason: `[Override] Review-Zyklus: ${editDraft.overrideReason_reviewCycle}`,
+          });
+        }
+        if (isOverridingOversight && editDraft.overrideReason_oversightDefined) {
+          overrideStatusChanges.push({
+            from: card.status,
+            to: card.status,
+            changedAt: ts,
+            changedBy: card.capturedBy || "unknown",
+            changedByName: card.capturedByName || "System",
+            reason: `[Override] Aufsichtsmodell: ${editDraft.overrideReason_oversightDefined}`,
+          });
+        }
+      }
+
       await onSave({
         purpose: editDraft.purpose,
         responsibility: {
@@ -158,7 +318,11 @@ export function UseCaseMetadataSection({
               strategyTag: editDraft.portfolio_strategyTag as any,
             }
           }
-        }
+        },
+        fieldProvenance: canInherit ? updatedProvenance : undefined,
+        statusHistory: overrideStatusChanges.length > (card.statusHistory?.length || 0)
+          ? overrideStatusChanges
+          : undefined,
       });
     } finally {
       setIsSaving(false);
@@ -212,7 +376,23 @@ export function UseCaseMetadataSection({
     }
   };
 
+  // ── Inheritance: provenance map & org defaults ──────────────────────────
   const orgSettings = register?.orgSettings;
+  const orgDefaults = canInherit ? deriveOrgDefaults(orgSettings) : undefined;
+  const provenanceMap = canInherit
+    ? (card.fieldProvenance ?? computeProvenanceMap(orgSettings, card))
+    : undefined;
+
+  // Track which fields are currently being overridden in edit mode
+  const isOverridingReviewCycle = canInherit && orgDefaults?.reviewCycle != null &&
+    editDraft.iso_reviewCycle !== "unknown" &&
+    checkFieldOverride(editDraft.iso_reviewCycle, orgDefaults.reviewCycle);
+  const isOverridingOversight = canInherit && orgDefaults?.oversightDefined != null &&
+    checkFieldOverride(
+      editDraft.iso_oversightModel !== "unknown" ? true : undefined,
+      orgDefaults.oversightDefined
+    );
+
   const macroFlags = {
     aiPolicyExists: !!orgSettings?.aiPolicy?.url,
     incidentProcessExists: !!orgSettings?.incidentProcess?.url,
@@ -227,15 +407,11 @@ export function UseCaseMetadataSection({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b">
         <CardTitle className="text-base">Use Case Konfiguration</CardTitle>
         {!isEditing && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/20" onClick={() => router.push(`/pass/${card.useCaseId}`)}>
-              <FileBadge className="w-4 h-4 mr-2" />
-              Use-Case Pass
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsWizardOpen(true)}>
-              EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
-            </Button>
-          </div>
+          <AssessmentButtons
+            card={card}
+            onPassClick={() => router.push(`/pass/${card.useCaseId}`)}
+            onAssessmentClick={() => setIsWizardOpen(true)}
+          />
         )}
       </CardHeader>
 
@@ -379,266 +555,296 @@ export function UseCaseMetadataSection({
             )}
           </TabsContent>
 
-          {/* TAB: ISO LIFECYCLE */}
+          {/* TAB: ISO LIFECYCLE (Gated) */}
           <TabsContent value="iso" className="space-y-6 m-0 border-0 p-0 focus-visible:ring-0">
-            <div className="space-y-4">
-              {hasMacroGaps && (
-                <Alert className="bg-muted border-border/50 text-foreground">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle className="text-sm font-semibold">Organisationsebene unvollständig</AlertTitle>
-                  <AlertDescription className="text-xs text-muted-foreground mt-1 flex flex-col gap-2">
-                    <p>Macro-Governance Bestimmungen (AI Policy, Incident Process, RACI) sollten zentral in den Einstellungen der Organisation gepflegt werden. Sie wirken sich automatisch auf alle Use Cases aus.</p>
-                    <Button variant="outline" size="sm" className="w-fit" onClick={() => router.push('/settings/governance')}>
-                      Zu Organisationseinstellungen
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              {!isEditing && (!card.governanceAssessment?.flex?.iso || card.governanceAssessment.flex.iso.reviewCycle === 'unknown') && (
-                <div className="rounded-md border p-6 flex flex-col items-center justify-center text-center bg-secondary/20">
-                  <p className="text-sm font-medium mb-1">ISO Lifecycle noch nicht bewertet</p>
-                  <p className="text-xs text-muted-foreground mb-4">Pflegen Sie die Verantwortlichkeiten und Überprüfungszyklen für dieses spezielle System ein.</p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
-                {/* Responsibility (Canonical Sync) */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Verantwortlich <span className="text-red-500">*</span>
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={editDraft.responsibleParty}
-                      onChange={(e) =>
-                        setEditDraft((prev) => ({ ...prev, responsibleParty: e.target.value }))
-                      }
-                      placeholder="z. B. Max Mustermann"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-between pb-2 border-b">
-                      <p className="text-sm text-muted-foreground truncate mr-2">
-                        {card.responsibility.isCurrentlyResponsible
-                          ? "Erfasser:in (selbst)"
-                          : card.responsibility.responsibleParty || "Nicht zugewiesen"}
-                      </p>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs text-primary hover:bg-primary/10" onClick={handleInvite}>
-                        <Mail className="w-3 h-3 mr-1" />
-                        Einladen
+            <FeatureGate feature="isoLifecycleTab" mode="overlay">
+              <div className="space-y-4">
+                {hasMacroGaps && (
+                  <Alert className="bg-muted border-border/50 text-foreground">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="text-sm font-semibold">Organisationsebene unvollständig</AlertTitle>
+                    <AlertDescription className="text-xs text-muted-foreground mt-1 flex flex-col gap-2">
+                      <p>Macro-Governance Bestimmungen (AI Policy, Incident Process, RACI) sollten zentral in den Einstellungen der Organisation gepflegt werden. Sie wirken sich automatisch auf alle Use Cases aus.</p>
+                      <Button variant="outline" size="sm" className="w-fit" onClick={() => router.push('/settings/governance')}>
+                        Zu Organisationseinstellungen
                       </Button>
-                    </div>
-                  )}
-                </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-                {/* Organisation (Canonical Sync) */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Organisationseinheit
-                  </Label>
-                  {isEditing ? (
-                    <Input
-                      value={editDraft.organisation}
-                      onChange={(e) =>
-                        setEditDraft((prev) => ({ ...prev, organisation: e.target.value }))
-                      }
-                      placeholder="z. B. Marketing"
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">
-                      {card.organisation || "Nicht angegeben"}
-                    </p>
-                  )}
-                </div>
+                {!isEditing && (!card.governanceAssessment?.flex?.iso || card.governanceAssessment.flex.iso.reviewCycle === 'unknown') && (
+                  <div className="rounded-md border p-6 flex flex-col items-center justify-center text-center bg-secondary/20">
+                    <p className="text-sm font-medium mb-1">ISO Lifecycle noch nicht bewertet</p>
+                    <p className="text-xs text-muted-foreground mb-4">Pflegen Sie die Verantwortlichkeiten und Überprüfungszyklen für dieses spezielle System ein.</p>
+                  </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Review Zyklus <span className="text-red-500">*</span></Label>
-                  {isEditing ? (
-                    <Select value={editDraft.iso_reviewCycle} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_reviewCycle: val as any }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unknown">Unbekannt</SelectItem>
-                        <SelectItem value="monthly">Monatlich</SelectItem>
-                        <SelectItem value="quarterly">Quartalsweise</SelectItem>
-                        <SelectItem value="semiannual">Halbjährlich</SelectItem>
-                        <SelectItem value="annual">Jährlich</SelectItem>
-                        <SelectItem value="ad_hoc">Ad-hoc</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_reviewCycle}</p>
-                  )}
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
+                  {/* Responsibility (Canonical Sync) */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Verantwortlich <span className="text-red-500">*</span>
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        value={editDraft.responsibleParty}
+                        onChange={(e) =>
+                          setEditDraft((prev) => ({ ...prev, responsibleParty: e.target.value }))
+                        }
+                        placeholder="z. B. Max Mustermann"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-between pb-2 border-b">
+                        <p className="text-sm text-muted-foreground truncate mr-2">
+                          {card.responsibility.isCurrentlyResponsible
+                            ? "Erfasser:in (selbst)"
+                            : card.responsibility.responsibleParty || "Nicht zugewiesen"}
+                        </p>
+                        <Button variant="ghost" size="sm" className="h-6 text-xs text-primary hover:bg-primary/10" onClick={handleInvite}>
+                          <Mail className="w-3 h-3 mr-1" />
+                          Einladen
+                        </Button>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Aufsichtsmodell <span className="text-red-500">*</span></Label>
-                  {isEditing ? (
-                    <Select value={editDraft.iso_oversightModel} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_oversightModel: val as any }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unknown">Unbekannt</SelectItem>
-                        <SelectItem value="HITL">Human-in-the-Loop (HITL)</SelectItem>
-                        <SelectItem value="HOTL">Human-on-the-Loop (HOTL)</SelectItem>
-                        <SelectItem value="HUMAN_REVIEW">Manuelles Review</SelectItem>
-                        <SelectItem value="NO_HUMAN">Vollautomatisiert</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_oversightModel}</p>
-                  )}
-                </div>
+                  {/* Organisation (Canonical Sync) */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Organisationseinheit
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        value={editDraft.organisation}
+                        onChange={(e) =>
+                          setEditDraft((prev) => ({ ...prev, organisation: e.target.value }))
+                        }
+                        placeholder="z. B. Marketing"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground pb-2 border-b">
+                        {card.organisation || "Nicht angegeben"}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Dokumentations-Level <span className="text-red-500">*</span></Label>
-                  {isEditing ? (
-                    <Select value={editDraft.iso_documentationLevel} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_documentationLevel: val as any }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unknown">Unbekannt</SelectItem>
-                        <SelectItem value="minimal">Minimal (Nur Record)</SelectItem>
-                        <SelectItem value="standard">Standard (SOPs, Risk Check)</SelectItem>
-                        <SelectItem value="extended">Erweitert (ISO 42001 konform)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_documentationLevel}</p>
-                  )}
-                </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Review Zyklus <span className="text-red-500">*</span>
+                      <OrgBadge fieldKey="reviewCycle" provenance={provenanceMap} />
+                    </Label>
+                    {isEditing ? (
+                      <>
+                        <Select value={editDraft.iso_reviewCycle} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_reviewCycle: val as any }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unknown">Unbekannt</SelectItem>
+                            <SelectItem value="monthly">Monatlich</SelectItem>
+                            <SelectItem value="quarterly">Quartalsweise</SelectItem>
+                            <SelectItem value="semiannual">Halbjährlich</SelectItem>
+                            <SelectItem value="annual">Jährlich</SelectItem>
+                            <SelectItem value="ad_hoc">Ad-hoc</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isOverridingReviewCycle && (
+                          <OverrideReasonInput
+                            fieldKey="reviewCycle"
+                            value={editDraft.overrideReason_reviewCycle}
+                            onChange={(v) => setEditDraft(p => ({ ...p, overrideReason_reviewCycle: v }))}
+                            required={MANDATORY_OVERRIDE_REASON_FIELDS.has("reviewCycle")}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_reviewCycle}</p>
+                    )}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Lifecycle Status</Label>
-                  {isEditing ? (
-                    <Select value={editDraft.iso_lifecycleStatus} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_lifecycleStatus: val as any }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unknown">Unbekannt</SelectItem>
-                        <SelectItem value="pilot">Pilot-Phase</SelectItem>
-                        <SelectItem value="active">Produktivbetrieb</SelectItem>
-                        <SelectItem value="retired">Beendet</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_lifecycleStatus}</p>
-                  )}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      Aufsichtsmodell <span className="text-red-500">*</span>
+                      <OrgBadge fieldKey="oversightDefined" provenance={provenanceMap} />
+                    </Label>
+                    {isEditing ? (
+                      <>
+                        <Select value={editDraft.iso_oversightModel} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_oversightModel: val as any }))}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unknown">Unbekannt</SelectItem>
+                            <SelectItem value="HITL">Human-in-the-Loop (HITL)</SelectItem>
+                            <SelectItem value="HOTL">Human-on-the-Loop (HOTL)</SelectItem>
+                            <SelectItem value="HUMAN_REVIEW">Manuelles Review</SelectItem>
+                            <SelectItem value="NO_HUMAN">Vollautomatisiert</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isOverridingOversight && (
+                          <OverrideReasonInput
+                            fieldKey="oversightDefined"
+                            value={editDraft.overrideReason_oversightDefined}
+                            onChange={(v) => setEditDraft(p => ({ ...p, overrideReason_oversightDefined: v }))}
+                            required={MANDATORY_OVERRIDE_REASON_FIELDS.has("oversightDefined")}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_oversightModel}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Dokumentations-Level <span className="text-red-500">*</span></Label>
+                    {isEditing ? (
+                      <Select value={editDraft.iso_documentationLevel} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_documentationLevel: val as any }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unknown">Unbekannt</SelectItem>
+                          <SelectItem value="minimal">Minimal (Nur Record)</SelectItem>
+                          <SelectItem value="standard">Standard (SOPs, Risk Check)</SelectItem>
+                          <SelectItem value="extended">Erweitert (ISO 42001 konform)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_documentationLevel}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Lifecycle Status</Label>
+                    {isEditing ? (
+                      <Select value={editDraft.iso_lifecycleStatus} onValueChange={(val) => setEditDraft(p => ({ ...p, iso_lifecycleStatus: val as any }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unknown">Unbekannt</SelectItem>
+                          <SelectItem value="pilot">Pilot-Phase</SelectItem>
+                          <SelectItem value="active">Produktivbetrieb</SelectItem>
+                          <SelectItem value="retired">Beendet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground pb-2 border-b">{editDraft.iso_lifecycleStatus}</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </FeatureGate>
           </TabsContent>
 
-          {/* TAB: PORTFOLIO */}
+          {/* TAB: PORTFOLIO (Gated) */}
           <TabsContent value="portfolio" className="space-y-6 m-0 border-0 p-0 focus-visible:ring-0">
-            <div className="space-y-4">
-              {!isEditing && (editDraft.portfolio_valueScore === null || editDraft.portfolio_riskScore === null) && (
-                <div className="rounded-md border p-6 flex flex-col items-center justify-center text-center bg-secondary/20">
-                  <p className="text-sm font-medium mb-1">Portfolio-Score fehlt</p>
-                  <p className="text-xs text-muted-foreground mb-4">Möchten Sie diesen Use Case in Ihrer Portfolio-Analyse berücksichtigen?</p>
-                </div>
-              )}
+            <FeatureGate feature="portfolioTab" mode="overlay">
+              <div className="space-y-4">
+                {!isEditing && (editDraft.portfolio_valueScore === null || editDraft.portfolio_riskScore === null) && (
+                  <div className="rounded-md border p-6 flex flex-col items-center justify-center text-center bg-secondary/20">
+                    <p className="text-sm font-medium mb-1">Portfolio-Score fehlt</p>
+                    <p className="text-xs text-muted-foreground mb-4">Möchten Sie diesen Use Case in Ihrer Portfolio-Analyse berücksichtigen?</p>
+                  </div>
+                )}
 
-              <div className="grid grid-cols-1 gap-6">
-                {/* Value Score */}
-                <div className="p-4 rounded-md border bg-slate-50/50 space-y-4">
-                  <div className="flex flex-col space-y-1.5">
-                    <Label className="text-sm font-medium">Business Value Score</Label>
-                    <p className="text-[11px] text-muted-foreground">Wie viel Nutzen bringt diese KI-Anwendung für das Unternehmen (0 = Keinen, 5 = Essenziell)?</p>
+                <div className="grid grid-cols-1 gap-6">
+                  {/* Value Score */}
+                  <div className="p-4 rounded-md border bg-slate-50/50 space-y-4">
+                    <div className="flex flex-col space-y-1.5">
+                      <Label className="text-sm font-medium">Business Value Score</Label>
+                      <p className="text-[11px] text-muted-foreground">Wie viel Nutzen bringt diese KI-Anwendung für das Unternehmen (0 = Keinen, 5 = Essenziell)?</p>
+                    </div>
+
+                    {isEditing ? (
+                      <Select
+                        value={editDraft.portfolio_valueScore !== null ? editDraft.portfolio_valueScore.toString() : ""}
+                        onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_valueScore: parseInt(val, 10) as any }))}
+                      >
+                        <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Bitte wählen..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0 - Kein Nutzen</SelectItem>
+                          <SelectItem value="1">1 - Sehr gering</SelectItem>
+                          <SelectItem value="2">2 - Gering</SelectItem>
+                          <SelectItem value="3">3 - Moderat</SelectItem>
+                          <SelectItem value="4">4 - Hoch</SelectItem>
+                          <SelectItem value="5">5 - Essenziell</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="text-sm font-medium">{editDraft.portfolio_valueScore !== null ? editDraft.portfolio_valueScore : "Nicht bewertet"} / 5</div>
+                    )}
+
+                    <div className="space-y-1.5 pt-2">
+                      <Label className="text-xs text-muted-foreground">Rationale (Begründung)</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={editDraft.portfolio_valueRationale || ""}
+                          placeholder="Kurze Begründung (max 300 Zeichen)..."
+                          maxLength={300}
+                          className="h-20 bg-white"
+                          onChange={(e) => setEditDraft(p => ({ ...p, portfolio_valueRationale: e.target.value }))}
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{editDraft.portfolio_valueRationale || "-"}</p>
+                      )}
+                    </div>
                   </div>
 
-                  {isEditing ? (
-                    <Select
-                      value={editDraft.portfolio_valueScore !== null ? editDraft.portfolio_valueScore.toString() : ""}
-                      onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_valueScore: parseInt(val, 10) as any }))}
-                    >
-                      <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Bitte wählen..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0 - Kein Nutzen</SelectItem>
-                        <SelectItem value="1">1 - Sehr gering</SelectItem>
-                        <SelectItem value="2">2 - Gering</SelectItem>
-                        <SelectItem value="3">3 - Moderat</SelectItem>
-                        <SelectItem value="4">4 - Hoch</SelectItem>
-                        <SelectItem value="5">5 - Essenziell</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="text-sm font-medium">{editDraft.portfolio_valueScore !== null ? editDraft.portfolio_valueScore : "Nicht bewertet"} / 5</div>
-                  )}
+                  {/* Risk Score */}
+                  <div className="p-4 rounded-md border bg-red-50/10 space-y-4">
+                    <div className="flex flex-col space-y-1.5">
+                      <Label className="text-sm font-medium">Compliance Risk Score</Label>
+                      <p className="text-[11px] text-muted-foreground">Wie hoch ist das Risiko bezüglich Daten, KI-Gesetz, Ausfällen (0 = Minimales Risiko, 5 = Kritisches Risiko)?</p>
+                    </div>
 
-                  <div className="space-y-1.5 pt-2">
-                    <Label className="text-xs text-muted-foreground">Rationale (Begründung)</Label>
                     {isEditing ? (
-                      <Textarea
-                        value={editDraft.portfolio_valueRationale || ""}
-                        placeholder="Kurze Begründung (max 300 Zeichen)..."
-                        maxLength={300}
-                        className="h-20 bg-white"
-                        onChange={(e) => setEditDraft(p => ({ ...p, portfolio_valueRationale: e.target.value }))}
-                      />
+                      <Select
+                        value={editDraft.portfolio_riskScore !== null ? editDraft.portfolio_riskScore.toString() : ""}
+                        onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_riskScore: parseInt(val, 10) as any }))}
+                      >
+                        <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Bitte wählen..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="0">0 - Kein Risiko</SelectItem>
+                          <SelectItem value="1">1 - Sehr gering</SelectItem>
+                          <SelectItem value="2">2 - Gering</SelectItem>
+                          <SelectItem value="3">3 - Moderat</SelectItem>
+                          <SelectItem value="4">4 - Hoch</SelectItem>
+                          <SelectItem value="5">5 - Kritisch</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{editDraft.portfolio_valueRationale || "-"}</p>
+                      <div className="text-sm font-medium">{editDraft.portfolio_riskScore !== null ? editDraft.portfolio_riskScore : "Nicht bewertet"} / 5</div>
+                    )}
+
+                    <div className="space-y-1.5 pt-2">
+                      <Label className="text-xs text-muted-foreground">Rationale (Begründung)</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={editDraft.portfolio_riskRationale || ""}
+                          placeholder="Gibt es bestimmte Risikofaktoren? (max 300 Zeichen)..."
+                          maxLength={300}
+                          className="h-20 bg-white"
+                          onChange={(e) => setEditDraft(p => ({ ...p, portfolio_riskRationale: e.target.value }))}
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{editDraft.portfolio_riskRationale || "-"}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Strategy */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Konzern-Strategie Tag</Label>
+                    {isEditing ? (
+                      <Select value={editDraft.portfolio_strategyTag || ""} onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_strategyTag: val as any }))}>
+                        <SelectTrigger className="w-full md:w-[300px]"><SelectValue placeholder="Unbekannt / Kein Tag" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pilot">Pilot-Projekt</SelectItem>
+                          <SelectItem value="scale">Skalieren (High Value)</SelectItem>
+                          <SelectItem value="monitor">Beobachten</SelectItem>
+                          <SelectItem value="stop">Stoppen / Degardieren</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{editDraft.portfolio_strategyTag || "Kein Tag zugewiesen"}</p>
                     )}
                   </div>
-                </div>
-
-                {/* Risk Score */}
-                <div className="p-4 rounded-md border bg-red-50/10 space-y-4">
-                  <div className="flex flex-col space-y-1.5">
-                    <Label className="text-sm font-medium">Compliance Risk Score</Label>
-                    <p className="text-[11px] text-muted-foreground">Wie hoch ist das Risiko bezüglich Daten, KI-Gesetz, Ausfällen (0 = Minimales Risiko, 5 = Kritisches Risiko)?</p>
-                  </div>
-
-                  {isEditing ? (
-                    <Select
-                      value={editDraft.portfolio_riskScore !== null ? editDraft.portfolio_riskScore.toString() : ""}
-                      onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_riskScore: parseInt(val, 10) as any }))}
-                    >
-                      <SelectTrigger className="w-[180px] bg-white"><SelectValue placeholder="Bitte wählen..." /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">0 - Kein Risiko</SelectItem>
-                        <SelectItem value="1">1 - Sehr gering</SelectItem>
-                        <SelectItem value="2">2 - Gering</SelectItem>
-                        <SelectItem value="3">3 - Moderat</SelectItem>
-                        <SelectItem value="4">4 - Hoch</SelectItem>
-                        <SelectItem value="5">5 - Kritisch</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="text-sm font-medium">{editDraft.portfolio_riskScore !== null ? editDraft.portfolio_riskScore : "Nicht bewertet"} / 5</div>
-                  )}
-
-                  <div className="space-y-1.5 pt-2">
-                    <Label className="text-xs text-muted-foreground">Rationale (Begründung)</Label>
-                    {isEditing ? (
-                      <Textarea
-                        value={editDraft.portfolio_riskRationale || ""}
-                        placeholder="Gibt es bestimmte Risikofaktoren? (max 300 Zeichen)..."
-                        maxLength={300}
-                        className="h-20 bg-white"
-                        onChange={(e) => setEditDraft(p => ({ ...p, portfolio_riskRationale: e.target.value }))}
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground">{editDraft.portfolio_riskRationale || "-"}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Strategy */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Konzern-Strategie Tag</Label>
-                  {isEditing ? (
-                    <Select value={editDraft.portfolio_strategyTag || ""} onValueChange={(val) => setEditDraft(p => ({ ...p, portfolio_strategyTag: val as any }))}>
-                      <SelectTrigger className="w-full md:w-[300px]"><SelectValue placeholder="Unbekannt / Kein Tag" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pilot">Pilot-Projekt</SelectItem>
-                        <SelectItem value="scale">Skalieren (High Value)</SelectItem>
-                        <SelectItem value="monitor">Beobachten</SelectItem>
-                        <SelectItem value="stop">Stoppen / Degardieren</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{editDraft.portfolio_strategyTag || "Kein Tag zugewiesen"}</p>
-                  )}
                 </div>
               </div>
-            </div>
+            </FeatureGate>
           </TabsContent>
 
         </CardContent>
