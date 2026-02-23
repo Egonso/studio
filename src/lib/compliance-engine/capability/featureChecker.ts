@@ -22,6 +22,9 @@ export type FeatureCapability =
     | 'isoAlignmentPack'      // ISO 27001 / 42001 Mapping
     | 'competencyMatrix'      // Competency requirements tracking
 
+    // ── Review & Reporting ────────────────────────────────────────────────────
+    | 'reviewWorkflow'        // Review history + deadline monitoring
+
     // ── Enterprise Features ──────────────────────────────────────────────────
     | 'trustPortal'           // Public Trust Portal
     | 'benchmarkInsights'     // Anonymized benchmark data
@@ -50,6 +53,7 @@ const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
         'auditExport',
         'isoAlignmentPack',
         'competencyMatrix',
+        'reviewWorkflow',
     ],
 
     enterprise: [
@@ -64,6 +68,7 @@ const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
         'auditExport',
         'isoAlignmentPack',
         'competencyMatrix',
+        'reviewWorkflow',
         // Enterprise-only:
         'trustPortal',
         'benchmarkInsights',

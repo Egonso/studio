@@ -11,7 +11,7 @@ import { ReviewSection } from "@/components/register/detail/review-section";
 import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
 import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
 import { registerService } from "@/lib/register-first/register-service";
-import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
+import type { RegisterUseCaseStatus, UseCaseCard, OrgSettings } from "@/lib/register-first/types";
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
@@ -19,6 +19,8 @@ export default function UseCaseDetailPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
+  const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
+  const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,11 +32,19 @@ export default function UseCaseDetailPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await registerService.getUseCase(undefined, useCaseId);
+      const [result, useCases, registers] = await Promise.all([
+        registerService.getUseCase(undefined, useCaseId),
+        registerService.listUseCases().catch(() => [] as UseCaseCard[]),
+        registerService.listRegisters().catch(() => []),
+      ]);
       if (!result) {
         setError("Einsatzfall nicht gefunden.");
       } else {
         setCard(result);
+        setAllUseCases(useCases);
+        if (registers.length > 0 && registers[0].orgSettings) {
+          setOrgSettings(registers[0].orgSettings);
+        }
       }
     } catch (err) {
       if (isServiceError(err, "UNAUTHENTICATED")) {
@@ -133,7 +143,12 @@ export default function UseCaseDetailPage() {
 
           {/* Right column: Review + Audit + Liability */}
           <div className="space-y-6">
-            <GovernanceLiabilitySection card={card} />
+            <GovernanceLiabilitySection
+              card={card}
+              useCases={allUseCases}
+              orgSettings={orgSettings}
+              onCardUpdate={(updated) => { setCard(updated); void loadUseCase(); }}
+            />
             <ReviewSection card={card} onStatusChange={handleStatusChange} />
             <AuditTrailSection card={card} />
           </div>
