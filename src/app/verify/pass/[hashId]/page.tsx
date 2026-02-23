@@ -139,6 +139,48 @@ export default function VerifyPassPage() {
           </CardHeader>
         </Card>
 
+        {/* Governance Trust Signal */}
+        {entry && (
+          <Card className="mb-4 border bg-white/80">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Shield className="h-4 w-4 text-primary" />
+                Governance-Nachweis
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className={`rounded-lg p-2.5 text-center ${entry.status === 'PROOF_READY' ? 'bg-emerald-50 text-emerald-700' :
+                    entry.status === 'REVIEWED' ? 'bg-blue-50 text-blue-700' :
+                      entry.status === 'REVIEW_RECOMMENDED' ? 'bg-amber-50 text-amber-700' :
+                        'bg-gray-50 text-gray-600'
+                  }`}>
+                  <div className="font-semibold text-sm">
+                    {entry.status === 'PROOF_READY' ? '✓ Nachweisfähig' :
+                      entry.status === 'REVIEWED' ? '✓ Geprüft' :
+                        entry.status === 'REVIEW_RECOMMENDED' ? '⚠ Prüfung empf.' :
+                          '○ Offen'}
+                  </div>
+                  <div className="mt-0.5 opacity-70">Governance-Status</div>
+                </div>
+                <div className={`rounded-lg p-2.5 text-center ${entry.dataCategory === 'SENSITIVE' ? 'bg-red-50 text-red-700' :
+                    entry.dataCategory === 'PERSONAL' ? 'bg-amber-50 text-amber-700' :
+                      'bg-green-50 text-green-700'
+                  }`}>
+                  <div className="font-semibold text-sm">
+                    {dataCategoryLabels[entry.dataCategory ?? ''] ?? 'Standard'}
+                  </div>
+                  <div className="mt-0.5 opacity-70">Datenkategorie</div>
+                </div>
+              </div>
+              {entry.verification?.isReal && entry.verification?.isCurrent && (
+                <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Verifizierter realer Einsatz (aktuell)
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {entry && (
           <Card className="w-full max-w-md border-2">
             <CardHeader className="space-y-2 pb-3">
