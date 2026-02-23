@@ -10,6 +10,7 @@ import { UseCaseMetadataSection } from "@/components/register/detail/use-case-me
 import { ReviewSection } from "@/components/register/detail/review-section";
 import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
 import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
+import { ReviewTimeline } from "@/components/register/detail/review-timeline";
 import { registerService } from "@/lib/register-first/register-service";
 import type { RegisterUseCaseStatus, UseCaseCard, OrgSettings } from "@/lib/register-first/types";
 
@@ -149,6 +150,9 @@ export default function UseCaseDetailPage() {
               orgSettings={orgSettings}
               onCardUpdate={(updated) => { setCard(updated); void loadUseCase(); }}
             />
+            {card.reviews.length > 0 && (
+              <ReviewTimeline reviews={card.reviews} />
+            )}
             <ReviewSection card={card} onStatusChange={handleStatusChange} />
             <AuditTrailSection card={card} />
           </div>

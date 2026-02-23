@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { UseCaseCard, OrgSettings } from "@/lib/register-first/types";
 import { useToast } from "@/hooks/use-toast";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { ReviewDialog } from "./review-dialog";
 
 // ── Backend Services ────────────────────────────────────────────────────────
 import { isPubliclyVerifiable, getVerifyUrl } from "@/lib/register-first/trust-portal-service";
@@ -76,6 +77,7 @@ export function GovernanceLiabilitySection({
 }: GovernanceLiabilitySectionProps) {
     const { toast } = useToast();
     const [isActivatingPortal, setIsActivatingPortal] = useState(false);
+    const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
     // ── Capability checks ───────────────────────────────────────────────
     const reviewCap = useCapability("reviewWorkflow");
@@ -142,11 +144,7 @@ export function GovernanceLiabilitySection({
             });
             return;
         }
-        // Review dialog will be built in GN-E
-        toast({
-            title: "Prüfhistorie",
-            description: "Review-Funktion wird in Kürze freigeschaltet.",
-        });
+        setReviewDialogOpen(true);
     }, [reviewCap, toast]);
 
     const handleActivateTrustPortal = useCallback(async () => {
@@ -293,6 +291,14 @@ export function GovernanceLiabilitySection({
                                     </span>
                                 )}
                             </span>
+                            {reviewCap.allowed && (
+                                <button
+                                    onClick={handleActivateReviewWorkflow}
+                                    className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                    + Review
+                                </button>
+                            )}
                         </li>
 
                         {/* Report */}
@@ -412,6 +418,16 @@ export function GovernanceLiabilitySection({
                 </div>
 
             </CardContent>
+
+            {/* Review Dialog (GN-E) */}
+            <ReviewDialog
+                card={card}
+                open={reviewDialogOpen}
+                onOpenChange={setReviewDialogOpen}
+                onReviewAdded={(updatedCard) => {
+                    onCardUpdate?.(updatedCard);
+                }}
+            />
         </Card>
     );
 }
