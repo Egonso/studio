@@ -10,7 +10,7 @@ import { getFullProject, saveChecklistState, setActiveProjectId, getActiveProjec
 import { Loader2 } from "lucide-react";
 import { useUserStatus } from "@/hooks/use-user-status";
 import { registerService } from "@/lib/register-first/register-service";
-import type { UseCaseCard, RegisterMetrics } from "@/lib/register-first/types";
+import type { UseCaseCard, RegisterMetrics, Register } from "@/lib/register-first/types";
 
 function DashboardPageContent() {
     const { user, loading: authLoading } = useAuth();
@@ -37,6 +37,7 @@ function DashboardPageContent() {
     const [pendingReviewCount, setPendingReviewCount] = useState(0);
     const [lastEntry, setLastEntry] = useState<{ name: string; date: string } | null>(null);
     const [metrics, setMetrics] = useState<RegisterMetrics | undefined>(undefined);
+    const [activeRegister, setActiveRegister] = useState<Register | null>(null);
 
     // State 4: User Certification Status
     const { data: userStatus, loading: userStatusLoading } = useUserStatus(user?.email);
@@ -165,6 +166,10 @@ function DashboardPageContent() {
             setMetrics(fetchedMetrics);
             setUseCaseCount(useCases.length);
 
+            // Load register for analytics engine
+            const reg = await registerService.getFirstRegister();
+            setActiveRegister(reg);
+
             // Count pending reviews: UNREVIEWED or REVIEW_RECOMMENDED
             const pending = useCases.filter(
                 (uc) => uc.status === "UNREVIEWED" || uc.status === "REVIEW_RECOMMENDED"
@@ -270,6 +275,7 @@ function DashboardPageContent() {
                             onUseCaseCaptured={loadUseCaseData}
                             ownerId={user?.uid}
                             metrics={metrics}
+                            register={activeRegister}
                         />
                     </main>
                 </div>
