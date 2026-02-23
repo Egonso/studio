@@ -221,31 +221,6 @@ export function Dashboard({
                     <h2 className="text-2xl font-bold tracking-tight">Haftungsmonitor</h2>
                     <p className="text-muted-foreground">Behalten Sie kritische Lücken in der Prozessdurchsetzung und Transparenz im Blick.</p>
 
-                    {/* Diagnostic Index Summary */}
-                    <div className="flex flex-wrap gap-3 pt-2">
-                        <div className="flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
-                            <Gauge className="h-3 w-3" />
-                            <span className="text-muted-foreground">Reife:</span>
-                            <span className={`font-semibold ${analytics.maturityIndex >= 70 ? 'text-emerald-600' : analytics.maturityIndex >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
-                                {analytics.maturityIndex}%
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
-                            <ShieldAlert className="h-3 w-3" />
-                            <span className="text-muted-foreground">Exposure:</span>
-                            <span className={`font-semibold ${analytics.exposureIndex <= 20 ? 'text-emerald-600' : analytics.exposureIndex <= 50 ? 'text-amber-600' : 'text-red-500'}`}>
-                                {analytics.exposureIndex}%
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-full border px-3 py-1 text-xs">
-                            <Shield className="h-3 w-3" />
-                            <span className="text-muted-foreground">Transparenz:</span>
-                            <span className={`font-semibold ${analytics.transparencyIndex >= 70 ? 'text-emerald-600' : analytics.transparencyIndex >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
-                                {analytics.transparencyIndex}%
-                            </span>
-                        </div>
-                    </div>
-
                     <div className="grid md:grid-cols-3 gap-6 pt-4">
                         {/* A) Metric 1: System ohne Prüfhistorie */}
                         <LensCard
