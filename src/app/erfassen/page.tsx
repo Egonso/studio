@@ -276,10 +276,11 @@ export default function ErfassenPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="NONE">Keine</SelectItem>
-                    <SelectItem value="INTERNAL">Intern</SelectItem>
-                    <SelectItem value="PERSONAL">Personenbezogen</SelectItem>
-                    <SelectItem value="SENSITIVE">Sensibel</SelectItem>
+                    <SelectItem value="NO_PERSONAL_DATA">Keine personenbez.</SelectItem>
+                    <SelectItem value="PERSONAL_DATA">Personenbezogen</SelectItem>
+                    <SelectItem value="SPECIAL_PERSONAL">Besondere personenbez.</SelectItem>
+                    <SelectItem value="INTERNAL_CONFIDENTIAL">Interne Unternehmensdaten</SelectItem>
+                    <SelectItem value="PUBLIC_DATA">Öffentlich zugänglich</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -138,10 +138,11 @@ export default function SupplierRequestForm({ registerId, organisationName }: { 
                                         <Select required onValueChange={val => setFormData({ ...formData, dataCategory: val })}>
                                             <SelectTrigger><SelectValue placeholder="Bitte wählen..." /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="NONE">Keine besonderen Daten</SelectItem>
-                                                <SelectItem value="INTERNAL">Betriebsgeheimnisse</SelectItem>
-                                                <SelectItem value="PERSONAL">Personenbezogene Daten (DSGVO)</SelectItem>
-                                                <SelectItem value="SENSITIVE">Sensible Daten (Art. 9 DSGVO)</SelectItem>
+                                                <SelectItem value="NO_PERSONAL_DATA">Keine personenbezogenen Daten</SelectItem>
+                                                <SelectItem value="PERSONAL_DATA">Personenbezogene Daten (DSGVO)</SelectItem>
+                                                <SelectItem value="SPECIAL_PERSONAL">Besondere personenbez. Daten (Art. 9)</SelectItem>
+                                                <SelectItem value="INTERNAL_CONFIDENTIAL">Betriebsgeheimnisse</SelectItem>
+                                                <SelectItem value="PUBLIC_DATA">Öffentlich zugängliche Daten</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>

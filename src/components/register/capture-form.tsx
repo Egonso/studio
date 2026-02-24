@@ -20,19 +20,23 @@ import { ToolRegistrySelect } from "@/components/register/tool-registry-select";
 import {
   CAPTURE_STEP_3_LABEL,
   TOOL_ID_OTHER,
-  type AffectedParty,
   type CaptureUsageContext,
   type DataCategory,
+  type DecisionInfluence,
   registerFirstService,
   type RegisterFirstServiceErrorCode,
   submitCaptureDraft,
   createEmptyCaptureDraft,
-  shouldShowAffectedParties,
   type CaptureFormDraft,
   type CaptureFieldErrors,
   type UseCaseCard,
   USAGE_CONTEXT_OPTIONS,
   USAGE_CONTEXT_LABELS,
+  DECISION_INFLUENCE_OPTIONS,
+  DECISION_INFLUENCE_LABELS,
+  DATA_CATEGORY_MAIN_OPTIONS,
+  DATA_CATEGORY_SPECIAL_OPTIONS,
+  DATA_CATEGORY_LABELS,
 } from "@/lib/register-first";
 
 interface CaptureFormProps {
@@ -42,21 +46,6 @@ interface CaptureFormProps {
 }
 
 type ResponsibilityChoice = "YES" | "NO";
-type DecisionChoice = "YES" | "NO" | "UNSURE";
-
-const affectedPartyOptions: Array<{ value: AffectedParty; label: string }> = [
-  { value: "INDIVIDUALS", label: "Einzelpersonen" },
-  { value: "GROUPS_OR_TEAMS", label: "Gruppen oder Teams" },
-  { value: "EXTERNAL_PEOPLE", label: "Externe Personen" },
-  { value: "INTERNAL_PROCESSES", label: "Nur interne Prozesse" },
-];
-
-const dataCategoryOptions: Array<{ value: DataCategory; label: string; hint: string }> = [
-  { value: "NONE", label: "Keine besonderen Daten", hint: "Oeffentlich oder generisch" },
-  { value: "INTERNAL", label: "Interne Daten", hint: "z. B. Unternehmenswissen" },
-  { value: "PERSONAL", label: "Personenbezogene Daten", hint: "Name, E-Mail, etc." },
-  { value: "SENSITIVE", label: "Sensible Daten", hint: "Gesundheit, Finanzen, etc." },
-];
 
 function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | "REGISTER_NOT_FOUND" | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -84,10 +73,6 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [createdUseCaseId, setCreatedUseCaseId] = useState<string | null>(null);
 
-  const showAffectedStep = useMemo(
-    () => shouldShowAffectedParties(draft.decisionImpact),
-    [draft.decisionImpact]
-  );
 
   const toggleMultiSelect = <T extends string>(
     currentValues: T[],
@@ -111,13 +96,6 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
     }));
   };
 
-  const setDecisionChoice = (value: DecisionChoice) => {
-    setDraft((prev) => ({
-      ...prev,
-      decisionImpact: value,
-      affectedParties: value === "NO" ? [] : prev.affectedParties,
-    }));
-  };
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -303,59 +281,35 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
           </section>
 
           <section className="space-y-2">
-            <Label>Beeinflusst das Ergebnis Entscheidungen oder Bewertungen?</Label>
+            <Label>Einfluss auf Entscheidungen</Label>
             <div className="grid gap-3 sm:grid-cols-3">
-              {(["YES", "NO", "UNSURE"] as DecisionChoice[]).map((choice) => (
+              {DECISION_INFLUENCE_OPTIONS.map((option) => (
                 <label
-                  key={choice}
+                  key={option}
                   className="flex items-center gap-2 rounded-md border p-3 text-sm"
                 >
                   <input
                     type="radio"
-                    name="decisionImpact"
-                    checked={draft.decisionImpact === choice}
-                    onChange={() => setDecisionChoice(choice)}
+                    name="decisionInfluence"
+                    checked={draft.decisionInfluence === option}
+                    onChange={() =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        decisionInfluence: option,
+                      }))
+                    }
                   />
-                  {choice === "YES" ? "Ja" : choice === "NO" ? "Nein" : "Ich bin unsicher"}
+                  {DECISION_INFLUENCE_LABELS[option]}
                 </label>
               ))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Unsicher ist völlig okay - das klären wir später.
+              Beeinflusst das Ergebnis Entscheidungen oder Bewertungen?
             </p>
-            {errors.decisionImpact && (
-              <p className="text-xs text-destructive">{errors.decisionImpact}</p>
+            {errors.decisionInfluence && (
+              <p className="text-xs text-destructive">{errors.decisionInfluence}</p>
             )}
           </section>
-
-          {showAffectedStep && (
-            <section className="space-y-2">
-              <Label>Wen betrifft das hauptsächlich?</Label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {affectedPartyOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center gap-2 rounded-md border p-3 text-sm"
-                  >
-                    <Checkbox
-                      checked={draft.affectedParties.includes(option.value)}
-                      onCheckedChange={(checked) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          affectedParties: toggleMultiSelect(
-                            prev.affectedParties,
-                            option.value,
-                            checked === true
-                          ),
-                        }))
-                      }
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            </section>
-          )}
 
           <section className="space-y-2">
             <Label>Welches KI-Tool verwendest du? (optional)</Label>
@@ -392,36 +346,31 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
           </section>
 
           <section className="space-y-2">
-            <Label>Welche Art von Daten verarbeitet das Tool? (optional)</Label>
-            <Select
-              value={draft.dataCategory ?? ""}
-              onValueChange={(value) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  dataCategory: value === "" ? null : (value as DataCategory),
-                }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Datenkategorie waehlen" />
-              </SelectTrigger>
-              <SelectContent>
-                {dataCategoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      - {option.hint}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Datenkategorien (Mehrfachauswahl, optional)</Label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
+                <label
+                  key={option}
+                  className="flex items-center gap-2 rounded-md border p-2.5 text-sm"
+                >
+                  <Checkbox
+                    checked={draft.dataCategories.includes(option)}
+                    onCheckedChange={() =>
+                      setDraft((prev) => {
+                        const cats = prev.dataCategories.includes(option)
+                          ? prev.dataCategories.filter((c) => c !== option)
+                          : [...prev.dataCategories, option];
+                        return { ...prev, dataCategories: cats };
+                      })
+                    }
+                  />
+                  {DATA_CATEGORY_LABELS[option]}
+                </label>
+              ))}
+            </div>
             <p className="text-xs text-muted-foreground">
               Dies ist optional und hilft bei der spaeteren Bewertung.
             </p>
-            {errors.dataCategory && (
-              <p className="text-xs text-destructive">{errors.dataCategory}</p>
-            )}
           </section>
 
           <div className="space-y-2">
