@@ -9,12 +9,13 @@ import { useAuth } from '@/context/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { PolicyDocument, PolicyOrgSnapshot, PolicyContext } from '@/lib/policy-engine/types';
+import type { PolicyDocument, PolicyOrgSnapshot, PolicyContext, PolicyStatus } from '@/lib/policy-engine/types';
 import { policyService } from '@/lib/policy-engine/policy-service';
 import { registerService } from '@/lib/register-first/register-service';
 import { PolicyListView } from '@/components/policy-engine/policy-list';
 import { PolicyBuilderWizard } from '@/components/policy-engine/policy-builder-wizard';
 import { PolicyPreview } from '@/components/policy-engine/policy-preview';
+import { PolicyApprovalBanner } from '@/components/policy-engine/policy-approval-banner';
 
 type PageView = 'list' | 'wizard' | 'preview';
 
@@ -161,9 +162,35 @@ function ComplianceInADayPageContent() {
                         />
                     ) : view === 'preview' && selectedPolicy ? (
                         <div className="space-y-4">
+                            <PolicyApprovalBanner
+                                policy={selectedPolicy}
+                                onStatusChange={async (status) => {
+                                    if (!registerId || !user) return;
+                                    const updated = await policyService.updatePolicyStatus(
+                                        registerId,
+                                        selectedPolicy.policyId,
+                                        status,
+                                        user.uid,
+                                        `Status changed to ${status}`
+                                    );
+                                    setSelectedPolicy(updated);
+                                    // Refresh list in background
+                                    policyService.listPolicies(registerId).then(setPolicies);
+                                }}
+                            />
                             <PolicyPreview
                                 sections={selectedPolicy.sections}
+                                document={selectedPolicy}
                                 showPrintButton
+                                onSectionsChange={async (newSections) => {
+                                    if (!registerId) return;
+                                    const updated = await policyService.updatePolicy(
+                                        registerId,
+                                        selectedPolicy.policyId,
+                                        { sections: newSections }
+                                    );
+                                    setSelectedPolicy(updated);
+                                }}
                             />
                         </div>
                     ) : null}

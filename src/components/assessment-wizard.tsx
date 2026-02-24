@@ -22,7 +22,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { saveAssessmentAnswers, getActiveProjectId, updateWizardStatus } from "@/lib/data-service";
 import { useUserStatus } from "@/hooks/use-user-status";
 import { useAuth } from "@/context/auth-context";
-import { capabilityChecker } from "@/lib/compliance-engine/capability/featureChecker";
+import { checkCapability } from "@/lib/compliance-engine/capability/useCapability";
 import { ShieldAlert } from "lucide-react";
 
 type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
@@ -217,7 +217,7 @@ export function AssessmentWizard() {
           <p>{currentQuestionDef.description}</p>
         </CardContent>
         <CardFooter className="flex justify-end">
-          {(!userStatus || capabilityChecker.canTakeIsoAssessment(userStatus.purchase?.productId ? 'pro' : 'core')) ? (
+          {(!userStatus || checkCapability(userStatus.purchase?.productId === 'pro' ? 'pro' : 'free', 'assessmentWizard')) ? (
             <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>

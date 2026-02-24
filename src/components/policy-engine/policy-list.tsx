@@ -107,8 +107,19 @@ export function PolicyListView({
                                     {POLICY_STATUS_LABELS[policy.status]}
                                 </Badge>
                             </div>
-                            <CardDescription className="flex items-center gap-3 text-xs">
-                                <span>Level {policy.level}: {POLICY_LEVEL_LABELS[policy.level]}</span>
+                            <CardDescription className="flex items-center flex-wrap gap-2 text-xs">
+                                <Badge variant="secondary" className="text-[10px] py-0 h-4 bg-muted/50 border-none font-normal">
+                                    Level {policy.level}
+                                </Badge>
+                                <Badge
+                                    variant={statusVariant(policy.status)}
+                                    className={`text-[10px] py-0 h-4 font-normal ${policy.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                                            policy.status === 'review' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                                ''
+                                        }`}
+                                >
+                                    {POLICY_STATUS_LABELS[policy.status]}
+                                </Badge>
                                 <span>•</span>
                                 <span>v{policy.metadata.version}</span>
                                 <span>•</span>

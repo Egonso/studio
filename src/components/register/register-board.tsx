@@ -60,6 +60,7 @@ import {
   serializePrettyJson,
   validateVerifyLinkInput,
   createStaticToolRegistryService,
+  createAiToolsRegistryService,
   buildVerifyPassAbsoluteUrl,
   type CaptureUsageContext,
   USAGE_CONTEXT_LABELS,
@@ -73,6 +74,7 @@ import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
 
 const toolRegistry = createStaticToolRegistryService();
+const aiToolsRegistry = createAiToolsRegistryService();
 
 const dataCategoryLabels = DATA_CATEGORY_LABELS;
 
@@ -262,7 +264,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           const risk = (uc as any).riskScore || 0;
           const val = (uc as any).valueScore || 0;
 
-          const toolEntry = uc.toolId ? toolRegistry.getById(uc.toolId) : null;
+          const toolEntry = uc.toolId ? aiToolsRegistry.getById(uc.toolId) : null;
           const isHighRisk = toolEntry?.riskLevel === "high" || toolEntry?.riskLevel === "unacceptable" || core?.aiActCategory === "Hochrisiko" || core?.aiActCategory === "Verboten";
           const isExternal = uc.usageContexts.includes("CUSTOMER_FACING") || uc.usageContexts.includes("EXTERNAL_PUBLIC") || uc.usageContexts.includes("CUSTOMERS") || uc.usageContexts.includes("PUBLIC");
 
