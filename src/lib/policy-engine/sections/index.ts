@@ -18,11 +18,21 @@ import { commitmentSection } from './level-1/01-commitment';
 import { basicRulesSection } from './level-1/02-basic-rules';
 import { signatureSection } from './level-1/03-signature';
 
-// ── Level 2 Sections (PE-2b) ────────────────────────────────────────────────
-// import { ... } from './level-2/...';
+// ── Level 2 Sections ─────────────────────────────────────────────────────────
+import { rolesSection } from './level-2/04-roles';
+import { riskApproachSection } from './level-2/05-risk-approach';
+import { incidentSection } from './level-2/06-incident';
+import { trainingSection } from './level-2/07-training';
+import { monitoringSection } from './level-2/08-monitoring';
 
-// ── Level 3 Sections (PE-2c) ────────────────────────────────────────────────
-// import { ... } from './level-3/...';
+// ── Level 3 Sections ─────────────────────────────────────────────────────────
+import { dataGovernanceSection } from './level-3/09-data-governance';
+import { highRiskSection } from './level-3/10-highRisk';
+import { transparencySection } from './level-3/11-transparency';
+import { validationSection } from './level-3/12-validation';
+import { loggingSection } from './level-3/13-logging';
+import { externalSystemsSection } from './level-3/14-external-systems';
+import { hrRecruitmentSection } from './level-3/15-hr-recruitment';
 
 // ── Registry ────────────────────────────────────────────────────────────────
 
@@ -36,9 +46,21 @@ export const ALL_SECTIONS: SectionDefinition[] = [
     basicRulesSection,
     signatureSection,
 
-    // Level 2 (PE-2b – will be added here)
+    // Level 2
+    rolesSection,
+    riskApproachSection,
+    incidentSection,
+    trainingSection,
+    monitoringSection,
 
-    // Level 3 (PE-2c – will be added here)
+    // Level 3
+    dataGovernanceSection,
+    highRiskSection,
+    transparencySection,
+    validationSection,
+    loggingSection,
+    externalSystemsSection,
+    hrRecruitmentSection,
 ];
 
 /**
