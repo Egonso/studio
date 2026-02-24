@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { PolicyDocument, PolicyOrgSnapshot, PolicyContext, PolicyStatus } from '@/lib/policy-engine/types';
 import { policyService } from '@/lib/policy-engine/policy-service';
+import { assemblePolicy } from '@/lib/policy-engine/assembler';
 import { registerService } from '@/lib/register-first/register-service';
+import type { Register, UseCaseCard } from '@/lib/register-first/types';
 import { PolicyListView } from '@/components/policy-engine/policy-list';
 import { PolicyBuilderWizard } from '@/components/policy-engine/policy-builder-wizard';
 import { PolicyPreview } from '@/components/policy-engine/policy-preview';
@@ -32,6 +34,8 @@ function ComplianceInADayPageContent() {
         organisationName: '',
     });
     const [registerId, setRegisterId] = useState<string | null>(null);
+    const [register, setRegister] = useState<Register | null>(null);
+    const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
 
     // Load policies and org data
     useEffect(() => {
@@ -45,12 +49,16 @@ function ComplianceInADayPageContent() {
 
                 if (registers.length > 0) {
                     const reg = registers[0];
+                    setRegister(reg);
                     setRegisterId(reg.registerId);
                     setOrgSnapshot({
                         organisationName: reg.organisationName || '',
                         industry: reg.orgSettings?.industry,
-                        contactPerson: reg.orgSettings?.contactPerson?.name,
+                        contactPerson: reg.orgSettings?.contactPerson?.name || reg.orgSettings?.contactPerson as any, // Handle potential type mismatch in snapshot
                     });
+
+                    const useCaseList = await registerService.listUseCases(reg.registerId);
+                    if (!cancelled) setUseCases(useCaseList);
 
                     const polList = await policyService.listPolicies(reg.registerId);
                     if (!cancelled) setPolicies(polList);
@@ -151,12 +159,20 @@ function ComplianceInADayPageContent() {
                             onSelect={(id) => void handleSelectPolicy(id)}
                             onCreate={() => setView('wizard')}
                         />
-                    ) : view === 'wizard' ? (
+                    ) : view === 'wizard' && register ? (
                         <PolicyBuilderWizard
-                            context={null}
-                            assembledSections={[]}
+                            context={{
+                                register: register,
+                                useCases: useCases,
+                                orgSettings: register.orgSettings || {
+                                    organisationName: register.organisationName || '',
+                                    industry: '',
+                                    contactPerson: { name: '', email: '' }
+                                },
+                                level: 1 // Default, wizard will change it
+                            }}
                             orgSnapshot={orgSnapshot}
-                            canAccessLevel3={false}
+                            canAccessLevel3={register.plan === 'pro' || register.plan === 'enterprise'}
                             onSave={handleSave}
                             onCancel={() => setView('list')}
                         />

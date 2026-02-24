@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
     Check,
     ChevronRight,
@@ -10,6 +10,7 @@ import {
     Settings2,
     Eye,
     Save,
+    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import type {
 import {
     POLICY_LEVEL_LABELS,
 } from "@/lib/policy-engine/types";
+import { assemblePolicy } from "@/lib/policy-engine/assembler";
 import { PolicyPreview } from "./policy-preview";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -142,6 +144,7 @@ export function PolicyBuilderWizard({
 }: PolicyBuilderWizardProps) {
     const [step, setStep] = useState<WizardStep>(1);
     const [selectedLevel, setSelectedLevel] = useState<PolicyLevel | null>(null);
+    const [localSections, setLocalSections] = useState<PolicySection[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -151,7 +154,22 @@ export function PolicyBuilderWizard({
     );
     const filledCount = autoFields.filter((f) => f.filled).length;
 
-    const sections = assembledSections;
+    // ── Dynamic Assembly ───────────────────────────────────────────────────
+    useEffect(() => {
+        if (selectedLevel && context) {
+            try {
+                const assem = assemblePolicy({
+                    ...context,
+                    level: selectedLevel,
+                });
+                setLocalSections(assem);
+            } catch (err) {
+                console.error("Assembly failed", err);
+            }
+        }
+    }, [selectedLevel, context]);
+
+    const sections = localSections.length > 0 ? localSections : assembledSections;
 
     const next = () => setStep((s) => Math.min(s + 1, 4) as WizardStep);
     const back = () => setStep((s) => Math.max(s - 1, 1) as WizardStep);
@@ -162,7 +180,7 @@ export function PolicyBuilderWizard({
         setError(null);
         try {
             await onSave({
-                registerId: context?.register?.registerId ?? "",
+                registerId: context?.register?.registerId || "",
                 level: selectedLevel,
                 status: "draft",
                 title: `KI-Richtlinie – ${POLICY_LEVEL_LABELS[selectedLevel]}`,
@@ -197,10 +215,10 @@ export function PolicyBuilderWizard({
                                 />
                                 <div
                                     className={`flex items-center gap-1 text-[10px] ${isActive
-                                            ? "text-primary font-medium"
-                                            : isDone
-                                                ? "text-primary/60"
-                                                : "text-muted-foreground"
+                                        ? "text-primary font-medium"
+                                        : isDone
+                                            ? "text-primary/60"
+                                            : "text-muted-foreground"
                                         }`}
                                 >
                                     {isDone ? (
@@ -243,10 +261,10 @@ export function PolicyBuilderWizard({
                                         disabled={isLocked}
                                         onClick={() => setSelectedLevel(level)}
                                         className={`relative flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors ${isSelected
-                                                ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                                : isLocked
-                                                    ? "opacity-60 cursor-not-allowed border-muted"
-                                                    : "hover:border-foreground/30"
+                                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                            : isLocked
+                                                ? "opacity-60 cursor-not-allowed border-muted"
+                                                : "hover:border-foreground/30"
                                             }`}
                                     >
                                         <div className="flex items-center justify-between">
@@ -310,8 +328,8 @@ export function PolicyBuilderWizard({
                                 <div
                                     key={field.label}
                                     className={`flex items-center justify-between rounded-md border p-3 text-sm ${field.filled
-                                            ? "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800"
-                                            : "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800"
+                                        ? "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800"
+                                        : "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800"
                                         }`}
                                 >
                                     <span className="font-medium">{field.label}</span>
