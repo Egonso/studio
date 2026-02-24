@@ -141,7 +141,9 @@ export function GovernanceLiabilitySection({
     const isHighRisk = card.governanceAssessment?.core?.aiActCategory === "Hochrisiko"
         || card.governanceAssessment?.core?.aiActCategory === "Verboten";
     const isExternal = card.usageContexts?.includes("CUSTOMER_FACING")
-        || card.usageContexts?.includes("EXTERNAL_PUBLIC");
+        || card.usageContexts?.includes("EXTERNAL_PUBLIC")
+        || card.usageContexts?.includes("CUSTOMERS")
+        || card.usageContexts?.includes("PUBLIC");
     const needsProHint = (isHighRisk && !hasHistory)
         || (iso?.reviewCycle === "monthly" && !hasReminders);
 

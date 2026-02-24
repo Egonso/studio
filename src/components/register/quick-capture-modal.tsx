@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Select,
     SelectContent,
@@ -24,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { registerService } from "@/lib/register-first/register-service";
 import { createStaticToolRegistryService } from "@/lib/register-first/tool-registry-service";
 import type { CaptureUsageContext, DataCategory, OrgSettings } from "@/lib/register-first/types";
+import { USAGE_CONTEXT_OPTIONS, USAGE_CONTEXT_LABELS } from "@/lib/register-first/types";
 import type { ToolRegistryEntry } from "@/lib/register-first/tool-registry-types";
 import { applyOrgDefaults } from "@/lib/register-first/inheritance";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
@@ -39,10 +41,9 @@ interface QuickCaptureModalProps {
 interface QuickDraft {
     purpose: string;
     ownerName: string;
-    organisation: string;
     toolId: string;
     toolFreeText: string;
-    usageContext: CaptureUsageContext;
+    usageContexts: CaptureUsageContext[];
     dataCategory: DataCategory;
     description: string;
 }
@@ -50,10 +51,9 @@ interface QuickDraft {
 const EMPTY_DRAFT: QuickDraft = {
     purpose: "",
     ownerName: "",
-    organisation: "",
     toolId: "__placeholder__",
     toolFreeText: "",
-    usageContext: "INTERNAL_ONLY",
+    usageContexts: [],
     dataCategory: "NONE",
     description: "",
 };
@@ -61,6 +61,11 @@ const EMPTY_DRAFT: QuickDraft = {
 // ── Tool Registry ────────────────────────────────────────────────────────────
 
 const toolRegistry = createStaticToolRegistryService();
+
+/** Toggle an item in an array (add if absent, remove if present) */
+function toggleMultiSelect<T>(arr: T[], item: T): T[] {
+    return arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -85,7 +90,6 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
         registerService.listRegisters().then((regs) => {
             if (regs.length > 0 && regs[0].orgSettings) {
                 setOrgSettings(regs[0].orgSettings);
-                // Check if any defaults would be applied
                 const merged = applyOrgDefaults(regs[0].orgSettings);
                 const hasDefaults = merged.reviewCycle !== "unknown" ||
                     merged.policyLinks.length > 0 ||
@@ -107,12 +111,11 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                 purpose: draft.purpose.trim(),
                 toolId: draft.toolId === "other" ? "other" : draft.toolId,
                 toolFreeText: draft.toolId === "other" ? draft.toolFreeText.trim() : undefined,
-                usageContexts: [draft.usageContext],
+                usageContexts: draft.usageContexts.length > 0 ? draft.usageContexts : ["INTERNAL_ONLY"],
                 dataCategory: draft.dataCategory,
                 isCurrentlyResponsible: false,
                 responsibleParty: draft.ownerName.trim(),
                 decisionImpact: "UNSURE",
-                organisation: draft.organisation.trim() || null,
             });
 
             // Apply org defaults + provenance if inheritance is active
@@ -214,18 +217,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         />
                     </div>
 
-                    {/* 3. Organisation (optional) */}
-                    <div className="space-y-1.5">
-                        <Label htmlFor="qc-org">Organisation</Label>
-                        <Input
-                            id="qc-org"
-                            placeholder="Firma / Abteilung (optional)"
-                            value={draft.organisation}
-                            onChange={(e) => patch({ organisation: e.target.value })}
-                        />
-                    </div>
-
-                    {/* 4. Tool (required) */}
+                    {/* 3. Tool (required) */}
                     <div className="space-y-1.5">
                         <Label>
                             Tool <span className="text-destructive">*</span>
@@ -262,26 +254,33 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         )}
                     </div>
 
-                    {/* 5. Usage Context */}
-                    <div className="space-y-1.5">
-                        <Label>Wirkungskontext</Label>
-                        <Select
-                            value={draft.usageContext}
-                            onValueChange={(v) => patch({ usageContext: v as CaptureUsageContext })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="INTERNAL_ONLY">Nur intern</SelectItem>
-                                <SelectItem value="CUSTOMER_FACING">Für Kund:innen</SelectItem>
-                                <SelectItem value="EMPLOYEE_FACING">Für Mitarbeitende</SelectItem>
-                                <SelectItem value="EXTERNAL_PUBLIC">Extern / öffentlich</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    {/* 4. Wirkungsbereich (multi-select checkboxes) */}
+                    <div className="space-y-2">
+                        <Label>Wirkungsbereich</Label>
+                        <div className="space-y-2">
+                            {USAGE_CONTEXT_OPTIONS.map((option) => (
+                                <label
+                                    key={option}
+                                    className="flex items-center gap-2 cursor-pointer text-sm"
+                                >
+                                    <Checkbox
+                                        checked={draft.usageContexts.includes(option)}
+                                        onCheckedChange={() =>
+                                            patch({
+                                                usageContexts: toggleMultiSelect(
+                                                    draft.usageContexts,
+                                                    option,
+                                                ),
+                                            })
+                                        }
+                                    />
+                                    {USAGE_CONTEXT_LABELS[option]}
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* 6. Data Category */}
+                    {/* 5. Data Category */}
                     <div className="space-y-1.5">
                         <Label>Datenkategorie</Label>
                         <Select
@@ -300,7 +299,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         </Select>
                     </div>
 
-                    {/* 7. Description (optional) */}
+                    {/* 6. Description (optional) */}
                     <div className="space-y-1.5">
                         <Label htmlFor="qc-desc">Kurzbeschreibung</Label>
                         <Textarea

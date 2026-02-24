@@ -62,6 +62,7 @@ import {
   createStaticToolRegistryService,
   buildVerifyPassAbsoluteUrl,
   type CaptureUsageContext,
+  USAGE_CONTEXT_LABELS,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
   type UseCaseCard,
@@ -99,12 +100,7 @@ interface ProofMetaDraft {
   isCurrent: ProofBooleanChoice;
 }
 
-const usageContextLabels: Record<CaptureUsageContext, string> = {
-  INTERNAL_ONLY: "Nur intern",
-  CUSTOMER_FACING: "Fuer Kund:innen",
-  EMPLOYEE_FACING: "Fuer Mitarbeitende",
-  EXTERNAL_PUBLIC: "Extern / oeffentlich",
-};
+const usageContextLabels = USAGE_CONTEXT_LABELS;
 
 const statusFilterOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "ALL", label: "Alle Status" },
@@ -272,7 +268,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
 
           const toolEntry = uc.toolId ? toolRegistry.getById(uc.toolId) : null;
           const isHighRisk = toolEntry?.riskLevel === "high" || toolEntry?.riskLevel === "unacceptable" || core?.aiActCategory === "Hochrisiko" || core?.aiActCategory === "Verboten";
-          const isExternal = uc.usageContexts.includes("CUSTOMER_FACING") || uc.usageContexts.includes("EXTERNAL_PUBLIC");
+          const isExternal = uc.usageContexts.includes("CUSTOMER_FACING") || uc.usageContexts.includes("EXTERNAL_PUBLIC") || uc.usageContexts.includes("CUSTOMERS") || uc.usageContexts.includes("PUBLIC");
 
           const hasHistory = false;
           const hasReminders = false;

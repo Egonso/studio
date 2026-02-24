@@ -28,7 +28,6 @@ interface CodeInfo {
 interface CaptureFormData {
   purpose: string;
   ownerName: string;
-  organisation: string;
   toolFreeText: string;
   usageContext: string;
   dataCategory: string;
@@ -37,7 +36,6 @@ interface CaptureFormData {
 const EMPTY_FORM: CaptureFormData = {
   purpose: "",
   ownerName: "",
-  organisation: "",
   toolFreeText: "",
   usageContext: "INTERNAL_ONLY",
   dataCategory: "NONE",
@@ -100,7 +98,6 @@ export default function ErfassenPage() {
           usageContext: form.usageContext,
           dataCategory: form.dataCategory,
           ownerName: form.ownerName.trim(),
-          organisation: form.organisation.trim() || undefined,
         }),
       });
 
@@ -241,15 +238,6 @@ export default function ErfassenPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Organisation</Label>
-              <Input
-                placeholder="Firma / Abteilung (optional)"
-                value={form.organisation}
-                onChange={(e) => patch({ organisation: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
               <Label>Tool / Software</Label>
               <Input
                 placeholder="z. B. ChatGPT, Midjourney (optional)"
@@ -260,7 +248,7 @@ export default function ErfassenPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Wirkungskontext</Label>
+                <Label>Wirkungsbereich</Label>
                 <Select
                   value={form.usageContext}
                   onValueChange={(v) => patch({ usageContext: v })}
@@ -269,10 +257,11 @@ export default function ErfassenPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INTERNAL_ONLY">Nur intern</SelectItem>
-                    <SelectItem value="CUSTOMER_FACING">Kund:innen</SelectItem>
-                    <SelectItem value="EMPLOYEE_FACING">Mitarbeitende</SelectItem>
-                    <SelectItem value="EXTERNAL_PUBLIC">Extern</SelectItem>
+                    <SelectItem value="INTERNAL_ONLY">Nur interne Prozesse</SelectItem>
+                    <SelectItem value="EMPLOYEES">Mitarbeitende betroffen</SelectItem>
+                    <SelectItem value="CUSTOMERS">Kund*innen betroffen</SelectItem>
+                    <SelectItem value="APPLICANTS">Bewerber*innen betroffen</SelectItem>
+                    <SelectItem value="PUBLIC">Öffentlichkeit betroffen</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

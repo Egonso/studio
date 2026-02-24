@@ -28,6 +28,7 @@ import type {
   DecisionImpact,
   Register,
 } from "@/lib/register-first/types";
+import { USAGE_CONTEXT_LABELS } from "@/lib/register-first/types";
 import {
   createAiToolsRegistryService,
   riskLevelLabels,
@@ -44,12 +45,7 @@ import {
 
 const aiRegistry = createAiToolsRegistryService();
 
-const usageContextLabels: Record<CaptureUsageContext, string> = {
-  INTERNAL_ONLY: "Nur intern",
-  CUSTOMER_FACING: "Fuer Kund:innen",
-  EMPLOYEE_FACING: "Fuer Mitarbeitende",
-  EXTERNAL_PUBLIC: "Extern / oeffentlich",
-};
+const usageContextLabels = USAGE_CONTEXT_LABELS;
 
 const dataCategoryLabels: Record<DataCategory, string> = {
   NONE: "Keine besonderen Daten",

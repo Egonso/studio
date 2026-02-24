@@ -10,9 +10,35 @@ export type GovernanceDecisionActor = "HUMAN" | "SYSTEM" | "AUTOMATION";
 
 export type CaptureUsageContext =
   | "INTERNAL_ONLY"
-  | "CUSTOMER_FACING"
-  | "EMPLOYEE_FACING"
-  | "EXTERNAL_PUBLIC";
+  | "CUSTOMER_FACING"   // legacy alias for CUSTOMERS
+  | "EMPLOYEE_FACING"   // legacy alias for EMPLOYEES
+  | "EXTERNAL_PUBLIC"   // legacy alias for PUBLIC
+  | "EMPLOYEES"
+  | "CUSTOMERS"
+  | "APPLICANTS"
+  | "PUBLIC";
+
+/** Canonical German labels for the Wirkungsbereich multi-select */
+export const USAGE_CONTEXT_LABELS: Record<CaptureUsageContext, string> = {
+  INTERNAL_ONLY: "Nur interne Prozesse",
+  EMPLOYEES: "Mitarbeitende betroffen",
+  CUSTOMERS: "Kund*innen betroffen",
+  APPLICANTS: "Bewerber*innen betroffen",
+  PUBLIC: "Öffentlichkeit betroffen",
+  // Legacy labels (still valid for old data)
+  CUSTOMER_FACING: "Kund*innen betroffen",
+  EMPLOYEE_FACING: "Mitarbeitende betroffen",
+  EXTERNAL_PUBLIC: "Öffentlichkeit betroffen",
+};
+
+/** The 5 canonical options shown in the UI */
+export const USAGE_CONTEXT_OPTIONS: CaptureUsageContext[] = [
+  "INTERNAL_ONLY",
+  "EMPLOYEES",
+  "CUSTOMERS",
+  "APPLICANTS",
+  "PUBLIC",
+];
 
 export type DecisionImpact = "YES" | "NO" | "UNSURE";
 
@@ -34,6 +60,7 @@ export interface CaptureInput {
   toolFreeText?: string;
   dataCategory?: DataCategory;
   // v1.2 fields (Register-First: flat metadata)
+  /** @deprecated Organisation comes from OrgSettings now */
   organisation?: string | null;
 }
 

@@ -95,7 +95,7 @@ export function UseCasePassCard({ card, resolvedToolName }: UseCasePassCardProps
         {isV11 && toolDisplay && (
           <InfoRow label="Tool" value={toolDisplay} />
         )}
-        <InfoRow label="Wirkungskontext" value={contextDisplay} />
+        <InfoRow label="Wirkungsbereich" value={contextDisplay} />
         <InfoRow label="Verantwortlich" value={responsibleDisplay} />
         {card.decisionImpact && (
           <InfoRow

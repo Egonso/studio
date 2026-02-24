@@ -66,7 +66,7 @@ export function validateCaptureDraft(draft: CaptureFormDraft): CaptureValidation
   }
 
   if (!Array.isArray(draft.usageContexts) || draft.usageContexts.length === 0) {
-    errors.usageContexts = "Bitte wähle mindestens einen Wirkungskontext.";
+    errors.usageContexts = "Bitte wähle mindestens einen Wirkungsbereich.";
   }
 
   if (draft.isCurrentlyResponsible === null) {

@@ -31,6 +31,8 @@ import {
   type CaptureFormDraft,
   type CaptureFieldErrors,
   type UseCaseCard,
+  USAGE_CONTEXT_OPTIONS,
+  USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first";
 
 interface CaptureFormProps {
@@ -41,13 +43,6 @@ interface CaptureFormProps {
 
 type ResponsibilityChoice = "YES" | "NO";
 type DecisionChoice = "YES" | "NO" | "UNSURE";
-
-const usageContextOptions: Array<{ value: CaptureUsageContext; label: string }> = [
-  { value: "INTERNAL_ONLY", label: "Nur intern" },
-  { value: "CUSTOMER_FACING", label: "Für Kund:innen" },
-  { value: "EMPLOYEE_FACING", label: "Für Mitarbeitende" },
-  { value: "EXTERNAL_PUBLIC", label: "Extern / öffentlich" },
-];
 
 const affectedPartyOptions: Array<{ value: AffectedParty; label: string }> = [
   { value: "INDIVIDUALS", label: "Einzelpersonen" },
@@ -134,9 +129,9 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
       const serviceFn = externalSubmit
         ? async (payload: unknown) => externalSubmit(payload)
         : async (payload: unknown) =>
-            registerFirstService.createUseCaseFromCapture(payload, {
-              projectId,
-            });
+          registerFirstService.createUseCaseFromCapture(payload, {
+            projectId,
+          });
 
       const result = await submitCaptureDraft(draft, serviceFn);
 
@@ -225,27 +220,27 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
           </section>
 
           <section className="space-y-2">
-            <Label>Wo wird das Ergebnis verwendet?</Label>
+            <Label>Wirkungsbereich (Mehrfachauswahl)</Label>
             <div className="grid gap-3 sm:grid-cols-2">
-              {usageContextOptions.map((option) => (
+              {USAGE_CONTEXT_OPTIONS.map((option) => (
                 <label
-                  key={option.value}
+                  key={option}
                   className="flex items-center gap-2 rounded-md border p-3 text-sm"
                 >
                   <Checkbox
-                    checked={draft.usageContexts.includes(option.value)}
+                    checked={draft.usageContexts.includes(option)}
                     onCheckedChange={(checked) =>
                       setDraft((prev) => ({
                         ...prev,
                         usageContexts: toggleMultiSelect(
                           prev.usageContexts,
-                          option.value,
+                          option,
                           checked === true
                         ),
                       }))
                     }
                   />
-                  {option.label}
+                  {USAGE_CONTEXT_LABELS[option]}
                 </label>
               ))}
             </div>
