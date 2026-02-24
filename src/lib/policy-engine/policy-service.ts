@@ -3,8 +3,9 @@ import type {
     PolicyLevel,
     PolicyStatus,
     PolicyOrgSnapshot,
+    PolicyVersion,
 } from "./types";
-import { isValidPolicyTransition, POLICY_LEVEL_LABELS } from "./types";
+import { isValidPolicyTransition, POLICY_LEVEL_LABELS, MAX_POLICY_VERSIONS } from "./types";
 import type { PolicyScope, PolicyRepository } from "./policy-repository";
 import { createFirestorePolicyRepository } from "./policy-repository";
 
@@ -129,13 +130,34 @@ export function createPolicyService(
             }
 
             const now = new Date().toISOString();
+            const newVersion = doc.metadata.version + 1;
+
+            // Create version snapshot on every status change
+            const snapshot: PolicyVersion = {
+                versionNumber: doc.metadata.version,
+                createdAt: now,
+                createdBy: actorId,
+                changeNote,
+                sectionsSnapshot: JSON.parse(JSON.stringify(doc.sections)),
+                fromStatus: doc.status,
+                toStatus: nextStatus,
+            };
+
+            // Keep max 5 versions (newest first, trim oldest)
+            const existingVersions = doc.versions ?? [];
+            const updatedVersions = [snapshot, ...existingVersions].slice(
+                0,
+                MAX_POLICY_VERSIONS,
+            );
+
             const updated: PolicyDocument = {
                 ...doc,
                 status: nextStatus,
+                versions: updatedVersions,
                 metadata: {
                     ...doc.metadata,
                     updatedAt: now,
-                    version: doc.metadata.version + 1,
+                    version: newVersion,
                     ...(nextStatus === "approved"
                         ? { approvedBy: actorId, approvedAt: now }
                         : {}),

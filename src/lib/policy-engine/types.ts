@@ -27,6 +27,23 @@ export interface PolicyMetadata {
     version: number;
 }
 
+// ── Policy Version (PE-4: Versioning) ───────────────────────────────────────
+
+export const MAX_POLICY_VERSIONS = 5;
+
+export interface PolicyVersion {
+    versionNumber: number;
+    createdAt: string;
+    createdBy: string;
+    changeNote?: string;
+    /** Snapshot of sections at the time of the status change */
+    sectionsSnapshot: PolicySection[];
+    /** Status the document transitioned TO */
+    toStatus: PolicyStatus;
+    /** Status the document transitioned FROM */
+    fromStatus: PolicyStatus;
+}
+
 export interface PolicyOrgSnapshot {
     organisationName: string;
     industry?: string;
@@ -42,6 +59,8 @@ export interface PolicyDocument {
     sections: PolicySection[];
     metadata: PolicyMetadata;
     orgContextSnapshot: PolicyOrgSnapshot;
+    /** Version history snapshots (max MAX_POLICY_VERSIONS, newest first) */
+    versions?: PolicyVersion[];
 }
 
 // ── Policy Context (consumed by PE-2 Assembler) ─────────────────────────────
