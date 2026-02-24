@@ -107,12 +107,12 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
               ) : canEdit ? (
                 <>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                  Bearbeiten
+                  Einsatzfall bearbeiten
                 </>
               ) : (
                 <>
                   <Lock className="mr-1.5 h-3.5 w-3.5" />
-                  Bearbeiten
+                  Einsatzfall bearbeiten
                 </>
               )}
             </Button>
