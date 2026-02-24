@@ -28,7 +28,7 @@ import type {
   DecisionImpact,
   Register,
 } from "@/lib/register-first/types";
-import { USAGE_CONTEXT_LABELS } from "@/lib/register-first/types";
+import { USAGE_CONTEXT_LABELS, DATA_CATEGORY_LABELS, DECISION_INFLUENCE_LABELS } from "@/lib/register-first/types";
 import {
   createAiToolsRegistryService,
   riskLevelLabels,
@@ -47,12 +47,7 @@ const aiRegistry = createAiToolsRegistryService();
 
 const usageContextLabels = USAGE_CONTEXT_LABELS;
 
-const dataCategoryLabels: Record<DataCategory, string> = {
-  NONE: "Keine besonderen Daten",
-  INTERNAL: "Interne Daten",
-  PERSONAL: "Personenbezogene Daten",
-  SENSITIVE: "Sensible Daten",
-};
+const dataCategoryLabels = DATA_CATEGORY_LABELS;
 
 const decisionImpactLabels: Record<DecisionImpact, string> = {
   YES: "Ja",

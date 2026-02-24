@@ -19,9 +19,14 @@ const captureUsageContextValues = [
   "CUSTOMER_FACING",
   "EMPLOYEE_FACING",
   "EXTERNAL_PUBLIC",
+  "EMPLOYEES",
+  "CUSTOMERS",
+  "APPLICANTS",
+  "PUBLIC",
 ] as const;
 
 const decisionImpactValues = ["YES", "NO", "UNSURE"] as const;
+const decisionInfluenceValues = ["ASSISTANCE", "PREPARATION", "AUTOMATED"] as const;
 
 const affectedPartyValues = [
   "INDIVIDUALS",
@@ -33,6 +38,7 @@ const affectedPartyValues = [
 export const registerUseCaseStatusSchema = z.enum(registerUseCaseStatusValues);
 export const captureUsageContextSchema = z.enum(captureUsageContextValues);
 export const decisionImpactSchema = z.enum(decisionImpactValues);
+export const decisionInfluenceSchema = z.enum(decisionInfluenceValues);
 export const affectedPartySchema = z.enum(affectedPartyValues);
 
 // ── Card version schema ─────────────────────────────────────────────────────
@@ -42,15 +48,17 @@ const cardVersionSchema = z.enum(["1.0", "1.1"]);
 export const captureInputSchema = z
   .object({
     purpose: z.string().trim().min(3).max(500),
-    usageContexts: z.array(captureUsageContextSchema).min(1).max(4),
+    usageContexts: z.array(captureUsageContextSchema).min(1).max(8),
     isCurrentlyResponsible: z.boolean(),
     responsibleParty: z.string().trim().min(2).max(120).optional().nullable(),
-    decisionImpact: decisionImpactSchema,
+    decisionImpact: decisionImpactSchema.optional(),
+    decisionInfluence: decisionInfluenceSchema.optional(),
     affectedParties: z.array(affectedPartySchema).max(4).optional(),
     // v1.1 capture fields (optional for backward compat)
     toolId: z.string().min(1).max(100).optional(),
     toolFreeText: z.string().trim().min(1).max(300).optional(),
     dataCategory: dataCategorySchema.optional(),
+    dataCategories: z.array(dataCategorySchema).max(13).optional(),
     // v1.2 capture fields (Register-First: flat metadata)
     organisation: z.string().trim().max(200).optional().nullable(),
   })
@@ -170,7 +178,7 @@ export const useCaseCardSchema = z
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
     purpose: z.string().trim().min(3).max(500),
-    usageContexts: z.array(captureUsageContextSchema).min(1).max(4),
+    usageContexts: z.array(captureUsageContextSchema).min(1).max(8),
     responsibility: z
       .object({
         isCurrentlyResponsible: z.boolean(),
@@ -196,8 +204,9 @@ export const useCaseCardSchema = z
           });
         }
       }),
-    decisionImpact: decisionImpactSchema,
-    affectedParties: z.array(affectedPartySchema).max(4),
+    decisionImpact: decisionImpactSchema.optional(),
+    decisionInfluence: decisionInfluenceSchema.optional(),
+    affectedParties: z.array(affectedPartySchema).max(4).optional(),
     status: registerUseCaseStatusSchema,
     reviewHints: z.array(z.string().trim().min(1).max(300)).default([]),
     evidences: z.array(evidenceReferenceSchema).default([]),
@@ -212,6 +221,7 @@ export const useCaseCardSchema = z
     toolId: z.string().min(1).max(100).optional(),
     toolFreeText: z.string().trim().min(1).max(300).optional(),
     dataCategory: dataCategorySchema.optional(),
+    dataCategories: z.array(dataCategorySchema).max(13).optional(),
     publicHashId: z.string().min(8).max(24).optional(),
     isPublicVisible: z.boolean().optional(),
     publicInfo: toolPublicInfoSchema.optional().nullable(),
@@ -339,7 +349,8 @@ export function createUseCaseCardV11Draft(
       isCurrentlyResponsible: capture.isCurrentlyResponsible,
       responsibleParty: capture.responsibleParty ?? null,
     },
-    decisionImpact: capture.decisionImpact,
+    decisionImpact: capture.decisionImpact ?? "NO",
+    decisionInfluence: capture.decisionInfluence,
     affectedParties: capture.affectedParties ?? [],
     status,
     reviewHints: [],
@@ -352,6 +363,7 @@ export function createUseCaseCardV11Draft(
     toolId: capture.toolId,
     toolFreeText: capture.toolFreeText,
     dataCategory: capture.dataCategory ?? "INTERNAL",
+    dataCategories: capture.dataCategories,
     publicHashId: params.publicHashId,
     isPublicVisible: false,
     // v1.2 fields

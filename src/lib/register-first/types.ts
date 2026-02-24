@@ -40,31 +40,127 @@ export const USAGE_CONTEXT_OPTIONS: CaptureUsageContext[] = [
   "PUBLIC",
 ];
 
+/** @deprecated Use DecisionInfluence instead */
 export type DecisionImpact = "YES" | "NO" | "UNSURE";
 
+/** @deprecated Redundant with Wirkungsbereich (usageContexts) */
 export type AffectedParty =
   | "INDIVIDUALS"
   | "GROUPS_OR_TEAMS"
   | "EXTERNAL_PEOPLE"
   | "INTERNAL_PROCESSES";
 
+// ── Decision Influence (replaces DecisionImpact) ─────────────────────────────
+
+export type DecisionInfluence =
+  | "ASSISTANCE"    // Reine Assistenz (keine Entscheidungsrelevanz)
+  | "PREPARATION"   // Vorbereitung von Entscheidungen
+  | "AUTOMATED";    // Trifft oder automatisiert Entscheidungen
+
+export const DECISION_INFLUENCE_LABELS: Record<DecisionInfluence, string> = {
+  ASSISTANCE: "Reine Assistenz (keine Entscheidungsrelevanz)",
+  PREPARATION: "Vorbereitung von Entscheidungen",
+  AUTOMATED: "Trifft oder automatisiert Entscheidungen",
+};
+
+export const DECISION_INFLUENCE_OPTIONS: DecisionInfluence[] = [
+  "ASSISTANCE",
+  "PREPARATION",
+  "AUTOMATED",
+];
+
+/** Map legacy DecisionImpact to DecisionInfluence */
+export function mapLegacyDecisionImpact(impact: DecisionImpact | undefined): DecisionInfluence | undefined {
+  if (!impact) return undefined;
+  switch (impact) {
+    case "NO": return "ASSISTANCE";
+    case "YES": return "PREPARATION";
+    case "UNSURE": return "PREPARATION";
+  }
+}
+
 export interface CaptureInput {
   purpose: string;
   usageContexts: CaptureUsageContext[];
   isCurrentlyResponsible: boolean;
   responsibleParty?: string | null;
-  decisionImpact: DecisionImpact;
+  /** @deprecated Use decisionInfluence instead */
+  decisionImpact?: DecisionImpact;
+  decisionInfluence?: DecisionInfluence;
+  /** @deprecated Redundant with Wirkungsbereich (usageContexts) */
   affectedParties?: AffectedParty[];
   // v1.1 fields (optional for backward compat with v1.0 capture flows)
   toolId?: string;
   toolFreeText?: string;
+  /** @deprecated Use dataCategories[] instead */
   dataCategory?: DataCategory;
+  dataCategories?: DataCategory[];
   // v1.2 fields (Register-First: flat metadata)
   /** @deprecated Organisation comes from OrgSettings now */
   organisation?: string | null;
 }
 
-export type DataCategory = "NONE" | "INTERNAL" | "PERSONAL" | "SENSITIVE";
+export type DataCategory =
+  // New canonical values
+  | "NO_PERSONAL_DATA"       // Keine personenbezogenen Daten
+  | "PERSONAL_DATA"          // Personenbezogene Daten
+  | "SPECIAL_PERSONAL"       // Besondere personenbezogene Daten (parent)
+  | "HEALTH_DATA"            // ↳ Gesundheitsdaten
+  | "BIOMETRIC_DATA"         // ↳ Biometrische Daten
+  | "POLITICAL_RELIGIOUS"    // ↳ Politische / religiöse Angaben
+  | "OTHER_SENSITIVE"        // ↳ Weitere sensible Daten
+  | "INTERNAL_CONFIDENTIAL"  // Interne / vertrauliche Unternehmensdaten
+  | "PUBLIC_DATA"            // Öffentlich zugängliche Daten
+  // Legacy (backward-compatible)
+  | "NONE"                   // → NO_PERSONAL_DATA
+  | "INTERNAL"               // → INTERNAL_CONFIDENTIAL
+  | "PERSONAL"               // → PERSONAL_DATA
+  | "SENSITIVE";             // → SPECIAL_PERSONAL
+
+/** Canonical German labels */
+export const DATA_CATEGORY_LABELS: Record<DataCategory, string> = {
+  NO_PERSONAL_DATA: "Keine personenbezogenen Daten",
+  PERSONAL_DATA: "Personenbezogene Daten",
+  SPECIAL_PERSONAL: "Besondere personenbezogene Daten",
+  HEALTH_DATA: "Gesundheitsdaten",
+  BIOMETRIC_DATA: "Biometrische Daten",
+  POLITICAL_RELIGIOUS: "Politische / religiöse Angaben",
+  OTHER_SENSITIVE: "Weitere sensible Daten",
+  INTERNAL_CONFIDENTIAL: "Interne / vertrauliche Unternehmensdaten",
+  PUBLIC_DATA: "Öffentlich zugängliche Daten",
+  // Legacy labels
+  NONE: "Keine besonderen Daten",
+  INTERNAL: "Interne Daten",
+  PERSONAL: "Personenbezogene Daten",
+  SENSITIVE: "Sensible Daten",
+};
+
+/** Main options shown in UI (top-level checkboxes) */
+export const DATA_CATEGORY_MAIN_OPTIONS: DataCategory[] = [
+  "NO_PERSONAL_DATA",
+  "PERSONAL_DATA",
+  "SPECIAL_PERSONAL",
+  "INTERNAL_CONFIDENTIAL",
+  "PUBLIC_DATA",
+];
+
+/** Sub-options for SPECIAL_PERSONAL (expandable section) */
+export const DATA_CATEGORY_SPECIAL_OPTIONS: DataCategory[] = [
+  "HEALTH_DATA",
+  "BIOMETRIC_DATA",
+  "POLITICAL_RELIGIOUS",
+  "OTHER_SENSITIVE",
+];
+
+/** Read helper: get dataCategories from card (with backward compat) */
+export function resolveDataCategories(card: { dataCategories?: DataCategory[]; dataCategory?: DataCategory }): DataCategory[] {
+  return card.dataCategories ?? (card.dataCategory ? [card.dataCategory] : []);
+}
+
+/** Read helper: get decisionInfluence from card (with backward compat) */
+export function resolveDecisionInfluence(card: { decisionInfluence?: DecisionInfluence; decisionImpact?: DecisionImpact }): DecisionInfluence | undefined {
+  return card.decisionInfluence ?? mapLegacyDecisionImpact(card.decisionImpact);
+}
 
 export interface ReviewEvent {
   reviewId: string;
@@ -113,7 +209,10 @@ export interface UseCaseCard {
     isCurrentlyResponsible: boolean;
     responsibleParty?: string | null;
   };
+  /** @deprecated Use decisionInfluence instead */
   decisionImpact: DecisionImpact;
+  decisionInfluence?: DecisionInfluence;
+  /** @deprecated Redundant with Wirkungsbereich (usageContexts) */
   affectedParties: AffectedParty[];
   status: RegisterUseCaseStatus;
   reviewHints: string[];
@@ -125,7 +224,9 @@ export interface UseCaseCard {
   formatVersion?: string;
   toolId?: string;
   toolFreeText?: string;
+  /** @deprecated Use dataCategories[] instead */
   dataCategory?: DataCategory;
+  dataCategories?: DataCategory[];
   publicHashId?: string;
   isPublicVisible?: boolean;
   publicInfo?: ToolPublicInfo | null;

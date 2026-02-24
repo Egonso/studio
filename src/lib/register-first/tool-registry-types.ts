@@ -18,8 +18,19 @@ export const TOOL_TYPES = [
 
 export type ToolType = (typeof TOOL_TYPES)[number];
 
-// ── Data Category Enum (for Use-Case Pass v1.1) ────────────────────────────
+// ── Data Category Enum (for Use-Case Pass v1.1+) ───────────────────────────
 export const DATA_CATEGORIES = [
+  // New canonical values
+  "NO_PERSONAL_DATA",
+  "PERSONAL_DATA",
+  "SPECIAL_PERSONAL",
+  "HEALTH_DATA",
+  "BIOMETRIC_DATA",
+  "POLITICAL_RELIGIOUS",
+  "OTHER_SENSITIVE",
+  "INTERNAL_CONFIDENTIAL",
+  "PUBLIC_DATA",
+  // Legacy (backward-compatible)
   "NONE",
   "INTERNAL",
   "PERSONAL",

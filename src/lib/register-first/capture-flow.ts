@@ -4,6 +4,7 @@ import type {
   CaptureUsageContext,
   DataCategory,
   DecisionImpact,
+  DecisionInfluence,
 } from "./types";
 
 export interface CaptureFormDraft {
@@ -11,12 +12,17 @@ export interface CaptureFormDraft {
   usageContexts: CaptureUsageContext[];
   isCurrentlyResponsible: boolean | null;
   responsibleParty: string;
+  /** @deprecated Use decisionInfluence instead */
   decisionImpact: DecisionImpact | null;
+  decisionInfluence: DecisionInfluence | null;
+  /** @deprecated Redundant with usageContexts (Wirkungsbereich) */
   affectedParties: AffectedParty[];
   // v1.1 fields
   toolId: string;
   toolFreeText: string;
+  /** @deprecated Use dataCategories[] instead */
   dataCategory: DataCategory | null;
+  dataCategories: DataCategory[];
 }
 
 export type CaptureFieldErrors = Partial<
@@ -26,9 +32,11 @@ export type CaptureFieldErrors = Partial<
     | "isCurrentlyResponsible"
     | "responsibleParty"
     | "decisionImpact"
+    | "decisionInfluence"
     | "toolId"
     | "toolFreeText"
-    | "dataCategory",
+    | "dataCategory"
+    | "dataCategories",
     string
   >
 >;
@@ -45,13 +53,16 @@ export function createEmptyCaptureDraft(): CaptureFormDraft {
     isCurrentlyResponsible: null,
     responsibleParty: "",
     decisionImpact: null,
+    decisionInfluence: null,
     affectedParties: [],
     toolId: "",
     toolFreeText: "",
     dataCategory: null,
+    dataCategories: [],
   };
 }
 
+/** @deprecated Use decisionInfluence checks instead */
 export function shouldShowAffectedParties(
   decisionImpact: DecisionImpact | null
 ): boolean {
@@ -80,8 +91,9 @@ export function validateCaptureDraft(draft: CaptureFormDraft): CaptureValidation
     errors.responsibleParty = "Bitte gib Name oder Rolle an.";
   }
 
-  if (!draft.decisionImpact) {
-    errors.decisionImpact = "Bitte wähle eine Option zur Entscheidungsrelevanz.";
+  // Validate decisionInfluence (new field) or fall back to decisionImpact (legacy)
+  if (!draft.decisionInfluence && !draft.decisionImpact) {
+    errors.decisionInfluence = "Bitte wähle den Einfluss auf Entscheidungen.";
   }
 
   // v1.1: toolFreeText required when toolId is "other"
@@ -99,7 +111,7 @@ export function validateCaptureDraft(draft: CaptureFormDraft): CaptureValidation
 }
 
 export function toCaptureInput(draft: CaptureFormDraft): CaptureInput {
-  if (draft.isCurrentlyResponsible === null || !draft.decisionImpact) {
+  if (draft.isCurrentlyResponsible === null) {
     throw new Error("Incomplete capture draft.");
   }
 
@@ -111,10 +123,9 @@ export function toCaptureInput(draft: CaptureFormDraft): CaptureInput {
       draft.isCurrentlyResponsible === false
         ? draft.responsibleParty.trim()
         : null,
-    decisionImpact: draft.decisionImpact,
-    affectedParties: shouldShowAffectedParties(draft.decisionImpact)
-      ? draft.affectedParties
-      : [],
+    decisionImpact: draft.decisionImpact ?? undefined,
+    decisionInfluence: draft.decisionInfluence ?? undefined,
+    affectedParties: [],
   };
 
   // v1.1 fields (only include if provided)
@@ -123,6 +134,9 @@ export function toCaptureInput(draft: CaptureFormDraft): CaptureInput {
     if (draft.toolId === "other" && draft.toolFreeText) {
       result.toolFreeText = draft.toolFreeText.trim();
     }
+  }
+  if (draft.dataCategories && draft.dataCategories.length > 0) {
+    result.dataCategories = draft.dataCategories;
   }
   if (draft.dataCategory) {
     result.dataCategory = draft.dataCategory;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -24,8 +24,16 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { registerService } from "@/lib/register-first/register-service";
 import { createStaticToolRegistryService } from "@/lib/register-first/tool-registry-service";
-import type { CaptureUsageContext, DataCategory, OrgSettings } from "@/lib/register-first/types";
-import { USAGE_CONTEXT_OPTIONS, USAGE_CONTEXT_LABELS } from "@/lib/register-first/types";
+import type { CaptureUsageContext, DataCategory, DecisionInfluence, OrgSettings } from "@/lib/register-first/types";
+import {
+    USAGE_CONTEXT_OPTIONS,
+    USAGE_CONTEXT_LABELS,
+    DATA_CATEGORY_MAIN_OPTIONS,
+    DATA_CATEGORY_SPECIAL_OPTIONS,
+    DATA_CATEGORY_LABELS,
+    DECISION_INFLUENCE_OPTIONS,
+    DECISION_INFLUENCE_LABELS,
+} from "@/lib/register-first/types";
 import type { ToolRegistryEntry } from "@/lib/register-first/tool-registry-types";
 import { applyOrgDefaults } from "@/lib/register-first/inheritance";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
@@ -44,7 +52,8 @@ interface QuickDraft {
     toolId: string;
     toolFreeText: string;
     usageContexts: CaptureUsageContext[];
-    dataCategory: DataCategory;
+    dataCategories: DataCategory[];
+    decisionInfluence: DecisionInfluence | null;
     description: string;
 }
 
@@ -54,7 +63,8 @@ const EMPTY_DRAFT: QuickDraft = {
     toolId: "__placeholder__",
     toolFreeText: "",
     usageContexts: [],
-    dataCategory: "NONE",
+    dataCategories: [],
+    decisionInfluence: null,
     description: "",
 };
 
@@ -67,6 +77,55 @@ function toggleMultiSelect<T>(arr: T[], item: T): T[] {
     return arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
 }
 
+// ── DataCategory mutual exclusion logic ──────────────────────────────────────
+
+function applyDataCategoryLogic(categories: DataCategory[], toggled: DataCategory): DataCategory[] {
+    let next = toggleMultiSelect(categories, toggled);
+
+    // If checking NO_PERSONAL_DATA → remove all personal-related
+    if (toggled === "NO_PERSONAL_DATA" && next.includes("NO_PERSONAL_DATA")) {
+        next = next.filter(
+            (c) => c !== "PERSONAL_DATA" && c !== "SPECIAL_PERSONAL" &&
+                !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c)
+        );
+    }
+
+    // If checking PERSONAL_DATA or SPECIAL_PERSONAL or any sub → remove NO_PERSONAL_DATA
+    if (
+        toggled !== "NO_PERSONAL_DATA" &&
+        (toggled === "PERSONAL_DATA" || toggled === "SPECIAL_PERSONAL" ||
+            DATA_CATEGORY_SPECIAL_OPTIONS.includes(toggled)) &&
+        next.includes(toggled)
+    ) {
+        next = next.filter((c) => c !== "NO_PERSONAL_DATA");
+    }
+
+    // If checking any SPECIAL sub-item → auto-check PERSONAL_DATA + SPECIAL_PERSONAL
+    if (DATA_CATEGORY_SPECIAL_OPTIONS.includes(toggled) && next.includes(toggled)) {
+        if (!next.includes("PERSONAL_DATA")) next = [...next, "PERSONAL_DATA"];
+        if (!next.includes("SPECIAL_PERSONAL")) next = [...next, "SPECIAL_PERSONAL"];
+    }
+
+    // If checking SPECIAL_PERSONAL → auto-check PERSONAL_DATA
+    if (toggled === "SPECIAL_PERSONAL" && next.includes("SPECIAL_PERSONAL")) {
+        if (!next.includes("PERSONAL_DATA")) next = [...next, "PERSONAL_DATA"];
+    }
+
+    // If unchecking SPECIAL_PERSONAL → remove all sub-items
+    if (toggled === "SPECIAL_PERSONAL" && !next.includes("SPECIAL_PERSONAL")) {
+        next = next.filter((c) => !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c));
+    }
+
+    // If unchecking PERSONAL_DATA → also uncheck SPECIAL_PERSONAL + sub-items
+    if (toggled === "PERSONAL_DATA" && !next.includes("PERSONAL_DATA")) {
+        next = next.filter(
+            (c) => c !== "SPECIAL_PERSONAL" && !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c)
+        );
+    }
+
+    return next;
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptureModalProps) {
@@ -77,6 +136,11 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
     const [inheritanceApplied, setInheritanceApplied] = useState(false);
     const { allowed: canInherit } = useCapability("extendedOrgSettings");
     const { toast } = useToast();
+
+    // Accordion state
+    const [section1Open, setSection1Open] = useState(false);
+    const [section2Open, setSection2Open] = useState(false);
+    const [specialOpen, setSpecialOpen] = useState(false);
 
     useEffect(() => {
         toolRegistry.listActiveTools().then((tools: ToolRegistryEntry[]) => {
@@ -102,6 +166,12 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
 
     const canSave = draft.purpose.trim().length > 0 && draft.ownerName.trim().length >= 2 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
 
+    // Count selections for badges
+    const section1Count = draft.usageContexts.length + (draft.decisionInfluence ? 1 : 0);
+    const section2Count = draft.dataCategories.filter(
+        (c) => !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c) || !draft.dataCategories.includes("SPECIAL_PERSONAL")
+    ).length;
+
     const handleSave = async () => {
         if (!canSave) return;
         setIsSaving(true);
@@ -112,7 +182,8 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                 toolId: draft.toolId === "other" ? "other" : draft.toolId,
                 toolFreeText: draft.toolId === "other" ? draft.toolFreeText.trim() : undefined,
                 usageContexts: draft.usageContexts.length > 0 ? draft.usageContexts : ["INTERNAL_ONLY"],
-                dataCategory: draft.dataCategory,
+                dataCategories: draft.dataCategories.length > 0 ? draft.dataCategories : undefined,
+                decisionInfluence: draft.decisionInfluence ?? undefined,
                 isCurrentlyResponsible: false,
                 responsibleParty: draft.ownerName.trim(),
                 decisionImpact: "UNSURE",
@@ -152,6 +223,9 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             });
 
             setDraft({ ...EMPTY_DRAFT });
+            setSection1Open(false);
+            setSection2Open(false);
+            setSpecialOpen(false);
             onCaptured?.(card.useCaseId);
             onOpenChange(false);
         } catch {
@@ -177,7 +251,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[480px]"
+                className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto"
                 onKeyDown={handleKeyDown}
                 aria-describedby="qc-dialog-desc"
                 aria-labelledby="qc-dialog-title"
@@ -254,49 +328,163 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         )}
                     </div>
 
-                    {/* 4. Wirkungsbereich (multi-select checkboxes) */}
-                    <div className="space-y-2">
-                        <Label>Wirkungsbereich</Label>
-                        <div className="space-y-2">
-                            {USAGE_CONTEXT_OPTIONS.map((option) => (
-                                <label
-                                    key={option}
-                                    className="flex items-center gap-2 cursor-pointer text-sm"
-                                >
-                                    <Checkbox
-                                        checked={draft.usageContexts.includes(option)}
-                                        onCheckedChange={() =>
-                                            patch({
-                                                usageContexts: toggleMultiSelect(
-                                                    draft.usageContexts,
-                                                    option,
-                                                ),
-                                            })
-                                        }
-                                    />
-                                    {USAGE_CONTEXT_LABELS[option]}
-                                </label>
-                            ))}
-                        </div>
+                    {/* ▼ Section 1: Wirkung & Betroffene (collapsible) */}
+                    <div className="rounded-md border">
+                        <button
+                            type="button"
+                            onClick={() => setSection1Open(!section1Open)}
+                            className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium hover:bg-muted/50 transition-colors"
+                        >
+                            <span className="flex items-center gap-2">
+                                {section1Open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                Wirkung &amp; Betroffene
+                            </span>
+                            {section1Count > 0 && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-medium">
+                                    {section1Count} gewählt
+                                </span>
+                            )}
+                        </button>
+
+                        {section1Open && (
+                            <div className="border-t px-3 py-3 space-y-4">
+                                {/* Wirkungsbereich */}
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-muted-foreground">Wirkungsbereich (Mehrfachauswahl)</Label>
+                                    <div className="space-y-1.5">
+                                        {USAGE_CONTEXT_OPTIONS.map((option) => (
+                                            <label
+                                                key={option}
+                                                className="flex items-center gap-2 cursor-pointer text-sm"
+                                            >
+                                                <Checkbox
+                                                    checked={draft.usageContexts.includes(option)}
+                                                    onCheckedChange={() =>
+                                                        patch({
+                                                            usageContexts: toggleMultiSelect(
+                                                                draft.usageContexts,
+                                                                option,
+                                                            ),
+                                                        })
+                                                    }
+                                                />
+                                                {USAGE_CONTEXT_LABELS[option]}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Einfluss auf Entscheidungen */}
+                                <div className="space-y-2">
+                                    <Label className="text-xs text-muted-foreground">Einfluss auf Entscheidungen</Label>
+                                    <div className="space-y-1.5">
+                                        {DECISION_INFLUENCE_OPTIONS.map((option) => (
+                                            <label
+                                                key={option}
+                                                className="flex items-center gap-2 cursor-pointer text-sm"
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="decisionInfluence"
+                                                    checked={draft.decisionInfluence === option}
+                                                    onChange={() => patch({ decisionInfluence: option })}
+                                                    className="h-4 w-4 text-primary border-border"
+                                                />
+                                                {DECISION_INFLUENCE_LABELS[option]}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* 5. Data Category */}
-                    <div className="space-y-1.5">
-                        <Label>Datenkategorie</Label>
-                        <Select
-                            value={draft.dataCategory}
-                            onValueChange={(v) => patch({ dataCategory: v as DataCategory })}
+                    {/* ▼ Section 2: Daten & Sensitivität (collapsible) */}
+                    <div className="rounded-md border">
+                        <button
+                            type="button"
+                            onClick={() => setSection2Open(!section2Open)}
+                            className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium hover:bg-muted/50 transition-colors"
                         >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="NONE">Keine besonderen Daten</SelectItem>
-                                <SelectItem value="INTERNAL">Interne Daten</SelectItem>
-                                <SelectItem value="PERSONAL">Personenbezogene Daten</SelectItem>
-                                <SelectItem value="SENSITIVE">Sensible Daten</SelectItem>
-                            </SelectContent>
-                        </Select>
+                            <span className="flex items-center gap-2">
+                                {section2Open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                Daten &amp; Sensitivität
+                            </span>
+                            {draft.dataCategories.length > 0 && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-medium">
+                                    {draft.dataCategories.filter((c) => DATA_CATEGORY_MAIN_OPTIONS.includes(c)).length} gewählt
+                                </span>
+                            )}
+                        </button>
+
+                        {section2Open && (
+                            <div className="border-t px-3 py-3 space-y-1.5">
+                                <Label className="text-xs text-muted-foreground">Datenkategorien (Mehrfachauswahl)</Label>
+
+                                {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
+                                    <div key={option}>
+                                        <label className="flex items-center gap-2 cursor-pointer text-sm py-0.5">
+                                            <Checkbox
+                                                checked={draft.dataCategories.includes(option)}
+                                                onCheckedChange={() =>
+                                                    patch({
+                                                        dataCategories: applyDataCategoryLogic(
+                                                            draft.dataCategories,
+                                                            option,
+                                                        ),
+                                                    })
+                                                }
+                                            />
+                                            <span className="flex-1">{DATA_CATEGORY_LABELS[option]}</span>
+                                            {option === "SPECIAL_PERSONAL" && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setSpecialOpen(!specialOpen);
+                                                    }}
+                                                    className="text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {specialOpen
+                                                        ? <ChevronDown className="h-3.5 w-3.5" />
+                                                        : <ChevronRight className="h-3.5 w-3.5" />
+                                                    }
+                                                </button>
+                                            )}
+                                        </label>
+
+                                        {/* Expandable sub-options for SPECIAL_PERSONAL */}
+                                        {option === "SPECIAL_PERSONAL" && specialOpen && (
+                                            <div className="ml-6 mt-1 mb-2 space-y-1 rounded-md bg-muted/30 p-2">
+                                                {DATA_CATEGORY_SPECIAL_OPTIONS.map((sub) => (
+                                                    <label
+                                                        key={sub}
+                                                        className="flex items-center gap-2 cursor-pointer text-sm"
+                                                    >
+                                                        <Checkbox
+                                                            checked={draft.dataCategories.includes(sub)}
+                                                            onCheckedChange={() =>
+                                                                patch({
+                                                                    dataCategories: applyDataCategoryLogic(
+                                                                        draft.dataCategories,
+                                                                        sub,
+                                                                    ),
+                                                                })
+                                                            }
+                                                        />
+                                                        {DATA_CATEGORY_LABELS[sub]}
+                                                    </label>
+                                                ))}
+                                                <p className="text-[10px] text-muted-foreground mt-1.5 leading-tight">
+                                                    ℹ Art. 9 DSGVO umfasst auch: ethnische Herkunft, Gewerkschaftszugehörigkeit, genetische Daten, sexuelle Orientierung
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* 6. Description (optional) */}
@@ -314,6 +502,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                             {draft.description.length}/160
                         </p>
                     </div>
+
                     {/* Inheritance Hint */}
                     {canInherit && inheritanceApplied && (
                         <div className="rounded-md border border-blue-100 bg-blue-50/50 px-3 py-2">

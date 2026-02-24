@@ -63,6 +63,7 @@ import {
   buildVerifyPassAbsoluteUrl,
   type CaptureUsageContext,
   USAGE_CONTEXT_LABELS,
+  DATA_CATEGORY_LABELS,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
   type UseCaseCard,
@@ -73,12 +74,7 @@ import { registerService } from "@/lib/register-first/register-service";
 
 const toolRegistry = createStaticToolRegistryService();
 
-const dataCategoryLabels: Record<string, string> = {
-  NONE: "Keine besonderen Daten",
-  INTERNAL: "Interne Daten",
-  PERSONAL: "Personenbezogene Daten",
-  SENSITIVE: "Sensible Daten",
-};
+const dataCategoryLabels = DATA_CATEGORY_LABELS;
 
 interface RegisterBoardProps {
   projectId?: string;

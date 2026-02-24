@@ -232,7 +232,7 @@ export async function runFoundationSmoke() {
   assert.equal(typeof validation.errors.purpose, "string");
   assert.equal(typeof validation.errors.usageContexts, "string");
   assert.equal(typeof validation.errors.isCurrentlyResponsible, "string");
-  assert.equal(typeof validation.errors.decisionImpact, "string");
+  assert.equal(typeof validation.errors.decisionInfluence, "string");
 
   assert.equal(shouldShowAffectedParties("YES"), true);
   assert.equal(shouldShowAffectedParties("UNSURE"), true);
@@ -244,10 +244,12 @@ export async function runFoundationSmoke() {
     isCurrentlyResponsible: false,
     responsibleParty: "Leitung Service",
     decisionImpact: "YES",
+    decisionInfluence: "PREPARATION",
     affectedParties: ["GROUPS_OR_TEAMS"],
     toolId: "",
     toolFreeText: "",
     dataCategory: null,
+    dataCategories: [],
   };
 
   let capturedPurpose = "";
