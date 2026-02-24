@@ -126,3 +126,56 @@ export function getLockedFeatures(plan: SubscriptionPlan | undefined | null): Fe
     const uniqueFeatures = [...new Set(allFeatures)];
     return uniqueFeatures.filter(f => !PLAN_CAPABILITIES[activePlan].includes(f));
 }
+
+// ── Feature Metadata ─────────────────────────────────────────────────────────
+// Human-readable labels and short descriptions for each feature.
+// Used by FeatureGateDialog to show contextual information.
+
+interface FeatureMeta {
+    label: string;
+    description: string;
+}
+
+const FEATURE_META: Record<FeatureCapability, FeatureMeta> = {
+    editUseCase:            { label: 'Use-Case bearbeiten',          description: 'Alle Felder eines Einsatzfalls bearbeiten und aktualisieren.' },
+    isoLifecycleTab:        { label: 'ISO Lifecycle',                description: 'Review-Zyklen, Aufsichtsmodelle und Lifecycle-Status pro Einsatzfall pflegen.' },
+    portfolioTab:           { label: 'Portfolio-Analyse',            description: 'Value- und Risk-Scores zur strategischen Steuerung Ihres KI-Portfolios.' },
+    assessmentWizard:       { label: 'EUKI Assessment',              description: 'Geführte Bewertung nach EU AI Act Risikokategorien.' },
+    extendedOrgSettings:    { label: 'Erweiterte Org-Einstellungen', description: 'RACI-Matrix, Incident-Prozesse und Review-Standards zentral konfigurieren.' },
+    governanceWizard:       { label: 'Governance-Wizard',            description: 'Geführter Aufbau Ihres organisationsweiten Governance-Frameworks.' },
+    policyEngine:           { label: 'Policy-Generator',             description: 'Richtlinien für den KI-Einsatz generieren und verwalten.' },
+    auditExport:            { label: 'Audit-Export',                 description: 'Governance-Dokumentation als PDF oder strukturiertes Dossier exportieren.' },
+    isoAlignmentPack:       { label: 'ISO-Alignment',               description: 'Mapping auf ISO 27001 / ISO 42001 Anforderungen.' },
+    competencyMatrix:       { label: 'Kompetenz-Matrix',             description: 'Schulungsanforderungen und Kompetenznachweise nachverfolgen.' },
+    reviewWorkflow:         { label: 'Review-Workflows',             description: 'Formale Prüfungen dokumentieren und Fristen automatisch überwachen.' },
+    trustPortal:            { label: 'Trust Portal',                 description: 'Öffentlicher Governance-Nachweis für externe Stakeholder.' },
+    benchmarkInsights:      { label: 'Benchmark-Insights',           description: 'Anonymisierte Vergleichsdaten aus der Branche.' },
+    apiAccess:              { label: 'API-Zugang',                   description: 'Programmatischer Zugriff auf Register und Governance-Daten.' },
+    executiveReporting:     { label: 'Executive Reporting',          description: 'Vorstandsgerechte Berichte und Dashboards.' },
+    multiOrgStructure:      { label: 'Multi-Organisation',           description: 'Mehrere Organisationseinheiten zentral verwalten.' },
+    supplyChainAssessment:  { label: 'Lieferketten-Bewertung',       description: 'KI-Governance-Anforderungen in der Lieferkette prüfen.' },
+};
+
+/**
+ * Get the human-readable label for a feature capability.
+ */
+export function getFeatureLabel(feature: FeatureCapability): string {
+    return FEATURE_META[feature].label;
+}
+
+/**
+ * Get the short description for a feature capability.
+ */
+export function getFeatureDescription(feature: FeatureCapability): string {
+    return FEATURE_META[feature].description;
+}
+
+/**
+ * Get a summary of key features included in a plan (for upsell dialogs).
+ * Returns up to `limit` features with their labels.
+ */
+export function getPlanHighlights(plan: SubscriptionPlan, limit = 5): string[] {
+    return PLAN_CAPABILITIES[plan]
+        .slice(0, limit)
+        .map(f => FEATURE_META[f].label);
+}

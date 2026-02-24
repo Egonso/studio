@@ -3,19 +3,32 @@
 import { useState, useMemo, useCallback } from "react";
 import {
     AlertCircle,
+    Check,
     CheckCircle2,
+    ChevronDown,
     Clock,
     Download,
     ExternalLink,
     Lock,
+    Pencil,
     ShieldCheck,
+    Sparkles,
     XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import type { UseCaseCard, OrgSettings } from "@/lib/register-first/types";
 import { useToast } from "@/hooks/use-toast";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { registerService } from "@/lib/register-first/register-service";
 import { ReviewDialog } from "./review-dialog";
 
 // ── Backend Services ────────────────────────────────────────────────────────
@@ -79,6 +92,11 @@ export function GovernanceLiabilitySection({
     const [isActivatingPortal, setIsActivatingPortal] = useState(false);
     const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
+    // ── Inline-Edit state for Section 1 ─────────────────────────────────
+    const [editingField, setEditingField] = useState<"oversight" | "reviewCycle" | null>(null);
+    const [editValue, setEditValue] = useState("");
+    const [isSavingInline, setIsSavingInline] = useState(false);
+
     // ── Capability checks ───────────────────────────────────────────────
     const reviewCap = useCapability("reviewWorkflow");
     const trustCap = useCapability("trustPortal");
@@ -90,8 +108,10 @@ export function GovernanceLiabilitySection({
         || (!!card.dataCategory && card.dataCategory !== "NONE");
     const hasOwner = !!card.responsibility?.responsibleParty
         || card.responsibility?.isCurrentlyResponsible === true;
-    const hasOversight = !!iso?.oversightModel && iso.oversightModel !== "unknown";
-    const hasReviewCycle = !!iso?.reviewCycle && iso.reviewCycle !== "unknown";
+    // OrgSettings fallback: If per-card ISO data is missing, check org-wide reviewStandard
+    const hasOversight = (!!iso?.oversightModel && iso.oversightModel !== "unknown");
+    const hasReviewCycle = (!!iso?.reviewCycle && iso.reviewCycle !== "unknown")
+        || !!orgSettings?.reviewStandard;
 
     const section1Checks = [hasRiskClass, hasOwner, hasOversight, hasReviewCycle];
     const section1Passed = section1Checks.filter(Boolean).length;
@@ -204,6 +224,48 @@ export function GovernanceLiabilitySection({
         }
     }, [card, useCases, orgSettings, toast]);
 
+    // ── Inline-Edit Handler ──────────────────────────────────────────────
+
+    const handleInlineEdit = useCallback((field: "oversight" | "reviewCycle") => {
+        const currentVal = field === "oversight"
+            ? (iso?.oversightModel ?? "unknown")
+            : (iso?.reviewCycle ?? "unknown");
+        setEditValue(currentVal);
+        setEditingField(field);
+    }, [iso]);
+
+    const handleInlineSave = useCallback(async () => {
+        if (!editingField || !editValue) return;
+        setIsSavingInline(true);
+        try {
+            const currentIso = card.governanceAssessment?.flex?.iso || {};
+            const updatedIso = {
+                ...currentIso,
+                ...(editingField === "oversight" ? { oversightModel: editValue } : {}),
+                ...(editingField === "reviewCycle" ? { reviewCycle: editValue } : {}),
+            };
+            const updatedCard: UseCaseCard = {
+                ...card,
+                governanceAssessment: {
+                    ...card.governanceAssessment,
+                    core: card.governanceAssessment?.core || {},
+                    flex: {
+                        ...card.governanceAssessment?.flex,
+                        iso: updatedIso as any,
+                    },
+                },
+            };
+            await registerService.updateUseCase(card.useCaseId, updatedCard);
+            onCardUpdate?.(updatedCard);
+            toast({ title: "Gespeichert", description: editingField === "oversight" ? "Aufsichtsmodell aktualisiert." : "Review-Zyklus aktualisiert." });
+        } catch {
+            toast({ variant: "destructive", title: "Fehler", description: "Änderung konnte nicht gespeichert werden." });
+        } finally {
+            setIsSavingInline(false);
+            setEditingField(null);
+        }
+    }, [editingField, editValue, card, onCardUpdate, toast]);
+
     // ── Render ──────────────────────────────────────────────────────────
 
     return (
@@ -222,7 +284,7 @@ export function GovernanceLiabilitySection({
                         <span>1. Stammdokumentation</span>
                         <span className="flex items-center gap-1.5">
                             <span className="text-xs font-normal text-muted-foreground">
-                                {section1Passed}/{section1Total}
+                                {section1Passed} von {section1Total}
                             </span>
                             {section1StatusIcon}
                         </span>
@@ -240,179 +302,271 @@ export function GovernanceLiabilitySection({
                                 : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
                             Verantwortliche:r definiert
                         </li>
+
+                        {/* Aufsichtsmodell – clickable if red */}
                         <li className="flex items-center gap-2">
                             {hasOversight
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
                                 : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
-                            Aufsichtsmodell festgelegt
+                            {!hasOversight && editingField !== "oversight" ? (
+                                <button
+                                    onClick={() => handleInlineEdit("oversight")}
+                                    className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                >
+                                    Aufsichtsmodell festlegen
+                                    <Pencil className="w-2.5 h-2.5" />
+                                </button>
+                            ) : (
+                                <span>Aufsichtsmodell festgelegt</span>
+                            )}
                         </li>
+                        {editingField === "oversight" && (
+                            <li className="ml-5 p-2 bg-blue-50 border border-blue-100 rounded-md">
+                                <label className="text-[11px] font-medium text-blue-800 block mb-1">Aufsichtsmodell wählen:</label>
+                                <Select value={editValue} onValueChange={setEditValue}>
+                                    <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue placeholder="Modell wählen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="HITL">Human-in-the-Loop (HITL)</SelectItem>
+                                        <SelectItem value="HOTL">Human-on-the-Loop (HOTL)</SelectItem>
+                                        <SelectItem value="HUMAN_REVIEW">Menschliche Überprüfung</SelectItem>
+                                        <SelectItem value="NO_HUMAN">Kein menschl. Eingriff</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div className="flex gap-2 mt-2">
+                                    <Button size="sm" className="h-7 text-xs" onClick={() => void handleInlineSave()} disabled={isSavingInline || editValue === "unknown"}>
+                                        <Check className="w-3 h-3 mr-1" />{isSavingInline ? "…" : "Speichern"}
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingField(null)}>Abbrechen</Button>
+                                </div>
+                            </li>
+                        )}
+
+                        {/* Review-Zyklen – clickable if red */}
                         <li className="flex items-center gap-2">
                             {hasReviewCycle
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
                                 : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
-                            Review-Zyklen definiert
+                            {!hasReviewCycle && editingField !== "reviewCycle" ? (
+                                <button
+                                    onClick={() => handleInlineEdit("reviewCycle")}
+                                    className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                >
+                                    Review-Zyklus festlegen
+                                    <Pencil className="w-2.5 h-2.5" />
+                                </button>
+                            ) : (
+                                <span>Review-Zyklen definiert</span>
+                            )}
                         </li>
+                        {editingField === "reviewCycle" && (
+                            <li className="ml-5 p-2 bg-blue-50 border border-blue-100 rounded-md">
+                                <label className="text-[11px] font-medium text-blue-800 block mb-1">Review-Zyklus wählen:</label>
+                                <Select value={editValue} onValueChange={setEditValue}>
+                                    <SelectTrigger className="h-8 text-xs">
+                                        <SelectValue placeholder="Zyklus wählen" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="monthly">Monatlich</SelectItem>
+                                        <SelectItem value="quarterly">Quartalsweise</SelectItem>
+                                        <SelectItem value="semiannually">Halbjährlich</SelectItem>
+                                        <SelectItem value="annually">Jährlich</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div className="flex gap-2 mt-2">
+                                    <Button size="sm" className="h-7 text-xs" onClick={() => void handleInlineSave()} disabled={isSavingInline || editValue === "unknown"}>
+                                        <Check className="w-3 h-3 mr-1" />{isSavingInline ? "…" : "Speichern"}
+                                    </Button>
+                                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingField(null)}>Abbrechen</Button>
+                                </div>
+                            </li>
+                        )}
                     </ul>
                 </div>
 
-                {/* ── Section 2: Prüfhistorie ────────────────────────── */}
-                <div className="p-4 border-b bg-slate-50/50">
+                {/* ── Section 2: Prüfhistorie (Pro) ─────────────────── */}
+                <div className="p-4 border-b">
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span>2. Mit Prüfhistorie</span>
+                        <span className="flex items-center gap-2">
+                            2. Prüfhistorie
+                            {!reviewCap.allowed && (
+                                <Badge variant="outline" className="text-[10px] font-normal text-slate-500 border-slate-300">
+                                    Pro
+                                </Badge>
+                            )}
+                        </span>
                         {isPruefhistorie
                             ? <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            : <Lock className="w-4 h-4 text-slate-400" />}
+                            : <Lock className="w-4 h-4 text-slate-300" />}
                     </h4>
-                    <ul className="space-y-2 text-muted-foreground text-xs">
-                        {/* Deadline monitoring */}
-                        <li className="flex items-center gap-2">
-                            {hasReminders
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                            <span>Fristüberwachung</span>
-                        </li>
-                        {hasReminders && (
-                            <li className="ml-5 flex items-center gap-1.5">
-                                <Clock className="w-3 h-3 shrink-0" />
-                                <DeadlineDisplay status={deadline.status} daysRemaining={deadline.daysRemaining} nextReviewAt={deadline.nextReviewAt} />
-                            </li>
-                        )}
 
-                        {/* Review history */}
-                        <li className="flex items-center gap-2">
-                            {hasHistory
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                            <span>
-                                Review-Historie
-                                {hasHistory && (
-                                    <span className="text-muted-foreground ml-1">
-                                        ({card.reviews.length} {card.reviews.length === 1 ? "Review" : "Reviews"})
-                                    </span>
+                    {reviewCap.allowed ? (
+                        /* ── Pro/Enterprise: Show real data ─────────────── */
+                        <>
+                            <ul className="space-y-2 text-muted-foreground text-xs">
+                                <li className="flex items-center gap-2">
+                                    {hasReminders
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
+                                    <span>Fristüberwachung</span>
+                                </li>
+                                {hasReminders && (
+                                    <li className="ml-5 flex items-center gap-1.5">
+                                        <Clock className="w-3 h-3 shrink-0" />
+                                        <DeadlineDisplay status={deadline.status} daysRemaining={deadline.daysRemaining} nextReviewAt={deadline.nextReviewAt} />
+                                    </li>
                                 )}
-                            </span>
-                            {reviewCap.allowed && (
-                                <button
+                                <li className="flex items-center gap-2">
+                                    {hasHistory
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
+                                    <span>
+                                        Review-Historie
+                                        {hasHistory && (
+                                            <span className="text-muted-foreground ml-1">
+                                                ({card.reviews.length} {card.reviews.length === 1 ? "Review" : "Reviews"})
+                                            </span>
+                                        )}
+                                    </span>
+                                    <button
+                                        onClick={handleActivateReviewWorkflow}
+                                        className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                    >
+                                        + Review
+                                    </button>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    {canGenerateReport
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
+                                    <span>Governance-Report</span>
+                                    {canGenerateReport && (
+                                        <button
+                                            onClick={handleDownloadReport}
+                                            className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                        >
+                                            <Download className="w-3 h-3" /> CSV
+                                        </button>
+                                    )}
+                                </li>
+                            </ul>
+                        </>
+                    ) : (
+                        /* ── Free tier: Beautiful upsell card ──────────── */
+                        <div className="rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4">
+                            <ul className="space-y-2 text-xs text-slate-400 mb-4">
+                                <li className="flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Fristüberwachung
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Review-Historie
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Governance-Report
+                                </li>
+                            </ul>
+                            <div className="border-t border-slate-100 pt-3">
+                                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+                                    Dokumentieren Sie jede Prüfung unveränderbar. Automatische Fristüberwachung benachrichtigt bei überfälligen Reviews.
+                                </p>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
                                     onClick={handleActivateReviewWorkflow}
-                                    className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
                                 >
-                                    + Review
-                                </button>
-                            )}
-                        </li>
-
-                        {/* Report */}
-                        <li className="flex items-center gap-2">
-                            {canGenerateReport
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                            <span>Governance-Report</span>
-                            {canGenerateReport && (
-                                <button
-                                    onClick={handleDownloadReport}
-                                    className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
-                                >
-                                    <Download className="w-3 h-3" />
-                                    CSV
-                                </button>
-                            )}
-                        </li>
-                    </ul>
-
-                    {/* Pro upsell hint – sachlich, nicht aggressiv */}
-                    {needsProHint && !isPruefhistorie && (
-                        <div className="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-md text-slate-700 text-xs">
-                            <div className="flex items-start gap-2">
-                                <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
-                                <div>
-                                    <strong className="block mb-1">Review-Workflows</strong>
-                                    {isHighRisk
-                                        ? "Für Hochrisiko-Systeme empfiehlt Art. 14 AI Act eine dokumentierte menschliche Aufsicht. Eine Prüfhistorie macht dies belastbar nachweisbar."
-                                        : "Review-Workflows und automatische Fristüberwachung dokumentieren die Umsetzung Ihrer Governance-Vorgaben."}
-                                </div>
+                                    <Sparkles className="w-3 h-3 mr-1.5" />
+                                    Prüfhistorie freischalten
+                                </Button>
                             </div>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full mt-3"
-                                onClick={handleActivateReviewWorkflow}
-                            >
-                                {reviewCap.allowed
-                                    ? "Prüfhistorie aktivieren"
-                                    : <>
-                                        <Lock className="w-3 h-3 mr-1.5" />
-                                        Ab {reviewCap.requiredPlanLabel}
-                                    </>}
-                            </Button>
                         </div>
                     )}
                 </div>
 
-                {/* ── Section 3: Extern belegbar ─────────────────────── */}
-                <div className="p-4 bg-slate-50/50">
+                {/* ── Section 3: Extern belegbar (Enterprise) ─────────── */}
+                <div className="p-4">
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span>3. Extern belegbar</span>
+                        <span className="flex items-center gap-2">
+                            3. Extern belegbar
+                            {!trustCap.allowed && (
+                                <Badge variant="outline" className="text-[10px] font-normal text-slate-500 border-slate-300">
+                                    Enterprise
+                                </Badge>
+                            )}
+                        </span>
                         {isExternBelegbar
                             ? <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            : <Lock className="w-4 h-4 text-slate-400" />}
+                            : <Lock className="w-4 h-4 text-slate-300" />}
                     </h4>
-                    <ul className="space-y-2 text-muted-foreground text-xs">
-                        {/* Audit Dossier */}
-                        <li className="flex items-center gap-2">
-                            {hasAuditDossier
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                            ISO 42001 Audit-Dossier
-                        </li>
 
-                        {/* Trust Portal */}
-                        <li className="flex items-center gap-2">
-                            {hasTrustPortal
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                            <span>Governance-Nachweis (Trust Portal)</span>
-                        </li>
-
-                        {/* Verify link if active */}
-                        {hasTrustPortal && verifyUrl && (
-                            <li className="ml-5 flex items-center gap-1.5">
-                                <ExternalLink className="w-3 h-3 shrink-0 text-blue-600" />
-                                <a
-                                    href={verifyUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 hover:underline truncate"
+                    {trustCap.allowed ? (
+                        /* ── Enterprise: Show real data ─────────────────── */
+                        <>
+                            <ul className="space-y-2 text-muted-foreground text-xs">
+                                <li className="flex items-center gap-2">
+                                    {hasAuditDossier
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
+                                    ISO 42001 Audit-Dossier
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    {hasTrustPortal
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
+                                    <span>Governance-Nachweis (Trust Portal)</span>
+                                </li>
+                                {hasTrustPortal && verifyUrl && (
+                                    <li className="ml-5 flex items-center gap-1.5">
+                                        <ExternalLink className="w-3 h-3 shrink-0 text-blue-600" />
+                                        <a href={verifyUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline truncate">
+                                            {verifyUrl}
+                                        </a>
+                                    </li>
+                                )}
+                            </ul>
+                            {needsEnterpriseHint && !hasTrustPortal && (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full mt-3 text-xs"
+                                    onClick={() => void handleActivateTrustPortal()}
+                                    disabled={isActivatingPortal}
                                 >
-                                    {verifyUrl}
-                                </a>
-                            </li>
-                        )}
-                    </ul>
-
-                    {/* Enterprise upsell hint – sachlich */}
-                    {needsEnterpriseHint && !isExternBelegbar && (
-                        <div className="mt-4 p-3 bg-slate-100 border border-slate-200 rounded-md text-slate-700 text-xs">
-                            <div className="flex items-start gap-2">
-                                <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
-                                <div>
-                                    <strong className="block mb-1">Externe Belegbarkeit</strong>
-                                    Dieses System betrifft externe Nutzer. Ein öffentlicher Governance-Nachweis im Trust Portal stärkt das Vertrauen.
-                                </div>
+                                    {isActivatingPortal ? "Wird aktiviert…" : "Trust Portal aktivieren"}
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        /* ── Non-Enterprise: Beautiful upsell card ─────── */
+                        <div className="rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4">
+                            <ul className="space-y-2 text-xs text-slate-400 mb-4">
+                                <li className="flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    ISO 42001 Audit-Dossier
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    Governance-Nachweis (Trust Portal)
+                                </li>
+                            </ul>
+                            <div className="border-t border-slate-100 pt-3">
+                                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+                                    Erstellen Sie prüffähige Nachweise für ISO-Auditoren und externe Stakeholder. Öffentliches Trust Portal inklusive.
+                                </p>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                                    onClick={() => void handleActivateTrustPortal()}
+                                >
+                                    <Sparkles className="w-3 h-3 mr-1.5" />
+                                    Externe Nachweise freischalten
+                                </Button>
                             </div>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full mt-3"
-                                onClick={() => void handleActivateTrustPortal()}
-                                disabled={isActivatingPortal}
-                            >
-                                {trustCap.allowed
-                                    ? (isActivatingPortal ? "Wird aktiviert…" : "Trust Portal aktivieren")
-                                    : <>
-                                        <Lock className="w-3 h-3 mr-1.5" />
-                                        Ab {trustCap.requiredPlanLabel}
-                                    </>}
-                            </Button>
                         </div>
                     )}
                 </div>

@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UseCaseAssessmentWizard } from "./use-case-assessment-wizard";
 import { FeatureGate } from "../feature-gate";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
-import { ToolkitPaywallDialog } from "../toolkit-paywall-dialog";
+import { FeatureGateDialog } from "@/components/feature-gate-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,7 +128,7 @@ function AssessmentButtons({
   onAssessmentClick: () => void;
 }) {
   const { allowed: canAssess } = useCapability('assessmentWizard');
-  const [showPaywall, setShowPaywall] = useState(false);
+  const [showFeatureGate, setShowFeatureGate] = useState(false);
 
   return (
     <>
@@ -145,13 +145,13 @@ function AssessmentButtons({
         <Button
           variant="outline"
           size="sm"
-          onClick={canAssess ? onAssessmentClick : () => setShowPaywall(true)}
+          onClick={canAssess ? onAssessmentClick : () => setShowFeatureGate(true)}
         >
           {!canAssess && <Lock className="w-3.5 h-3.5 mr-1.5" />}
           EUKI Assessment {card.governanceAssessment?.core ? "wiederholen" : "starten"}
         </Button>
       </div>
-      <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      <FeatureGateDialog feature="assessmentWizard" open={showFeatureGate} onOpenChange={setShowFeatureGate} />
     </>
   );
 }

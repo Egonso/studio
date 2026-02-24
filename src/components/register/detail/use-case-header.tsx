@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
-import { ToolkitPaywallDialog } from "@/components/register/toolkit-paywall-dialog";
+import { FeatureGateDialog } from "@/components/feature-gate-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +31,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
   const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
+  const [showFeatureGate, setShowFeatureGate] = useState(false);
   const { allowed: canEdit } = useCapability('editUseCase');
 
   const handleDelete = async () => {
@@ -50,7 +50,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
     if (canEdit) {
       onToggleEdit();
     } else {
-      setShowPaywall(true);
+      setShowFeatureGate(true);
     }
   };
 
@@ -130,7 +130,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
         </div>
       </div>
 
-      <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+      <FeatureGateDialog feature="editUseCase" open={showFeatureGate} onOpenChange={setShowFeatureGate} />
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>

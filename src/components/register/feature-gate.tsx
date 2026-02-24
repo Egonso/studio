@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Lock } from 'lucide-react';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import type { FeatureCapability } from '@/lib/compliance-engine/capability/featureChecker';
-import { ToolkitPaywallDialog } from '@/components/register/toolkit-paywall-dialog';
+import { FeatureGateDialog } from '@/components/feature-gate-dialog';
 import { useState } from 'react';
 
 interface FeatureGateProps {
@@ -32,7 +32,7 @@ interface FeatureGateProps {
  * - No aggressive upsell banners
  * - No red warnings for locked features
  * - Clean lock-icon with neutral "Verfügbar im Pro-Plan" text
- * - Click opens the ToolkitPaywallDialog
+ * - Click opens the FeatureGateDialog (sachlich, no prices)
  * 
  * Usage:
  *   <FeatureGate feature="editUseCase">
@@ -47,7 +47,7 @@ export function FeatureGate({
     className = '',
 }: FeatureGateProps) {
     const { allowed, requiredPlanLabel, loading } = useCapability(feature);
-    const [showPaywall, setShowPaywall] = useState(false);
+    const [showFeatureGate, setShowFeatureGate] = useState(false);
 
     // While loading, show children normally (no flash of locked state)
     if (loading || allowed) {
@@ -65,17 +65,17 @@ export function FeatureGate({
             <>
                 <div
                     className={`rounded-lg border border-dashed border-muted-foreground/25 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/40 transition-colors ${className}`}
-                    onClick={() => setShowPaywall(true)}
+                    onClick={() => setShowFeatureGate(true)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && setShowPaywall(true)}
+                    onKeyDown={(e) => e.key === 'Enter' && setShowFeatureGate(true)}
                 >
                     <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-3">
                         <Lock className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <p className="text-sm font-medium text-muted-foreground">{displayMessage}</p>
                 </div>
-                <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+                <FeatureGateDialog feature={feature} open={showFeatureGate} onOpenChange={setShowFeatureGate} />
             </>
         );
     }
@@ -92,10 +92,10 @@ export function FeatureGate({
                 {/* Lock overlay */}
                 <div
                     className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                    onClick={() => setShowPaywall(true)}
+                    onClick={() => setShowFeatureGate(true)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Enter' && setShowPaywall(true)}
+                    onKeyDown={(e) => e.key === 'Enter' && setShowFeatureGate(true)}
                 >
                     <div className="bg-background/80 backdrop-blur-sm rounded-lg px-4 py-3 flex items-center gap-2 shadow-sm border">
                         <Lock className="w-4 h-4 text-muted-foreground" />
@@ -103,7 +103,7 @@ export function FeatureGate({
                     </div>
                 </div>
             </div>
-            <ToolkitPaywallDialog open={showPaywall} onOpenChange={setShowPaywall} />
+            <FeatureGateDialog feature={feature} open={showFeatureGate} onOpenChange={setShowFeatureGate} />
         </>
     );
 }
