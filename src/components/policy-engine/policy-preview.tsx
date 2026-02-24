@@ -4,12 +4,15 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Info, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { PolicySection } from "@/lib/policy-engine/types";
+import type { PolicyDocument, PolicySection } from "@/lib/policy-engine/types";
+import { generatePolicyPdf, downloadBlob } from "@/lib/policy-engine/export/policy-pdf";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface PolicyPreviewProps {
     sections: PolicySection[];
+    /** Provide full document to enable PDF export */
+    document?: PolicyDocument;
     /** Allow print via window.print() */
     showPrintButton?: boolean;
 }
@@ -33,9 +36,11 @@ function renderMarkdown(md: string): string {
 
 export function PolicyPreview({
     sections,
+    document,
     showPrintButton = true,
 }: PolicyPreviewProps) {
     const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+    const [isExporting, setIsExporting] = useState(false);
 
     const toggle = (id: string) => {
         setCollapsed((prev) => {
@@ -50,6 +55,19 @@ export function PolicyPreview({
         window.print();
     };
 
+    const handlePdfExport = async () => {
+        if (!document) return;
+        try {
+            setIsExporting(true);
+            const { blob, filename } = await generatePolicyPdf(document);
+            downloadBlob(blob, filename);
+        } catch (err) {
+            console.error("Failed to generate PDF", err);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     if (sections.length === 0) {
         return (
             <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground text-sm">
@@ -62,14 +80,24 @@ export function PolicyPreview({
 
     return (
         <div className="space-y-3">
-            {showPrintButton && (
-                <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+                {document && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void handlePdfExport()}
+                        disabled={isExporting}
+                    >
+                        {isExporting ? "Generiere..." : "PDF exportieren"}
+                    </Button>
+                )}
+                {showPrintButton && (
                     <Button variant="outline" size="sm" onClick={handlePrint}>
                         <Printer className="mr-2 h-3.5 w-3.5" />
                         Drucken
                     </Button>
-                </div>
-            )}
+                )}
+            </div>
 
             <div className="space-y-2 print:space-y-4">
                 {sorted.map((section) => {

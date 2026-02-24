@@ -9,8 +9,20 @@ export function evaluateGovernanceMaturity(context: EngineContext): { index: num
     let maturityScore = 100; // Start at perfect, deduct points for missing
     const actions: ActionItem[] = [];
 
-    // 1. Missing Global AI Policy
-    if (!context.orgStatus.hasPolicy) {
+    // 1. Global AI Policy (PE-5: 3-tier scoring based on policyStatus)
+    if (context.orgStatus.policyStatus === 'draft' || context.orgStatus.policyStatus === 'review') {
+        maturityScore -= 20;
+        actions.push({
+            id: 'policy_draft_org',
+            type: 'policy_missing',
+            title: 'KI-Richtlinie ist noch im Entwurf',
+            description: 'Ihre Richtlinie wurde noch nicht genehmigt. Mitarbeiter haben dadurch noch keine verbindliche Handlungsanweisung.',
+            impactIncreaseEstimate: 20,
+            severity: 'medium',
+            href: '/cbs'
+        });
+    } else if (context.orgStatus.policyStatus !== 'approved' && !context.orgStatus.hasPolicy) {
+        // Missing entirely
         maturityScore -= 40;
         actions.push({
             id: 'policy_missing_org',

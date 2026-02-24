@@ -28,7 +28,8 @@ export interface ActionItem {
 export interface EngineContext {
     useCases: import('@/lib/register-first/types').UseCaseCard[];
     orgStatus: {
-        hasPolicy: boolean;
+        hasPolicy: boolean; // Keep for backward compat
+        policyStatus?: 'draft' | 'review' | 'approved' | 'archived'; // PE-5
         hasIncidentProcess: boolean;
         hasRaciDefined: boolean;
         trustPortalActive: boolean;

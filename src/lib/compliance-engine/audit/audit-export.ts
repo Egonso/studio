@@ -41,6 +41,11 @@ export interface AuditExport {
         totalUseCases: number;
         diagnostic: DiagnosticReport;
         scores: OrgScoreAggregation;
+        policyInfo: {
+            level: number | null;
+            status: string;
+            url: string | null;
+        };
     };
     records: AuditRecord[];
 }
@@ -107,6 +112,11 @@ export function generateAuditExport(
             totalUseCases: useCases.length,
             diagnostic,
             scores,
+            policyInfo: {
+                level: (register.orgSettings?.aiPolicy as any)?.policyLevel || null,
+                status: (register.orgSettings?.aiPolicy as any)?.policyStatus || 'Missing',
+                url: register.orgSettings?.aiPolicy?.url || null,
+            },
         },
         records,
     };
