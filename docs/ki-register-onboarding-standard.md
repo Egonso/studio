@@ -91,6 +91,7 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 - `410`: Code deaktiviert oder abgelaufen.
 - `429`: Rate-Limit erreicht.
 - `503`: Dienst temporär nicht verfügbar (z. B. Runtime-Credentials nicht geladen).
+- Legacy-Code-Dokumente werden tolerant gelesen (`ownerId|userId`, `registerId|projectId`), um 500 durch alte Feldnamen zu vermeiden.
 - UI auf `'/erfassen'` zeigt dafür differenzierte Titel statt pauschal „Code ungültig“.
 
 ### Risiken
