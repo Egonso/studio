@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Activity, Eye, FileCheck, AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download, Lock } from "lucide-react";
+import { AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
@@ -35,34 +35,10 @@ interface GovernanceHeaderProps {
 
 const STATUS_COLORS: Record<RegisterUseCaseStatus, string> = {
     UNREVIEWED: "#94a3b8",
-    REVIEW_RECOMMENDED: "#f59e0b",
+    REVIEW_RECOMMENDED: "#94a3b8",
     REVIEWED: "#3b82f6",
     PROOF_READY: "#10b981",
 };
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatLastActivity(useCases: UseCaseCard[]): { time: string; name: string } | null {
-    if (useCases.length === 0) return null;
-
-    const sorted = [...useCases].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
-    const latest = sorted[0];
-    const date = new Date(latest.updatedAt);
-
-    const today = new Date();
-    const isToday =
-        date.getDate() === today.getDate() &&
-        date.getMonth() === today.getMonth() &&
-        date.getFullYear() === today.getFullYear();
-
-    const time = isToday
-        ? `Heute ${date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`
-        : date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-
-    return { time, name: latest.purpose };
-}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -86,7 +62,6 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         return { byStatus, publicCount, total: useCases.length };
     }, [useCases]);
 
-    const lastActivity = useMemo(() => formatLastActivity(useCases), [useCases]);
     const orgScores = useMemo(() => aggregateOrgScores(useCases), [useCases]);
 
     const kpis: KpiItem[] = [
@@ -100,41 +75,9 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
             label: "Formale Prüfung ausstehend",
             value: counts.byStatus.UNREVIEWED,
             icon: <AlertTriangle className="h-4 w-4" />,
-            color: counts.byStatus.UNREVIEWED > 0 ? "text-amber-500" : "text-muted-foreground",
-        },
-        {
-            label: "Prüfung empfohlen",
-            value: counts.byStatus.REVIEW_RECOMMENDED,
-            icon: <FileCheck className="h-4 w-4" />,
-            color: counts.byStatus.REVIEW_RECOMMENDED > 0 ? "text-blue-500" : "text-muted-foreground",
-        },
-        {
-            label: "Nachweisfähig",
-            value: counts.byStatus.PROOF_READY,
-            icon: <FileCheck className="h-4 w-4" />,
-            color: counts.byStatus.PROOF_READY > 0 ? "text-emerald-500" : "text-muted-foreground",
-        },
-        {
-            label: "Öffentlich verifiziert",
-            value: counts.publicCount,
-            icon: <Eye className="h-4 w-4" />,
-            color: counts.publicCount > 0 ? "text-violet-500" : "text-muted-foreground",
+            color: "text-muted-foreground",
         },
     ];
-
-    // Next action CTA
-    const nextAction = useMemo(() => {
-        if (counts.byStatus.UNREVIEWED > 0) {
-            return `${counts.byStatus.UNREVIEWED} formale Prüfung ausstehend`;
-        }
-        if (counts.byStatus.REVIEW_RECOMMENDED > 0) {
-            return `${counts.byStatus.REVIEW_RECOMMENDED} Prüfung empfohlen`;
-        }
-        if (counts.total === 0) {
-            return "Ersten Einsatzfall erfassen";
-        }
-        return null;
-    }, [counts]);
 
     // Status distribution segments
     const segments = useMemo(() => {
@@ -251,21 +194,18 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     {register && (
                         <button
                             onClick={handleSupplierRequest}
-                            className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
-                            <Link2 className="h-4 w-4" />
+                            <Link2 className="h-3.5 w-3.5" />
                             <span className="hidden sm:inline">Lieferant anfragen</span>
                         </button>
                     )}
                     {onQuickCapture && (
                         <button
                             onClick={onQuickCapture}
-                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                            className="flex items-center gap-1.5 rounded-md border border-primary/30 bg-transparent px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
                         >
                             + Erfassen
-                            <kbd className="hidden rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-mono sm:inline-block">
-                                ⌘K
-                            </kbd>
                         </button>
                     )}
                 </div>
@@ -278,7 +218,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
             )}
 
             {/* KPI Bar */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3">
                 {kpis.map((kpi) => (
                     <div
                         key={kpi.label}
@@ -389,25 +329,6 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 </div>
             )}
 
-            {/* Footer: Last Activity + Next Action */}
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                {lastActivity && (
-                    <div className="flex items-center gap-1.5">
-                        <Activity className="h-3 w-3" />
-                        <span>
-                            Letzte Aktivität: {lastActivity.time} – „{lastActivity.name}"
-                        </span>
-                    </div>
-                )}
-                {nextAction && (
-                    <button
-                        onClick={onQuickCapture}
-                        className="font-medium text-primary hover:underline"
-                    >
-                        {nextAction}
-                    </button>
-                )}
-            </div>
         </div>
     );
 }

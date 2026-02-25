@@ -62,9 +62,6 @@ import {
   createStaticToolRegistryService,
   createAiToolsRegistryService,
   buildVerifyPassAbsoluteUrl,
-  type CaptureUsageContext,
-  USAGE_CONTEXT_LABELS,
-  DATA_CATEGORY_LABELS,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
   type UseCaseCard,
@@ -76,7 +73,7 @@ import { registerService } from "@/lib/register-first/register-service";
 const toolRegistry = createStaticToolRegistryService();
 const aiToolsRegistry = createAiToolsRegistryService();
 
-const dataCategoryLabels = DATA_CATEGORY_LABELS;
+
 
 interface RegisterBoardProps {
   projectId?: string;
@@ -98,7 +95,7 @@ interface ProofMetaDraft {
   isCurrent: ProofBooleanChoice;
 }
 
-const usageContextLabels = USAGE_CONTEXT_LABELS;
+
 
 const statusFilterOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "ALL", label: "Alle Status" },
@@ -782,7 +779,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             <SelectItem value="BY_STATUS">Nach Status</SelectItem>
           </SelectContent>
         </Select>
-        <Button type="submit" size="sm" className="h-9">Filtern</Button>
+        <Button type="submit" variant="outline" size="sm" className="h-9">Filtern</Button>
         <Button type="button" variant="ghost" size="sm" className="h-9" onClick={handleResetFilters}>
           Zurücksetzen
         </Button>
@@ -837,9 +834,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">System & Meta</TableHead>
-                <TableHead>Status & Sichtbarkeit</TableHead>
-                <TableHead>Zugehörigkeit</TableHead>
+                <TableHead className="w-[300px]">System</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Risikoklasse</TableHead>
                 <TableHead>Aktivität</TableHead>
                 <TableHead className="w-[80px] text-right">Aktionen</TableHead>
@@ -901,85 +898,43 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                       className={`cursor-pointer group ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
                     >
                       <TableCell>
-                        <div className="flex flex-col gap-1.5 min-w-0">
+                        <div className="flex flex-col gap-0.5 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={`font-medium ${card.isDeleted ? "line-through" : ""}`}>
+                            <span className={`font-medium text-sm ${card.isDeleted ? "line-through" : ""}`}>
                               {card.purpose}
                             </span>
                             {card.isDeleted && (
                               <Badge variant="destructive" className="shrink-0 text-[10px]">Gelöscht</Badge>
                             )}
                           </div>
-
-                          <div className="flex flex-wrap gap-1">
-                            {card.toolId && (
-                              <Badge variant="outline" className="text-[10px] font-normal bg-background/50">
-                                {card.toolId === "other" ? card.toolFreeText ?? "Anderes Tool" : card.toolId}
-                              </Badge>
-                            )}
-                            {card.labels?.map(label => (
-                              <Badge key={label.key} variant="secondary" className="text-[10px] font-normal opacity-80">
-                                {label.value}
-                              </Badge>
-                            ))}
-                            {card.dataCategory && card.dataCategory !== "NONE" && (
-                              <Badge variant="outline" className="text-[10px] font-normal bg-background/50">
-                                {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
-                              </Badge>
-                            )}
-                            {card.usageContexts.map((ctx) => (
-                              <Badge key={ctx} variant="outline" className="text-[10px] font-normal bg-background/50">
-                                {usageContextLabels[ctx]}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex flex-col gap-1.5 items-start">
-                          <RegisterStatusBadge status={card.status} />
-                          <Badge
-                            variant={card.isPublicVisible ? "default" : "secondary"}
-                            className="shrink-0 text-[10px]"
-                          >
-                            {card.isPublicVisible ? "Öffentlich verifiziert" : "Privat"}
-                          </Badge>
-                        </div>
-                      </TableCell>
-
-                      <TableCell>
-                        <div className="flex flex-col text-xs text-muted-foreground gap-1">
-                          {card.responsibility.responsibleParty ? (
-                            <span className="text-foreground">{card.responsibility.responsibleParty}</span>
-                          ) : (
-                            <span>Nicht zugewiesen</span>
-                          )}
-                          {card.organisation && (
-                            <span className="truncate max-w-[150px]" title={card.organisation}>{card.organisation}</span>
+                          {(card.toolId || card.toolFreeText) && (
+                            <span className="text-xs text-muted-foreground">
+                              {card.toolId === "other" ? card.toolFreeText ?? "Anderes Tool" : card.toolId}
+                            </span>
                           )}
                         </div>
                       </TableCell>
 
                       <TableCell>
-                        {card.governanceAssessment?.core?.aiActCategory ? (
-                          <Badge variant="outline" className="font-normal text-[11px]">
-                            {card.governanceAssessment.core.aiActCategory}
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Unbekannt</span>
-                        )}
+                        <RegisterStatusBadge status={card.status} />
                       </TableCell>
 
                       <TableCell>
-                        <div className="flex flex-col text-[11px] text-muted-foreground gap-1">
-                          <span>
-                            Aktualisiert: {formatDate(card.updatedAt)}
-                          </span>
-                          <span>
-                            Erstellt: {formatDate(card.createdAt)}
-                          </span>
-                        </div>
+                        <span className="text-xs">
+                          {card.responsibility.responsibleParty || <span className="text-muted-foreground">Nicht zugewiesen</span>}
+                        </span>
+                      </TableCell>
+
+                      <TableCell>
+                        <span className="text-xs">
+                          {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
+                        </span>
+                      </TableCell>
+
+                      <TableCell>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(card.updatedAt)}
+                        </span>
                       </TableCell>
 
                       <TableCell className="text-right align-middle" onClick={(e) => e.stopPropagation()}>
