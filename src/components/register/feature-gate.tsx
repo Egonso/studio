@@ -54,7 +54,7 @@ export function FeatureGate({
         return <>{children}</>;
     }
 
-    const displayMessage = lockMessage || `Verfügbar im ${requiredPlanLabel}`;
+    const displayMessage = lockMessage || 'Erweiterte Funktion';
 
     if (mode === 'hide') {
         return null;

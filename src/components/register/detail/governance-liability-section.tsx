@@ -5,18 +5,13 @@ import {
     AlertCircle,
     Check,
     CheckCircle2,
-    ChevronDown,
     Clock,
     Download,
     ExternalLink,
-    Lock,
     Pencil,
     ShieldCheck,
-    Sparkles,
-    XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Select,
@@ -122,10 +117,7 @@ export function GovernanceLiabilitySection({
         if (section1Passed === section1Total) {
             return <CheckCircle2 className="w-4 h-4 text-green-600" />;
         }
-        if (section1Passed >= 2) {
-            return <AlertCircle className="w-4 h-4 text-amber-500" />;
-        }
-        return <XCircle className="w-4 h-4 text-red-500" />;
+        return <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />;
     }, [section1Passed, section1Total]);
 
     // ── Section 2: Prüfhistorie ─────────────────────────────────────────
@@ -162,7 +154,7 @@ export function GovernanceLiabilitySection({
         if (!reviewCap.allowed) {
             toast({
                 title: "Funktion nicht verfügbar",
-                description: `Review-Workflows sind ab dem ${reviewCap.requiredPlanLabel} verfügbar. Upgrade unter Einstellungen.`,
+                description: `Diese Funktion ist in Ihrem aktuellen Plan nicht enthalten. Details unter Einstellungen.`,
             });
             return;
         }
@@ -173,7 +165,7 @@ export function GovernanceLiabilitySection({
         if (!trustCap.allowed) {
             toast({
                 title: "Funktion nicht verfügbar",
-                description: `Trust Portal ist ab dem ${trustCap.requiredPlanLabel} verfügbar. Upgrade unter Einstellungen.`,
+                description: `Diese Funktion ist in Ihrem aktuellen Plan nicht enthalten. Details unter Einstellungen.`,
             });
             return;
         }
@@ -295,13 +287,13 @@ export function GovernanceLiabilitySection({
                         <li className="flex items-center gap-2">
                             {hasRiskClass
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
+                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             Risiko klassifiziert
                         </li>
                         <li className="flex items-center gap-2">
                             {hasOwner
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
+                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             Verantwortliche:r definiert
                         </li>
 
@@ -309,11 +301,11 @@ export function GovernanceLiabilitySection({
                         <li className="flex items-center gap-2">
                             {hasOversight
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
+                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             {!hasOversight && editingField !== "oversight" ? (
                                 <button
                                     onClick={() => handleInlineEdit("oversight")}
-                                    className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
                                 >
                                     Aufsichtsmodell festlegen
                                     <Pencil className="w-2.5 h-2.5" />
@@ -349,11 +341,11 @@ export function GovernanceLiabilitySection({
                         <li className="flex items-center gap-2">
                             {hasReviewCycle
                                 ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
-                                : <XCircle className="w-3 h-3 shrink-0 text-red-500" />}
+                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             {!hasReviewCycle && editingField !== "reviewCycle" ? (
                                 <button
                                     onClick={() => handleInlineEdit("reviewCycle")}
-                                    className="flex items-center gap-1 text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
                                 >
                                     Review-Zyklus festlegen
                                     <Pencil className="w-2.5 h-2.5" />
@@ -390,17 +382,10 @@ export function GovernanceLiabilitySection({
                 {/* ── Section 2: Prüfhistorie (Pro) ─────────────────── */}
                 <div className="p-4 border-b">
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                            2. Prüfhistorie
-                            {!reviewCap.allowed && (
-                                <Badge variant="outline" className="text-[10px] font-normal text-slate-500 border-slate-300">
-                                    Pro
-                                </Badge>
-                            )}
-                        </span>
+                        <span>2. Prüfhistorie</span>
                         {isPruefhistorie
                             ? <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            : <Lock className="w-4 h-4 text-slate-300" />}
+                            : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
                     </h4>
 
                     {reviewCap.allowed ? (
@@ -455,36 +440,33 @@ export function GovernanceLiabilitySection({
                             </ul>
                         </>
                     ) : (
-                        /* ── Free tier: Beautiful upsell card ──────────── */
-                        <div className="rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4">
-                            <ul className="space-y-2 text-xs text-slate-400 mb-4">
+                        /* ── Locked: Neutral activation card ──────────── */
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+                            <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                                 <li className="flex items-center gap-2">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
                                     Fristüberwachung
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
                                     Review-Historie
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
                                     Governance-Report
                                 </li>
                             </ul>
-                            <div className="border-t border-slate-100 pt-3">
-                                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                                    Dokumentieren Sie jede Prüfung unveränderbar. Automatische Fristüberwachung benachrichtigt bei überfälligen Reviews.
-                                </p>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-                                    onClick={handleActivateReviewWorkflow}
-                                >
-                                    <Sparkles className="w-3 h-3 mr-1.5" />
-                                    Prüfhistorie freischalten
-                                </Button>
-                            </div>
+                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                                Unveränderbare Prüfdokumentation mit automatischer Fristüberwachung.
+                            </p>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full text-xs"
+                                onClick={handleActivateReviewWorkflow}
+                            >
+                                Dokumentation erweitern
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -492,17 +474,10 @@ export function GovernanceLiabilitySection({
                 {/* ── Section 3: Extern belegbar (Enterprise) ─────────── */}
                 <div className="p-4">
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                            3. Extern belegbar
-                            {!trustCap.allowed && (
-                                <Badge variant="outline" className="text-[10px] font-normal text-slate-500 border-slate-300">
-                                    Enterprise
-                                </Badge>
-                            )}
-                        </span>
+                        <span>3. Audit- &amp; Nachweisexport</span>
                         {isExternBelegbar
                             ? <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            : <Lock className="w-4 h-4 text-slate-300" />}
+                            : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
                     </h4>
 
                     {trustCap.allowed ? (
@@ -543,32 +518,29 @@ export function GovernanceLiabilitySection({
                             )}
                         </>
                     ) : (
-                        /* ── Non-Enterprise: Beautiful upsell card ─────── */
-                        <div className="rounded-lg border border-slate-200 bg-gradient-to-b from-slate-50 to-white p-4">
-                            <ul className="space-y-2 text-xs text-slate-400 mb-4">
+                        /* ── Locked: Neutral activation card ─────── */
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+                            <ul className="space-y-2 text-xs text-muted-foreground mb-4">
                                 <li className="flex items-center gap-2">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
                                     ISO 42001 Audit-Dossier
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
                                     Governance-Nachweis (Trust Portal)
                                 </li>
                             </ul>
-                            <div className="border-t border-slate-100 pt-3">
-                                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                                    Erstellen Sie prüffähige Nachweise für ISO-Auditoren und externe Stakeholder. Öffentliches Trust Portal inklusive.
-                                </p>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full text-xs border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-                                    onClick={() => void handleActivateTrustPortal()}
-                                >
-                                    <Sparkles className="w-3 h-3 mr-1.5" />
-                                    Externe Nachweise freischalten
-                                </Button>
-                            </div>
+                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
+                                Prüffähige Nachweise für ISO-Auditoren und externe Stakeholder.
+                            </p>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="w-full text-xs"
+                                onClick={() => void handleActivateTrustPortal()}
+                            >
+                                Audit-Export aktivieren
+                            </Button>
                         </div>
                     )}
                 </div>

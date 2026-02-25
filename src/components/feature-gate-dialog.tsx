@@ -78,7 +78,7 @@ export function FeatureGateDialog({
                                 {featureLabel}
                             </DialogTitle>
                             <DialogDescription className="text-sm mt-0.5">
-                                Verfügbar im {planLabel}
+                                Erweiterte Governance-Funktion
                             </DialogDescription>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ export function FeatureGateDialog({
                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            {planLabel} enthält
+                            Funktionsumfang
                         </h4>
                         <ul className="space-y-2">
                             {planHighlights.map((highlight) => (

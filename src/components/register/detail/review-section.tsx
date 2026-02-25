@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,29 +69,29 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
           <CardTitle className="text-base">Status-Workflow</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Aktueller Status:</span>
-            <RegisterStatusBadge status={card.status} />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Moegliche Uebergaenge:</span>
-            {nextStatuses.map((s) => (
-              <Badge key={s} variant="outline" className="text-[10px]">
-                {registerUseCaseStatusLabels[s]}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="space-y-3 rounded-md border bg-muted/30 p-3">
-            <div className="flex items-center gap-3">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Aktueller Status</span>
               <RegisterStatusBadge status={card.status} />
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="text-xs text-muted-foreground">
+              <span className="font-medium">Zulässige Statusänderungen:</span>
+              <ul className="mt-1 space-y-0.5 ml-3">
+                {nextStatuses.map((s) => (
+                  <li key={s}>– {registerUseCaseStatusLabels[s]}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Status ändern</label>
               <Select
                 value={selectedStatus}
                 onValueChange={(v) => setSelectedStatus(v as RegisterUseCaseStatus)}
               >
-                <SelectTrigger className="h-8 w-[220px] text-xs">
+                <SelectTrigger className="h-9 text-sm">
                   <SelectValue placeholder="Neuen Status waehlen" />
                 </SelectTrigger>
                 <SelectContent>
@@ -105,22 +104,26 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
               </Select>
             </div>
 
-            <Textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Optionaler Kommentar zur Statusaenderung..."
-              rows={2}
-              className="text-sm"
-            />
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Begründung der Statusänderung (optional)</label>
+              <Textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Begründung eingeben..."
+                rows={2}
+                className="text-sm"
+              />
+            </div>
 
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
+                variant="outline"
                 onClick={() => setShowConfirm(true)}
                 disabled={!selectedStatus || isUpdating}
               >
                 {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                Status setzen
+                Statusänderung dokumentieren
               </Button>
               {error && <p className="text-xs text-destructive">{error}</p>}
             </div>

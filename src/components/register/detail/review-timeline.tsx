@@ -8,7 +8,7 @@
  *   - Newest first (reverse chronological)
  *   - Max 10 entries shown by default, expander for more
  *   - Per entry: date (DD.MM.YYYY HH:MM), reviewer, status badge, optional notes
- *   - Status badges: REVIEWED = blue, PROOF_READY = green, REVIEW_RECOMMENDED = amber
+ *   - Status badges: REVIEWED = blue, PROOF_READY = green, REVIEW_RECOMMENDED = gray
  *   - Immutable: ReviewEvents are never edited or deleted
  *
  * Sprint: GN-E Review-UI
@@ -32,7 +32,7 @@ const STATUS_BADGE_STYLES: Record<
 > = {
     REVIEWED: "bg-blue-100 text-blue-800 border-blue-200",
     PROOF_READY: "bg-green-100 text-green-800 border-green-200",
-    REVIEW_RECOMMENDED: "bg-amber-100 text-amber-800 border-amber-200",
+    REVIEW_RECOMMENDED: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 const STATUS_LABELS: Record<
@@ -51,7 +51,7 @@ const DOT_COLORS: Record<
 > = {
     REVIEWED: "bg-blue-500",
     PROOF_READY: "bg-green-500",
-    REVIEW_RECOMMENDED: "bg-amber-500",
+    REVIEW_RECOMMENDED: "bg-slate-400",
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
