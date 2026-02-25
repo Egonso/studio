@@ -12,6 +12,7 @@ import { FeatureGate } from "@/components/register/feature-gate";
 import { FeatureGateDialog } from "@/components/feature-gate-dialog";
 import { generateAuditExport, auditToCSV } from "@/lib/compliance-engine/audit/audit-export";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { accessCodeService } from "@/lib/register-first/access-code-service";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -108,7 +109,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 title: "Magic Link kopiert",
                 description: "Der Anfrage-Link für Lieferanten wurde in die Zwischenablage kopiert. Sie können diesen nun per E-Mail versenden.",
             });
-        } catch (e) {
+        } catch {
             toast({
                 variant: "destructive",
                 title: "Fehler",
@@ -135,18 +136,34 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         toast({ title: 'Audit-Export', description: 'CSV-Datei heruntergeladen.' });
     };
 
-    const handleCopyInviteLink = async () => {
+    const handleCopyCaptureLink = async () => {
+        if (!register?.registerId) return;
         try {
-            await navigator.clipboard.writeText(window.location.href);
+            const codes = await accessCodeService.listCodes(register.registerId);
+            const activeCode = codes.find(
+                (code) =>
+                    code.isActive &&
+                    (!code.expiresAt || new Date(code.expiresAt) > new Date())
+            );
+            const resolvedCode = activeCode
+                ? activeCode.code
+                : (
+                    await accessCodeService.generateCode(register.registerId, {
+                        label: "Utility Link",
+                        expiryOption: "90_DAYS",
+                    })
+                ).code;
+            const captureLink = `${window.location.origin}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
+            await navigator.clipboard.writeText(captureLink);
             toast({
-                title: "Register-Link kopiert",
-                description: "Link wurde in die Zwischenablage kopiert.",
+                title: "Erfassungslink kopiert",
+                description: "Der Link wurde in die Zwischenablage kopiert.",
             });
         } catch {
             toast({
                 variant: "destructive",
                 title: "Fehler",
-                description: "Link konnte nicht kopiert werden.",
+                description: "Erfassungslink konnte nicht kopiert werden.",
             });
         }
     };
@@ -200,23 +217,12 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                             <Settings className="h-4 w-4" />
                         </button>
                     )}
-                    {register && (
+                    {register && onQuickCapture && (
                         <button
-                            onClick={() => void handleCopyInviteLink()}
-                            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                            title="Register-Link teilen"
+                            onClick={onQuickCapture}
+                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
-                            <Share2 className="h-4 w-4" />
-                        </button>
-                    )}
-                    {register && canExport && (
-                        <button
-                            onClick={handleAuditExport}
-                            className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
-                            title="Audit-Export als CSV herunterladen"
-                        >
-                            <Download className="h-4 w-4" />
-                            <span className="hidden sm:inline">Audit-Export</span>
+                            + KI-Einsatzfall erfassen
                         </button>
                     )}
                     {register && (
@@ -228,12 +234,24 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                             <span className="hidden sm:inline">Lieferant anfragen</span>
                         </button>
                     )}
-                    {onQuickCapture && (
+                    {register && (
                         <button
-                            onClick={onQuickCapture}
-                            className="flex items-center gap-1.5 rounded-md border border-primary/30 bg-transparent px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
+                            onClick={() => void handleCopyCaptureLink()}
+                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            title="Erfassungslink teilen"
                         >
-                            + Erfassen
+                            <Share2 className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Erfassungslink teilen</span>
+                        </button>
+                    )}
+                    {register && canExport && (
+                        <button
+                            onClick={handleAuditExport}
+                            className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10"
+                            title="Audit-Export als CSV herunterladen"
+                        >
+                            <Download className="h-4 w-4" />
+                            <span className="hidden sm:inline">Audit-Export</span>
                         </button>
                     )}
                     {!canAssessment && !assessmentLoading && (

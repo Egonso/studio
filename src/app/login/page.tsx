@@ -26,9 +26,10 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const modeFromQuery = searchParams.get('mode');
+  const inviteCodeFromQuery = searchParams.get('code');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
-  const [authReady, setAuthReady] = useState(false);
   const [isFromPurchase, setIsFromPurchase] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -44,7 +45,6 @@ export default function LoginPage() {
     async function loadAuth() {
       try {
         await import('@/lib/firebase');
-        setAuthReady(true);
       } catch (error) {
         console.error('Failed to load Firebase:', error);
       }
@@ -76,13 +76,15 @@ export default function LoginPage() {
     if (isPurchaseFlow || sessionId) {
       setActiveTab('signup');
       setIsFromPurchase(true);
+    } else if (modeFromQuery === 'login') {
+      setActiveTab('login');
     } else if (emailFromQuery) {
       // Optional: if just email is present (e.g. invite), maybe still default to signup? 
       // For now, let's keep it consistent: email usually implies intent to sign in or sign up.
       // But let's only force signup if purchase flow or explicitly requested.
       setActiveTab('signup');
     }
-  }, [searchParams, form]);
+  }, [searchParams, form, modeFromQuery]);
 
 
 
@@ -116,13 +118,18 @@ export default function LoginPage() {
     try {
       const { getFirebaseAuth, getFirebaseDb } = await import('@/lib/firebase');
       const auth = await getFirebaseAuth();
-      const { createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser, signOut } = await import('firebase/auth');
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } = await import('firebase/auth');
       const { doc, getDoc } = await import('firebase/firestore');
 
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
-        toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zum Dashboard...' });
-        router.push('/dashboard');
+        if (inviteCodeFromQuery) {
+          toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zur Erfassung...' });
+          router.push(`/erfassen?code=${encodeURIComponent(inviteCodeFromQuery)}`);
+        } else {
+          toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zum Register...' });
+          router.push('/my-register');
+        }
       } else { // signup
         // 1. Create User (Log in immediately)
         const userCredential = await createUserWithEmailAndPassword(auth, email, data.password);
@@ -166,8 +173,12 @@ export default function LoginPage() {
           });
         } else {
           // 4. Success
-          toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet, um Ihr erstes Organisation zu erstellen.' });
-          router.push('/dashboard');
+          toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet.' });
+          if (inviteCodeFromQuery) {
+            router.push(`/erfassen?code=${encodeURIComponent(inviteCodeFromQuery)}`);
+          } else {
+            router.push('/my-register');
+          }
         }
       }
     } catch (error: any) {
@@ -192,13 +203,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="flex items-center justify-center gap-2 mb-8">
         <Image
-          src="/logo.png"
-          alt="AI Act Compass Logo"
-          width={50}
-          height={50}
-          className="h-12 w-auto"
+          src="/register-logo.png"
+          alt="KI-Register"
+          width={32}
+          height={32}
+          className="h-8 w-8 dark:invert"
         />
-        <span className="font-bold text-2xl">AI Act Compass</span>
+        <span className="font-bold text-xl">KI-Register</span>
       </div>
 
       {/* Welcome Banner for Post-Purchase Users */}
@@ -347,7 +358,18 @@ export default function LoginPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <div className="mt-6 flex flex-col items-center gap-2 text-xs text-muted-foreground">
+        <a
+          href={inviteCodeFromQuery ? `/einladen?code=${encodeURIComponent(inviteCodeFromQuery)}` : "/einladen"}
+          className="hover:text-foreground underline-offset-2 hover:underline"
+        >
+          Ich habe einen Einladungscode
+        </a>
+        <a href="/einrichten" className="hover:text-foreground underline-offset-2 hover:underline">
+          Neues Register einrichten
+        </a>
+      </div>
     </div>
   );
 }
-
