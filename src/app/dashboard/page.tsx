@@ -35,7 +35,6 @@ function DashboardPageContent() {
     const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
     const [useCaseCount, setUseCaseCount] = useState(0);
     const [pendingReviewCount, setPendingReviewCount] = useState(0);
-    const [lastEntry, setLastEntry] = useState<{ name: string; date: string } | null>(null);
     const [metrics, setMetrics] = useState<RegisterMetrics | undefined>(undefined);
     const [activeRegister, setActiveRegister] = useState<Register | null>(null);
 
@@ -176,32 +175,10 @@ function DashboardPageContent() {
             ).length;
             setPendingReviewCount(pending);
 
-            // Determine last entry (most recently updated)
-            if (useCases.length > 0) {
-                // Sort by updatedAt desc (assuming updatedAt is ISO string or timestamp)
-                const sorted = [...useCases].sort((a, b) => {
-                    const dateA = new Date(a.updatedAt || 0).getTime();
-                    const dateB = new Date(b.updatedAt || 0).getTime();
-                    return dateB - dateA;
-                });
-                const latest = sorted[0];
-                const displayName = latest.toolFreeText || latest.toolId || latest.purpose || 'Unbenannt';
-                setLastEntry({
-                    name: displayName.length > 30 ? displayName.substring(0, 30) + '...' : displayName,
-                    date: new Date(latest.updatedAt).toLocaleDateString("de-DE", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric"
-                    })
-                });
-            } else {
-                setLastEntry(null);
-            }
         } catch {
             // No register exists yet or other error – default to 0
             setUseCaseCount(0);
             setPendingReviewCount(0);
-            setLastEntry(null);
             setMetrics(undefined);
         }
     }, []);
@@ -271,7 +248,6 @@ function DashboardPageContent() {
                             useCases={useCases}
                             useCaseCount={useCaseCount}
                             pendingReviewCount={pendingReviewCount}
-                            lastEntry={lastEntry}
                             onUseCaseCaptured={loadUseCaseData}
                             ownerId={user?.uid}
                             metrics={metrics}
@@ -315,7 +291,6 @@ function DashboardPageContent() {
                     useCases={useCases}
                     useCaseCount={useCaseCount}
                     pendingReviewCount={pendingReviewCount}
-                    lastEntry={lastEntry}
                     onUseCaseCaptured={loadUseCaseData}
                     ownerId={user?.uid}
                     metrics={metrics}

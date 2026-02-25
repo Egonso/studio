@@ -3,19 +3,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardList, PlusCircle, ArrowRight, AlertCircle, Clock } from "lucide-react";
+import { PlusCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 
 interface RegisterTileProps {
     projectId: string;
     useCaseCount: number;
     pendingReviewCount: number;
-    lastEntry?: {
-        name: string;
-        date: string;
-    } | null;
     onCaptureClick: () => void;
 }
 
@@ -23,7 +18,6 @@ export function RegisterTile({
     projectId,
     useCaseCount,
     pendingReviewCount,
-    lastEntry,
     onCaptureClick,
 }: RegisterTileProps) {
     const isEmpty = useCaseCount === 0;
@@ -56,15 +50,15 @@ export function RegisterTile({
                         </div>
 
                         <div className="flex items-center gap-3 pt-1">
-                            <Button onClick={onCaptureClick} className="shadow-sm">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                KI-Anwendung erfassen
-                            </Button>
                             <Link href={`/my-register?projectId=${projectId}`}>
-                                <Button variant="outline">
+                                <Button className="shadow-sm">
                                     Register öffnen
                                 </Button>
                             </Link>
+                            <Button variant="outline" onClick={onCaptureClick}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                KI-Anwendung erfassen
+                            </Button>
                         </div>
                     </div>
 
@@ -89,28 +83,17 @@ export function RegisterTile({
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-muted-foreground">Offene Prüfungen:</span>
                                         {pendingReviewCount > 0 ? (
-                                            <Badge variant="outline" className="text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-900/10">
+                                            <Badge variant="secondary" className="font-mono">
                                                 {pendingReviewCount} offen
                                             </Badge>
                                         ) : (
-                                            <span className="text-green-600 text-xs flex items-center gap-1">
-                                                <CheckCircle2 className="h-3 w-3" /> Aktuell
+                                            <span className="text-muted-foreground text-xs">
+                                                Aktuell
                                             </span>
                                         )}
                                     </div>
                                 </div>
 
-                                {lastEntry && (
-                                    <div className="pt-3 mt-1 border-t border-slate-100 dark:border-slate-800">
-                                        <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                                            <Clock className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                                            <span className="line-clamp-1">
-                                                Letzter Eintrag: <span className="font-medium text-slate-700 dark:text-slate-300">{lastEntry.name}</span>
-                                                <span className="opacity-50 ml-1">({lastEntry.date})</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
                             </>
                         )}
                     </div>
@@ -119,5 +102,3 @@ export function RegisterTile({
         </Card>
     );
 }
-
-import { CheckCircle2 } from "lucide-react";

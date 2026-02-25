@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { ArrowRight } from "lucide-react";
 
@@ -21,28 +20,17 @@ export function LensCard({
     description,
     icon: Icon,
     primaryLabel,
-    primaryVariant = "default",
+    primaryVariant = "outline",
     onPrimary,
     progressPercent,
     footerText
 }: LensCardProps) {
-    const isError = primaryVariant === "destructive";
-
     return (
         <Card className="flex flex-col h-full border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden transition-all hover:shadow-md">
-            {isError && (
-                <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
-            )}
-
             <CardContent className="p-6 flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                        <div className={cn(
-                            "p-2.5 rounded-lg border",
-                            isError
-                                ? "bg-red-50 border-red-100 text-red-600 dark:bg-red-950/30 dark:border-red-900/50"
-                                : "bg-slate-50 border-slate-100 text-slate-700 dark:bg-slate-900 dark:border-slate-800"
-                        )}>
+                        <div className="p-2.5 rounded-lg border bg-slate-50 border-slate-100 text-slate-700 dark:bg-slate-900 dark:border-slate-800">
                             <Icon className="w-5 h-5" />
                         </div>
                     </div>
@@ -61,14 +49,14 @@ export function LensCard({
                     <div className="space-y-2">
                         <div className="flex justify-between text-xs font-medium">
                             <span className="text-slate-600 dark:text-slate-400">{footerText}</span>
-                            <span className={isError ? "text-red-600 font-bold" : "text-slate-900 dark:text-slate-100 font-bold"}>
+                            <span className="text-slate-900 dark:text-slate-100 font-bold">
                                 {progressPercent}%
                             </span>
                         </div>
                         <Progress
                             value={progressPercent}
-                            className={cn("h-1.5", isError ? "bg-red-100 dark:bg-red-950/50" : "bg-slate-100 dark:bg-slate-800")}
-                            indicatorClassName={isError ? "bg-red-500" : "bg-slate-800 dark:bg-slate-200"}
+                            className="h-1.5 bg-slate-100 dark:bg-slate-800"
+                            indicatorClassName="bg-slate-500 dark:bg-slate-400"
                         />
                     </div>
 

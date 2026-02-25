@@ -146,9 +146,10 @@ export function SiteChatbotWidget() {
         return (
             <Button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg z-50 p-0 bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
+                variant="secondary"
+                className="fixed bottom-4 right-4 h-10 w-10 rounded-full shadow-sm z-50 p-0 bg-muted hover:bg-muted/80 transition-transform hover:scale-105"
             >
-                <MessageCircle className="h-8 w-8 text-primary-foreground" />
+                <MessageCircle className="h-5 w-5 text-muted-foreground" />
                 <span className="sr-only">Chatbot öffnen</span>
             </Button>
         );

@@ -56,7 +56,6 @@ interface DashboardProps {
     useCases?: import('@/lib/register-first/types').UseCaseCard[];
     useCaseCount?: number;
     pendingReviewCount?: number;
-    lastEntry?: { name: string; date: string; } | null;
     onUseCaseCaptured?: () => void;
     /** Current user UID – forwarded to TrustPortalTile for live aggregation */
     ownerId?: string;
@@ -94,7 +93,6 @@ export function Dashboard({
     useCases,
     useCaseCount = 0,
     pendingReviewCount = 0,
-    lastEntry,
     onUseCaseCaptured,
     ownerId,
     metrics,
@@ -201,7 +199,6 @@ export function Dashboard({
                         projectId={searchParams.get('projectId') || ''}
                         useCaseCount={useCaseCount}
                         pendingReviewCount={pendingReviewCount}
-                        lastEntry={lastEntry}
                         onCaptureClick={() => setIsQuickCaptureOpen(true)}
                     />
                     <QuickCaptureModal
@@ -218,8 +215,8 @@ export function Dashboard({
 
                 {/* 2. THREE LENSES SECTION (Operational Risk Analytics) */}
                 <section className="space-y-4">
-                    <h2 className="text-2xl font-bold tracking-tight">Haftungsmonitor</h2>
-                    <p className="text-muted-foreground">Behalten Sie kritische Lücken in der Prozessdurchsetzung und Transparenz im Blick.</p>
+                    <h2 className="text-2xl font-bold tracking-tight">Governance-Status</h2>
+                    <p className="text-muted-foreground">Übersicht über Dokumentationsstand und offene Maßnahmen.</p>
 
                     <div className="grid md:grid-cols-3 gap-6 pt-4">
                         {/* A) Metric 1: System ohne Prüfhistorie */}
@@ -245,7 +242,7 @@ export function Dashboard({
                             title={analytics.metric2.title}
                             description={analytics.metric2.description}
                             primaryLabel={analytics.metric2.primaryAction}
-                            primaryVariant={analytics.metric2.count > 0 ? "destructive" : "default"}
+                            primaryVariant={analytics.metric2.count > 0 ? "outline" : "default"}
                             onPrimary={() => {
                                 if (analytics.metric2.filterKey) {
                                     router.push(`/my-register?filter=${analytics.metric2.filterKey}`);
@@ -263,7 +260,7 @@ export function Dashboard({
                             title={analytics.metric3.title}
                             description={analytics.metric3.description}
                             primaryLabel={analytics.metric3.primaryAction}
-                            primaryVariant={analytics.metric3.count > 0 ? "destructive" : "default"}
+                            primaryVariant={analytics.metric3.count > 0 ? "outline" : "default"}
                             onPrimary={() => {
                                 if (analytics.metric3.filterKey) {
                                     router.push(`/my-register?filter=${analytics.metric3.filterKey}`);
