@@ -62,6 +62,10 @@ export default function MyRegisterPage() {
           setRegisters(regs);
           setActiveRegister(regs[0]);
           setOnboardingState("ready");
+          // Auto-open QuickCapture after onboarding flow
+          if (searchParams.get("onboarding") === "true") {
+            setCaptureOpen(true);
+          }
         } else {
           // Zero-Friction Onboarding: Auto-create default register
           registerService.createRegister("Meine Organisation").then(reg => {
