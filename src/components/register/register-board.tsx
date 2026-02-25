@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Trash2, Undo2, X } from "lucide-react";
+import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Search, Trash2, Undo2, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -779,19 +779,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             <SelectItem value="BY_STATUS">Nach Status</SelectItem>
           </SelectContent>
         </Select>
-        <Button type="submit" variant="outline" size="sm" className="h-9">Filtern</Button>
-        <Button type="button" variant="ghost" size="sm" className="h-9" onClick={handleResetFilters}>
+        <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title="Filter anwenden"><Search className="h-3.5 w-3.5" /></Button>
+        <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
           Zurücksetzen
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          variant={showDeleted ? "secondary" : "ghost"}
-          size="sm"
-          className="h-9"
+          className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${showDeleted ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => setShowDeleted(!showDeleted)}
         >
+          <span className={`inline-block h-2 w-2 rounded-full transition-colors ${showDeleted ? "bg-foreground" : "border border-muted-foreground"}`} />
           {showDeleted ? "Gelöschte ausblenden" : "Gelöschte anzeigen"}
-        </Button>
+        </button>
         {activeCustomFilter && (
           <Badge variant="secondary" className="h-9 px-3 text-sm flex items-center gap-1 cursor-pointer" onClick={() => setActiveCustomFilter(null)}>
             Filter: {activeCustomFilter === 'missing_history' ? 'Fehlende Prüfhistorie' : activeCustomFilter === 'high_risk_missing_history' ? 'Hochrisiko Haftungslücke' : activeCustomFilter === 'external_missing_dossier' ? 'Transparenz Risiko' : activeCustomFilter.replace(/_/g, ' ')}
@@ -900,7 +899,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                       <TableCell>
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className={`font-medium text-sm ${card.isDeleted ? "line-through" : ""}`}>
+                            <span className={`text-sm ${card.isDeleted ? "line-through" : ""}`}>
                               {card.purpose}
                             </span>
                             {card.isDeleted && (
@@ -908,7 +907,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                             )}
                           </div>
                           {(card.toolId || card.toolFreeText) && (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground pl-1">
                               {card.toolId === "other" ? card.toolFreeText ?? "Anderes Tool" : card.toolId}
                             </span>
                           )}

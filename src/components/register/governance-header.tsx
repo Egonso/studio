@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download } from "lucide-react";
+import { AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download, Lock, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
 import { aggregateOrgScores, getExposureColor } from "@/lib/compliance-engine/scores";
 import { FeatureGate } from "@/components/register/feature-gate";
+import { FeatureGateDialog } from "@/components/feature-gate-dialog";
 import { generateAuditExport, auditToCSV } from "@/lib/compliance-engine/audit/audit-export";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 
@@ -117,6 +118,8 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
     };
 
     const { allowed: canExport } = useCapability('auditExport');
+    const { allowed: canAssessment, loading: assessmentLoading } = useCapability('assessmentWizard');
+    const [showAssessmentGate, setShowAssessmentGate] = useState(false);
 
     const handleAuditExport = () => {
         if (!register || !canExport) return;
@@ -130,6 +133,22 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         a.click();
         URL.revokeObjectURL(url);
         toast({ title: 'Audit-Export', description: 'CSV-Datei heruntergeladen.' });
+    };
+
+    const handleCopyInviteLink = async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href);
+            toast({
+                title: "Register-Link kopiert",
+                description: "Link wurde in die Zwischenablage kopiert.",
+            });
+        } catch {
+            toast({
+                variant: "destructive",
+                title: "Fehler",
+                description: "Link konnte nicht kopiert werden.",
+            });
+        }
     };
 
     return (
@@ -181,6 +200,15 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                             <Settings className="h-4 w-4" />
                         </button>
                     )}
+                    {register && (
+                        <button
+                            onClick={() => void handleCopyInviteLink()}
+                            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            title="Register-Link teilen"
+                        >
+                            <Share2 className="h-4 w-4" />
+                        </button>
+                    )}
                     {register && canExport && (
                         <button
                             onClick={handleAuditExport}
@@ -206,6 +234,16 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                             className="flex items-center gap-1.5 rounded-md border border-primary/30 bg-transparent px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
                         >
                             + Erfassen
+                        </button>
+                    )}
+                    {!canAssessment && !assessmentLoading && (
+                        <button
+                            onClick={() => setShowAssessmentGate(true)}
+                            className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            title="Erweiterte Governance-Funktionen"
+                        >
+                            <Lock className="h-3 w-3" />
+                            <span className="hidden sm:inline">Erweitert</span>
                         </button>
                     )}
                 </div>
@@ -235,7 +273,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
 
             {/* Dual Score Indicators (Pro/Enterprise) */}
             {useCases.length > 0 && (
-                <FeatureGate feature="assessmentWizard" mode="replace">
+                <FeatureGate feature="assessmentWizard" mode="hide">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {/* Governance Quality */}
                         <div className="flex items-center gap-4 rounded-lg border bg-card p-4">
@@ -329,6 +367,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 </div>
             )}
 
+            <FeatureGateDialog feature="assessmentWizard" open={showAssessmentGate} onOpenChange={setShowAssessmentGate} />
         </div>
     );
 }
