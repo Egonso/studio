@@ -21,6 +21,29 @@ const RATE_LIMIT_PER_IP = 100; // 100 submissions per day per IP
 const RATE_WINDOW_CODE = 60 * 60 * 1000; // 1 hour
 const RATE_WINDOW_IP = 24 * 60 * 60 * 1000; // 24 hours
 
+function normalizeCode(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+function parseExpiresAt(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate: unknown }).toDate === "function"
+  ) {
+    const parsed = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
 function checkRateLimit(key: string, limit: number, window: number): boolean {
   const now = Date.now();
   const rateData = rateLimitMap.get(key);
@@ -42,9 +65,13 @@ function checkRateLimit(key: string, limit: number, window: number): boolean {
 // GET: Validate code and return register info
 export async function GET(req: NextRequest) {
   try {
-    const code = req.nextUrl.searchParams.get("code");
+    const rawCode = req.nextUrl.searchParams.get("code");
+    const code = rawCode ? normalizeCode(rawCode) : "";
     if (!code) {
       return NextResponse.json({ error: "Code parameter required" }, { status: 400 });
+    }
+    if (code.length < 4) {
+      return NextResponse.json({ error: "Ungültiger Code" }, { status: 400 });
     }
 
     const codeDoc = await db.doc(`registerAccessCodes/${code}`).get();
@@ -57,7 +84,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Dieser Code ist nicht mehr aktiv" }, { status: 410 });
     }
 
-    if (codeData.expiresAt && new Date(codeData.expiresAt) < new Date()) {
+    const expiresAt = parseExpiresAt(codeData.expiresAt);
+    if (expiresAt && expiresAt < new Date()) {
       return NextResponse.json({ error: "Dieser Code ist abgelaufen" }, { status: 410 });
     }
 
@@ -72,6 +100,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       valid: true,
+      code,
       label: codeData.label,
       organisationName: registerName,
     });
@@ -85,7 +114,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body: CaptureByCodeBody = await req.json();
-    const { code, purpose, toolId, toolFreeText, usageContext, dataCategory, ownerName, organisation } = body;
+    const { code: rawCode, purpose, toolId, toolFreeText, usageContext, dataCategory, ownerName, organisation } = body;
+    const code = rawCode ? normalizeCode(rawCode) : "";
 
     if (code) {
       if (!checkRateLimit(`code:${code}`, RATE_LIMIT_PER_CODE, RATE_WINDOW_CODE)) {
@@ -130,7 +160,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dieser Code ist nicht mehr aktiv" }, { status: 410 });
     }
 
-    if (codeData.expiresAt && new Date(codeData.expiresAt) < new Date()) {
+    const expiresAt = parseExpiresAt(codeData.expiresAt);
+    if (expiresAt && expiresAt < new Date()) {
       return NextResponse.json({ error: "Dieser Code ist abgelaufen" }, { status: 410 });
     }
 
