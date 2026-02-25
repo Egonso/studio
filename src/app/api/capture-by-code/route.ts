@@ -44,6 +44,40 @@ function parseExpiresAt(value: unknown): Date | null {
   return null;
 }
 
+function mapOperationalError(error: unknown): { status: number; message: string } {
+  const message = String(
+    (error as { message?: unknown } | undefined)?.message ?? ""
+  ).toLowerCase();
+  const code = String(
+    (error as { code?: unknown } | undefined)?.code ?? ""
+  ).toLowerCase();
+
+  if (
+    message.includes("could not load the default credentials") ||
+    message.includes("failed to determine service account") ||
+    code.includes("invalid-credential")
+  ) {
+    return {
+      status: 503,
+      message:
+        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+    };
+  }
+
+  if (
+    code.includes("permission-denied") ||
+    message.includes("permission_denied")
+  ) {
+    return {
+      status: 503,
+      message:
+        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+    };
+  }
+
+  return { status: 500, message: "Interner Fehler" };
+}
+
 function checkRateLimit(key: string, limit: number, window: number): boolean {
   const now = Date.now();
   const rateData = rateLimitMap.get(key);
@@ -106,7 +140,8 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Code validation error:", error);
-    return NextResponse.json({ error: "Interner Fehler" }, { status: 500 });
+    const mapped = mapOperationalError(error);
+    return NextResponse.json({ error: mapped.message }, { status: mapped.status });
   }
 }
 
@@ -220,6 +255,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Capture by code error:", error);
-    return NextResponse.json({ error: "Interner Fehler" }, { status: 500 });
+    const mapped = mapOperationalError(error);
+    return NextResponse.json({ error: mapped.message }, { status: mapped.status });
   }
 }

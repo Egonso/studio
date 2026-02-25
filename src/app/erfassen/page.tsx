@@ -41,6 +41,38 @@ const EMPTY_FORM: CaptureFormData = {
   dataCategory: "NONE",
 };
 
+function mapCodeValidationError(status: number, errorMessage?: string) {
+  const message = errorMessage || "Unbekannter Fehler";
+  if (status === 404 || status === 400) {
+    return {
+      title: "Code ungültig",
+      message,
+    };
+  }
+  if (status === 410) {
+    return {
+      title: "Code nicht aktiv",
+      message,
+    };
+  }
+  if (status === 429) {
+    return {
+      title: "Zu viele Anfragen",
+      message,
+    };
+  }
+  if (status === 503 || status >= 500) {
+    return {
+      title: "Dienst vorübergehend nicht verfügbar",
+      message,
+    };
+  }
+  return {
+    title: "Fehler",
+    message,
+  };
+}
+
 export default function ErfassenPage() {
   const searchParams = useSearchParams();
   const codeParam = searchParams.get("code");
@@ -48,6 +80,7 @@ export default function ErfassenPage() {
   const [pageState, setPageState] = useState<PageState>(codeParam ? "loading" : "enter_code");
   const [code, setCode] = useState(codeParam || "");
   const [codeInfo, setCodeInfo] = useState<CodeInfo | null>(null);
+  const [errorTitle, setErrorTitle] = useState("Fehler");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [form, setForm] = useState<CaptureFormData>({ ...EMPTY_FORM });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,12 +98,19 @@ export default function ErfassenPage() {
 
   async function validateCode(c: string) {
     setPageState("loading");
+    setErrorTitle("Fehler");
     setErrorMsg(null);
     try {
       const res = await fetch(`/api/capture-by-code?code=${encodeURIComponent(c)}`);
       if (!res.ok) {
-        const data = await res.json();
-        setErrorMsg(data.error || "Ungültiger Code");
+        const data = await res
+          .json()
+          .catch(() => ({ error: "Code konnte nicht geprüft werden." })) as {
+          error?: string;
+        };
+        const mapped = mapCodeValidationError(res.status, data.error);
+        setErrorTitle(mapped.title);
+        setErrorMsg(mapped.message);
         setPageState("invalid");
         return;
       }
@@ -79,6 +119,7 @@ export default function ErfassenPage() {
       setCode(c);
       setPageState("form");
     } catch {
+      setErrorTitle("Verbindungsfehler");
       setErrorMsg("Verbindungsfehler. Bitte versuche es erneut.");
       setPageState("invalid");
     }
@@ -86,6 +127,7 @@ export default function ErfassenPage() {
 
   async function handleSubmit() {
     setIsSubmitting(true);
+    setErrorTitle("Fehler");
     setErrorMsg(null);
     try {
       const res = await fetch("/api/capture-by-code", {
@@ -102,7 +144,18 @@ export default function ErfassenPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        const data = await res
+          .json()
+          .catch(() => ({ error: "Fehler beim Speichern." })) as {
+          error?: string;
+        };
+        if (res.status === 503 || res.status >= 500) {
+          setErrorTitle("Dienst vorübergehend nicht verfügbar");
+        } else if (res.status === 429) {
+          setErrorTitle("Zu viele Anfragen");
+        } else {
+          setErrorTitle("Fehler");
+        }
         setErrorMsg(data.error || "Fehler beim Speichern");
         return;
       }
@@ -110,6 +163,7 @@ export default function ErfassenPage() {
       setCreatedPurpose(form.purpose.trim());
       setPageState("success");
     } catch {
+      setErrorTitle("Verbindungsfehler");
       setErrorMsg("Verbindungsfehler. Bitte versuche es erneut.");
     } finally {
       setIsSubmitting(false);
@@ -181,12 +235,16 @@ export default function ErfassenPage() {
         <Card className="w-full max-w-md">
           <CardContent className="space-y-4 pt-6">
             <Alert variant="destructive">
-              <AlertTitle>Code ungültig</AlertTitle>
+              <AlertTitle>{errorTitle}</AlertTitle>
               <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
             <Button
               variant="outline"
-              onClick={() => { setPageState("enter_code"); setErrorMsg(null); }}
+              onClick={() => {
+                setPageState("enter_code");
+                setErrorTitle("Fehler");
+                setErrorMsg(null);
+              }}
               className="w-full"
             >
               Anderen Code eingeben
@@ -209,7 +267,7 @@ export default function ErfassenPage() {
           <CardContent className="space-y-4">
             {errorMsg && (
               <Alert variant="destructive">
-                <AlertTitle>Fehler</AlertTitle>
+                <AlertTitle>{errorTitle}</AlertTitle>
                 <AlertDescription>{errorMsg}</AlertDescription>
               </Alert>
             )}

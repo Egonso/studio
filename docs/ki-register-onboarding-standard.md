@@ -85,6 +85,14 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 - Member-Erfassung: `POST /api/capture-by-code` schreibt Use-Case in Owner-Register.
 - Admin-Setup erzeugt Access-Code über `accessCodeService.generateCode` und teilt `'/erfassen?code=...'`.
 
+### Fehlerbehandlung (Capture-by-Code)
+
+- `400/404`: Code formal ungültig oder nicht gefunden.
+- `410`: Code deaktiviert oder abgelaufen.
+- `429`: Rate-Limit erreicht.
+- `503`: Dienst temporär nicht verfügbar (z. B. Runtime-Credentials nicht geladen).
+- UI auf `'/erfassen'` zeigt dafür differenzierte Titel statt pauschal „Code ungültig“.
+
 ### Risiken
 
 - Duplicate-Codes sind bei rein zufälliger 6-stelliger Generierung theoretisch möglich (kein Retry-Loop auf Kollision).
