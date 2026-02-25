@@ -44,6 +44,29 @@ function parseExpiresAt(value: unknown): Date | null {
   return null;
 }
 
+function parsePathSegment(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.includes("/")) return null;
+  return trimmed;
+}
+
+function resolveCodeScope(
+  codeData: Record<string, unknown>
+): { ownerId: string; registerId: string } | null {
+  const ownerId =
+    parsePathSegment(codeData.ownerId) ??
+    parsePathSegment(codeData.userId) ??
+    parsePathSegment(codeData.ownerUid);
+  const registerId =
+    parsePathSegment(codeData.registerId) ??
+    parsePathSegment(codeData.targetRegisterId) ??
+    parsePathSegment(codeData.projectId);
+
+  if (!ownerId || !registerId) return null;
+  return { ownerId, registerId };
+}
+
 function mapOperationalError(error: unknown): { status: number; message: string } {
   const message = String(
     (error as { message?: unknown } | undefined)?.message ?? ""
@@ -51,6 +74,23 @@ function mapOperationalError(error: unknown): { status: number; message: string 
   const code = String(
     (error as { code?: unknown } | undefined)?.code ?? ""
   ).toLowerCase();
+  const details = String(
+    (error as { details?: unknown } | undefined)?.details ?? ""
+  ).toLowerCase();
+  const status = Number(
+    (error as { status?: unknown; statusCode?: unknown } | undefined)?.status ??
+      (error as { statusCode?: unknown } | undefined)?.statusCode ??
+      0
+  );
+  const signature = `${message} ${code} ${details}`;
+
+  if ([401, 403, 429, 500, 502, 503, 504].includes(status)) {
+    return {
+      status: 503,
+      message:
+        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+    };
+  }
 
   if (
     message.includes("could not load the default credentials") ||
@@ -66,7 +106,26 @@ function mapOperationalError(error: unknown): { status: number; message: string 
 
   if (
     code.includes("permission-denied") ||
+    code.includes("unauthenticated") ||
+    code.includes("unavailable") ||
+    code.includes("deadline-exceeded") ||
+    code.includes("resource-exhausted") ||
     message.includes("permission_denied")
+  ) {
+    return {
+      status: 503,
+      message:
+        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+    };
+  }
+
+  if (
+    signature.includes("permission denied") ||
+    signature.includes("missing or insufficient permissions") ||
+    signature.includes("service unavailable") ||
+    signature.includes("deadline exceeded") ||
+    signature.includes("network error") ||
+    signature.includes("socket hang up")
   ) {
     return {
       status: 503,
@@ -124,8 +183,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Get register name for display
+    const scope = resolveCodeScope(codeData as Record<string, unknown>);
+    if (!scope) {
+      console.warn("Invalid access-code scope", {
+        code,
+        keys: Object.keys(codeData ?? {}),
+      });
+      return NextResponse.json({ error: "Ungültiger Code" }, { status: 404 });
+    }
+
     const registerDoc = await db
-      .doc(`users/${codeData.ownerId}/registers/${codeData.registerId}`)
+      .doc(`users/${scope.ownerId}/registers/${scope.registerId}`)
       .get();
 
     const registerName = registerDoc.exists
@@ -200,7 +268,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dieser Code ist abgelaufen" }, { status: 410 });
     }
 
-    const { ownerId, registerId } = codeData;
+    const scope = resolveCodeScope(codeData as Record<string, unknown>);
+    if (!scope) {
+      return NextResponse.json({ error: "Ungültiger Code" }, { status: 404 });
+    }
+    const { ownerId, registerId } = scope;
 
     // Create UseCaseCard under the admin's register path
     const now = new Date().toISOString();
