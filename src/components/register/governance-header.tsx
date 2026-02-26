@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download, Lock, Share2 } from "lucide-react";
+import { AlertTriangle, BarChart3, Settings, Link2, Shield, Zap, Download, Lock, Share2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
@@ -168,6 +168,10 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         }
     };
 
+    const utilityButtonClass =
+        "flex h-11 w-36 items-center justify-center gap-1.5 rounded-md border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+    const utilityLabelClass = "text-center leading-tight";
+
     return (
         <div className="space-y-4">
             {/* Title + Scope */}
@@ -220,28 +224,29 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     {register && onQuickCapture && (
                         <button
                             onClick={onQuickCapture}
-                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className={utilityButtonClass}
                         >
-                            + KI-Einsatzfall erfassen
+                            <Plus className="h-3.5 w-3.5" />
+                            <span className={utilityLabelClass}>KI-Einsatzfall erfassen</span>
                         </button>
                     )}
                     {register && (
                         <button
                             onClick={handleSupplierRequest}
-                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className={utilityButtonClass}
                         >
                             <Link2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Lieferant anfragen</span>
+                            <span className={utilityLabelClass}>Lieferant anfragen</span>
                         </button>
                     )}
                     {register && (
                         <button
                             onClick={() => void handleCopyCaptureLink()}
-                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className={utilityButtonClass}
                             title="Erfassungslink teilen"
                         >
                             <Share2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Erfassungslink teilen</span>
+                            <span className={utilityLabelClass}>Erfassungslink teilen</span>
                         </button>
                     )}
                     {register && canExport && (
