@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import Stripe from 'stripe';
 import { defineSecret } from 'firebase-functions/params';
 
+const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
 const STRIPE_API_KEY = defineSecret('STRIPE_API_KEY');
 const STRIPE_WEBHOOK_SECRET = defineSecret('STRIPE_WEBHOOK_SECRET');
 const LANDING_PAGE_API_KEY = defineSecret('LANDING_PAGE_API_KEY');
@@ -31,6 +32,24 @@ app.use((req, res, next) => {
 
 // Helper to access DB (lazy)
 const getDb = () => admin.firestore();
+
+function safeSecretValue(secret: { value: () => string }): string {
+    try {
+        return secret.value();
+    } catch {
+        return '';
+    }
+}
+
+function resolveStripeSecretKey(): string | null {
+    return (
+        safeSecretValue(STRIPE_SECRET_KEY) ||
+        process.env.STRIPE_SECRET_KEY ||
+        safeSecretValue(STRIPE_API_KEY) ||
+        process.env.STRIPE_API_KEY ||
+        null
+    );
+}
 
 // 1. Verify Customer
 app.post('/verify-customer', validateApiKey, async (req: Request, res: Response) => {
@@ -83,13 +102,12 @@ app.post('/check-stripe-purchase', async (req: Request, res: Response) => {
     }
 
     try {
-        // Updated API version to match current defaults or leave generic if possible, but typing forces it.
-        // Assuming user has latest stripe which might have 2024-04-10
-        const stripe = new Stripe(STRIPE_API_KEY.value(), { apiVersion: '2024-06-20' as any });
-        // Note: casting 'as any' for apiVersion to avoid strict checks if SDK version mismatches slightly. 
-        // Or I will use the one I saw in error '2024-04-10' if that IS the installed SDK version default.
-        // The error said: Type '"2023-10-16"' is not assignable to type '"2024-04-10"'.
-        // So I should use '2024-04-10'.
+        const stripeKey = resolveStripeSecretKey();
+        if (!stripeKey) {
+            res.status(500).json({ hasPurchased: false, error: 'Stripe key not configured' });
+            return;
+        }
+        const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' as any });
 
         const sessions = await stripe.checkout.sessions.list({ limit: 50 });
 
@@ -265,6 +283,10 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 export const api = onRequest(
-    { region: 'europe-west1', secrets: [STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, LANDING_PAGE_API_KEY], cors: true },
+    {
+        region: 'europe-west1',
+        secrets: [STRIPE_SECRET_KEY, STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, LANDING_PAGE_API_KEY],
+        cors: true
+    },
     app
 );

@@ -7,6 +7,10 @@ import Stripe from 'stripe';
  * 
  * GET /api/stripe-session?session_id=cs_xxx
  */
+function resolveStripeSecretKey(): string | null {
+    return process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY || null;
+}
+
 export async function GET(request: NextRequest) {
     const sessionId = request.nextUrl.searchParams.get('session_id');
 
@@ -17,10 +21,10 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const stripeSecretKey = resolveStripeSecretKey();
 
     if (!stripeSecretKey) {
-        console.error('STRIPE_SECRET_KEY not configured');
+        console.error('Stripe key not configured (expected STRIPE_SECRET_KEY or STRIPE_API_KEY)');
         return NextResponse.json(
             { error: 'Server configuration error' },
             { status: 500 }
