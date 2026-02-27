@@ -45,7 +45,7 @@ function getCodeErrorCopy(status: number, message?: string) {
 export default function InvitePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { toast } = useToast();
 
   const [step, setStep] = useState<MemberStep>("code");
@@ -70,17 +70,6 @@ export default function InvitePage() {
       setCodeInput(normalizeCode(codeFromQuery));
     }
   }, [codeFromQuery]);
-
-  // If already authenticated, continue to capture flow (with code) or register.
-  useEffect(() => {
-    if (!authLoading && user) {
-      if (codeFromQuery) {
-        router.replace(`/erfassen?code=${encodeURIComponent(normalizeCode(codeFromQuery))}`);
-        return;
-      }
-      router.replace("/my-register");
-    }
-  }, [authLoading, user, router, codeFromQuery]);
 
   const validateCode = async (providedCode?: string) => {
     const code = normalizeCode(providedCode ?? codeInput);
