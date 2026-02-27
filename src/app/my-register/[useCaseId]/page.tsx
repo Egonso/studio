@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { UseCaseHeader } from "@/components/register/detail/use-case-header";
 import { UseCaseMetadataSection } from "@/components/register/detail/use-case-metadata-section";
@@ -139,11 +138,10 @@ export default function UseCaseDetailPage() {
     return (
       <div className="min-h-screen p-4 pt-12">
         <div className="mx-auto max-w-4xl">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Fehler</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="border-l-2 border-red-300 pl-3 text-sm text-red-700">
+            <p className="font-medium">Fehler</p>
+            <p>{error}</p>
+          </div>
         </div>
       </div>
     );
@@ -154,8 +152,8 @@ export default function UseCaseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 pt-12">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <div className="min-h-screen px-4 py-10">
+      <div className="mx-auto max-w-[1024px] space-y-12">
         <UseCaseHeader
           card={card}
           isEditing={isEditing}
@@ -163,48 +161,39 @@ export default function UseCaseDetailPage() {
         />
 
         {invalidFocus && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Hinweis</AlertTitle>
-            <AlertDescription>
+          <div className="border-l-2 border-slate-300 pl-3 text-sm text-slate-600">
+            <p className="font-medium">Hinweis</p>
+            <p>
               Der Focus-Parameter "{invalidFocus}" ist nicht gueltig und wurde ignoriert.
-            </AlertDescription>
-          </Alert>
+            </p>
+          </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-          {/* Left column: Metadata */}
-          <div className="space-y-6">
-            <UseCaseMetadataSection
-              card={card}
-              isEditing={isEditing}
-              onSave={handleSaveMetadata}
-              focusTarget={activeFocus}
-            />
-          </div>
+        <UseCaseMetadataSection
+          card={card}
+          isEditing={isEditing}
+          onSave={handleSaveMetadata}
+          focusTarget={activeFocus}
+        />
 
-          {/* Right column: Status-Workflow + minimaler Audit-Trail */}
-          <div className="space-y-6">
-            <div
-              id="usecase-focus-review"
-              className={activeFocus === "review" ? focusHighlightClassName : undefined}
-            >
-              <ReviewSection card={card} onStatusChange={handleStatusChange} />
-            </div>
-            <div
-              id="usecase-focus-audit"
-              className={activeFocus === "audit" ? focusHighlightClassName : undefined}
-            >
-              <AuditTrailSection card={card} />
-            </div>
-          </div>
+        <div
+          id="usecase-focus-review"
+          className={activeFocus === "review" ? focusHighlightClassName : undefined}
+        >
+          <ReviewSection card={card} onStatusChange={handleStatusChange} />
+        </div>
+        <div
+          id="usecase-focus-audit"
+          className={activeFocus === "audit" ? focusHighlightClassName : undefined}
+        >
+          <AuditTrailSection card={card} />
         </div>
       </div>
     </div>
   );
 }
 
-const focusHighlightClassName = "rounded-lg border border-slate-300 bg-slate-50/70 p-1";
+const focusHighlightClassName = "border-l-2 border-slate-300 pl-3";
 
 function getFocusTargetId(focus: ControlFocusTarget): string {
   if (focus === "owner") return "usecase-focus-owner";

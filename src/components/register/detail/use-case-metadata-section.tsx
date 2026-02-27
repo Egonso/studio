@@ -1,16 +1,7 @@
 import { useState } from "react";
-import {
-  Check,
-  ExternalLink,
-  FileBadge,
-  Loader2,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,13 +11,15 @@ import type { DecisionImpact, UseCaseCard } from "@/lib/register-first/types";
 import {
   DATA_CATEGORY_LABELS,
   DECISION_INFLUENCE_LABELS,
+  resolveDataCategories,
+  resolveDecisionInfluence,
   USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first/types";
 import {
   createAiToolsRegistryService,
-  riskLevelColors,
   riskLevelLabels,
 } from "@/lib/register-first";
+import { cn } from "@/lib/utils";
 
 const aiRegistry = createAiToolsRegistryService();
 
@@ -65,24 +58,28 @@ export function UseCaseMetadataSection({
     card.toolId === "other"
       ? card.toolFreeText ?? "Anderes Tool"
       : toolEntry?.productName ?? card.toolId ?? "Kein Tool";
+  const riskClass =
+    card.governanceAssessment?.core?.aiActCategory ??
+    (toolEntry ? riskLevelLabels[toolEntry.riskLevel] : "Unbekannt");
+  const usageScope = card.usageContexts.length
+    ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
+    : "Nicht angegeben";
+  const dataCategories = resolveDataCategories(card);
+  const dataCategoryLabel = dataCategories.length
+    ? dataCategories.map((cat) => DATA_CATEGORY_LABELS[cat] ?? cat).join(", ")
+    : "Nicht angegeben";
 
-  const decisionLabel = card.decisionInfluence
-    ? DECISION_INFLUENCE_LABELS[card.decisionInfluence]
+  const decisionInfluence = resolveDecisionInfluence(card);
+  const decisionLabel = decisionInfluence
+    ? DECISION_INFLUENCE_LABELS[decisionInfluence]
     : decisionImpactLabels[card.decisionImpact];
-  const policyLinks = (card.governanceAssessment?.flex?.policyLinks ?? []).filter(
-    (entry) => entry.trim().length > 0
-  );
-  const oversightModel = card.governanceAssessment?.flex?.iso?.oversightModel;
-  const oversightDefined =
-    card.governanceAssessment?.core?.oversightDefined === true ||
-    Boolean(oversightModel && oversightModel !== "unknown");
-  const oversightLabel =
-    oversightModel && oversightModel !== "unknown"
-      ? oversightModel
-      : oversightDefined
-        ? "Definiert (ohne Modellangabe)"
-        : "Nicht dokumentiert";
-  const focusClassName = "rounded-md border border-slate-300 bg-slate-50/70 p-2";
+  const gdprLabel = getFlagLabel(card.publicInfo?.flags.gdprClaim, Boolean(toolEntry?.gdprCompliant));
+  const aiActLabel = getFlagLabel(card.publicInfo?.flags.aiActClaim, false);
+  const ownerLabel = card.responsibility.isCurrentlyResponsible
+    ? "Erfasser:in (selbst)"
+    : card.responsibility.responsibleParty || "Nicht zugewiesen";
+  const publicSources = card.publicInfo?.sources ?? [];
+  const focusClassName = "border-l-2 border-slate-300 pl-3";
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -144,270 +141,176 @@ export function UseCaseMetadataSection({
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 border-b pb-4">
-        <CardTitle className="text-base">Use-Case-Stammdokumentation</CardTitle>
-        {!isEditing && (
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/20"
-                onClick={() => router.push(`/pass/${card.useCaseId}`)}
-              >
-                <FileBadge className="mr-2 h-4 w-4" />
-                Use-Case Pass
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
-              >
-                Im AI Governance Control anzeigen
-              </Button>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Organisation steuern und Audit-Fähigkeit herstellen
-            </p>
-          </div>
-        )}
-      </CardHeader>
+    <div className="space-y-12">
+      <section className="border-t border-slate-200 pt-8">
+        <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <FieldBlock label="Zweck">
+            {isEditing ? (
+              <Textarea
+                value={editDraft.purpose}
+                onChange={(event) =>
+                  setEditDraft((prev) => ({ ...prev, purpose: event.target.value }))
+                }
+                rows={3}
+              />
+            ) : (
+              <p className="text-[15px] font-medium text-slate-900">{card.purpose}</p>
+            )}
+          </FieldBlock>
+          <FieldBlock label="Wirkungsbereich">
+            <p className="text-[15px] font-medium text-slate-900">{usageScope}</p>
+          </FieldBlock>
+          <FieldBlock label="Einfluss auf Entscheidungen">
+            <p className="text-[15px] font-medium text-slate-900">{decisionLabel}</p>
+          </FieldBlock>
+          <FieldBlock label="Risikoklasse">
+            <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
+          </FieldBlock>
+          <FieldBlock label="Datenkategorien">
+            <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
+          </FieldBlock>
+          <FieldBlock label="DSGVO">
+            <p className="text-[15px] font-medium text-slate-900">{gdprLabel}</p>
+          </FieldBlock>
+          <FieldBlock label="AI Act">
+            <p className="text-[15px] font-medium text-slate-900">{aiActLabel}</p>
+          </FieldBlock>
+        </div>
+      </section>
 
-      <CardContent className="space-y-6 pt-6">
-        {!isEditing && (
-          <div className="rounded-md border border-blue-100 bg-blue-50/50 p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-blue-500" /> Smart Hint
-              </h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs text-blue-600 hover:text-blue-800"
-                onClick={runComplianceCheck}
-                disabled={isCheckingCompliance}
-              >
-                {isCheckingCompliance ? (
-                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                ) : (
-                  <Search className="mr-1 h-3 w-3" />
-                )}
-                {card.publicInfo ? "Aktualisieren" : "Prüfen"}
-              </Button>
-            </div>
+      <section className="border-t border-slate-200 pt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-[18px] font-semibold tracking-tight">Eingesetztes KI-System</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={runComplianceCheck}
+            disabled={isCheckingCompliance}
+          >
+            {isCheckingCompliance ? "Prüfung läuft..." : "Compliance-Information prüfen"}
+          </Button>
+        </div>
 
-            {card.publicInfo ? (
-              <div className="text-sm">
-                <div className="mb-2 flex flex-wrap gap-2">
-                  <Badge
-                    variant="outline"
-                    className={
-                      card.publicInfo.flags.gdprClaim === "yes"
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "text-muted-foreground border-slate-200"
-                    }
-                  >
-                    DSGVO {card.publicInfo.flags.gdprClaim === "yes" ? "✓" : "?"}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={
-                      card.publicInfo.flags.aiActClaim === "yes"
-                        ? "bg-green-50 text-green-700 border-green-200"
-                        : "text-muted-foreground border-slate-200"
-                    }
-                  >
-                    AI Act {card.publicInfo.flags.aiActClaim === "yes" ? "✓" : "?"}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {card.publicInfo.summary}
-                </p>
-                {card.publicInfo.sources && card.publicInfo.sources.length > 0 && (
-                  <div className="mt-2 flex gap-3">
-                    {card.publicInfo.sources.slice(0, 2).map((source, index) => (
+        <p className="mt-4 text-[18px] font-semibold text-slate-900">{toolDisplayName}</p>
+
+        <div className="mt-4 rounded-sm border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
+          {card.publicInfo ? (
+            <>
+              <p>{card.publicInfo.summary}</p>
+              {publicSources.length > 0 && (
+                <p className="mt-2 text-xs text-slate-500">
+                  Quellen:{" "}
+                  {publicSources.slice(0, 3).map((source, index) => (
+                    <span key={`${source.url}-${index}`}>
                       <a
-                        key={`${source.url}-${index}`}
                         href={source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                        className="text-slate-700 underline underline-offset-2"
                       >
-                        <ExternalLink className="h-3 w-3" />
-                        Quelle {index + 1}
+                        {source.title || `Quelle ${index + 1}`}
                       </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Lassen Sie öffentlich verfügbare Compliance-Informationen für dieses Tool prüfen.
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">Zweck</Label>
-          {isEditing ? (
-            <Textarea
-              value={editDraft.purpose}
-              onChange={(e) => setEditDraft((prev) => ({ ...prev, purpose: e.target.value }))}
-              rows={3}
-            />
+                      {index < Math.min(publicSources.length, 3) - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </p>
+              )}
+            </>
           ) : (
-            <p className="text-sm">{card.purpose}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">KI-Tool</Label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{toolDisplayName}</span>
-            {toolEntry && (
-              <>
-                <Badge
-                  variant="outline"
-                  className={`text-[10px] font-normal ${riskLevelColors[toolEntry.riskLevel]}`}
-                >
-                  {riskLevelLabels[toolEntry.riskLevel]}
-                </Badge>
-                {toolEntry.gdprCompliant && (
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-[10px] font-normal text-blue-700"
-                  >
-                    DSGVO
-                  </Badge>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">Verwendungskontext</Label>
-          <div className="flex flex-wrap gap-1.5">
-            {card.usageContexts.map((ctx) => (
-              <Badge key={ctx} variant="outline" className="text-[10px] font-normal">
-                {USAGE_CONTEXT_LABELS[ctx]}
-              </Badge>
-            ))}
-            {card.usageContexts.length === 0 && (
-              <span className="text-xs text-muted-foreground">Nicht angegeben</span>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">Beeinflusst Entscheidungen</Label>
-          <span className="text-sm">{decisionLabel}</span>
-        </div>
-
-        {card.dataCategory && (
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Datenkategorie</Label>
-            <Badge variant="outline" className="text-[10px] font-normal">
-              {DATA_CATEGORY_LABELS[card.dataCategory] ?? card.dataCategory}
-            </Badge>
-          </div>
-        )}
-
-        <div
-          id="usecase-focus-owner"
-          className={focusTarget === "owner" ? focusClassName : undefined}
-        >
-          <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">Verantwortliche Person</Label>
-          {isEditing ? (
-            <Input
-              value={editDraft.responsibleParty}
-              onChange={(e) =>
-                setEditDraft((prev) => ({ ...prev, responsibleParty: e.target.value }))
-              }
-              placeholder="z. B. Max Mustermann"
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {card.responsibility.isCurrentlyResponsible
-                ? "Erfasser:in (selbst)"
-                : card.responsibility.responsibleParty || "Nicht zugewiesen"}
+            <p>
+              Smart Hint: Für dieses System liegen derzeit keine dokumentierten
+              Compliance-Informationen vor.
             </p>
           )}
-          </div>
         </div>
+      </section>
 
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">Organisationseinheit</Label>
-          {isEditing ? (
-            <Input
-              value={editDraft.organisation}
-              onChange={(e) =>
-                setEditDraft((prev) => ({ ...prev, organisation: e.target.value }))
-              }
-              placeholder="z. B. Marketing"
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">{card.organisation || "Nicht angegeben"}</p>
-          )}
+      <section className="border-t border-slate-200 pt-8">
+        <h2 className="text-[18px] font-semibold tracking-tight">Verantwortlich</h2>
+        <div
+          id="usecase-focus-owner"
+          className={cn("mt-6", focusTarget === "owner" && focusClassName)}
+        >
+          <FieldBlock label="Verantwortliche Person">
+            {isEditing ? (
+              <Input
+                value={editDraft.responsibleParty}
+                onChange={(event) =>
+                  setEditDraft((prev) => ({
+                    ...prev,
+                    responsibleParty: event.target.value,
+                  }))
+                }
+                placeholder="z. B. Max Mustermann"
+              />
+            ) : (
+              <p className="text-[15px] font-medium text-slate-900">{ownerLabel}</p>
+            )}
+          </FieldBlock>
         </div>
 
         <div
           id="usecase-focus-oversight"
-          className={focusTarget === "oversight" ? focusClassName : undefined}
+          className={cn(
+            "mt-6 space-y-1 text-xs text-muted-foreground",
+            (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
+          )}
         >
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Aufsichtsmodell</Label>
-            <p className="text-sm text-muted-foreground">{oversightLabel}</p>
-          </div>
+          <div id="usecase-focus-policy" className="h-px w-px" />
+          <p className="font-medium text-slate-600">Organisation KI-gerecht steuern</p>
+          <p>
+            Zuständigkeiten, Prüfmodelle und Policies werden in der
+            Organisationssteuerung verwaltet.
+          </p>
+          <button
+            type="button"
+            className="underline underline-offset-2"
+            onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
+          >
+            Im AI Governance Control anzeigen
+          </button>
         </div>
+      </section>
 
-        <div
-          id="usecase-focus-policy"
-          className={focusTarget === "policy" ? focusClassName : undefined}
-        >
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Policy-Zuordnung</Label>
-            <p className="text-sm text-muted-foreground">
-              {policyLinks.length > 0
-                ? `${policyLinks.length} Policy-Verknuepfung(en) hinterlegt`
-                : "Keine Policy-Verknuepfung dokumentiert"}
-            </p>
-          </div>
+      {isEditing && (
+        <div className="flex justify-end border-t border-slate-200 pt-6">
+          <Button onClick={() => void handleSave()} disabled={isSaving}>
+            {isSaving ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="mr-2 h-4 w-4" />
+            )}
+            Änderungen speichern
+          </Button>
         </div>
-
-        <div className="grid grid-cols-2 gap-4 border-t pt-4">
-          <div className="space-y-1">
-            <Label className="text-[10px] font-medium text-muted-foreground">Erstellt</Label>
-            <p className="text-xs">{formatDate(card.createdAt)}</p>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[10px] font-medium text-muted-foreground">Aktualisiert</Label>
-            <p className="text-xs">{formatDate(card.updatedAt)}</p>
-          </div>
-        </div>
-
-        {isEditing && (
-          <div className="mt-2 flex justify-end pt-2">
-            <Button onClick={() => void handleSave()} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Check className="mr-2 h-4 w-4" />
-              )}
-              Änderungen speichern
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }
 
-function formatDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "unbekannt";
-  return date.toLocaleString("de-DE");
+function FieldBlock({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {children}
+    </div>
+  );
+}
+
+function getFlagLabel(
+  flag: "yes" | "no" | "not_found" | undefined,
+  fallbackHint: boolean
+): string {
+  if (flag === "yes") return "Ja";
+  if (flag === "no") return "Nein";
+  if (fallbackHint) return "Hinweis vorhanden";
+  return "Nicht geprüft";
 }

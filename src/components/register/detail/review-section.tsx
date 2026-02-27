@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -22,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RegisterStatusBadge } from "@/components/register/status-badge";
+import { RegisterStatusPill } from "@/components/register/detail/status-pill";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 import {
   getNextManualStatuses,
@@ -60,39 +59,25 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Status-Workflow</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Aktueller Status</span>
-              <RegisterStatusBadge status={card.status} />
-            </div>
-            <div className="text-xs text-muted-foreground">
-              <span className="font-medium">Zulässige Statusänderungen:</span>
-              <ul className="mt-1 space-y-0.5 ml-3">
-                {nextStatuses.length === 0 ? (
-                  <li>– Keine weiteren Statusaenderungen zulaessig</li>
-                ) : (
-                  nextStatuses.map((s) => (
-                    <li key={s}>– {registerUseCaseStatusLabels[s]}</li>
-                  ))
-                )}
-              </ul>
-            </div>
+      <section className="border-t border-slate-200 pt-8">
+        <h2 className="text-[18px] font-semibold tracking-tight">Prüfstatus</h2>
+
+        <div className="mt-6 space-y-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-muted-foreground">Aktueller Status:</span>
+            <RegisterStatusPill status={card.status} />
           </div>
 
           {nextStatuses.length === 0 ? (
-            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-              Der aktuelle Status ist formal abgeschlossen. Weitere Aenderungen erfolgen nur
-              ueber neue Reviews.
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Der aktuelle Status ist formal abgeschlossen.
+            </p>
           ) : (
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Status ändern</label>
+                <label className="mb-1.5 block text-xs text-muted-foreground">
+                  Status ändern
+                </label>
                 <Select
                   value={selectedStatus}
                   onValueChange={(v) => setSelectedStatus(v as RegisterUseCaseStatus)}
@@ -111,12 +96,14 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Begründung der Statusänderung (optional)</label>
+                <label className="mb-1.5 block text-xs text-muted-foreground">
+                  Begründung der Statusänderung (optional)
+                </label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Begründung eingeben..."
-                  rows={2}
+                  rows={3}
                   className="text-sm"
                 />
               </div>
@@ -124,7 +111,6 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
               <div className="flex items-center gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => setShowConfirm(true)}
                   disabled={!selectedStatus || isUpdating}
                 >
@@ -136,21 +122,18 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
             </div>
           )}
 
-          {/* Review Hints */}
           {card.reviewHints.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">Review-Hinweise</span>
-              <ul className="space-y-1">
+            <div className="space-y-1.5 border-t border-slate-200 pt-4">
+              <span className="text-xs text-muted-foreground">Review-Hinweise</span>
+              <ul className="space-y-1 text-sm text-muted-foreground">
                 {card.reviewHints.map((hint, i) => (
-                  <li key={i} className="text-xs text-muted-foreground">
-                    &bull; {hint}
-                  </li>
+                  <li key={i}>• {hint}</li>
                 ))}
               </ul>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>

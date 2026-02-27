@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ArrowLeft, Download, FileJson, Pencil, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -15,8 +14,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RegisterStatusBadge } from "@/components/register/status-badge";
+import {
+  createAiToolsRegistryService,
+  riskLevelLabels,
+} from "@/lib/register-first";
+import { RegisterStatusPill } from "@/components/register/detail/status-pill";
 import type { UseCaseCard } from "@/lib/register-first/types";
+import {
+  DATA_CATEGORY_LABELS,
+  DECISION_INFLUENCE_LABELS,
+  resolveDataCategories,
+  resolveDecisionInfluence,
+  USAGE_CONTEXT_LABELS,
+} from "@/lib/register-first/types";
+import { cn } from "@/lib/utils";
 
 interface UseCaseHeaderProps {
   card: UseCaseCard;
@@ -24,6 +35,13 @@ interface UseCaseHeaderProps {
   onToggleEdit: () => void;
   onDelete?: () => Promise<void>;
 }
+
+const aiRegistry = createAiToolsRegistryService();
+const legacyDecisionImpactLabels = {
+  YES: "Ja",
+  NO: "Nein",
+  UNSURE: "Unsicher",
+} as const;
 
 function downloadFile(content: string, filename: string, mimeType: string) {
   const blob = new Blob([content], { type: mimeType });
@@ -39,6 +57,31 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
   const router = useRouter();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isProofReady = card.status === "PROOF_READY";
+
+  const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
+  const toolDisplayName =
+    card.toolId === "other"
+      ? card.toolFreeText ?? "Anderes Tool"
+      : toolEntry?.productName ?? card.toolId ?? "Kein Tool";
+
+  const riskClass =
+    card.governanceAssessment?.core?.aiActCategory ??
+    (toolEntry ? riskLevelLabels[toolEntry.riskLevel] : "Unbekannt");
+  const usageScope = card.usageContexts.length
+    ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
+    : "Nicht angegeben";
+  const decisionInfluence = resolveDecisionInfluence(card);
+  const decisionLabel = decisionInfluence
+    ? DECISION_INFLUENCE_LABELS[decisionInfluence]
+    : legacyDecisionImpactLabels[card.decisionImpact];
+  const dataCategories = resolveDataCategories(card);
+  const dataCategoryLabel = dataCategories.length
+    ? dataCategories.map((cat) => DATA_CATEGORY_LABELS[cat] ?? cat).join(", ")
+    : "Nicht angegeben";
+  const ownerLabel = card.responsibility.isCurrentlyResponsible
+    ? "Erfasser:in (selbst)"
+    : card.responsibility.responsibleParty || "Nicht zugewiesen";
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -76,14 +119,27 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
     downloadFile(json, filename, "application/json;charset=utf-8");
   };
 
+  const subline = [
+    toolDisplayName,
+    card.globalUseCaseId ?? "EUKI-ID offen",
+    `v${card.cardVersion}`,
+    card.isPublicVisible ? "Oeffentlich" : "Privat",
+    formatDate(card.updatedAt),
+  ].join(" · ");
+
   return (
     <>
-      <div className="space-y-3">
+      <div
+        className={cn(
+          "space-y-6",
+          isProofReady && "border-l-2 border-emerald-300 pl-4"
+        )}
+      >
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 gap-1.5"
+            className="h-8 gap-1.5 px-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
             onClick={() => router.push("/my-register")}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -91,29 +147,41 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
           </Button>
         </div>
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1 space-y-2">
-            <h1 className="text-xl font-semibold leading-tight">{card.purpose}</h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <RegisterStatusBadge status={card.status} />
-              <Badge variant="secondary" className="text-[10px]">
-                {card.isPublicVisible ? "Oeffentlich" : "Privat"}
-              </Badge>
-              {card.cardVersion && (
-                <span className="text-[10px] text-muted-foreground">
-                  v{card.cardVersion}
-                </span>
+            <h1
+              className={cn(
+                "text-[30px] font-semibold leading-tight tracking-tight",
+                isProofReady && "font-[650]"
               )}
-              {card.globalUseCaseId && (
-                <span className="font-mono text-[10px] text-muted-foreground">
-                  {card.globalUseCaseId}
-                </span>
+            >
+              Use Case: {card.purpose}
+            </h1>
+            <p
+              className={cn(
+                "text-sm text-muted-foreground",
+                isProofReady && "text-slate-700"
               )}
-            </div>
+            >
+              {subline}
+            </p>
+            {isProofReady && (
+              <p className="text-xs text-emerald-700">
+                Dieser Einsatzfall ist formal geprüft und dokumentiert.
+              </p>
+            )}
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            {/* Use-Case Pass Export */}
+          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+            <RegisterStatusPill status={card.status} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/pass/${card.useCaseId}`)}
+              title="Use-Case Pass anzeigen"
+            >
+              Use-Case Pass
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -132,9 +200,6 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
               <FileJson className="mr-1.5 h-3.5 w-3.5" />
               JSON
             </Button>
-
-            <div className="w-px h-5 bg-border mx-1" />
-
             <Button
               variant={isEditing ? "default" : "outline"}
               size="sm"
@@ -164,6 +229,14 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
             )}
           </div>
         </div>
+
+        <div className="grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+          <MetaItem label="Verantwortlich" value={ownerLabel} />
+          <MetaItem label="Risikoklasse" value={riskClass} />
+          <MetaItem label="Wirkungsbereich" value={usageScope} />
+          <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
+          <MetaItem label="Datenkategorien" value={dataCategoryLabel} className="sm:col-span-2" />
+        </div>
       </div>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
@@ -189,4 +262,33 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
       </AlertDialog>
     </>
   );
+}
+
+function MetaItem({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("space-y-1", className)}>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-[15px] font-medium text-slate-900">{value}</p>
+    </div>
+  );
+}
+
+function formatDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "unbekannt";
+  return date.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
