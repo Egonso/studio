@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { landingPageContent } from "./content";
+import { QuickCaptureProvider, QuickCaptureTrigger } from "./quick-capture-trigger";
 
 export const metadata: Metadata = {
   title: "AI Governance Register | Register-First Landingpage",
@@ -58,16 +59,18 @@ export default function RegisterFirstLandingPage() {
           </Link>
         </header>
 
-        <main className="space-y-20 pt-14">
+        <QuickCaptureProvider>
+          <main className="space-y-20 pt-14">
           <section className="max-w-4xl space-y-7">
             <h1 className="font-headline text-4xl leading-tight text-slate-950 sm:text-5xl lg:text-6xl">
               {hero.headline}
             </h1>
             <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{hero.subline}</p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link href={hero.primaryCta.href} className={ctaClass(hero.primaryCta.style)}>
-                {hero.primaryCta.label}
-              </Link>
+              <QuickCaptureTrigger
+                label={hero.primaryCta.label}
+                className={ctaClass(hero.primaryCta.style)}
+              />
               <Link href={hero.secondaryCta.href} className={ctaClass(hero.secondaryCta.style)}>
                 {hero.secondaryCta.label}
               </Link>
@@ -136,16 +139,15 @@ export default function RegisterFirstLandingPage() {
             <h2 className="font-headline text-3xl text-slate-950 sm:text-4xl">{closing.title}</h2>
             <p className="max-w-3xl text-base leading-relaxed text-slate-700">{closing.copy}</p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href={closing.primaryCta.href}
+              <QuickCaptureTrigger
+                label={closing.primaryCta.label}
                 className={ctaClass(closing.primaryCta.style)}
-              >
-                {closing.primaryCta.label}
-              </Link>
+              />
               <p className="text-sm text-slate-600">{closing.supportLine}</p>
             </div>
           </section>
-        </main>
+          </main>
+        </QuickCaptureProvider>
       </div>
     </div>
   );
