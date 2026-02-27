@@ -26,12 +26,7 @@ export default function LandingSimplePage() {
     }
   }, [searchParams]);
 
-  // Redirect authenticated users
-  useEffect(() => {
-    if (!loading && user) {
-      router.replace("/my-register");
-    }
-  }, [user, loading, router]);
+  // No auth redirect -- this page is always visible for review/testing.
 
   // Handle hash-based navigation on mount
   useEffect(() => {
@@ -56,7 +51,7 @@ export default function LandingSimplePage() {
     []
   );
 
-  if (loading || user) {
+  if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
