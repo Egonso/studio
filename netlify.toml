@@ -7,3 +7,4 @@ package = "@netlify/plugin-nextjs"
 
 [build.environment]
 NODE_VERSION = "20"
+NEXT_PUBLIC_CONTROL_SHELL_ENABLED = "true"
