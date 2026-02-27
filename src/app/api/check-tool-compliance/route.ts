@@ -68,7 +68,7 @@ Antworte bitte im reinen JSON-Format (ohne Markdown Code-Blöcke) mit folgender 
         let parsedContent;
         try {
             parsedContent = JSON.parse(content);
-        } catch (e) {
+        } catch (_e) {
             console.error("Failed to parse JSON from Perplexity:", content);
             parsedContent = { error: "Failed to parse response", raw: content };
         }

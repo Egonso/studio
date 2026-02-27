@@ -1,13 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, PlusCircle, ShieldAlert, Activity, Eye, AlertTriangle, ShieldCheck, Lock } from "lucide-react";
+import { ArrowRight, PlusCircle, ShieldAlert, Activity, Eye, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
-import { ProjectCreationWizard } from "@/components/wizard/project-creation-wizard";
 import {
     DiagnosticReport,
-    DiagnosticIndices,
     ActionItem,
     EngineContext
 } from "@/lib/compliance-engine/types";

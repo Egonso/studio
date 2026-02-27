@@ -7,12 +7,16 @@ export const SITE_TREE = `
 SITEMAP — EuKIGesetz Studio (fortbildung.eukigesetz.com)
 
 🏠 HAUPTNAVIGATION (eingeloggte User):
-├── /dashboard .............. Compliance Dashboard
-│   Überblick über den gesamten Compliance-Status. Zeigt:
-│   - Projekt-Compliance-Score (Fortschritt aller Projekte)
-│   - Trust Portal Kachel (öffentliches Vertrauensportal)
-│   - Letzte Aktivitäten und offene Aufgaben
-│   - Schnellzugriff auf alle Module
+├── /dashboard .............. Register-Übersicht (Alias)
+│   Technischer Kompatibilitäts-Pfad für die Register-Übersicht.
+│   Fokus: Dokumentation und Governance-Status im Register-Kontext.
+│
+├── /control ................ AI Governance Control
+│   Organisationsweite Steuerungsebene (Feature-Flag gesteuert):
+│   - KPI Header
+│   - Governance Maturity Model
+│   - Action Queue (priorisierte Maßnahmen)
+│   - Portfolio-, Audit- und Policy-Module
 │
 ├── /projects ............... Meine Projekte (KI-Einsatzfälle)
 │   Zentrale Verwaltung aller KI-Projekte/Einsatzfälle:
@@ -60,7 +64,7 @@ SITEMAP — EuKIGesetz Studio (fortbildung.eukigesetz.com)
 │   - Status-Workflow: Prüfung ausstehend → empfohlen → abgeschlossen → nachweisfähig
 │   - Öffentliche Verifizierung einzelner Einträge
 │   - Organisation & Scope-Einstellungen (Zahnrad-Icon)
-│   - KPI-Dashboard: Registrierte Fälle, Status-Verteilung
+│   - Register-Kennzahlen: Registrierte Fälle, Status-Verteilung
 │
 ├── /capture ................. Standalone Quick Capture
 │   Schnellerfassung eines KI-Einsatzfalls (ohne Register-Kontext)
@@ -110,14 +114,25 @@ FEATURES & FUNKTIONEN — EuKIGesetz Studio
 
 ═══════════════════════════════════════════════════════════
 
-📊 COMPLIANCE DASHBOARD (/dashboard)
-Was es tut: Zentraler Überblick über den gesamten Compliance-Status
+📊 REGISTER-ÜBERSICHT (/dashboard Alias)
+Was es tut: Zentraler Überblick über Register-Status und Dokumentationsstand
 Für wen: Alle eingeloggten Nutzer
 Kernfunktionen:
-- Gesamtfortschritt aller Projekte auf einen Blick
-- Trust Portal Status und Konfiguration
-- Schnellzugriff auf offene Aufgaben
-- Navigationsshortcuts zu allen Modulen
+- Register-Status und offene Prüfungen auf einen Blick
+- Schnellzugriff auf Register und Capture
+- Kompatibler Einstiegspunkt für bestehende /dashboard-Links
+- Keine Vermischung mit der organisationsweiten Control-Ebene
+
+═══════════════════════════════════════════════════════════
+
+🧭 AI GOVERNANCE CONTROL (/control)
+Was es tut: Organisationsweite Steuerung und Governance-Reifegrad
+Für wen: Governance Leads, Compliance-Leitung, Audit-Verantwortliche
+Kernfunktionen:
+- KPI Header (10-Sekunden-Überblick)
+- Maturity Level (Level 1-5)
+- Priorisierte Maßnahmen mit Deep Links ins Register
+- Organisationsweite Audit-, Policy- und Export-Funktionen
 
 ═══════════════════════════════════════════════════════════
 
@@ -206,7 +221,7 @@ Kernfunktionen:
 - Öffentliche Verifizierung einzelner Einträge
 - Organisations-Scope konfigurieren (Name, Einheit)
 - Audit-Trail mit Statusänderungen
-- KPI-Dashboard
+- Register-Kennzahlen
 
 ═══════════════════════════════════════════════════════════
 
@@ -272,7 +287,7 @@ A: Gehe zur Smart Policy Engine (/cbs). Dort kannst du KI-gestützt Compliance-R
    die automatisch auf relevante EU AI Act Artikel gemappt werden.
 
 Q: "Wie kann ich den Compliance-Status öffentlich zeigen?"
-A: Konfiguriere dein Trust Portal im Dashboard (/dashboard). Es erstellt eine öffentliche Seite 
+A: Konfiguriere dein Trust Portal in der Register-Übersicht (/dashboard, Alias) oder im Register. Es erstellt eine öffentliche Seite 
    unter /trust/[projektId], die Kunden und Partnern deinen Compliance-Status zeigt.
 
 Q: "Was passiert nach der Zertifizierungsprüfung?"

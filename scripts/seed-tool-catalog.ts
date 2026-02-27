@@ -6,8 +6,6 @@ import * as path from 'path';
 // Run with: TS_NODE_COMPILER_OPTIONS='{"module":"commonjs"}' ts-node scripts/seed-tool-catalog.ts
 // Ensure GOOGLE_APPLICATION_CREDENTIALS is set or you are logged in via gcloud
 
-const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.applicationDefault(),

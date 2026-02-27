@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, AlertCircle } from "lucide-react";
+import { PlusCircle, AlertCircle, Link2, Share2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -12,6 +12,9 @@ interface RegisterTileProps {
     useCaseCount: number;
     pendingReviewCount: number;
     onCaptureClick: () => void;
+    onSupplierRequestClick?: () => void;
+    onShareCaptureLinkClick?: () => void;
+    utilitiesDisabled?: boolean;
 }
 
 export function RegisterTile({
@@ -19,8 +22,12 @@ export function RegisterTile({
     useCaseCount,
     pendingReviewCount,
     onCaptureClick,
+    onSupplierRequestClick,
+    onShareCaptureLinkClick,
+    utilitiesDisabled = false,
 }: RegisterTileProps) {
     const isEmpty = useCaseCount === 0;
+    const registerHref = projectId ? `/my-register?projectId=${projectId}` : "/my-register";
 
     return (
         <Card className="shadow-md border-slate-200 dark:border-slate-800 overflow-hidden bg-white/50 dark:bg-slate-950/50">
@@ -41,24 +48,53 @@ export function RegisterTile({
                             </div>
                             <div>
                                 <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                                    AI Use Register
+                                    AI Governance Register
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Erfassen, prüfen und verwalten Sie KI-Anwendungen.
+                                    Dokumentieren Sie KI-Einsatzfälle revisionssicher und nachvollziehbar.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 pt-1">
-                            <Link href={`/my-register?projectId=${projectId}`}>
-                                <Button className="shadow-sm">
-                                    Register öffnen
+                        <div className="flex flex-col gap-2 pt-1">
+                            <div className="flex items-center gap-3">
+                                <Link href={registerHref}>
+                                    <Button className="shadow-sm">
+                                        Register öffnen
+                                    </Button>
+                                </Link>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs text-muted-foreground"
+                                    onClick={onCaptureClick}
+                                >
+                                    <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                                    KI-Einsatzfall erfassen
                                 </Button>
-                            </Link>
-                            <Button variant="outline" onClick={onCaptureClick}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                KI-Anwendung erfassen
-                            </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs text-muted-foreground"
+                                    disabled={utilitiesDisabled}
+                                    onClick={onSupplierRequestClick}
+                                >
+                                    <Link2 className="mr-1.5 h-3.5 w-3.5" />
+                                    Lieferant anfragen
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 text-xs text-muted-foreground"
+                                    disabled={utilitiesDisabled}
+                                    onClick={onShareCaptureLinkClick}
+                                >
+                                    <Share2 className="mr-1.5 h-3.5 w-3.5" />
+                                    Erfassungslink teilen
+                                </Button>
+                            </div>
                         </div>
                     </div>
 

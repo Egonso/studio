@@ -30,7 +30,7 @@ export const navigateTool = ai.defineTool(
             command: z.string(),
         }),
     },
-    async ({ path, reason }) => {
+    async ({ path, reason: _reason }) => {
         return { success: true, command: `NAVIGATE_TO:${path}` };
     }
 );
@@ -43,7 +43,7 @@ export const siteChatbotFlow = ai.defineFlow(
         outputSchema: z.string(),
     },
 
-    async (input, { sendChunk }) => {
+    async (input, { sendChunk: _sendChunk }) => {
         // Load Law Data — Static import for Vercel compatibility
         const lawData = lawDataRaw as any;
 

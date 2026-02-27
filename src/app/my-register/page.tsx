@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, PlusCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -115,16 +115,16 @@ export default function MyRegisterPage() {
     }
   };
 
-  const handleCaptured = useCallback((useCaseId?: string) => {
+  const handleCaptured = (useCaseId?: string) => {
     setRefreshKey((k) => k + 1);
     if (useCaseId) {
       router.push(`/pass/${useCaseId}`);
     }
-  }, [router]);
+  };
 
-  const handleUseCasesLoaded = useCallback((cards: UseCaseCard[]) => {
+  const handleUseCasesLoaded = (cards: UseCaseCard[]) => {
     setUseCases(cards);
-  }, []);
+  };
 
   if (authLoading || onboardingState === "loading") {
     return (
@@ -153,7 +153,7 @@ export default function MyRegisterPage() {
             className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground mb-4"
           >
             <ArrowLeft className="h-4 w-4" />
-            Zurück zum Dashboard
+            Zurück zum Register
           </Link>
         </div>
         <GovernanceHeader

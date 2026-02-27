@@ -21,7 +21,10 @@ import {
   getProofPackPdfFileName,
   getProofPackV11PdfFileName,
 } from "../proof-pack";
-import type { RegisterFirstFeatureFlags } from "../flags";
+import {
+  registerFirstDefaultFlags,
+  type RegisterFirstFeatureFlags,
+} from "../flags";
 
 const baseNow = Date.parse("2026-02-10T10:00:00.000Z");
 let tick = 0;
@@ -188,11 +191,10 @@ export async function runServiceV11Smoke() {
 
   // ── 9. Status gated output check ─────────────────────────────────────────
   const flags: RegisterFirstFeatureFlags = {
+    ...registerFirstDefaultFlags,
     enabled: true,
     hybridEntry: true,
-    stickyLauncher: false,
     proofGate: true,
-    standaloneMode: false,
   };
 
   const unreviewedState = getStatusGatedOutputState("UNREVIEWED", flags);

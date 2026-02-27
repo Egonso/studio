@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import fs from 'fs';
 import path from 'path';
 
 // MUST provide path to service account key json
@@ -11,11 +12,11 @@ try {
         // Allows passing stringified JSON directly via env
         cert = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     } else {
-        cert = require(SERVICE_ACCOUNT_PATH);
+        cert = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8'));
     }
     admin.initializeApp({ credential: admin.credential.cert(cert) });
     console.log('Firebase Admin initialized successfully.');
-} catch (error) {
+} catch (_error) {
     console.error('\n❌ Failed to initialize Firebase Admin.');
     console.error('Migration requires a service account JSON file.');
     console.error('Run: SERVICE_ACCOUNT_PATH=/path/to/key.json ts-node migrate-projects-to-usecases.ts\n');

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AlertCircle, AlertTriangle, CheckCircle2, ShieldCheck, ShieldAlert, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Check, X, FileClock, History, Gauge, Shield, BookOpen } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, ShieldCheck, ShieldAlert, Loader2, ListChecks, ArrowRight, FileText, GanttChartSquare, Sparkles, Wand2, GraduationCap, Building, Check, FileClock, History, Gauge, Shield, BookOpen } from "lucide-react";
 import type { ComplianceItem } from "@/lib/types";
 import { getComplianceChecklist, type GetComplianceChecklistOutput, type GetComplianceChecklistOutput_Checklist } from "@/ai/flows/get-compliance-checklist";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -28,7 +28,6 @@ import { saveCurrentTask, type AimsProgress } from "@/lib/data-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AimsExportDialog } from "@/components/aims-export-dialog";
 import { RegisterToolsManager } from "./register-tools-manager";
-import { Cpu, Search, CheckSquare } from "lucide-react";
 
 export interface ChecklistState {
     [itemId: string]: {
@@ -47,7 +46,6 @@ interface DashboardProps {
     aimsData: any;
     aimsProgress: AimsProgress;
     onRestartWizard?: () => void;
-    projectId?: string; // Add projectId here
 }
 
 const statusConfig = {
@@ -67,15 +65,6 @@ const statusConfig = {
         iconClassName: 'text-red-600',
     },
 };
-
-const isoCategories: ComplianceItem[] = [
-    { id: 'iso-context', title: 'Kontext & Stakeholder', description: 'Verstehen der Organisation und der Bedürfnisse der Stakeholder.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-leadership', title: 'Leadership & AI Policy', description: 'Festlegung von KI-Richtlinien und Verantwortlichkeiten.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-planning', title: 'Planung & Risikoanalyse', description: 'Planung von Maßnahmen zum Umgang mit Risiken und Chancen.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-operation', title: 'Operation / AI Lifecycle', description: 'Steuerung des KI-System-Lebenszyklus.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-monitoring', title: 'Monitoring, KPIs & Performance', description: 'Überwachung, Messung, Analyse und Bewertung der Leistung.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-    { id: 'iso-improvement', title: 'Improvement / Korrekturmaßnahmen', description: 'Kontinuierliche Verbesserung des KI-Managementsystems.', status: 'At Risk', details: 'Noch nicht bewertet.' },
-];
 
 const StepContent = ({ content }: { content: string }) => {
     const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
@@ -108,8 +97,7 @@ export function AimsDashboardView({
     setChecklistState,
     aimsData,
     aimsProgress,
-    onRestartWizard,
-    projectId = "demo"
+    onRestartWizard
 }: DashboardProps) {
     const router = useRouter();
     // Default to ai-management tab since this is the view shown when completed

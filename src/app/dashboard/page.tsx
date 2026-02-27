@@ -12,6 +12,10 @@ import { useUserStatus } from "@/hooks/use-user-status";
 import { registerService } from "@/lib/register-first/register-service";
 import type { UseCaseCard, RegisterMetrics, Register } from "@/lib/register-first/types";
 
+// Route contract (Sprint 1):
+// `/dashboard` stays as a technical compatibility alias for the Register overview.
+const REGISTER_OVERVIEW_ALIAS_PATH = "/dashboard";
+
 function DashboardPageContent() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
@@ -99,7 +103,7 @@ function DashboardPageContent() {
         setActiveProjectId(currentProjectId);
 
         // Ensure URL reflects active project without reloading
-        window.history.replaceState(null, '', `/dashboard?projectId=${currentProjectId}`);
+        window.history.replaceState(null, "", `${REGISTER_OVERVIEW_ALIAS_PATH}?projectId=${currentProjectId}`);
 
         const fullProjectData = await getFullProject();
 
@@ -223,7 +227,7 @@ function DashboardPageContent() {
         );
     }
 
-    // Branch: Dashboard Overview (Loading data for dashboard)
+    // Branch: Register overview alias (legacy /dashboard route)
     if (!fullComplianceData || !isoComplianceData || !portfolioComplianceData) {
         if (hasProjects === false) {
             return (
@@ -294,6 +298,7 @@ function DashboardPageContent() {
                     onUseCaseCaptured={loadUseCaseData}
                     ownerId={user?.uid}
                     metrics={metrics}
+                    register={activeRegister}
                 />
             </main>
         </div>

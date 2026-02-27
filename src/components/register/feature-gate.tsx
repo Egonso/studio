@@ -46,7 +46,7 @@ export function FeatureGate({
     mode = 'overlay',
     className = '',
 }: FeatureGateProps) {
-    const { allowed, requiredPlanLabel, loading } = useCapability(feature);
+    const { allowed, loading } = useCapability(feature);
     const [showFeatureGate, setShowFeatureGate] = useState(false);
 
     // While loading, show children normally (no flash of locked state)

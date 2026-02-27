@@ -18,9 +18,7 @@
 import type { UseCaseCard, OrgSettings } from '@/lib/register-first/types';
 import { registerUseCaseStatusLabels } from '@/lib/register-first/status-flow';
 import {
-    calculateGovernanceQuality,
     getGovernanceQualityLabel,
-    calculateExposure,
     getExposureLabel,
     aggregateOrgScores,
 } from '../scores';

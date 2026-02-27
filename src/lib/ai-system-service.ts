@@ -59,7 +59,7 @@ export async function createOrLinkAiSystem(
         updatedAt: serverTimestamp()
     };
 
-    // @ts-ignore - serverTimestamp type mismatch usually handled by ignoring or using partial
+    // serverTimestamp field values are accepted by Firestore at runtime.
     const docRef = await addDoc(systemsRef, newSystemData);
 
     return {

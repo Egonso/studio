@@ -2,16 +2,14 @@
 'use client';
 
 import { Suspense, useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
 import { Loader2, Wand2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { PolicyDocument, PolicyOrgSnapshot, PolicyContext, PolicyStatus } from '@/lib/policy-engine/types';
+import type { PolicyDocument, PolicyOrgSnapshot } from '@/lib/policy-engine/types';
 import { policyService } from '@/lib/policy-engine/policy-service';
-import { assemblePolicy } from '@/lib/policy-engine/assembler';
 import { registerService } from '@/lib/register-first/register-service';
 import type { Register, UseCaseCard } from '@/lib/register-first/types';
 import { PolicyListView } from '@/components/policy-engine/policy-list';
@@ -22,7 +20,6 @@ import { PolicyApprovalBanner } from '@/components/policy-engine/policy-approval
 type PageView = 'list' | 'wizard' | 'preview';
 
 function ComplianceInADayPageContent() {
-    const router = useRouter();
     const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();
 

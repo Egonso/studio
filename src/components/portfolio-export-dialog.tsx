@@ -56,7 +56,6 @@ const generateMarkdown = (data: PortfolioExportData | null): string => {
 export function PortfolioExportDialog({ trigger }: { trigger?: React.ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [exportData, setExportData] = useState<PortfolioExportData | null>(null);
     const [markdownContent, setMarkdownContent] = useState('');
     const [jsonContent, setJsonContent] = useState('');
     const { toast } = useToast();
@@ -73,7 +72,6 @@ export function PortfolioExportDialog({ trigger }: { trigger?: React.ReactNode }
                     projects: projects,
                     generatedAt: new Date().toISOString(),
                 };
-                setExportData(data);
                 setMarkdownContent(generateMarkdown(data));
                 setJsonContent(JSON.stringify(data, null, 2));
                 setIsLoading(false);

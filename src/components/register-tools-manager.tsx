@@ -1,33 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import {
     Cpu,
     Search,
     ShieldCheck,
-    ShieldAlert,
-    AlertTriangle,
     Loader2,
     Info,
     ExternalLink,
-    Building,
-    Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { registerService } from "@/lib/register-first/register-service";
-import type { UseCaseCard, ToolPublicInfo } from "@/lib/register-first/types";
-import { getAuth } from "firebase/auth";
+import type { UseCaseCard } from "@/lib/register-first/types";
 
 interface RegisterToolsManagerProps {
     registerId?: string; // Optional, auto-resolves if missing (via service)
@@ -40,6 +28,27 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
     const [isLoading, setIsLoading] = useState(true);
     const [checkingCompliance, setCheckingCompliance] = useState<Record<string, boolean>>({});
     const [registerId, setRegisterId] = useState<string | null>(propRegisterId || null);
+
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const targetRegisterId = propRegisterId || registerId;
+            const cards = await registerService.listUseCases(targetRegisterId || undefined);
+            setUseCases(cards);
+        } catch (error: any) {
+            console.error("Failed to load register use cases:", error);
+
+            if (error?.code === "REGISTER_NOT_FOUND") {
+                toast({
+                    variant: "destructive",
+                    title: "Kein Register gefunden",
+                    description: "Bitte erstellen Sie zuerst ein Register oder erfassen Sie eine KI-Anwendung.",
+                });
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }, [propRegisterId, registerId, toast]);
 
     // Initialize and resolve registerId on mount
     useEffect(() => {
@@ -62,41 +71,15 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
                 }
             }
         };
-        initializeRegisterId();
-    }, [propRegisterId]);
+        void initializeRegisterId();
+    }, [propRegisterId, registerId]);
 
     // Load data when registerId is available
     useEffect(() => {
         if (registerId || propRegisterId) {
-            loadData();
+            void loadData();
         }
-    }, [registerId, propRegisterId]);
-
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            // Use resolved registerId or propRegisterId
-            const targetRegisterId = propRegisterId || registerId;
-
-            // Service auto-resolves registerId if not provided
-            const cards = await registerService.listUseCases(targetRegisterId || undefined);
-            setUseCases(cards);
-
-        } catch (error: any) {
-            console.error("Failed to load register use cases:", error);
-
-            // Show user-friendly error if no register found
-            if (error?.code === "REGISTER_NOT_FOUND") {
-                toast({
-                    variant: "destructive",
-                    title: "Kein Register gefunden",
-                    description: "Bitte erstellen Sie zuerst ein Register oder erfassen Sie eine KI-Anwendung.",
-                });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    }, [registerId, propRegisterId, loadData]);
 
     const runComplianceCheck = async (card: UseCaseCard) => {
         if (checkingCompliance[card.useCaseId]) return;
@@ -143,7 +126,7 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
             });
 
             // Reload data to show results
-            loadData();
+            void loadData();
 
         } catch (error: any) {
             console.error(error);

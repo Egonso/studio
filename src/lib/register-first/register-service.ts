@@ -207,7 +207,8 @@ export function createRegisterService(
   const publicIndexRepo = dependencies.publicIndexRepo ?? createFirestorePublicIndexRepo();
   const resolveUserId = dependencies.resolveUserId ?? defaultResolveUserId;
   const now = dependencies.now ?? (() => new Date());
-  const useCaseIdGenerator = dependencies.useCaseIdGenerator ?? createDefaultIdGenerator("uc");
+  const generateUseCaseId =
+    dependencies.useCaseIdGenerator ?? createDefaultIdGenerator("uc");
   const reviewIdGenerator = dependencies.reviewIdGenerator ?? createDefaultIdGenerator("review");
 
   // Settings resolution (injectable for tests)
@@ -307,7 +308,7 @@ export function createRegisterService(
     async createUseCaseFromCapture(input, options = {}) {
       try {
         const scope = await resolveScope(options.registerId);
-        const useCaseId = options.useCaseId ?? useCaseIdGenerator();
+        const useCaseId = options.useCaseId ?? generateUseCaseId();
         const cardDraft = prepareUseCaseForStorage(input, {
           useCaseId,
           now: now(),
@@ -681,7 +682,7 @@ export function createRegisterService(
 
         // Simple maturity calculation based on assessed KIs vs total active
         const assessedCount = activeUseCases.length - unassessed;
-        let maturityScore = activeUseCases.length > 0 ? Math.round((assessedCount / activeUseCases.length) * 100) : 100;
+        const maturityScore = activeUseCases.length > 0 ? Math.round((assessedCount / activeUseCases.length) * 100) : 100;
 
         return {
           totalUseCases: activeUseCases.length,

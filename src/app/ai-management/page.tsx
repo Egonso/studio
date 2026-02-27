@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { AppHeader } from "@/components/app-header";
-import { getFullProject, getActiveProjectId, setActiveProjectId, type AimsProgress } from "@/lib/data-service";
+import { getFullProject, getActiveProjectId, setActiveProjectId } from "@/lib/data-service";
 import { AimsWizard } from "@/components/aims-wizard";
 import { AimsDashboardView, type ChecklistState } from "@/components/aims-dashboard-view";
 import { useToast } from "@/hooks/use-toast";

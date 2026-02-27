@@ -2,19 +2,16 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { manifest } from '@/lib/design-thinking-data';
 import { DesignCanvas } from '@/components/design-canvas';
 
 
 function ComplianceByDesignPageContent() {
-    const router = useRouter();
     const { user, loading: authLoading } = useAuth();
 
     if (authLoading || !user) {
@@ -41,7 +38,7 @@ function ComplianceByDesignPageContent() {
                                         {manifest.introduction[0]}
                                     </CardDescription>
                                 </div>
-                                <img src="/logo.png" alt="AI Act Compass Siegel" className="h-24 w-24 hidden md:block" />
+                                <Image src="/logo.png" alt="AI Act Compass Siegel" width={96} height={96} className="h-24 w-24 hidden md:block" />
                             </div>
                         </CardHeader>
                         <CardContent>

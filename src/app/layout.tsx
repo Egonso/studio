@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Inter, Playfair_Display } from 'next/font/google';
 
 // Node.js 25 compatibility fix: provide a minimal localStorage mock if missing or incomplete on the server
 if (typeof window === 'undefined') {
@@ -22,7 +23,7 @@ if (typeof window === 'undefined') {
         enumerable: true
       });
     }
-  } catch (e) {
+  } catch (_e) {
     // Silent fail in production
   }
 }
@@ -30,12 +31,21 @@ if (typeof window === 'undefined') {
 import './globals.css';
 import { Footer } from '@/components/footer';
 import { Toaster } from "@/components/ui/toaster";
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
 import { AuthProvider } from '@/context/auth-context';
 import { SiteChatbotWidget } from '@/components/site-chatbot-widget';
 import { CommandPalette } from '@/components/register/command-palette';
 import { DynamicFavicon } from '@/components/dynamic-favicon';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-playfair-display',
+});
 
 export const metadata: Metadata = {
   title: 'AI Compliance OS',
@@ -55,13 +65,10 @@ export default function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
         <link rel="icon" href="/logo.png" />
         <link rel="shortcut icon" href="/logo.png" />
       </head>
-      <body className="font-body antialiased bg-background">
+      <body className={`${inter.variable} ${playfairDisplay.variable} font-body antialiased bg-background`}>
         <AuthProvider>
           <DynamicFavicon />
           {children}

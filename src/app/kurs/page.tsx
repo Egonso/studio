@@ -54,17 +54,17 @@ export default function CoursePage() {
                 const moduleId = searchParams.get('moduleId');
 
                 if (videoId) {
-                    for (const module of courseData) {
-                        const video = module.videos.find(v => v.id === videoId);
+                    for (const courseModule of courseData) {
+                        const video = courseModule.videos.find(v => v.id === videoId);
                         if (video) {
-                            setSelectedItem({ type: 'video', data: video, moduleId: module.id });
+                            setSelectedItem({ type: 'video', data: video, moduleId: courseModule.id });
                             break;
                         }
                     }
                 } else if (moduleId) {
-                    const module = courseData.find(m => m.id === moduleId && m.isExam);
-                    if (module) {
-                        setSelectedItem({ type: 'exam', data: module });
+                    const courseModule = courseData.find(m => m.id === moduleId && m.isExam);
+                    if (courseModule) {
+                        setSelectedItem({ type: 'exam', data: courseModule });
                     }
                 } else if (courseData.length > 0 && courseData[0].videos.length > 0) {
                     // Default to first video
@@ -265,4 +265,3 @@ export default function CoursePage() {
 }
 
     
-

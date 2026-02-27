@@ -1,6 +1,6 @@
 import type { UseCaseCard, OrgSettings } from '@/lib/register-first/types';
 import { resolveDataCategories, resolveDecisionInfluence } from '@/lib/register-first/types';
-import type { DataCategory, DecisionInfluence } from '@/lib/register-first/types';
+import type { DataCategory } from '@/lib/register-first/types';
 
 export type ExposureLevel = 'low' | 'medium' | 'high' | 'critical';
 

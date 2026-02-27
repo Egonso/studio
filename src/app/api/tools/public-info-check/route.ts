@@ -122,7 +122,7 @@ Respond ONLY with a valid JSON object matching this structure (no markdown forma
         let research;
         try {
             research = JSON.parse(content);
-        } catch (e) {
+        } catch (_e) {
             console.error('Failed to parse Perplexity JSON:', content);
             throw new Error('Invalid JSON response from Perplexity');
         }

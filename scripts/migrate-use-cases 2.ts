@@ -1,4 +1,4 @@
-import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 // import serviceAccount from "../path/to/serviceAccountKey.json"; // User must provide this
 
@@ -9,7 +9,7 @@ if (getApps().length === 0) {
 
 const db = getFirestore();
 
-async function migrateLegacyProjects() {
+async function _migrateLegacyProjects() {
     console.log("Starting migration of legacy projects to Register First UseCases...");
 
     const usersSnapshot = await db.collection("users").get();

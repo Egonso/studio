@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, FileText, CheckCircle2, ArrowRight, PlusCircle } from "lucide-react";
+import { PlayCircle, ArrowRight, PlusCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { updateWizardStatus } from "@/lib/data-service";
 import { useState } from "react";

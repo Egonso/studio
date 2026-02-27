@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSectionImprovement } from "@/lib/policy-engine/ai-assistant";
 import { registerService } from "@/lib/register-first/register-service";
-import type { PolicySection } from "@/lib/policy-engine/types";
 
 // Simple in-memory rate limiting map for AI improvements
 // In production, use Redis to persist across serverless restarts

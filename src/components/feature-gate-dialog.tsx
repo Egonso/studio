@@ -28,7 +28,6 @@ import {
 import type { FeatureCapability } from "@/lib/compliance-engine/capability/featureChecker";
 import {
     getRequiredPlan,
-    getPlanLabel,
     getFeatureLabel,
     getFeatureDescription,
     getPlanHighlights,
@@ -55,7 +54,6 @@ export function FeatureGateDialog({
     const router = useRouter();
 
     const requiredPlan = getRequiredPlan(feature);
-    const planLabel = getPlanLabel(requiredPlan);
     const featureLabel = getFeatureLabel(feature);
     const featureDescription = getFeatureDescription(feature);
     const planHighlights = getPlanHighlights(requiredPlan, 5);

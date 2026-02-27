@@ -5,11 +5,9 @@ import {
     FileEdit,
     Send,
     CheckCircle,
-    AlertCircle,
     Clock,
     Loader2,
     ShieldCheck,
-    ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

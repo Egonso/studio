@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy, FileType, FileSignature } from 'lucide-react';
+import { Loader2, Download, FileJson, FileText, ClipboardCopy, FileType, FileSignature, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getRequiredPlan, hasCapability } from '@/lib/compliance-engine/capability/featureChecker';
 import type { AimsProgress } from '@/lib/data-service';
 
 
@@ -107,6 +108,9 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
     const [markdownContent, setMarkdownContent] = useState('');
     const [jsonContent, setJsonContent] = useState('');
     const { toast } = useToast();
+    const userPlan = 'free' as const; // TODO: Get from auth context
+    const canExport = hasCapability(userPlan, 'auditExport');
+    const requiredPlan = getRequiredPlan('auditExport');
 
     useEffect(() => {
         if (open) {
@@ -270,27 +274,14 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
 
                 <DialogFooter className="sm:justify-between items-center pt-4">
                     <div className="flex gap-2">
-                        {/* Capability Gating Example: Audit Export is a Pro Feature */}
-                        {(() => {
-                            const { hasCapability, getRequiredPlanForCapability } = require('@/lib/compliance-engine/capability/featureChecker');
-                            const { Lock } = require('lucide-react');
-                            const userPlan = 'core'; // TODO: Get from auth context
-                            const canExport = hasCapability(userPlan, 'auditExport');
-                            const requiredPlan = getRequiredPlanForCapability('auditExport');
-
-                            return (
-                                <>
-                                    <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc || !canExport}>
-                                        {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType className="mr-2 h-4 w-4" />}
-                                        {canExport ? 'PDF-Export' : `PDF-Export (ab ${requiredPlan})`}
-                                    </Button>
-                                    <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc || !canExport}>
-                                        {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSignature className="mr-2 h-4 w-4" />}
-                                        {canExport ? 'DOCX-Export' : `DOCX-Export (ab ${requiredPlan})`}
-                                    </Button>
-                                </>
-                            );
-                        })()}
+                        <Button variant="outline" onClick={() => handleExportDocument('pdf')} disabled={isGeneratingDoc || !canExport}>
+                            {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileType className="mr-2 h-4 w-4" />}
+                            {canExport ? 'PDF-Export' : `PDF-Export (ab ${requiredPlan})`}
+                        </Button>
+                        <Button variant="outline" onClick={() => handleExportDocument('docx')} disabled={isGeneratingDoc || !canExport}>
+                            {!canExport ? <Lock className="mr-2 h-4 w-4 text-slate-400" /> : isGeneratingDoc ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSignature className="mr-2 h-4 w-4" />}
+                            {canExport ? 'DOCX-Export' : `DOCX-Export (ab ${requiredPlan})`}
+                        </Button>
                     </div>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">Schließen</Button>

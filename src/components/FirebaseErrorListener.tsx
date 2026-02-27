@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 
 export function FirebaseErrorListener() {
@@ -58,4 +57,3 @@ export function FirebaseErrorListener() {
 
     return null; // This component does not render anything
 }
-

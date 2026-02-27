@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/context/auth-context";
@@ -9,43 +9,39 @@ import { UseCaseHeader } from "@/components/register/detail/use-case-header";
 import { UseCaseMetadataSection } from "@/components/register/detail/use-case-metadata-section";
 import { ReviewSection } from "@/components/register/detail/review-section";
 import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
-import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
-import { ReviewTimeline } from "@/components/register/detail/review-timeline";
+import {
+  isControlFocusTarget,
+  type ControlFocusTarget,
+} from "@/lib/control/deep-link";
 import { registerService } from "@/lib/register-first/register-service";
-import type { RegisterUseCaseStatus, UseCaseCard, OrgSettings } from "@/lib/register-first/types";
+import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
-  const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
-  const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(null);
+  const [invalidFocus, setInvalidFocus] = useState<string | null>(null);
 
   const useCaseId = params.useCaseId;
+  const focusParam = searchParams.get("focus");
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
     setIsLoading(true);
     setError(null);
     try {
-      const [result, useCases, registers] = await Promise.all([
-        registerService.getUseCase(undefined, useCaseId),
-        registerService.listUseCases().catch(() => [] as UseCaseCard[]),
-        registerService.listRegisters().catch(() => []),
-      ]);
+      const result = await registerService.getUseCase(undefined, useCaseId);
       if (!result) {
         setError("Einsatzfall nicht gefunden.");
       } else {
         setCard(result);
-        setAllUseCases(useCases);
-        if (registers.length > 0 && registers[0].orgSettings) {
-          setOrgSettings(registers[0].orgSettings);
-        }
       }
     } catch (err) {
       if (isServiceError(err, "UNAUTHENTICATED")) {
@@ -71,6 +67,40 @@ export default function UseCaseDetailPage() {
       void loadUseCase();
     }
   }, [authLoading, user, loadUseCase, router]);
+
+  useEffect(() => {
+    if (!card) return;
+
+    if (!focusParam) {
+      setActiveFocus(null);
+      setInvalidFocus(null);
+      return;
+    }
+
+    if (!isControlFocusTarget(focusParam)) {
+      setActiveFocus(null);
+      setInvalidFocus(focusParam);
+      return;
+    }
+
+    setInvalidFocus(null);
+    setActiveFocus(focusParam);
+
+    const focusTargetId = getFocusTargetId(focusParam);
+    const frameId = window.requestAnimationFrame(() => {
+      const element = document.getElementById(focusTargetId);
+      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      setActiveFocus((current) => (current === focusParam ? null : current));
+    }, 2600);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [card, focusParam]);
 
   const handleStatusChange = async (nextStatus: RegisterUseCaseStatus, reason?: string) => {
     if (!card) return;
@@ -132,6 +162,16 @@ export default function UseCaseDetailPage() {
           onToggleEdit={() => setIsEditing((prev) => !prev)}
         />
 
+        {invalidFocus && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Hinweis</AlertTitle>
+            <AlertDescription>
+              Der Focus-Parameter "{invalidFocus}" ist nicht gueltig und wurde ignoriert.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
           {/* Left column: Metadata */}
           <div className="space-y-6">
@@ -139,27 +179,39 @@ export default function UseCaseDetailPage() {
               card={card}
               isEditing={isEditing}
               onSave={handleSaveMetadata}
+              focusTarget={activeFocus}
             />
           </div>
 
-          {/* Right column: Review + Audit + Liability */}
+          {/* Right column: Status-Workflow + minimaler Audit-Trail */}
           <div className="space-y-6">
-            <GovernanceLiabilitySection
-              card={card}
-              useCases={allUseCases}
-              orgSettings={orgSettings}
-              onCardUpdate={(updated) => { setCard(updated); void loadUseCase(); }}
-            />
-            {card.reviews.length > 0 && (
-              <ReviewTimeline reviews={card.reviews} />
-            )}
-            <ReviewSection card={card} onStatusChange={handleStatusChange} />
-            <AuditTrailSection card={card} />
+            <div
+              id="usecase-focus-review"
+              className={activeFocus === "review" ? focusHighlightClassName : undefined}
+            >
+              <ReviewSection card={card} onStatusChange={handleStatusChange} />
+            </div>
+            <div
+              id="usecase-focus-audit"
+              className={activeFocus === "audit" ? focusHighlightClassName : undefined}
+            >
+              <AuditTrailSection card={card} />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+const focusHighlightClassName = "rounded-lg border border-slate-300 bg-slate-50/70 p-1";
+
+function getFocusTargetId(focus: ControlFocusTarget): string {
+  if (focus === "owner") return "usecase-focus-owner";
+  if (focus === "oversight") return "usecase-focus-oversight";
+  if (focus === "policy") return "usecase-focus-policy";
+  if (focus === "audit") return "usecase-focus-audit";
+  return "usecase-focus-review";
 }
 
 function isServiceError(err: unknown, code: string): boolean {
