@@ -1,8 +1,6 @@
 "use server";
 
 import { db, auth } from "@/lib/firebase-admin";
-import { getFirebaseAuth } from "@/lib/firebase"; // Client/Edge auth for current user check
-import { cookies } from "next/headers";
 
 // Admin Whitelist - single source of truth
 import { ADMIN_EMAILS } from "@/lib/admin-config";

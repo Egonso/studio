@@ -10,7 +10,6 @@ import {
     Settings2,
     Eye,
     Save,
-    Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

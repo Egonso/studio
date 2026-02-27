@@ -5,11 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter, usePathname } from "next/navigation";
-import { GanttChartSquare, LayoutDashboard, Database, Scale, KeyRound, LogOut, GraduationCap, Link as LinkIcon, PlusCircle, Wand2, BookOpen, Settings, UserCircle } from "lucide-react";
+import { GanttChartSquare, Database, LogOut, GraduationCap, PlusCircle, Wand2, BookOpen, Settings, UserCircle, Shield } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { clearActiveProjectId } from "@/lib/data-service";
 import { ADMIN_EMAILS } from "@/lib/admin-config";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 
 
 export function AppHeader() {
@@ -17,7 +18,11 @@ export function AppHeader() {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const isRegisterContext = pathname?.startsWith('/my-register') || pathname?.startsWith('/erfassen');
+  const isRegisterContext =
+    pathname?.startsWith('/my-register') ||
+    pathname?.startsWith('/erfassen') ||
+    pathname?.startsWith('/pass/');
+  const brandHomeHref = isRegisterContext ? "/my-register" : "/dashboard";
 
   const handleLogout = async () => {
     try {
@@ -34,7 +39,7 @@ export function AppHeader() {
 
   return (
     <header className="px-4 lg:px-6 h-14 flex items-center bg-background border-b sticky top-0 z-50">
-      <Link href="/dashboard" className="flex items-center justify-center gap-2" prefetch={false}>
+      <Link href={brandHomeHref} className="flex items-center justify-center gap-2" prefetch={false}>
         <Image
           src={isRegisterContext ? "/register-logo.png" : "/logo.png"}
           alt="Logo"
@@ -64,8 +69,14 @@ export function AppHeader() {
           </Link>
           <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <GanttChartSquare className="h-4 w-4" />
-            Dashboard
+            Register-Übersicht
           </Link>
+          {registerFirstFlags.controlShell && (
+            <Link href="/control" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
+              <Shield className="h-4 w-4" />
+              AI Governance Control
+            </Link>
+          )}
           <Link href="/cbs" className="text-sm font-medium hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
             <Wand2 className="h-4 w-4" />
             Smart Policy Engine
@@ -110,4 +121,3 @@ export function AppHeader() {
     </header>
   );
 }
-

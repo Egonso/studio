@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Printer, PlusCircle, Trash2, Search, ExternalLink, ShieldCheck, ShieldAlert, BadgeCheck, Info, Loader2 } from 'lucide-react';
+import { Printer, PlusCircle, ShieldAlert, BadgeCheck, Info, Loader2 } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -22,7 +22,6 @@ import {
 
 import { ProjectTool } from '@/lib/types';
 import { getProjectTools, addProjectTool } from '@/lib/data-service';
-import { useRouter } from 'next/navigation';
 
 export type Level = '1' | '2' | '3';
 
@@ -202,22 +201,18 @@ interface PolicyEditorProps {
 }
 
 export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canGeneratePolicy = true }: PolicyEditorProps) {
-  const router = useRouter();
   const [employeeCount, setEmployeeCount] = useState<'1-10' | '11-50' | '>50'>('1-10');
   const [aiComplexity, setAiComplexity] = useState<'low' | 'medium' | 'high'>('low');
   const [placeholders, setPlaceholders] = useState<Record<string, string>>({});
 
   // Project Tools State
   const [projectTools, setProjectTools] = useState<ProjectTool[]>([]);
-  const [toolsLoading, setToolsLoading] = useState(false);
 
   useEffect(() => {
     if (projectId) {
-      setToolsLoading(true);
       getProjectTools(projectId)
         .then(tools => setProjectTools(tools))
-        .catch(err => console.error("Failed to load tools", err))
-        .finally(() => setToolsLoading(false));
+        .catch(err => console.error("Failed to load tools", err));
     }
   }, [projectId]);
 
@@ -650,7 +645,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {projectTools.map((tool, i) => (
+                  {projectTools.map((tool) => (
                     <div key={tool.id} className="flex items-center justify-between p-2 border rounded bg-slate-50">
                       <div className="flex items-center gap-2 overflow-hidden">
                         <BadgeCheck className={tool.review.status === 'approved_internal' ? "h-4 w-4 text-green-600" : "h-4 w-4 text-gray-400"} />

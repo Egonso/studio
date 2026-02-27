@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { registerService } from '@/lib/register-first/register-service';
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 import {

@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import type { PolicyDocument } from "@/lib/policy-engine/types";
 import {
-    POLICY_LEVEL_LABELS,
     POLICY_STATUS_LABELS,
 } from "@/lib/policy-engine/types";
 

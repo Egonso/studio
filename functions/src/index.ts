@@ -8,15 +8,47 @@ import { defineSecret } from 'firebase-functions/params';
 admin.initializeApp();
 
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+const stripeApiKeyLegacy = defineSecret('STRIPE_API_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
 // ... (existing imports)
 
-export const stripeWebhook = onRequest({ cors: true, region: 'europe-west1', secrets: [stripeSecretKey, stripeWebhookSecret] }, async (req, res) => {
+function safeSecretValue(secret: { value: () => string }): string {
+  try {
+    return secret.value();
+  } catch {
+    return '';
+  }
+}
+
+function resolveStripeSecretKey(): string | null {
+  return (
+    safeSecretValue(stripeSecretKey) ||
+    process.env.STRIPE_SECRET_KEY ||
+    safeSecretValue(stripeApiKeyLegacy) ||
+    process.env.STRIPE_API_KEY ||
+    null
+  );
+}
+
+function resolveStripeWebhookSecret(): string | null {
+  return safeSecretValue(stripeWebhookSecret) || process.env.STRIPE_WEBHOOK_SECRET || null;
+}
+
+export const stripeWebhook = onRequest(
+  { cors: true, region: 'europe-west1', secrets: [stripeSecretKey, stripeApiKeyLegacy, stripeWebhookSecret] },
+  async (req, res) => {
   const db = admin.firestore();
+  const resolvedStripeSecretKey = resolveStripeSecretKey();
+  const resolvedWebhookSecret = resolveStripeWebhookSecret();
+
+  if (!resolvedStripeSecretKey || !resolvedWebhookSecret) {
+    res.status(500).json({ error: 'Stripe webhook configuration missing' });
+    return;
+  }
 
   // Initialize Stripe inside handler to use secret
-  const stripe = new Stripe(stripeSecretKey.value(), {
+  const stripe = new Stripe(resolvedStripeSecretKey, {
     apiVersion: '2024-04-10',
   });
 
@@ -53,8 +85,7 @@ export const stripeWebhook = onRequest({ cors: true, region: 'europe-west1', sec
     event = stripe.webhooks.constructEvent(
       req.rawBody,
       sig,
-
-      stripeWebhookSecret.value()
+      resolvedWebhookSecret
     );
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);

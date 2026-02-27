@@ -1,13 +1,11 @@
 import assert from "node:assert/strict";
-import type { PolicyDocument, PolicyLevel, PolicyStatus } from "../types";
+import type { PolicyDocument } from "../types";
 import {
     isValidPolicyTransition,
-    POLICY_STATUS_TRANSITIONS,
     POLICY_LEVEL_LABELS,
     POLICY_STATUS_LABELS,
 } from "../types";
 import { createInMemoryPolicyRepository } from "../policy-repository";
-import { createPolicyService } from "../policy-service";
 import type { PolicyScope } from "../policy-repository";
 
 export async function runPolicyEngineSmoke() {

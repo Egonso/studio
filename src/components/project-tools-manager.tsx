@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PlusCircle, Trash2, Search, ExternalLink, ShieldCheck, ShieldAlert, BadgeCheck, Loader2, Info } from "lucide-react";
+import { PlusCircle, Trash2, Search, ExternalLink, ShieldCheck, ShieldAlert, Loader2, Info } from "lucide-react";
 import { ProjectTool, ToolPublicInfo, FlagStatus } from "@/lib/types";
-import { getProjectTools, addProjectTool, deleteProjectTool, updateProjectTool } from "@/lib/data-service";
+import { getProjectTools, addProjectTool, deleteProjectTool } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 import { ToolAutocomplete } from "./tool-autocomplete";
 
@@ -32,11 +32,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
     // Check State
     const [checkingCompliance, setCheckingCompliance] = useState<Record<string, boolean>>({});
 
-    useEffect(() => {
-        loadTools();
-    }, [projectId]);
-
-    const loadTools = async () => {
+    const loadTools = useCallback(async () => {
         try {
             const data = await getProjectTools(projectId);
             setTools(data);
@@ -45,7 +41,11 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [projectId]);
+
+    useEffect(() => {
+        void loadTools();
+    }, [loadTools]);
 
     const handleAddTool = async () => {
         if (!newToolName.trim()) return;
@@ -64,7 +64,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
             setNewToolVendor("");
             setNewToolUrl("");
             setIsAdding(false);
-            loadTools();
+            void loadTools();
             toast({ title: "Tool hinzugefügt", description: "Das KI-Tool wurde dem Organisation hinzugefügt." });
         } catch (error) {
             console.error(error);
@@ -78,7 +78,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
             await deleteProjectTool(projectId, id);
             setTools(prev => prev.filter(t => t.id !== id));
             toast({ title: "Tool entfernt" });
-        } catch (error) {
+        } catch (_error) {
             toast({ variant: "destructive", title: "Fehler", description: "Konnte Tool nicht entfernen." });
         }
     };

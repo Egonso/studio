@@ -11,7 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 
 const DetectAntiPatternsInputSchema = z.object({

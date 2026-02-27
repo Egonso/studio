@@ -38,9 +38,9 @@ const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const sgMail = __importStar(require("@sendgrid/mail"));
 // SendGrid configuration
-const SENDGRID_API_KEY = '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';
-const WELCOME_EMAIL_TEMPLATE_ID = 'd-31f1e6dcfac74aa7bcb399622afce289';
-const SENDER_EMAIL = 'ki-eu-akt@momofeichtinger.com';
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+const WELCOME_EMAIL_TEMPLATE_ID = process.env.SENDGRID_WELCOME_TEMPLATE_ID || 'd-31f1e6dcfac74aa7bcb399622afce289';
+const SENDER_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'ki-eu-akt@momofeichtinger.com';
 // Initialize SendGrid inside handler
 // sgMail.setApiKey(SENDGRID_API_KEY);
 exports.sendWelcomeEmailOnPurchase = functions.firestore
@@ -48,6 +48,10 @@ exports.sendWelcomeEmailOnPurchase = functions.firestore
     .onCreate(async (snap, context) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     try {
+        if (!SENDGRID_API_KEY) {
+            console.error('SENDGRID_API_KEY is not configured');
+            return null;
+        }
         sgMail.setApiKey(SENDGRID_API_KEY);
         const eventData = snap.data();
         // Check if this is a successful checkout event

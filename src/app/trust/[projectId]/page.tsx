@@ -75,7 +75,7 @@ export default function PublicTrustPortalPage() {
             liveErr
           );
         }
-      } catch (err) {
+      } catch (_err) {
         setError("Laden fehlgeschlagen.");
       } finally {
         setLoading(false);

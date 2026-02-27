@@ -2,14 +2,13 @@
 
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, ArrowUpRight, Copy, RefreshCw, Mail } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail } from "lucide-react";
 import { getAdminStats, getFeedbackList, getPlatformUsers, updateFeedbackStatus } from "@/app/actions/admin";
 import { ADMIN_EMAILS } from "@/lib/admin-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,26 +24,10 @@ export default function AdminPage() {
     const [stats, setStats] = useState({ projects: 0, feedbackTotal: 0, openBugs: 0, usersEstimate: 0 });
     const [feedback, setFeedback] = useState<any[]>([]);
     const [usersList, setUsersList] = useState<any[]>([]);
-    const [feedbackFilter, setFeedbackFilter] = useState('all');
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const feedbackFilter = "all";
 
-    useEffect(() => {
-        if (loading) return;
-
-        if (!user) {
-            router.push('/login');
-            return;
-        }
-
-        if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
-            setIsAuthorized(true);
-            fetchData();
-        }
-        // If not authorized, we just stay in loading state false, authorized false
-        // and render the access denied message below
-    }, [user, loading, router]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setIsLoadingData(true);
         try {
             const [statsData, feedbackData, usersData] = await Promise.all([
@@ -61,7 +44,23 @@ export default function AdminPage() {
         } finally {
             setIsLoadingData(false);
         }
-    };
+    }, [feedbackFilter]);
+
+    useEffect(() => {
+        if (loading) return;
+
+        if (!user) {
+            router.push('/login');
+            return;
+        }
+
+        if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+            setIsAuthorized(true);
+            void fetchData();
+        }
+        // If not authorized, we just stay in loading state false, authorized false
+        // and render the access denied message below
+    }, [user, loading, router, fetchData]);
 
     const handleResolveFeedback = async (id: string) => {
         await updateFeedbackStatus(id, 'resolved');

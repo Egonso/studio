@@ -11,7 +11,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { principlesData, Principle } from '@/lib/design-thinking-data';
 
 const PrincipleSchema = z.object({
     id: z.string(),

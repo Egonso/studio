@@ -7,7 +7,6 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { registerService } from '@/lib/register-first/register-service';
 import type { Register, OrgSettings, RoleEntry } from '@/lib/register-first/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

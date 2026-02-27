@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import type { PolicySection, PolicyDocument } from "./types";
+import type { PolicySection } from "./types";
 
 /**
  * Thrown or returned if the user hits their rate limit

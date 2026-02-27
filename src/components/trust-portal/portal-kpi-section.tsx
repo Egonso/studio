@@ -5,7 +5,6 @@ import {
   FileCheck2,
   ClipboardList,
   BadgeCheck,
-  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PortalKpis } from "@/lib/register-first/trust-portal-aggregator";

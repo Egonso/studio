@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,8 +14,6 @@ import { useAuth } from '@/context/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { registerService } from '@/lib/register-first/register-service';
-import type { Register } from '@/lib/register-first/types';
 
 const emailSchema = z.object({
   newEmail: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -40,13 +38,6 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-  const [registers, setRegisters] = useState<Register[]>([]);
-
-  useEffect(() => {
-    if (user) {
-      registerService.listRegisters().then(setRegisters).catch(console.error);
-    }
-  }, [user]);
 
   const emailForm = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),

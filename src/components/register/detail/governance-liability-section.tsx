@@ -111,7 +111,6 @@ export function GovernanceLiabilitySection({
     const section1Checks = [hasRiskClass, hasOwner, hasOversight, hasReviewCycle];
     const section1Passed = section1Checks.filter(Boolean).length;
     const section1Total = section1Checks.length;
-    const isRegistered = section1Passed === section1Total;
 
     const section1StatusIcon = useMemo(() => {
         if (section1Passed === section1Total) {
@@ -130,14 +129,10 @@ export function GovernanceLiabilitySection({
     const canGenerateReport = hasHistory && orgSettings != null;
 
     // Context-sensitive triggers
-    const isHighRisk = card.governanceAssessment?.core?.aiActCategory === "Hochrisiko"
-        || card.governanceAssessment?.core?.aiActCategory === "Verboten";
     const isExternal = card.usageContexts?.includes("CUSTOMER_FACING")
         || card.usageContexts?.includes("EXTERNAL_PUBLIC")
         || card.usageContexts?.includes("CUSTOMERS")
         || card.usageContexts?.includes("PUBLIC");
-    const needsProHint = (isHighRisk && !hasHistory)
-        || (iso?.reviewCycle === "monthly" && !hasReminders);
 
     // ── Section 3: Extern belegbar ──────────────────────────────────────
     const hasTrustPortal = isPubliclyVerifiable(card);

@@ -50,17 +50,13 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
       await onStatusChange(selectedStatus as RegisterUseCaseStatus, reason || undefined);
       setSelectedStatus("");
       setReason("");
-    } catch (err) {
+    } catch (_err) {
       setError("Statuswechsel fehlgeschlagen. Bitte erneut versuchen.");
     } finally {
       setIsUpdating(false);
       setShowConfirm(false);
     }
   };
-
-  if (nextStatuses.length === 0) {
-    return null;
-  }
 
   return (
     <>
@@ -77,57 +73,68 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
             <div className="text-xs text-muted-foreground">
               <span className="font-medium">Zulässige Statusänderungen:</span>
               <ul className="mt-1 space-y-0.5 ml-3">
-                {nextStatuses.map((s) => (
-                  <li key={s}>– {registerUseCaseStatusLabels[s]}</li>
-                ))}
+                {nextStatuses.length === 0 ? (
+                  <li>– Keine weiteren Statusaenderungen zulaessig</li>
+                ) : (
+                  nextStatuses.map((s) => (
+                    <li key={s}>– {registerUseCaseStatusLabels[s]}</li>
+                  ))
+                )}
               </ul>
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Status ändern</label>
-              <Select
-                value={selectedStatus}
-                onValueChange={(v) => setSelectedStatus(v as RegisterUseCaseStatus)}
-              >
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue placeholder="Neuen Status waehlen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {nextStatuses.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {registerUseCaseStatusLabels[status]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {nextStatuses.length === 0 ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+              Der aktuelle Status ist formal abgeschlossen. Weitere Aenderungen erfolgen nur
+              ueber neue Reviews.
             </div>
+          ) : (
+            <div className="space-y-3 pt-2">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Status ändern</label>
+                <Select
+                  value={selectedStatus}
+                  onValueChange={(v) => setSelectedStatus(v as RegisterUseCaseStatus)}
+                >
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Neuen Status waehlen" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nextStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {registerUseCaseStatusLabels[status]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Begründung der Statusänderung (optional)</label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Begründung eingeben..."
-                rows={2}
-                className="text-sm"
-              />
-            </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Begründung der Statusänderung (optional)</label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Begründung eingeben..."
+                  rows={2}
+                  className="text-sm"
+                />
+              </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowConfirm(true)}
-                disabled={!selectedStatus || isUpdating}
-              >
-                {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                Statusänderung dokumentieren
-              </Button>
-              {error && <p className="text-xs text-destructive">{error}</p>}
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowConfirm(true)}
+                  disabled={!selectedStatus || isUpdating}
+                >
+                  {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                  Statusänderung dokumentieren
+                </Button>
+                {error && <p className="text-xs text-destructive">{error}</p>}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Review Hints */}
           {card.reviewHints.length > 0 && (

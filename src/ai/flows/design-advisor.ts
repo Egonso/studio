@@ -14,7 +14,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { designPhases, principlesData } from '@/lib/design-thinking-data';
-import { updateTokenUsage, isUserOverTokenLimit } from '@/lib/data-service';
 
 // Dynamically create Zod enums from the data files to ensure consistency
 const designPhaseIds = designPhases.map(p => p.id) as [string, ...string[]];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -9,20 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ToolRegistrySelect } from "@/components/register/tool-registry-select";
 import {
   CAPTURE_STEP_3_LABEL,
   TOOL_ID_OTHER,
-  type CaptureUsageContext,
-  type DataCategory,
-  type DecisionInfluence,
   registerFirstService,
   type RegisterFirstServiceErrorCode,
   submitCaptureDraft,
@@ -35,7 +25,6 @@ import {
   DECISION_INFLUENCE_OPTIONS,
   DECISION_INFLUENCE_LABELS,
   DATA_CATEGORY_MAIN_OPTIONS,
-  DATA_CATEGORY_SPECIAL_OPTIONS,
   DATA_CATEGORY_LABELS,
 } from "@/lib/register-first";
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Download, Copy, FileJson, FileText, ClipboardCopy, FileType, FileSignature } from 'lucide-react';
+import { Loader2, Download, FileJson, FileText, ClipboardCopy, FileSignature } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import type { AimsProgress } from '@/lib/data-service';

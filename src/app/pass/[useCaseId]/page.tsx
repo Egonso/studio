@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { Loader2, ArrowLeft, Printer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
 import { createAiToolsRegistryService } from "@/lib/register-first";
 import type { UseCaseCard, Register } from "@/lib/register-first/types";
-import { Card, CardContent } from "@/components/ui/card";
 
 const aiRegistry = createAiToolsRegistryService();
 
@@ -141,7 +141,7 @@ export default function UseCasePassPage() {
                         <p className="text-slate-500 text-sm mt-2 font-mono">ID: {useCase.useCaseId.split('-')[0].toUpperCase()}</p>
                     </div>
                     <div className="text-right">
-                        <img src="/logo.png" alt="EUKI Logo" className="h-10 ml-auto mb-3" />
+                        <Image src="/logo.png" alt="EUKI Logo" width={120} height={40} className="h-10 w-auto ml-auto mb-3" />
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             <span>Dokumentiert & Registriert</span>

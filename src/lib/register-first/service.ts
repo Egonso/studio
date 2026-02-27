@@ -148,7 +148,7 @@ export function createRegisterFirstService(
   const resolveUserId = dependencies.resolveUserId ?? defaultResolveUserId;
   const resolveProjectId = dependencies.resolveProjectId ?? defaultResolveProjectId;
   const now = dependencies.now ?? (() => new Date());
-  const useCaseIdGenerator =
+  const generateUseCaseId =
     dependencies.useCaseIdGenerator ?? createDefaultIdGenerator("uc");
   const reviewIdGenerator =
     dependencies.reviewIdGenerator ?? createDefaultIdGenerator("review");
@@ -180,7 +180,7 @@ export function createRegisterFirstService(
     async createUseCaseFromCapture(input, options = {}) {
       try {
         const scope = await resolveScope(options.projectId);
-        const useCaseId = options.useCaseId ?? useCaseIdGenerator();
+        const useCaseId = options.useCaseId ?? generateUseCaseId();
         const card = prepareUseCaseForStorage(input, {
           useCaseId,
           now: now(),

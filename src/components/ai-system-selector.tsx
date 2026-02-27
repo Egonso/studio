@@ -46,7 +46,7 @@ export function AiSystemSelector({ workspaceId, onSystemChange }: AiSystemSelect
         };
 
         loadSystems();
-    }, [workspaceId]);
+    }, [workspaceId, onSystemChange]);
 
     if (loading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
 

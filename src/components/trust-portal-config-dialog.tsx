@@ -20,7 +20,6 @@ import {
   Info,
   Sparkles,
   Copy,
-  Code,
 } from "lucide-react";
 import { type TrustPortalConfig, type TrustTonePreset } from "@/lib/types";
 import {

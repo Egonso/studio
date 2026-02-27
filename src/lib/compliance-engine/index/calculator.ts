@@ -1,4 +1,4 @@
-import { EngineContext, DiagnosticIndices, ActionItem, DiagnosticReport } from '../types';
+import { EngineContext, ActionItem, DiagnosticReport } from '../types';
 import { evaluateRegulatoryExposure } from '../rules/ai-act-exposure';
 import { evaluateGovernanceMaturity } from '../rules/governance-maturity';
 import { evaluateTransparency } from '../rules/transparency';

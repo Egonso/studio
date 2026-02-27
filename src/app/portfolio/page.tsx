@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Save, TrendingUp, AlertTriangle, Shield, Check, FileText, Activity, Info, Target, ArrowRight, Lightbulb, Edit2 } from "lucide-react";
+import { ArrowLeft, Plus, Save, Info, Target, ArrowRight, Lightbulb, Edit2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -57,7 +57,6 @@ export default function PortfolioPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
     const [projects, setProjects] = useState<(AIProject & { assessment?: AIProjectAssessment })[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("dashboard");
 
     // Wizard State
@@ -89,7 +88,6 @@ export default function PortfolioPage() {
     }, [user, loading, router]);
 
     const loadProjects = async () => {
-        setIsLoading(true);
         const data = await getPortfolioProjects();
         setProjects(data);
 
@@ -107,18 +105,13 @@ export default function PortfolioPage() {
                         // keeping it simple for now as requested
                     }));
                     // Auto-open wizard
-                    const searchParams = new URLSearchParams(window.location.search);
-                    // Only auto-open if we are seemingly "new" to portfolio or explicitly asked?
-                    // User request: "wenn auf Portfolio im main wizard geclickt wird immer mit dem Portfolio wizard starten"
-                    // Doing it if list is empty seems safe.
+                    // Auto-open wizard if this is the first portfolio entry.
                     setActiveTab('wizard');
                 }
             } catch (e) {
                 console.error("Failed to load main project details", e);
             }
         }
-
-        setIsLoading(false);
     };
 
     const loadDecisions = async (projectId: string) => {

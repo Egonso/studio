@@ -158,7 +158,7 @@ function buildProofValidationMessage(
   return messages.join(" ");
 }
 
-function hasUnsavedProofDraft(
+function _hasUnsavedProofDraft(
   card: UseCaseCard,
   draft: ProofMetaDraft,
   normalized: { verifyUrl: string; scope: string }
@@ -218,14 +218,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
   >({});
-  const [updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
+  const [_updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
   const [confirmingStatusCard, setConfirmingStatusCard] = useState<UseCaseCard | null>(null);
-  const [updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
+  const [_updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
     {}
   );
   const [proofDraftById, setProofDraftById] = useState<Record<string, ProofMetaDraft>>({});
-  const [savingProofUseCaseId, setSavingProofUseCaseId] = useState<string | null>(null);
-  const [proofErrorById, setProofErrorById] = useState<Record<string, string | undefined>>({});
+  const [_savingProofUseCaseId, setSavingProofUseCaseId] = useState<string | null>(null);
+  const [_proofErrorById, setProofErrorById] = useState<Record<string, string | undefined>>({});
 
   const loadUseCases = useCallback(async () => {
     setIsLoading(true);
@@ -530,7 +530,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     }
   };
 
-  const handleProofDraftChange = (
+  const _handleProofDraftChange = (
     useCaseId: string,
     patch: Partial<ProofMetaDraft>,
     card: UseCaseCard
@@ -544,7 +544,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     }));
   };
 
-  const handleSaveProofMeta = async (card: UseCaseCard) => {
+  const _handleSaveProofMeta = async (card: UseCaseCard) => {
     const draft = proofDraftById[card.useCaseId] ?? createProofMetaDraft(card);
     const validation = validateVerifyLinkInput({
       verifyUrl: draft.verifyUrl,
@@ -603,7 +603,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     }
   };
 
-  const handleCopyVerifyUrl = async (card: UseCaseCard) => {
+  const _handleCopyVerifyUrl = async (card: UseCaseCard) => {
     const draft = proofDraftById[card.useCaseId] ?? createProofMetaDraft(card);
     const verifyUrl = draft.verifyUrl.trim() || card.proof?.verifyUrl?.trim() || "";
 

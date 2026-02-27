@@ -4,7 +4,7 @@
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
-import { saveIsoAims, getIsoAims } from './aims-service';
+import { saveIsoAims } from './aims-service';
 import type { TrustPortalConfig } from './types';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
@@ -176,7 +176,7 @@ export async function saveProjectData(data: Partial<ProjectData>): Promise<void>
 
     const { setDoc } = await import('firebase/firestore');
     const projectDocRef = await getProjectDocRef(userId, projectId);
-    setDoc(projectDocRef, data, { merge: true }).catch(async (serverError) => {
+    setDoc(projectDocRef, data, { merge: true }).catch(async (_serverError) => {
         const permissionError = new FirestorePermissionError({
             path: projectDocRef.path,
             operation: 'update',
@@ -338,7 +338,7 @@ export async function saveCourseProgress(completedVideoIds: string[]) {
     if (!userId) throw new Error("User not authenticated");
     const { setDoc } = await import('firebase/firestore');
     const docRef = await getUserDocRef(userId, 'courseProgress');
-    setDoc(docRef, { completedVideoIds }, { merge: true }).catch(async (serverError) => {
+    setDoc(docRef, { completedVideoIds }, { merge: true }).catch(async (_serverError) => {
         const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'update',
@@ -408,7 +408,7 @@ export async function updateTokenUsage(tokensUsed: number) {
         total: newTotal,
         month: currentMonth,
         lastUpdated: serverTimestamp(),
-    }, { merge: true }).catch(async (serverError) => {
+    }, { merge: true }).catch(async (_serverError) => {
         const permissionError = new FirestorePermissionError({
             path: docRef.path,
             operation: 'update',
@@ -465,7 +465,7 @@ export async function createSharedPolicy(policyData: any): Promise<{ policyId: s
     try {
         const docRef = await addDoc(collectionRef, dataToSave);
         return { policyId: docRef.id };
-    } catch (serverError: any) {
+    } catch (_serverError: any) {
         const permissionError = new FirestorePermissionError({
             path: collectionRef.path,
             operation: 'create',
@@ -608,12 +608,6 @@ export async function getPortfolioDecisions(portfolioProjectId: string): Promise
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AIProjectDecisionLog));
 }
 // --- Task Guide Persistence ---
-
-async function getTaskGuidesCollectionRef(userId: string, projectId: string) {
-    const db = await getDb();
-    const { collection } = await import('firebase/firestore');
-    return collection(db, `users/${userId}/projects/${projectId}/taskGuides`);
-}
 
 export async function saveTaskGuide(taskId: string, guide: any) {
     const userId = await getUserId();

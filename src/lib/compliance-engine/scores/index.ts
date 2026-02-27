@@ -1,5 +1,5 @@
 import type { UseCaseCard, OrgSettings } from '@/lib/register-first/types';
-import { calculateGovernanceQuality, calculateGovernanceQualityDetailed, getGovernanceQualityLabel } from './governance-quality';
+import { calculateGovernanceQuality, getGovernanceQualityLabel } from './governance-quality';
 import { calculateExposureRaw, calculateExposure, getExposureLabel, type ExposureLevel, type ExposureOrgContext } from './exposure-score';
 
 export interface OrgScoreAggregation {

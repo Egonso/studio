@@ -168,9 +168,6 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
 
     // Count selections for badges
     const section1Count = draft.usageContexts.length + (draft.decisionInfluence ? 1 : 0);
-    const section2Count = draft.dataCategories.filter(
-        (c) => !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c) || !draft.dataCategories.includes("SPECIAL_PERSONAL")
-    ).length;
 
     const handleSave = async () => {
         if (!canSave) return;

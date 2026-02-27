@@ -86,8 +86,11 @@ Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen. *
 4.  **Variablen hinzufügen:**
     *   Sie sehen den Abschnitt **"Laufzeitumgebungsvariablen"**. Klicken Sie auf **"VARIABLE HINZUFÜGEN"**.
     *   **Erste Variable:**
-        *   **Name:** `STRIPE_API_KEY`
+        *   **Name:** `STRIPE_SECRET_KEY`
         *   **Wert:** Fügen Sie hier Ihren **geheimen Stripe-Schlüssel** ein. Er beginnt mit `sk_live_...` oder `sk_test_...`.
+    *   *(Optional für Legacy-Deployments)* **Zusätzliche Variable:**
+        *   **Name:** `STRIPE_API_KEY`
+        *   **Wert:** derselbe Stripe-Secret-Key wie oben.
     *   **Zweite Variable:** Klicken Sie erneut auf **"VARIABLE HINZUFÜGEN"**.
         *   **Name:** `STRIPE_WEBHOOK_SECRET`
         *   **Wert:** Fügen Sie hier Ihr **Webhook-Signaturgeheimnis** ein. Es beginnt mit `whsec_...`. Sie finden es in Ihrem Stripe-Dashboard unter Entwickler > Webhooks > Ihr Webhook-Endpunkt.

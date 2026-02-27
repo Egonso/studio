@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, ChangeEvent, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { principlesData, designPhases, Principle, DesignPhase } from '@/lib/design-thinking-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Textarea } from './ui/textarea';
@@ -9,9 +9,9 @@ import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { getDesignAdvice, type GetDesignAdviceOutput, type GetDesignAdviceInput } from '@/ai/flows/design-advisor';
 import { detectAntiPatterns, type DetectAntiPatternsOutput, type DetectAntiPatternsInput } from '@/ai/flows/anti-pattern-detector';
-import { getValueTensionAdvice, type GetValueTensionAdviceInput, type GetValueTensionAdviceOutput } from '@/ai/flows/value-tension-advisor';
+import { getValueTensionAdvice, type GetValueTensionAdviceOutput } from '@/ai/flows/value-tension-advisor';
 import { analyzeValueInfluence, type ValueInfluenceAnalysisInput, type ValueInfluenceAnalysisOutput } from '@/ai/flows/value-influence-analyzer';
-import { Loader2, Sparkles, Wand2, Upload, Info, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake, BarChart } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, ShieldAlert, CheckCircle, AlertCircle, Send, AlertTriangle, PlusCircle, Trash2, Users, FileSignature, Layers, ChevronsRight, Milestone, GanttChartSquare, Zap, BadgeHelp, Handshake, BarChart } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { getDesignCanvasData, saveDesignCanvasData, getActiveProjectId, saveExportedInsight } from '@/lib/data-service';
 import { useAuth } from '@/context/auth-context';

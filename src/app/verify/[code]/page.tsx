@@ -7,7 +7,6 @@ import { getFirebaseDb } from "@/lib/firebase";
 import { Loader2, CheckCircle2, XCircle, Shield, Award, Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 interface PublicCertificate {
     certificateCode: string;

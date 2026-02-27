@@ -3,6 +3,7 @@
 
 import { useEffect, useState, Suspense, Fragment } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import type { ChecklistState } from '@/components/dashboard';
 import { deriveComplianceState } from '@/lib/compliance-logic';
 import { getComplianceChecklist, type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
 import { useAuth } from '@/context/auth-context';
-import { getAssessmentAnswers, getChecklistState, getActiveProjectId, setActiveProjectId, getExportedInsights } from '@/lib/data-service';
+import { getAssessmentAnswers, getChecklistState, setActiveProjectId, getExportedInsights } from '@/lib/data-service';
 
 const statusConfig = {
     'Compliant': { badgeVariant: 'default' as const },
@@ -166,7 +167,7 @@ function AuditReportPageContent() {
                                     <CardTitle className="text-2xl">Compliance-Bericht zum EU AI Act</CardTitle>
                                     <CardDescription>Automatisch generiert am {new Date().toLocaleDateString('de-DE')}</CardDescription>
                                 </div>
-                                <img src="/logo.png" alt="AI Act Compass Logo" className="h-16 w-16" />
+                                <Image src="/logo.png" alt="AI Act Compass Logo" width={64} height={64} className="h-16 w-16" />
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-8">

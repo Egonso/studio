@@ -2,19 +2,49 @@ import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 import * as sgMail from '@sendgrid/mail';
 
-// SendGrid configuration
-const SENDGRID_API_KEY = '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';
-const WELCOME_EMAIL_TEMPLATE_ID = 'd-31f1e6dcfac74aa7bcb399622afce289';
-const SENDER_EMAIL = 'ki-eu-akt@momofeichtinger.com';
+function getFunctionsConfig() {
+  return functions.config?.() as {
+    sendgrid?: {
+      api_key?: string;
+      welcome_template_id?: string;
+      from_email?: string;
+    };
+  };
+}
 
-// Initialize SendGrid inside handler
-// sgMail.setApiKey(SENDGRID_API_KEY);
+function resolveSendGridApiKey(): string | null {
+  const fromEnv = process.env.SENDGRID_API_KEY;
+  if (fromEnv) return fromEnv;
+  return getFunctionsConfig().sendgrid?.api_key || null;
+}
+
+function resolveTemplateId(): string {
+  return (
+    process.env.SENDGRID_WELCOME_TEMPLATE_ID ||
+    getFunctionsConfig().sendgrid?.welcome_template_id ||
+    'd-31f1e6dcfac74aa7bcb399622afce289'
+  );
+}
+
+function resolveSenderEmail(): string {
+  return (
+    process.env.SENDGRID_FROM_EMAIL ||
+    getFunctionsConfig().sendgrid?.from_email ||
+    'ki-eu-akt@momofeichtinger.com'
+  );
+}
 
 export const sendWelcomeEmailOnPurchase = functions.firestore
   .document('stripe_events/{eventId}')
-  .onCreate(async (snap, context) => {
+  .onCreate(async (snap) => {
     try {
-      sgMail.setApiKey(SENDGRID_API_KEY);
+      const sendGridApiKey = resolveSendGridApiKey();
+      if (!sendGridApiKey) {
+        console.error('SENDGRID_API_KEY is not configured');
+        return null;
+      }
+
+      sgMail.setApiKey(sendGridApiKey);
       const eventData = snap.data();
 
       // Check if this is a successful checkout event
@@ -40,8 +70,8 @@ export const sendWelcomeEmailOnPurchase = functions.firestore
       // Prepare email data for SendGrid template
       const emailData = {
         to: customerEmail,
-        from: SENDER_EMAIL,
-        templateId: WELCOME_EMAIL_TEMPLATE_ID,
+        from: resolveSenderEmail(),
+        templateId: resolveTemplateId(),
         dynamicTemplateData: {
           customerName: customerName,
           customerEmail: customerEmail,

@@ -3,6 +3,7 @@
 
 import { useEffect, useState, Fragment } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { getSharedPolicy } from '@/lib/data-service';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Loader2, Share2 } from 'lucide-react';
@@ -122,7 +123,7 @@ export default function SharedPolicyPage() {
                                         Dieses Dokument wurde über den AI Act Compass geteilt.
                                     </CardDescription>
                                 </div>
-                                <img src="/logo.png" alt="AI Act Compass Siegel" className="h-20 w-20 hidden md:block" />
+                                <Image src="/logo.png" alt="AI Act Compass Siegel" width={80} height={80} className="h-20 w-20 hidden md:block" />
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -155,4 +156,3 @@ export default function SharedPolicyPage() {
         </div>
     );
 }
-

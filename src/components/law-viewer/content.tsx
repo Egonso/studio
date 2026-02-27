@@ -1,5 +1,5 @@
 import React from 'react';
-import { LawData, Chapter, Article, Recital } from '@/types/law';
+import { LawData } from '@/types/law';
 import { cn } from '@/lib/utils'; // Assuming cn utility exists, otherwise I'll use template literals
 
 interface LawContentProps {
