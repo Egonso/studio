@@ -21,3 +21,5 @@ env:
     value: "true"
   - variable: NEXT_PUBLIC_REGISTER_FIRST_STANDALONE
     value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_SHELL_ENABLED
+    value: "true"
