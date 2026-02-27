@@ -331,7 +331,7 @@ export default function PublicTrustPortalPage() {
               <div className="inline-flex items-center gap-2 text-xs text-slate-500">
                 <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
                 <span className="font-medium">
-                  Verifiziert durch AI Governance Framework
+                  Verifiziert durch AI Governance Control
                 </span>
               </div>
               <div className="text-xs text-slate-400">

@@ -37,12 +37,14 @@ export function AppHeader() {
       <Link href={brandHomeHref} className="flex items-center justify-center gap-2" prefetch={false}>
         <Image
           src="/register-logo.png"
-          alt="AI Governance Framework"
-          width={40}
-          height={40}
-          className="h-8 w-auto"
+          alt="AI Governance Control"
+          width={34}
+          height={34}
+          className="h-7 w-auto"
         />
-        <span className="font-bold text-lg hidden sm:inline-block">AI Governance Framework</span>
+        <span className="hidden sm:inline-block whitespace-nowrap text-base font-semibold tracking-tight">
+          AI Governance Control
+        </span>
       </Link>
       {user && (
         <nav className="ml-auto flex gap-2 sm:gap-4 items-center">

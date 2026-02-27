@@ -168,9 +168,6 @@ export default function ControlPage() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/my-register">Zurück zum Register</Link>
-                </Button>
-                <Button asChild variant="outline">
                   <Link href="/my-register">Register öffnen</Link>
                 </Button>
               </CardContent>

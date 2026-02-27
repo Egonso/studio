@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, PlusCircle, ArrowLeft } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -147,15 +146,6 @@ export default function MyRegisterPage() {
   return (
     <div className="min-h-screen p-4 pt-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div>
-          <Link
-            href="/my-register"
-            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground mb-4"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Zurück zum Register
-          </Link>
-        </div>
         <GovernanceHeader
           useCases={useCases}
           register={activeRegister}

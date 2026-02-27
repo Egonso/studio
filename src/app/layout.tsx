@@ -48,7 +48,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Governance Framework',
+  title: 'AI Governance Control',
   description: 'AI Governance Register (Free Entry) und AI Governance Control (Paid Layer).',
   icons: {
     icon: '/register-logo.png',
