@@ -141,11 +141,11 @@ export function UseCaseMetadataSection({
   };
 
   return (
-    <div className="space-y-12">
-      <section className="border-t border-slate-200 pt-8">
+    <div className="space-y-8">
+      <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
         <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <FieldBlock label="Zweck">
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <FieldBlock label="Zweck" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             {isEditing ? (
               <Textarea
                 value={editDraft.purpose}
@@ -158,28 +158,31 @@ export function UseCaseMetadataSection({
               <p className="text-[15px] font-medium text-slate-900">{card.purpose}</p>
             )}
           </FieldBlock>
-          <FieldBlock label="Wirkungsbereich">
+          <FieldBlock label="Wirkungsbereich" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             <p className="text-[15px] font-medium text-slate-900">{usageScope}</p>
           </FieldBlock>
-          <FieldBlock label="Einfluss auf Entscheidungen">
+          <FieldBlock
+            label="Einfluss auf Entscheidungen"
+            className="rounded-md border border-slate-200 bg-white px-4 py-3"
+          >
             <p className="text-[15px] font-medium text-slate-900">{decisionLabel}</p>
           </FieldBlock>
-          <FieldBlock label="Risikoklasse">
+          <FieldBlock label="Risikoklasse" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
           </FieldBlock>
-          <FieldBlock label="Datenkategorien">
+          <FieldBlock label="Datenkategorien" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
           </FieldBlock>
-          <FieldBlock label="DSGVO">
+          <FieldBlock label="DSGVO" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             <p className="text-[15px] font-medium text-slate-900">{gdprLabel}</p>
           </FieldBlock>
-          <FieldBlock label="AI Act">
+          <FieldBlock label="AI Act" className="rounded-md border border-slate-200 bg-white px-4 py-3">
             <p className="text-[15px] font-medium text-slate-900">{aiActLabel}</p>
           </FieldBlock>
         </div>
       </section>
 
-      <section className="border-t border-slate-200 pt-8">
+      <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-[18px] font-semibold tracking-tight">Eingesetztes KI-System</h2>
           <Button
@@ -227,13 +230,13 @@ export function UseCaseMetadataSection({
         </div>
       </section>
 
-      <section className="border-t border-slate-200 pt-8">
+      <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <h2 className="text-[18px] font-semibold tracking-tight">Verantwortlich</h2>
         <div
           id="usecase-focus-owner"
-          className={cn("mt-6", focusTarget === "owner" && focusClassName)}
+          className={cn("mt-5", focusTarget === "owner" && focusClassName)}
         >
-          <FieldBlock label="Verantwortliche Person">
+          <FieldBlock label="Verantwortliche Person" className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3">
             {isEditing ? (
               <Input
                 value={editDraft.responsibleParty}
@@ -254,7 +257,7 @@ export function UseCaseMetadataSection({
         <div
           id="usecase-focus-oversight"
           className={cn(
-            "mt-6 space-y-1 text-xs text-muted-foreground",
+            "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
             (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
           )}
         >
@@ -275,7 +278,7 @@ export function UseCaseMetadataSection({
       </section>
 
       {isEditing && (
-        <div className="flex justify-end border-t border-slate-200 pt-6">
+        <div className="flex justify-end border-t border-slate-200 pt-4">
           <Button onClick={() => void handleSave()} disabled={isSaving}>
             {isSaving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -293,12 +296,14 @@ export function UseCaseMetadataSection({
 function FieldBlock({
   label,
   children,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className={cn("space-y-1.5", className)}>
       <Label className="text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>

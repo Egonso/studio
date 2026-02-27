@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { Settings, Link2, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
-import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
-import { cn } from "@/lib/utils";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -21,13 +19,6 @@ interface GovernanceHeaderProps {
     onRegisterUpdated?: (partial: Partial<Register>) => void;
     children?: React.ReactNode;
 }
-
-const STATUS_DOT_CLASS: Record<RegisterUseCaseStatus, string> = {
-    UNREVIEWED: "border border-slate-400",
-    REVIEW_RECOMMENDED: "border border-slate-500/80",
-    REVIEWED: "bg-blue-600",
-    PROOF_READY: "bg-emerald-600",
-};
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -52,26 +43,6 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
     }, [useCases]);
 
     const openReviews = counts.byStatus.UNREVIEWED + counts.byStatus.REVIEW_RECOMMENDED;
-    const proofReadyCount = counts.byStatus.PROOF_READY;
-    const proofReadyRatio = counts.total > 0 ? proofReadyCount / counts.total : 0;
-    const proofReadyPercent = Math.round(proofReadyRatio * 100);
-    const meetsProofReadyStandard = counts.total > 0 && proofReadyRatio >= 0.8;
-    const missingForProofReadyStandard = Math.max(
-        0,
-        Math.ceil(counts.total * 0.8) - proofReadyCount
-    );
-
-    const statusSummary = useMemo(
-        () =>
-            (Object.entries(counts.byStatus) as [RegisterUseCaseStatus, number][])
-                .filter(([, count]) => count > 0)
-                .map(([status, count]) => ({
-                    status,
-                    count,
-                    label: registerUseCaseStatusLabels[status],
-                })),
-        [counts.byStatus]
-    );
 
     // Org scope
     const orgName = register?.organisationName;
@@ -213,87 +184,22 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 </div>
             )}
 
-            <div className="grid gap-5 border-t border-border/80 pt-4 md:grid-cols-[1.4fr_1fr]">
-                <div className="space-y-3">
-                    <div
-                        className={cn(
-                            "border-l pl-3",
-                            meetsProofReadyStandard
-                                ? "border-emerald-500/60"
-                                : "border-slate-300"
-                        )}
-                    >
-                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Dokumentationsreife
-                        </p>
-                        <p className="text-sm font-medium">
-                            Nachweisfähig:{" "}
-                            <span className="tabular-nums">
-                                {proofReadyCount} von {counts.total}
-                            </span>{" "}
-                            ({proofReadyPercent}%)
-                        </p>
-                        <p
-                            className={cn(
-                                "text-xs",
-                                meetsProofReadyStandard
-                                    ? "text-emerald-700"
-                                    : "text-muted-foreground"
-                            )}
-                        >
-                            {counts.total === 0
-                                ? "Der Registerstandard beginnt mit dem ersten dokumentierten Einsatzfall."
-                                : meetsProofReadyStandard
-                                    ? "Registerstandard erreicht: Mindestens 80% der Einsatzfälle sind nachweisfähig."
-                                    : `Standardziel: 80% nachweisfähig. Es fehlen ${missingForProofReadyStandard} Einsatzfall${missingForProofReadyStandard === 1 ? "" : "e"}.`}
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                        <div className="space-y-0.5">
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Einsatzfälle gesamt
-                            </p>
-                            <p className="font-medium tabular-nums">{counts.total}</p>
-                        </div>
-                        <div className="space-y-0.5">
-                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                                Offene Prüfungen
-                            </p>
-                            <p className="font-medium tabular-nums">{openReviews}</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="space-y-2">
+            <div className="grid gap-3 border-t border-border/80 pt-4 sm:grid-cols-2">
+                <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                        Statusverteilung
+                        Einsatzfälle gesamt
                     </p>
-                    {statusSummary.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">
-                            Noch keine Statusdaten vorhanden.
-                        </p>
-                    ) : (
-                        <ul className="space-y-1.5">
-                            {statusSummary.map((entry) => (
-                                <li
-                                    key={entry.status}
-                                    className="flex items-center justify-between gap-2 text-sm"
-                                >
-                                    <span className="inline-flex items-center gap-2 text-muted-foreground">
-                                        <span
-                                            className={cn(
-                                                "h-2 w-2 shrink-0 rounded-full",
-                                                STATUS_DOT_CLASS[entry.status]
-                                            )}
-                                        />
-                                        {entry.label}
-                                    </span>
-                                    <span className="tabular-nums text-foreground">
-                                        {entry.count}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                    <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+                        {counts.total}
+                    </p>
+                </div>
+                <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Offene Prüfungen
+                    </p>
+                    <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
+                        {openReviews}
+                    </p>
                 </div>
             </div>
         </div>

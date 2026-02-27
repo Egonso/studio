@@ -23,3 +23,21 @@ env:
     value: "true"
   - variable: NEXT_PUBLIC_CONTROL_SHELL_ENABLED
     value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_MATURITY_MODEL_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_ACTION_QUEUE_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_PORTFOLIO_INTELLIGENCE_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_ISO_AUDIT_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_POLICY_ENGINE_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_ORG_EXPORT_CENTER_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_UPGRADE_TRIGGERS_ENABLED
+    value: "true"
+  - variable: NEXT_PUBLIC_CONTROL_ANALYTICS_ENABLED
+    value: "true"
