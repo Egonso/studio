@@ -1,21 +1,62 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SetupSection } from "@/components/landing/setup-section";
+
+type EntryMode = "admin" | "member";
 
 export default function LandingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, loading } = useAuth();
 
+  const setupRef = useRef<HTMLElement>(null);
+  const [entryMode, setEntryMode] = useState<EntryMode>("admin");
+
+  // Read mode from query params
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    if (mode === "member") {
+      setEntryMode("member");
+    }
+  }, [searchParams]);
+
+  // Redirect authenticated users
   useEffect(() => {
     if (!loading && user) {
       router.replace("/my-register");
     }
   }, [user, loading, router]);
+
+  // Handle hash-based navigation on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash;
+    if (hash === "#einrichten") {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        setupRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const scrollToSetup = useCallback(
+    (mode: EntryMode) => {
+      setEntryMode(mode);
+      // Wait for state update, then scroll
+      requestAnimationFrame(() => {
+        setupRef.current?.scrollIntoView({ behavior: "smooth" });
+      });
+    },
+    []
+  );
 
   if (loading || user) {
     return (
@@ -50,7 +91,7 @@ export default function LandingPage() {
       {/* Main */}
       <main className="flex-1 flex flex-col items-center px-6 pt-16 pb-24">
         <div className="max-w-2xl w-full space-y-16">
-          {/* Hero */}
+          {/* Phase 1: Statement */}
           <section className="space-y-6">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
               Jede Organisation mit KI-Einsatzfällen
@@ -64,18 +105,20 @@ export default function LandingPage() {
               revisionsfähiger Form fest.
             </p>
             <div className="flex items-center gap-4 pt-2">
-              <Link
-                href="/einrichten"
+              <button
+                type="button"
+                onClick={() => scrollToSetup("admin")}
                 className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
               >
                 KI-Register einrichten
-              </Link>
-              <Link
-                href="/einladen"
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSetup("member")}
                 className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
               >
                 Einladungscode verwenden
-              </Link>
+              </button>
             </div>
           </section>
 
@@ -116,6 +159,14 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
+
+          {/* Phase 2: Setup (inline) */}
+          <SetupSection
+            ref={setupRef}
+            entryMode={entryMode}
+            onEntryModeChange={setEntryMode}
+            user={user}
+          />
 
           {/* Trust line */}
           <section className="border-t pt-6 space-y-2">
