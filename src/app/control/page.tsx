@@ -11,6 +11,12 @@ import { ControlMaturityPanel } from "@/components/control/control-maturity-pane
 import { useAuth } from "@/context/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  syncMaturityLevel,
+  syncRecommendationProgress,
+  trackControlConversion,
+  trackControlOpened,
+} from "@/lib/analytics/control-events";
 import { buildControlActionQueue } from "@/lib/control/action-queue-engine";
 import {
   calculateControlOverview,
@@ -87,6 +93,51 @@ export default function ControlPage() {
   }, [snapshot]);
 
   const focusedUseCaseId = searchParams.get("useCaseId");
+  const entry = searchParams.get("entry") ?? "direct";
+  const triggerIds = useMemo(() => {
+    const value = searchParams.get("triggerIds");
+    if (!value) return [];
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!registerFirstFlags.controlAnalytics) return;
+    if (loading || !user || !registerFirstFlags.controlShell) return;
+
+    trackControlOpened({
+      route: "control_overview",
+      entry,
+    });
+
+    if (entry === "trigger") {
+      trackControlConversion({
+        source: "register_trigger",
+        triggerIds,
+      });
+    }
+  }, [loading, user, entry, triggerIds]);
+
+  useEffect(() => {
+    if (!registerFirstFlags.controlAnalytics) return;
+    if (!overview || !registerFirstFlags.controlShell) return;
+
+    syncMaturityLevel(overview.maturity.currentLevel, {
+      route: "control_overview",
+    });
+  }, [overview]);
+
+  useEffect(() => {
+    if (!registerFirstFlags.controlAnalytics) return;
+    if (!registerFirstFlags.controlShell) return;
+
+    syncRecommendationProgress(
+      actionQueue.map((item) => item.id),
+      { route: "control_overview" }
+    );
+  }, [actionQueue]);
 
   if (loading) {
     return (
@@ -158,14 +209,48 @@ export default function ControlPage() {
                     Bereichsnavigation fuer organisationsweite Steuerungsansichten.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
-                  {registerFirstFlags.controlPortfolioIntelligence ? (
-                    <Button asChild variant="outline" size="sm">
-                      <Link href="/control/portfolio">Portfolio Intelligence</Link>
-                    </Button>
-                  ) : (
+                <CardContent className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {registerFirstFlags.controlPortfolioIntelligence && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/control/portfolio">Portfolio Intelligence</Link>
+                      </Button>
+                    )}
+                    {registerFirstFlags.controlIsoAudit && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/control/audit">ISO & Audit Layer</Link>
+                      </Button>
+                    )}
+                    {registerFirstFlags.controlOrgExportCenter && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/control/exports">Organisations-Export-Center</Link>
+                      </Button>
+                    )}
+                    {registerFirstFlags.controlPolicyEngine && (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href="/control/policies">Policy Engine</Link>
+                      </Button>
+                    )}
+                  </div>
+
+                  {!registerFirstFlags.controlPortfolioIntelligence && (
                     <p className="text-xs text-muted-foreground">
                       Portfolio Intelligence ist vorbereitet und per Feature-Flag aktivierbar.
+                    </p>
+                  )}
+                  {!registerFirstFlags.controlIsoAudit && (
+                    <p className="text-xs text-muted-foreground">
+                      ISO & Audit Layer ist vorbereitet und per Feature-Flag aktivierbar.
+                    </p>
+                  )}
+                  {!registerFirstFlags.controlOrgExportCenter && (
+                    <p className="text-xs text-muted-foreground">
+                      Organisations-Export-Center ist vorbereitet und per Feature-Flag aktivierbar.
+                    </p>
+                  )}
+                  {!registerFirstFlags.controlPolicyEngine && (
+                    <p className="text-xs text-muted-foreground">
+                      Policy Engine ist vorbereitet und per Feature-Flag aktivierbar.
                     </p>
                   )}
                 </CardContent>

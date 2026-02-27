@@ -5,27 +5,34 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
-import { PortfolioIntelligence } from "@/components/control/portfolio-intelligence";
+import { ControlAuditLayer } from "@/components/control/control-audit-layer";
 import { useAuth } from "@/context/auth-context";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { trackControlOpened } from "@/lib/analytics/control-events";
-import { buildPortfolioMetrics } from "@/lib/control/portfolio-metrics";
+import { buildOrgAuditLayer } from "@/lib/control/audit/org-audit-layer";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
-import type { UseCaseCard } from "@/lib/register-first/types";
+import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
 
-interface PortfolioSnapshot {
+interface AuditSnapshot {
   useCases: UseCaseCard[];
-  capturedAt: Date;
+  orgSettings: OrgSettings | null;
   organisationName: string | null;
+  capturedAt: Date;
 }
 
-export default function ControlPortfolioPage() {
+export default function ControlAuditPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [snapshot, setSnapshot] = useState<PortfolioSnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<AuditSnapshot | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
 
@@ -39,29 +46,34 @@ export default function ControlPortfolioPage() {
     if (!registerFirstFlags.controlAnalytics) return;
     if (loading || !user || !registerFirstFlags.controlShell) return;
     trackControlOpened({
-      route: "control_portfolio",
+      route: "control_audit",
       entry: "direct",
     });
   }, [loading, user]);
 
-  const loadPortfolioData = useCallback(async () => {
+  const loadAuditData = useCallback(async () => {
     setIsDataLoading(true);
     setDataError(null);
+
     try {
-      const [useCases, registers] = await Promise.all([
-        registerService.listUseCases(undefined, { includeDeleted: false }),
-        registerService.listRegisters().catch(() => []),
-      ]);
+      const registers = await registerService.listRegisters().catch(() => []);
       const register = registers[0] ?? null;
+      const registerId = register?.registerId;
+
+      const useCases = registerId
+        ? await registerService.listUseCases(registerId, { includeDeleted: false }).catch(() => [])
+        : [];
+
       setSnapshot({
         useCases,
-        capturedAt: new Date(),
+        orgSettings: register?.orgSettings ?? null,
         organisationName: register?.organisationName ?? null,
+        capturedAt: new Date(),
       });
     } catch (error) {
-      console.error("Failed to load portfolio intelligence data", error);
+      console.error("Failed to load control audit data", error);
       setDataError(
-        "Portfolio Intelligence konnte nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut."
+        "Audit-Daten konnten nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut."
       );
     } finally {
       setIsDataLoading(false);
@@ -69,14 +81,19 @@ export default function ControlPortfolioPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && user && registerFirstFlags.controlShell) {
-      void loadPortfolioData();
+    if (
+      !loading &&
+      user &&
+      registerFirstFlags.controlShell &&
+      registerFirstFlags.controlIsoAudit
+    ) {
+      void loadAuditData();
     }
-  }, [loading, user, loadPortfolioData]);
+  }, [loading, user, loadAuditData]);
 
-  const metrics = useMemo(() => {
+  const auditLayer = useMemo(() => {
     if (!snapshot) return null;
-    return buildPortfolioMetrics(snapshot.useCases, snapshot.capturedAt);
+    return buildOrgAuditLayer(snapshot.useCases, snapshot.orgSettings, snapshot.capturedAt);
   }, [snapshot]);
 
   if (loading) {
@@ -102,7 +119,7 @@ export default function ControlPortfolioPage() {
               <CardHeader>
                 <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
                 <CardDescription>
-                  Die Portfolio-Ansicht ist vorbereitet und bleibt bis zur Freigabe verborgen.
+                  Die Audit-Route ist vorbereitet und bleibt bis zur Freigabe verborgen.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
@@ -111,13 +128,12 @@ export default function ControlPortfolioPage() {
                 </Button>
               </CardContent>
             </Card>
-          ) : !registerFirstFlags.controlPortfolioIntelligence ? (
+          ) : !registerFirstFlags.controlIsoAudit ? (
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Intelligence ist vorbereitet</CardTitle>
+                <CardTitle>ISO & Audit Layer ist vorbereitet</CardTitle>
                 <CardDescription>
-                  Der Bereich kann ueber das Feature-Flag `controlPortfolioIntelligence`
-                  aktiviert werden.
+                  Der Bereich kann ueber das Feature-Flag `controlIsoAudit` aktiviert werden.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
@@ -134,11 +150,11 @@ export default function ControlPortfolioPage() {
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <CardTitle>Control Bereich: Portfolio Intelligence</CardTitle>
+                    <CardTitle>Control Bereich: ISO & Audit Layer</CardTitle>
                     <CardDescription>
                       {snapshot?.organisationName
-                        ? `Org-weite Analyse fuer ${snapshot.organisationName}.`
-                        : "Org-weite Risiko-, Owner- und Statusanalyse."}
+                        ? `Org-weite Auditsteuerung fuer ${snapshot.organisationName}.`
+                        : "Org-weite Auditsteuerung und revisionssichere Historie."}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -152,11 +168,11 @@ export default function ControlPortfolioPage() {
                 </CardHeader>
               </Card>
 
-              {isDataLoading && !metrics && (
+              {isDataLoading && !auditLayer && (
                 <Card>
                   <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Portfolio-Daten werden geladen.
+                    Audit-Daten werden geladen.
                   </CardContent>
                 </Card>
               )}
@@ -167,9 +183,7 @@ export default function ControlPortfolioPage() {
                 </Card>
               )}
 
-              {metrics && snapshot && (
-                <PortfolioIntelligence metrics={metrics} capturedAt={snapshot.capturedAt} />
-              )}
+              {auditLayer && <ControlAuditLayer snapshot={auditLayer} />}
             </>
           )}
         </div>

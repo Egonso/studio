@@ -1,15 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowRight } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { type AimsProgress } from "@/lib/data-service";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { RegisterTile } from "./dashboard/register-tile";
 import { QuickCaptureModal } from "./register/quick-capture-modal";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
+import { registerFirstFlags } from "@/lib/register-first/flags";
+import { evaluateControlUpgradeTriggers } from "@/lib/control/triggers";
+import { trackTriggerClicked, trackTriggerShown } from "@/lib/analytics/control-events";
 import { type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
 import type { ComplianceItem, TrustPortalConfig } from "@/lib/types";
 import type { UserStatus } from "@/hooks/use-user-status";
@@ -81,7 +85,9 @@ export function Dashboard({
   register = null,
 }: DashboardProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { toast } = useToast();
+  const shownTriggerSignatureRef = useRef<string | null>(null);
 
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
 
@@ -101,6 +107,48 @@ export function Dashboard({
   }, [useCases]);
 
   const effectiveTotal = useCases.length > 0 ? useCases.length : useCaseCount;
+  const upgradeDecision = useMemo(
+    () => evaluateControlUpgradeTriggers(useCases, register?.orgSettings),
+    [useCases, register?.orgSettings]
+  );
+  const triggerIds = useMemo(
+    () => upgradeDecision.triggers.map((trigger) => trigger.id),
+    [upgradeDecision]
+  );
+  const triggerSignature = useMemo(
+    () => [...triggerIds].sort().join(","),
+    [triggerIds]
+  );
+
+  useEffect(() => {
+    if (!registerFirstFlags.controlShell) return;
+    if (!registerFirstFlags.controlUpgradeTriggers) return;
+    if (!registerFirstFlags.controlAnalytics) return;
+    if (!upgradeDecision.shouldPrompt) return;
+    if (shownTriggerSignatureRef.current === triggerSignature) return;
+
+    shownTriggerSignatureRef.current = triggerSignature;
+    trackTriggerShown({
+      triggerIds,
+      triggerCount: triggerIds.length,
+      source: "register_overview",
+      useCaseCount: useCases.length,
+    });
+  }, [upgradeDecision.shouldPrompt, triggerIds, triggerSignature, useCases.length]);
+
+  const handleGovernanceProfessionalization = () => {
+    if (registerFirstFlags.controlAnalytics) {
+      trackTriggerClicked({
+        triggerIds,
+        triggerCount: triggerIds.length,
+        source: "register_overview",
+        useCaseCount: useCases.length,
+      });
+    }
+
+    const triggerQuery = encodeURIComponent(triggerIds.join(","));
+    router.push(`/control?entry=trigger&triggerIds=${triggerQuery}`);
+  };
 
   const handleSupplierRequest = async () => {
     if (!register?.registerId) {
@@ -231,6 +279,41 @@ export function Dashboard({
             </CardContent>
           </Card>
         </section>
+
+        {registerFirstFlags.controlShell &&
+          registerFirstFlags.controlUpgradeTriggers &&
+          upgradeDecision.shouldPrompt && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle>Governance-Hinweis</CardTitle>
+                <CardDescription>{upgradeDecision.message}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  {upgradeDecision.triggers.map((trigger) => (
+                    <div
+                      key={trigger.id}
+                      className="rounded-md border px-3 py-2 text-sm"
+                    >
+                      <p>{trigger.label}</p>
+                      <p className="text-xs text-muted-foreground">{trigger.evidence}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGovernanceProfessionalization}
+                >
+                  {upgradeDecision.ctaLabel}
+                </Button>
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </div>
     </div>
   );
