@@ -152,8 +152,8 @@ export default function UseCaseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10">
-      <div className="mx-auto max-w-[1024px] space-y-12">
+    <div className="min-h-screen px-4 py-8">
+      <div className="mx-auto max-w-[1024px] space-y-10">
         <UseCaseHeader
           card={card}
           isEditing={isEditing}

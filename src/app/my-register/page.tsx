@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, PlusCircle } from "lucide-react";
+import { LayoutDashboard, Loader2, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -171,6 +171,14 @@ export default function MyRegisterPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => router.push("/dashboard")}
+              >
+                <LayoutDashboard className="mr-1.5 h-3.5 w-3.5" />
+                Überblick
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowWizard(true)}
               >
                 <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
@@ -179,7 +187,15 @@ export default function MyRegisterPage() {
             </div>
           )}
           {registers.length === 1 && (
-            <div className="flex">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/dashboard")}
+              >
+                <LayoutDashboard className="mr-1.5 h-3.5 w-3.5" />
+                Überblick
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
