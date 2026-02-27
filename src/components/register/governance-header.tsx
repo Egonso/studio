@@ -3,22 +3,16 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, BarChart3, Settings, Link2, Share2 } from "lucide-react";
+import { Settings, Link2, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
+import { cn } from "@/lib/utils";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const REGISTER_VERSION = "1.0";
-
-interface KpiItem {
-    label: string;
-    value: number;
-    icon: React.ReactNode;
-    color: string;
-}
 
 interface GovernanceHeaderProps {
     useCases: UseCaseCard[];
@@ -28,13 +22,11 @@ interface GovernanceHeaderProps {
     children?: React.ReactNode;
 }
 
-// ── Status Colors ────────────────────────────────────────────────────────────
-
-const STATUS_COLORS: Record<RegisterUseCaseStatus, string> = {
-    UNREVIEWED: "#94a3b8",
-    REVIEW_RECOMMENDED: "#94a3b8",
-    REVIEWED: "#3b82f6",
-    PROOF_READY: "#10b981",
+const STATUS_DOT_CLASS: Record<RegisterUseCaseStatus, string> = {
+    UNREVIEWED: "border border-slate-400",
+    REVIEW_RECOMMENDED: "border border-slate-500/80",
+    REVIEWED: "bg-blue-600",
+    PROOF_READY: "bg-emerald-600",
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -59,34 +51,27 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         return { byStatus, publicCount, total: useCases.length };
     }, [useCases]);
 
-    const kpis: KpiItem[] = [
-        {
-            label: "Registrierte Einsatzfälle",
-            value: counts.total,
-            icon: <BarChart3 className="h-4 w-4" />,
-            color: "text-foreground",
-        },
-        {
-            label: "Offene Prüfungen",
-            value: counts.byStatus.UNREVIEWED + counts.byStatus.REVIEW_RECOMMENDED,
-            icon: <AlertTriangle className="h-4 w-4" />,
-            color: "text-muted-foreground",
-        },
-    ];
+    const openReviews = counts.byStatus.UNREVIEWED + counts.byStatus.REVIEW_RECOMMENDED;
+    const proofReadyCount = counts.byStatus.PROOF_READY;
+    const proofReadyRatio = counts.total > 0 ? proofReadyCount / counts.total : 0;
+    const proofReadyPercent = Math.round(proofReadyRatio * 100);
+    const meetsProofReadyStandard = counts.total > 0 && proofReadyRatio >= 0.8;
+    const missingForProofReadyStandard = Math.max(
+        0,
+        Math.ceil(counts.total * 0.8) - proofReadyCount
+    );
 
-    // Status distribution segments
-    const segments = useMemo(() => {
-        if (counts.total === 0) return [];
-        return (Object.entries(counts.byStatus) as [RegisterUseCaseStatus, number][])
-            .filter(([, count]) => count > 0)
-            .map(([status, count]) => ({
-                status,
-                count,
-                percentage: (count / counts.total) * 100,
-                color: STATUS_COLORS[status],
-                label: registerUseCaseStatusLabels[status],
-            }));
-    }, [counts]);
+    const statusSummary = useMemo(
+        () =>
+            (Object.entries(counts.byStatus) as [RegisterUseCaseStatus, number][])
+                .filter(([, count]) => count > 0)
+                .map(([status, count]) => ({
+                    status,
+                    count,
+                    label: registerUseCaseStatusLabels[status],
+                })),
+        [counts.byStatus]
+    );
 
     // Org scope
     const orgName = register?.organisationName;
@@ -144,7 +129,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-6 border-b border-border/80 pb-6">
             {/* Title + Scope */}
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
@@ -228,52 +213,89 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 </div>
             )}
 
-            {/* KPI Bar */}
-            <div className="grid grid-cols-2 gap-3">
-                {kpis.map((kpi) => (
+            <div className="grid gap-5 border-t border-border/80 pt-4 md:grid-cols-[1.4fr_1fr]">
+                <div className="space-y-3">
                     <div
-                        key={kpi.label}
-                        className="flex items-center gap-3 rounded-lg border bg-card p-3"
+                        className={cn(
+                            "border-l pl-3",
+                            meetsProofReadyStandard
+                                ? "border-emerald-500/60"
+                                : "border-slate-300"
+                        )}
                     >
-                        <div className={`${kpi.color} opacity-70`}>{kpi.icon}</div>
-                        <div>
-                            <p className="text-2xl font-semibold tabular-nums">{kpi.value}</p>
-                            <p className="text-xs text-muted-foreground">{kpi.label}</p>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                            Dokumentationsreife
+                        </p>
+                        <p className="text-sm font-medium">
+                            Nachweisfähig:{" "}
+                            <span className="tabular-nums">
+                                {proofReadyCount} von {counts.total}
+                            </span>{" "}
+                            ({proofReadyPercent}%)
+                        </p>
+                        <p
+                            className={cn(
+                                "text-xs",
+                                meetsProofReadyStandard
+                                    ? "text-emerald-700"
+                                    : "text-muted-foreground"
+                            )}
+                        >
+                            {counts.total === 0
+                                ? "Der Registerstandard beginnt mit dem ersten dokumentierten Einsatzfall."
+                                : meetsProofReadyStandard
+                                    ? "Registerstandard erreicht: Mindestens 80% der Einsatzfälle sind nachweisfähig."
+                                    : `Standardziel: 80% nachweisfähig. Es fehlen ${missingForProofReadyStandard} Einsatzfall${missingForProofReadyStandard === 1 ? "" : "e"}.`}
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        <div className="space-y-0.5">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Einsatzfälle gesamt
+                            </p>
+                            <p className="font-medium tabular-nums">{counts.total}</p>
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                                Offene Prüfungen
+                            </p>
+                            <p className="font-medium tabular-nums">{openReviews}</p>
                         </div>
                     </div>
-                ))}
-            </div>
-
-            {/* Status Distribution Bar */}
-            {segments.length > 0 && (
-                <div className="space-y-2">
-                    <div className="flex h-2 overflow-hidden rounded-full bg-muted">
-                        {segments.map((seg) => (
-                            <div
-                                key={seg.status}
-                                style={{
-                                    width: `${seg.percentage}%`,
-                                    backgroundColor: seg.color,
-                                    minWidth: seg.percentage > 0 ? "4px" : "0",
-                                }}
-                                title={`${seg.label}: ${seg.count}`}
-                                className="transition-all duration-300"
-                            />
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1">
-                        {segments.map((seg) => (
-                            <div key={seg.status} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <span
-                                    className="inline-block h-2 w-2 rounded-full"
-                                    style={{ backgroundColor: seg.color }}
-                                />
-                                {seg.label}: {seg.count}
-                            </div>
-                        ))}
-                    </div>
                 </div>
-            )}
+                <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Statusverteilung
+                    </p>
+                    {statusSummary.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                            Noch keine Statusdaten vorhanden.
+                        </p>
+                    ) : (
+                        <ul className="space-y-1.5">
+                            {statusSummary.map((entry) => (
+                                <li
+                                    key={entry.status}
+                                    className="flex items-center justify-between gap-2 text-sm"
+                                >
+                                    <span className="inline-flex items-center gap-2 text-muted-foreground">
+                                        <span
+                                            className={cn(
+                                                "h-2 w-2 shrink-0 rounded-full",
+                                                STATUS_DOT_CLASS[entry.status]
+                                            )}
+                                        />
+                                        {entry.label}
+                                    </span>
+                                    <span className="tabular-nums text-foreground">
+                                        {entry.count}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }
