@@ -27,8 +27,8 @@ const dataCategoryLabels: Record<string, string> = {
 const dataCategoryColors: Record<string, string> = {
   NONE: "",
   INTERNAL: "",
-  PERSONAL: "border-transparent bg-amber-100 text-amber-900 hover:bg-amber-100/80",
-  SENSITIVE: "border-transparent bg-red-100 text-red-900 hover:bg-red-100/80",
+  PERSONAL: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100/80",
+  SENSITIVE: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100/80",
 };
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

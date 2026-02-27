@@ -170,7 +170,7 @@ export default function ControlPoliciesPage() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/dashboard">Zurueck zum Register</Link>
+                  <Link href="/my-register">Zurueck zum Register</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -187,7 +187,7 @@ export default function ControlPoliciesPage() {
                   <Link href="/control">Zurueck zu Control</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/dashboard">Zurueck zum Register</Link>
+                  <Link href="/my-register">Zurueck zum Register</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -208,7 +208,7 @@ export default function ControlPoliciesPage() {
                       <Link href="/control">Zurueck zu Control</Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/dashboard">Zurueck zum Register</Link>
+                      <Link href="/my-register">Zurueck zum Register</Link>
                     </Button>
                   </div>
                 </CardHeader>

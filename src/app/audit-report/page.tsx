@@ -167,7 +167,7 @@ function AuditReportPageContent() {
                                     <CardTitle className="text-2xl">Compliance-Bericht zum EU AI Act</CardTitle>
                                     <CardDescription>Automatisch generiert am {new Date().toLocaleDateString('de-DE')}</CardDescription>
                                 </div>
-                                <Image src="/logo.png" alt="AI Act Compass Logo" width={64} height={64} className="h-16 w-16" />
+                                <Image src="/register-logo.png" alt="AI Governance Register Logo" width={64} height={64} className="h-16 w-16" />
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-8">

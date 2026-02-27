@@ -123,7 +123,7 @@ export default function SharedPolicyPage() {
                                         Dieses Dokument wurde über den AI Act Compass geteilt.
                                     </CardDescription>
                                 </div>
-                                <Image src="/logo.png" alt="AI Act Compass Siegel" width={80} height={80} className="h-20 w-20 hidden md:block" />
+                                <Image src="/register-logo.png" alt="AI Governance Register Siegel" width={80} height={80} className="h-20 w-20 hidden md:block" />
                             </div>
                         </CardHeader>
                         <CardContent>

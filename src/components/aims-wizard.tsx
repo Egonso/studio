@@ -186,7 +186,7 @@ export function AimsWizard({ initialStep = 1, onComplete }: AimsWizardProps) {
                 <body>
                     <h1>AI Policy Statement</h1>
                     <div class="content">${data.policy ? data.policy.replace(/\n/g, '<br>') : 'Keine Policy definiert.'}</div>
-                    <div class="meta">Generiert mit AI Compliance OS • ${new Date().toLocaleDateString()}</div>
+                    <div class="meta">Generiert mit AI Governance Framework • ${new Date().toLocaleDateString()}</div>
                     <script>
                         window.onload = function() { window.print(); }
                     </script>
