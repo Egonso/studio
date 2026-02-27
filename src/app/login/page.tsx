@@ -144,7 +144,7 @@ export default function LoginPage() {
         // Fallback: Check Stripe API directly if Firestore check fails
         if (!hasPurchased) {
           try {
-            const response = await fetch('https://api-smnzycso6q-uc.a.run.app/check-stripe-purchase', {
+            const response = await fetch('https://europe-west1-ai-act-compass-m6o05.cloudfunctions.net/api/check-stripe-purchase', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email })
