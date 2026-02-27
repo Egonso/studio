@@ -221,7 +221,7 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="font-bold text-xl text-slate-800">Willkommen bei AI Compliance OS!</h3>
+            <h3 className="font-bold text-xl text-slate-800">Willkommen beim AI Governance Framework!</h3>
             <p className="text-slate-600 text-sm leading-relaxed">
               <strong className="text-blue-700">Wir machen verantwortungsvolle KI skalierbar.</strong><br />
               Verwandeln Sie Bürokratie in einen audit-sicheren Wettbewerbsvorteil.

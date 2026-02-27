@@ -162,12 +162,13 @@ export default function ControlPage() {
               <CardHeader>
                 <CardTitle>AI Governance Control ist noch nicht freigeschaltet</CardTitle>
                 <CardDescription>
-                  Die technische Route ist vorbereitet. Bis zur Freigabe arbeiten Sie weiter im AI Governance Register.
+                  Die technische Route ist vorbereitet. Die Freigabe erfolgt organisationsseitig
+                  ueber das Control-Flag (nicht ueber die Anzahl Ihrer Einsatzfaelle).
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/dashboard">Zurück zum Register</Link>
+                  <Link href="/my-register">Zurück zum Register</Link>
                 </Button>
                 <Button asChild variant="outline">
                   <Link href="/my-register">Register öffnen</Link>
@@ -190,7 +191,7 @@ export default function ControlPage() {
                     </CardDescription>
                   </div>
                   <Button asChild variant="outline">
-                    <Link href="/dashboard">Zurueck zum Register</Link>
+                    <Link href="/my-register">Zurueck zum Register</Link>
                   </Button>
                 </CardHeader>
                 {focusedUseCaseId && (

@@ -112,8 +112,8 @@ export default function VerifyPassPage() {
   };
 
   const dataCategoryColors: Record<string, string> = {
-    PERSONAL: "border-transparent bg-amber-100 text-amber-900 hover:bg-amber-100/80",
-    SENSITIVE: "border-transparent bg-red-100 text-red-900 hover:bg-red-100/80",
+    PERSONAL: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100/80",
+    SENSITIVE: "border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100/80",
   };
 
   return (
@@ -150,19 +150,19 @@ export default function VerifyPassPage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className={`rounded-lg p-2.5 text-center ${entry.status === 'PROOF_READY' ? 'bg-emerald-50 text-emerald-700' :
                     entry.status === 'REVIEWED' ? 'bg-blue-50 text-blue-700' :
-                      entry.status === 'REVIEW_RECOMMENDED' ? 'bg-amber-50 text-amber-700' :
+                      entry.status === 'REVIEW_RECOMMENDED' ? 'bg-slate-100 text-slate-700' :
                         'bg-gray-50 text-gray-600'
                   }`}>
                   <div className="font-semibold text-sm">
                     {entry.status === 'PROOF_READY' ? '✓ Nachweisfähig' :
                       entry.status === 'REVIEWED' ? '✓ Geprüft' :
-                        entry.status === 'REVIEW_RECOMMENDED' ? '⚠ Prüfung empf.' :
+                        entry.status === 'REVIEW_RECOMMENDED' ? 'Prüfung empfohlen' :
                           '○ Offen'}
                   </div>
                   <div className="mt-0.5 opacity-70">Governance-Status</div>
                 </div>
-                <div className={`rounded-lg p-2.5 text-center ${entry.dataCategory === 'SENSITIVE' ? 'bg-red-50 text-red-700' :
-                    entry.dataCategory === 'PERSONAL' ? 'bg-amber-50 text-amber-700' :
+                <div className={`rounded-lg p-2.5 text-center ${entry.dataCategory === 'SENSITIVE' ? 'bg-slate-100 text-slate-700' :
+                    entry.dataCategory === 'PERSONAL' ? 'bg-slate-100 text-slate-700' :
                       'bg-green-50 text-green-700'
                   }`}>
                   <div className="font-semibold text-sm">

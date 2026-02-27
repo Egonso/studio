@@ -1,22 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-
-/**
- * Dynamically sets the favicon based on the current route.
- * - Register pages (/my-register, /capture, /verify/pass) → register-logo.png
- * - Everything else (dashboard, etc.) → logo.png (blue circle)
- */
-
-const REGISTER_PATHS = ["/my-register", "/capture", "/verify/pass"];
 
 export function DynamicFavicon() {
-    const pathname = usePathname();
-
     useEffect(() => {
-        const isRegister = REGISTER_PATHS.some((p) => pathname.startsWith(p));
-        const faviconHref = isRegister ? "/register-logo.png" : "/logo.png";
+        const faviconHref = "/register-logo.png";
 
         // Update all favicon link elements
         const links = document.querySelectorAll<HTMLLinkElement>(
@@ -33,7 +21,7 @@ export function DynamicFavicon() {
             link.href = faviconHref;
             document.head.appendChild(link);
         }
-    }, [pathname]);
+    }, []);
 
     return null;
 }

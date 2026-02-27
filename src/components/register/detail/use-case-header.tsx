@@ -87,7 +87,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
             onClick={() => router.push("/my-register")}
           >
             <ArrowLeft className="h-4 w-4" />
-            Zurueck
+            Zurück zum Register
           </Button>
         </div>
 

@@ -217,7 +217,7 @@ export function AimsDashboardView({
             <div className="flex items-start justify-between space-y-2">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">
-                        AI Compliance OS
+                        AI Governance Framework
                     </h1>
                     <p className="text-muted-foreground">
                         Organisation-Dashboard für: <span className="font-semibold">{projectName}</span>

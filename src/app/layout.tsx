@@ -48,11 +48,11 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Compliance OS',
-  description: 'Navigate EU AI Act compliance with confidence. Get status checks, parameter configuration, and AI-powered advice for your SME.',
+  title: 'AI Governance Framework',
+  description: 'AI Governance Register (Free Entry) und AI Governance Control (Paid Layer).',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
+    icon: '/register-logo.png',
+    shortcut: '/register-logo.png',
   },
 };
 
@@ -65,8 +65,8 @@ export default function RootLayout({
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/logo.png" />
-        <link rel="shortcut icon" href="/logo.png" />
+        <link rel="icon" href="/register-logo.png" />
+        <link rel="shortcut icon" href="/register-logo.png" />
       </head>
       <body className={`${inter.variable} ${playfairDisplay.variable} font-body antialiased bg-background`}>
         <AuthProvider>

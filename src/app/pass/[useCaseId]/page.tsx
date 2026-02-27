@@ -136,12 +136,12 @@ export default function UseCasePassPage() {
                 {/* Header */}
                 <div className="flex justify-between items-start border-b border-slate-200 pb-8 mb-8">
                     <div>
-                        <h1 className="text-sm font-semibold tracking-wider text-slate-500 uppercase mb-1">EUKI Registerauszug</h1>
+                        <h1 className="text-sm font-semibold tracking-wider text-slate-500 uppercase mb-1">AI Governance Registerauszug</h1>
                         <h2 className="text-3xl font-serif text-slate-900 leading-tight">Use-Case Pass</h2>
                         <p className="text-slate-500 text-sm mt-2 font-mono">ID: {useCase.useCaseId.split('-')[0].toUpperCase()}</p>
                     </div>
                     <div className="text-right">
-                        <Image src="/logo.png" alt="EUKI Logo" width={120} height={40} className="h-10 w-auto ml-auto mb-3" />
+                        <Image src="/register-logo.png" alt="AI Governance Register" width={120} height={40} className="h-10 w-auto ml-auto mb-3" />
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             <span>Dokumentiert & Registriert</span>
@@ -216,7 +216,7 @@ export default function UseCasePassPage() {
                 {/* Footer */}
                 <div className="mt-16 pt-6 border-t border-slate-200 text-center">
                     <p className="text-xs text-slate-400">
-                        Erstellt am {new Date().toLocaleDateString("de-DE")} mit dem EUKI AI Governance Register.
+                        Erstellt am {new Date().toLocaleDateString("de-DE")} mit dem AI Governance Register.
                         <br />
                         Dokument generiert über fortbildung.eukigesetz.com
                     </p>

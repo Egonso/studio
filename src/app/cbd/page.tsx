@@ -38,7 +38,7 @@ function ComplianceByDesignPageContent() {
                                         {manifest.introduction[0]}
                                     </CardDescription>
                                 </div>
-                                <Image src="/logo.png" alt="AI Act Compass Siegel" width={96} height={96} className="h-24 w-24 hidden md:block" />
+                                <Image src="/register-logo.png" alt="AI Governance Register Siegel" width={96} height={96} className="h-24 w-24 hidden md:block" />
                             </div>
                         </CardHeader>
                         <CardContent>
