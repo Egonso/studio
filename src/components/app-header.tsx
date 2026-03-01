@@ -5,17 +5,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { GanttChartSquare, Database, LogOut, GraduationCap, PlusCircle, Wand2, BookOpen, Settings, UserCircle, Shield } from "lucide-react";
+import { GanttChartSquare, Database, LogOut, GraduationCap, PlusCircle, Wand2, BookOpen, Settings, UserCircle, Shield, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { clearActiveProjectId } from "@/lib/data-service";
 import { ADMIN_EMAILS } from "@/lib/admin-config";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { registerFirstFlags } from "@/lib/register-first/flags";
+import { WorkspaceSwitcher } from "./layout/workspace-switcher";
 
 
 export function AppHeader() {
   const router = useRouter();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
 
   const brandHomeHref = "/my-register";
 
@@ -48,11 +51,18 @@ export function AppHeader() {
       </Link>
       {user && (
         <nav className="ml-auto flex gap-2 sm:gap-4 items-center">
+          <WorkspaceSwitcher />
           {user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()) && (
             <Link href="/admin" className="text-sm font-bold text-red-500 hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
               <GanttChartSquare className="h-4 w-4" />
               Admin
             </Link>
+          )}
+          {profile?.isOfficer && (
+            <div className="hidden md:flex items-center gap-1.5 px-2 h-8 text-muted-foreground text-xs font-medium" title="EUKI Certified Officer">
+              <ShieldCheck className="h-4 w-4" />
+              <span>Certified Officer</span>
+            </div>
           )}
           <Link href="/my-register" className="mr-2">
             <Button size="sm" className="h-8 gap-1 px-3" variant="default">

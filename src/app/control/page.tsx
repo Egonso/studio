@@ -229,6 +229,9 @@ export default function ControlPage() {
                         <Link href="/control/policies">Policy Engine</Link>
                       </Button>
                     )}
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/control/batch-sealing">Master-Siegel (Batch)</Link>
+                    </Button>
                   </div>
 
                   {!registerFirstFlags.controlPortfolioIntelligence && (

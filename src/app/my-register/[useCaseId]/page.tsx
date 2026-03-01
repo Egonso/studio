@@ -158,6 +158,7 @@ export default function UseCaseDetailPage() {
           card={card}
           isEditing={isEditing}
           onToggleEdit={() => setIsEditing((prev) => !prev)}
+          onRefresh={loadUseCase}
         />
 
         {invalidFocus && (

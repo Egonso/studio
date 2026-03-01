@@ -115,6 +115,14 @@ export interface SetVisibilityInput {
   resolvedToolName?: string;
 }
 
+export interface SealUseCaseInput {
+  registerId?: string;
+  useCaseId: string;
+  officerId: string;
+  officerName: string;
+}
+
+
 export interface RegisterService {
   createRegister(name: string, linkedProjectId?: string | null): Promise<Register>;
   listRegisters(): Promise<Register[]>;
@@ -140,6 +148,7 @@ export interface RegisterService {
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
   updateAssessmentManual(input: UpdateAssessmentInput): Promise<UseCaseCard>;
   setPublicVisibility(input: SetVisibilityInput): Promise<UseCaseCard>;
+  sealUseCaseManual(input: SealUseCaseInput): Promise<UseCaseCard>;
   softDeleteUseCase(registerId: string | undefined, useCaseId: string): Promise<void>;
   restoreUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard>;
   getRegisterMetrics(registerId?: string): Promise<RegisterMetrics>;
@@ -592,6 +601,37 @@ export function createRegisterService(
         }
 
         return saved;
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async sealUseCaseManual(input) {
+      try {
+        const scope = await resolveScope(input.registerId);
+        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${input.useCaseId}' was not found.`
+          );
+        }
+
+        const timestamp = now().toISOString();
+        const sealHash = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `seal-${Date.now()}`;
+
+        const updated = parseUseCaseCard({
+          ...existing,
+          sealedAt: timestamp,
+          sealedBy: input.officerId,
+          sealedByName: input.officerName,
+          sealHash: sealHash,
+          updatedAt: timestamp,
+        });
+
+        return useCaseRepo.save(scope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }

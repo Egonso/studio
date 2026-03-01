@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ToolRegistrySelect } from "@/components/register/tool-registry-select";
+import { ToolAutocomplete } from "@/components/tool-autocomplete";
 import {
   CAPTURE_STEP_3_LABEL,
   TOOL_ID_OTHER,
@@ -302,34 +302,30 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
 
           <section className="space-y-2">
             <Label>Welches KI-Tool verwendest du? (optional)</Label>
-            <ToolRegistrySelect
-              value={draft.toolId}
-              onChange={(toolId) => {
-                setDraft((prev) => ({
-                  ...prev,
-                  toolId,
-                  toolFreeText: toolId === TOOL_ID_OTHER ? prev.toolFreeText : "",
-                }));
+            <ToolAutocomplete
+              value={draft.toolId === TOOL_ID_OTHER || draft.toolId === "__placeholder__" ? draft.toolFreeText : draft.toolId}
+              onChange={(val, toolData) => {
+                if (toolData) {
+                  setDraft((prev) => ({
+                    ...prev,
+                    toolId: toolData.name,
+                    toolFreeText: toolData.name,
+                    purpose: prev.purpose || (toolData.category ? `Einsatz von ${toolData.name} für ${toolData.category}` : `Einsatz von ${toolData.name}`),
+                  }));
+                } else {
+                  setDraft((prev) => ({
+                    ...prev,
+                    toolId: TOOL_ID_OTHER,
+                    toolFreeText: val
+                  }));
+                }
               }}
             />
             <p className="text-xs text-muted-foreground">
               Waehle ein Tool aus dem Katalog oder gib einen eigenen Namen ein.
             </p>
-            {draft.toolId === TOOL_ID_OTHER && (
-              <div className="space-y-1">
-                <Label htmlFor="toolFreeText">Tool-Name (Freitext)</Label>
-                <Input
-                  id="toolFreeText"
-                  placeholder="z. B. Eigenentwicklung RAG-Pipeline"
-                  value={draft.toolFreeText}
-                  onChange={(event) =>
-                    setDraft((prev) => ({ ...prev, toolFreeText: event.target.value }))
-                  }
-                />
-                {errors.toolFreeText && (
-                  <p className="text-xs text-destructive">{errors.toolFreeText}</p>
-                )}
-              </div>
+            {errors.toolFreeText && (
+              <p className="text-xs text-destructive">{errors.toolFreeText}</p>
             )}
             {errors.toolId && <p className="text-xs text-destructive">{errors.toolId}</p>}
           </section>

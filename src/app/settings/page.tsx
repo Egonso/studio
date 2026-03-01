@@ -12,7 +12,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { AppHeader } from '@/components/app-header';
-import { Loader2, Mail, Lock, User } from 'lucide-react';
+import { Loader2, Mail, Lock, User, ShieldCheck } from 'lucide-react';
+import { verifyOfficerKey } from '@/actions/officer-actions';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { useEffect } from 'react';
 import { Separator } from '@/components/ui/separator';
 
 const emailSchema = z.object({
@@ -32,12 +35,26 @@ const passwordSchema = z.object({
 type EmailFormData = z.infer<typeof emailSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
+const officerSchema = z.object({
+  licenseKey: z.string().min(1, { message: 'Bitte geben Sie Ihren Zertifikats-Code ein.' }),
+});
+type OfficerFormData = z.infer<typeof officerSchema>;
+
+const inviteSchema = z.object({
+  email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
+  role: z.enum(['EXTERNAL_OFFICER', 'MEMBER', 'ADMIN'], { required_error: 'Bitte wählen Sie eine Rolle.' }),
+});
+type InviteFormData = z.infer<typeof inviteSchema>;
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [isOfficerLoading, setIsOfficerLoading] = useState(false);
+  const [isInviteLoading, setIsInviteLoading] = useState(false);
+  const { profile } = useUserProfile();
 
   const emailForm = useForm<EmailFormData>({
     resolver: zodResolver(emailSchema),
@@ -48,6 +65,38 @@ export default function SettingsPage() {
     resolver: zodResolver(passwordSchema),
     defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
   });
+
+  const officerForm = useForm<OfficerFormData>({
+    resolver: zodResolver(officerSchema),
+    defaultValues: { licenseKey: '' },
+  });
+
+  const inviteForm = useForm<InviteFormData>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { email: '', role: 'EXTERNAL_OFFICER' },
+  });
+
+  useEffect(() => {
+    if (profile?.licenseKey) {
+      officerForm.setValue('licenseKey', profile.licenseKey);
+    }
+  }, [profile, officerForm]);
+
+  const handleOfficerSubmit = async (data: OfficerFormData) => {
+    setIsOfficerLoading(true);
+    try {
+      const res = await verifyOfficerKey(user!.uid, data.licenseKey);
+      if (res.success) {
+        toast({ title: 'Erfolgreich', description: 'Sie sind nun als EUKI Certified Officer verifiziert.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Fehler', description: res.message });
+      }
+    } catch (_err: any) {
+      toast({ variant: 'destructive', title: 'Fehler', description: 'Verifizierung fehlgeschlagen.' });
+    } finally {
+      setIsOfficerLoading(false);
+    }
+  };
 
   if (!user) {
     router.push('/login');
@@ -184,6 +233,144 @@ export default function SettingsPage() {
                 />
                 <Button type="submit" disabled={isEmailLoading}>
                   {isEmailLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird aktualisiert...</> : 'E-Mail aktualisieren'}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+
+        {/* Zertifizierung */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Zertifikats-Code</CardTitle>
+            </div>
+            <CardDescription>Hinterlegen Sie Ihren Code, um Register-Einträge rechtssicher freigeben zu können.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {profile?.isOfficer ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>Verifiziert als EU AI Act Officer</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Zertifiziert durch: {profile.certifiedBy} <br />
+                  Geprüft am: {new Date(profile.verifiedAt!).toLocaleDateString('de-DE')}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="pt-4 mt-2 border-t text-sm text-muted-foreground">
+                  <p>
+                    Noch kein Officer? Zertifizieren Sie sich in der{' '}
+                    <a
+                      href="https://eukigesetz.com/certification"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      EUKIgesetz Academy
+                    </a>
+                  </p>
+                </div>
+                <Form {...officerForm}>
+                  <form onSubmit={officerForm.handleSubmit(handleOfficerSubmit)} className="space-y-4">
+                    <FormField
+                      control={officerForm.control}
+                      name="licenseKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Zertifikats-Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="EUK-XXXX-XXXX" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" disabled={isOfficerLoading}>
+                      {isOfficerLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird geprüft...</> : 'Zertifikat hinterlegen'}
+                    </Button>
+                  </form>
+                </Form>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Team Einladen */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-base">Team & Externe Berater einladen</CardTitle>
+            </div>
+            <CardDescription>Laden Sie Nutzer in Ihren Register-Workspace ein (etwa einen External Officer für Freigaben).</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...inviteForm}>
+              <form onSubmit={inviteForm.handleSubmit(async (data) => {
+                setIsInviteLoading(true);
+                try {
+                  const res = await fetch('/api/invites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: data.email,
+                      role: data.role,
+                      targetOrgId: user.uid,
+                      targetOrgName: 'Ihr Register', // Could be dynamic if register names are introduced
+                    })
+                  });
+                  const json = await res.json();
+                  if (res.ok) {
+                    toast({ title: 'Erfolgreich', description: json.message });
+                    inviteForm.reset();
+                  } else {
+                    toast({ variant: 'destructive', title: 'Fehler', description: json.error });
+                  }
+                } catch (_err) {
+                  toast({ variant: 'destructive', title: 'Fehler', description: 'Konnte keine Einladung senden.' });
+                } finally {
+                  setIsInviteLoading(false);
+                }
+              })} className="space-y-4">
+                <FormField
+                  control={inviteForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-Mail-Adresse des Nutzers</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="berater@kanzlei.de" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={inviteForm.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rolle im Workspace</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="EXTERNAL_OFFICER">External Officer (Auditor)</option>
+                          <option value="MEMBER">Mitarbeiter (Lesen/Schreiben)</option>
+                        </select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isInviteLoading}>
+                  {isInviteLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird gesendet...</> : 'Nutzer einladen'}
                 </Button>
               </form>
             </Form>

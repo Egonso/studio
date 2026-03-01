@@ -28,6 +28,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const modeFromQuery = searchParams.get('mode');
   const inviteCodeFromQuery = searchParams.get('code');
+  const importUseCaseId = searchParams.get('importUseCase');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [isFromPurchase, setIsFromPurchase] = useState(false);
@@ -73,7 +74,7 @@ export default function LoginPage() {
       form.setValue('email', emailFromQuery);
     }
 
-    if (isPurchaseFlow || sessionId) {
+    if (isPurchaseFlow || sessionId || importUseCaseId) {
       setActiveTab('signup');
       setIsFromPurchase(true);
     } else if (modeFromQuery === 'login') {
@@ -84,7 +85,7 @@ export default function LoginPage() {
       // But let's only force signup if purchase flow or explicitly requested.
       setActiveTab('signup');
     }
-  }, [searchParams, form, modeFromQuery]);
+  }, [searchParams, form, modeFromQuery, importUseCaseId]);
 
 
 
@@ -123,7 +124,10 @@ export default function LoginPage() {
 
       if (action === 'login') {
         await signInWithEmailAndPassword(auth, email, data.password);
-        if (inviteCodeFromQuery) {
+        if (importUseCaseId) {
+          toast({ title: 'Anmeldung erfolgreich', description: 'Assest wird übernommen...' });
+          router.push(`/einrichten?import=${encodeURIComponent(importUseCaseId)}`);
+        } else if (inviteCodeFromQuery) {
           toast({ title: 'Anmeldung erfolgreich', description: 'Leite weiter zur Erfassung...' });
           router.push(`/erfassen?code=${encodeURIComponent(inviteCodeFromQuery)}`);
         } else {
@@ -174,7 +178,10 @@ export default function LoginPage() {
         } else {
           // 4. Success
           toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet.' });
-          if (inviteCodeFromQuery) {
+
+          if (importUseCaseId) {
+            router.push(`/einrichten?import=${encodeURIComponent(importUseCaseId)}`);
+          } else if (inviteCodeFromQuery) {
             router.push(`/erfassen?code=${encodeURIComponent(inviteCodeFromQuery)}`);
           } else {
             router.push('/my-register');

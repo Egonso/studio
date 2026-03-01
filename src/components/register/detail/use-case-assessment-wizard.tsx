@@ -60,8 +60,12 @@ export function UseCaseAssessmentWizard({
                 ? "no"
                 : ""
     );
+    const [customAssessmentText, setCustomAssessmentText] = useState<string>(
+        card.governanceAssessment?.flex?.customAssessmentText ?? ""
+    );
+    const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
 
-    const totalSteps = 5;
+    const totalSteps = 6;
 
     const handleNext = () => setStep((s) => Math.min(s + 1, totalSteps));
     const handlePrev = () => setStep((s) => Math.max(s - 1, 1));
@@ -69,17 +73,50 @@ export function UseCaseAssessmentWizard({
     const buildCanProceed = () => {
         switch (step) {
             case 1:
-                return !!aiActCategory;
+                return true; // Optional AI Draft
             case 2:
-                return !!responsibleParty.trim();
+                return !!aiActCategory;
             case 3:
-                return !!oversightDefined;
+                return !!responsibleParty.trim();
             case 4:
-                return !!reviewCycleDefined;
+                return !!oversightDefined;
             case 5:
+                return !!reviewCycleDefined;
+            case 6:
                 return !!documentationLevelDefined;
             default:
                 return true;
+        }
+    };
+
+    const handleGenerateDraft = async () => {
+        setIsGeneratingDraft(true);
+        try {
+            const { getFirebaseAuth } = await import("@/lib/firebase");
+            const auth = await getFirebaseAuth();
+            const token = await auth.currentUser?.getIdToken();
+
+            const res = await fetch("/api/draft-assessment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+                body: JSON.stringify({
+                    purpose: card.purpose,
+                    systemName: card.toolFreeText || card.toolId,
+                    usageContexts: card.usageContexts,
+                    dataCategories: card.dataCategories,
+                }),
+            });
+
+            if (!res.ok) throw new Error("Fehler beim Generieren");
+            const data = await res.json();
+            setCustomAssessmentText(data.draft || "");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsGeneratingDraft(false);
         }
     };
 
@@ -101,6 +138,10 @@ export function UseCaseAssessmentWizard({
                     coreVersion: "EUKI-GOV-1.0",
                     assessedAt: new Date().toISOString(),
                 },
+                flex: {
+                    ...(card.governanceAssessment?.flex ?? {}),
+                    customAssessmentText: customAssessmentText || null,
+                }
             });
 
             // Oh, wait! `updateAssessmentManual` doesn't update `responsibility`. And the original edit draft
@@ -135,7 +176,44 @@ export function UseCaseAssessmentWizard({
                 <div className="py-6 min-h-[300px]">
                     {step === 1 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">1. EU AI Act Risikoklasse</h3>
+                            <h3 className="text-lg font-medium">1. AI Pre-Audit Draft (Optional)</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Lassen Sie eine erste rechtliche und technische Einordnung durch den "AI Officer Copilot" entwerfen, basierend auf Ihren Angaben.
+                            </p>
+
+                            {!customAssessmentText && !isGeneratingDraft ? (
+                                <div className="p-6 border border-dashed rounded-lg text-center space-y-3 bg-slate-50/50">
+                                    <Button onClick={handleGenerateDraft} disabled={isGeneratingDraft}>
+                                        AI First Draft generieren
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground">
+                                        Nutzt gesicherte LLM-Infrastruktur für eine objektive Ersteinschätzung.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 relative">
+                                    {isGeneratingDraft && (
+                                        <div className="absolute inset-0 bg-white/60 z-10 flex items-center justify-center rounded-md">
+                                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                        </div>
+                                    )}
+                                    <Label className="text-xs font-semibold text-emerald-700 uppercase tracking-widest">
+                                        Drafted by AI - Needs Human Review
+                                    </Label>
+                                    <textarea
+                                        className="w-full min-h-[160px] p-3 text-sm border rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary bg-emerald-50/20"
+                                        value={customAssessmentText}
+                                        onChange={(e) => setCustomAssessmentText(e.target.value)}
+                                        placeholder="Hier erscheint der automatische Text..."
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                            <h3 className="text-lg font-medium">2. EU AI Act Risikoklasse</h3>
                             <p className="text-sm text-muted-foreground">
                                 Wie hoch stufen Sie die Kritikalität dieses KI-Systems ein?
                             </p>
@@ -160,9 +238,9 @@ export function UseCaseAssessmentWizard({
                         </div>
                     )}
 
-                    {step === 2 && (
+                    {step === 3 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">2. Verantwortlichkeit (System Owner)</h3>
+                            <h3 className="text-lg font-medium">3. Verantwortlichkeit (System Owner)</h3>
                             <p className="text-sm text-muted-foreground">
                                 Wer ist in der Organisation für den Betrieb und die Überwachung dieses KI-Systems verantwortlich?
                             </p>
@@ -177,9 +255,9 @@ export function UseCaseAssessmentWizard({
                         </div>
                     )}
 
-                    {step === 3 && (
+                    {step === 4 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">3. Menschliche Aufsicht (Human-in-the-loop)</h3>
+                            <h3 className="text-lg font-medium">4. Menschliche Aufsicht (Human-in-the-loop)</h3>
                             <p className="text-sm text-muted-foreground">
                                 Ist sichergestellt, dass die Entscheidungen oder Outputs des Systems durch einen Menschen überwacht werden?
                             </p>
@@ -196,9 +274,9 @@ export function UseCaseAssessmentWizard({
                         </div>
                     )}
 
-                    {step === 4 && (
+                    {step === 5 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">4. Review-Zyklus</h3>
+                            <h3 className="text-lg font-medium">5. Review-Zyklus</h3>
                             <p className="text-sm text-muted-foreground">
                                 Wurde ein fester Turnus (z.B. jährlich) festgelegt, um das System auf Performance, Bias und Security neu zu bewerten?
                             </p>
@@ -215,9 +293,9 @@ export function UseCaseAssessmentWizard({
                         </div>
                     )}
 
-                    {step === 5 && (
+                    {step === 6 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">5. Dokumentations-Level</h3>
+                            <h3 className="text-lg font-medium">6. Dokumentations-Level</h3>
                             <p className="text-sm text-muted-foreground">
                                 Sind die Einsatzparameter, Trainingsdaten (sofern vorhanden) und Restriktionen des Systems ausreichend dokumentiert?
                             </p>

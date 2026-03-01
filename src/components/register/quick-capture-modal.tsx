@@ -14,16 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { registerService } from "@/lib/register-first/register-service";
-import { createStaticToolRegistryService } from "@/lib/register-first/tool-registry-service";
+import { ToolAutocomplete } from "@/components/tool-autocomplete";
 import type { CaptureUsageContext, DataCategory, DecisionInfluence, OrgSettings } from "@/lib/register-first/types";
 import {
     USAGE_CONTEXT_OPTIONS,
@@ -34,7 +27,6 @@ import {
     DECISION_INFLUENCE_OPTIONS,
     DECISION_INFLUENCE_LABELS,
 } from "@/lib/register-first/types";
-import type { ToolRegistryEntry } from "@/lib/register-first/tool-registry-types";
 import { applyOrgDefaults } from "@/lib/register-first/inheritance";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 
@@ -67,10 +59,6 @@ const EMPTY_DRAFT: QuickDraft = {
     decisionInfluence: null,
     description: "",
 };
-
-// ── Tool Registry ────────────────────────────────────────────────────────────
-
-const toolRegistry = createStaticToolRegistryService();
 
 /** Toggle an item in an array (add if absent, remove if present) */
 function toggleMultiSelect<T>(arr: T[], item: T): T[] {
@@ -131,7 +119,6 @@ function applyDataCategoryLogic(categories: DataCategory[], toggled: DataCategor
 export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptureModalProps) {
     const [draft, setDraft] = useState<QuickDraft>({ ...EMPTY_DRAFT });
     const [isSaving, setIsSaving] = useState(false);
-    const [toolOptions, setToolOptions] = useState<{ value: string; label: string }[]>([]);
     const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
     const [inheritanceApplied, setInheritanceApplied] = useState(false);
     const { allowed: canInherit } = useCapability("extendedOrgSettings");
@@ -141,12 +128,6 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
     const [section1Open, setSection1Open] = useState(false);
     const [section2Open, setSection2Open] = useState(false);
     const [specialOpen, setSpecialOpen] = useState(false);
-
-    useEffect(() => {
-        toolRegistry.listActiveTools().then((tools: ToolRegistryEntry[]) => {
-            setToolOptions(tools.map((t) => ({ value: t.toolId, label: t.productName })));
-        }).catch(() => { });
-    }, []);
 
     // Load orgSettings from active register for inheritance
     useEffect(() => {
@@ -291,38 +272,23 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                     {/* 3. Tool (required) */}
                     <div className="space-y-1.5">
                         <Label>
-                            Tool <span className="text-destructive">*</span>
+                            System / Tool <span className="text-destructive">*</span>
                         </Label>
-                        <Select
-                            value={draft.toolId}
-                            onValueChange={(v) => {
-                                if (v === "__placeholder__") return;
-                                patch({ toolId: v });
+                        <ToolAutocomplete
+                            value={draft.toolId === "other" || draft.toolId === "__placeholder__" ? draft.toolFreeText : draft.toolId}
+                            onChange={(val, toolData) => {
+                                if (toolData) {
+                                    patch({
+                                        toolId: toolData.name,
+                                        toolFreeText: toolData.name,
+                                        // Auto-fill purpose if empty
+                                        purpose: draft.purpose || (toolData.category ? `Einsatz von ${toolData.name} für ${toolData.category}` : `Einsatz von ${toolData.name}`),
+                                    });
+                                } else {
+                                    patch({ toolId: "other", toolFreeText: val });
+                                }
                             }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tool auswählen" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__placeholder__" className="hidden">
-                                    Tool auswählen
-                                </SelectItem>
-                                {toolOptions.map((t) => (
-                                    <SelectItem key={t.value} value={t.value}>
-                                        {t.label}
-                                    </SelectItem>
-                                ))}
-                                <SelectItem value="other">Anderes Tool…</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {draft.toolId === "other" && (
-                            <Input
-                                placeholder="Tool-Name eingeben"
-                                value={draft.toolFreeText}
-                                onChange={(e) => patch({ toolFreeText: e.target.value })}
-                                className="mt-1.5"
-                            />
-                        )}
+                        />
                     </div>
 
                     {/* ▼ Section 1: Wirkung & Betroffene (collapsible) */}

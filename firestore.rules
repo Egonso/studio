@@ -19,7 +19,9 @@ service cloud.firestore {
     // --- LEGACY DATA ---
     // Allow access to user-specific project lists (Missing in previous version!)
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && (!request.resource.data.keys().hasAny(['isOfficer', 'verifiedAt', 'certifiedBy']));
+      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isOfficer', 'verifiedAt', 'certifiedBy']));
       
       // --- LEGACY PROJECTS (Deprecated: Removed in Sprint 7) ---
       // These rules are only left active so the Sprint 1 automatic migration script can read them.

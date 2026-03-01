@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Download, FileJson, Pencil, Trash2, X } from "lucide-react";
+import { ArrowLeft, Download, FileJson, Pencil, Trash2, X, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,12 +28,17 @@ import {
   USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first/types";
 import { cn } from "@/lib/utils";
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { useAuth } from "@/context/auth-context";
+import { registerService } from "@/lib/register-first/register-service";
+import { useToast } from "@/hooks/use-toast";
 
 interface UseCaseHeaderProps {
   card: UseCaseCard;
   isEditing: boolean;
   onToggleEdit: () => void;
   onDelete?: () => Promise<void>;
+  onRefresh?: () => Promise<void>;
 }
 
 const aiRegistry = createAiToolsRegistryService();
@@ -53,10 +58,14 @@ function downloadFile(content: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCaseHeaderProps) {
+export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefresh }: UseCaseHeaderProps) {
   const router = useRouter();
+  const { toast } = useToast();
+  const { profile } = useUserProfile();
+  const { user } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSealing, setIsSealing] = useState(false);
   const isProofReady = card.status === "PROOF_READY";
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
@@ -95,6 +104,26 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
     }
   };
 
+  const handleSeal = async () => {
+    if (!profile?.isOfficer || !user) return;
+    setIsSealing(true);
+    try {
+      await registerService.sealUseCaseManual({
+        registerId: undefined, // uses scope
+        useCaseId: card.useCaseId,
+        officerId: user.uid,
+        officerName: user.displayName || user.email || "EUKI Officer",
+      });
+      toast({ title: "Erfolgreich besiegelt", description: "Der Einsatzfall wurde kryptografisch versiegelt." });
+      if (onRefresh) await onRefresh();
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Fehler", description: "Versiegeln fehlgeschlagen." });
+    } finally {
+      setIsSealing(false);
+    }
+  };
+
   const handleExportJSON = () => {
     const exportData = {
       useCaseId: card.useCaseId,
@@ -129,6 +158,14 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
 
   return (
     <>
+      {card.sealedAt && (
+        <div className="hidden print:flex flex-col items-center absolute top-12 right-12 transform rotate-[-15deg] opacity-20 border-8 border-emerald-600 text-emerald-600 rounded-2xl p-6 max-w-[400px] text-center pointer-events-none z-50">
+          <p className="font-black text-4xl uppercase mb-2 tracking-widest">EUKI CERTIFIED</p>
+          <p className="text-lg font-bold">Gezeichnet von {card.sealedByName}</p>
+          <p className="text-sm font-mono mt-3">Hash: {card.sealHash}</p>
+          <p className="text-sm mt-1">{formatDate(card.sealedAt)}</p>
+        </div>
+      )}
       <div
         className={cn(
           "space-y-6",
@@ -173,6 +210,25 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete }: UseCa
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+            {card.sealedAt && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-200 bg-emerald-50 text-emerald-800 rounded-md text-xs font-medium mr-2" title={`Siegel (${card.sealHash})`}>
+                <ShieldCheck className="h-4 w-4" />
+                <span>Gezeichnet von {card.sealedByName || "Officer"}</span>
+              </div>
+            )}
+            {!card.sealedAt && profile?.isOfficer && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSeal}
+                disabled={isSealing}
+                className="bg-slate-800 hover:bg-slate-700 text-white mr-2"
+                title="Als EUKI Officer signieren"
+              >
+                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
+                {isSealing ? "Signiere..." : "Sign off & Seal"}
+              </Button>
+            )}
             <RegisterStatusPill status={card.status} />
             <Button
               variant="outline"

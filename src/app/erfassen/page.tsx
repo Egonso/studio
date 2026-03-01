@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ToolAutocomplete } from "@/components/tool-autocomplete";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ interface CodeInfo {
 interface CaptureFormData {
   purpose: string;
   ownerName: string;
+  toolId: string;
   toolFreeText: string;
   usageContext: string;
   dataCategory: string;
@@ -36,6 +38,7 @@ interface CaptureFormData {
 const EMPTY_FORM: CaptureFormData = {
   purpose: "",
   ownerName: "",
+  toolId: "",
   toolFreeText: "",
   usageContext: "INTERNAL_ONLY",
   dataCategory: "NONE",
@@ -106,8 +109,8 @@ export default function ErfassenPage() {
         const data = await res
           .json()
           .catch(() => ({ error: "Code konnte nicht geprüft werden." })) as {
-          error?: string;
-        };
+            error?: string;
+          };
         const mapped = mapCodeValidationError(res.status, data.error);
         setErrorTitle(mapped.title);
         setErrorMsg(mapped.message);
@@ -136,6 +139,7 @@ export default function ErfassenPage() {
         body: JSON.stringify({
           code,
           purpose: form.purpose.trim(),
+          toolId: form.toolId || undefined,
           toolFreeText: form.toolFreeText.trim() || undefined,
           usageContext: form.usageContext,
           dataCategory: form.dataCategory,
@@ -147,8 +151,8 @@ export default function ErfassenPage() {
         const data = await res
           .json()
           .catch(() => ({ error: "Fehler beim Speichern." })) as {
-          error?: string;
-        };
+            error?: string;
+          };
         if (res.status === 503 || res.status >= 500) {
           setErrorTitle("Dienst vorübergehend nicht verfügbar");
         } else if (res.status === 429) {
@@ -297,10 +301,17 @@ export default function ErfassenPage() {
 
             <div className="space-y-1.5">
               <Label>Tool / Software</Label>
-              <Input
-                placeholder="z. B. ChatGPT, Midjourney (optional)"
+              <ToolAutocomplete
                 value={form.toolFreeText}
-                onChange={(e) => patch({ toolFreeText: e.target.value })}
+                onChange={(val, data) => {
+                  patch({
+                    toolFreeText: val,
+                    toolId: data?.id || "",
+                  });
+                  if (!form.purpose.trim() && data?.category) {
+                    patch({ purpose: `Einsatz von ${val} für ${data.category}` });
+                  }
+                }}
               />
             </div>
 

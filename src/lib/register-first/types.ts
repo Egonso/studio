@@ -236,6 +236,12 @@ export interface UseCaseCard {
   standardVersion?: string;
   isDeleted?: boolean;
 
+  // ── Officer Seal ──────────────────────────────────────────────────────────
+  sealedAt?: string | null;
+  sealedBy?: string | null;
+  sealedByName?: string | null;
+  sealHash?: string | null;
+
   // ── Register-First Architecture: Assessment ─────────────────────────────
   governanceAssessment?: {
     core: {
@@ -254,6 +260,7 @@ export interface UseCaseCard {
       trainingRequired?: boolean;
       policyLinks?: string[];
       incidentProcessDefined?: boolean;
+      customAssessmentText?: string | null; // Used for AI Pre-Audit drafts
 
       // Sprint 18: Strict ISO-Micro Schema (Registers-First)
       iso?: {

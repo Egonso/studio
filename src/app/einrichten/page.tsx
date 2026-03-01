@@ -154,14 +154,14 @@ export default function SetupPage() {
           rolesFramework: roleValue ? { booleanDefined: true } : null,
           ...(roleValue
             ? {
-                raci: {
-                  aiOwner: {
-                    name: contactName,
-                    ...(contactEmail ? { email: contactEmail } : {}),
-                    department: roleValue,
-                  },
+              raci: {
+                aiOwner: {
+                  name: contactName,
+                  ...(contactEmail ? { email: contactEmail } : {}),
+                  department: roleValue,
                 },
-              }
+              },
+            }
             : {}),
         },
       });
@@ -186,6 +186,35 @@ export default function SetupPage() {
         `${window.location.origin}/erfassen?code=${encodeURIComponent(codeEntry.code)}`
       );
       setStep(3);
+
+      // PLG Conversion: Import shared use case if provided
+      const params = new URLSearchParams(window.location.search);
+      const importUseCaseId = params.get('import');
+      if (importUseCaseId) {
+        try {
+          const { getFirebaseDb } = await import('@/lib/firebase');
+          const { doc, getDoc } = await import('firebase/firestore');
+          const db = await getFirebaseDb();
+          const publicSnap = await getDoc(doc(db, 'publicUseCases', importUseCaseId));
+
+          if (publicSnap.exists()) {
+            const publicData = publicSnap.data();
+            await registerService.createUseCaseFromCapture(
+              {
+                toolFreeText: publicData.toolName || 'Importiertes KI-System',
+                purpose: publicData.purpose || 'Importierter Use-Case aus Netzwerk',
+              },
+              { registerId: registerId }
+            );
+            toast({
+              title: "Import erfolgreich",
+              description: "Das ausgewählte KI-System wurde als Entwurf in Ihr neues Register kopiert."
+            });
+          }
+        } catch (e) {
+          console.error("Use-Case Import fehgeschlagen:", e);
+        }
+      }
     } catch {
       toast({
         variant: "destructive",
@@ -251,16 +280,15 @@ export default function SetupPage() {
               {([1, 2, 3] as Step[]).map((s) => (
                 <div
                   key={s}
-                  className={`h-1 flex-1 rounded-full transition-colors ${
-                    s <= step ? "bg-foreground" : "bg-muted"
-                  }`}
+                  className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-foreground" : "bg-muted"
+                    }`}
                 />
               ))}
             </div>
           </div>
 
           {/* Step 1: Account */}
-              {step === 1 && (
+          {step === 1 && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();

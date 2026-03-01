@@ -11,6 +11,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { OrgExportArtifact } from "@/lib/control/exports/org-export-center";
+import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { FeatureGateDialog } from "@/components/feature-gate-dialog";
+import { ArrowUpCircle } from "lucide-react";
 
 interface ControlExportCenterProps {
   artifacts: OrgExportArtifact[];
@@ -31,6 +34,8 @@ function downloadArtifact(artifact: OrgExportArtifact) {
 
 export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCenterProps) {
   const [activeType, setActiveType] = useState<OrgExportArtifact["type"] | null>(null);
+  const { allowed: canExport } = useCapability("auditExport");
+  const [showUpsellDialog, setShowUpsellDialog] = useState(false);
 
   const sortedArtifacts = useMemo(
     () =>
@@ -81,9 +86,8 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
                     <p className="inline-flex items-center gap-2 text-xs text-muted-foreground">
                       <span
                         aria-hidden
-                        className={`h-2 w-2 rounded-full ${
-                          artifact.ready ? "bg-green-600" : "bg-slate-500"
-                        }`}
+                        className={`h-2 w-2 rounded-full ${artifact.ready ? "bg-green-600" : "bg-slate-500"
+                          }`}
                       />
                       {artifact.ready ? "Export bereit" : "Vorpruefung erforderlich"}
                     </p>
@@ -99,38 +103,58 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
                     )}
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setActiveType(artifact.type);
-                      try {
-                        downloadArtifact(artifact);
-                      } finally {
-                        setActiveType(null);
-                      }
-                    }}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                        Erzeuge...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-1.5 h-3.5 w-3.5" />
-                        {artifact.ready ? "Exportieren" : "Vorpruefung exportieren"}
-                      </>
-                    )}
-                  </Button>
+                  {canExport ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setActiveType(artifact.type);
+                        try {
+                          downloadArtifact(artifact);
+                        } finally {
+                          setActiveType(null);
+                        }
+                      }}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                          Erzeuge...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="mr-1.5 h-3.5 w-3.5" />
+                          {artifact.ready ? "Exportieren" : "Vorpruefung exportieren"}
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => setShowUpsellDialog(true)}
+                    >
+                      <ArrowUpCircle className="mr-1.5 h-3.5 w-3.5" />
+                      Export-Optionen erweitern
+                    </Button>
+                  )}
                 </div>
               </div>
             );
           })}
         </CardContent>
       </Card>
+
+      {!canExport && (
+        <FeatureGateDialog
+          feature="auditExport"
+          open={showUpsellDialog}
+          onOpenChange={setShowUpsellDialog}
+        />
+      )}
     </div>
   );
 }
