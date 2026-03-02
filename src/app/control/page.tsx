@@ -226,11 +226,24 @@ export default function ControlPage() {
                     )}
                     {registerFirstFlags.controlPolicyEngine && (
                       <Button asChild variant="outline" size="sm">
-                        <Link href="/control/policies">Policy Engine</Link>
+                        <Link href="/control/policies">Policy Engine (Legacy)</Link>
                       </Button>
                     )}
                     <Button asChild variant="outline" size="sm">
                       <Link href="/control/batch-sealing">Master-Siegel (Batch)</Link>
+                    </Button>
+
+                    {/* Ex-Header Upsell Links */}
+                    <div className="w-full h-0 border-t border-border/50 my-1" />
+
+                    <Button asChild variant="outline" size="sm" className="bg-slate-50 border-slate-200 text-slate-700">
+                      <Link href="/cbs">Smart Policy Engine</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="bg-slate-50 border-slate-200 text-slate-700">
+                      <Link href="/kurs">EUKI Governance Kurs</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="bg-slate-50 border-slate-200 text-slate-700">
+                      <Link href="/exam">Officer-Zertifizierung</Link>
                     </Button>
                   </div>
 

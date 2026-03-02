@@ -177,10 +177,16 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
             variant="ghost"
             size="sm"
             className="h-8 gap-1.5 px-0 text-sm text-muted-foreground hover:bg-transparent hover:text-foreground"
-            onClick={() => router.push("/my-register")}
+            onClick={() => {
+              if (window.history.length > 2) {
+                router.back();
+              } else {
+                router.push("/my-register");
+              }
+            }}
           >
             <ArrowLeft className="h-4 w-4" />
-            Zurück zum Register
+            Zurück
           </Button>
         </div>
 
