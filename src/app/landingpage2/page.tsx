@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Layers, ShieldCheck, Award, ArrowUpRight, BarChart3, Fingerprint, FileText } from 'lucide-react';
+import { Layers, ShieldCheck, Award, ArrowUpRight, BarChart3, BookOpen, FileText, Users, Link as LinkIcon, History } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LandingPage2() {
@@ -39,10 +39,9 @@ export default function LandingPage2() {
                 <div className="text-center space-y-12 mb-32">
 
                     <div className="space-y-6 max-w-3xl mx-auto">
-                        <div className="flex justify-center mb-6">
-                            {/* Institutional Seal - Monochrome */}
-                            <div className="w-12 h-12 border-2 border-slate-900 rounded-sm flex items-center justify-center rotate-3 opacity-90">
-                                <ShieldCheck className="w-6 h-6 text-slate-900" />
+                        <div className="flex justify-center mb-8">
+                            <div className="w-16 h-16 border-2 border-slate-900 rounded-lg flex items-center justify-center -rotate-3 bg-white shadow-sm">
+                                <Image src="/register-logo.png" alt="EUKI Logo" width={32} height={32} className="dark:invert px-0.5" />
                             </div>
                         </div>
                         <h1 className="text-4xl md:text-6xl font-serif text-slate-900 leading-tight tracking-tight">
@@ -50,7 +49,7 @@ export default function LandingPage2() {
                             <span className="text-slate-500 italic font-light">Sicher gesteuert und auditiert.</span>
                         </h1>
                         <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto font-light">
-                            Die reine Basis-Dokumentation bleibt bei uns <strong className="font-medium text-slate-900 underline underline-offset-4 decoration-slate-300">immer kostenlos</strong>. Intransparente KI-Portfolios und fehlende Überwachung führen jedoch schnell zu Compliance-Verstößen. Für Organisationen, die Prozesse sicher steuern müssen (ISO 42001), liefert das Governance Control Center automatisierte Prüfzyklen und kontinuierliche Risk-Readiness.
+                            Die reine Basis-Dokumentation bleibt bei uns <strong className="font-medium text-slate-900 underline underline-offset-4 decoration-slate-300">immer kostenlos</strong>. Der Aufbau und die Pflege einer rechtskonformen KI-Governance nach EU AI Act und ISO 42001 ist jedoch eine immense administrative Belastung. Für Organisationen, die diese Prozesse ohne Excel-Chaos steuern müssen, liefert das Governance Control Center automatisierte Prüfzyklen und kontinuierliche Readiness.
                         </p>
                     </div>
 
@@ -65,27 +64,48 @@ export default function LandingPage2() {
                     </div>
                 </div>
 
-                {/* THE "WHY UPGRADE" VALUE PROPOSITION */}
-                <div className="mb-24 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
-                        <BarChart3 className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
+                {/* THE "WHY UPGRADE" VALUE PROPOSITION - 6 Tiles */}
+                <div className="mb-24 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-center md:text-left">
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <BarChart3 className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
                         <h4 className="text-sm font-semibold text-slate-900 mb-2">Automatisierte Reviews</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
                             Intelligente Workflows erinnern Fachverantwortliche automatisch an anstehende Prüfungen. Nichts bleibt unkontrolliert.
                         </p>
                     </div>
-                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
-                        <Fingerprint className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <BookOpen className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
                         <h4 className="text-sm font-semibold text-slate-900 mb-2">Smart Policy Engine</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
-                            Verbinden Sie rechtliche Anforderungen und interne Vorgaben direkt mit Ihren Systemen im zentralen Management.
+                            Verbinden Sie rechtliche Anforderungen und intern vorgegebene Richtlinien direkt mit Ihren KI-Systemen im zentralen Management.
                         </p>
                     </div>
-                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
-                        <FileText className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
-                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Portfolio Intelligence</h4>
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <History className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Audit Trails & Historie</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
-                            Voller Echtzeit-Überblick über alle KI-Systeme sowie One-Click-Exporte in Behörden-konformen PDF/JSON-Formaten.
+                            Lückenlose Versionierung und Nachverfolgung aller Änderungen an KI-Einsatzfällen für offizielle Behördenüberprüfungen.
+                        </p>
+                    </div>
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <Users className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Rollen- & Zugriffs-Konzept</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed font-light">
+                            Granulare Berechtigungen für Fachbereiche (Read), IT-Admins (Edit) und das zentrale Management / DSBs (Approve).
+                        </p>
+                    </div>
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <LinkIcon className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">External Vendor Verification</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed font-light">
+                            Fordern Sie Compliance-Daten Ihrer Lieferanten ohne Account-Zwang direkt via sicherer Magic Links in das Register an.
+                        </p>
+                    </div>
+                    <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+                        <FileText className="w-5 h-5 text-slate-700 mb-4 mx-auto md:mx-0" />
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Portfolio Intelligence Exports</h4>
+                        <p className="text-xs text-slate-600 leading-relaxed font-light">
+                            Voller Echtzeit-Überblick über alle Systeme sowie One-Click-Export der Dokumentation in Behörden-konformen PDF/JSON-Formaten.
                         </p>
                     </div>
                 </div>
