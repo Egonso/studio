@@ -50,7 +50,7 @@ export default function LandingPage2() {
                             <span className="text-slate-500 italic font-light">Sicher gesteuert und auditiert.</span>
                         </h1>
                         <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto font-light">
-                            Die reine Basis-Dokumentation bleibt bei uns <strong className="font-medium text-slate-900 underline underline-offset-4 decoration-slate-300">immer kostenlos</strong>. Für Organisationen, die nicht nur dokumentieren, sondern Prozesse steuern müssen (ISO 42001), bietet das Governance Control Center automatisierte Prüfzyklen und volle Haftungsabsicherung.
+                            Die reine Basis-Dokumentation bleibt bei uns <strong className="font-medium text-slate-900 underline underline-offset-4 decoration-slate-300">immer kostenlos</strong>. Intransparente KI-Portfolios und fehlende Überwachung führen jedoch schnell zu Compliance-Verstößen. Für Organisationen, die Prozesse sicher steuern müssen (ISO 42001), liefert das Governance Control Center automatisierte Prüfzyklen und kontinuierliche Risk-Readiness.
                         </p>
                     </div>
 
@@ -71,21 +71,21 @@ export default function LandingPage2() {
                         <BarChart3 className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
                         <h4 className="text-sm font-semibold text-slate-900 mb-2">Automatisierte Reviews</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
-                            Systeme erinnern Fachverantwortliche automatisch an anstehende Prüfungen. Nichts bleibt unkontrolliert.
+                            Intelligente Workflows erinnern Fachverantwortliche automatisch an anstehende Prüfungen. Nichts bleibt unkontrolliert.
                         </p>
                     </div>
                     <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
                         <Fingerprint className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
-                        <h4 className="text-sm font-semibold text-slate-900 mb-2">AI Pre-Audits</h4>
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Smart Policy Engine</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
-                            Intelligente Vorkontrolle von Use-Cases auf Inkonsistenzen und rechtliche Risiken vor dem formellen Freigabeprozess.
+                            Verbinden Sie rechtliche Anforderungen und interne Vorgaben direkt mit Ihren Systemen im zentralen Management.
                         </p>
                     </div>
                     <div className="p-6 bg-white border border-slate-200 rounded-sm shadow-sm">
                         <FileText className="w-6 h-6 text-slate-700 mb-4 mx-auto md:mx-0" />
-                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Bulk-Exporte</h4>
+                        <h4 className="text-sm font-semibold text-slate-900 mb-2">Portfolio Intelligence</h4>
                         <p className="text-xs text-slate-600 leading-relaxed font-light">
-                            Exportieren Sie die gesamte Dokumentation auf Knopfdruck als gebündelten PDF/JSON-Bericht für Behörden.
+                            Voller Echtzeit-Überblick über alle KI-Systeme sowie One-Click-Exporte in Behörden-konformen PDF/JSON-Formaten.
                         </p>
                     </div>
                 </div>
@@ -109,10 +109,10 @@ export default function LandingPage2() {
 
                             <ul className="space-y-4 mb-8 flex-1">
                                 <li className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">100</span> Use Cases
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">100</span> Use Cases
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">4</span> Auth User
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">4</span> Auth User
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-slate-400 font-light pt-2">
                                     <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" /> Alle Steuerungselemente
@@ -129,10 +129,10 @@ export default function LandingPage2() {
 
                             <ul className="space-y-4 mb-8 flex-1">
                                 <li className="flex items-start gap-3 text-sm text-white font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">500</span> Use Cases
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">500</span> Use Cases
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-white font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">15</span> Auth User
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">15</span> Auth User
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-slate-400 font-light pt-2">
                                     <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" /> Alle Steuerungselemente
@@ -141,24 +141,27 @@ export default function LandingPage2() {
                             <button onClick={() => router.push('/einrichten')} className="w-full py-3 text-xs font-medium text-slate-900 bg-white hover:bg-slate-200 transition-colors">Trial aktivieren</button>
                         </div>
 
-                        {/* Enterprise */}
+                        {/* Premium */}
                         <div className="p-8 hover:bg-slate-50 transition-colors flex flex-col">
-                            <h3 className="text-xs uppercase tracking-widest font-bold text-slate-500 mb-2">Enterprise</h3>
+                            <h3 className="text-xs uppercase tracking-widest font-bold text-slate-500 mb-2">Premium</h3>
                             <div className="text-4xl font-serif text-slate-900 mb-1">199 €<span className="text-sm text-slate-500 font-sans font-normal"> / Mo</span></div>
-                            <p className="text-xs text-slate-500 mb-8 border-b border-slate-100 pb-4">Für Konzerne</p>
+                            <p className="text-xs text-slate-500 mb-8 border-b border-slate-100 pb-4">Das volle Leistungsspektrum</p>
 
                             <ul className="space-y-4 mb-8 flex-1">
                                 <li className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">∞</span> Use Cases
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">1.000</span> Use Cases
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-slate-700 font-medium">
-                                    <span className="w-4 text-center text-slate-400 mt-0.5 shrink-0">∞</span> Auth User
+                                    <span className="w-8 text-right text-slate-400 mt-0.5 shrink-0">100</span> Auth User
                                 </li>
                                 <li className="flex items-start gap-3 text-sm text-slate-400 font-light pt-2">
                                     <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" /> Alle Steuerungselemente
                                 </li>
                             </ul>
                             <button onClick={() => router.push('/einrichten')} className="w-full py-3 text-xs font-medium text-slate-700 border border-slate-300 bg-transparent hover:bg-slate-100 transition-colors">Trial aktivieren</button>
+                            <div className="mt-4 text-center">
+                                <button onClick={() => window.location.href = "mailto:sales@eukigesetz.com"} className="text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2">Darüber hinaus: Uns kontaktieren</button>
+                            </div>
                         </div>
 
                     </div>
