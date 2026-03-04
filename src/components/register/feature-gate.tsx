@@ -6,6 +6,8 @@ import { useCapability } from '@/lib/compliance-engine/capability/useCapability'
 import type { FeatureCapability } from '@/lib/compliance-engine/capability/featureChecker';
 import { FeatureGateDialog } from '@/components/feature-gate-dialog';
 import { useState } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { ADMIN_EMAILS } from '@/lib/admin-config';
 
 interface FeatureGateProps {
     /** The feature capability to check */
@@ -48,9 +50,12 @@ export function FeatureGate({
 }: FeatureGateProps) {
     const { allowed, loading } = useCapability(feature);
     const [showFeatureGate, setShowFeatureGate] = useState(false);
+    const { user } = useAuth();
+
+    const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 
     // While loading, show children normally (no flash of locked state)
-    if (loading || allowed) {
+    if (loading || allowed || isAdmin) {
         return <>{children}</>;
     }
 
