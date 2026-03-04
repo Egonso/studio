@@ -86,7 +86,7 @@ export default function LandingSimplePage() {
           {/* Phase 1: Statement */}
           <section className="space-y-6">
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
-              Jede Organisation mit KI-Einsatzfällen
+              Jede Organisation mit KI-Einsatz
               <br />
               führt ein KI-Register.
             </h1>
@@ -94,7 +94,7 @@ export default function LandingSimplePage() {
               Ein KI-Register ist die organisationsinterne
               Standard-Struktur zur Dokumentation von KI-Einsatzfällen.
               Es hält Verantwortlichkeiten, Status und Nachweise in
-              revisionsfähiger Form fest.
+              revisionsfähiger Form fest - wie es der EU AI Act fordert.
             </p>
             <div className="flex items-center gap-4 pt-2">
               <button
