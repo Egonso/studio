@@ -15,6 +15,7 @@ const chromeSteps = [
   "Download ki-register-quick-capture-chrome.zip entpacken.",
   "Entpackte Erweiterung laden klicken und den entpackten Ordner auswählen.",
   "Extension anheften und über das Icon Quick Capture im Mini-Fenster öffnen.",
+  "Keine Domain-Einstellung nötig: die Extension nutzt standardmäßig app.kiregister.com.",
 ];
 
 const macSteps = [
@@ -22,6 +23,7 @@ const macSteps = [
   "KI-Register-MenuBar.app nach Programme ziehen.",
   "App per Rechtsklick öffnen (beim ersten Start).",
   "Falls macOS blockiert: Systemeinstellungen -> Datenschutz & Sicherheit -> Trotzdem öffnen.",
+  "Falls weiterhin blockiert: xattr -dr com.apple.quarantine /Applications/KI-Register-MenuBar.app",
   "Nach dem Start erscheint das Icon oben in der Menüleiste neben WLAN/Batterie.",
 ];
 
@@ -113,7 +115,7 @@ export default function DownloadsPage() {
             <ShieldCheck className="mt-0.5 h-5 w-5 text-slate-700" />
             <p className="text-sm leading-relaxed text-slate-700">
               Beide Downloads öffnen die bestehende Quick-Capture-Maske des KI-Registers.
-              Inhalte und Governance bleiben im gleichen Register-Standard.
+              Inhalte und Governance bleiben im gleichen Register-Standard auf kiregister.com.
             </p>
           </div>
         </section>
@@ -140,10 +142,10 @@ export default function DownloadsPage() {
           <h2 className="text-lg font-semibold text-slate-900">Nutzung</h2>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
             <li>
-              Beim ersten Öffnen kannst du dich im Quick-Capture-Flow mit deinem bestehenden Konto anmelden.
+              Beim ersten Öffnen prüft Quick Capture deinen Login. Angemeldet speichert direkt im Register.
             </li>
             <li>
-              Für Teams ohne Login kann alternativ der Erfassungslink mit Zugangscode genutzt werden.
+              Ohne Login kannst du als Gast fortfahren; diese Einträge werden lokal im Browser gespeichert.
             </li>
             <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.

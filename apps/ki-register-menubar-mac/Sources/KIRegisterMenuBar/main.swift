@@ -3,174 +3,142 @@ import SwiftUI
 import WebKit
 
 private enum CaptureConfig {
-  static let defaultBaseURL = "https://app.kiregister.com"
-  static let storageKey = "quickCaptureBaseURL"
+  static let captureURL = URL(string: "https://app.kiregister.com/capture?source=menubar-app")!
 }
 
 @main
 struct KIRegisterMenuBarApp: App {
+  @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
   var body: some Scene {
-    MenuBarExtra("KI-Register", systemImage: "doc.text.badge.plus") {
+    MenuBarExtra("KI-Register", systemImage: "sparkles.rectangle.stack.fill") {
       MenuBarCaptureView()
     }
     .menuBarExtraStyle(.window)
   }
 }
 
-private struct MenuBarCaptureView: View {
-  @AppStorage(CaptureConfig.storageKey) private var baseURL: String = CaptureConfig.defaultBaseURL
-  @State private var draftBaseURL: String = CaptureConfig.defaultBaseURL
-  @State private var reloadToken = UUID()
-  @State private var statusMessage = "Bereit."
-  @State private var hasError = false
-
-  private var captureURL: URL? {
-    guard let normalized = normalizeBaseURL(baseURL) else { return nil }
-    guard var components = URLComponents(url: normalized, resolvingAgainstBaseURL: false) else {
-      return nil
-    }
-
-    components.path = "/capture"
-    components.queryItems = [
-      URLQueryItem(name: "source", value: "menubar-app")
-    ]
-
-    return components.url
+private final class AppDelegate: NSObject, NSApplicationDelegate {
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    NSApp.setActivationPolicy(.accessory)
   }
+}
+
+private struct MenuBarCaptureView: View {
+  @State private var reloadToken = UUID()
+  @State private var isLoading = true
+  private let captureURL = CaptureConfig.captureURL
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .center, spacing: 10) {
         Text("KI-Register Quick Capture")
           .font(.headline)
 
-        Text("Direkt aus der Menüleiste erfassen.")
+        Text("Menüleiste")
           .font(.subheadline)
           .foregroundStyle(.secondary)
-      }
 
-      VStack(alignment: .leading, spacing: 6) {
-        Text("Basis-URL")
-          .font(.caption)
-          .foregroundStyle(.secondary)
+        Spacer()
 
-        TextField("https://app.kiregister.com", text: $draftBaseURL)
-          .textFieldStyle(.roundedBorder)
-      }
-
-      HStack(spacing: 8) {
-        Button("Speichern") {
-          saveBaseURL()
-        }
-
-        Button("Neu laden") {
+        Button {
           reloadToken = UUID()
-          statusMessage = "Neu geladen."
-          hasError = false
+        } label: {
+          Image(systemName: "arrow.clockwise")
+            .font(.system(size: 13, weight: .semibold))
         }
+        .buttonStyle(.borderless)
+        .help("Neu laden")
 
-        Button("Im Browser öffnen") {
+        Button {
           openInBrowser()
+        } label: {
+          Image(systemName: "safari")
+            .font(.system(size: 13, weight: .semibold))
+        }
+        .buttonStyle(.borderless)
+        .help("Im Browser öffnen")
+      }
+      .padding(.horizontal, 2)
+
+      ZStack {
+        QuickCaptureWebView(url: captureURL, reloadToken: reloadToken, isLoading: $isLoading)
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12)
+              .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+          )
+
+        if isLoading {
+          ProgressView("Lade Quick Capture …")
+            .controlSize(.small)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         }
       }
-      .buttonStyle(.bordered)
+      .frame(width: 500, height: 740)
 
-      Group {
-        if let url = captureURL {
-          QuickCaptureWebView(url: url, reloadToken: reloadToken)
-            .frame(width: 500, height: 700)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(
-              RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-            )
-        } else {
-          VStack(spacing: 10) {
-            Image(systemName: "exclamationmark.triangle")
-              .font(.system(size: 22))
-              .foregroundStyle(.secondary)
-            Text("Ungültige URL")
-              .font(.headline)
-            Text("Bitte eine gültige http(s)-Basis-URL speichern.")
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
-          }
-          .frame(width: 500, height: 700)
-        }
-      }
-
-      Text(statusMessage)
+      Text("Nicht eingeloggt? In der Maske anmelden oder als Gast lokal speichern.")
         .font(.caption)
-        .foregroundStyle(hasError ? Color.red : Color.secondary)
+        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(14)
+    .padding(12)
     .frame(width: 528)
-    .onAppear {
-      if draftBaseURL.isEmpty {
-        draftBaseURL = baseURL
-      }
-    }
-  }
-
-  private func saveBaseURL() {
-    guard let normalized = normalizeBaseURL(draftBaseURL) else {
-      statusMessage = "Ungültige URL. Erlaubt: http oder https."
-      hasError = true
-      return
-    }
-
-    let absolute = normalized.absoluteString
-    baseURL = absolute
-    draftBaseURL = absolute
-    statusMessage = "Gespeichert: \(absolute)"
-    hasError = false
-    reloadToken = UUID()
   }
 
   private func openInBrowser() {
-    guard let url = captureURL else {
-      statusMessage = "URL ist ungültig."
-      hasError = true
-      return
-    }
-
-    NSWorkspace.shared.open(url)
-    statusMessage = "Im Browser geöffnet."
-    hasError = false
-  }
-
-  private func normalizeBaseURL(_ raw: String) -> URL? {
-    guard let url = URL(string: raw.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-      return nil
-    }
-
-    guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
-      return nil
-    }
-
-    guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-      return nil
-    }
-
-    components.path = ""
-    components.query = nil
-    components.fragment = nil
-
-    return components.url
+    NSWorkspace.shared.open(captureURL)
   }
 }
 
 private struct QuickCaptureWebView: NSViewRepresentable {
   let url: URL
   let reloadToken: UUID
+  @Binding var isLoading: Bool
 
-  final class Coordinator {
+  final class Coordinator: NSObject, WKNavigationDelegate {
+    var isLoading: Binding<Bool>
     var lastReloadToken: UUID?
+
+    init(isLoading: Binding<Bool>) {
+      self.isLoading = isLoading
+    }
+
+    func webView(
+      _ webView: WKWebView,
+      didStartProvisionalNavigation navigation: WKNavigation!
+    ) {
+      isLoading.wrappedValue = true
+    }
+
+    func webView(
+      _ webView: WKWebView,
+      didFinish navigation: WKNavigation!
+    ) {
+      isLoading.wrappedValue = false
+    }
+
+    func webView(
+      _ webView: WKWebView,
+      didFail navigation: WKNavigation!,
+      withError error: any Error
+    ) {
+      isLoading.wrappedValue = false
+    }
+
+    func webView(
+      _ webView: WKWebView,
+      didFailProvisionalNavigation navigation: WKNavigation!,
+      withError error: any Error
+    ) {
+      isLoading.wrappedValue = false
+    }
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator()
+    Coordinator(isLoading: $isLoading)
   }
 
   func makeNSView(context: Context) -> WKWebView {
@@ -180,6 +148,7 @@ private struct QuickCaptureWebView: NSViewRepresentable {
 
     let webView = WKWebView(frame: .zero, configuration: configuration)
     webView.allowsBackForwardNavigationGestures = true
+    webView.navigationDelegate = context.coordinator
     webView.load(URLRequest(url: url))
     context.coordinator.lastReloadToken = reloadToken
     return webView

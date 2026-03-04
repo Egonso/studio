@@ -12,6 +12,8 @@ BIN_PATH="${ROOT_DIR}/.build/release/${PRODUCT_NAME}"
 ICONSET_DIR="${ROOT_DIR}/.build/AppIcon.iconset"
 ICON_SRC="${REPO_ROOT}/public/register-logo.png"
 ICNS_PATH="${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+SIGN_IDENTITY="${MACOS_SIGN_IDENTITY:--}"
+NOTARY_PROFILE="${MACOS_NOTARY_PROFILE:-}"
 
 echo "==> Building Swift binary (${PRODUCT_NAME})"
 swift build -c release --package-path "${ROOT_DIR}" --product "${PRODUCT_NAME}"
@@ -39,7 +41,7 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" <<'PLIST'
   <key>CFBundleExecutable</key>
   <string>KIRegisterMenuBar</string>
   <key>CFBundleIdentifier</key>
-  <string>com.eukigesetz.kiregister.menubar</string>
+  <string>com.kiregister.menubar</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>
@@ -73,11 +75,27 @@ if [[ -f "${ICON_SRC}" ]]; then
   /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "${APP_BUNDLE}/Contents/Info.plist" >/dev/null
 fi
 
-echo "==> Ad-hoc signing app bundle"
-codesign --force --deep --sign - "${APP_BUNDLE}" >/dev/null 2>&1 || true
+if [[ "${SIGN_IDENTITY}" == "-" ]]; then
+  echo "==> Ad-hoc signing app bundle"
+  codesign --force --deep --sign - "${APP_BUNDLE}" >/dev/null
+else
+  echo "==> Signing app bundle with identity: ${SIGN_IDENTITY}"
+  codesign --force --deep --options runtime --timestamp --sign "${SIGN_IDENTITY}" "${APP_BUNDLE}"
+fi
 
 echo "==> Creating zip (${ZIP_PATH})"
 rm -f "${ZIP_PATH}"
 ditto -c -k --sequesterRsrc --keepParent "${APP_BUNDLE}" "${ZIP_PATH}"
+
+if [[ -n "${NOTARY_PROFILE}" && "${SIGN_IDENTITY}" != "-" ]]; then
+  echo "==> Notarizing zip with profile ${NOTARY_PROFILE}"
+  xcrun notarytool submit "${ZIP_PATH}" --keychain-profile "${NOTARY_PROFILE}" --wait
+  echo "==> Stapling notarization ticket"
+  xcrun stapler staple "${APP_BUNDLE}"
+
+  echo "==> Rebuilding zip with stapled app bundle"
+  rm -f "${ZIP_PATH}"
+  ditto -c -k --sequesterRsrc --keepParent "${APP_BUNDLE}" "${ZIP_PATH}"
+fi
 
 echo "Done: ${ZIP_PATH}"

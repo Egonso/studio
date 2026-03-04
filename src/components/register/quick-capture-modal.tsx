@@ -36,6 +36,9 @@ interface QuickCaptureModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onCaptured?: (useCaseId?: string) => void;
+    mode?: "register" | "guest";
+    renderInline?: boolean;
+    initialDraft?: Partial<QuickDraft>;
 }
 
 interface QuickDraft {
@@ -49,16 +52,30 @@ interface QuickDraft {
     description: string;
 }
 
-const EMPTY_DRAFT: QuickDraft = {
-    purpose: "",
-    ownerName: "",
-    toolId: "__placeholder__",
-    toolFreeText: "",
-    usageContexts: [],
-    dataCategories: [],
-    decisionInfluence: null,
-    description: "",
-};
+interface GuestCaptureEntry {
+    id: string;
+    capturedAt: string;
+    purpose: string;
+    ownerName: string;
+    tool: string;
+    usageContexts: CaptureUsageContext[];
+    dataCategories: DataCategory[];
+    decisionInfluence: DecisionInfluence | null;
+    description: string;
+}
+
+function createInitialDraft(initialDraft?: Partial<QuickDraft>): QuickDraft {
+    return {
+        purpose: initialDraft?.purpose?.slice(0, 160) ?? "",
+        ownerName: initialDraft?.ownerName ?? "",
+        toolId: initialDraft?.toolId ?? "__placeholder__",
+        toolFreeText: initialDraft?.toolFreeText ?? "",
+        usageContexts: [...(initialDraft?.usageContexts ?? [])],
+        dataCategories: [...(initialDraft?.dataCategories ?? [])],
+        decisionInfluence: initialDraft?.decisionInfluence ?? null,
+        description: initialDraft?.description?.slice(0, 160) ?? "",
+    };
+}
 
 /** Toggle an item in an array (add if absent, remove if present) */
 function toggleMultiSelect<T>(arr: T[], item: T): T[] {
@@ -116,18 +133,33 @@ function applyDataCategoryLogic(categories: DataCategory[], toggled: DataCategor
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptureModalProps) {
-    const [draft, setDraft] = useState<QuickDraft>({ ...EMPTY_DRAFT });
+export function QuickCaptureModal({
+    open,
+    onOpenChange,
+    onCaptured,
+    mode = "register",
+    renderInline = false,
+    initialDraft,
+}: QuickCaptureModalProps) {
+    const isGuestMode = mode === "guest";
+    const [draft, setDraft] = useState<QuickDraft>(() => createInitialDraft(initialDraft));
     const [isSaving, setIsSaving] = useState(false);
     const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
     const [inheritanceApplied, setInheritanceApplied] = useState(false);
-    const { allowed: canInherit } = useCapability("extendedOrgSettings");
+    const { allowed: canInheritRaw } = useCapability("extendedOrgSettings");
+    const canInherit = canInheritRaw && !isGuestMode;
     const { toast } = useToast();
 
     // Accordion state
     const [section1Open, setSection1Open] = useState(false);
     const [section2Open, setSection2Open] = useState(false);
     const [specialOpen, setSpecialOpen] = useState(false);
+
+    useEffect(() => {
+        if (open) {
+            setDraft(createInitialDraft(initialDraft));
+        }
+    }, [initialDraft, open]);
 
     // Load orgSettings from active register for inheritance
     useEffect(() => {
@@ -155,6 +187,38 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
         setIsSaving(true);
 
         try {
+            if (isGuestMode) {
+                const guestEntry: GuestCaptureEntry = {
+                    id: `guest_${Date.now()}`,
+                    capturedAt: new Date().toISOString(),
+                    purpose: draft.purpose.trim(),
+                    ownerName: draft.ownerName.trim(),
+                    tool: draft.toolId === "other" ? draft.toolFreeText.trim() : draft.toolId,
+                    usageContexts: draft.usageContexts,
+                    dataCategories: draft.dataCategories,
+                    decisionInfluence: draft.decisionInfluence,
+                    description: draft.description.trim(),
+                };
+
+                const key = "kiregister_guest_captures";
+                const existingRaw = window.localStorage.getItem(key);
+                const existing = existingRaw ? (JSON.parse(existingRaw) as GuestCaptureEntry[]) : [];
+                window.localStorage.setItem(key, JSON.stringify([guestEntry, ...existing]));
+
+                toast({
+                    title: "Lokal gespeichert",
+                    description: "Gast-Eintrag wurde lokal im Browser gespeichert.",
+                });
+
+                setDraft(createInitialDraft(initialDraft));
+                setSection1Open(false);
+                setSection2Open(false);
+                setSpecialOpen(false);
+                onCaptured?.();
+                onOpenChange(false);
+                return;
+            }
+
             const card = await registerService.createUseCaseFromCapture({
                 purpose: draft.purpose.trim(),
                 toolId: draft.toolId === "other" ? "other" : draft.toolId,
@@ -200,7 +264,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                     : `„${card.purpose}" – Status: Formale Prüfung ausstehend`,
             });
 
-            setDraft({ ...EMPTY_DRAFT });
+            setDraft(createInitialDraft(initialDraft));
             setSection1Open(false);
             setSection2Open(false);
             setSpecialOpen(false);
@@ -210,7 +274,9 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
             toast({
                 variant: "destructive",
                 title: "Fehler",
-                description: "Use Case konnte nicht gespeichert werden.",
+                description: isGuestMode
+                    ? "Gast-Eintrag konnte nicht lokal gespeichert werden."
+                    : "Use Case konnte nicht gespeichert werden.",
             });
         } finally {
             setIsSaving(false);
@@ -229,7 +295,18 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto"
+                className={`sm:max-w-[480px] max-h-[90vh] overflow-y-auto ${renderInline ? "top-6 sm:top-8 translate-y-0 data-[state=open]:slide-in-from-top-4 data-[state=closed]:slide-out-to-top-4" : ""}`}
+                hideOverlay={renderInline}
+                onPointerDownOutside={(event) => {
+                    if (renderInline) {
+                        event.preventDefault();
+                    }
+                }}
+                onInteractOutside={(event) => {
+                    if (renderInline) {
+                        event.preventDefault();
+                    }
+                }}
                 onKeyDown={handleKeyDown}
                 aria-describedby="qc-dialog-desc"
                 aria-labelledby="qc-dialog-title"
@@ -239,6 +316,11 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                     <DialogDescription id="qc-dialog-desc">
                         Erfasse nur das Minimum. Du kannst später ergänzen.
                     </DialogDescription>
+                    {isGuestMode && (
+                        <p className="text-xs text-muted-foreground">
+                            Gastmodus: Einträge werden lokal in diesem Browser gespeichert.
+                        </p>
+                    )}
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
@@ -482,7 +564,8 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                 {/* Actions */}
                 <div className="flex items-center justify-between">
                     <p className="text-[11px] text-muted-foreground">
-                        <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘↵</kbd> Speichern
+                        <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘↵</kbd>{" "}
+                        {isGuestMode ? "Lokal speichern" : "Speichern"}
                     </p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -490,7 +573,7 @@ export function QuickCaptureModal({ open, onOpenChange, onCaptured }: QuickCaptu
                         </Button>
                         <Button onClick={() => void handleSave()} disabled={!canSave || isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Speichern
+                            {isGuestMode ? "Lokal speichern" : "Speichern"}
                         </Button>
                     </div>
                 </div>
