@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
@@ -181,7 +181,7 @@ export default function ErfassenPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-6 flex w-full max-w-lg items-center justify-between">
         <div className="flex items-center gap-2">
-          <ThemeAwareLogo alt="Logo" width={32} height={32} className="h-8 w-8" />
+          <Image src="/register-logo.png" alt="Logo" width={32} height={32} className="h-8 w-8" />
           <span className="text-lg font-semibold">KI-Einsatzfall erfassen</span>
         </div>
         <Link

@@ -91,6 +91,7 @@ export function Dashboard({
   const shownTriggerSignatureRef = useRef<string | null>(null);
 
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+  const [supplierLinkCopied, setSupplierLinkCopied] = useState(false);
 
   const statusCounts = useMemo(() => {
     const initial: Record<RegisterUseCaseStatus, number> = {
@@ -164,11 +165,16 @@ export function Dashboard({
     const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
     try {
       await navigator.clipboard.writeText(link);
+      setSupplierLinkCopied(true);
+      window.setTimeout(() => {
+        setSupplierLinkCopied(false);
+      }, 2200);
       toast({
         title: "Anfrage-Link kopiert",
         description: "Der Lieferanten-Link wurde in die Zwischenablage kopiert.",
       });
     } catch {
+      setSupplierLinkCopied(false);
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -229,6 +235,7 @@ export function Dashboard({
             onSupplierRequestClick={handleSupplierRequest}
             onShareCaptureLinkClick={handleShareCaptureLink}
             utilitiesDisabled={!register?.registerId}
+            isSupplierLinkCopied={supplierLinkCopied}
           />
           <QuickCaptureModal
             open={isQuickCaptureOpen}

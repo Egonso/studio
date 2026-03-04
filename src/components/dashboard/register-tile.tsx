@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, AlertCircle, Link2, Share2 } from "lucide-react";
+import { PlusCircle, AlertCircle, Link2, Share2, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -15,6 +15,7 @@ interface RegisterTileProps {
     onSupplierRequestClick?: () => void;
     onShareCaptureLinkClick?: () => void;
     utilitiesDisabled?: boolean;
+    isSupplierLinkCopied?: boolean;
 }
 
 export function RegisterTile({
@@ -25,6 +26,7 @@ export function RegisterTile({
     onSupplierRequestClick,
     onShareCaptureLinkClick,
     utilitiesDisabled = false,
+    isSupplierLinkCopied = false,
 }: RegisterTileProps) {
     const isEmpty = useCaseCount === 0;
     const registerHref = projectId ? `/my-register?projectId=${projectId}` : "/my-register";
@@ -77,12 +79,20 @@ export function RegisterTile({
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 text-xs text-muted-foreground"
+                                    className={`h-8 text-xs ${
+                                        isSupplierLinkCopied
+                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                            : "text-muted-foreground"
+                                    }`}
                                     disabled={utilitiesDisabled}
                                     onClick={onSupplierRequestClick}
                                 >
-                                    <Link2 className="mr-1.5 h-3.5 w-3.5" />
-                                    Lieferant anfragen
+                                    {isSupplierLinkCopied ? (
+                                        <Check className="mr-1.5 h-3.5 w-3.5" />
+                                    ) : (
+                                        <Link2 className="mr-1.5 h-3.5 w-3.5" />
+                                    )}
+                                    {isSupplierLinkCopied ? "Link kopiert" : "Lieferant anfragen"}
                                 </Button>
                                 <Button
                                     size="sm"

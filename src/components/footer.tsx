@@ -16,30 +16,30 @@ export function Footer() {
                     >
                         Downloads
                     </Link>
-                    <Link
-                        href="https://kiregister.com/impressum"
+                    <a
+                        href="https://eukigesetz.com/impressum"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                     >
                         Impressum
-                    </Link>
-                    <Link
-                        href="https://kiregister.com/datenschutz"
+                    </a>
+                    <a
+                        href="https://eukigesetz.com/datenschutz"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                     >
                         Datenschutz
-                    </Link>
-                    <Link
-                        href="https://kiregister.com/agb"
+                    </a>
+                    <a
+                        href="https://eukigesetz.com/agb"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
                     >
                         AGB
-                    </Link>
+                    </a>
                 </div>
             </div>
         </footer>

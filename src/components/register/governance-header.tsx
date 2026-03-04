@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, Link2, Share2 } from "lucide-react";
+import { Settings, Link2, Share2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
@@ -26,6 +26,7 @@ interface GovernanceHeaderProps {
 export function GovernanceHeader({ useCases, register, onQuickCapture, children }: GovernanceHeaderProps) {
     const router = useRouter();
     const { toast } = useToast();
+    const [supplierLinkCopied, setSupplierLinkCopied] = useState(false);
 
     const counts = useMemo(() => {
         const byStatus: Record<RegisterUseCaseStatus, number> = {
@@ -55,11 +56,16 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
         const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
         try {
             await navigator.clipboard.writeText(link);
+            setSupplierLinkCopied(true);
+            window.setTimeout(() => {
+                setSupplierLinkCopied(false);
+            }, 2200);
             toast({
                 title: "Magic Link kopiert",
                 description: "Der Anfrage-Link für Lieferanten wurde in die Zwischenablage kopiert. Sie können diesen nun per E-Mail versenden.",
             });
         } catch {
+            setSupplierLinkCopied(false);
             toast({
                 variant: "destructive",
                 title: "Fehler",
@@ -159,10 +165,20 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     {register && (
                         <button
                             onClick={handleSupplierRequest}
-                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                supplierLinkCopied
+                                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`}
                         >
-                            <Link2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Lieferant anfragen</span>
+                            {supplierLinkCopied ? (
+                                <Check className="h-3.5 w-3.5" />
+                            ) : (
+                                <Link2 className="h-3.5 w-3.5" />
+                            )}
+                            <span className="hidden sm:inline">
+                                {supplierLinkCopied ? "Link kopiert" : "Lieferant anfragen"}
+                            </span>
                         </button>
                     )}
                     {register && (

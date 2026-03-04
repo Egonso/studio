@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { readFileSync } from 'node:fs';
 
 const PROJECT_ID_KEYS = [
     'FIREBASE_ADMIN_PROJECT_ID',
@@ -12,6 +13,10 @@ const SERVICE_ACCOUNT_JSON_KEYS = [
     'FIREBASE_SERVICE_ACCOUNT_KEY',
     'FIREBASE_ADMIN_SERVICE_ACCOUNT',
     'GOOGLE_APPLICATION_CREDENTIALS_JSON',
+] as const;
+const SERVICE_ACCOUNT_FILE_KEYS = [
+    'GOOGLE_APPLICATION_CREDENTIALS',
+    'FIREBASE_ADMIN_SERVICE_ACCOUNT_PATH',
 ] as const;
 
 const CLIENT_EMAIL_KEYS = [
@@ -63,6 +68,27 @@ function normalizePrivateKey(value?: string): string | undefined {
     return normalized;
 }
 
+function parseServiceAccountJson(raw: string): {
+    project_id?: string;
+    client_email?: string;
+    private_key?: string;
+} | null {
+    const cleaned = cleanEnv(raw);
+    if (!cleaned) return null;
+
+    try {
+        return JSON.parse(cleaned);
+    } catch {
+        const decoded = decodeBase64(cleaned);
+        if (!decoded) return null;
+        try {
+            return JSON.parse(decoded);
+        } catch {
+            return null;
+        }
+    }
+}
+
 if (!admin.apps.length) {
     const projectIdConfig = firstEnv(PROJECT_ID_KEYS);
     const projectId = projectIdConfig?.value || 'ai-act-compass-m6o05';
@@ -72,11 +98,10 @@ if (!admin.apps.length) {
     const serviceAccountConfig = firstEnv(SERVICE_ACCOUNT_JSON_KEYS);
     if (serviceAccountConfig) {
         try {
-            const parsed = JSON.parse(serviceAccountConfig.value) as {
-                project_id?: string;
-                client_email?: string;
-                private_key?: string;
-            };
+            const parsed = parseServiceAccountJson(serviceAccountConfig.value);
+            if (!parsed) {
+                throw new Error('Invalid JSON or base64 JSON payload');
+            }
             const clientEmail = cleanEnv(parsed.client_email);
             const privateKey = normalizePrivateKey(parsed.private_key);
             const serviceProjectId = cleanEnv(parsed.project_id) || projectId;
@@ -100,7 +125,41 @@ if (!admin.apps.length) {
         }
     }
 
-    // 2) Split env vars
+    // 2) Service account file path
+    if (!initialized) {
+        const serviceAccountFileConfig = firstEnv(SERVICE_ACCOUNT_FILE_KEYS);
+        if (serviceAccountFileConfig) {
+            try {
+                const fileContent = readFileSync(serviceAccountFileConfig.value, 'utf8');
+                const parsed = parseServiceAccountJson(fileContent);
+                if (!parsed) {
+                    throw new Error('Service account file is not valid JSON');
+                }
+                const clientEmail = cleanEnv(parsed.client_email);
+                const privateKey = normalizePrivateKey(parsed.private_key);
+                const serviceProjectId = cleanEnv(parsed.project_id) || projectId;
+
+                if (clientEmail && privateKey) {
+                    admin.initializeApp({
+                        credential: admin.credential.cert({
+                            projectId: serviceProjectId,
+                            clientEmail,
+                            privateKey,
+                        }),
+                        projectId: serviceProjectId,
+                    });
+                    initialized = true;
+                    console.log(
+                        `✅ Firebase Admin initialized via ${serviceAccountFileConfig.key} file (project: ${serviceProjectId})`
+                    );
+                }
+            } catch (error) {
+                console.error(`❌ Invalid ${serviceAccountFileConfig.key} file`, error);
+            }
+        }
+    }
+
+    // 3) Split env vars
     if (!initialized) {
         const clientEmailConfig = firstEnv(CLIENT_EMAIL_KEYS);
         const privateKeyConfig = firstEnv(PRIVATE_KEY_KEYS);
@@ -127,7 +186,7 @@ if (!admin.apps.length) {
         }
     }
 
-    // 3) Fallback (Cloud runtime / ADC)
+    // 4) Fallback (Cloud runtime / ADC)
     if (!initialized) {
         try {
             admin.initializeApp({
@@ -143,7 +202,7 @@ if (!admin.apps.length) {
         }
     }
 
-    // 4) Last resort to prevent module-level crash; Firestore call will still fail
+    // 5) Last resort to prevent module-level crash; Firestore call will still fail
     if (!initialized) {
         admin.initializeApp({ projectId });
         console.warn('⚠️ Firebase Admin initialized without explicit credentials');
