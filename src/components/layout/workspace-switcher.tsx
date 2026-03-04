@@ -31,12 +31,7 @@ export function WorkspaceSwitcher() {
 
     // If the user has no external workspaces, don't show the switcher
     if (workspaces.length === 0) {
-        return (
-            <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-muted-foreground border rounded-md">
-                <Building2 className="h-4 w-4" />
-                Mein Register
-            </div>
-        );
+        return null;
     }
 
     const activeWorkspace = activeId

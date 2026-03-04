@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { GanttChartSquare, LogOut, PlusCircle, BookOpen, Settings, UserCircle, ShieldCheck } from "lucide-react";
+import { GanttChartSquare, LogOut, BookOpen, Settings, UserCircle, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { clearActiveProjectId } from "@/lib/data-service";
@@ -69,20 +69,7 @@ export function AppHeader() {
             <span className="hidden sm:inline">Gesetz</span>
           </Link>
 
-          <div className="flex items-center gap-2 border-l pl-4 ml-1 border-border">
-            <Link href="/my-register">
-              <Button size="sm" className="h-8 gap-1.5 px-3 text-xs" variant="outline">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">KI-Einsatzfall erfassen</span>
-              </Button>
-            </Link>
-            <Button size="sm" className="h-8 gap-1.5 px-3 text-xs hidden md:flex" variant="outline">
-              <span className="hidden sm:inline">Lieferant anfragen</span>
-            </Button>
-            <Button size="sm" className="h-8 gap-1.5 px-3 text-xs hidden lg:flex" variant="outline">
-              <span className="hidden sm:inline">Erfassungslink teilen</span>
-            </Button>
-          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1.5">
