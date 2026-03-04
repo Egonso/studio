@@ -4,7 +4,7 @@
  */
 
 export const SITE_TREE = `
-SITEMAP — EuKIGesetz Studio (fortbildung.eukigesetz.com)
+SITEMAP — EuKIGesetz Studio (app.kiregister.com)
 
 🏠 HAUPTNAVIGATION (eingeloggte User):
 ├── /dashboard .............. Register-Übersicht (Alias)

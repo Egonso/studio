@@ -139,7 +139,7 @@ export default function LandingSimple1() {
                                 <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" /> Portfolio Intelligence Dashboard</li>
                                 <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" /> Whitelabel Proof-Packs</li>
                             </ul>
-                            <button onClick={() => window.location.href = "mailto:sales@eukigesetz.com"} className="w-full py-2.5 px-4 text-xs font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-sm transition-colors">Kontakt aufnehmen</button>
+                            <button onClick={() => window.location.href = "mailto:sales@kiregister.com"} className="w-full py-2.5 px-4 text-xs font-medium text-slate-700 border border-slate-200 hover:bg-slate-50 rounded-sm transition-colors">Kontakt aufnehmen</button>
                         </div>
 
                     </div>
@@ -159,7 +159,7 @@ export default function LandingSimple1() {
                                 <span className="block text-sm font-serif text-slate-900">995 €</span>
                                 <span className="block text-[10px] text-slate-400 uppercase tracking-wide">Einmalig</span>
                             </div>
-                            <button onClick={() => window.location.href = "https://eukigesetz.com"} className="text-xs font-medium text-slate-800 flex items-center gap-1 hover:text-blue-900 transition-colors">
+                            <button onClick={() => window.location.href = "https://kiregister.com"} className="text-xs font-medium text-slate-800 flex items-center gap-1 hover:text-blue-900 transition-colors">
                                 Zur Lehrgangs-Spezifikation <ArrowUpRight className="w-3.5 h-3.5" />
                             </button>
                         </div>

@@ -336,12 +336,12 @@ export default function PublicTrustPortalPage() {
               </div>
               <div className="text-xs text-slate-400">
                 <a
-                  href="https://eukigesetz.com"
+                  href="https://kiregister.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-indigo-600 transition-colors"
                 >
-                  Mehr Infos unter eukigesetz.com
+                  Mehr Infos unter kiregister.com
                 </a>
               </div>
             </div>

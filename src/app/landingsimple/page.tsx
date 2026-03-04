@@ -180,7 +180,7 @@ export default function LandingSimplePage() {
           <span>KI-Register ist ein offener Dokumentationsstandard.</span>
           <div className="flex gap-4">
             <a
-              href="https://eukigesetz.com/impressum"
+              href="https://kiregister.com/impressum"
               target="_blank"
               rel="noreferrer"
               className="hover:text-foreground"
@@ -188,7 +188,7 @@ export default function LandingSimplePage() {
               Impressum
             </a>
             <a
-              href="https://eukigesetz.com/datenschutz"
+              href="https://kiregister.com/datenschutz"
               target="_blank"
               rel="noreferrer"
               className="hover:text-foreground"

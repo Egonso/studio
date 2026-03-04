@@ -3,7 +3,7 @@ import SwiftUI
 import WebKit
 
 private enum CaptureConfig {
-  static let defaultBaseURL = "https://app.eukigesetz.com"
+  static let defaultBaseURL = "https://app.kiregister.com"
   static let storageKey = "quickCaptureBaseURL"
 }
 
@@ -54,7 +54,7 @@ private struct MenuBarCaptureView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
 
-        TextField("https://app.eukigesetz.com", text: $draftBaseURL)
+        TextField("https://app.kiregister.com", text: $draftBaseURL)
           .textFieldStyle(.roundedBorder)
       }
 

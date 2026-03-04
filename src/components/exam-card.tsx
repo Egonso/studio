@@ -7,7 +7,7 @@ import { GraduationCap, AlertTriangle, CheckCircle } from "lucide-react";
 
 export function ExamCard() {
     const handleStartExam = () => {
-        window.open('https://eukigesetz.com/exam', '_blank', 'noopener,noreferrer');
+        window.open('https://kiregister.com/exam', '_blank', 'noopener,noreferrer');
     };
     
     return (

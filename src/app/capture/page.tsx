@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/context/auth-context";
-import { CaptureForm } from "@/components/register/capture-form";
+import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
 import {
   registerService,
   type RegisterServiceErrorCode,
 } from "@/lib/register-first/register-service";
-import type { UseCaseCard } from "@/lib/register-first/types";
 
 type OnboardingState = "loading" | "no_register" | "ready";
 
@@ -28,12 +27,14 @@ function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
 export default function StandaloneCapturePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const source = searchParams.get("source");
+  const [captureOpen, setCaptureOpen] = useState(true);
 
   const [onboardingState, setOnboardingState] = useState<OnboardingState>("loading");
   const [registerName, setRegisterName] = useState("Mein Register");
   const [isCreatingRegister, setIsCreatingRegister] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [lastCreatedCard, setLastCreatedCard] = useState<UseCaseCard | null>(null);
 
   // Check if user has a register on mount
   const [hasChecked, setHasChecked] = useState(false);
@@ -82,10 +83,34 @@ export default function StandaloneCapturePage() {
     }
   };
 
-  const handleCaptureSubmit = async (payload: unknown): Promise<UseCaseCard> => {
-    const card = await registerService.createUseCaseFromCapture(payload);
-    setLastCreatedCard(card);
-    return card;
+  const closeCapture = () => {
+    if (source === "chrome-extension" || source === "menubar-app") {
+      try {
+        window.close();
+      } catch {
+        // Ignore and fallback below.
+      }
+    }
+    router.push("/my-register");
+  };
+
+  const handleModalChange = (nextOpen: boolean) => {
+    setCaptureOpen(nextOpen);
+    if (!nextOpen) {
+      closeCapture();
+    }
+  };
+
+  const handleCaptured = (useCaseId?: string) => {
+    if (source === "chrome-extension" || source === "menubar-app") {
+      closeCapture();
+      return;
+    }
+    if (useCaseId) {
+      router.push(`/pass/${useCaseId}`);
+      return;
+    }
+    closeCapture();
   };
 
   if (authLoading || onboardingState === "loading") {
@@ -136,30 +161,5 @@ export default function StandaloneCapturePage() {
     );
   }
 
-  return (
-    <div className="flex min-h-screen flex-col items-center p-4 pt-12">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold">Quick Capture</h1>
-        <p className="text-sm text-muted-foreground">
-          KI-Einsatzfall in unter 30 Sekunden festhalten.
-        </p>
-      </div>
-      <CaptureForm onSubmit={handleCaptureSubmit} />
-      {lastCreatedCard && (
-        <div className="mt-6 w-full max-w-3xl">
-          <Alert>
-            <AlertTitle>Gespeichert</AlertTitle>
-            <AlertDescription>
-              Use-Case ID: {lastCreatedCard.useCaseId}
-              {lastCreatedCard.publicHashId && (
-                <>
-                  {" "}| Hash: {lastCreatedCard.publicHashId}
-                </>
-              )}
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-    </div>
-  );
+  return <QuickCaptureModal open={captureOpen} onOpenChange={handleModalChange} onCaptured={handleCaptured} />;
 }

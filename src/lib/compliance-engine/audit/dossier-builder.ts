@@ -559,7 +559,7 @@ export function dossierToMarkdown(dossier: AuditDossierData): string {
     lines.push('');
     lines.push('---');
     lines.push('');
-    lines.push(`*Generiert am ${formatDateDE(dossier.generatedAt)} | EUKIGesetz.com Governance Platform*`);
+    lines.push(`*Generiert am ${formatDateDE(dossier.generatedAt)} | kiregister.com Governance Platform*`);
 
     return lines.join('\n');
 }

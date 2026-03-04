@@ -71,7 +71,7 @@ export default function VerificationPage() {
                     </CardHeader>
                     <CardContent className="text-center">
                         <p className="text-muted-foreground mb-6">{error || "Ungültiger Code."}</p>
-                        <Button variant="outline" onClick={() => window.location.href = 'https://eukigesetz.com'}>
+                        <Button variant="outline" onClick={() => window.location.href = 'https://kiregister.com'}>
                             Zurück zur Startseite
                         </Button>
                     </CardContent>

@@ -193,7 +193,7 @@ export async function runRegisterStandaloneSmoke() {
   // ── 12. Proof meta update ──
   const withProof = await service.updateProofMetaManual({
     useCaseId: card.useCaseId,
-    verifyUrl: `https://studio.eukigesetz.com/verify/pass/${card.publicHashId}`,
+    verifyUrl: `https://app.kiregister.com/verify/pass/${card.publicHashId}`,
     isReal: true,
     isCurrent: true,
     scope: "Dokumentenverarbeitung",

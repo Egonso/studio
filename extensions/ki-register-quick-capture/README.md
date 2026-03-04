@@ -16,8 +16,7 @@ Diese Extension oeffnet die Quick-Capture-Maske des Studios direkt aus der Chrom
 ## Nutzung
 
 - Klick auf das Toolbar-Icon:
-  - `Im Mini-Fenster oeffnen` (Popup-Fenster, 520x900)
-  - `Im Tab oeffnen`
+  - Quick Capture wird direkt im kompakten Popup-Fenster geoeffnet (520x900)
 - Shortcut:
   - `Cmd+Shift+Y` (macOS)
   - `Ctrl+Shift+Y` (Windows/Linux)
@@ -28,7 +27,7 @@ Diese Extension oeffnet die Quick-Capture-Maske des Studios direkt aus der Chrom
 
 - In der Extension auf `URL konfigurieren` klicken.
 - Basis-URL setzen, z. B.:
-  - `https://app.eukigesetz.com`
+  - `https://app.kiregister.com`
   - `http://localhost:3000`
 
-Wenn du gerade auf einer `*.eukigesetz.com` Seite bist, verwendet die Extension automatisch diese Origin.
+Wenn du gerade auf einer `*.kiregister.com` Seite bist, verwendet die Extension automatisch diese Origin.

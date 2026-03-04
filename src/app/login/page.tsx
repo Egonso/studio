@@ -173,7 +173,7 @@ export default function LoginPage() {
           toast({
             variant: 'destructive',
             title: 'Registrierung nicht möglich',
-            description: 'Diese E-Mail-Adresse hat keinen gültigen Kauf. Bitte kaufen Sie zuerst das Produkt auf eukigesetz.com.',
+            description: 'Diese E-Mail-Adresse hat keinen gültigen Kauf. Bitte kaufen Sie zuerst das Produkt auf kiregister.com.',
           });
         } else {
           // 4. Success

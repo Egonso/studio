@@ -266,7 +266,7 @@ export default function SettingsPage() {
                   <p>
                     Noch kein Officer? Zertifizieren Sie sich in der{' '}
                     <a
-                      href="https://eukigesetz.com/certification"
+                      href="https://kiregister.com/certification"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline font-medium"

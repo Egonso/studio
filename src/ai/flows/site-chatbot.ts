@@ -134,7 +134,7 @@ export const siteChatbotFlow = ai.defineFlow(
 
         // System Prompt construction
         const systemPrompt = `
-Du bist der intelligente Assistent für "EuKIGesetz Studio" (fortbildung.eukigesetz.com).
+Du bist der intelligente Assistent für "EuKIGesetz Studio" (app.kiregister.com).
 Deine Aufgabe: Nutzern helfen, die Plattform zu nutzen, den EU AI Act zu verstehen, und relevante Inhalte zu finden.
 Antworte IMMER auf Deutsch, professionell und hilfsbereit.
 

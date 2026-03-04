@@ -225,7 +225,7 @@ export default function LandingPage3() {
                             </ul>
                             <button onClick={() => router.push('/einrichten')} className="w-full py-3 text-xs font-medium text-slate-700 border border-slate-300 bg-transparent hover:bg-slate-100 transition-colors">Trial aktivieren</button>
                             <div className="mt-4 text-center">
-                                <button onClick={() => window.location.href = "mailto:sales@eukigesetz.com"} className="text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2">Darüber hinaus: Uns kontaktieren</button>
+                                <button onClick={() => window.location.href = "mailto:sales@kiregister.com"} className="text-[10px] text-slate-400 hover:text-slate-600 underline underline-offset-2">Darüber hinaus: Uns kontaktieren</button>
                             </div>
                         </div>
 
@@ -246,7 +246,7 @@ export default function LandingPage3() {
                                 <span className="block text-xl font-serif text-slate-900">995 €</span>
                                 <span className="block text-[10px] text-slate-400 uppercase tracking-wide">Einmalgebühr</span>
                             </div>
-                            <button onClick={() => window.location.href = "https://eukigesetz.com"} className="text-xs font-medium text-slate-800 flex items-center gap-1 hover:text-slate-600 transition-colors underline underline-offset-4">
+                            <button onClick={() => window.location.href = "https://kiregister.com"} className="text-xs font-medium text-slate-800 flex items-center gap-1 hover:text-slate-600 transition-colors underline underline-offset-4">
                                 Spezifikation prüfen <ArrowUpRight className="w-3.5 h-3.5" />
                             </button>
                         </div>

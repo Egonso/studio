@@ -6,7 +6,7 @@ Native Menüleisten-App für macOS, um `Quick Capture` jederzeit direkt neben WL
 
 - Läuft als Menüleisten-App (ohne Dock-Icon, `LSUIElement`).
 - Öffnet `/capture` direkt in einem eingebetteten WebView.
-- Konfigurierbare Basis-URL (z. B. `https://app.eukigesetz.com` oder `http://localhost:3000`).
+- Konfigurierbare Basis-URL (z. B. `https://app.kiregister.com` oder `http://localhost:3000`).
 
 ## Build (lokal)
 

@@ -17,7 +17,7 @@ export function Footer() {
                         Downloads
                     </Link>
                     <Link
-                        href="https://eukigesetz.com/impressum"
+                        href="https://kiregister.com/impressum"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
@@ -25,7 +25,7 @@ export function Footer() {
                         Impressum
                     </Link>
                     <Link
-                        href="https://eukigesetz.com/datenschutz"
+                        href="https://kiregister.com/datenschutz"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"
@@ -33,7 +33,7 @@ export function Footer() {
                         Datenschutz
                     </Link>
                     <Link
-                        href="https://eukigesetz.com/agb"
+                        href="https://kiregister.com/agb"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:text-foreground transition-colors"

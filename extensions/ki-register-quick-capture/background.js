@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://app.eukigesetz.com";
+const DEFAULT_BASE_URL = "https://app.kiregister.com";
 const QUICK_CAPTURE_PATH = "/capture";
 const STORAGE_KEY = "quickCaptureBaseUrl";
 const MENU_ID = "ki-register-open-quick-capture";
@@ -21,7 +21,7 @@ function normalizeBaseUrl(value) {
 function isPreferredHost(hostname) {
   if (!hostname) return false;
   if (hostname === "localhost" || hostname === "127.0.0.1") return true;
-  return hostname === "eukigesetz.com" || hostname.endsWith(".eukigesetz.com");
+  return hostname === "kiregister.com" || hostname.endsWith(".kiregister.com");
 }
 
 async function getStoredBaseUrl() {
@@ -117,6 +117,10 @@ chrome.commands.onCommand.addListener((command) => {
   if (command === "open-quick-capture") {
     void openQuickCapture();
   }
+});
+
+chrome.action.onClicked.addListener(() => {
+  void openQuickCapture();
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
