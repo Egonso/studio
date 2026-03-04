@@ -20,9 +20,8 @@ function isDarkModeActive() {
     return false;
   }
 
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const hasDarkClass = document.documentElement.classList.contains("dark");
-  return prefersDark || hasDarkClass;
+  return hasDarkClass;
 }
 
 export function ThemeAwareLogo({
@@ -36,17 +35,9 @@ export function ThemeAwareLogo({
   const [useDarkLogo, setUseDarkLogo] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const update = () => setUseDarkLogo(isDarkModeActive());
 
     update();
-
-    const onMediaChange = () => update();
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", onMediaChange);
-    } else {
-      mediaQuery.addListener(onMediaChange);
-    }
 
     const observer = new MutationObserver(update);
     observer.observe(document.documentElement, {
@@ -55,11 +46,6 @@ export function ThemeAwareLogo({
     });
 
     return () => {
-      if (typeof mediaQuery.removeEventListener === "function") {
-        mediaQuery.removeEventListener("change", onMediaChange);
-      } else {
-        mediaQuery.removeListener(onMediaChange);
-      }
       observer.disconnect();
     };
   }, []);
