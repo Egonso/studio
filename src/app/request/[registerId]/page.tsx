@@ -8,9 +8,9 @@ export default async function SupplierRequestPage({ params }: { params: { regist
     let isValid = false;
 
     try {
-        const snap = await db.collection("registers").doc(registerId).get();
-        if (snap.exists) {
-            organisationName = snap.data()?.organisationName || "Unbekannt";
+        const snap = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+        if (!snap.empty) {
+            organisationName = snap.docs[0].data()?.organisationName || "Unbekannt";
             isValid = true;
         }
     } catch (e) {

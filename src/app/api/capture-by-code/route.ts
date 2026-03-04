@@ -79,8 +79,8 @@ function mapOperationalError(error: unknown): { status: number; message: string 
   ).toLowerCase();
   const status = Number(
     (error as { status?: unknown; statusCode?: unknown } | undefined)?.status ??
-      (error as { statusCode?: unknown } | undefined)?.statusCode ??
-      0
+    (error as { statusCode?: unknown } | undefined)?.statusCode ??
+    0
   );
   const signature = `${message} ${code} ${details}`;
 
@@ -88,7 +88,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     return {
       status: 503,
       message:
-        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-1-${status}]`,
     };
   }
 
@@ -100,7 +100,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     return {
       status: 503,
       message:
-        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-2-${code}]`,
     };
   }
 
@@ -115,7 +115,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     return {
       status: 503,
       message:
-        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-3-${code}]`,
     };
   }
 
@@ -130,7 +130,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     return {
       status: 503,
       message:
-        "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-4-${status}]`,
     };
   }
 

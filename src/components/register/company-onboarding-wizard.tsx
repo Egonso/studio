@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Building, User, Shield, Zap, Check } from "lucide-react";
+import { Loader2, Building, User, Shield, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +30,7 @@ interface CompanyOnboardingWizardProps {
   onComplete: (registerId: string) => void;
 }
 
-type WizardStep = 1 | 2 | 3 | 4;
+type WizardStep = 1 | 2 | 3;
 
 interface WizardDraft {
   // Step 1: Organisation
@@ -45,9 +45,6 @@ interface WizardDraft {
   aiPolicyUrl: string;
   hasIncidentProcess: boolean;
   hasRolesAssigned: boolean;
-  // Step 4: First Use Case (optional)
-  firstUseCasePurpose: string;
-  firstUseCaseTool: string;
 }
 
 const EMPTY_DRAFT: WizardDraft = {
@@ -60,8 +57,6 @@ const EMPTY_DRAFT: WizardDraft = {
   aiPolicyUrl: "",
   hasIncidentProcess: false,
   hasRolesAssigned: false,
-  firstUseCasePurpose: "",
-  firstUseCaseTool: "",
 };
 
 const BRANCHEN = [
@@ -81,7 +76,6 @@ const STEPS = [
   { icon: Building, label: "Organisation" },
   { icon: User, label: "Kontakt" },
   { icon: Shield, label: "Governance" },
-  { icon: Zap, label: "Erster Einsatzfall" },
 ] as const;
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -98,7 +92,6 @@ export function CompanyOnboardingWizard({ onComplete }: CompanyOnboardingWizardP
     1: draft.firmenname.trim().length >= 2 && draft.branche.length > 0,
     2: draft.ansprechpartnerName.trim().length >= 2 && draft.ansprechpartnerEmail.trim().includes("@"),
     3: true, // Governance basics are optional
-    4: true, // First use case is optional
   };
 
   const handleSubmit = async () => {
@@ -130,19 +123,6 @@ export function CompanyOnboardingWizard({ onComplete }: CompanyOnboardingWizardP
         orgSettings: settings,
       });
 
-      // Optionally create first use case
-      if (draft.firstUseCasePurpose.trim()) {
-        await registerService.createUseCaseFromCapture(
-          {
-            purpose: draft.firstUseCasePurpose.trim(),
-            toolFreeText: draft.firstUseCaseTool.trim() || undefined,
-            usageContexts: [],
-            decisionImpact: 'UNSURE',
-          },
-          { registerId: reg.registerId }
-        );
-      }
-
       onComplete(reg.registerId);
     } catch {
       setError("Register konnte nicht erstellt werden. Bitte versuchen Sie es erneut.");
@@ -151,7 +131,7 @@ export function CompanyOnboardingWizard({ onComplete }: CompanyOnboardingWizardP
     }
   };
 
-  const next = () => setStep((s) => Math.min(s + 1, 4) as WizardStep);
+  const next = () => setStep((s) => Math.min(s + 1, 3) as WizardStep);
   const back = () => setStep((s) => Math.max(s - 1, 1) as WizardStep);
 
   return (
@@ -159,7 +139,7 @@ export function CompanyOnboardingWizard({ onComplete }: CompanyOnboardingWizardP
       <CardHeader>
         <CardTitle>AI Governance Register einrichten</CardTitle>
         <CardDescription>
-          Schritt {step} von 4 — {STEPS[step - 1].label}
+          Schritt {step} von 3 — {STEPS[step - 1].label}
         </CardDescription>
         {/* Step indicator */}
         <div className="flex gap-1 pt-2">
@@ -345,48 +325,13 @@ export function CompanyOnboardingWizard({ onComplete }: CompanyOnboardingWizardP
 
             <div className="flex gap-2 mt-4">
               <Button variant="outline" onClick={back} className="flex-1">Zurück</Button>
-              <Button onClick={next} className="flex-1">Weiter</Button>
-            </div>
-          </>
-        )}
-
-        {/* ── Step 4: First Use Case (optional) ───────────────────────── */}
-        {step === 4 && (
-          <>
-            <p className="text-sm text-muted-foreground">
-              Optional: Erfassen Sie direkt Ihren ersten KI-Einsatzfall. Sie können diesen Schritt auch überspringen.
-            </p>
-
-            <div className="space-y-2">
-              <Label htmlFor="cw-uc-purpose">Wozu wird das KI-System eingesetzt?</Label>
-              <Input
-                id="cw-uc-purpose"
-                placeholder="z. B. Automatisierte E-Mail-Zusammenfassung"
-                value={draft.firstUseCasePurpose}
-                onChange={(e) => patch({ firstUseCasePurpose: e.target.value })}
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cw-uc-tool">Welches Tool / System?</Label>
-              <Input
-                id="cw-uc-tool"
-                placeholder="z. B. ChatGPT, Microsoft Copilot"
-                value={draft.firstUseCaseTool}
-                onChange={(e) => patch({ firstUseCaseTool: e.target.value })}
-              />
-            </div>
-
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={back} className="flex-1">Zurück</Button>
               <Button
                 onClick={() => void handleSubmit()}
                 disabled={isSubmitting}
                 className="flex-1"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {draft.firstUseCasePurpose.trim() ? "Register erstellen" : "Ohne Einsatzfall erstellen"}
+                Register erstellen
               </Button>
             </div>
           </>

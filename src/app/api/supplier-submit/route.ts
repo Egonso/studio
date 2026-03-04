@@ -11,12 +11,15 @@ export async function POST(req: Request) {
         }
 
         // Verify the register exists
-        const registerRef = db.collection("registers").doc(registerId);
-        const registerSnap = await registerRef.get();
+        const registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
 
-        if (!registerSnap.exists) {
+        if (registerQuery.empty) {
             return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
         }
+
+        const registerDoc = registerQuery.docs[0];
+        const registerRef = registerDoc.ref;
+        const organisationName = registerDoc.data()?.organisationName || "";
 
         const useCaseId = crypto.randomUUID();
         const now = new Date().toISOString();
@@ -42,7 +45,7 @@ export async function POST(req: Request) {
             reviews: [],
             proof: null,
             dataCategory: dataCategory || "NONE",
-            organisation: registerSnap.data()?.organisationName || "",
+            organisation: organisationName,
             labels: [{ key: "source", value: "supplier_request" }, { key: "supplier_email", value: supplierEmail }],
             governanceAssessment: {
                 core: {
