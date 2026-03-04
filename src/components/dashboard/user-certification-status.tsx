@@ -65,14 +65,14 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                         </div>
                         <div className="flex flex-col gap-3 justify-center">
                             <Button variant="outline" className="w-full bg-white border-green-200 text-green-800 hover:bg-green-50" onClick={() => {
-                                navigator.clipboard.writeText(`https://app.kiregister.com/verify/${status.certificate!.code}`);
+                                navigator.clipboard.writeText(`https://kiregister.com/verify/${status.certificate!.code}`);
                                 alert("Link kopiert!");
                             }}>
                                 <Share2 className="mr-2 h-4 w-4" />
                                 Verifizierungs-Link teilen
                             </Button>
                             <Button variant="ghost" className="w-full text-green-700 hover:text-green-900 hover:bg-green-50/50" asChild>
-                                <a href={`https://app.kiregister.com/verify/${status.certificate!.code}`} target="_blank" rel="noreferrer">
+                                <a href={`https://kiregister.com/verify/${status.certificate!.code}`} target="_blank" rel="noreferrer">
                                     Öffentliches Profil ansehen <ExternalLink className="ml-2 h-3 w-3" />
                                 </a>
                             </Button>
@@ -178,7 +178,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 asChild={hasStartedCourse}
                             >
                                 {hasStartedCourse ? (
-                                    <a href="https://app.kiregister.com/exam" target="_blank" rel="noopener noreferrer">
+                                    <a href="https://kiregister.com/exam" target="_blank" rel="noopener noreferrer">
                                         <span>Zur Prüfung</span>
                                         <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
                                     </a>

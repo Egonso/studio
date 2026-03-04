@@ -15,7 +15,7 @@ const chromeSteps = [
   "Download ki-register-quick-capture-chrome.zip entpacken.",
   "Entpackte Erweiterung laden klicken und den entpackten Ordner auswählen.",
   "Extension anheften und über das Icon Quick Capture im Mini-Fenster öffnen.",
-  "Keine Domain-Einstellung nötig: die Extension nutzt standardmäßig app.kiregister.com.",
+  "Keine Domain-Einstellung nötig: die Extension nutzt standardmäßig kiregister.com.",
 ];
 
 const macSteps = [

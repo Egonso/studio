@@ -1,2 +1,2 @@
-202369e484149b961f0039df6937ed5f96f8fb97a721de6f5fccf5070c7a9997  ki-register-quick-capture-chrome.zip
-f1ea9a377c7c14cd0921495758638985c4dddb6a96de4cda1756f3b1505b15ec  ki-register-menubar-macos.zip
+e7da2b2720ae7d76c7706fa6fbfd13f8bc643054d6d40e4b2c3e69f4b5a0fd32  ki-register-quick-capture-chrome.zip
+6032a744caf1b4b9b8eae96a2b9644e00326f5b75840306a9d89b9abf30c1b34  ki-register-menubar-macos.zip

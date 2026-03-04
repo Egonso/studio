@@ -6,7 +6,7 @@ Native Menüleisten-App für macOS, um `Quick Capture` jederzeit direkt neben WL
 
 - Läuft als Menüleisten-App (ohne Dock-Icon, `LSUIElement`).
 - Öffnet `/capture` direkt in einem eingebetteten WebView.
-- Feste Standard-Domain: `https://app.kiregister.com`.
+- Feste Standard-Domain: `https://kiregister.com`.
 - Login-Prüfung im Capture-Flow, alternativ Gastmodus mit lokaler Speicherung.
 
 ## Build (lokal)

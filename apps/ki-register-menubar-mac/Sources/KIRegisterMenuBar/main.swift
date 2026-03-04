@@ -3,7 +3,7 @@ import SwiftUI
 import WebKit
 
 private enum CaptureConfig {
-  static let captureURL = URL(string: "https://app.kiregister.com/capture?source=menubar-app")!
+  static let captureURL = URL(string: "https://kiregister.com/capture?source=menubar-app")!
 }
 
 @main
@@ -128,6 +128,17 @@ private struct MenuBarCaptureView: View {
         .font(.caption)
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
+
+      HStack {
+        Spacer()
+        Button {
+          NSApp.terminate(nil)
+        } label: {
+          Label("App schließen", systemImage: "xmark.circle")
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.small)
+      }
     }
     .padding(12)
     .frame(width: 528)

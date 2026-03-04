@@ -120,11 +120,11 @@ export function getVerifyUrl(card: UseCaseCard): string | null {
  *
  * @param card     UseCaseCard to get URL for
  * @param baseUrl  Optional base URL override (defaults to window.location.origin or production URL)
- * @returns Absolute URL like "https://app.kiregister.com/verify/pass/abc123def456", or null
+ * @returns Absolute URL like "https://kiregister.com/verify/pass/abc123def456", or null
  *
  * @example
  *   getVerifyAbsoluteUrl({ isPublicVisible: true, publicHashId: 'abc123def456' });
- *   // → 'https://app.kiregister.com/verify/pass/abc123def456'
+ *   // → 'https://kiregister.com/verify/pass/abc123def456'
  */
 export function getVerifyAbsoluteUrl(
     card: UseCaseCard,

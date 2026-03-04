@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = "https://app.kiregister.com";
+const DEFAULT_BASE_URL = "https://kiregister.com";
 const QUICK_CAPTURE_PATH = "/capture";
 const MENU_ID = "ki-register-open-quick-capture";
 const OFFSCREEN_DOCUMENT_PATH = "theme-detector.html";

@@ -218,7 +218,7 @@ export default function UseCasePassPage() {
                     <p className="text-xs text-slate-400">
                         Erstellt am {new Date().toLocaleDateString("de-DE")} mit dem AI Governance Register.
                         <br />
-                        Dokument generiert über app.kiregister.com
+                        Dokument generiert über kiregister.com
                     </p>
                 </div>
 
