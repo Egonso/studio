@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Lock, BookOpen, Layers, ShieldCheck, Award, ArrowUpRight, BarChart3, FileText, Users, Link as LinkIcon, History } from 'lucide-react';
-import Image from 'next/image';
+import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 
 export default function LandingPage3() {
     const router = useRouter();
@@ -28,7 +28,7 @@ export default function LandingPage3() {
             <header className="px-6 py-8 flex justify-between items-center max-w-6xl mx-auto relative z-10 w-full border-b border-slate-200">
                 <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push('/')}>
                     <div className="relative">
-                        <Image src="/register-logo.png" alt="EUKI Logo" width={28} height={28} className="dark:invert opacity-90 transition-transform group-hover:scale-105" />
+                        <ThemeAwareLogo alt="EUKI Logo" width={28} height={28} className="opacity-90 transition-transform group-hover:scale-105" />
                     </div>
                     <span className="text-sm font-semibold tracking-wide text-slate-800 uppercase">AI Governance Register</span>
                 </div>

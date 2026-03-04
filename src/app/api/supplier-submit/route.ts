@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
+import { FieldPath } from "firebase-admin/firestore";
 
 export async function POST(req: Request) {
     try {
@@ -11,7 +12,10 @@ export async function POST(req: Request) {
         }
 
         // Verify the register exists
-        const registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+        let registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+        if (registerQuery.empty) {
+            registerQuery = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
+        }
 
         if (registerQuery.empty) {
             return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });

@@ -148,6 +148,9 @@ export default function DownloadsPage() {
               Ohne Login kannst du als Gast fortfahren; diese Einträge werden lokal im Browser gespeichert.
             </li>
             <li>
+              Logo/Icon wechseln automatisch zwischen Light- und Dark-Variante je nach Browser-Theme.
+            </li>
+            <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
             </li>
           </ul>

@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Settings, Link2, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
+import { ThemeAwareLogo } from "@/components/theme-aware-logo";
+import { getPublicAppOrigin } from "@/lib/app-url";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
 
     const handleSupplierRequest = async () => {
         if (!register?.registerId) return;
-        const link = `${window.location.origin}/request/${register.registerId}`;
+        const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
         try {
             await navigator.clipboard.writeText(link);
             toast({
@@ -84,7 +85,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                         expiryOption: "90_DAYS",
                     })
                 ).code;
-            const captureLink = `${window.location.origin}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
+            const captureLink = `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
             await navigator.clipboard.writeText(captureLink);
             toast({
                 title: "Erfassungslink kopiert",
@@ -105,12 +106,11 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2.5">
-                        <Image
-                            src="/register-logo.png"
+                        <ThemeAwareLogo
                             alt="AI Governance Register"
                             width={32}
                             height={32}
-                            className="h-8 w-8 dark:invert"
+                            className="h-8 w-8"
                         />
                         <h1 className="text-2xl font-bold tracking-tight">AI Governance Register</h1>
                     </div>

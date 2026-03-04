@@ -6,7 +6,6 @@ import React, { useState, useRef, useEffect } from 'react';
 // OR use a utility to call it. 
 // Given the project structure likely uses standard Genkit server actions:
 import { callChatbotAction } from '@/ai/actions';
-import { submitFeedback } from '@/app/actions/feedback';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +34,8 @@ export function SiteChatbotWidget() {
     const [feedbackType, setFeedbackType] = useState('feature'); // feature, bug, support
     const [feedbackText, setFeedbackText] = useState('');
     const [feedbackSent, setFeedbackSent] = useState(false);
+    const [feedbackError, setFeedbackError] = useState('');
+    const [isSendingFeedback, setIsSendingFeedback] = useState(false);
 
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
@@ -118,27 +119,39 @@ export function SiteChatbotWidget() {
     const handleSendFeedback = async () => {
         if (!feedbackText.trim()) return;
 
+        setFeedbackError('');
+        setIsSendingFeedback(true);
         try {
-            const res = await submitFeedback({
-                type: feedbackType as any,
-                message: feedbackText,
-                path: pathname,
-                userEmail: user?.email || '',
-                userId: user?.uid,
-                metadata: { userAgent: navigator.userAgent }
+            const res = await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: feedbackType,
+                    message: feedbackText,
+                    path: pathname,
+                    userEmail: user?.email || '',
+                    userId: user?.uid,
+                    metadata: { userAgent: navigator.userAgent }
+                })
             });
+            const payload = await res.json().catch(() => ({}));
 
-            if (res.success) {
+            if (res.ok && payload?.success) {
                 setFeedbackSent(true);
                 setTimeout(() => {
                     setFeedbackText('');
                     setFeedbackSent(false); // Reset after delay
                 }, 2000);
             } else {
-                console.error("Feedback submission failed:", res.error);
+                const message = payload?.error || 'Feedback konnte nicht gesendet werden.';
+                setFeedbackError(message);
+                console.error("Feedback submission failed:", message);
             }
         } catch (error) {
             console.error("Feedback error:", error);
+            setFeedbackError('Feedback konnte nicht gesendet werden. Bitte später erneut versuchen.');
+        } finally {
+            setIsSendingFeedback(false);
         }
     };
 
@@ -308,16 +321,29 @@ export function SiteChatbotWidget() {
                             }
                             className="min-h-[120px]"
                             value={feedbackText}
-                            onChange={(e) => setFeedbackText(e.target.value)}
+                            onChange={(e) => {
+                                setFeedbackText(e.target.value);
+                                if (feedbackError) setFeedbackError('');
+                            }}
                         />
+
+                        {feedbackError ? (
+                            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                {feedbackError}
+                            </div>
+                        ) : null}
 
                         {feedbackSent ? (
                             <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-md text-sm text-center font-medium">
                                 Danke! Wir haben deine Nachricht erhalten.
                             </div>
                         ) : (
-                            <Button className="w-full" onClick={handleSendFeedback} disabled={!feedbackText.trim()}>
-                                Absenden
+                            <Button
+                                className="w-full"
+                                onClick={handleSendFeedback}
+                                disabled={isSendingFeedback || !feedbackText.trim()}
+                            >
+                                {isSendingFeedback ? 'Sende...' : 'Absenden'}
                             </Button>
                         )}
 

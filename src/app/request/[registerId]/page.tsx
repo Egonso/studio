@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebase-admin";
 import SupplierRequestForm from "./client";
+import { FieldPath } from "firebase-admin/firestore";
 
 export default async function SupplierRequestPage({ params }: { params: { registerId: string } }) {
     const { registerId } = await params;
@@ -8,7 +9,10 @@ export default async function SupplierRequestPage({ params }: { params: { regist
     let isValid = false;
 
     try {
-        const snap = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+        let snap = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+        if (snap.empty) {
+            snap = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
+        }
         if (!snap.empty) {
             organisationName = snap.docs[0].data()?.organisationName || "Unbekannt";
             isValid = true;

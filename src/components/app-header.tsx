@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 import { GanttChartSquare, LogOut, BookOpen, Settings, UserCircle, ShieldCheck } from "lucide-react";
@@ -12,6 +11,7 @@ import { clearActiveProjectId } from "@/lib/data-service";
 import { ADMIN_EMAILS } from "@/lib/admin-config";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { WorkspaceSwitcher } from "./layout/workspace-switcher";
+import { ThemeAwareLogo } from "./theme-aware-logo";
 
 
 export function AppHeader() {
@@ -37,8 +37,7 @@ export function AppHeader() {
   return (
     <header className="px-4 lg:px-6 h-14 flex items-center bg-background border-b sticky top-0 z-50">
       <Link href={brandHomeHref} className="flex items-center justify-center gap-2" prefetch={false}>
-        <Image
-          src="/register-logo.png"
+        <ThemeAwareLogo
           alt="AI Governance Control"
           width={34}
           height={34}

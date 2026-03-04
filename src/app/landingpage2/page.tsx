@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Layers, ShieldCheck, Award, ArrowUpRight, BarChart3, BookOpen, FileText, Users, Link as LinkIcon, History } from 'lucide-react';
-import Image from 'next/image';
+import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 
 export default function LandingPage2() {
     const router = useRouter();
@@ -20,7 +20,7 @@ export default function LandingPage2() {
             <header className="px-6 py-8 flex justify-between items-center max-w-6xl mx-auto relative z-10 w-full border-b border-slate-200">
                 <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push('/')}>
                     <div className="relative">
-                        <Image src="/register-logo.png" alt="EUKI Logo" width={28} height={28} className="dark:invert opacity-90 transition-transform group-hover:scale-105" />
+                        <ThemeAwareLogo alt="EUKI Logo" width={28} height={28} className="opacity-90 transition-transform group-hover:scale-105" />
                         {/* No colored accent here anymore */}
                     </div>
                     <span className="text-sm font-semibold tracking-wide text-slate-800 uppercase">Governance Control Center</span>
@@ -41,7 +41,7 @@ export default function LandingPage2() {
                     <div className="space-y-6 max-w-3xl mx-auto">
                         <div className="flex justify-center mb-8">
                             <div className="w-16 h-16 border-2 border-slate-900 rounded-lg flex items-center justify-center -rotate-3 bg-white shadow-sm">
-                                <Image src="/register-logo.png" alt="EUKI Logo" width={32} height={32} className="dark:invert px-0.5" />
+                                <ThemeAwareLogo alt="EUKI Logo" width={32} height={32} className="px-0.5" />
                             </div>
                         </div>
                         <h1 className="text-4xl md:text-6xl font-serif text-slate-900 leading-tight tracking-tight">

@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { accessCodeService, type AccessCodeOptions } from "@/lib/register-first/access-code-service";
 import type { RegisterAccessCode } from "@/lib/register-first/types";
+import { getPublicAppOrigin } from "@/lib/app-url";
 
 interface AccessCodeManagerProps {
   registerId: string;
@@ -89,7 +90,7 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
   }
 
   function copyLink(code: string) {
-    const url = `${window.location.origin}/erfassen?code=${code}`;
+    const url = `${getPublicAppOrigin()}/erfassen?code=${code}`;
     navigator.clipboard.writeText(url).then(() => {
       toast({ title: "Link kopiert", description: url });
     });

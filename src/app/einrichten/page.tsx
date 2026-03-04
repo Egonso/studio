@@ -6,11 +6,12 @@ import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Copy, Check } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { registerService } from "@/lib/register-first/register-service";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { setActiveRegisterId } from "@/lib/register-first/register-settings-client";
+import { ThemeAwareLogo } from "@/components/theme-aware-logo";
+import { getPublicAppOrigin } from "@/lib/app-url";
 
 type Step = 1 | 2 | 3;
 type CopyTarget = "code" | "link" | null;
@@ -183,7 +184,7 @@ export default function SetupPage() {
 
       setInviteCode(codeEntry.code);
       setCaptureLink(
-        `${window.location.origin}/erfassen?code=${encodeURIComponent(codeEntry.code)}`
+        `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(codeEntry.code)}`
       );
       setStep(3);
 
@@ -247,12 +248,11 @@ export default function SetupPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-md mx-auto w-full">
         <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/register-logo.png"
+          <ThemeAwareLogo
             alt="KI-Register"
             width={24}
             height={24}
-            className="h-6 w-6 dark:invert"
+            className="h-6 w-6"
           />
           <span className="text-sm font-medium">KI-Register</span>
         </Link>

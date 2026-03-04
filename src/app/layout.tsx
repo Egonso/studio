@@ -51,8 +51,14 @@ export const metadata: Metadata = {
   title: 'AI Governance Control',
   description: 'AI Governance Register (Free Entry) und AI Governance Control (Paid Layer).',
   icons: {
-    icon: '/register-logo.png',
-    shortcut: '/register-logo.png',
+    icon: [
+      { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
+      { url: '/register-logo-dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
+    shortcut: [
+      { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
+      { url: '/register-logo-dark.png', media: '(prefers-color-scheme: dark)' },
+    ],
   },
 };
 
@@ -64,10 +70,7 @@ export default function RootLayout({
 
   return (
     <html lang="de" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/register-logo.png" />
-        <link rel="shortcut icon" href="/register-logo.png" />
-      </head>
+      <head />
       <body className={`${inter.variable} ${playfairDisplay.variable} font-body antialiased bg-background`}>
         <AuthProvider>
           <DynamicFavicon />

@@ -6,8 +6,8 @@ import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 
 type MemberStep = "code" | "confirm" | "signup";
 
@@ -200,12 +200,11 @@ export default function InvitePage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-md mx-auto w-full">
         <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/register-logo.png"
+          <ThemeAwareLogo
             alt="KI-Register"
             width={24}
             height={24}
-            className="h-6 w-6 dark:invert"
+            className="h-6 w-6"
           />
           <span className="text-sm font-medium">KI-Register</span>
         </Link>

@@ -14,6 +14,7 @@ import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { evaluateControlUpgradeTriggers } from "@/lib/control/triggers";
 import { trackTriggerClicked, trackTriggerShown } from "@/lib/analytics/control-events";
+import { getPublicAppOrigin } from "@/lib/app-url";
 import { type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
 import type { ComplianceItem, TrustPortalConfig } from "@/lib/types";
 import type { UserStatus } from "@/hooks/use-user-status";
@@ -160,7 +161,7 @@ export function Dashboard({
       return;
     }
 
-    const link = `${window.location.origin}/request/${register.registerId}`;
+    const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
     try {
       await navigator.clipboard.writeText(link);
       toast({
@@ -201,7 +202,7 @@ export function Dashboard({
             })
           ).code;
 
-      const captureLink = `${window.location.origin}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
+      const captureLink = `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
       await navigator.clipboard.writeText(captureLink);
       toast({
         title: "Erfassungslink kopiert",

@@ -11,10 +11,27 @@ struct KIRegisterMenuBarApp: App {
   @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
   var body: some Scene {
-    MenuBarExtra("KI-Register", systemImage: "sparkles.rectangle.stack.fill") {
+    MenuBarExtra {
       MenuBarCaptureView()
+    } label: {
+      MenuBarBrandIcon()
     }
     .menuBarExtraStyle(.window)
+  }
+}
+
+private struct MenuBarBrandIcon: View {
+  var body: some View {
+    if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+      let icon = NSImage(contentsOf: iconURL)
+    {
+      Image(nsImage: icon)
+        .resizable()
+        .interpolation(.high)
+        .frame(width: 18, height: 18)
+    } else {
+      Image(systemName: "sparkles.rectangle.stack.fill")
+    }
   }
 }
 
@@ -27,6 +44,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate {
 private struct MenuBarCaptureView: View {
   @State private var reloadToken = UUID()
   @State private var isLoading = true
+  @State private var loadError: String?
   private let captureURL = CaptureConfig.captureURL
 
   var body: some View {
@@ -62,19 +80,46 @@ private struct MenuBarCaptureView: View {
       .padding(.horizontal, 2)
 
       ZStack {
-        QuickCaptureWebView(url: captureURL, reloadToken: reloadToken, isLoading: $isLoading)
+        QuickCaptureWebView(
+          url: captureURL,
+          reloadToken: reloadToken,
+          isLoading: $isLoading,
+          loadError: $loadError
+        )
           .clipShape(RoundedRectangle(cornerRadius: 12))
           .overlay(
             RoundedRectangle(cornerRadius: 12)
               .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
           )
 
-        if isLoading {
+        if isLoading && loadError == nil {
           ProgressView("Lade Quick Capture …")
             .controlSize(.small)
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+        } else if let loadError {
+          VStack(spacing: 8) {
+            Image(systemName: "wifi.exclamationmark")
+              .font(.system(size: 18, weight: .semibold))
+              .foregroundStyle(.secondary)
+            Text("Quick Capture konnte nicht geladen werden.")
+              .font(.subheadline)
+              .fontWeight(.semibold)
+            Text(loadError)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .multilineTextAlignment(.center)
+              .lineLimit(3)
+            Button("Im Browser öffnen") {
+              openInBrowser()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+          }
+          .padding(12)
+          .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+          .frame(maxWidth: 320)
         }
       }
       .frame(width: 500, height: 740)
@@ -97,13 +142,16 @@ private struct QuickCaptureWebView: NSViewRepresentable {
   let url: URL
   let reloadToken: UUID
   @Binding var isLoading: Bool
+  @Binding var loadError: String?
 
   final class Coordinator: NSObject, WKNavigationDelegate {
     var isLoading: Binding<Bool>
+    var loadError: Binding<String?>
     var lastReloadToken: UUID?
 
-    init(isLoading: Binding<Bool>) {
+    init(isLoading: Binding<Bool>, loadError: Binding<String?>) {
       self.isLoading = isLoading
+      self.loadError = loadError
     }
 
     func webView(
@@ -111,6 +159,7 @@ private struct QuickCaptureWebView: NSViewRepresentable {
       didStartProvisionalNavigation navigation: WKNavigation!
     ) {
       isLoading.wrappedValue = true
+      loadError.wrappedValue = nil
     }
 
     func webView(
@@ -118,6 +167,7 @@ private struct QuickCaptureWebView: NSViewRepresentable {
       didFinish navigation: WKNavigation!
     ) {
       isLoading.wrappedValue = false
+      loadError.wrappedValue = nil
     }
 
     func webView(
@@ -126,6 +176,7 @@ private struct QuickCaptureWebView: NSViewRepresentable {
       withError error: any Error
     ) {
       isLoading.wrappedValue = false
+      loadError.wrappedValue = error.localizedDescription
     }
 
     func webView(
@@ -134,11 +185,12 @@ private struct QuickCaptureWebView: NSViewRepresentable {
       withError error: any Error
     ) {
       isLoading.wrappedValue = false
+      loadError.wrappedValue = error.localizedDescription
     }
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator(isLoading: $isLoading)
+    Coordinator(isLoading: $isLoading, loadError: $loadError)
   }
 
   func makeNSView(context: Context) -> WKWebView {
@@ -155,10 +207,7 @@ private struct QuickCaptureWebView: NSViewRepresentable {
   }
 
   func updateNSView(_ webView: WKWebView, context: Context) {
-    let shouldReloadForToken = context.coordinator.lastReloadToken != reloadToken
-    let shouldReloadForURL = webView.url?.absoluteString != url.absoluteString
-
-    if shouldReloadForToken || shouldReloadForURL {
+    if context.coordinator.lastReloadToken != reloadToken {
       webView.load(URLRequest(url: url))
       context.coordinator.lastReloadToken = reloadToken
     }

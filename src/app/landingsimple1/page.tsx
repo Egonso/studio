@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Lock, CheckCircle2, Award, ArrowUpRight } from 'lucide-react';
-import Image from 'next/image';
+import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 
 export default function LandingSimple1() {
     const router = useRouter();
@@ -31,7 +31,7 @@ export default function LandingSimple1() {
 
             <header className="px-6 py-8 flex justify-between items-center max-w-6xl mx-auto relative z-10 w-full border-b border-slate-100">
                 <div className="flex items-center gap-3">
-                    <Image src="/register-logo.png" alt="EUKI Logo" width={28} height={28} className="dark:invert opacity-90" />
+                    <ThemeAwareLogo alt="EUKI Logo" width={28} height={28} className="opacity-90" />
                     <span className="text-sm font-semibold tracking-wide text-slate-800 uppercase">AI Governance Register</span>
                 </div>
                 <button

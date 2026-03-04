@@ -10,6 +10,7 @@ import { registerService } from "@/lib/register-first/register-service";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { setActiveRegisterId } from "@/lib/register-first/register-settings-client";
 import type { User } from "firebase/auth";
+import { getPublicAppOrigin } from "@/lib/app-url";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -260,7 +261,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
       setInviteCode(codeEntry.code);
       setCaptureLink(
-        `${window.location.origin}/erfassen?code=${encodeURIComponent(codeEntry.code)}`
+        `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(codeEntry.code)}`
       );
       setAdminStep(3);
     } catch {

@@ -326,7 +326,24 @@ export default function SettingsPage() {
                   });
                   const json = await res.json();
                   if (res.ok) {
-                    toast({ title: 'Erfolgreich', description: json.message });
+                    if (json?.inviteLink) {
+                      let copied = false;
+                      try {
+                        await navigator.clipboard.writeText(json.inviteLink);
+                        copied = true;
+                      } catch {
+                        copied = false;
+                      }
+
+                      toast({
+                        title: 'Einladung erstellt',
+                        description: copied
+                          ? 'Einladungslink wurde in die Zwischenablage kopiert.'
+                          : 'Einladungslink erstellt. Bitte Browser-Zugriff auf die Zwischenablage erlauben und erneut senden.',
+                      });
+                    } else {
+                      toast({ title: 'Erfolgreich', description: json.message });
+                    }
                     inviteForm.reset();
                   } else {
                     toast({ variant: 'destructive', title: 'Fehler', description: json.error });

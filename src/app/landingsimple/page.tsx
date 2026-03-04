@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { SetupSection } from "@/components/landing/setup-section";
+import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 
 type EntryMode = "admin" | "member";
 
@@ -64,12 +64,11 @@ export default function LandingSimplePage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-2xl mx-auto w-full">
         <div className="flex items-center gap-2">
-          <Image
-            src="/register-logo.png"
+          <ThemeAwareLogo
             alt="KI-Register"
             width={24}
             height={24}
-            className="h-6 w-6 dark:invert"
+            className="h-6 w-6"
           />
           <span className="text-sm font-medium">KI-Register</span>
         </div>

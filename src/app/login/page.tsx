@@ -12,8 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
+import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' }),
@@ -28,6 +28,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const modeFromQuery = searchParams.get('mode');
   const inviteCodeFromQuery = searchParams.get('code');
+  const workspaceInviteFromQuery = searchParams.get('workspaceInvite');
   const importUseCaseId = searchParams.get('importUseCase');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
@@ -121,9 +122,33 @@ export default function LoginPage() {
       const auth = await getFirebaseAuth();
       const { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } = await import('firebase/auth');
       const { doc, getDoc } = await import('firebase/firestore');
+      const acceptWorkspaceInvites = async (userId: string) => {
+        if (!userId || !email) return;
+        try {
+          const response = await fetch('/api/invites/accept', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              email,
+              workspaceInvite: workspaceInviteFromQuery || undefined,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload?.success && Number(payload.applied) > 0) {
+            toast({
+              title: 'Workspace-Einladung übernommen',
+              description: `Du wurdest ${payload.applied === 1 ? 'einem Workspace' : `${payload.applied} Workspaces`} hinzugefügt.`,
+            });
+          }
+        } catch (acceptError) {
+          console.error('Failed to accept workspace invite:', acceptError);
+        }
+      };
 
       if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, data.password);
+        const credential = await signInWithEmailAndPassword(auth, email, data.password);
+        await acceptWorkspaceInvites(credential.user.uid);
         if (importUseCaseId) {
           toast({ title: 'Anmeldung erfolgreich', description: 'Assest wird übernommen...' });
           router.push(`/einrichten?import=${encodeURIComponent(importUseCaseId)}`);
@@ -177,6 +202,7 @@ export default function LoginPage() {
           });
         } else {
           // 4. Success
+          await acceptWorkspaceInvites(userCredential.user.uid);
           toast({ title: 'Registrierung erfolgreich', description: 'Sie werden weitergeleitet.' });
 
           if (importUseCaseId) {
@@ -209,12 +235,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="flex items-center justify-center gap-2 mb-8">
-        <Image
-          src="/register-logo.png"
+        <ThemeAwareLogo
           alt="KI-Register"
           width={32}
           height={32}
-          className="h-8 w-8 dark:invert"
+          className="h-8 w-8"
         />
         <span className="font-bold text-xl">KI-Register</span>
       </div>
