@@ -16,6 +16,7 @@ interface RegisterTileProps {
     onShareCaptureLinkClick?: () => void;
     utilitiesDisabled?: boolean;
     isSupplierLinkCopied?: boolean;
+    isCaptureLinkCopied?: boolean;
 }
 
 export function RegisterTile({
@@ -27,6 +28,7 @@ export function RegisterTile({
     onShareCaptureLinkClick,
     utilitiesDisabled = false,
     isSupplierLinkCopied = false,
+    isCaptureLinkCopied = false,
 }: RegisterTileProps) {
     const isEmpty = useCaseCount === 0;
     const registerHref = projectId ? `/my-register?projectId=${projectId}` : "/my-register";
@@ -97,12 +99,20 @@ export function RegisterTile({
                                 <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-8 text-xs text-muted-foreground"
+                                    className={`h-8 text-xs ${
+                                        isCaptureLinkCopied
+                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                            : "text-muted-foreground"
+                                    }`}
                                     disabled={utilitiesDisabled}
                                     onClick={onShareCaptureLinkClick}
                                 >
-                                    <Share2 className="mr-1.5 h-3.5 w-3.5" />
-                                    Erfassungslink teilen
+                                    {isCaptureLinkCopied ? (
+                                        <Check className="mr-1.5 h-3.5 w-3.5" />
+                                    ) : (
+                                        <Share2 className="mr-1.5 h-3.5 w-3.5" />
+                                    )}
+                                    {isCaptureLinkCopied ? "Link kopiert" : "Erfassungslink teilen"}
                                 </Button>
                             </div>
                         </div>

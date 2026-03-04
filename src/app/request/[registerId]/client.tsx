@@ -9,7 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { CheckCircle2, ShieldCheck, Loader2, ArrowRight } from "lucide-react";
 
-export default function SupplierRequestForm({ registerId, organisationName }: { registerId: string, organisationName: string }) {
+export default function SupplierRequestForm({
+    registerId,
+    ownerId,
+    organisationName,
+}: {
+    registerId: string;
+    ownerId?: string | null;
+    organisationName: string;
+}) {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,6 +41,7 @@ export default function SupplierRequestForm({ registerId, organisationName }: { 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     registerId,
+                    ownerId: ownerId || undefined,
                     ...formData,
                 }),
             });

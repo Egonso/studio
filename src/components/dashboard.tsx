@@ -14,7 +14,7 @@ import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { evaluateControlUpgradeTriggers } from "@/lib/control/triggers";
 import { trackTriggerClicked, trackTriggerShown } from "@/lib/analytics/control-events";
-import { getPublicAppOrigin } from "@/lib/app-url";
+import { buildSupplierRequestUrl, getPublicAppOrigin } from "@/lib/app-url";
 import { type GetComplianceChecklistOutput } from "@/ai/flows/get-compliance-checklist";
 import type { ComplianceItem, TrustPortalConfig } from "@/lib/types";
 import type { UserStatus } from "@/hooks/use-user-status";
@@ -83,6 +83,7 @@ export function Dashboard({
   useCaseCount = 0,
   pendingReviewCount = 0,
   onUseCaseCaptured,
+  ownerId,
   register = null,
 }: DashboardProps) {
   const searchParams = useSearchParams();
@@ -92,6 +93,7 @@ export function Dashboard({
 
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [supplierLinkCopied, setSupplierLinkCopied] = useState(false);
+  const [captureLinkCopied, setCaptureLinkCopied] = useState(false);
 
   const statusCounts = useMemo(() => {
     const initial: Record<RegisterUseCaseStatus, number> = {
@@ -162,7 +164,7 @@ export function Dashboard({
       return;
     }
 
-    const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
+    const link = buildSupplierRequestUrl(register.registerId, ownerId);
     try {
       await navigator.clipboard.writeText(link);
       setSupplierLinkCopied(true);
@@ -210,11 +212,16 @@ export function Dashboard({
 
       const captureLink = `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
       await navigator.clipboard.writeText(captureLink);
+      setCaptureLinkCopied(true);
+      window.setTimeout(() => {
+        setCaptureLinkCopied(false);
+      }, 2200);
       toast({
         title: "Erfassungslink kopiert",
         description: "Der Link wurde in die Zwischenablage kopiert.",
       });
     } catch {
+      setCaptureLinkCopied(false);
       toast({
         variant: "destructive",
         title: "Fehler",
@@ -236,6 +243,7 @@ export function Dashboard({
             onShareCaptureLinkClick={handleShareCaptureLink}
             utilitiesDisabled={!register?.registerId}
             isSupplierLinkCopied={supplierLinkCopied}
+            isCaptureLinkCopied={captureLinkCopied}
           />
           <QuickCaptureModal
             open={isQuickCaptureOpen}

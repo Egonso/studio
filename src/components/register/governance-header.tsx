@@ -7,7 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus, Register } from "@/lib/register-first/types";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
-import { getPublicAppOrigin } from "@/lib/app-url";
+import { buildSupplierRequestUrl, getPublicAppOrigin } from "@/lib/app-url";
+import { useAuth } from "@/context/auth-context";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -26,7 +27,9 @@ interface GovernanceHeaderProps {
 export function GovernanceHeader({ useCases, register, onQuickCapture, children }: GovernanceHeaderProps) {
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useAuth();
     const [supplierLinkCopied, setSupplierLinkCopied] = useState(false);
+    const [captureLinkCopied, setCaptureLinkCopied] = useState(false);
 
     const counts = useMemo(() => {
         const byStatus: Record<RegisterUseCaseStatus, number> = {
@@ -53,7 +56,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
 
     const handleSupplierRequest = async () => {
         if (!register?.registerId) return;
-        const link = `${getPublicAppOrigin()}/request/${register.registerId}`;
+        const link = buildSupplierRequestUrl(register.registerId, user?.uid);
         try {
             await navigator.clipboard.writeText(link);
             setSupplierLinkCopied(true);
@@ -93,11 +96,16 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 ).code;
             const captureLink = `${getPublicAppOrigin()}/erfassen?code=${encodeURIComponent(resolvedCode)}`;
             await navigator.clipboard.writeText(captureLink);
+            setCaptureLinkCopied(true);
+            window.setTimeout(() => {
+                setCaptureLinkCopied(false);
+            }, 2200);
             toast({
                 title: "Erfassungslink kopiert",
                 description: "Der Link wurde in die Zwischenablage kopiert.",
             });
         } catch {
+            setCaptureLinkCopied(false);
             toast({
                 variant: "destructive",
                 title: "Fehler",
@@ -184,11 +192,21 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     {register && (
                         <button
                             onClick={() => void handleCopyCaptureLink()}
-                            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
+                                captureLinkCopied
+                                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }`}
                             title="Erfassungslink teilen"
                         >
-                            <Share2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Erfassungslink teilen</span>
+                            {captureLinkCopied ? (
+                                <Check className="h-3.5 w-3.5" />
+                            ) : (
+                                <Share2 className="h-3.5 w-3.5" />
+                            )}
+                            <span className="hidden sm:inline">
+                                {captureLinkCopied ? "Link kopiert" : "Erfassungslink teilen"}
+                            </span>
                         </button>
                     )}
                 </div>

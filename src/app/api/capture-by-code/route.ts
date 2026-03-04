@@ -97,10 +97,17 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     message.includes("failed to determine service account") ||
     code.includes("invalid-credential")
   ) {
+    const reason =
+      code ||
+      (message.includes("default credentials")
+        ? "default-credentials"
+        : message.includes("service account")
+          ? "service-account"
+          : "unknown");
     return {
       status: 503,
       message:
-        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-2-${code}]`,
+        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-2-${reason}]`,
     };
   }
 

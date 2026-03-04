@@ -29,3 +29,19 @@ export function buildPublicAppUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return new URL(normalizedPath, `${getPublicAppOrigin()}/`).toString();
 }
+
+export function buildSupplierRequestUrl(
+  registerId: string,
+  ownerId?: string | null
+): string {
+  const url = new URL(
+    `/request/${encodeURIComponent(registerId)}`,
+    `${getPublicAppOrigin()}/`
+  );
+
+  if (ownerId && ownerId.trim().length > 0) {
+    url.searchParams.set("owner", ownerId.trim());
+  }
+
+  return url.toString();
+}

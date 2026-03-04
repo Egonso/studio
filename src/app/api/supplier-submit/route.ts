@@ -5,25 +5,39 @@ import { FieldPath } from "firebase-admin/firestore";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { registerId, toolName, purpose, dataCategory, aiActCategory, responsibleParty, supplierEmail } = body;
+        const { registerId, ownerId, toolName, purpose, dataCategory, aiActCategory, responsibleParty, supplierEmail } = body;
 
         if (!registerId || !toolName || !supplierEmail) {
             return NextResponse.json({ error: "Fehlende Pflichtfelder (Register, Tool-Name oder Email)" }, { status: 400 });
         }
 
-        // Verify the register exists
-        let registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
-        if (registerQuery.empty) {
-            registerQuery = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
+        // Verify register exists (prefer direct owner/register path when available)
+        let registerRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | null = null;
+        let organisationName = "";
+
+        if (typeof ownerId === "string" && ownerId.trim().length > 0) {
+            const directRef = db.doc(`users/${ownerId.trim()}/registers/${registerId}`);
+            const directDoc = await directRef.get();
+            if (directDoc.exists) {
+                registerRef = directRef;
+                organisationName = directDoc.data()?.organisationName || "";
+            }
         }
 
-        if (registerQuery.empty) {
-            return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
-        }
+        if (!registerRef) {
+            let registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
+            if (registerQuery.empty) {
+                registerQuery = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
+            }
 
-        const registerDoc = registerQuery.docs[0];
-        const registerRef = registerDoc.ref;
-        const organisationName = registerDoc.data()?.organisationName || "";
+            if (registerQuery.empty) {
+                return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
+            }
+
+            const registerDoc = registerQuery.docs[0];
+            registerRef = registerDoc.ref;
+            organisationName = registerDoc.data()?.organisationName || "";
+        }
 
         const useCaseId = crypto.randomUUID();
         const now = new Date().toISOString();

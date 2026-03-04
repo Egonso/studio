@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import SimpleLandingPage from "./simplelanding/page";
 
 export default function RootPage() {
-  redirect("/simplelanding");
+  return <SimpleLandingPage />;
 }

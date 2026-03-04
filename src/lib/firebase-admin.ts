@@ -45,12 +45,24 @@ function firstEnv(keys: readonly string[]): { key: string; value: string } | nul
 }
 
 function decodeBase64(value: string): string | undefined {
-    try {
-        const decoded = Buffer.from(value, 'base64').toString('utf8');
-        return decoded || undefined;
-    } catch {
-        return undefined;
+    const candidates = [value];
+
+    // Also try URL-safe base64 variant with normalized alphabet/padding.
+    const urlSafe = value.replace(/-/g, '+').replace(/_/g, '/');
+    if (urlSafe !== value) candidates.push(urlSafe);
+
+    for (const candidate of candidates) {
+        const padLength = candidate.length % 4 === 0 ? 0 : 4 - (candidate.length % 4);
+        const padded = candidate + '='.repeat(padLength);
+        try {
+            const decoded = Buffer.from(padded, 'base64').toString('utf8');
+            if (decoded) return decoded;
+        } catch {
+            // continue
+        }
     }
+
+    return undefined;
 }
 
 function normalizePrivateKey(value?: string): string | undefined {
@@ -70,8 +82,11 @@ function normalizePrivateKey(value?: string): string | undefined {
 
 function parseServiceAccountJson(raw: string): {
     project_id?: string;
+    projectId?: string;
     client_email?: string;
+    clientEmail?: string;
     private_key?: string;
+    privateKey?: string;
 } | null {
     const cleaned = cleanEnv(raw);
     if (!cleaned) return null;
@@ -102,9 +117,9 @@ if (!admin.apps.length) {
             if (!parsed) {
                 throw new Error('Invalid JSON or base64 JSON payload');
             }
-            const clientEmail = cleanEnv(parsed.client_email);
-            const privateKey = normalizePrivateKey(parsed.private_key);
-            const serviceProjectId = cleanEnv(parsed.project_id) || projectId;
+            const clientEmail = cleanEnv(parsed.client_email ?? parsed.clientEmail);
+            const privateKey = normalizePrivateKey(parsed.private_key ?? parsed.privateKey);
+            const serviceProjectId = cleanEnv(parsed.project_id ?? parsed.projectId) || projectId;
 
             if (clientEmail && privateKey) {
                 admin.initializeApp({
@@ -135,9 +150,9 @@ if (!admin.apps.length) {
                 if (!parsed) {
                     throw new Error('Service account file is not valid JSON');
                 }
-                const clientEmail = cleanEnv(parsed.client_email);
-                const privateKey = normalizePrivateKey(parsed.private_key);
-                const serviceProjectId = cleanEnv(parsed.project_id) || projectId;
+                const clientEmail = cleanEnv(parsed.client_email ?? parsed.clientEmail);
+                const privateKey = normalizePrivateKey(parsed.private_key ?? parsed.privateKey);
+                const serviceProjectId = cleanEnv(parsed.project_id ?? parsed.projectId) || projectId;
 
                 if (clientEmail && privateKey) {
                     admin.initializeApp({

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardCopy, Loader2, Plus, XCircle, AlertTriangle } from "lucide-react";
+import { ClipboardCopy, Loader2, Plus, XCircle, AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
   const [codes, setCodes] = useState<RegisterAccessCode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [newLabel, setNewLabel] = useState("");
   const [expiryOption, setExpiryOption] = useState<AccessCodeOptions['expiryOption']>('90_DAYS');
   const { toast } = useToast();
@@ -92,6 +93,8 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
   function copyLink(code: string) {
     const url = `${getPublicAppOrigin()}/erfassen?code=${code}`;
     navigator.clipboard.writeText(url).then(() => {
+      setCopiedCode(code);
+      window.setTimeout(() => setCopiedCode((current) => (current === code ? null : current)), 2200);
       toast({ title: "Link kopiert", description: url });
     });
   }
@@ -211,11 +214,17 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className={`h-8 w-8 p-0 ${
+                  copiedCode === c.code ? "text-emerald-600 hover:text-emerald-700" : ""
+                }`}
                 onClick={() => copyLink(c.code)}
                 title="Einladungslink kopieren"
               >
-                <ClipboardCopy className="h-3.5 w-3.5" />
+                {copiedCode === c.code ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <ClipboardCopy className="h-3.5 w-3.5" />
+                )}
               </Button>
               <Button
                 variant="ghost"
