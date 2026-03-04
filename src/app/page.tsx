@@ -80,12 +80,20 @@ export default function LandingPage() {
           />
           <span className="text-sm font-medium">KI-Register</span>
         </div>
-        <Link
-          href="/login"
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-        >
-          Anmelden
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/downloads"
+            className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            Downloads
+          </Link>
+          <Link
+            href="/login"
+            className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+          >
+            Anmelden
+          </Link>
+        </div>
       </header>
 
       {/* Main */}

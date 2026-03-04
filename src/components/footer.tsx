@@ -11,6 +11,12 @@ export function Footer() {
 
                 <div className="flex items-center gap-6">
                     <Link
+                        href="/downloads"
+                        className="hover:text-foreground transition-colors"
+                    >
+                        Downloads
+                    </Link>
+                    <Link
                         href="https://eukigesetz.com/impressum"
                         target="_blank"
                         rel="noopener noreferrer"

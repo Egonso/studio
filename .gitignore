@@ -46,3 +46,7 @@ firestore-debug.log
 # Local Netlify folder
 .netlify
 .claude/
+
+# macOS menubar app local build outputs
+apps/ki-register-menubar-mac/.build/
+apps/ki-register-menubar-mac/dist/
