@@ -141,6 +141,13 @@ function parseServiceAccountJson(raw: string): {
     const decoded = decodeBase64(cleaned);
     if (decoded) candidates.push(decoded);
 
+    try {
+        const decodedUri = decodeURIComponent(cleaned);
+        if (decodedUri !== cleaned) candidates.push(decodedUri);
+    } catch {
+        // Ignore invalid URI encoding
+    }
+
     // Common escaped payload shape in hosting UIs: {\"type\":\"service_account\",...}
     const quoteUnescaped = cleaned.replace(/\\"/g, '"');
     if (quoteUnescaped !== cleaned) candidates.push(quoteUnescaped);
