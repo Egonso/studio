@@ -7,6 +7,7 @@ package = "@netlify/plugin-nextjs"
 
 [build.environment]
 NODE_VERSION = "20"
+NEXT_PUBLIC_APP_ORIGIN = "https://kiregister.com"
 NEXT_PUBLIC_CONTROL_SHELL_ENABLED = "true"
 NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED = "true"
 NEXT_PUBLIC_CONTROL_MATURITY_MODEL_ENABLED = "true"

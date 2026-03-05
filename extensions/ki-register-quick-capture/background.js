@@ -15,7 +15,7 @@ let creatingOffscreenDocument = null;
 function isPreferredHost(hostname) {
   if (!hostname) return false;
   if (hostname === "localhost" || hostname === "127.0.0.1") return true;
-  return hostname === "kiregister.com" || hostname.endsWith(".kiregister.com");
+  return hostname === "kiregister.com" || hostname === "www.kiregister.com";
 }
 
 async function inferBaseUrlFromActiveTab() {

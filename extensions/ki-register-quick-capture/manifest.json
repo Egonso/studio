@@ -2,10 +2,11 @@
   "manifest_version": 3,
   "name": "KI-Register Quick Capture",
   "description": "Oeffnet die Quick-Capture-Maske des KI-Registers jederzeit aus der Chrome-Toolbar.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "permissions": ["tabs", "windows", "contextMenus", "offscreen"],
   "host_permissions": [
-    "https://*.kiregister.com/*",
+    "https://kiregister.com/*",
+    "https://www.kiregister.com/*",
     "http://localhost:3000/*",
     "http://127.0.0.1:3000/*"
   ],

@@ -24,5 +24,5 @@ Diese Extension oeffnet die Quick-Capture-Maske des Studios direkt aus der Chrom
   - `KI-Register Quick Capture`
 - Standard-Ziel ist fest:
   - `https://kiregister.com/capture?source=chrome-extension`
-- Wenn du gerade auf einer `*.kiregister.com` oder `localhost`-Seite bist, nutzt die Extension automatisch diese Origin.
+- Wenn du gerade auf `kiregister.com`, `www.kiregister.com` oder `localhost` bist, nutzt die Extension automatisch diese Origin.
 - Das Toolbar-Icon passt sich automatisch an Dark/Light Browser-Theme an.

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const stripe = new Stripe(stripeSecretKey, {
-            apiVersion: '2024-04-10',
+            apiVersion: '2025-02-24.acacia',
         });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);

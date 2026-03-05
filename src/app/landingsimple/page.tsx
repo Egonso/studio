@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { Loader2 } from "lucide-react";
@@ -11,7 +11,6 @@ import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 type EntryMode = "admin" | "member";
 
 export default function LandingSimplePage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user, loading } = useAuth();
 

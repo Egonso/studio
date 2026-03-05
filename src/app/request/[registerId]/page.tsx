@@ -6,10 +6,8 @@ export default async function SupplierRequestPage({
     params,
     searchParams,
 }: {
-    params: Promise<{ registerId: string }> | { registerId: string };
-    searchParams?:
-        | Promise<{ owner?: string | string[] }>
-        | { owner?: string | string[] };
+    params: Promise<{ registerId: string }>;
+    searchParams?: Promise<{ owner?: string | string[] | undefined }>;
 }) {
     const { registerId } = await params;
     const resolvedSearchParams = searchParams ? await searchParams : undefined;

@@ -11,8 +11,13 @@ const PROJECT_ID_KEYS = [
 
 const SERVICE_ACCOUNT_JSON_KEYS = [
     'FIREBASE_SERVICE_ACCOUNT_KEY',
+    'FIREBASE_SERVICE_ACCOUNT_JSON',
+    'FIREBASE_SERVICE_ACCOUNT_KEY_BASE64',
+    'FIREBASE_SERVICE_ACCOUNT_B64',
     'FIREBASE_ADMIN_SERVICE_ACCOUNT',
+    'FIREBASE_ADMIN_SERVICE_ACCOUNT_B64',
     'GOOGLE_APPLICATION_CREDENTIALS_JSON',
+    'GOOGLE_APPLICATION_CREDENTIALS_BASE64',
 ] as const;
 const SERVICE_ACCOUNT_FILE_KEYS = [
     'GOOGLE_APPLICATION_CREDENTIALS',
@@ -91,15 +96,90 @@ function parseServiceAccountJson(raw: string): {
     const cleaned = cleanEnv(raw);
     if (!cleaned) return null;
 
-    try {
-        return JSON.parse(cleaned);
-    } catch {
-        const decoded = decodeBase64(cleaned);
-        if (!decoded) return null;
+    function parseCandidate(candidate: string): {
+        project_id?: string;
+        projectId?: string;
+        client_email?: string;
+        clientEmail?: string;
+        private_key?: string;
+        privateKey?: string;
+    } | null {
         try {
-            return JSON.parse(decoded);
+            const parsed = JSON.parse(candidate) as unknown;
+            if (parsed && typeof parsed === 'object') {
+                return parsed as {
+                    project_id?: string;
+                    projectId?: string;
+                    client_email?: string;
+                    clientEmail?: string;
+                    private_key?: string;
+                    privateKey?: string;
+                };
+            }
+            if (typeof parsed === 'string') {
+                const nested = JSON.parse(parsed) as unknown;
+                if (nested && typeof nested === 'object') {
+                    return nested as {
+                        project_id?: string;
+                        projectId?: string;
+                        client_email?: string;
+                        clientEmail?: string;
+                        private_key?: string;
+                        privateKey?: string;
+                    };
+                }
+            }
         } catch {
-            return null;
+            // Continue with next candidate.
+        }
+        return null;
+    }
+
+    const candidates: string[] = [];
+    candidates.push(cleaned);
+
+    const decoded = decodeBase64(cleaned);
+    if (decoded) candidates.push(decoded);
+
+    // Common escaped payload shape in hosting UIs: {\"type\":\"service_account\",...}
+    const quoteUnescaped = cleaned.replace(/\\"/g, '"');
+    if (quoteUnescaped !== cleaned) candidates.push(quoteUnescaped);
+
+    // Sometimes JSON strings are serialized twice.
+    const maybeQuoted = cleaned.replace(/^"+|"+$/g, '');
+    if (maybeQuoted && maybeQuoted !== cleaned) candidates.push(maybeQuoted);
+
+    for (const candidate of candidates) {
+        const parsed = parseCandidate(candidate);
+        if (parsed) return parsed;
+    }
+
+    return null;
+}
+
+function maskSecret(value: string): string {
+    if (value.length <= 8) return '********';
+    return `${value.slice(0, 4)}…${value.slice(-4)}`;
+}
+
+function hasAnyEnv(keys: readonly string[]): boolean {
+    return keys.some((key) => Boolean(cleanEnv(process.env[key])));
+}
+
+function logCredentialResolutionHints(projectId: string): void {
+    const jsonPresent = hasAnyEnv(SERVICE_ACCOUNT_JSON_KEYS);
+    const splitPresent = hasAnyEnv(CLIENT_EMAIL_KEYS) || hasAnyEnv(PRIVATE_KEY_KEYS);
+    const filePresent = hasAnyEnv(SERVICE_ACCOUNT_FILE_KEYS);
+    console.warn(
+        `⚠️ Firebase Admin fallback credentials in use (project: ${projectId}). ` +
+        `jsonEnv=${jsonPresent} splitEnv=${splitPresent} fileEnv=${filePresent}`
+    );
+    if (jsonPresent) {
+        const selected = firstEnv(SERVICE_ACCOUNT_JSON_KEYS);
+        if (selected) {
+            console.warn(
+                `⚠️ Candidate JSON key detected: ${selected.key} (${maskSecret(selected.value)})`
+            );
         }
     }
 }
@@ -115,7 +195,7 @@ if (!admin.apps.length) {
         try {
             const parsed = parseServiceAccountJson(serviceAccountConfig.value);
             if (!parsed) {
-                throw new Error('Invalid JSON or base64 JSON payload');
+                throw new Error('Invalid JSON/base64/escaped JSON payload');
             }
             const clientEmail = cleanEnv(parsed.client_email ?? parsed.clientEmail);
             const privateKey = normalizePrivateKey(parsed.private_key ?? parsed.privateKey);
@@ -209,9 +289,7 @@ if (!admin.apps.length) {
                 projectId,
             });
             initialized = true;
-            console.log(
-                `⚠️ Firebase Admin initialized with application default credentials (project: ${projectId})`
-            );
+            logCredentialResolutionHints(projectId);
         } catch (error) {
             console.error('❌ Firebase Admin applicationDefault init failed', error);
         }
