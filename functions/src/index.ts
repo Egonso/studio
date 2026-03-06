@@ -10,6 +10,7 @@ admin.initializeApp();
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeApiKeyLegacy = defineSecret('STRIPE_API_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
+const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
 
 // ... (existing imports)
 
@@ -49,7 +50,9 @@ export const stripeWebhook = onRequest(
 
   // Initialize Stripe inside handler to use secret
   const stripe = new Stripe(resolvedStripeSecretKey, {
-    apiVersion: '2024-04-10',
+    // Root and functions can resolve different stripe package versions during builds.
+    // Pin the runtime API version explicitly and bind it to the installed SDK type.
+    apiVersion: STRIPE_API_VERSION,
   });
 
   // Set CORS headers (handled by cors: true option in v2 usually, but for custom...)

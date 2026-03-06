@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
+const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
+
 /**
  * API Route to retrieve customer email from a Stripe Checkout Session.
  * Used after successful purchase to pre-fill registration form.
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     try {
         const stripe = new Stripe(stripeSecretKey, {
-            apiVersion: '2024-04-10',
+            apiVersion: STRIPE_API_VERSION,
         });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
