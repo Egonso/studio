@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
@@ -43,38 +44,6 @@ const EMPTY_FORM: CaptureFormData = {
   usageContext: "INTERNAL_ONLY",
   dataCategory: "NONE",
 };
-
-function mapCodeValidationError(status: number, errorMessage?: string) {
-  const message = errorMessage || "Unbekannter Fehler";
-  if (status === 404 || status === 400) {
-    return {
-      title: "Code ungültig",
-      message,
-    };
-  }
-  if (status === 410) {
-    return {
-      title: "Code nicht aktiv",
-      message,
-    };
-  }
-  if (status === 429) {
-    return {
-      title: "Zu viele Anfragen",
-      message,
-    };
-  }
-  if (status === 503 || status >= 500) {
-    return {
-      title: "Dienst vorübergehend nicht verfügbar",
-      message,
-    };
-  }
-  return {
-    title: "Fehler",
-    message,
-  };
-}
 
 export default function ErfassenPage() {
   const searchParams = useSearchParams();
@@ -111,9 +80,9 @@ export default function ErfassenPage() {
           .catch(() => ({ error: "Code konnte nicht geprüft werden." })) as {
             error?: string;
           };
-        const mapped = mapCodeValidationError(res.status, data.error);
-        setErrorTitle(mapped.title);
-        setErrorMsg(mapped.message);
+        const copy = getCaptureByCodeErrorCopy(res.status, data.error, "validate");
+        setErrorTitle(copy.title);
+        setErrorMsg(copy.description);
         setPageState("invalid");
         return;
       }
@@ -153,14 +122,9 @@ export default function ErfassenPage() {
           .catch(() => ({ error: "Fehler beim Speichern." })) as {
             error?: string;
           };
-        if (res.status === 503 || res.status >= 500) {
-          setErrorTitle("Dienst vorübergehend nicht verfügbar");
-        } else if (res.status === 429) {
-          setErrorTitle("Zu viele Anfragen");
-        } else {
-          setErrorTitle("Fehler");
-        }
-        setErrorMsg(data.error || "Fehler beim Speichern");
+        const copy = getCaptureByCodeErrorCopy(res.status, data.error, "submit");
+        setErrorTitle(copy.title);
+        setErrorMsg(copy.description);
         return;
       }
 

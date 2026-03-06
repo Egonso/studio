@@ -61,6 +61,9 @@ export function ReviewSection({ card, onStatusChange }: ReviewSectionProps) {
     <>
       <section className="border-t border-slate-200 pt-8">
         <h2 className="text-[18px] font-semibold tracking-tight">Prüfstatus</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Formale Statusdokumentation ist getrennt von der Bearbeitung der Stammdaten.
+        </p>
 
         <div className="mt-6 space-y-5">
           <div className="flex flex-wrap items-center gap-3">

@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
@@ -127,6 +126,7 @@ export function UseCaseMetadataSection({
 }: UseCaseMetadataSectionProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const readOnlyHintAtRef = useRef(0);
 
   const [editDraft, setEditDraft] = useState<UseCaseEditDraft>(() => ({
     purpose: card.purpose,
@@ -192,6 +192,17 @@ export function UseCaseMetadataSection({
       aiActCategory: card.governanceAssessment?.core?.aiActCategory ?? "",
     });
   }, [card]);
+
+  const showReadOnlyHint = useCallback(() => {
+    const now = Date.now();
+    if (now - readOnlyHintAtRef.current < 1600) return;
+    readOnlyHintAtRef.current = now;
+    toast({
+      title: "Stammdaten sind schreibgeschützt",
+      description:
+        'Zum Ändern zuerst "Stammdaten bearbeiten" klicken.',
+    });
+  }, [toast]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -286,7 +297,7 @@ export function UseCaseMetadataSection({
       {isEditing && (
         <div className="sticky top-3 z-20 flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/75">
           <p className="text-sm text-slate-700">
-            Bearbeitungsmodus aktiv. Alle Kernfelder sind direkt editierbar.
+            Bearbeitungsmodus aktiv. Die Stammdaten dieses Einsatzfalls können jetzt geändert werden.
           </p>
           <Button onClick={() => void handleSave()} disabled={isSaving} size="sm">
             {isSaving ? (
@@ -299,10 +310,21 @@ export function UseCaseMetadataSection({
         </div>
       )}
 
+      {!isEditing && (
+        <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <p className="font-medium text-slate-700">Stammdaten sind schreibgeschützt.</p>
+          <p>Zum Ändern zuerst "Stammdaten bearbeiten" wählen.</p>
+        </div>
+      )}
+
       <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
         <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
-          <FieldBlock label="Zweck" className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <FieldBlock
+            label="Zweck"
+            className="rounded-md border border-slate-200 bg-white px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
             {isEditing ? (
               <Textarea
                 value={editDraft.purpose}
@@ -315,7 +337,11 @@ export function UseCaseMetadataSection({
               <p className="text-[15px] font-medium text-slate-900">{card.purpose}</p>
             )}
           </FieldBlock>
-          <FieldBlock label="Wirkungsbereich" className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <FieldBlock
+            label="Wirkungsbereich"
+            className="rounded-md border border-slate-200 bg-white px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
             {isEditing ? (
               <div className="space-y-2">
                 {USAGE_CONTEXT_OPTIONS.map((option) => (
@@ -340,6 +366,7 @@ export function UseCaseMetadataSection({
           <FieldBlock
             label="Einfluss auf Entscheidungen"
             className="rounded-md border border-slate-200 bg-white px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
           >
             {isEditing ? (
               <div className="space-y-2">
@@ -362,7 +389,11 @@ export function UseCaseMetadataSection({
               <p className="text-[15px] font-medium text-slate-900">{decisionLabel}</p>
             )}
           </FieldBlock>
-          <FieldBlock label="Risikoklasse" className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <FieldBlock
+            label="Risikoklasse"
+            className="rounded-md border border-slate-200 bg-white px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
             {isEditing ? (
               <Input
                 value={editDraft.aiActCategory}
@@ -378,7 +409,11 @@ export function UseCaseMetadataSection({
               <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
             )}
           </FieldBlock>
-          <FieldBlock label="Datenkategorien" className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <FieldBlock
+            label="Datenkategorien"
+            className="rounded-md border border-slate-200 bg-white px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
             {isEditing ? (
               <div className="space-y-2">
                 {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
@@ -444,7 +479,12 @@ export function UseCaseMetadataSection({
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-[18px] font-semibold tracking-tight">Eingesetztes KI-System</h2>
+          <div className="space-y-1">
+            <h2 className="text-[18px] font-semibold tracking-tight">Eingesetztes KI-System</h2>
+            <p className="text-xs text-muted-foreground">
+              Systemhinweise aktualisieren die Dokumentation, ohne den Stammdatenmodus zu öffnen.
+            </p>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -459,6 +499,7 @@ export function UseCaseMetadataSection({
           <FieldBlock
             label="System / Tool"
             className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
           >
             {isEditing ? (
               <div className="space-y-2">
@@ -491,6 +532,7 @@ export function UseCaseMetadataSection({
           <FieldBlock
             label="Anbieter"
             className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
           >
             <p className="text-[15px] font-medium text-slate-900">
               {isEditing
@@ -539,7 +581,11 @@ export function UseCaseMetadataSection({
             id="usecase-focus-owner"
             className={cn(focusTarget === "owner" && focusClassName)}
           >
-            <FieldBlock label="Verantwortliche Person" className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3">
+            <FieldBlock
+              label="Verantwortliche Person"
+              className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
               {isEditing ? (
                 <Input
                   value={editDraft.responsibleParty}
@@ -556,7 +602,11 @@ export function UseCaseMetadataSection({
               )}
             </FieldBlock>
           </div>
-          <FieldBlock label="Organisation" className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3">
+          <FieldBlock
+            label="Organisation"
+            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
             {isEditing ? (
               <Input
                 value={editDraft.organisation}
@@ -619,14 +669,32 @@ function FieldBlock({
   label,
   children,
   className,
+  onReadOnlyInteract,
 }: {
   label: string;
   children: React.ReactNode;
   className?: string;
+  onReadOnlyInteract?: (() => void) | undefined;
 }) {
+  const commonClassName = cn(
+    "space-y-1.5 text-left",
+    onReadOnlyInteract &&
+      "cursor-pointer transition-colors hover:border-slate-300 hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2",
+    className
+  );
+
+  if (onReadOnlyInteract) {
+    return (
+      <button type="button" onClick={onReadOnlyInteract} className={commonClassName}>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        {children}
+      </button>
+    );
+  }
+
   return (
-    <div className={cn("space-y-1.5", className)}>
-      <Label className="text-xs text-muted-foreground">{label}</Label>
+    <div className={commonClassName}>
+      <p className="text-xs text-muted-foreground">{label}</p>
       {children}
     </div>
   );

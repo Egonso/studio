@@ -20,6 +20,8 @@ const RATE_LIMIT_PER_CODE = 10; // 10 submissions per hour per code
 const RATE_LIMIT_PER_IP = 100; // 100 submissions per day per IP
 const RATE_WINDOW_CODE = 60 * 60 * 1000; // 1 hour
 const RATE_WINDOW_IP = 24 * 60 * 60 * 1000; // 24 hours
+const TEMPORARY_UNAVAILABLE_MESSAGE =
+  "Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.";
 
 function normalizeCode(value: string): string {
   return value.trim().toUpperCase();
@@ -87,8 +89,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
   if ([401, 403, 429, 500, 502, 503, 504].includes(status)) {
     return {
       status: 503,
-      message:
-        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-1-${status}]`,
+      message: TEMPORARY_UNAVAILABLE_MESSAGE,
     };
   }
 
@@ -97,17 +98,9 @@ function mapOperationalError(error: unknown): { status: number; message: string 
     message.includes("failed to determine service account") ||
     code.includes("invalid-credential")
   ) {
-    const reason =
-      code ||
-      (message.includes("default credentials")
-        ? "default-credentials"
-        : message.includes("service account")
-          ? "service-account"
-          : "unknown");
     return {
       status: 503,
-      message:
-        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-2-${reason}]`,
+      message: TEMPORARY_UNAVAILABLE_MESSAGE,
     };
   }
 
@@ -121,8 +114,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
   ) {
     return {
       status: 503,
-      message:
-        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-3-${code}]`,
+      message: TEMPORARY_UNAVAILABLE_MESSAGE,
     };
   }
 
@@ -136,8 +128,7 @@ function mapOperationalError(error: unknown): { status: number; message: string 
   ) {
     return {
       status: 503,
-      message:
-        `Dienst vorübergehend nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut. [API-4-${status}]`,
+      message: TEMPORARY_UNAVAILABLE_MESSAGE,
     };
   }
 

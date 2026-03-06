@@ -266,16 +266,21 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
               variant={isEditing ? "default" : "outline"}
               size="sm"
               onClick={onToggleEdit}
+              title={
+                isEditing
+                  ? "Bearbeitung der Stammdaten beenden"
+                  : "Stammdaten des Einsatzfalls ändern"
+              }
             >
               {isEditing ? (
                 <>
                   <X className="mr-1.5 h-3.5 w-3.5" />
-                  Abbrechen
+                  Bearbeiten beenden
                 </>
               ) : (
                 <>
                   <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                  Einsatzfall bearbeiten
+                  Stammdaten bearbeiten
                 </>
               )}
             </Button>

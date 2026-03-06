@@ -49,7 +49,7 @@ export const stripeWebhook = onRequest(
 
   // Initialize Stripe inside handler to use secret
   const stripe = new Stripe(resolvedStripeSecretKey, {
-    apiVersion: '2025-02-24.acacia',
+    apiVersion: '2024-04-10',
   });
 
   // Set CORS headers (handled by cors: true option in v2 usually, but for custom...)

@@ -8,38 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
+import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 
 type MemberStep = "code" | "confirm" | "signup";
 
 function normalizeCode(value: string): string {
   return value.trim().toUpperCase();
-}
-
-function getCodeErrorCopy(status: number, message?: string) {
-  const fallback = {
-    title: "Code konnte nicht geprüft werden",
-    description: "Bitte versuchen Sie es erneut.",
-  };
-  if (status === 404) {
-    return {
-      title: "Code nicht gefunden",
-      description:
-        "Dieser Einladungscode ist ungültig. Bitte prüfen Sie die Eingabe oder fordern Sie einen neuen Code an.",
-    };
-  }
-  if (status === 410 && message?.toLowerCase().includes("abgelaufen")) {
-    return {
-      title: "Code abgelaufen",
-      description: "Dieser Einladungscode ist abgelaufen. Bitte fordern Sie einen neuen Code an.",
-    };
-  }
-  if (status === 410) {
-    return {
-      title: "Code nicht aktiv",
-      description: "Dieser Einladungscode wurde deaktiviert. Bitte fordern Sie einen neuen Code an.",
-    };
-  }
-  return fallback;
 }
 
 export default function InvitePage() {
@@ -94,7 +68,11 @@ export default function InvitePage() {
       };
 
       if (!response.ok) {
-        const copy = getCodeErrorCopy(response.status, payload.error);
+        const copy = getCaptureByCodeErrorCopy(
+          response.status,
+          payload.error,
+          "validate"
+        );
         toast({
           variant: "destructive",
           title: copy.title,

@@ -11,6 +11,7 @@ import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { setActiveRegisterId } from "@/lib/register-first/register-settings-client";
 import type { User } from "firebase/auth";
 import { getPublicAppOrigin } from "@/lib/app-url";
+import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -39,34 +40,6 @@ const ADMIN_STEP_LABELS: Record<AdminStep, string> = {
 
 function normalizeCode(value: string): string {
   return value.trim().toUpperCase();
-}
-
-function getCodeErrorCopy(status: number, message?: string) {
-  if (status === 404) {
-    return {
-      title: "Code nicht gefunden",
-      description:
-        "Dieser Einladungscode ist ungültig. Bitte prüfen Sie die Eingabe oder fordern Sie einen neuen Code an.",
-    };
-  }
-  if (status === 410 && message?.toLowerCase().includes("abgelaufen")) {
-    return {
-      title: "Code abgelaufen",
-      description:
-        "Dieser Einladungscode ist abgelaufen. Bitte fordern Sie einen neuen Code an.",
-    };
-  }
-  if (status === 410) {
-    return {
-      title: "Code nicht aktiv",
-      description:
-        "Dieser Einladungscode wurde deaktiviert. Bitte fordern Sie einen neuen Code an.",
-    };
-  }
-  return {
-    title: "Code konnte nicht geprüft werden",
-    description: "Bitte versuchen Sie es erneut.",
-  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -312,7 +285,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       };
 
       if (!response.ok) {
-        const copy = getCodeErrorCopy(response.status, payload.error);
+        const copy = getCaptureByCodeErrorCopy(
+          response.status,
+          payload.error,
+          "validate"
+        );
         toast({
           variant: "destructive",
           title: copy.title,
