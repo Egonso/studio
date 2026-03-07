@@ -20,7 +20,7 @@ When an employee captures a Use Case using an Access Code, it lands in your Regi
 
 1. **Open the Register:** Navigate to `Mein Register`.
 2. **Access Detail View:** Click on any Use Case row to open the full Detail View.
-3. **Verify Information:** Ensure the metadata (Purpose, Tool, Owner) is complete and accurate. You can edit the Use Case in the Detail View.
+3. **Verify Information:** Ensure the metadata (Purpose, Tool, Owner-Rolle, optional Kontaktperson) is complete and accurate. You can edit the Use Case in the Detail View.
 4. **Conduct Compliance Check:** Click "Compliance prüfen" to leverage our Perplexity-integrated intelligence to check if the tool is GDPR & EU AI Act compliant.
 5. **Add Review Notes:** You can add specific internal review notes or link external evidences (privacy policies, DPIAs).
 6. **Update Status:** Change the status sequentially: `UNREVIEWED` → `REVIEW_RECOMMENDED` → `REVIEWED` → `PROOF_READY`.
@@ -29,7 +29,7 @@ When an employee captures a Use Case using an Access Code, it lands in your Regi
 
 The `Mein Register` dashboard provides advanced sorting:
 
-- Sort ascending or descending by `Erstellt am`, `Zuletzt geändert`, `Name`, `Verantwortlich`, `Status`, or `Tool`.
+- Sort ascending or descending by `Erstellt am`, `Zuletzt geändert`, `Name`, `Owner-Rolle`, `Status`, or `Tool`.
 - Use the views dropdown to group use cases cleanly.
 - You can toggle deleted use cases to temporarily see what was removed.
 

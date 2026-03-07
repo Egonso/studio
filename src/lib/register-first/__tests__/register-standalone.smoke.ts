@@ -127,12 +127,16 @@ export async function runRegisterStandaloneSmoke() {
   const card2 = await service.createUseCaseFromCapture({
     purpose: "Standalone: Zweiter Fall",
     usageContexts: ["EMPLOYEE_FACING"],
-    isCurrentlyResponsible: true,
+    isCurrentlyResponsible: false,
+    responsibleParty: "HR Lead",
+    contactPersonName: "Max Mustermann",
     decisionImpact: "YES",
     dataCategory: "PERSONAL",
     toolId: "other",
     toolFreeText: "Eigenes Modell",
   });
+  assert.equal(card2.responsibility.responsibleParty, "HR Lead");
+  assert.equal(card2.responsibility.contactPersonName, "Max Mustermann");
 
   await assert.rejects(
     () =>
@@ -209,7 +213,9 @@ export async function runRegisterStandaloneSmoke() {
     {
       purpose: "Builder-Test: Zusammenfassung",
       usageContexts: ["INTERNAL_ONLY"],
-      isCurrentlyResponsible: true,
+      isCurrentlyResponsible: false,
+      responsibleParty: "IT Security",
+      contactPersonName: "Lisa Beispiel",
       decisionImpact: "NO",
       dataCategory: "NONE",
       toolId: "chatgpt",
@@ -224,6 +230,8 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(prepared.cardVersion, "1.1");
   assert.ok(prepared.globalUseCaseId);
   assert.ok(prepared.publicHashId);
+  assert.equal(prepared.responsibility.responsibleParty, "IT Security");
+  assert.equal(prepared.responsibility.contactPersonName, "Lisa Beispiel");
   console.log("  [13] prepareUseCaseForStorage produces valid card ✓");
 
   // ── 14. Unauthenticated user → UNAUTHENTICATED ──

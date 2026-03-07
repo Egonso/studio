@@ -43,7 +43,8 @@ interface QuickCaptureModalProps {
 
 interface QuickDraft {
     purpose: string;
-    ownerName: string;
+    ownerRole: string;
+    contactPersonName: string;
     toolId: string;
     toolFreeText: string;
     usageContexts: CaptureUsageContext[];
@@ -56,7 +57,8 @@ interface GuestCaptureEntry {
     id: string;
     capturedAt: string;
     purpose: string;
-    ownerName: string;
+    ownerRole: string;
+    contactPersonName?: string;
     tool: string;
     usageContexts: CaptureUsageContext[];
     dataCategories: DataCategory[];
@@ -64,10 +66,13 @@ interface GuestCaptureEntry {
     description: string;
 }
 
-function createInitialDraft(initialDraft?: Partial<QuickDraft>): QuickDraft {
+function createInitialDraft(
+    initialDraft?: (Partial<QuickDraft> & { ownerName?: string })
+): QuickDraft {
     return {
         purpose: initialDraft?.purpose?.slice(0, 160) ?? "",
-        ownerName: initialDraft?.ownerName ?? "",
+        ownerRole: initialDraft?.ownerRole ?? initialDraft?.ownerName ?? "",
+        contactPersonName: initialDraft?.contactPersonName ?? "",
         toolId: initialDraft?.toolId ?? "__placeholder__",
         toolFreeText: initialDraft?.toolFreeText ?? "",
         usageContexts: [...(initialDraft?.usageContexts ?? [])],
@@ -177,7 +182,7 @@ export function QuickCaptureModal({
         }).catch(() => { });
     }, [canInherit]);
 
-    const canSave = draft.purpose.trim().length > 0 && draft.ownerName.trim().length >= 2 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
+    const canSave = draft.purpose.trim().length > 0 && draft.ownerRole.trim().length >= 2 && draft.toolId.length > 0 && draft.toolId !== "__placeholder__";
 
     // Count selections for badges
     const section1Count = draft.usageContexts.length + (draft.decisionInfluence ? 1 : 0);
@@ -192,7 +197,8 @@ export function QuickCaptureModal({
                     id: `guest_${Date.now()}`,
                     capturedAt: new Date().toISOString(),
                     purpose: draft.purpose.trim(),
-                    ownerName: draft.ownerName.trim(),
+                    ownerRole: draft.ownerRole.trim(),
+                    contactPersonName: draft.contactPersonName.trim() || undefined,
                     tool: draft.toolId === "other" ? draft.toolFreeText.trim() : draft.toolId,
                     usageContexts: draft.usageContexts,
                     dataCategories: draft.dataCategories,
@@ -227,7 +233,8 @@ export function QuickCaptureModal({
                 dataCategories: draft.dataCategories.length > 0 ? draft.dataCategories : undefined,
                 decisionInfluence: draft.decisionInfluence ?? undefined,
                 isCurrentlyResponsible: false,
-                responsibleParty: draft.ownerName.trim(),
+                responsibleParty: draft.ownerRole.trim(),
+                contactPersonName: draft.contactPersonName.trim() || undefined,
                 decisionImpact: "UNSURE",
             });
 
@@ -338,16 +345,29 @@ export function QuickCaptureModal({
                         />
                     </div>
 
-                    {/* 2. Owner (required) */}
+                    {/* 2. Owner role (required) */}
                     <div className="space-y-1.5">
                         <Label htmlFor="qc-owner">
-                            Verantwortlich <span className="text-destructive">*</span>
+                            Owner-Rolle (funktional) <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="qc-owner"
-                            placeholder="Name eingeben"
-                            value={draft.ownerName}
-                            onChange={(e) => patch({ ownerName: e.target.value })}
+                            placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                            value={draft.ownerRole}
+                            onChange={(e) => patch({ ownerRole: e.target.value })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.
+                        </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <Label htmlFor="qc-contact-person">Kontaktperson (optional)</Label>
+                        <Input
+                            id="qc-contact-person"
+                            placeholder="z. B. Max Mustermann"
+                            value={draft.contactPersonName}
+                            onChange={(e) => patch({ contactPersonName: e.target.value })}
                         />
                     </div>
 

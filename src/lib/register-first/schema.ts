@@ -51,6 +51,7 @@ export const captureInputSchema = z
     usageContexts: z.array(captureUsageContextSchema).min(1).max(8),
     isCurrentlyResponsible: z.boolean(),
     responsibleParty: z.string().trim().min(2).max(120).optional().nullable(),
+    contactPersonName: z.string().trim().min(1).max(120).optional().nullable(),
     decisionImpact: decisionImpactSchema.optional(),
     decisionInfluence: decisionInfluenceSchema.optional(),
     affectedParties: z.array(affectedPartySchema).max(4).optional(),
@@ -189,6 +190,13 @@ export const useCaseCardSchema = z
           .max(120)
           .optional()
           .nullable(),
+        contactPersonName: z
+          .string()
+          .trim()
+          .min(1)
+          .max(120)
+          .optional()
+          .nullable(),
       })
       .superRefine((value, ctx) => {
         if (
@@ -310,6 +318,7 @@ export function createUseCaseCardDraft(
     responsibility: {
       isCurrentlyResponsible: capture.isCurrentlyResponsible,
       responsibleParty: capture.responsibleParty ?? null,
+      contactPersonName: capture.contactPersonName ?? null,
     },
     decisionImpact: capture.decisionImpact,
     affectedParties: capture.affectedParties ?? [],
@@ -348,6 +357,7 @@ export function createUseCaseCardV11Draft(
     responsibility: {
       isCurrentlyResponsible: capture.isCurrentlyResponsible,
       responsibleParty: capture.responsibleParty ?? null,
+      contactPersonName: capture.contactPersonName ?? null,
     },
     decisionImpact: capture.decisionImpact ?? "NO",
     decisionInfluence: capture.decisionInfluence,

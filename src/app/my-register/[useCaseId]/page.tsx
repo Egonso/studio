@@ -6,14 +6,17 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { UseCaseHeader } from "@/components/register/detail/use-case-header";
 import { UseCaseMetadataSection } from "@/components/register/detail/use-case-metadata-section";
+import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
 import { ReviewSection } from "@/components/register/detail/review-section";
 import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
 import {
+  isGovernanceRepairField,
   isControlFocusTarget,
   type ControlFocusTarget,
 } from "@/lib/control/deep-link";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
-import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
+import type { OrgSettings, RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
@@ -22,6 +25,8 @@ export default function UseCaseDetailPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
+  const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
+  const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -30,17 +35,39 @@ export default function UseCaseDetailPage() {
 
   const useCaseId = params.useCaseId;
   const focusParam = searchParams.get("focus");
+  const editParam = searchParams.get("edit");
+  const fieldParam = searchParams.get("field");
+  const requestedFocus = isControlFocusTarget(focusParam) ? focusParam : null;
+  const resolvedFocus = resolveFocusTarget(requestedFocus);
+  const governanceField = resolveGovernanceField(requestedFocus, fieldParam);
+  const governanceAutoOpenField =
+    editParam === "1" &&
+    (governanceField === "oversight" || governanceField === "reviewCycle")
+      ? governanceField
+      : null;
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
     setIsLoading(true);
     setError(null);
     try {
-      const result = await registerService.getUseCase(undefined, useCaseId);
+      const [result, register, useCases] = await Promise.all([
+        registerService.getUseCase(undefined, useCaseId),
+        registerFirstFlags.controlShell
+          ? registerService.getFirstRegister().catch(() => null)
+          : Promise.resolve(null),
+        registerFirstFlags.controlShell
+          ? registerService
+              .listUseCases(undefined, { includeDeleted: false })
+              .catch(() => [])
+          : Promise.resolve([]),
+      ]);
       if (!result) {
         setError("Einsatzfall nicht gefunden.");
       } else {
         setCard(result);
+        setAllUseCases(useCases);
+        setOrgSettings(register?.orgSettings ?? null);
       }
     } catch (err) {
       if (isServiceError(err, "UNAUTHENTICATED")) {
@@ -56,6 +83,12 @@ export default function UseCaseDetailPage() {
       setIsLoading(false);
     }
   }, [useCaseId, router]);
+
+  useEffect(() => {
+    if (editParam !== "1") return;
+    if (resolvedFocus !== "owner") return;
+    setIsEditing(true);
+  }, [editParam, resolvedFocus, useCaseId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -76,30 +109,30 @@ export default function UseCaseDetailPage() {
       return;
     }
 
-    if (!isControlFocusTarget(focusParam)) {
+    if (!requestedFocus || !resolvedFocus) {
       setActiveFocus(null);
       setInvalidFocus(focusParam);
       return;
     }
 
     setInvalidFocus(null);
-    setActiveFocus(focusParam);
+    setActiveFocus(resolvedFocus);
 
-    const focusTargetId = getFocusTargetId(focusParam);
+    const focusTargetId = getFocusTargetId(resolvedFocus);
     const frameId = window.requestAnimationFrame(() => {
       const element = document.getElementById(focusTargetId);
       element?.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
     const timeoutId = window.setTimeout(() => {
-      setActiveFocus((current) => (current === focusParam ? null : current));
+      setActiveFocus((current) => (current === resolvedFocus ? null : current));
     }, 2600);
 
     return () => {
       window.cancelAnimationFrame(frameId);
       window.clearTimeout(timeoutId);
     };
-  }, [card, focusParam]);
+  }, [card, focusParam, requestedFocus, resolvedFocus]);
 
   const handleStatusChange = async (nextStatus: RegisterUseCaseStatus, reason?: string) => {
     if (!card) return;
@@ -177,6 +210,24 @@ export default function UseCaseDetailPage() {
           focusTarget={activeFocus}
         />
 
+        {registerFirstFlags.controlShell && (
+          <div
+            id="usecase-focus-governance"
+            className={activeFocus === "governance" ? focusHighlightClassName : undefined}
+          >
+            <GovernanceLiabilitySection
+              card={card}
+              useCases={allUseCases.length > 0 ? allUseCases : [card]}
+              orgSettings={orgSettings}
+              focusField={activeFocus === "governance" ? governanceField : null}
+              autoOpenField={activeFocus === "governance" ? governanceAutoOpenField : null}
+              onCardUpdate={() => {
+                void loadUseCase();
+              }}
+            />
+          </div>
+        )}
+
         <div
           id="usecase-focus-review"
           className={activeFocus === "review" ? focusHighlightClassName : undefined}
@@ -196,8 +247,24 @@ export default function UseCaseDetailPage() {
 
 const focusHighlightClassName = "border-l-2 border-slate-300 pl-3";
 
+function resolveFocusTarget(
+  focus: ControlFocusTarget | null
+): ControlFocusTarget | null {
+  if (focus === "oversight") return "governance";
+  return focus;
+}
+
+function resolveGovernanceField(
+  focus: ControlFocusTarget | null,
+  field: string | null
+): "oversight" | "reviewCycle" | "history" | null {
+  if (focus === "oversight") return "oversight";
+  return isGovernanceRepairField(field) ? field : null;
+}
+
 function getFocusTargetId(focus: ControlFocusTarget): string {
   if (focus === "owner") return "usecase-focus-owner";
+  if (focus === "governance") return "usecase-focus-governance";
   if (focus === "oversight") return "usecase-focus-oversight";
   if (focus === "policy") return "usecase-focus-policy";
   if (focus === "audit") return "usecase-focus-audit";

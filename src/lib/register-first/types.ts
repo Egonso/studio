@@ -84,6 +84,7 @@ export interface CaptureInput {
   usageContexts: CaptureUsageContext[];
   isCurrentlyResponsible: boolean;
   responsibleParty?: string | null;
+  contactPersonName?: string | null;
   /** @deprecated Use decisionInfluence instead */
   decisionImpact?: DecisionImpact;
   decisionInfluence?: DecisionInfluence;
@@ -208,6 +209,7 @@ export interface UseCaseCard {
   responsibility: {
     isCurrentlyResponsible: boolean;
     responsibleParty?: string | null;
+    contactPersonName?: string | null;
   };
   /** @deprecated Use decisionInfluence instead */
   decisionImpact: DecisionImpact;

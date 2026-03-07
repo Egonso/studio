@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { CheckCircle2, Circle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type {
   ControlMaturityResult,
   MaturityCriterionResult,
@@ -25,6 +27,13 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
           {!criterion.fulfilled && (
             <p className="text-xs text-muted-foreground">Fehlend: {criterion.missing}</p>
           )}
+          {!criterion.fulfilled && criterion.actionHref && criterion.actionLabel && (
+            <div className="pt-1">
+              <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                <Link href={criterion.actionHref}>{criterion.actionLabel}</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -32,8 +41,13 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
 }
 
 function LevelBlock({ level }: { level: MaturityLevelResult }) {
+  const firstActionableCriterion = level.criteria.find(
+    (criterion) =>
+      !criterion.fulfilled && criterion.actionHref && criterion.actionLabel
+  );
+
   return (
-    <div className="space-y-3 rounded-lg border p-4">
+    <div id={`control-level-${level.level}`} className="space-y-3 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold">{level.title}</h3>
@@ -45,6 +59,16 @@ function LevelBlock({ level }: { level: MaturityLevelResult }) {
           {level.fulfilled ? "erfuellt" : "offen"}
         </p>
       </div>
+
+      {!level.fulfilled && firstActionableCriterion?.actionHref && firstActionableCriterion.actionLabel && (
+        <div className="flex justify-end">
+          <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+            <Link href={firstActionableCriterion.actionHref}>
+              {firstActionableCriterion.actionLabel}
+            </Link>
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-2">
         {level.criteria.map((criterion) => (

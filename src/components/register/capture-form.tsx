@@ -247,10 +247,10 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
 
             {draft.isCurrentlyResponsible === false && (
               <div className="space-y-2">
-                <Label htmlFor="responsibleParty">Wer ist es stattdessen?</Label>
+                <Label htmlFor="responsibleParty">Welche Rolle/Funktion ist stattdessen Owner?</Label>
                 <Input
                   id="responsibleParty"
-                  placeholder="z. B. Teamleitung Marketing"
+                  placeholder="z. B. Teamleitung Marketing / HR Lead / IT Security"
                   value={draft.responsibleParty}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -260,7 +260,7 @@ export function CaptureForm({ projectId, onSubmit: externalSubmit }: CaptureForm
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Eine grobe Angabe reicht. Das kann später angepasst werden.
+                  Eine funktionale Rolle reicht. Das kann später angepasst werden.
                 </p>
                 {errors.responsibleParty && (
                   <p className="text-xs text-destructive">{errors.responsibleParty}</p>

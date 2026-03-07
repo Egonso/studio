@@ -298,7 +298,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
         </div>
 
         <div className="grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-3">
-          <MetaItem label="Verantwortlich" value={ownerLabel} />
+          <MetaItem label="Owner-Rolle" value={ownerLabel} />
           <MetaItem label="Risikoklasse" value={riskClass} />
           <MetaItem label="Wirkungsbereich" value={usageScope} />
           <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />

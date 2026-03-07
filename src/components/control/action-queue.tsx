@@ -37,12 +37,22 @@ function RecommendationItem({
       </div>
 
       <div className="mt-3">
-        <Button asChild variant="outline" size="sm">
-          <Link href={recommendation.deepLink}>
-            Zum Einsatzfall
-            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {recommendation.deepLink && recommendation.deepLinkLabel && (
+            <Button asChild size="sm">
+              <Link href={recommendation.deepLink}>
+                {recommendation.deepLinkLabel}
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
+          <Button asChild variant="outline" size="sm">
+            <Link href={recommendation.viewLink}>
+              Einsatzfall öffnen
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -71,4 +81,3 @@ export function ActionQueue({ recommendations }: ActionQueueProps) {
     </Card>
   );
 }
-

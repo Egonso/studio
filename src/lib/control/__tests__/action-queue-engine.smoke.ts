@@ -90,15 +90,23 @@ export function runActionQueueEngineSmoke() {
 
   assert.ok(queue.length >= 5, "Queue should provide at least five items with fallback.");
   assert.ok(queue.length <= 10, "Queue must not exceed ten items.");
-  assert.equal(queue[0]?.focus, "oversight");
-  assert.match(queue[0]?.deepLink ?? "", /^\/my-register\/[^?]+\?focus=oversight$/);
+  assert.equal(queue[0]?.focus, "governance");
+  assert.match(
+    queue[0]?.deepLink ?? "",
+    /^\/my-register\/[^?]+\?focus=governance&edit=1&field=oversight$/
+  );
+  assert.equal(queue[0]?.deepLinkLabel, "Aufsichtsmodell festlegen");
+  assert.match(queue[0]?.viewLink ?? "", /^\/my-register\/[^?]+$/);
 
   for (const recommendation of queue) {
     assert.ok(isControlFocusTarget(recommendation.focus));
-    assert.match(
-      recommendation.deepLink,
-      /^\/my-register\/[^?]+\?focus=(owner|review|oversight|policy|audit)$/
-    );
+    if (recommendation.deepLink) {
+      assert.match(
+        recommendation.deepLink,
+        /^\/my-register\/[^?]+\?focus=(owner|review|oversight|policy|audit|governance)(?:&edit=1)?(?:&field=(oversight|reviewCycle|history))?$/
+      );
+    }
+    assert.match(recommendation.viewLink, /^\/my-register\/[^?]+$/);
     assert.ok(recommendation.problem.length > 0);
     assert.ok(recommendation.impact.length > 0);
     assert.ok(recommendation.recommendedAction.length > 0);
@@ -120,4 +128,3 @@ if (isDirectRun) {
     process.exit(1);
   }
 }
-

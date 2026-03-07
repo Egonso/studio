@@ -240,17 +240,17 @@ export function UseCaseAssessmentWizard({
 
                     {step === 3 && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                            <h3 className="text-lg font-medium">3. Verantwortlichkeit (System Owner)</h3>
+                            <h3 className="text-lg font-medium">3. Owner-Rolle (System Owner)</h3>
                             <p className="text-sm text-muted-foreground">
-                                Wer ist in der Organisation für den Betrieb und die Überwachung dieses KI-Systems verantwortlich?
+                                Welche Rolle oder Funktion ist in der Organisation für Betrieb und Überwachung dieses KI-Systems verantwortlich?
                             </p>
                             <Input
-                                placeholder="z. B. HR-Abteilung, IT-Security, Maria Musterfrau"
+                                placeholder="z. B. HR Lead, IT Security, Head of Operations"
                                 value={responsibleParty}
                                 onChange={(e) => setResponsibleParty(e.target.value)}
                             />
                             <p className="text-xs text-muted-foreground mt-2">
-                                *Hinweis: Dies schreibt die Root-Verantwortlichkeit für diesen Eintrag fest.*
+                                *Hinweis: Primär die Rolle/Funktion festhalten, nicht nur einen Personennamen.*
                             </p>
                         </div>
                     )}

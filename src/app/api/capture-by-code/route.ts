@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { ZodError } from "zod";
+import { parseUseCaseCard } from "@/lib/register-first/schema";
+import { prepareUseCaseForStorage } from "@/lib/register-first/use-case-builder";
 
 interface CaptureByCodeBody {
   code: string;
@@ -9,7 +12,9 @@ interface CaptureByCodeBody {
   toolFreeText?: string;
   usageContext: string;
   dataCategory: string;
-  ownerName: string;
+  ownerRole?: string;
+  ownerName?: string;
+  contactPersonName?: string;
   organisation?: string;
 }
 
@@ -51,6 +56,12 @@ function parsePathSegment(value: unknown): string | null {
   const trimmed = value.trim();
   if (!trimmed || trimmed.includes("/")) return null;
   return trimmed;
+}
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function resolveCodeScope(
@@ -215,8 +226,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body: CaptureByCodeBody = await req.json();
-    const { code: rawCode, purpose, toolId, toolFreeText, usageContext, dataCategory, ownerName, organisation } = body;
+    const {
+      code: rawCode,
+      purpose,
+      toolId,
+      toolFreeText,
+      usageContext,
+      dataCategory,
+      ownerRole,
+      ownerName,
+      contactPersonName,
+      organisation,
+    } = body;
     const code = rawCode ? normalizeCode(rawCode) : "";
+    const normalizedOwnerRole =
+      normalizeOptionalText(ownerRole) ?? normalizeOptionalText(ownerName);
+    const normalizedContactPersonName = normalizeOptionalText(contactPersonName);
+    const normalizedOrganisation = normalizeOptionalText(organisation);
 
     if (code) {
       if (!checkRateLimit(`code:${code}`, RATE_LIMIT_PER_CODE, RATE_WINDOW_CODE)) {
@@ -236,16 +262,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate required fields
-    if (!code || !purpose?.trim() || !ownerName?.trim()) {
+    if (!code || !purpose?.trim() || !normalizedOwnerRole) {
       return NextResponse.json(
-        { error: "Code, Use-Case Name und Verantwortlich sind Pflichtfelder" },
+        { error: "Code, Use-Case Name und Owner-Rolle sind Pflichtfelder" },
         { status: 400 }
       );
     }
 
-    if (ownerName.trim().length < 2) {
+    if (normalizedOwnerRole.length < 2) {
       return NextResponse.json(
-        { error: "Name muss mindestens 2 Zeichen haben" },
+        { error: "Owner-Rolle muss mindestens 2 Zeichen haben" },
         { status: 400 }
       );
     }
@@ -273,40 +299,32 @@ export async function POST(req: NextRequest) {
     const { ownerId, registerId } = scope;
 
     // Create UseCaseCard under the admin's register path
-    const now = new Date().toISOString();
     const useCaseId = crypto.randomUUID();
-
-    const card = {
-      cardVersion: "1.1",
-      useCaseId,
-      createdAt: now,
-      updatedAt: now,
-      purpose: purpose.trim(),
-      usageContexts: [usageContext || "INTERNAL_ONLY"],
-      responsibility: {
+    const cardDraft = prepareUseCaseForStorage(
+      {
+        purpose: purpose.trim(),
+        usageContexts: [usageContext || "INTERNAL_ONLY"],
         isCurrentlyResponsible: false,
-        responsibleParty: ownerName.trim(),
+        responsibleParty: normalizedOwnerRole,
+        contactPersonName: normalizedContactPersonName,
+        decisionImpact: "UNSURE",
+        toolId: toolId || undefined,
+        toolFreeText: normalizeOptionalText(toolFreeText) ?? undefined,
+        dataCategory: dataCategory || "NONE",
+        organisation: normalizedOrganisation,
       },
-      decisionImpact: "UNSURE",
-      affectedParties: [],
-      status: "UNREVIEWED",
-      reviewHints: [],
-      evidences: [],
-      reviews: [],
-      proof: null,
-      toolId: toolId || undefined,
-      toolFreeText: toolFreeText || undefined,
-      dataCategory: dataCategory || "NONE",
-      organisation: organisation?.trim() || null,
-      standardVersion: "EUKI-UC-1.2",
-      formatVersion: "v1.1",
-      isPublicVisible: false,
-      // Audit metadata
+      {
+        useCaseId,
+      }
+    );
+
+    const card = parseUseCaseCard({
+      ...cardDraft,
       capturedBy: "ANONYMOUS",
-      capturedByName: ownerName.trim(),
+      capturedByName: normalizedContactPersonName ?? undefined,
       capturedViaCode: true,
       accessCodeLabel: codeData.label,
-    };
+    });
 
     // Write to Firestore under admin's register
     await db
@@ -324,6 +342,12 @@ export async function POST(req: NextRequest) {
       purpose: card.purpose,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: "Bitte überprüfe die eingegebenen Angaben." },
+        { status: 400 }
+      );
+    }
     console.error("Capture by code error:", error);
     const mapped = mapOperationalError(error);
     return NextResponse.json({ error: mapped.message }, { status: mapped.status });

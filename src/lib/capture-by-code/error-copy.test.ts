@@ -45,13 +45,13 @@ test("getCaptureByCodeErrorCopy nutzt fuer Submit-400 den Formularhinweis", () =
   assert.deepEqual(
     getCaptureByCodeErrorCopy(
       400,
-      "Code, Use-Case Name und Verantwortlich sind Pflichtfelder",
+      "Code, Use-Case Name und Owner-Rolle sind Pflichtfelder",
       "submit"
     ),
     {
       title: "Angaben prüfen",
       description:
-        "Code, Use-Case Name und Verantwortlich sind Pflichtfelder",
+        "Code, Use-Case Name und Owner-Rolle sind Pflichtfelder",
     }
   );
 });

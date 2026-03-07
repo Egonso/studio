@@ -88,7 +88,7 @@ export function validateCaptureDraft(draft: CaptureFormDraft): CaptureValidation
     draft.isCurrentlyResponsible === false &&
     (!draft.responsibleParty || draft.responsibleParty.trim().length < 2)
   ) {
-    errors.responsibleParty = "Bitte gib Name oder Rolle an.";
+    errors.responsibleParty = "Bitte gib eine Owner-Rolle oder Funktion an.";
   }
 
   // Validate decisionInfluence (new field) or fall back to decisionImpact (legacy)

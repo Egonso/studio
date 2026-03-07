@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
     AlertCircle,
     Check,
@@ -43,6 +43,8 @@ interface GovernanceLiabilitySectionProps {
     orgSettings?: OrgSettings | null;
     /** Callback after card is updated (e.g. trust portal activation) */
     onCardUpdate?: (card: UseCaseCard) => void;
+    focusField?: "oversight" | "reviewCycle" | "history" | null;
+    autoOpenField?: "oversight" | "reviewCycle" | null;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -82,6 +84,8 @@ export function GovernanceLiabilitySection({
     useCases = [],
     orgSettings,
     onCardUpdate,
+    focusField = null,
+    autoOpenField = null,
 }: GovernanceLiabilitySectionProps) {
     const { toast } = useToast();
     const [isActivatingPortal, setIsActivatingPortal] = useState(false);
@@ -91,6 +95,7 @@ export function GovernanceLiabilitySection({
     const [editingField, setEditingField] = useState<"oversight" | "reviewCycle" | null>(null);
     const [editValue, setEditValue] = useState("");
     const [isSavingInline, setIsSavingInline] = useState(false);
+    const [autoOpenApplied, setAutoOpenApplied] = useState(false);
 
     // ── Capability checks ───────────────────────────────────────────────
     const reviewCap = useCapability("reviewWorkflow");
@@ -223,6 +228,16 @@ export function GovernanceLiabilitySection({
         setEditingField(field);
     }, [iso]);
 
+    useEffect(() => {
+        setAutoOpenApplied(false);
+    }, [card.useCaseId, autoOpenField]);
+
+    useEffect(() => {
+        if (!autoOpenField || autoOpenApplied) return;
+        handleInlineEdit(autoOpenField);
+        setAutoOpenApplied(true);
+    }, [autoOpenApplied, autoOpenField, handleInlineEdit]);
+
     const handleInlineSave = useCallback(async () => {
         if (!editingField || !editValue) return;
         setIsSavingInline(true);
@@ -268,7 +283,7 @@ export function GovernanceLiabilitySection({
             <CardContent className="p-0 text-sm">
 
                 {/* ── Section 1: Stammdokumentation ──────────────────── */}
-                <div className="p-4 border-b">
+                <div className={`p-4 border-b ${focusField === "oversight" || focusField === "reviewCycle" ? "border-l-2 border-slate-300 pl-3" : ""}`}>
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
                         <span>1. Stammdokumentation</span>
                         <span className="flex items-center gap-1.5">
@@ -359,8 +374,8 @@ export function GovernanceLiabilitySection({
                                     <SelectContent>
                                         <SelectItem value="monthly">Monatlich</SelectItem>
                                         <SelectItem value="quarterly">Quartalsweise</SelectItem>
-                                        <SelectItem value="semiannually">Halbjährlich</SelectItem>
-                                        <SelectItem value="annually">Jährlich</SelectItem>
+                                        <SelectItem value="semiannual">Halbjährlich</SelectItem>
+                                        <SelectItem value="annual">Jährlich</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <div className="flex gap-2 mt-2">
@@ -375,7 +390,7 @@ export function GovernanceLiabilitySection({
                 </div>
 
                 {/* ── Section 2: Prüfhistorie (Pro) ─────────────────── */}
-                <div className="p-4 border-b">
+                <div className={`p-4 border-b ${focusField === "history" ? "border-l-2 border-slate-300 pl-3" : ""}`}>
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
                         <span>2. Prüfhistorie</span>
                         {isPruefhistorie

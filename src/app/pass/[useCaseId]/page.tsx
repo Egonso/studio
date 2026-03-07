@@ -195,7 +195,7 @@ export default function UseCasePassPage() {
                         <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">3. Governance & Lifecycle (ISO 42001)</h3>
                         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                             <div>
-                                <dt className="text-xs text-slate-500 mb-1">Verantwortliche Partei (Owner)</dt>
+                                <dt className="text-xs text-slate-500 mb-1">Owner-Rolle (funktional)</dt>
                                 <dd className="text-sm font-medium text-slate-900">{owner}</dd>
                             </div>
                             <div>

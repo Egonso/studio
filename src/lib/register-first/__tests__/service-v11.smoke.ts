@@ -164,6 +164,7 @@ export async function runServiceV11Smoke() {
       usageContexts: ["INTERNAL_ONLY"],
       isCurrentlyResponsible: false,
       responsibleParty: "IT-Abteilung",
+      contactPersonName: "Alex Beispiel",
       decisionImpact: "UNSURE",
       affectedParties: ["INTERNAL_PROCESSES"],
       toolId: "other",
@@ -176,6 +177,7 @@ export async function runServiceV11Smoke() {
   assert.equal(otherToolCard.cardVersion, "1.1");
   assert.equal(otherToolCard.toolId, "other");
   assert.equal(otherToolCard.toolFreeText, "Eigenentwicklung RAG-Pipeline");
+  assert.equal(otherToolCard.responsibility.contactPersonName, "Alex Beispiel");
 
   const otherExport = createUseCasePassV11Export(otherToolCard, "project_v11", {}, exportNow);
   assert.equal(otherExport.tool.toolId, "other");

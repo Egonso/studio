@@ -1,4 +1,8 @@
 import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
+import {
+  buildUseCaseDetailLink,
+  buildUseCaseFocusLink,
+} from "@/lib/control/deep-link";
 
 export const CONTROL_REVIEW_DUE_WINDOW_DAYS = 30;
 
@@ -41,6 +45,8 @@ export interface MaturityCriterionResult {
   fulfilled: boolean;
   evidence: string;
   missing: string;
+  actionHref?: string | null;
+  actionLabel?: string | null;
 }
 
 export interface MaturityLevelResult {
@@ -194,6 +200,40 @@ function buildLevel(
   };
 }
 
+function buildUseCaseRepairAction(
+  useCases: UseCaseCard[],
+  predicate: (useCase: UseCaseCard) => boolean,
+  focus: Parameters<typeof buildUseCaseFocusLink>[1],
+  label: string,
+  options?: Parameters<typeof buildUseCaseFocusLink>[2]
+): Pick<MaturityCriterionResult, "actionHref" | "actionLabel"> {
+  const match = useCases.find(predicate);
+  if (!match) {
+    return {};
+  }
+
+  return {
+    actionHref: buildUseCaseFocusLink(match.useCaseId, focus, options),
+    actionLabel: label,
+  };
+}
+
+function buildUseCaseViewAction(
+  useCases: UseCaseCard[],
+  predicate: (useCase: UseCaseCard) => boolean,
+  label: string
+): Pick<MaturityCriterionResult, "actionHref" | "actionLabel"> {
+  const match = useCases.find(predicate);
+  if (!match) {
+    return {};
+  }
+
+  return {
+    actionHref: buildUseCaseDetailLink(match.useCaseId),
+    actionLabel: label,
+  };
+}
+
 export function calculateControlOverview(
   useCases: UseCaseCard[],
   orgSettings?: OrgSettings | null,
@@ -257,6 +297,8 @@ export function calculateControlOverview(
       fulfilled: hasAnySystems,
       evidence: `${totalSystems} dokumentierte Systeme`,
       missing: "Mindestens einen Einsatzfall im Register dokumentieren.",
+      actionHref: "/capture",
+      actionLabel: "Einsatzfall erfassen",
     },
     {
       id: "documentation-coverage",
@@ -265,6 +307,11 @@ export function calculateControlOverview(
         documentationCoverage >= CONTROL_MATURITY_THRESHOLDS.documentationCoverage,
       evidence: `${documentedSystems}/${totalSystems} Systeme (${documentationCoverage}%)`,
       missing: "Zweck und Verwendungskontext in offenen Use Cases nachziehen.",
+      ...buildUseCaseViewAction(
+        useCases,
+        (useCase) => !isDocumented(useCase),
+        "Unvollständigen Einsatzfall öffnen"
+      ),
     },
   ]);
 
@@ -282,6 +329,13 @@ export function calculateControlOverview(
       fulfilled: ownerCoverage >= CONTROL_MATURITY_THRESHOLDS.ownerCoverage,
       evidence: `${systemsWithOwner}/${totalSystems} Systeme (${ownerCoverage}%)`,
       missing: "Owner-Feld für offene Systeme ergänzen.",
+      ...buildUseCaseRepairAction(
+        useCases,
+        (useCase) => !hasResponsibleOwner(useCase),
+        "owner",
+        "Owner ergänzen",
+        { edit: true }
+      ),
     },
   ]);
 
@@ -299,6 +353,13 @@ export function calculateControlOverview(
       fulfilled: reviewCoverage >= CONTROL_MATURITY_THRESHOLDS.reviewCoverage,
       evidence: `${systemsWithReviewStructure}/${totalSystems} Systeme (${reviewCoverage}%)`,
       missing: "Review-Zyklus oder nächstes Review-Datum erfassen.",
+      ...buildUseCaseRepairAction(
+        useCases,
+        (useCase) => !hasStructuredReview(useCase),
+        "governance",
+        "Review-Zyklus setzen",
+        { edit: true, field: "reviewCycle" }
+      ),
     },
     {
       id: "high-risk-oversight",
@@ -311,6 +372,13 @@ export function calculateControlOverview(
           ? "Kein Hochrisiko-System im Register"
           : `${highRiskWithOversight}/${highRiskSystems} Systeme (${highRiskOversightCoverage}%)`,
       missing: "Für jedes Hochrisiko-System ein Aufsichtsmodell dokumentieren.",
+      ...buildUseCaseRepairAction(
+        useCases,
+        (useCase) => isHighRisk(useCase) && !hasDefinedOversight(useCase),
+        "governance",
+        "Aufsichtsmodell festlegen",
+        { edit: true, field: "oversight" }
+      ),
     },
   ]);
 
@@ -335,6 +403,8 @@ export function calculateControlOverview(
       fulfilled: hasOrgPolicyBaseline,
       evidence: hasOrgPolicyBaseline ? "Ja" : "Nein",
       missing: "Mindestens AI-Policy oder Incident-Prozess im Registerprofil hinterlegen.",
+      actionHref: "/settings/governance",
+      actionLabel: "Governance-Einstellungen öffnen",
     },
   ]);
 
@@ -352,6 +422,13 @@ export function calculateControlOverview(
       fulfilled: auditCoverage >= CONTROL_MATURITY_THRESHOLDS.auditCoverage,
       evidence: `${systemsWithAuditHistory}/${totalSystems} Systeme (${auditCoverage}%)`,
       missing: "Review-Historie und Nachweise systematisch vervollständigen.",
+      ...buildUseCaseRepairAction(
+        useCases,
+        (useCase) => !hasAuditHistory(useCase),
+        "governance",
+        "Prüfhistorie aufbauen",
+        { field: "history" }
+      ),
     },
     {
       id: "iso-readiness-threshold",

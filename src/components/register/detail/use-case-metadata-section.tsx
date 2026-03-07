@@ -109,6 +109,7 @@ interface UseCaseMetadataSectionProps {
 interface UseCaseEditDraft {
   purpose: string;
   responsibleParty: string;
+  contactPersonName: string;
   organisation: string;
   toolId: string;
   toolFreeText: string;
@@ -131,6 +132,7 @@ export function UseCaseMetadataSection({
   const [editDraft, setEditDraft] = useState<UseCaseEditDraft>(() => ({
     purpose: card.purpose,
     responsibleParty: card.responsibility.responsibleParty ?? "",
+    contactPersonName: card.responsibility.contactPersonName ?? "",
     organisation: card.organisation ?? "",
     toolId: card.toolId === "other" ? "other" : card.toolId ?? "other",
     toolFreeText: card.toolId === "other" ? card.toolFreeText ?? "" : card.toolId ?? "",
@@ -174,6 +176,8 @@ export function UseCaseMetadataSection({
   const ownerLabel = card.responsibility.isCurrentlyResponsible
     ? "Erfasser:in (selbst)"
     : card.responsibility.responsibleParty || "Nicht zugewiesen";
+  const contactPersonLabel =
+    card.responsibility.contactPersonName?.trim() || "Nicht hinterlegt";
   const publicSources = card.publicInfo?.sources ?? [];
   const focusClassName = "border-l-2 border-slate-300 pl-3";
 
@@ -181,6 +185,7 @@ export function UseCaseMetadataSection({
     setEditDraft({
       purpose: card.purpose,
       responsibleParty: card.responsibility.responsibleParty ?? "",
+      contactPersonName: card.responsibility.contactPersonName ?? "",
       organisation: card.organisation ?? "",
       toolId: card.toolId === "other" ? "other" : card.toolId ?? "other",
       toolFreeText: card.toolId === "other" ? card.toolFreeText ?? "" : card.toolId ?? "",
@@ -214,6 +219,7 @@ export function UseCaseMetadataSection({
       const usesCustomTool = editDraft.toolId === "other";
       const normalizedToolText = editDraft.toolFreeText.trim();
       const normalizedResponsibleParty = editDraft.responsibleParty.trim();
+      const normalizedContactPersonName = editDraft.contactPersonName.trim();
       const normalizedOrganisation = editDraft.organisation.trim();
 
       await onSave({
@@ -231,6 +237,7 @@ export function UseCaseMetadataSection({
         responsibility: {
           ...card.responsibility,
           responsibleParty: normalizedResponsibleParty || null,
+          contactPersonName: normalizedContactPersonName || null,
         },
         organisation: normalizedOrganisation || null,
         governanceAssessment: {
@@ -575,14 +582,14 @@ export function UseCaseMetadataSection({
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <h2 className="text-[18px] font-semibold tracking-tight">Verantwortlich</h2>
+        <h2 className="text-[18px] font-semibold tracking-tight">Owner & Organisation</h2>
         <div className="mt-5 grid gap-3 md:grid-cols-2">
           <div
             id="usecase-focus-owner"
             className={cn(focusTarget === "owner" && focusClassName)}
           >
             <FieldBlock
-              label="Verantwortliche Person"
+              label="Owner-Rolle (funktional)"
               className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
               onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
             >
@@ -595,13 +602,36 @@ export function UseCaseMetadataSection({
                       responsibleParty: event.target.value,
                     }))
                   }
-                  placeholder="z. B. Max Mustermann"
+                  placeholder="z. B. Head of Marketing / HR Lead / IT Security"
                 />
               ) : (
                 <p className="text-[15px] font-medium text-slate-900">{ownerLabel}</p>
               )}
             </FieldBlock>
           </div>
+          <FieldBlock
+            label="Kontaktperson (optional)"
+            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+          >
+            {isEditing ? (
+              <Input
+                value={editDraft.contactPersonName}
+                onChange={(event) =>
+                  setEditDraft((prev) => ({
+                    ...prev,
+                    contactPersonName: event.target.value,
+                  }))
+                }
+                placeholder="z. B. Max Mustermann"
+              />
+            ) : (
+              <p className="text-[15px] font-medium text-slate-900">{contactPersonLabel}</p>
+            )}
+          </FieldBlock>
+        </div>
+
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
           <FieldBlock
             label="Organisation"
             className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"

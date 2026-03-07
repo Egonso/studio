@@ -29,7 +29,8 @@ interface CodeInfo {
 
 interface CaptureFormData {
   purpose: string;
-  ownerName: string;
+  ownerRole: string;
+  contactPersonName: string;
   toolId: string;
   toolFreeText: string;
   usageContext: string;
@@ -38,7 +39,8 @@ interface CaptureFormData {
 
 const EMPTY_FORM: CaptureFormData = {
   purpose: "",
-  ownerName: "",
+  ownerRole: "",
+  contactPersonName: "",
   toolId: "",
   toolFreeText: "",
   usageContext: "INTERNAL_ONLY",
@@ -112,7 +114,8 @@ export default function ErfassenPage() {
           toolFreeText: form.toolFreeText.trim() || undefined,
           usageContext: form.usageContext,
           dataCategory: form.dataCategory,
-          ownerName: form.ownerName.trim(),
+          ownerRole: form.ownerRole.trim(),
+          contactPersonName: form.contactPersonName.trim() || undefined,
         }),
       });
 
@@ -139,7 +142,7 @@ export default function ErfassenPage() {
   }
 
   const canSubmit =
-    form.purpose.trim().length >= 3 && form.ownerName.trim().length >= 2;
+    form.purpose.trim().length >= 3 && form.ownerRole.trim().length >= 2;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -254,12 +257,24 @@ export default function ErfassenPage() {
 
             <div className="space-y-1.5">
               <Label>
-                Verantwortlich <span className="text-destructive">*</span>
+                Owner-Rolle (funktional) <span className="text-destructive">*</span>
               </Label>
               <Input
-                placeholder="Name eingeben"
-                value={form.ownerName}
-                onChange={(e) => patch({ ownerName: e.target.value })}
+                placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                value={form.ownerRole}
+                onChange={(e) => patch({ ownerRole: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Bitte die zuständige Rolle oder Funktion eintragen, nicht nur einen Personennamen.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Kontaktperson (optional)</Label>
+              <Input
+                placeholder="z. B. Max Mustermann"
+                value={form.contactPersonName}
+                onChange={(e) => patch({ contactPersonName: e.target.value })}
               />
             </div>
 

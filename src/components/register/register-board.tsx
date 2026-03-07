@@ -752,7 +752,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
               <SelectItem value="updatedAt">Zuletzt geändert</SelectItem>
               <SelectItem value="createdAt">Erstellt am</SelectItem>
               <SelectItem value="purpose">Name</SelectItem>
-              <SelectItem value="owner">Verantwortlich</SelectItem>
+              <SelectItem value="owner">Owner-Rolle</SelectItem>
               <SelectItem value="status">Status</SelectItem>
               <SelectItem value="tool">Tool</SelectItem>
             </SelectContent>
@@ -774,7 +774,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Alle</SelectItem>
-            <SelectItem value="BY_OWNER">Nach Verantwortlich</SelectItem>
+            <SelectItem value="BY_OWNER">Nach Owner-Rolle</SelectItem>
             <SelectItem value="BY_ORG">Nach Organisation</SelectItem>
             <SelectItem value="BY_STATUS">Nach Status</SelectItem>
           </SelectContent>
@@ -835,7 +835,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
               <TableRow>
                 <TableHead className="w-[300px]">System</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Owner</TableHead>
+                <TableHead>Owner-Rolle</TableHead>
                 <TableHead>Risikoklasse</TableHead>
                 <TableHead>Aktivität</TableHead>
                 <TableHead className="w-[80px] text-right">Aktionen</TableHead>

@@ -181,6 +181,27 @@ function createAuditReadySet(now: Date): UseCaseCard[] {
   return useCases;
 }
 
+function createReviewGapSet(): UseCaseCard[] {
+  const reviewGap: UseCaseCard = {
+    ...createBaseUseCase("uc_review_gap"),
+    governanceAssessment: {
+      core: {
+        aiActCategory: "Minimales Risiko",
+      },
+      flex: {
+        iso: {
+          reviewCycle: "unknown",
+          oversightModel: "unknown",
+          documentationLevel: "unknown",
+          lifecycleStatus: "pilot",
+        },
+      },
+    },
+  };
+
+  return [reviewGap];
+}
+
 export function runMaturityCalculatorSmoke() {
   const now = new Date("2026-02-26T12:00:00.000Z");
 
@@ -196,6 +217,28 @@ export function runMaturityCalculatorSmoke() {
   assert.equal(partialOverview.maturity.currentLevel, 1);
   assert.equal(partialOverview.maturity.levels[0].fulfilled, true);
   assert.equal(partialOverview.maturity.levels[1].fulfilled, false);
+  assert.match(
+    partialOverview.maturity.levels[1].criteria[1].actionHref ?? "",
+    /^\/my-register\/[^?]+\?focus=owner&edit=1$/
+  );
+  assert.equal(
+    partialOverview.maturity.levels[1].criteria[1].actionLabel,
+    "Owner ergänzen"
+  );
+
+  const reviewGapOverview = calculateControlOverview(createReviewGapSet(), null, now);
+  assert.match(
+    reviewGapOverview.maturity.levels[2].criteria[1].actionHref ?? "",
+    /^\/my-register\/[^?]+\?focus=governance&edit=1&field=reviewCycle$/
+  );
+  assert.equal(
+    partialOverview.maturity.levels[3].criteria[2].actionHref,
+    "/settings/governance"
+  );
+  assert.match(
+    partialOverview.maturity.levels[4].criteria[1].actionHref ?? "",
+    /^\/my-register\/[^?]+\?focus=governance&field=history$/
+  );
 
   const auditReadyOverview = calculateControlOverview(
     createAuditReadySet(now),
