@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Copy, Check } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { registerService } from "@/lib/register-first/register-service";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { setActiveRegisterId } from "@/lib/register-first/register-settings-client";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 import { getPublicAppOrigin } from "@/lib/app-url";
+import { TeamShareStep } from "@/components/onboarding/team-share-step";
 
 type Step = 1 | 2 | 3;
 type CopyTarget = "code" | "link" | null;
@@ -19,7 +20,7 @@ type CopyTarget = "code" | "link" | null;
 const STEP_LABELS: Record<Step, string> = {
   1: "Zugang",
   2: "Organisation",
-  3: "Team",
+  3: "Loslegen",
 };
 
 export default function SetupPage() {
@@ -270,7 +271,7 @@ export default function SetupPage() {
           {/* Title */}
           <div className="space-y-2">
             <h1 className="text-xl font-bold tracking-tight">
-              KI-Register einrichten
+              {step === 3 ? "Sie sind startklar" : "KI-Register einrichten"}
             </h1>
             <p className="text-sm text-muted-foreground">
               Schritt {step} von 3 · {STEP_LABELS[step]}
@@ -410,81 +411,13 @@ export default function SetupPage() {
 
           {/* Step 3: Team invite */}
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-sm font-medium">
-                  Ihr Einladungscode
-                </label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 rounded-md border bg-muted/50 px-4 py-2.5 font-mono text-sm tracking-wider">
-                    {inviteCode}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void copyValue(inviteCode, "code")}
-                    className="rounded-md border p-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    title="Code kopieren"
-                  >
-                    {copiedTarget === "code" ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Teilen Sie diesen Code mit Kolleg:innen, die KI-Einsatzfälle
-                  in Ihrem Register erfassen sollen.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Erfassungslink teilen</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 rounded-md border bg-muted/50 px-4 py-2.5 font-mono text-xs break-all">
-                    {captureLink}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void copyValue(captureLink, "link")}
-                    className="rounded-md border p-2.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    title="Link kopieren"
-                  >
-                    {copiedTarget === "link" ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Der Link führt direkt in die Erfassungsmaske mit
-                  vorausgefülltem Code.
-                </p>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Danach öffnen Sie das Register und dokumentieren innerhalb der
-                ersten Minute den ersten Einsatzfall.
-              </p>
-
-              <div className="space-y-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleFinish}
-                  className="w-full rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-                >
-                  Register öffnen und Einsatzfall erfassen
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFinish}
-                  className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline py-1"
-                >
-                  Später fortfahren
-                </button>
-              </div>
-            </div>
+            <TeamShareStep
+              inviteCode={inviteCode}
+              captureLink={captureLink}
+              copiedTarget={copiedTarget}
+              onCopyValue={copyValue}
+              onContinue={handleFinish}
+            />
           )}
         </div>
       </main>

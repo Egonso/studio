@@ -18,7 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/context/auth-context";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
+import {
+  resolveOwnedCaptureCodeFallback,
+  submitOwnedCaptureCodeFallback,
+  type OwnerCaptureFallbackInfo,
+} from "@/lib/capture-by-code/client-fallback";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
@@ -49,11 +55,13 @@ const EMPTY_FORM: CaptureFormData = {
 
 export default function ErfassenPage() {
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const codeParam = searchParams.get("code");
 
   const [pageState, setPageState] = useState<PageState>(codeParam ? "loading" : "enter_code");
   const [code, setCode] = useState(codeParam || "");
   const [codeInfo, setCodeInfo] = useState<CodeInfo | null>(null);
+  const [ownerFallbackInfo, setOwnerFallbackInfo] = useState<OwnerCaptureFallbackInfo | null>(null);
   const [errorTitle, setErrorTitle] = useState("Fehler");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [form, setForm] = useState<CaptureFormData>({ ...EMPTY_FORM });
@@ -74,6 +82,7 @@ export default function ErfassenPage() {
     setPageState("loading");
     setErrorTitle("Fehler");
     setErrorMsg(null);
+    setOwnerFallbackInfo(null);
     try {
       const res = await fetch(`/api/capture-by-code?code=${encodeURIComponent(c)}`);
       if (!res.ok) {
@@ -82,6 +91,19 @@ export default function ErfassenPage() {
           .catch(() => ({ error: "Code konnte nicht geprüft werden." })) as {
             error?: string;
           };
+        if (res.status === 503) {
+          const fallbackInfo = await resolveOwnedCaptureCodeFallback(c);
+          if (fallbackInfo) {
+            setCodeInfo({
+              label: fallbackInfo.label ?? "Direkter Registerzugang",
+              organisationName: fallbackInfo.organisationName,
+            });
+            setOwnerFallbackInfo(fallbackInfo);
+            setCode(c);
+            setPageState("form");
+            return;
+          }
+        }
         const copy = getCaptureByCodeErrorCopy(res.status, data.error, "validate");
         setErrorTitle(copy.title);
         setErrorMsg(copy.description);
@@ -93,6 +115,17 @@ export default function ErfassenPage() {
       setCode(c);
       setPageState("form");
     } catch {
+      const fallbackInfo = await resolveOwnedCaptureCodeFallback(c);
+      if (fallbackInfo) {
+        setCodeInfo({
+          label: fallbackInfo.label ?? "Direkter Registerzugang",
+          organisationName: fallbackInfo.organisationName,
+        });
+        setOwnerFallbackInfo(fallbackInfo);
+        setCode(c);
+        setPageState("form");
+        return;
+      }
       setErrorTitle("Verbindungsfehler");
       setErrorMsg("Verbindungsfehler. Bitte versuche es erneut.");
       setPageState("invalid");
@@ -104,6 +137,24 @@ export default function ErfassenPage() {
     setErrorTitle("Fehler");
     setErrorMsg(null);
     try {
+      if (ownerFallbackInfo) {
+        const card = await submitOwnedCaptureCodeFallback({
+          code,
+          registerId: ownerFallbackInfo.registerId,
+          accessCodeLabel: ownerFallbackInfo.label,
+          purpose: form.purpose.trim(),
+          toolId: form.toolId || undefined,
+          toolFreeText: form.toolFreeText.trim() || undefined,
+          usageContext: form.usageContext,
+          dataCategory: form.dataCategory,
+          ownerRole: form.ownerRole.trim(),
+          contactPersonName: form.contactPersonName.trim() || undefined,
+        });
+        setCreatedPurpose(card.purpose);
+        setPageState("success");
+        return;
+      }
+
       const res = await fetch("/api/capture-by-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,6 +287,16 @@ export default function ErfassenPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {ownerFallbackInfo && user && (
+              <Alert>
+                <AlertTitle>Direkter Registerzugang erkannt</AlertTitle>
+                <AlertDescription>
+                  Sie sind bereits als Registerinhaber:in angemeldet. Dieser Link wird
+                  direkt gegen Ihr Register verwendet, auch wenn die öffentliche
+                  Code-Prüfung gerade nicht verfügbar ist.
+                </AlertDescription>
+              </Alert>
+            )}
             {errorMsg && (
               <Alert variant="destructive">
                 <AlertTitle>{errorTitle}</AlertTitle>

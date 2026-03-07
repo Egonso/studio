@@ -16,8 +16,8 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 2. `'/einrichten'` Schritt 1: Name, E-Mail, Passwort.
 3. `'/einrichten'` Schritt 2: Organisationsname, Rolle (optional).
 4. System prüft auf bestehendes Register mit gleichem Organisationsnamen.
-5. System erzeugt Einladungscode + Erfassungslink.
-6. Admin öffnet Register mit `?onboarding=true` und landet direkt in Quick-Capture.
+5. System erzeugt Einladungscode + Erfassungslink als optionale Team-Freigabe.
+6. Primäre nächste Aktion ist: Admin öffnet Register mit `?onboarding=true` und landet direkt in Quick-Capture.
 
 ### Member (Einladungscode)
 
@@ -32,7 +32,7 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 - `/'` Headline: `Jede Organisation mit KI-Einsatzfällen führt ein KI-Register.`
 - `/'` CTA primär: `KI-Register einrichten`
 - `/'` CTA sekundär: `Einladungscode verwenden`
-- `'/einrichten'` Abschluss: `Register öffnen und Einsatzfall erfassen`
+- `'/einrichten'` Abschluss: `Jetzt ersten Einsatzfall selbst erfassen`
 - `'/einladen'` Bestätigung: `Organisation bestätigen`
 - Keine Begriffe: Upgrade, Premium, Enterprise, Freischalten.
 
@@ -52,8 +52,8 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 2. Schrittindikator (3 Schritte)
 3. Zugang anlegen
 4. Organisationsdaten
-5. Einladungscode + Erfassungslink (jeweils kopierbar)
-6. Register öffnen
+5. Primäre CTA: ersten Einsatzfall selbst erfassen
+6. Sekundär: Team-Freigabe mit Erfassungslink (empfohlen) oder Einladungscode (Fallback)
 
 ### Einladen
 
@@ -71,6 +71,7 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
   2. `Lieferant anfragen`
   3. `Erfassungslink teilen`
 - Keine Warnästhetik im Onboarding-Flow.
+- Team-Sharing nie als erste Pflichtentscheidung für den Owner darstellen.
 
 ## Technische Notiz
 
@@ -84,6 +85,7 @@ Status: Implementiert in `src/app/page.tsx`, `src/app/einrichten/page.tsx`, `src
 - Code-Validierung Member: `GET /api/capture-by-code?code=...` (Server/Admin SDK).
 - Member-Erfassung: `POST /api/capture-by-code` schreibt Use-Case in Owner-Register.
 - Admin-Setup erzeugt Access-Code über `accessCodeService.generateCode` und teilt `'/erfassen?code=...'`.
+- Wenn der bereits angemeldete Code-Owner seinen eigenen Link öffnet und die öffentliche Validierung `503` liefert, kann `'/erfassen'` auf einen clientseitigen Owner-Fallback wechseln.
 
 ### Fehlerbehandlung (Capture-by-Code)
 
