@@ -4,14 +4,18 @@ import { FieldValue } from "firebase-admin/firestore";
 import { ZodError } from "zod";
 import { parseUseCaseCard } from "@/lib/register-first/schema";
 import { prepareUseCaseForStorage } from "@/lib/register-first/use-case-builder";
+import { normalizeCaptureByCodeSelections } from "@/lib/capture-by-code/selections";
 
 interface CaptureByCodeBody {
   code: string;
   purpose: string;
   toolId?: string;
   toolFreeText?: string;
-  usageContext: string;
-  dataCategory: string;
+  usageContext?: string;
+  usageContexts?: string[];
+  dataCategory?: string;
+  dataCategories?: string[];
+  decisionInfluence?: string | null;
   ownerRole?: string;
   ownerName?: string;
   contactPersonName?: string;
@@ -232,7 +236,10 @@ export async function POST(req: NextRequest) {
       toolId,
       toolFreeText,
       usageContext,
+      usageContexts,
       dataCategory,
+      dataCategories,
+      decisionInfluence,
       ownerRole,
       ownerName,
       contactPersonName,
@@ -243,6 +250,13 @@ export async function POST(req: NextRequest) {
       normalizeOptionalText(ownerRole) ?? normalizeOptionalText(ownerName);
     const normalizedContactPersonName = normalizeOptionalText(contactPersonName);
     const normalizedOrganisation = normalizeOptionalText(organisation);
+    const normalizedSelections = normalizeCaptureByCodeSelections({
+      usageContext,
+      usageContexts,
+      dataCategory,
+      dataCategories,
+      decisionInfluence,
+    });
 
     if (code) {
       if (!checkRateLimit(`code:${code}`, RATE_LIMIT_PER_CODE, RATE_WINDOW_CODE)) {
@@ -303,14 +317,16 @@ export async function POST(req: NextRequest) {
     const cardDraft = prepareUseCaseForStorage(
       {
         purpose: purpose.trim(),
-        usageContexts: [usageContext || "INTERNAL_ONLY"],
+        usageContexts: normalizedSelections.usageContexts,
         isCurrentlyResponsible: false,
         responsibleParty: normalizedOwnerRole,
         contactPersonName: normalizedContactPersonName,
         decisionImpact: "UNSURE",
+        decisionInfluence: normalizedSelections.decisionInfluence,
         toolId: toolId || undefined,
         toolFreeText: normalizeOptionalText(toolFreeText) ?? undefined,
-        dataCategory: dataCategory || "NONE",
+        dataCategory: normalizedSelections.dataCategory,
+        dataCategories: normalizedSelections.dataCategories,
         organisation: normalizedOrganisation,
       },
       {

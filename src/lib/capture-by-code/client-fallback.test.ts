@@ -91,8 +91,9 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
       accessCodeLabel: "Onboarding",
       purpose: "Copilot für HR",
       toolId: "copilot",
-      usageContext: "EMPLOYEES",
-      dataCategory: "NONE",
+      usageContexts: ["EMPLOYEES", "APPLICANTS"],
+      dataCategories: ["PERSONAL_DATA", "SPECIAL_PERSONAL", "HEALTH_DATA"],
+      decisionInfluence: "PREPARATION",
       ownerRole: "HR Lead",
       contactPersonName: "Jane Doe",
     },
@@ -110,14 +111,16 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
   assert.equal(card.useCaseId, "uc_1");
   assert.deepEqual(capturedPayload, {
     purpose: "Copilot für HR",
-    usageContexts: ["EMPLOYEES"],
+    usageContexts: ["EMPLOYEES", "APPLICANTS"],
     isCurrentlyResponsible: false,
     responsibleParty: "HR Lead",
     contactPersonName: "Jane Doe",
     decisionImpact: "UNSURE",
+    decisionInfluence: "PREPARATION",
     toolId: "copilot",
     toolFreeText: undefined,
-    dataCategory: "NONE",
+    dataCategory: "PERSONAL_DATA",
+    dataCategories: ["PERSONAL_DATA", "SPECIAL_PERSONAL", "HEALTH_DATA"],
     organisation: undefined,
   });
   assert.equal(incrementedCode, "AI-ABC123");

@@ -1,6 +1,13 @@
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
 import { registerService } from "@/lib/register-first/register-service";
-import type { RegisterAccessCode, UseCaseCard } from "@/lib/register-first/types";
+import type {
+  CaptureUsageContext,
+  DataCategory,
+  DecisionInfluence,
+  RegisterAccessCode,
+  UseCaseCard,
+} from "@/lib/register-first/types";
+import { normalizeCaptureByCodeSelections } from "./selections";
 
 export interface OwnerCaptureFallbackInfo {
   code: string;
@@ -16,8 +23,11 @@ export interface OwnerCaptureSubmissionInput {
   purpose: string;
   toolId?: string;
   toolFreeText?: string;
-  usageContext: string;
-  dataCategory: string;
+  usageContext?: CaptureUsageContext;
+  usageContexts?: CaptureUsageContext[];
+  dataCategory?: DataCategory;
+  dataCategories?: DataCategory[];
+  decisionInfluence?: DecisionInfluence;
   ownerRole: string;
   contactPersonName?: string;
   organisation?: string;
@@ -106,17 +116,27 @@ export async function submitOwnedCaptureCode(
   input: OwnerCaptureSubmissionInput,
   deps: SubmitOwnedCaptureCodeDeps
 ): Promise<UseCaseCard> {
+  const normalizedSelections = normalizeCaptureByCodeSelections({
+    usageContext: input.usageContext,
+    usageContexts: input.usageContexts,
+    dataCategory: input.dataCategory,
+    dataCategories: input.dataCategories,
+    decisionInfluence: input.decisionInfluence,
+  });
+
   const card = await deps.createUseCase(
     {
       purpose: input.purpose.trim(),
-      usageContexts: [input.usageContext || "INTERNAL_ONLY"],
+      usageContexts: normalizedSelections.usageContexts,
       isCurrentlyResponsible: false,
       responsibleParty: input.ownerRole.trim(),
       contactPersonName: input.contactPersonName?.trim() || undefined,
       decisionImpact: "UNSURE",
+      decisionInfluence: normalizedSelections.decisionInfluence,
       toolId: input.toolId || undefined,
       toolFreeText: input.toolFreeText?.trim() || undefined,
-      dataCategory: input.dataCategory || "NONE",
+      dataCategory: normalizedSelections.dataCategory,
+      dataCategories: normalizedSelections.dataCategories,
       organisation: input.organisation?.trim() || undefined,
     },
     {

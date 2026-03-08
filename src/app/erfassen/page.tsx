@@ -10,14 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ToolAutocomplete } from "@/components/tool-autocomplete";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 import {
@@ -25,6 +17,11 @@ import {
   submitOwnedCaptureCodeFallback,
   type OwnerCaptureFallbackInfo,
 } from "@/lib/capture-by-code/client-fallback";
+import {
+  QuickCaptureFields,
+  TOOL_PLACEHOLDER_ID,
+  type QuickCaptureFieldsDraft,
+} from "@/components/register/quick-capture-fields";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
@@ -33,24 +30,17 @@ interface CodeInfo {
   organisationName: string | null;
 }
 
-interface CaptureFormData {
-  purpose: string;
-  ownerRole: string;
-  contactPersonName: string;
-  toolId: string;
-  toolFreeText: string;
-  usageContext: string;
-  dataCategory: string;
-}
+type CaptureFormData = QuickCaptureFieldsDraft;
 
 const EMPTY_FORM: CaptureFormData = {
   purpose: "",
   ownerRole: "",
   contactPersonName: "",
-  toolId: "",
+  toolId: TOOL_PLACEHOLDER_ID,
   toolFreeText: "",
-  usageContext: "INTERNAL_ONLY",
-  dataCategory: "NONE",
+  usageContexts: [],
+  dataCategories: [],
+  decisionInfluence: null,
 };
 
 export default function ErfassenPage() {
@@ -145,8 +135,9 @@ export default function ErfassenPage() {
           purpose: form.purpose.trim(),
           toolId: form.toolId || undefined,
           toolFreeText: form.toolFreeText.trim() || undefined,
-          usageContext: form.usageContext,
-          dataCategory: form.dataCategory,
+          usageContexts: form.usageContexts,
+          dataCategories: form.dataCategories,
+          decisionInfluence: form.decisionInfluence ?? undefined,
           ownerRole: form.ownerRole.trim(),
           contactPersonName: form.contactPersonName.trim() || undefined,
         });
@@ -163,8 +154,9 @@ export default function ErfassenPage() {
           purpose: form.purpose.trim(),
           toolId: form.toolId || undefined,
           toolFreeText: form.toolFreeText.trim() || undefined,
-          usageContext: form.usageContext,
-          dataCategory: form.dataCategory,
+          usageContexts: form.usageContexts,
+          dataCategories: form.dataCategories,
+          decisionInfluence: form.decisionInfluence ?? undefined,
           ownerRole: form.ownerRole.trim(),
           contactPersonName: form.contactPersonName.trim() || undefined,
         }),
@@ -193,11 +185,15 @@ export default function ErfassenPage() {
   }
 
   const canSubmit =
-    form.purpose.trim().length >= 3 && form.ownerRole.trim().length >= 2;
+    form.purpose.trim().length >= 3 &&
+    form.ownerRole.trim().length >= 2 &&
+    form.toolId.length > 0 &&
+    form.toolId !== TOOL_PLACEHOLDER_ID &&
+    (form.toolId !== "other" || form.toolFreeText.trim().length > 0);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-6 flex w-full max-w-lg items-center justify-between">
+      <div className="mb-6 flex w-full max-w-[480px] items-center justify-between">
         <div className="flex items-center gap-2">
           <Image src="/register-logo.png" alt="Logo" width={32} height={32} className="h-8 w-8" />
           <span className="text-lg font-semibold">KI-Einsatzfall erfassen</span>
@@ -277,7 +273,7 @@ export default function ErfassenPage() {
 
       {/* Capture Form */}
       {pageState === "form" && (
-        <Card className="w-full max-w-lg">
+        <Card className="w-full max-w-[480px]">
           <CardHeader>
             <CardTitle>KI-Einsatzfall erfassen</CardTitle>
             <CardDescription>
@@ -304,96 +300,11 @@ export default function ErfassenPage() {
               </Alert>
             )}
 
-            <div className="space-y-1.5">
-              <Label>
-                Use-Case Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                placeholder="z. B. Marketing Copy Generator"
-                value={form.purpose}
-                onChange={(e) => patch({ purpose: e.target.value })}
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>
-                Owner-Rolle (funktional) <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                placeholder="z. B. Head of Marketing / HR Lead / IT Security"
-                value={form.ownerRole}
-                onChange={(e) => patch({ ownerRole: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">
-                Bitte die zuständige Rolle oder Funktion eintragen, nicht nur einen Personennamen.
-              </p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Kontaktperson (optional)</Label>
-              <Input
-                placeholder="z. B. Max Mustermann"
-                value={form.contactPersonName}
-                onChange={(e) => patch({ contactPersonName: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Tool / Software</Label>
-              <ToolAutocomplete
-                value={form.toolFreeText}
-                onChange={(val, data) => {
-                  patch({
-                    toolFreeText: val,
-                    toolId: data?.id || "",
-                  });
-                  if (!form.purpose.trim() && data?.category) {
-                    patch({ purpose: `Einsatz von ${val} für ${data.category}` });
-                  }
-                }}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Wirkungsbereich</Label>
-                <Select
-                  value={form.usageContext}
-                  onValueChange={(v) => patch({ usageContext: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INTERNAL_ONLY">Nur interne Prozesse</SelectItem>
-                    <SelectItem value="EMPLOYEES">Mitarbeitende betroffen</SelectItem>
-                    <SelectItem value="CUSTOMERS">Kund*innen betroffen</SelectItem>
-                    <SelectItem value="APPLICANTS">Bewerber*innen betroffen</SelectItem>
-                    <SelectItem value="PUBLIC">Öffentlichkeit betroffen</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Datenkategorie</Label>
-                <Select
-                  value={form.dataCategory}
-                  onValueChange={(v) => patch({ dataCategory: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NO_PERSONAL_DATA">Keine personenbez.</SelectItem>
-                    <SelectItem value="PERSONAL_DATA">Personenbezogen</SelectItem>
-                    <SelectItem value="SPECIAL_PERSONAL">Besondere personenbez.</SelectItem>
-                    <SelectItem value="INTERNAL_CONFIDENTIAL">Interne Unternehmensdaten</SelectItem>
-                    <SelectItem value="PUBLIC_DATA">Öffentlich zugänglich</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <QuickCaptureFields
+              draft={form}
+              onChange={patch}
+              autoFocusPurpose
+            />
 
             <Button
               onClick={() => void handleSubmit()}

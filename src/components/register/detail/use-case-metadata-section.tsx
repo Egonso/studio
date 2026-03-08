@@ -30,6 +30,10 @@ import {
   createAiToolsRegistryService,
   riskLevelLabels,
 } from "@/lib/register-first";
+import {
+  applyDataCategoryLogic,
+  toggleMultiSelect,
+} from "@/lib/register-first/capture-selections";
 import { cn } from "@/lib/utils";
 
 const aiRegistry = createAiToolsRegistryService();
@@ -46,57 +50,6 @@ function mapDecisionInfluenceToImpact(
   if (value === "ASSISTANCE") return "NO";
   if (value === "PREPARATION" || value === "AUTOMATED") return "YES";
   return "UNSURE";
-}
-
-function toggleMultiSelect<T>(arr: T[], item: T): T[] {
-  return arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item];
-}
-
-function applyDataCategoryLogic(
-  categories: DataCategory[],
-  toggled: DataCategory
-): DataCategory[] {
-  let next = toggleMultiSelect(categories, toggled);
-
-  if (toggled === "NO_PERSONAL_DATA" && next.includes("NO_PERSONAL_DATA")) {
-    next = next.filter(
-      (c) =>
-        c !== "PERSONAL_DATA" &&
-        c !== "SPECIAL_PERSONAL" &&
-        !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c)
-    );
-  }
-
-  if (
-    toggled !== "NO_PERSONAL_DATA" &&
-    (toggled === "PERSONAL_DATA" ||
-      toggled === "SPECIAL_PERSONAL" ||
-      DATA_CATEGORY_SPECIAL_OPTIONS.includes(toggled)) &&
-    next.includes(toggled)
-  ) {
-    next = next.filter((c) => c !== "NO_PERSONAL_DATA");
-  }
-
-  if (DATA_CATEGORY_SPECIAL_OPTIONS.includes(toggled) && next.includes(toggled)) {
-    if (!next.includes("PERSONAL_DATA")) next = [...next, "PERSONAL_DATA"];
-    if (!next.includes("SPECIAL_PERSONAL")) next = [...next, "SPECIAL_PERSONAL"];
-  }
-
-  if (toggled === "SPECIAL_PERSONAL" && next.includes("SPECIAL_PERSONAL")) {
-    if (!next.includes("PERSONAL_DATA")) next = [...next, "PERSONAL_DATA"];
-  }
-
-  if (toggled === "SPECIAL_PERSONAL" && !next.includes("SPECIAL_PERSONAL")) {
-    next = next.filter((c) => !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c));
-  }
-
-  if (toggled === "PERSONAL_DATA" && !next.includes("PERSONAL_DATA")) {
-    next = next.filter(
-      (c) => c !== "SPECIAL_PERSONAL" && !DATA_CATEGORY_SPECIAL_OPTIONS.includes(c)
-    );
-  }
-
-  return next;
 }
 
 interface UseCaseMetadataSectionProps {
