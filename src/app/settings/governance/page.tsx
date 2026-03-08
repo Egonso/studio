@@ -37,6 +37,25 @@ const RACI_ROLES = [
     { key: 'productOwner' as const, label: 'Product Owner' },
 ] as const;
 
+function normalizeOptionalText(value: string): string | undefined {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeRoleEntry(entry: RoleEntry | null | undefined): RoleEntry | null {
+    const name = entry?.name?.trim() ?? '';
+    if (!name) return null;
+
+    const email = normalizeOptionalText(entry?.email ?? '');
+    const department = normalizeOptionalText(entry?.department ?? '');
+
+    return {
+        name,
+        ...(email ? { email } : {}),
+        ...(department ? { department } : {}),
+    };
+}
+
 function RoleInput({ role, value, onChange }: {
     role: { key: string; label: string };
     value: RoleEntry | null | undefined;
@@ -173,31 +192,47 @@ export default function GovernanceSettingsPage() {
         try {
             const raciData: OrgSettings['raci'] = {};
             for (const role of RACI_ROLES) {
-                const entry = raci[role.key];
-                raciData[role.key] = entry?.name ? entry : null;
+                raciData[role.key] = normalizeRoleEntry(raci[role.key]);
             }
+
+            const normalizedAiPolicyUrl = normalizeOptionalText(aiPolicyUrl);
+            const normalizedAiPolicyOwner = normalizeOptionalText(aiPolicyOwner);
+            const normalizedAiPolicyReviewedAt = normalizeOptionalText(aiPolicyReviewedAt);
+            const normalizedIncidentUrl = normalizeOptionalText(incidentUrl);
+            const normalizedRolesUrl = normalizeOptionalText(rolesUrl);
+            const normalizedIncidentReportingPath = normalizeOptionalText(incidentReportingPath);
+            const normalizedIncidentEscalation = normalizeOptionalText(incidentEscalation);
+            const normalizedIncidentTimeframe = normalizeOptionalText(incidentTimeframe);
+            const normalizedReviewCycleInterval = normalizeOptionalText(reviewCycleInterval);
 
             const orgSettings: OrgSettings = {
                 organisationName: orgName.trim(),
                 industry: industry.trim(),
                 contactPerson: { name: contactName.trim(), email: contactEmail.trim() },
-                aiPolicy: aiPolicyUrl.trim() ? { url: aiPolicyUrl.trim(), owner: aiPolicyOwner.trim(), lastReviewedAt: aiPolicyReviewedAt.trim() } : null,
-                incidentProcess: incidentUrl.trim() ? { url: incidentUrl.trim() } : null,
-                rolesFramework: rolesUrl.trim() || rolesDefined ? { docUrl: rolesUrl.trim(), booleanDefined: rolesDefined } : null,
+                aiPolicy: normalizedAiPolicyUrl ? {
+                    url: normalizedAiPolicyUrl,
+                    ...(normalizedAiPolicyOwner ? { owner: normalizedAiPolicyOwner } : {}),
+                    ...(normalizedAiPolicyReviewedAt ? { lastReviewedAt: normalizedAiPolicyReviewedAt } : {}),
+                } : null,
+                incidentProcess: normalizedIncidentUrl ? { url: normalizedIncidentUrl } : null,
+                rolesFramework: normalizedRolesUrl || rolesDefined ? {
+                    ...(normalizedRolesUrl ? { docUrl: normalizedRolesUrl } : {}),
+                    booleanDefined: rolesDefined,
+                } : null,
                 reviewStandard: reviewStandard as OrgSettings['reviewStandard'],
                 // Extended
                 scope: scope as OrgSettings['scope'],
                 raci: raciData,
                 riskMethodology: riskMethodology as OrgSettings['riskMethodology'],
                 incidentConfig: {
-                    reportingPath: incidentReportingPath.trim(),
-                    escalationLevel: incidentEscalation.trim(),
+                    ...(normalizedIncidentReportingPath ? { reportingPath: normalizedIncidentReportingPath } : {}),
+                    ...(normalizedIncidentEscalation ? { escalationLevel: normalizedIncidentEscalation } : {}),
                     documentationRequired: incidentDocRequired,
-                    responseTimeframe: incidentTimeframe.trim(),
+                    ...(normalizedIncidentTimeframe ? { responseTimeframe: normalizedIncidentTimeframe } : {}),
                 },
                 reviewCycle: {
                     type: reviewCycleType as 'fixed' | 'risk_based' | 'event_based',
-                    interval: reviewCycleInterval.trim(),
+                    ...(normalizedReviewCycleInterval ? { interval: normalizedReviewCycleInterval } : {}),
                 },
                 competencyMatrix: {
                     euAiActTrainingRequired: euAiActTraining,
@@ -219,7 +254,8 @@ export default function GovernanceSettingsPage() {
             });
 
             toast({ title: "Einstellungen gespeichert", description: "Governance-Einstellungen aktualisiert." });
-        } catch {
+        } catch (error) {
+            console.error('Governance settings save failed', error);
             toast({ variant: "destructive", title: "Fehler", description: "Einstellungen konnten nicht gespeichert werden." });
         } finally {
             setIsSaving(false);

@@ -5,6 +5,7 @@ import type {
   UseCaseCard,
   PublicUseCaseIndexEntry,
 } from "./types";
+import { sanitizeFirestorePayload } from "./firestore-sanitize";
 
 // ── Scope ───────────────────────────────────────────────────────────────────
 
@@ -160,7 +161,7 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       const { doc, updateDoc } = await import("firebase/firestore");
 
       const docRef = doc(db, `users/${userId}/registers/${registerId}`);
-      await updateDoc(docRef, partial);
+      await updateDoc(docRef, sanitizeFirestorePayload(partial));
     },
   };
 }
