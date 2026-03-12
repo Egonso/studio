@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutDashboard, Loader2, PlusCircle } from "lucide-react";
+import { LayoutDashboard, Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,11 +13,14 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
 import { RegisterBoard } from "@/components/register/register-board";
+import { RegisterDeleteDialog } from "@/components/register/register-delete-dialog";
 import { GovernanceHeader } from "@/components/register/governance-header";
 import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
 import { CompanyOnboardingWizard } from "@/components/register/company-onboarding-wizard";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 import {
   registerService,
+  type DeleteRegisterResult,
   type RegisterServiceErrorCode,
 } from "@/lib/register-first/register-service";
 import type { Register, UseCaseCard } from "@/lib/register-first/types";
@@ -44,6 +47,7 @@ export default function MyRegisterPage() {
   const [activeRegister, setActiveRegister] = useState<Register | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showWizard, setShowWizard] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -56,10 +60,17 @@ export default function MyRegisterPage() {
     setHasChecked(true);
     registerService
       .listRegisters()
-      .then((regs) => {
+      .then(async (regs) => {
         if (regs.length > 0) {
+          const selectedRegister =
+            (await registerService
+              .setActiveRegister(regs[0].registerId)
+              .catch(() => regs[0])) ?? regs[0];
           setRegisters(regs);
-          setActiveRegister(regs[0]);
+          setActiveRegister(
+            regs.find((register) => register.registerId === selectedRegister.registerId) ??
+              selectedRegister
+          );
           setOnboardingState("ready");
           // Auto-open QuickCapture after onboarding flow
           if (searchParams.get("onboarding") === "true") {
@@ -99,19 +110,24 @@ export default function MyRegisterPage() {
 
   const handleWizardComplete = async (registerId: string) => {
     const regs = await registerService.listRegisters();
+    const selectedRegister = await registerService.setActiveRegister(registerId);
     setRegisters(regs);
-    const newReg = regs.find((r) => r.registerId === registerId) ?? regs[0];
+    const newReg =
+      regs.find((r) => r.registerId === selectedRegister.registerId) ??
+      selectedRegister;
     setActiveRegister(newReg);
+    setRefreshKey((key) => key + 1);
     setOnboardingState("ready");
     setShowWizard(false);
   };
 
-  const handleSwitchRegister = (registerId: string) => {
-    const reg = registers.find((r) => r.registerId === registerId);
-    if (reg) {
-      setActiveRegister(reg);
-      setRefreshKey((k) => k + 1);
-    }
+  const handleSwitchRegister = async (registerId: string) => {
+    const selectedRegister = await registerService.setActiveRegister(registerId);
+    const reg =
+      registers.find((entry) => entry.registerId === selectedRegister.registerId) ??
+      selectedRegister;
+    setActiveRegister(reg);
+    setRefreshKey((k) => k + 1);
   };
 
   const handleCaptured = (useCaseId?: string) => {
@@ -123,6 +139,18 @@ export default function MyRegisterPage() {
 
   const handleUseCasesLoaded = (cards: UseCaseCard[]) => {
     setUseCases(cards);
+  };
+
+  const handleRegisterDeleted = async (result: DeleteRegisterResult) => {
+    const regs = await registerService.listRegisters();
+    const nextActiveRegister =
+      regs.find((register) => register.registerId === result.fallbackRegisterId) ??
+      regs[0] ??
+      null;
+
+    setRegisters(regs);
+    setActiveRegister(nextActiveRegister);
+    setRefreshKey((key) => key + 1);
   };
 
   if (authLoading || onboardingState === "loading") {
@@ -155,7 +183,7 @@ export default function MyRegisterPage() {
             <div className="flex items-center gap-3">
               <Select
                 value={activeRegister?.registerId ?? ""}
-                onValueChange={handleSwitchRegister}
+                onValueChange={(registerId) => void handleSwitchRegister(registerId)}
               >
                 <SelectTrigger className="w-[280px]">
                   <SelectValue placeholder="Register auswählen" />
@@ -184,6 +212,17 @@ export default function MyRegisterPage() {
                 <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
                 Neues Register
               </Button>
+              {registerFirstFlags.registerDeletion && activeRegister && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                  Register löschen
+                </Button>
+              )}
             </div>
           )}
           {registers.length === 1 && (
@@ -205,14 +244,32 @@ export default function MyRegisterPage() {
                 <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
                 Weiteres Register erstellen
               </Button>
+              {registerFirstFlags.registerDeletion && activeRegister && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-auto px-0 text-destructive hover:bg-transparent hover:text-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                  Register löschen
+                </Button>
+              )}
             </div>
           )}
         </GovernanceHeader>
         <RegisterBoard
           mode="standalone"
+          registerId={activeRegister?.registerId}
           refreshKey={refreshKey}
           onUseCasesLoaded={handleUseCasesLoaded}
           initialFilter={initialFilter}
+        />
+        <RegisterDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          register={activeRegister}
+          onDeleted={handleRegisterDeleted}
         />
         <QuickCaptureModal
           open={captureOpen}

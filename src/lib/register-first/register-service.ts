@@ -17,27 +17,33 @@ import {
   createFirestoreRegisterRepository,
   createFirestoreRegisterUseCaseRepo,
   createFirestorePublicIndexRepo,
+  createFirestoreRegisterAccessCodeRepo,
   type RegisterRepository,
   type RegisterUseCaseRepository,
   type PublicIndexRepository,
+  type RegisterAccessCodeRepository,
   type RegisterScope,
   type RegisterUseCaseFilters,
 } from "./register-repository";
 import {
+  clearActiveRegisterId,
   getActiveRegisterId,
   setActiveRegisterId,
   getDefaultRegisterId,
   setDefaultRegisterId,
 } from "./register-settings-client";
+import { getRegisterDisplayName } from "./register-helpers";
 import type {
   GovernanceDecisionActor,
   PublicUseCaseIndexEntry,
   Register,
   RegisterUseCaseStatus,
+  RegisterAccessCode,
   ReviewEvent,
   StatusChange,
   UseCaseCard,
   RegisterMetrics,
+  RegisterDeletionState,
 } from "./types";
 
 // ── Error Types ─────────────────────────────────────────────────────────────
@@ -45,6 +51,8 @@ import type {
 export type RegisterServiceErrorCode =
   | "UNAUTHENTICATED"
   | "REGISTER_NOT_FOUND"
+  | "REGISTER_DELETE_FORBIDDEN"
+  | "REGISTER_CONFIRMATION_MISMATCH"
   | "USE_CASE_NOT_FOUND"
   | "INVALID_STATUS_TRANSITION"
   | "AUTOMATION_FORBIDDEN"
@@ -122,15 +130,52 @@ export interface SealUseCaseInput {
   officerName: string;
 }
 
+export interface DeleteRegisterInput {
+  registerId: string;
+  confirmationName: string;
+}
+
+export interface RegisterDeleteImpact {
+  totalUseCaseCount: number;
+  activeUseCaseCount: number;
+  publicUseCaseCount: number;
+  totalAccessCodeCount: number;
+  activeAccessCodeCount: number;
+  supplierRequestLinkDisabled: boolean;
+}
+
+export interface RegisterDeletePreview {
+  registerId: string;
+  displayName: string;
+  strategy: "SOFT_DELETE";
+  canDelete: boolean;
+  blockedReason?: "LAST_REGISTER";
+  fallbackRegisterId: string | null;
+  fallbackRegisterName: string | null;
+  impact: RegisterDeleteImpact;
+  restoreAvailable: true;
+}
+
+export interface DeleteRegisterResult {
+  deletedRegisterId: string;
+  fallbackRegisterId: string;
+  fallbackRegisterName: string;
+  strategy: "SOFT_DELETE";
+  impact: RegisterDeleteImpact;
+}
 
 export interface RegisterService {
   createRegister(name: string, linkedProjectId?: string | null): Promise<Register>;
   listRegisters(): Promise<Register[]>;
   getFirstRegister(): Promise<Register | null>;
+  setActiveRegister(registerId: string): Promise<Register>;
   updateRegisterProfile(
     registerId: string,
     profile: Partial<Pick<Register, "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
   ): Promise<void>;
+  getRegisterDeletionPreview(registerId: string): Promise<RegisterDeletePreview>;
+  deleteRegister(input: DeleteRegisterInput): Promise<DeleteRegisterResult>;
+  restoreRegister(registerId: string): Promise<Register>;
   createUseCaseFromCapture(
     input: unknown,
     options?: CreateUseCaseOptions
@@ -164,6 +209,7 @@ interface RegisterServiceDependencies {
   registerRepo?: RegisterRepository;
   useCaseRepo?: RegisterUseCaseRepository;
   publicIndexRepo?: PublicIndexRepository;
+  accessCodeRepo?: RegisterAccessCodeRepository;
   resolveUserId?: ResolveUserId;
   now?: Clock;
   useCaseIdGenerator?: IdGenerator;
@@ -173,6 +219,7 @@ interface RegisterServiceDependencies {
   setDefaultRegisterIdFn?: (userId: string, registerId: string) => Promise<void>;
   getActiveRegisterIdFn?: () => string | null;
   setActiveRegisterIdFn?: (id: string) => void;
+  clearActiveRegisterIdFn?: () => void;
 }
 
 // ── Factory ─────────────────────────────────────────────────────────────────
@@ -214,6 +261,8 @@ export function createRegisterService(
   const registerRepo = dependencies.registerRepo ?? createFirestoreRegisterRepository();
   const useCaseRepo = dependencies.useCaseRepo ?? createFirestoreRegisterUseCaseRepo();
   const publicIndexRepo = dependencies.publicIndexRepo ?? createFirestorePublicIndexRepo();
+  const accessCodeRepo =
+    dependencies.accessCodeRepo ?? createFirestoreRegisterAccessCodeRepo();
   const resolveUserId = dependencies.resolveUserId ?? defaultResolveUserId;
   const now = dependencies.now ?? (() => new Date());
   const generateUseCaseId =
@@ -225,6 +274,8 @@ export function createRegisterService(
   const setDefaultRegId = dependencies.setDefaultRegisterIdFn ?? setDefaultRegisterId;
   const getActiveRegId = dependencies.getActiveRegisterIdFn ?? getActiveRegisterId;
   const setActiveRegId = dependencies.setActiveRegisterIdFn ?? setActiveRegisterId;
+  const clearActiveRegId =
+    dependencies.clearActiveRegisterIdFn ?? clearActiveRegisterId;
 
   async function resolveUserIdOrThrow(): Promise<string> {
     const userId = await resolveUserId();
@@ -237,6 +288,117 @@ export function createRegisterService(
     return userId;
   }
 
+  function buildRegisterDeleteImpact(
+    useCases: UseCaseCard[],
+    accessCodes: RegisterAccessCode[]
+  ): RegisterDeleteImpact {
+    return {
+      totalUseCaseCount: useCases.length,
+      activeUseCaseCount: useCases.filter((card) => !card.isDeleted).length,
+      publicUseCaseCount: useCases.filter(
+        (card) => !card.isDeleted && card.isPublicVisible && Boolean(card.publicHashId)
+      ).length,
+      totalAccessCodeCount: accessCodes.length,
+      activeAccessCodeCount: accessCodes.filter((code) => code.isActive).length,
+      supplierRequestLinkDisabled: true,
+    };
+  }
+
+  async function requireRegister(
+    userId: string,
+    registerId: string,
+    options?: { includeDeleted?: boolean }
+  ): Promise<Register> {
+    const register = await registerRepo.getRegister(userId, registerId, {
+      includeDeleted: options?.includeDeleted,
+    });
+
+    if (!register) {
+      throw new RegisterServiceError(
+        "REGISTER_NOT_FOUND",
+        `Register '${registerId}' was not found.`
+      );
+    }
+
+    return register;
+  }
+
+  async function setActiveRegisterInternal(
+    userId: string,
+    registerId: string
+  ): Promise<Register> {
+    const register = await requireRegister(userId, registerId);
+    await setDefaultRegId(userId, register.registerId);
+    setActiveRegId(register.registerId);
+    return register;
+  }
+
+  async function buildPublicIndexEntry(
+    scope: RegisterScope,
+    card: UseCaseCard,
+    resolvedToolName?: string
+  ): Promise<PublicUseCaseIndexEntry | null> {
+    if (
+      card.cardVersion !== "1.1" ||
+      !card.publicHashId ||
+      !card.isPublicVisible ||
+      card.isDeleted
+    ) {
+      return null;
+    }
+
+    const register = await requireRegister(scope.userId, scope.registerId);
+    const organisationName =
+      register.publicOrganisationDisclosure && register.organisationName
+        ? register.organisationName
+        : null;
+
+    return {
+      publicHashId: card.publicHashId,
+      globalUseCaseId: card.globalUseCaseId ?? "",
+      formatVersion: card.formatVersion ?? "v1.1",
+      purpose: card.purpose,
+      toolName: resolvedToolName ?? card.toolFreeText ?? card.toolId ?? "",
+      dataCategory: card.dataCategory ?? "INTERNAL",
+      status: card.status,
+      createdAt: card.createdAt,
+      ownerId: scope.userId,
+      verification: card.proof?.verification ?? null,
+      organisationName,
+    };
+  }
+
+  async function republishRegisterPublicEntries(scope: RegisterScope): Promise<void> {
+      const cards = await useCaseRepo.list(scope, { includeDeleted: true });
+      for (const card of cards) {
+      const entry = await buildPublicIndexEntry(scope, card);
+        if (entry) {
+          await publicIndexRepo.publishToIndex(entry);
+        }
+      }
+  }
+
+  async function loadDeleteContext(userId: string, registerId: string) {
+    const register = await requireRegister(userId, registerId);
+    const fallbackRegister = (await registerRepo.listRegisters(userId)).find(
+      (candidate) => candidate.registerId !== registerId
+    ) ?? null;
+    const scope: RegisterScope = { userId, registerId };
+    const [useCases, accessCodes] = await Promise.all([
+      useCaseRepo.list(scope, { includeDeleted: true }),
+      accessCodeRepo.listCodes(userId, registerId),
+    ]);
+
+    return {
+      register,
+      fallbackRegister,
+      scope,
+      useCases,
+      accessCodes,
+      impact: buildRegisterDeleteImpact(useCases, accessCodes),
+    };
+  }
+
   /**
    * Resolve register scope WITHOUT auto-creating a register.
    * Throws REGISTER_NOT_FOUND if no register can be resolved.
@@ -246,23 +408,40 @@ export function createRegisterService(
 
     // 1. Explicit registerId
     if (registerId) {
+      await requireRegister(userId, registerId);
       return { userId, registerId };
     }
 
     // 2. sessionStorage cache
     const cached = getActiveRegId();
     if (cached) {
-      return { userId, registerId: cached };
+      const register = await registerRepo.getRegister(userId, cached);
+      if (register) {
+        return { userId, registerId: cached };
+      }
+      clearActiveRegId();
     }
 
     // 3. Firestore persisted default
     const persisted = await getDefaultRegId(userId);
     if (persisted) {
-      setActiveRegId(persisted); // warm cache
-      return { userId, registerId: persisted };
+      const register = await registerRepo.getRegister(userId, persisted);
+      if (register) {
+        setActiveRegId(persisted); // warm cache
+        return { userId, registerId: persisted };
+      }
     }
 
-    // 4. No register found – do NOT auto-create
+    // 4. First available active register
+    const registers = await registerRepo.listRegisters(userId);
+    if (registers.length > 0) {
+      await setDefaultRegId(userId, registers[0].registerId);
+      setActiveRegId(registers[0].registerId);
+      return { userId, registerId: registers[0].registerId };
+    }
+
+    // 5. No register found – do NOT auto-create
+    clearActiveRegId();
     throw new RegisterServiceError(
       "REGISTER_NOT_FOUND",
       "No register found. Please create a register first."
@@ -305,10 +484,145 @@ export function createRegisterService(
       }
     },
 
+    async setActiveRegister(registerId) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        return await setActiveRegisterInternal(userId, registerId);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
     async updateRegisterProfile(registerId, profile) {
       try {
         const userId = await resolveUserIdOrThrow();
+        await requireRegister(userId, registerId);
         await registerRepo.updateRegister(userId, registerId, profile);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async getRegisterDeletionPreview(registerId) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        const { register, fallbackRegister, impact } = await loadDeleteContext(
+          userId,
+          registerId
+        );
+
+        return {
+          registerId: register.registerId,
+          displayName: getRegisterDisplayName(register),
+          strategy: "SOFT_DELETE",
+          canDelete: Boolean(fallbackRegister),
+          blockedReason: fallbackRegister ? undefined : "LAST_REGISTER",
+          fallbackRegisterId: fallbackRegister?.registerId ?? null,
+          fallbackRegisterName: fallbackRegister
+            ? getRegisterDisplayName(fallbackRegister)
+            : null,
+          impact,
+          restoreAvailable: true,
+        };
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async deleteRegister(input) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        const { register, fallbackRegister, scope, useCases, impact } =
+          await loadDeleteContext(userId, input.registerId);
+
+        if (!fallbackRegister) {
+          throw new RegisterServiceError(
+            "REGISTER_DELETE_FORBIDDEN",
+            "The last remaining register cannot be deleted."
+          );
+        }
+
+        const expectedName = getRegisterDisplayName(register);
+        if (input.confirmationName.trim() !== expectedName) {
+          throw new RegisterServiceError(
+            "REGISTER_CONFIRMATION_MISMATCH",
+            "Register name confirmation did not match."
+          );
+        }
+
+        const timestamp = now().toISOString();
+        const publicUseCases = useCases.filter(
+          (card) => card.isPublicVisible && Boolean(card.publicHashId)
+        );
+
+        for (const card of publicUseCases) {
+          await publicIndexRepo.unpublishFromIndex(card.publicHashId!);
+        }
+
+        const deactivatedAccessCodeCount =
+          await accessCodeRepo.deactivateCodesForRegister(
+            userId,
+            register.registerId,
+            timestamp
+          );
+
+        const deletionState: RegisterDeletionState = {
+          strategy: "SOFT_DELETE",
+          deletedAt: timestamp,
+          deletedBy: userId,
+          totalUseCaseCount: impact.totalUseCaseCount,
+          activeUseCaseCount: impact.activeUseCaseCount,
+          publicUseCaseCount: impact.publicUseCaseCount,
+          totalAccessCodeCount: impact.totalAccessCodeCount,
+          deactivatedAccessCodeCount,
+          supplierRequestLinkDisabled: true,
+        };
+
+        await registerRepo.softDeleteRegister(
+          userId,
+          register.registerId,
+          deletionState
+        );
+
+        const activeRegisterId = getActiveRegId();
+        const defaultRegisterId = await getDefaultRegId(userId);
+        if (
+          activeRegisterId === register.registerId ||
+          defaultRegisterId === register.registerId
+        ) {
+          await setActiveRegisterInternal(userId, fallbackRegister.registerId);
+        }
+
+        return {
+          deletedRegisterId: register.registerId,
+          fallbackRegisterId: fallbackRegister.registerId,
+          fallbackRegisterName: getRegisterDisplayName(fallbackRegister),
+          strategy: "SOFT_DELETE",
+          impact,
+        };
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async restoreRegister(registerId) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        const register = await requireRegister(userId, registerId, {
+          includeDeleted: true,
+        });
+
+        if (register.isDeleted !== true) {
+          return register;
+        }
+
+        const restored = await registerRepo.restoreRegister(userId, registerId);
+        await accessCodeRepo.restoreCodesForRegister(userId, registerId);
+        await republishRegisterPublicEntries({
+          userId,
+          registerId: restored.registerId,
+        });
+        return restored;
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -575,27 +889,14 @@ export function createRegisterService(
 
         // Dual-Write: Public Index
         if (input.isPublicVisible && saved.publicHashId) {
-          // Fetch register to check org disclosure
-          const reg = await registerRepo.getRegister(scope.userId, scope.registerId);
-          const orgName =
-            reg?.publicOrganisationDisclosure && reg?.organisationName
-              ? reg.organisationName
-              : null;
-
-          const indexEntry: PublicUseCaseIndexEntry = {
-            publicHashId: saved.publicHashId,
-            globalUseCaseId: saved.globalUseCaseId ?? "",
-            formatVersion: saved.formatVersion ?? "v1.1",
-            purpose: saved.purpose,
-            toolName: input.resolvedToolName ?? saved.toolFreeText ?? saved.toolId ?? "",
-            dataCategory: saved.dataCategory ?? "INTERNAL",
-            status: saved.status,
-            createdAt: saved.createdAt,
-            ownerId: scope.userId,
-            verification: saved.proof?.verification ?? null,
-            organisationName: orgName,
-          };
-          await publicIndexRepo.publishToIndex(indexEntry);
+          const indexEntry = await buildPublicIndexEntry(
+            scope,
+            saved,
+            input.resolvedToolName
+          );
+          if (indexEntry) {
+            await publicIndexRepo.publishToIndex(indexEntry);
+          }
         } else if (!input.isPublicVisible && saved.publicHashId) {
           await publicIndexRepo.unpublishFromIndex(saved.publicHashId);
         }

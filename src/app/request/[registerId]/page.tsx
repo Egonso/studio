@@ -25,9 +25,20 @@ export default async function SupplierRequestPage({
     try {
         if (ownerId) {
             const directDoc = await db.doc(`users/${ownerId}/registers/${registerId}`).get();
-            if (directDoc.exists) {
+            if (directDoc.exists && directDoc.data()?.isDeleted !== true) {
                 organisationName = directDoc.data()?.organisationName || "Unbekannt";
                 isValid = true;
+            } else if (directDoc.exists) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
+                        <div className="bg-white p-8 rounded-lg shadow-sm border max-w-md w-full text-center">
+                            <h1 className="text-xl font-bold text-slate-900 mb-2">Ungültiger Link</h1>
+                            <p className="text-slate-500">
+                                Dieser Erfassungs-Link ist nicht mehr aktiv.
+                            </p>
+                        </div>
+                    </div>
+                );
             }
         }
 
@@ -38,8 +49,10 @@ export default async function SupplierRequestPage({
             }
             if (!snap.empty) {
                 const doc = snap.docs[0];
-                organisationName = doc.data()?.organisationName || "Unbekannt";
-                isValid = true;
+                if (doc.data()?.isDeleted !== true) {
+                    organisationName = doc.data()?.organisationName || "Unbekannt";
+                    isValid = true;
+                }
             }
         }
     } catch (e) {

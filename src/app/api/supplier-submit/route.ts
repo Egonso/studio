@@ -31,9 +31,11 @@ export async function POST(req: Request) {
         if (typeof ownerId === "string" && ownerId.trim().length > 0) {
             const directRef = db.doc(`users/${ownerId.trim()}/registers/${registerId}`);
             const directDoc = await directRef.get();
-            if (directDoc.exists) {
+            if (directDoc.exists && directDoc.data()?.isDeleted !== true) {
                 registerRef = directRef;
                 organisationName = directDoc.data()?.organisationName || "";
+            } else if (directDoc.exists) {
+                return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
             }
         }
 
@@ -48,8 +50,14 @@ export async function POST(req: Request) {
             }
 
             const registerDoc = registerQuery.docs[0];
-            registerRef = registerDoc.ref;
-            organisationName = registerDoc.data()?.organisationName || "";
+            if (registerDoc.data()?.isDeleted !== true) {
+                registerRef = registerDoc.ref;
+                organisationName = registerDoc.data()?.organisationName || "";
+            }
+        }
+
+        if (!registerRef) {
+            return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
         }
 
         const useCaseId = crypto.randomUUID();

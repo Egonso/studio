@@ -85,6 +85,10 @@ function resolveCodeScope(
   return { ownerId, registerId };
 }
 
+function isDeletedRegisterData(data: Record<string, unknown> | undefined): boolean {
+  return data?.isDeleted === true;
+}
+
 function mapOperationalError(error: unknown): { status: number; message: string } {
   const message = String(
     (error as { message?: unknown } | undefined)?.message ?? ""
@@ -188,7 +192,16 @@ export async function GET(req: NextRequest) {
 
     const codeData = codeDoc.data()!;
     if (!codeData.isActive) {
-      return NextResponse.json({ error: "Dieser Code ist nicht mehr aktiv" }, { status: 410 });
+      const isRegisterDeleted =
+        (codeData.deactivatedReason as string | undefined) === "REGISTER_DELETED";
+      return NextResponse.json(
+        {
+          error: isRegisterDeleted
+            ? "Dieses Register wurde deaktiviert."
+            : "Dieser Code ist nicht mehr aktiv",
+        },
+        { status: 410 }
+      );
     }
 
     const expiresAt = parseExpiresAt(codeData.expiresAt);
@@ -209,10 +222,15 @@ export async function GET(req: NextRequest) {
     const registerDoc = await db
       .doc(`users/${scope.ownerId}/registers/${scope.registerId}`)
       .get();
+    if (!registerDoc.exists || isDeletedRegisterData(registerDoc.data())) {
+      return NextResponse.json(
+        { error: "Dieses Register wurde deaktiviert." },
+        { status: 410 }
+      );
+    }
 
-    const registerName = registerDoc.exists
-      ? registerDoc.data()?.organisationName || registerDoc.data()?.name
-      : null;
+    const registerName =
+      registerDoc.data()?.organisationName || registerDoc.data()?.name || null;
 
     return NextResponse.json({
       valid: true,
@@ -313,7 +331,16 @@ export async function POST(req: NextRequest) {
 
     const codeData = codeDoc.data()!;
     if (!codeData.isActive) {
-      return NextResponse.json({ error: "Dieser Code ist nicht mehr aktiv" }, { status: 410 });
+      const isRegisterDeleted =
+        (codeData.deactivatedReason as string | undefined) === "REGISTER_DELETED";
+      return NextResponse.json(
+        {
+          error: isRegisterDeleted
+            ? "Dieses Register wurde deaktiviert."
+            : "Dieser Code ist nicht mehr aktiv",
+        },
+        { status: 410 }
+      );
     }
 
     const expiresAt = parseExpiresAt(codeData.expiresAt);
@@ -326,6 +353,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Ungültiger Code" }, { status: 404 });
     }
     const { ownerId, registerId } = scope;
+    const registerDoc = await db
+      .doc(`users/${ownerId}/registers/${registerId}`)
+      .get();
+
+    if (!registerDoc.exists || isDeletedRegisterData(registerDoc.data())) {
+      return NextResponse.json(
+        { error: "Dieses Register wurde deaktiviert." },
+        { status: 410 }
+      );
+    }
 
     // Create UseCaseCard under the admin's register path
     const useCaseId = crypto.randomUUID();

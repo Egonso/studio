@@ -81,6 +81,7 @@ const aiToolsRegistry = createAiToolsRegistryService();
 interface RegisterBoardProps {
   projectId?: string;
   mode?: "dashboard" | "standalone";
+  registerId?: string;
   refreshKey?: number;
   onUseCasesLoaded?: (cards: UseCaseCard[]) => void;
   initialFilter?: string;
@@ -214,7 +215,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
+export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
   const isStandalone = mode === "standalone";
   const router = useRouter();
   const { toast } = useToast();
@@ -257,7 +258,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
 
     try {
       let items = isStandalone
-        ? await registerService.listUseCases(undefined, {
+        ? await registerService.listUseCases(registerId, {
           status: statusFilter === "ALL" ? undefined : statusFilter,
           searchText: searchQuery,
           limit: 150,
@@ -334,7 +335,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     } finally {
       setIsLoading(false);
     }
-  }, [isStandalone, projectId, searchQuery, statusFilter, showDeleted, riskFilter, activeCustomFilter]);
+  }, [activeCustomFilter, isStandalone, projectId, registerId, riskFilter, searchQuery, showDeleted, statusFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -429,6 +430,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     try {
       if (isStandalone) {
         await registerService.updateUseCaseStatusManual({
+          registerId,
           useCaseId: card.useCaseId,
           nextStatus,
           actor: "HUMAN",
@@ -469,7 +471,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
 
   const handleSoftDelete = async (card: UseCaseCard) => {
     try {
-      await registerService.softDeleteUseCase(isStandalone ? undefined : projectId, card.useCaseId);
+      await registerService.softDeleteUseCase(
+        isStandalone ? registerId : projectId,
+        card.useCaseId
+      );
       await loadUseCases();
       toast({ title: "Gelöscht", description: "Use Case wurde in den Papierkorb verschoben." });
     } catch {
@@ -479,7 +484,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
 
   const handleRestore = async (card: UseCaseCard) => {
     try {
-      await registerService.restoreUseCase(isStandalone ? undefined : projectId, card.useCaseId);
+      await registerService.restoreUseCase(
+        isStandalone ? registerId : projectId,
+        card.useCaseId
+      );
       await loadUseCases();
       toast({ title: "Wiederhergestellt", description: "Use Case ist wieder aktiv." });
     } catch {
@@ -559,6 +567,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     try {
       if (isStandalone) {
         await registerService.setPublicVisibility({
+          registerId,
           useCaseId: card.useCaseId,
           isPublicVisible: !(card.isPublicVisible ?? false),
         });
@@ -614,6 +623,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     try {
       if (isStandalone) {
         await registerService.updateProofMetaManual({
+          registerId,
           useCaseId: card.useCaseId,
           verifyUrl: validation.normalized.verifyUrl,
           isReal: draft.isReal === "YES",

@@ -68,6 +68,8 @@ export const accessCodeService = {
       usageCount: 0,
       maxUsageCount: options.maxUses || null,
       isActive: true,
+      deactivatedReason: null,
+      deactivatedAt: null,
     };
 
     await setDoc(doc(db, "registerAccessCodes", code), entry);
@@ -103,6 +105,10 @@ export const accessCodeService = {
     const data = snap.data() as RegisterAccessCode;
     if (data.ownerId !== userId) throw new Error("Access denied");
 
-    await updateDoc(ref, { isActive: false });
+    await updateDoc(ref, {
+      isActive: false,
+      deactivatedReason: "MANUAL",
+      deactivatedAt: new Date().toISOString(),
+    });
   },
 };
