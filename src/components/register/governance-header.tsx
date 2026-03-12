@@ -9,6 +9,10 @@ import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 import { buildSupplierRequestUrl, getPublicAppOrigin } from "@/lib/app-url";
 import { useAuth } from "@/context/auth-context";
+import {
+    isSupplierRequestCard,
+    SUPPLIER_REQUEST_FILTER,
+} from "@/lib/register-first";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -48,6 +52,10 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
     }, [useCases]);
 
     const openReviews = counts.byStatus.UNREVIEWED + counts.byStatus.REVIEW_RECOMMENDED;
+    const supplierRequestCount = useMemo(
+        () => useCases.filter((card) => isSupplierRequestCard(card)).length,
+        [useCases]
+    );
 
     // Org scope
     const orgName = register?.organisationName;
@@ -218,7 +226,7 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                 </div>
             )}
 
-            <div className="grid gap-3 border-t border-border/80 pt-4 sm:grid-cols-2">
+            <div className="grid gap-3 border-t border-border/80 pt-4 sm:grid-cols-3">
                 <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
                     <p className="text-xs uppercase tracking-wide text-muted-foreground">
                         Einsatzfälle gesamt
@@ -234,6 +242,23 @@ export function GovernanceHeader({ useCases, register, onQuickCapture, children 
                     <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
                         {openReviews}
                     </p>
+                </div>
+                <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
+                    <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                        Lieferantenanfragen
+                    </p>
+                    <div className="mt-1 flex items-end justify-between gap-3">
+                        <p className="text-2xl font-semibold tabular-nums text-slate-900">
+                            {supplierRequestCount}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => router.push(`/my-register?filter=${SUPPLIER_REQUEST_FILTER}`)}
+                            className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                        >
+                            Anzeigen
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

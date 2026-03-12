@@ -84,7 +84,10 @@ function applyFilters(
     result = result.filter((card) => {
       const searchable = [
         card.purpose,
+        card.toolFreeText ?? "",
+        card.toolId ?? "",
         card.responsibility.responsibleParty ?? "",
+        ...(card.labels ?? []).map((label) => `${label.key} ${label.value}`),
         ...card.reviewHints,
       ]
         .join(" ")
