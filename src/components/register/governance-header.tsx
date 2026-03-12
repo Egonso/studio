@@ -18,7 +18,6 @@ import type {
   Register,
 } from '@/lib/register-first/types';
 import { accessCodeService } from '@/lib/register-first/access-code-service';
-import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 import { getPublicAppOrigin } from '@/lib/app-url';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
@@ -229,24 +228,8 @@ export function GovernanceHeader({
 
   return (
     <div className="space-y-5 pb-4">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-        <div className="space-y-3.5">
-          <div className="grid grid-cols-[auto_1fr] items-start gap-x-3.5">
-            <ThemeAwareLogo
-              alt="KI-Register"
-              width={40}
-              height={40}
-              className="mt-0.5 h-10 w-auto shrink-0"
-            />
-            <div className="min-w-0 space-y-0.5 pt-0.5">
-              <h1 className="text-[28px] font-semibold leading-none tracking-tight text-slate-950">
-                KI-Register
-              </h1>
-              <p className="text-sm leading-6 text-muted-foreground">
-                Verbindliche Dokumentation aller KI-Einsatzfälle.
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-slate-600">
             {orgName ? (
               <>
@@ -281,7 +264,7 @@ export function GovernanceHeader({
           </p>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           <div className="flex flex-wrap items-center justify-start gap-1.5 xl:justify-end">
             {register && (
               <button
