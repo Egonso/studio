@@ -5,6 +5,12 @@ publish = ".next"
 [[plugins]]
 package = "@netlify/plugin-nextjs"
 
+[[redirects]]
+from = "https://app.kiregister.com/*"
+to = "https://kiregister.com/:splat"
+status = 301
+force = true
+
 [build.environment]
 NODE_VERSION = "20"
 NEXT_PUBLIC_APP_ORIGIN = "https://kiregister.com"
