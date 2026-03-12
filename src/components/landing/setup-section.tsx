@@ -13,6 +13,7 @@ import { setActiveRegisterId } from "@/lib/register-first/register-settings-clie
 import type { User } from "firebase/auth";
 import { getPublicAppOrigin } from "@/lib/app-url";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -158,7 +159,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       toast({ variant: "destructive", title: "Fehler", description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
-          `/login?mode=login&email=${encodeURIComponent(email.toLowerCase())}`
+          buildLoginPath({
+            mode: "login",
+            email: email.toLowerCase(),
+          })
         );
       }
     } finally {
@@ -373,7 +377,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       toast({ variant: "destructive", title: "Fehler", description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
-          `/login?mode=login&email=${encodeURIComponent(memberEmail.toLowerCase())}&code=${encodeURIComponent(validatedCode)}`
+          buildLoginPath({
+            mode: "login",
+            email: memberEmail.toLowerCase(),
+            code: validatedCode,
+          })
         );
       }
     } finally {
@@ -505,10 +513,13 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 <p className="text-center text-xs text-muted-foreground">
                   Bereits ein Konto?{" "}
                   <Link
-                    href={`/login?mode=login${email ? `&email=${encodeURIComponent(email)}` : ""}`}
+                    href={buildLoginPath({
+                      mode: "login",
+                      email,
+                    })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
-                    Anmelden
+                    Direkt anmelden
                   </Link>
                 </p>
               </form>
@@ -766,7 +777,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 <p className="text-center text-xs text-muted-foreground">
                   Bereits ein Konto?{" "}
                   <Link
-                    href={`/login?mode=login&code=${encodeURIComponent(validatedCode)}${memberEmail ? `&email=${encodeURIComponent(memberEmail)}` : ""}`}
+                    href={buildLoginPath({
+                      mode: "login",
+                      code: validatedCode,
+                      email: memberEmail,
+                    })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
                     Anmelden und direkt fortfahren

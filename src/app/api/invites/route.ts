@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/firebase-admin";
 import { getPublicAppOrigin } from "@/lib/app-url";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 const InviteSchema = z.object({
   email: z.string().email(),
@@ -11,12 +12,11 @@ const InviteSchema = z.object({
 });
 
 function buildWorkspaceInviteLink(email: string, inviteId: string): string {
-  const query = new URLSearchParams({
+  return `${getPublicAppOrigin()}${buildLoginPath({
     mode: "signup",
     email,
     workspaceInvite: inviteId,
-  });
-  return `${getPublicAppOrigin()}/login?${query.toString()}`;
+  })}`;
 }
 
 export async function POST(req: NextRequest) {

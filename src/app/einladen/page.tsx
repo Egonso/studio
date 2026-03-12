@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 type MemberStep = "code" | "confirm" | "signup";
 
@@ -157,7 +158,11 @@ export default function InvitePage() {
       toast({ variant: "destructive", title: "Fehler", description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
-          `/login?mode=login&email=${encodeURIComponent(email.toLowerCase())}&code=${encodeURIComponent(validatedCode)}`
+          buildLoginPath({
+            mode: "login",
+            email: email.toLowerCase(),
+            code: validatedCode,
+          })
         );
       }
     } finally {
@@ -187,7 +192,10 @@ export default function InvitePage() {
           <span className="text-sm font-medium">KI-Register</span>
         </Link>
         <Link
-          href={`/login?mode=login${codeFromQuery ? `&code=${encodeURIComponent(normalizeCode(codeFromQuery))}` : ""}`}
+          href={buildLoginPath({
+            mode: "login",
+            code: codeFromQuery ? normalizeCode(codeFromQuery) : null,
+          })}
           className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
         >
           Anmelden
@@ -370,7 +378,11 @@ export default function InvitePage() {
               <p className="text-center text-xs text-muted-foreground">
                 Bereits ein Konto?{" "}
                 <Link
-                  href={`/login?mode=login&code=${encodeURIComponent(validatedCode)}${email ? `&email=${encodeURIComponent(email)}` : ""}`}
+                  href={buildLoginPath({
+                    mode: "login",
+                    code: validatedCode,
+                    email,
+                  })}
                   className="hover:text-foreground underline-offset-2 hover:underline"
                 >
                   Anmelden und direkt fortfahren
