@@ -4,6 +4,7 @@ import type {
   GovernanceDecisionActor,
   RegisterUseCaseStatus,
   UseCaseCard,
+  WorkflowReference,
 } from "./types";
 import { dataCategorySchema } from "./tool-registry-types";
 
@@ -128,6 +129,12 @@ const evidenceReferenceSchema = z.object({
   uri: z.string().url().optional(),
 });
 
+export const workflowReferenceSchema = z.object({
+  workflowId: z.string().trim().min(1).max(120),
+  workflowName: z.string().trim().min(1).max(200).optional().nullable(),
+  linkedAt: z.string().datetime(),
+});
+
 const flagStatusSchema = z.enum(["yes", "no", "not_found"]);
 const confidenceLevelSchema = z.enum(["low", "medium", "high"]);
 
@@ -238,6 +245,7 @@ export const useCaseCardSchema = z
     labels: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
     standardVersion: z.string().max(20).optional(),
     isDeleted: z.boolean().optional(),
+    workflowRef: workflowReferenceSchema.optional().nullable(),
     // ── Register-First Architecture: Assessment ─────────────────────────────
     governanceAssessment: z.object({
       core: z.object({
@@ -283,6 +291,10 @@ export function parseCaptureInput(input: unknown): CaptureInput {
 
 export function parseUseCaseCard(input: unknown): UseCaseCard {
   return useCaseCardSchema.parse(input) as UseCaseCard;
+}
+
+export function parseWorkflowReference(input: unknown): WorkflowReference {
+  return workflowReferenceSchema.parse(input);
 }
 
 export function assertManualGovernanceDecision(actor: GovernanceDecisionActor) {

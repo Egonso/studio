@@ -11,6 +11,10 @@ import {
   assertManualGovernanceDecision,
   parseUseCaseCard,
 } from "./schema";
+import {
+  registerFirstFlags,
+  type RegisterFirstFeatureFlags,
+} from "./flags";
 import { isStatusTransitionAllowed } from "./status-flow";
 import { prepareUseCaseForStorage } from "./use-case-builder";
 import {
@@ -38,6 +42,7 @@ import type {
   StatusChange,
   UseCaseCard,
   RegisterMetrics,
+  WorkflowReference,
 } from "./types";
 
 // ── Error Types ─────────────────────────────────────────────────────────────
@@ -46,6 +51,7 @@ export type RegisterServiceErrorCode =
   | "UNAUTHENTICATED"
   | "REGISTER_NOT_FOUND"
   | "USE_CASE_NOT_FOUND"
+  | "FEATURE_DISABLED"
   | "INVALID_STATUS_TRANSITION"
   | "AUTOMATION_FORBIDDEN"
   | "VALIDATION_FAILED"
@@ -122,6 +128,17 @@ export interface SealUseCaseInput {
   officerName: string;
 }
 
+export interface SetWorkflowReferenceInput {
+  registerId?: string;
+  useCaseId: string;
+  workflowId: string;
+  workflowName?: string | null;
+}
+
+export interface RemoveWorkflowReferenceInput {
+  registerId?: string;
+  useCaseId: string;
+}
 
 export interface RegisterService {
   createRegister(name: string, linkedProjectId?: string | null): Promise<Register>;
@@ -140,6 +157,12 @@ export interface RegisterService {
     registerId?: string,
     filters?: RegisterUseCaseFilters
   ): Promise<UseCaseCard[]>;
+  getWorkflowReference(
+    registerId: string | undefined,
+    useCaseId: string
+  ): Promise<WorkflowReference | null>;
+  setWorkflowReference(input: SetWorkflowReferenceInput): Promise<UseCaseCard>;
+  removeWorkflowReference(input: RemoveWorkflowReferenceInput): Promise<UseCaseCard>;
   updateUseCase(
     useCaseId: string,
     updates: Partial<UseCaseCard>
@@ -168,6 +191,7 @@ interface RegisterServiceDependencies {
   now?: Clock;
   useCaseIdGenerator?: IdGenerator;
   reviewIdGenerator?: IdGenerator;
+  featureFlags?: Pick<RegisterFirstFeatureFlags, "workflowLinks">;
   // For tests: override settings resolution
   getDefaultRegisterIdFn?: (userId: string) => Promise<string | null>;
   setDefaultRegisterIdFn?: (userId: string, registerId: string) => Promise<void>;
@@ -208,6 +232,27 @@ function mapServiceError(error: unknown): RegisterServiceError {
   );
 }
 
+function normalizeWorkflowReferenceName(
+  workflowName: string | null | undefined
+): string | null {
+  const normalized = workflowName?.trim();
+  return normalized && normalized.length > 0 ? normalized : null;
+}
+
+function hasWorkflowReferenceChange(
+  existing: UseCaseCard,
+  updates: Partial<UseCaseCard>
+): boolean {
+  if (!Object.prototype.hasOwnProperty.call(updates, "workflowRef")) {
+    return false;
+  }
+
+  const requested = (updates as { workflowRef?: WorkflowReference | null })
+    .workflowRef;
+
+  return JSON.stringify(requested ?? null) !== JSON.stringify(existing.workflowRef ?? null);
+}
+
 export function createRegisterService(
   dependencies: RegisterServiceDependencies = {}
 ): RegisterService {
@@ -219,6 +264,7 @@ export function createRegisterService(
   const generateUseCaseId =
     dependencies.useCaseIdGenerator ?? createDefaultIdGenerator("uc");
   const reviewIdGenerator = dependencies.reviewIdGenerator ?? createDefaultIdGenerator("review");
+  const featureFlags = dependencies.featureFlags ?? registerFirstFlags;
 
   // Settings resolution (injectable for tests)
   const getDefaultRegId = dependencies.getDefaultRegisterIdFn ?? getDefaultRegisterId;
@@ -235,6 +281,15 @@ export function createRegisterService(
       );
     }
     return userId;
+  }
+
+  function assertWorkflowLinksEnabled() {
+    if (!featureFlags.workflowLinks) {
+      throw new RegisterServiceError(
+        "FEATURE_DISABLED",
+        "Workflow links are disabled (registerFirst.workflowLinks=false)."
+      );
+    }
   }
 
   /**
@@ -353,12 +408,87 @@ export function createRegisterService(
       }
     },
 
+    async getWorkflowReference(registerId, useCaseId) {
+      try {
+        assertWorkflowLinksEnabled();
+        const scope = await resolveScope(registerId);
+        const existing = await useCaseRepo.getById(scope, useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${useCaseId}' was not found.`
+          );
+        }
+
+        return existing.workflowRef ?? null;
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async setWorkflowReference(input) {
+      try {
+        assertWorkflowLinksEnabled();
+        const scope = await resolveScope(input.registerId);
+        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${input.useCaseId}' was not found.`
+          );
+        }
+
+        const timestamp = now().toISOString();
+        const updated = parseUseCaseCard({
+          ...existing,
+          updatedAt: timestamp,
+          workflowRef: {
+            workflowId: input.workflowId.trim(),
+            workflowName: normalizeWorkflowReferenceName(input.workflowName),
+            linkedAt: timestamp,
+          },
+        });
+
+        return useCaseRepo.save(scope, updated);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
+    async removeWorkflowReference(input) {
+      try {
+        assertWorkflowLinksEnabled();
+        const scope = await resolveScope(input.registerId);
+        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        if (!existing) {
+          throw new RegisterServiceError(
+            "USE_CASE_NOT_FOUND",
+            `Use case '${input.useCaseId}' was not found.`
+          );
+        }
+
+        const updated = parseUseCaseCard({
+          ...existing,
+          updatedAt: now().toISOString(),
+          workflowRef: null,
+        });
+
+        return useCaseRepo.save(scope, updated);
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
     async updateUseCase(useCaseId, updates) {
       try {
         const scope = await resolveScope();
         const existing = await useCaseRepo.getById(scope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError("USE_CASE_NOT_FOUND", "Use case not found.");
+        }
+
+        if (hasWorkflowReferenceChange(existing, updates)) {
+          assertWorkflowLinksEnabled();
         }
 
         const nowIso = now().toISOString();

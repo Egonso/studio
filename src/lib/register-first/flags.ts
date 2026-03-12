@@ -3,6 +3,7 @@ export interface RegisterFirstFeatureFlags {
   hybridEntry: boolean;
   stickyLauncher: boolean;
   proofGate: boolean;
+  workflowLinks: boolean;
   standaloneMode: boolean;
   controlShell: boolean;
   controlKpiHeader: boolean;
@@ -22,6 +23,7 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     hybridEntry: false,
     stickyLauncher: false,
     proofGate: false,
+    workflowLinks: false,
     standaloneMode: false,
     controlShell: false,
     controlKpiHeader: false,
@@ -46,6 +48,10 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
     "REGISTER_FIRST_STICKY_LAUNCHER",
   ],
   proofGate: ["NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE", "REGISTER_FIRST_PROOF_GATE"],
+  workflowLinks: [
+    "NEXT_PUBLIC_REGISTER_FIRST_WORKFLOW_LINKS",
+    "REGISTER_FIRST_WORKFLOW_LINKS",
+  ],
   standaloneMode: [
     "NEXT_PUBLIC_REGISTER_FIRST_STANDALONE",
     "REGISTER_FIRST_STANDALONE",
@@ -121,6 +127,7 @@ export function getRegisterFirstFeatureFlags(
       hybridEntry: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY"] ?? env["REGISTER_FIRST_HYBRID_ENTRY"]) || registerFirstDefaultFlags.hybridEntry,
       stickyLauncher: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER"] ?? env["REGISTER_FIRST_STICKY_LAUNCHER"]) || registerFirstDefaultFlags.stickyLauncher,
       proofGate: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE"] ?? env["REGISTER_FIRST_PROOF_GATE"]) || registerFirstDefaultFlags.proofGate,
+      workflowLinks: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_WORKFLOW_LINKS"] ?? env["REGISTER_FIRST_WORKFLOW_LINKS"]) || registerFirstDefaultFlags.workflowLinks,
       standaloneMode: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STANDALONE"] ?? env["REGISTER_FIRST_STANDALONE"]) || registerFirstDefaultFlags.standaloneMode,
       controlShell: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_SHELL_ENABLED"] ?? env["CONTROL_SHELL_ENABLED"]) || registerFirstDefaultFlags.controlShell,
       controlKpiHeader: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED"] ?? env["CONTROL_KPI_HEADER_ENABLED"]) || registerFirstDefaultFlags.controlKpiHeader,
@@ -149,6 +156,9 @@ export function getRegisterFirstFeatureFlags(
     proofGate:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE) ||
       registerFirstDefaultFlags.proofGate,
+    workflowLinks:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_WORKFLOW_LINKS) ||
+      registerFirstDefaultFlags.workflowLinks,
     standaloneMode:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_STANDALONE) ||
       registerFirstDefaultFlags.standaloneMode,

@@ -10,6 +10,10 @@ import {
   RegisterServiceError,
 } from "../register-service";
 import { prepareUseCaseForStorage } from "../use-case-builder";
+import {
+  registerFirstDefaultFlags,
+  type RegisterFirstFeatureFlags,
+} from "../flags";
 
 const baseNow = Date.parse("2026-02-10T10:00:00.000Z");
 let tick = 0;
@@ -25,7 +29,6 @@ const useCaseRepo = createInMemoryRegisterUseCaseRepo();
 const publicIndexRepo = createInMemoryPublicIndexRepo();
 
 function buildService(userId: string | null = "user_standalone") {
-  tick = 0;
   return createRegisterService({
     registerRepo,
     useCaseRepo,
@@ -42,6 +45,32 @@ function buildService(userId: string | null = "user_standalone") {
     setActiveRegisterIdFn: (id) => {
       activeRegisterId = id;
     },
+    featureFlags: {
+      workflowLinks: registerFirstDefaultFlags.workflowLinks,
+    },
+  });
+}
+
+function buildWorkflowEnabledService(userId: string | null = "user_standalone") {
+  return createRegisterService({
+    registerRepo,
+    useCaseRepo,
+    publicIndexRepo,
+    resolveUserId: async () => userId,
+    now: () => new Date(baseNow + tick++ * 1000),
+    useCaseIdGenerator: () => `uc_s_${String(useCaseCounter++).padStart(3, "0")}`,
+    reviewIdGenerator: () => `rev_s_${String(reviewCounter++).padStart(3, "0")}`,
+    getDefaultRegisterIdFn: async () => defaultRegisterId,
+    setDefaultRegisterIdFn: async (_userId, regId) => {
+      defaultRegisterId = regId;
+    },
+    getActiveRegisterIdFn: () => activeRegisterId,
+    setActiveRegisterIdFn: (id) => {
+      activeRegisterId = id;
+    },
+    featureFlags: {
+      workflowLinks: true,
+    } satisfies Pick<RegisterFirstFeatureFlags, "workflowLinks">,
   });
 }
 
@@ -49,6 +78,7 @@ export async function runRegisterStandaloneSmoke() {
   // Reset state
   activeRegisterId = null;
   defaultRegisterId = null;
+  tick = 0;
   useCaseCounter = 1;
   reviewCounter = 1;
 
@@ -100,7 +130,68 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(cases[0].useCaseId, card.useCaseId);
   console.log("  [5] List use cases ✓");
 
-  // ── 6. Status transition: UNREVIEWED → REVIEWED ──
+  // ── 6. Workflow links are gated by feature flag by default ──
+  await assert.rejects(
+    () =>
+      service.setWorkflowReference({
+        useCaseId: card.useCaseId,
+        workflowId: "wf_support_triage",
+        workflowName: "Support Triage",
+      }),
+    (error) =>
+      error instanceof RegisterServiceError &&
+      error.code === "FEATURE_DISABLED"
+  );
+  console.log("  [6] Workflow link feature flag gate ✓");
+
+  // ── 7. Workflow link set/get/remove on enabled path ──
+  const workflowService = buildWorkflowEnabledService("user_standalone");
+  const withWorkflowRef = await workflowService.setWorkflowReference({
+    useCaseId: card.useCaseId,
+    workflowId: "wf_support_triage",
+    workflowName: "Support Triage",
+  });
+  assert.equal(withWorkflowRef.workflowRef?.workflowId, "wf_support_triage");
+  assert.equal(withWorkflowRef.workflowRef?.workflowName, "Support Triage");
+  assert.ok(withWorkflowRef.workflowRef?.linkedAt);
+
+  const workflowRef = await workflowService.getWorkflowReference(
+    undefined,
+    card.useCaseId
+  );
+  assert.equal(workflowRef?.workflowId, "wf_support_triage");
+
+  const unchangedWorkflowRef = await service.updateUseCase(card.useCaseId, {
+    reviewHints: ["Workflow Sync"],
+    workflowRef: withWorkflowRef.workflowRef,
+  });
+  assert.deepEqual(unchangedWorkflowRef.reviewHints, ["Workflow Sync"]);
+  assert.equal(
+    unchangedWorkflowRef.workflowRef?.workflowId,
+    "wf_support_triage"
+  );
+
+  await assert.rejects(
+    () =>
+      service.updateUseCase(card.useCaseId, {
+        workflowRef: null,
+      }),
+    (error) =>
+      error instanceof RegisterServiceError &&
+      error.code === "FEATURE_DISABLED"
+  );
+
+  const withoutWorkflowRef = await workflowService.removeWorkflowReference({
+    useCaseId: card.useCaseId,
+  });
+  assert.equal(withoutWorkflowRef.workflowRef, null);
+  assert.equal(
+    await workflowService.getWorkflowReference(undefined, card.useCaseId),
+    null
+  );
+  console.log("  [7] Workflow link lifecycle ✓");
+
+  // ── 8. Status transition: UNREVIEWED → REVIEWED ──
   const reviewed = await service.updateUseCaseStatusManual({
     useCaseId: card.useCaseId,
     nextStatus: "REVIEWED",
@@ -110,9 +201,9 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(reviewed.status, "REVIEWED");
   assert.equal(reviewed.reviews.length, 1);
   assert.equal(reviewed.reviews[0].nextStatus, "REVIEWED");
-  console.log("  [6] Status transition UNREVIEWED → REVIEWED ✓");
+  console.log("  [8] Status transition UNREVIEWED → REVIEWED ✓");
 
-  // ── 7. Status transition: REVIEWED → PROOF_READY ──
+  // ── 9. Status transition: REVIEWED → PROOF_READY ──
   const proofReady = await service.updateUseCaseStatusManual({
     useCaseId: card.useCaseId,
     nextStatus: "PROOF_READY",
@@ -121,9 +212,9 @@ export async function runRegisterStandaloneSmoke() {
   });
   assert.equal(proofReady.status, "PROOF_READY");
   assert.equal(proofReady.reviews.length, 2);
-  console.log("  [7] Status transition REVIEWED → PROOF_READY ✓");
+  console.log("  [9] Status transition REVIEWED → PROOF_READY ✓");
 
-  // ── 8. Invalid transition: UNREVIEWED → PROOF_READY ──
+  // ── 10. Invalid transition: UNREVIEWED → PROOF_READY ──
   const card2 = await service.createUseCaseFromCapture({
     purpose: "Standalone: Zweiter Fall",
     usageContexts: ["EMPLOYEE_FACING"],
@@ -149,9 +240,9 @@ export async function runRegisterStandaloneSmoke() {
       error instanceof RegisterServiceError &&
       error.code === "INVALID_STATUS_TRANSITION"
   );
-  console.log("  [8] Invalid transition blocked ✓");
+  console.log("  [10] Invalid transition blocked ✓");
 
-  // ── 9. Automation forbidden ──
+  // ── 11. Automation forbidden ──
   await assert.rejects(
     () =>
       service.updateUseCaseStatusManual({
@@ -163,9 +254,9 @@ export async function runRegisterStandaloneSmoke() {
       error instanceof RegisterServiceError &&
       error.code === "AUTOMATION_FORBIDDEN"
   );
-  console.log("  [9] Automation forbidden ✓");
+  console.log("  [11] Automation forbidden ✓");
 
-  // ── 10. Set public visibility (Dual-Write) ──
+  // ── 12. Set public visibility (Dual-Write) ──
   const published = await service.setPublicVisibility({
     useCaseId: card.useCaseId,
     isPublicVisible: true,
@@ -181,9 +272,9 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(publicEntry!.toolName, "ChatGPT");
   assert.equal(publicEntry!.status, "PROOF_READY");
   assert.equal(publicEntry!.ownerId, "user_standalone");
-  console.log("  [10] setPublicVisibility(true) → Public Index entry created ✓");
+  console.log("  [12] setPublicVisibility(true) → Public Index entry created ✓");
 
-  // ── 11. Unpublish (removes from public index) ──
+  // ── 13. Unpublish (removes from public index) ──
   const unpublished = await service.setPublicVisibility({
     useCaseId: card.useCaseId,
     isPublicVisible: false,
@@ -192,9 +283,9 @@ export async function runRegisterStandaloneSmoke() {
 
   const removedEntry = await publicIndexRepo.getPublicEntry(card.publicHashId!);
   assert.equal(removedEntry, null, "Public index entry should be removed after unpublish");
-  console.log("  [11] setPublicVisibility(false) → Public Index entry removed ✓");
+  console.log("  [13] setPublicVisibility(false) → Public Index entry removed ✓");
 
-  // ── 12. Proof meta update ──
+  // ── 14. Proof meta update ──
   const withProof = await service.updateProofMetaManual({
     useCaseId: card.useCaseId,
     verifyUrl: `https://kiregister.com/verify/pass/${card.publicHashId}`,
@@ -206,9 +297,9 @@ export async function runRegisterStandaloneSmoke() {
   assert.ok(withProof.proof);
   assert.equal(withProof.proof.verification.isReal, true);
   assert.equal(withProof.proof.verification.scope, "Dokumentenverarbeitung");
-  console.log("  [12] Proof meta update ✓");
+  console.log("  [14] Proof meta update ✓");
 
-  // ── 13. prepareUseCaseForStorage produces identical structure ──
+  // ── 15. prepareUseCaseForStorage produces identical structure ──
   const prepared = prepareUseCaseForStorage(
     {
       purpose: "Builder-Test: Zusammenfassung",
@@ -232,9 +323,9 @@ export async function runRegisterStandaloneSmoke() {
   assert.ok(prepared.publicHashId);
   assert.equal(prepared.responsibility.responsibleParty, "IT Security");
   assert.equal(prepared.responsibility.contactPersonName, "Lisa Beispiel");
-  console.log("  [13] prepareUseCaseForStorage produces valid card ✓");
+  console.log("  [15] prepareUseCaseForStorage produces valid card ✓");
 
-  // ── 14. Unauthenticated user → UNAUTHENTICATED ──
+  // ── 16. Unauthenticated user → UNAUTHENTICATED ──
   const unauthService = buildService(null);
   await assert.rejects(
     () => unauthService.createRegister("Should fail"),
@@ -242,13 +333,13 @@ export async function runRegisterStandaloneSmoke() {
       error instanceof RegisterServiceError &&
       error.code === "UNAUTHENTICATED"
   );
-  console.log("  [14] Unauthenticated → error ✓");
+  console.log("  [16] Unauthenticated → error ✓");
 
-  // ── 15. Filter by status ──
+  // ── 17. Filter by status ──
   const reviewedOnly = await service.listUseCases(undefined, { status: "PROOF_READY" });
   assert.equal(reviewedOnly.length, 1);
   assert.equal(reviewedOnly[0].useCaseId, card.useCaseId);
-  console.log("  [15] Filter by status ✓");
+  console.log("  [17] Filter by status ✓");
 
   console.log("Register-First standalone smoke tests passed.");
 }

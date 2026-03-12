@@ -190,6 +190,16 @@ export interface EvidenceReference {
 
 export type CardVersion = "1.0" | "1.1";
 
+/**
+ * Minimal workflow contract: store only a stable reference plus an optional
+ * denormalized display name. Workflows themselves are not owned entities here.
+ */
+export interface WorkflowReference {
+  workflowId: string;
+  workflowName?: string | null;
+  linkedAt: string;
+}
+
 export interface StatusChange {
   from: RegisterUseCaseStatus;
   to: RegisterUseCaseStatus;
@@ -237,6 +247,7 @@ export interface UseCaseCard {
   labels?: { key: string; value: string }[];
   standardVersion?: string;
   isDeleted?: boolean;
+  workflowRef?: WorkflowReference | null;
 
   // ── Officer Seal ──────────────────────────────────────────────────────────
   sealedAt?: string | null;

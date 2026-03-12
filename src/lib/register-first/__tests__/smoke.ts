@@ -88,11 +88,14 @@ export async function runFoundationSmoke() {
     NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY: "1",
     NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER: "on",
     NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE: "yes",
+    NEXT_PUBLIC_REGISTER_FIRST_WORKFLOW_LINKS: "true",
   });
   assert.equal(envFlags.enabled, true);
   assert.equal(envFlags.hybridEntry, true);
   assert.equal(envFlags.stickyLauncher, true);
   assert.equal(envFlags.proofGate, true);
+  assert.equal(envFlags.workflowLinks, true);
+  assert.equal(defaultFlags.workflowLinks, false);
   assert.equal(isHybridEntryEnabled(envFlags), true);
   assert.equal(isHybridEntryEnabled(registerFirstDefaultFlags), false);
   assert.equal(buildRegisterHref("project_123"), "/register?projectId=project_123");

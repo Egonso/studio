@@ -223,6 +223,28 @@ export async function runV11SchemaSmoke() {
   );
   assert.equal(v11NoCategory.dataCategory, "INTERNAL"); // default
 
+  // ── 12. Workflow reference stays optional and validates cleanly ─────────
+  const linkedWorkflowCard = parseUseCaseCard({
+    ...v10Card,
+    workflowRef: {
+      workflowId: "wf_support_triage",
+      workflowName: "Support Triage",
+      linkedAt: now.toISOString(),
+    },
+  });
+  assert.equal(linkedWorkflowCard.workflowRef?.workflowId, "wf_support_triage");
+  assert.equal(linkedWorkflowCard.workflowRef?.workflowName, "Support Triage");
+
+  assert.throws(() =>
+    parseUseCaseCard({
+      ...v10Card,
+      workflowRef: {
+        workflowId: " ",
+        linkedAt: now.toISOString(),
+      },
+    })
+  );
+
   console.log("v1.1 schema smoke tests passed.");
 }
 
