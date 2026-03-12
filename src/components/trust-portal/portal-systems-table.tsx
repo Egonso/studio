@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { PortalSystemEntry } from "@/lib/register-first/trust-portal-aggregator";
 import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 interface PortalSystemsTableProps {
   systems: PortalSystemEntry[];
@@ -92,7 +93,13 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
                     variant="outline"
                     size="sm"
                     className="text-xs text-indigo-700 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
-                    onClick={() => router.push(`/login?importUseCase=${system.publicHashId}`)}
+                    onClick={() =>
+                      router.push(
+                        buildLoginPath({
+                          importUseCase: system.publicHashId,
+                        })
+                      )
+                    }
                   >
                     <CopyPlus className="h-3.5 w-3.5 mr-1.5" />
                     {organizationName

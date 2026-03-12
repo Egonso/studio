@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { SetupSection } from "@/components/landing/setup-section";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 type EntryMode = "admin" | "member";
 
@@ -72,7 +73,7 @@ export default function LandingSimplePage() {
           <span className="text-sm font-medium">KI-Register</span>
         </div>
         <Link
-          href="/login"
+          href={buildLoginPath({ mode: "login" })}
           className="text-sm text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
         >
           Anmelden

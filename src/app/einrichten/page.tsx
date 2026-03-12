@@ -13,6 +13,7 @@ import { setActiveRegisterId } from "@/lib/register-first/register-settings-clie
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 import { getPublicAppOrigin } from "@/lib/app-url";
 import { TeamShareStep } from "@/components/onboarding/team-share-step";
+import { buildLoginPath } from "@/lib/auth/login-routing";
 
 type Step = 1 | 2 | 3;
 type CopyTarget = "code" | "link" | null;
@@ -112,7 +113,12 @@ export default function SetupPage() {
             : "Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
       toast({ variant: "destructive", title: "Fehler", description: msg });
       if (error.code === "auth/email-already-in-use") {
-        router.push(`/login?mode=login&email=${encodeURIComponent(email.toLowerCase())}`);
+        router.push(
+          buildLoginPath({
+            mode: "login",
+            email: email.toLowerCase(),
+          })
+        );
       }
     } finally {
       setIsSubmitting(false);
@@ -347,10 +353,13 @@ export default function SetupPage() {
               <p className="text-center text-xs text-muted-foreground">
                 Bereits ein Konto?{" "}
                 <Link
-                  href={`/login?mode=login${email ? `&email=${encodeURIComponent(email)}` : ""}`}
+                  href={buildLoginPath({
+                    mode: "login",
+                    email,
+                  })}
                   className="hover:text-foreground underline-offset-2 hover:underline"
                 >
-                  Anmelden
+                  Direkt anmelden
                 </Link>
               </p>
             </form>
