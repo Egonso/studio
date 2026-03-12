@@ -1,14 +1,18 @@
 # Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+This project is no longer "just" a starter. The working context for `studio` lives in the repo and should be read before non-trivial changes.
 
-### Architecture & Data Model
+## Start Here
 
-**The Data Model and Architecture documentation is the Single Source of Truth for this project.**
+- [Agent Guardrails](/AGENTS.md)
+- [Studio Agent Start Here](/docs/STUDIO_AGENT_START_HERE.md)
+- [Register-First Sprint Prompts 2026-03-12](/docs/REGISTER_FIRST_SPRINT_PROMPTS_2026-03-12.md)
 
-*   [**Data Model & Queries**](/docs/DATA_MODEL_AND_QUERIES.md) - Detailed Firestore schema, indexing rules, and query patterns.
-*   [**Manual Deployment Steps**](/docs/manual_steps.md) - Required manual actions for Firebase rules and indexes.
+## Architecture & Data Model
 
-Please refer to these documents before making changes to the database structure.
+The data model and architecture docs remain the operational source of truth for storage and backend changes.
 
-To get started, take a look at src/app/page.tsx.
+- [Data Model & Queries](/docs/DATA_MODEL_AND_QUERIES.md)
+- [Manual Deployment Steps](/docs/manual_steps.md)
+
+Please read these before changing Firestore structure, indexes or rules.

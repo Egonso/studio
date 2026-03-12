@@ -1,5 +1,14 @@
 # Agent Prompt & Workflow Guidelines
 
+Status: aelterer Hintergrundtext.
+
+Fuer aktuelle Arbeit in `studio` gelten zuerst:
+
+1. `/Users/zoltangal/Desktop/METAProjekt/Programmieren/studio/AGENTS.md`
+2. `/Users/zoltangal/Desktop/METAProjekt/Programmieren/studio/docs/STUDIO_AGENT_START_HERE.md`
+
+Wenn dieses Dokument mit neueren Guardrails kollidiert, gewinnen die neueren Dateien.
+
 This document serves as the **primary instruction set** for any Agent or Developer working on the **Studio** project. It defines the "Soul" of the project: scalable, clean, and built on stable objects.
 
 ## 1. The Core Philosophy: "Stable Objects"
