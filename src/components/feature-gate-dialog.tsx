@@ -8,7 +8,7 @@
  * Design (Monetarisierungsstrategie §4):
  *   - Sachlich. Neutral. Keine Preise. Kein Gradient.
  *   - Shows: Which feature, which plan required, what's included
- *   - CTA: "Mehr erfahren" → /settings
+ *   - CTA routes to the canonical premium destination for the feature
  *   - Lock-Icon, clean lines, muted tones
  *
  * Sprint: UX-0 Feature-Gate Refactor
@@ -32,6 +32,10 @@ import {
     getFeatureDescription,
     getPlanHighlights,
 } from "@/lib/compliance-engine/capability/featureChecker";
+import {
+    getFeatureUpgradeCtaLabel,
+    getFeatureUpgradeHref,
+} from "@/lib/compliance-engine/capability/upgrade-paths";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,10 +61,12 @@ export function FeatureGateDialog({
     const featureLabel = getFeatureLabel(feature);
     const featureDescription = getFeatureDescription(feature);
     const planHighlights = getPlanHighlights(requiredPlan, 5);
+    const upgradeHref = getFeatureUpgradeHref(feature);
+    const upgradeLabel = getFeatureUpgradeCtaLabel(feature);
 
     const handleLearnMore = () => {
         onOpenChange(false);
-        router.push("/settings");
+        router.push(upgradeHref);
     };
 
     return (
@@ -120,7 +126,7 @@ export function FeatureGateDialog({
                         onClick={handleLearnMore}
                         className="w-full sm:w-auto"
                     >
-                        Mehr erfahren
+                        {upgradeLabel}
                         <ArrowRight className="w-4 h-4 ml-1.5" />
                     </Button>
                 </DialogFooter>

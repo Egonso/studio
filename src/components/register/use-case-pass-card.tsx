@@ -8,7 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { UseCaseCard } from "@/lib/register-first";
+import {
+  DATA_CATEGORY_LABELS,
+  type UseCaseCard,
+} from "@/lib/register-first";
 import { RegisterStatusBadge } from "./status-badge";
 
 interface UseCasePassCardProps {
@@ -16,13 +19,6 @@ interface UseCasePassCardProps {
   /** Optional resolved tool name (from registry lookup) */
   resolvedToolName?: string | null;
 }
-
-const dataCategoryLabels: Record<string, string> = {
-  NONE: "Keine besonderen Daten",
-  INTERNAL: "Interne Daten",
-  PERSONAL: "Personenbezogene Daten",
-  SENSITIVE: "Sensible Daten",
-};
 
 const dataCategoryColors: Record<string, string> = {
   NONE: "",
@@ -80,7 +76,7 @@ export function UseCasePassCard({ card, resolvedToolName }: UseCasePassCardProps
               variant="outline"
               className={dataCategoryColors[card.dataCategory] ?? ""}
             >
-              {dataCategoryLabels[card.dataCategory] ?? card.dataCategory}
+              {DATA_CATEGORY_LABELS[card.dataCategory] ?? card.dataCategory}
             </Badge>
           )}
           {isV11 && card.isPublicVisible && (

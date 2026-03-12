@@ -15,7 +15,12 @@
  * Sprint: GN-C ISO 42001 Audit-Dossier
  */
 
-import type { UseCaseCard, OrgSettings } from '@/lib/register-first/types';
+import {
+    DATA_CATEGORY_LABELS,
+    resolvePrimaryDataCategory,
+    type UseCaseCard,
+    type OrgSettings,
+} from '@/lib/register-first/types';
 import { registerUseCaseStatusLabels } from '@/lib/register-first/status-flow';
 import {
     getGovernanceQualityLabel,
@@ -95,13 +100,6 @@ export interface AuditDossierData {
 
 // ── German Labels ───────────────────────────────────────────────────────────
 
-const DATA_CATEGORY_LABELS: Record<string, string> = {
-    NONE: 'Keine besonderen Daten',
-    INTERNAL: 'Interne Daten',
-    PERSONAL: 'Personenbezogene Daten',
-    SENSITIVE: 'Sensible Daten',
-};
-
 const OVERSIGHT_MODEL_LABELS: Record<string, string> = {
     HITL: 'Human-in-the-Loop',
     HOTL: 'Human-on-the-Loop',
@@ -111,7 +109,7 @@ const OVERSIGHT_MODEL_LABELS: Record<string, string> = {
 };
 
 function getDataCategoryLabel(category: string | undefined): string {
-    return DATA_CATEGORY_LABELS[category ?? 'NONE'] ?? category ?? '–';
+    return DATA_CATEGORY_LABELS[(category ?? 'INTERNAL_CONFIDENTIAL') as keyof typeof DATA_CATEGORY_LABELS] ?? category ?? '–';
 }
 
 function getOversightModelLabel(model: string | undefined | null): string {
@@ -297,8 +295,8 @@ export function buildAuditDossier(
             riskCategory: perUc?.exposure ?? 'low',
             riskCategoryLabel: getExposureLabel(perUc?.exposure ?? 'low'),
             oversightModel,
-            dataCategory: uc.dataCategory ?? 'NONE',
-            dataCategoryLabel: getDataCategoryLabel(uc.dataCategory),
+            dataCategory: resolvePrimaryDataCategory(uc) ?? 'INTERNAL_CONFIDENTIAL',
+            dataCategoryLabel: getDataCategoryLabel(resolvePrimaryDataCategory(uc)),
             qualityScore: perUc?.quality ?? 0,
             qualityLabel: getGovernanceQualityLabel(perUc?.quality ?? 0),
             reviewHistory,

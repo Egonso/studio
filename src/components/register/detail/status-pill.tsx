@@ -10,21 +10,26 @@ interface RegisterStatusPillProps {
 }
 
 const statusPillClassNames: Record<RegisterUseCaseStatus, string> = {
-  UNREVIEWED: "border-slate-300 bg-slate-100 text-slate-700",
-  REVIEW_RECOMMENDED: "border-slate-300 bg-slate-100 text-slate-700",
-  REVIEWED: "border-blue-200 bg-blue-50 text-blue-700",
-  PROOF_READY: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  UNREVIEWED: "border-slate-400 bg-transparent",
+  REVIEW_RECOMMENDED: "border-slate-500 bg-transparent",
+  REVIEWED: "bg-blue-700",
+  PROOF_READY: "bg-emerald-600",
 };
 
 export function RegisterStatusPill({ status, className }: RegisterStatusPillProps) {
   return (
     <span
       className={cn(
-        "inline-flex h-7 items-center rounded-full border px-3 text-sm font-medium",
-        statusPillClassNames[status],
+        "inline-flex items-center gap-2 text-sm font-medium text-slate-900",
         className
       )}
     >
+      <span
+        className={cn(
+          "inline-block h-2.5 w-2.5 shrink-0 rounded-full border",
+          statusPillClassNames[status],
+        )}
+      />
       {registerUseCaseStatusLabels[status]}
     </span>
   );

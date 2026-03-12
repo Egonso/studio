@@ -1,6 +1,12 @@
 import type { RegisterFirstFeatureFlags } from "./flags";
 import { getOutputProfileByStatus } from "./status-flow";
-import type { DataCategory, RegisterUseCaseStatus, UseCaseCard } from "./types";
+import { ensureV1_1Shape } from "./migration";
+import {
+  resolvePrimaryDataCategory,
+  type DataCategory,
+  type RegisterUseCaseStatus,
+  type UseCaseCard,
+} from "./types";
 import type { ToolType } from "./tool-registry-types";
 
 export type RegisterOutputTier = "RAW" | "REVIEW_HINT" | "REVIEWED" | "PROOF_READY";
@@ -182,39 +188,38 @@ export function createUseCasePassV11Export(
   resolvedTool: ResolvedToolInfo = {},
   now: Date = new Date()
 ): UseCasePassV11Export {
-  if (card.cardVersion !== "1.1") {
-    throw new Error("v1.1 export requires a v1.1 use case card.");
-  }
+  const normalizedCard = ensureV1_1Shape(card);
 
-  const scopeLabel = card.usageContexts.join(", ");
-  const responsibleRole = card.responsibility.isCurrentlyResponsible
+  const scopeLabel = normalizedCard.usageContexts.join(", ");
+  const responsibleRole = normalizedCard.responsibility.isCurrentlyResponsible
     ? "Erfasser (self)"
-    : (card.responsibility.responsibleParty ?? "Unbekannt");
+    : (normalizedCard.responsibility.responsibleParty ?? "Unbekannt");
 
   return {
     schemaVersion: "1.1",
     exportedAt: now.toISOString(),
-    globalUseCaseId: card.globalUseCaseId ?? card.useCaseId,
-    formatVersion: card.formatVersion ?? "v1.1",
+    globalUseCaseId: normalizedCard.globalUseCaseId ?? normalizedCard.useCaseId,
+    formatVersion: normalizedCard.formatVersion ?? "v1.1",
     projectId,
-    purpose: card.purpose,
+    purpose: normalizedCard.purpose,
     tool: {
-      toolId: card.toolId ?? "unknown",
+      toolId: normalizedCard.toolId ?? "unknown",
       vendor: resolvedTool.vendor ?? null,
       productName: resolvedTool.productName ?? null,
       toolType: resolvedTool.toolType ?? null,
-      freeText: card.toolFreeText ?? null,
+      freeText: normalizedCard.toolFreeText ?? null,
     },
-    dataCategory: card.dataCategory ?? "INTERNAL",
+    dataCategory:
+      resolvePrimaryDataCategory(normalizedCard) ?? "INTERNAL_CONFIDENTIAL",
     scope: scopeLabel,
     responsibleRole,
-    status: card.status,
-    createdAtISO: card.createdAt,
-    outputTier: resolveOutputTier(card.status),
-    outputProfile: getOutputProfileByStatus(card.status),
-    publicHashId: card.publicHashId ?? null,
-    isPublicVisible: card.isPublicVisible ?? false,
-    card,
+    status: normalizedCard.status,
+    createdAtISO: normalizedCard.createdAt,
+    outputTier: resolveOutputTier(normalizedCard.status),
+    outputProfile: getOutputProfileByStatus(normalizedCard.status),
+    publicHashId: normalizedCard.publicHashId ?? null,
+    isPublicVisible: normalizedCard.isPublicVisible ?? false,
+    card: normalizedCard,
   };
 }
 

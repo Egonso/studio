@@ -1,25 +1,47 @@
+'use client';
 
-"use client";
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { BookOpen, LogOut, Settings, ShieldCheck, UserCircle } from 'lucide-react';
 
-import Link from "next/link";
-import { Button } from "./ui/button";
-import { useRouter } from "next/navigation";
-import { GanttChartSquare, LogOut, BookOpen, Settings, UserCircle, ShieldCheck } from "lucide-react";
-import { useAuth } from "@/context/auth-context";
-import { useUserProfile } from "@/hooks/use-user-profile";
-import { clearActiveProjectId } from "@/lib/data-service";
-import { ADMIN_EMAILS } from "@/lib/admin-config";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { WorkspaceSwitcher } from "./layout/workspace-switcher";
-import { ThemeAwareLogo } from "./theme-aware-logo";
-
+import { useAuth } from '@/context/auth-context';
+import { clearActiveProjectId } from '@/lib/data-service';
+import { ADMIN_EMAILS } from '@/lib/admin-config';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import { WorkspaceSwitcher } from './layout/workspace-switcher';
+import { ThemeAwareLogo } from './theme-aware-logo';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import {
+  getProductAreaForPathname,
+  getVisiblePremiumControlNav,
+  isPremiumControlNavActive,
+  ROUTE_HREFS,
+} from '@/lib/navigation/route-manifest';
 
 export function AppHeader() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
-  const { profile } = useUserProfile();
+  const { plan } = useCapability('trustPortal');
+  const area = getProductAreaForPathname(pathname);
+  const brandHref =
+    area === 'paid_governance_control'
+      ? ROUTE_HREFS.control
+      : ROUTE_HREFS.register;
 
-  const brandHomeHref = "/my-register";
+  const premiumNavItems = getVisiblePremiumControlNav(plan);
+  const showControlNav =
+    area === 'paid_governance_control' && premiumNavItems.length > 0;
 
   const handleLogout = async () => {
     try {
@@ -27,73 +49,125 @@ export function AppHeader() {
       const auth = await getFirebaseAuth();
       await auth.signOut();
       clearActiveProjectId();
-      router.push('/login');
+      router.push('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-
   return (
-    <header className="px-4 lg:px-6 h-14 flex items-center bg-background border-b sticky top-0 z-50">
-      <Link href={brandHomeHref} className="flex items-center justify-center gap-2" prefetch={false}>
-        <ThemeAwareLogo
-          alt="AI Governance Control"
-          width={34}
-          height={34}
-          className="h-7 w-auto"
-        />
-        <span className="hidden sm:inline-block whitespace-nowrap text-base font-semibold tracking-tight">
-          AI Governance Control
-        </span>
-      </Link>
-      {user && (
-        <nav className="ml-auto flex gap-2 sm:gap-4 items-center">
-          <WorkspaceSwitcher />
-          {user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()) && (
-            <Link href="/admin" className="text-sm font-bold text-red-500 hover:underline underline-offset-4 flex items-center gap-1" prefetch={false}>
-              <GanttChartSquare className="h-4 w-4" />
-              Admin
-            </Link>
-          )}
-          {profile?.isOfficer && (
-            <div className="hidden md:flex items-center gap-1.5 px-2 h-8 text-muted-foreground text-xs font-medium" title="EUKI Certified Officer">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Certified Officer</span>
+    <header className="sticky top-0 z-50 bg-white">
+      <div className="mx-auto w-full max-w-6xl px-4 pt-2 md:px-6">
+        <div className="flex min-h-14 items-center gap-4 py-1.5">
+          <Link href={brandHref} className="flex min-w-0 items-center gap-2.5" prefetch={false}>
+            <ThemeAwareLogo
+              alt="KI-Register"
+              width={30}
+              height={30}
+              className="h-7 w-auto"
+            />
+            <div className="truncate text-[15px] font-semibold tracking-tight text-slate-950">
+              KI-Register
             </div>
-          )}
-
-          <Link href="/gesetz" className="text-xs text-muted-foreground font-medium hover:text-foreground transition-colors flex items-center gap-1.5 px-2 mr-2" prefetch={false} title="Gesetzestext">
-            <BookOpen className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Gesetz</span>
           </Link>
 
+          {user ? (
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <WorkspaceSwitcher />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1.5 px-2">
+                    <UserCircle className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">
+                    {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={area === 'paid_governance_control' ? ROUTE_HREFS.control : ROUTE_HREFS.register}
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {area === 'paid_governance_control' ? 'Control' : 'Register'}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/settings"
+                      className="flex cursor-pointer items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Einstellungen
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/gesetz"
+                      className="flex cursor-pointer items-center gap-2"
+                      prefetch={false}
+                    >
+                      <BookOpen className="h-4 w-4" />
+                      Gesetz
+                    </Link>
+                  </DropdownMenuItem>
+                  {user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()) ? (
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/admin"
+                        className="flex cursor-pointer items-center gap-2"
+                        prefetch={false}
+                      >
+                        <Settings className="h-4 w-4" />
+                        Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Abmelden
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : null}
+        </div>
+      </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1.5">
-                <UserCircle className="h-4 w-4" />
-                <span className="hidden sm:inline text-sm max-w-[120px] truncate">{user.email}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel className="font-normal text-xs text-muted-foreground truncate">{user.email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="h-4 w-4" />
-                  Einstellungen
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive">
-                <LogOut className="h-4 w-4" />
-                Abmelden
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {user && showControlNav ? (
+        <nav className="flex items-center gap-5 overflow-x-auto pb-2 pt-0.5">
+          {premiumNavItems.map((item) => {
+            const active = isPremiumControlNavActive(
+              item,
+              pathname,
+              searchParams,
+            );
+
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                prefetch={false}
+                className={cn(
+                  'inline-flex h-9 shrink-0 items-center border-b-2 px-0 text-[14px] font-medium transition-colors',
+                  active
+                    ? 'border-slate-950 text-slate-950'
+                    : 'border-transparent text-slate-600 hover:text-slate-950',
+                )}
+                title={item.description}
+              >
+                {item.id === 'overview' ? 'Control' : item.label}
+              </Link>
+            );
+          })}
         </nav>
-      )}
+      ) : null}
     </header>
   );
 }

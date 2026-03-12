@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Building2 } from 'lucide-react';
-import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/data-service';
+import {
+    clearActiveProjectId,
+    getActiveWorkspaceId,
+    setActiveWorkspaceId,
+} from '@/lib/data-service';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -18,6 +23,7 @@ import {
 export function WorkspaceSwitcher() {
     const { user } = useAuth();
     const { profile } = useUserProfile();
+    const router = useRouter();
 
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -41,9 +47,9 @@ export function WorkspaceSwitcher() {
     const handleSwitch = (orgId: string | null) => {
         setActiveWorkspaceId(orgId);
         setActiveId(orgId);
-
-        // Hard refresh to ensure all data is re-fetched for the new context
-        window.location.href = '/dashboard';
+        clearActiveProjectId();
+        const workspaceScope = orgId ?? 'personal';
+        router.replace(`/my-register?workspace=${encodeURIComponent(workspaceScope)}`);
     };
 
     return (
@@ -60,7 +66,7 @@ export function WorkspaceSwitcher() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[200px]" align="start">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Persönlich</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Mein Bereich</DropdownMenuLabel>
                 <DropdownMenuItem
                     onClick={() => handleSwitch(null)}
                     className="flex items-center justify-between"
@@ -71,7 +77,7 @@ export function WorkspaceSwitcher() {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Mandanten (Officer)</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">Workspaces</DropdownMenuLabel>
                 {workspaces.map((ws) => (
                     <DropdownMenuItem
                         key={ws.orgId}

@@ -22,7 +22,7 @@ export function TeamShareStep({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+      <div className="rounded-lg border border-slate-200 bg-white p-4">
         <div className="flex items-start gap-3">
           <div className="mt-0.5 rounded-full bg-white p-2 text-slate-700">
             <PlayCircle className="h-4 w-4" />
@@ -83,12 +83,12 @@ export function TeamShareStep({
 
         {shareOpen && (
           <div className="space-y-5 border-t border-slate-200 px-4 py-4">
-            <div className="rounded-md border border-emerald-200 bg-emerald-50/70 p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+            <div className="rounded-md border border-slate-200 bg-white p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
                 Empfohlen
               </p>
               <div className="mt-2 flex items-start gap-2">
-                <Link2 className="mt-0.5 h-4 w-4 text-emerald-700" />
+                <Link2 className="mt-0.5 h-4 w-4 text-slate-700" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-slate-900">Erfassungslink teilen</p>
                   <p className="text-xs leading-relaxed text-muted-foreground">
@@ -116,7 +116,7 @@ export function TeamShareStep({
               </div>
             </div>
 
-            <div className="rounded-md border border-slate-200 bg-slate-50/60 p-3">
+            <div className="rounded-md border border-slate-200 bg-white p-3">
               <div className="flex items-start gap-2">
                 <KeyRound className="mt-0.5 h-4 w-4 text-slate-700" />
                 <div className="space-y-2">

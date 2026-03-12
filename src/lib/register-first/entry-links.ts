@@ -8,11 +8,11 @@ function appendProjectQuery(basePath: string, projectId?: string | null): string
 }
 
 export function buildRegisterHref(projectId?: string | null): string {
-  return appendProjectQuery("/register", projectId);
+  return appendProjectQuery("/my-register", projectId);
 }
 
 export function buildCaptureHref(projectId?: string | null): string {
-  return appendProjectQuery("/register/capture", projectId);
+  return appendProjectQuery("/capture", projectId);
 }
 
 export function buildVerifyPassHref(publicHashId: string): string {

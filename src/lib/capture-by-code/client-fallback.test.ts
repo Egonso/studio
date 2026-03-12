@@ -83,6 +83,7 @@ test("resolveOwnedCaptureCode rejects expired or foreign codes", async () => {
 test("submitOwnedCaptureCode creates a use case and increments usage count", async () => {
   let capturedPayload: unknown = null;
   let incrementedCode: string | null = null;
+  let externalSubmissionId: string | null = null;
 
   const card = await submitOwnedCaptureCode(
     {
@@ -101,6 +102,9 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
       createUseCase: async (payload) => {
         capturedPayload = payload;
         return createUseCaseCard();
+      },
+      createExternalSubmission: async (submission) => {
+        externalSubmissionId = submission.submissionId;
       },
       incrementUsageCount: async (code) => {
         incrementedCode = code;
@@ -124,4 +128,5 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
     organisation: undefined,
   });
   assert.equal(incrementedCode, "AI-ABC123");
+  assert.ok(externalSubmissionId);
 });

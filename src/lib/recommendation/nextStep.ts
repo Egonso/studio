@@ -1,4 +1,6 @@
 
+import { ROUTE_HREFS } from "@/lib/navigation/route-manifest";
+
 export interface ProjectProgress {
     aiActBaseWizardCompleted: boolean;
     policiesGenerated: boolean;
@@ -26,21 +28,21 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
             key: 'MAINTENANCE',
             headline: "KI-System erfolgreich etabliert",
             acknowledgement: "Gratulation! Sie haben ein ISO 42001 konformes Management-System aufgesetzt.",
-            primaryTitle: "Audit-Dossier & Monitoring",
+            primaryTitle: "Governance Control & Monitoring",
             primaryMeta: "Laufende Überwachung",
-            primaryWhy: "Ihr System ist aktiv. Nutzen Sie jetzt das Dashboard, um neue Tools zu prüfen und das Compliance-Level zu halten.",
-            primaryCtaLabel: "Zum Dashboard",
-            primaryHref: "/ai-management", // Redirects to dashboard view since completed
+            primaryWhy: "Ihr System ist aktiv. Nutzen Sie jetzt Control, um neue Use Cases zu prüfen und das Compliance-Level zu halten.",
+            primaryCtaLabel: "Zu Control",
+            primaryHref: ROUTE_HREFS.control,
             secondary: [
                 {
-                    title: "Neues KI-Projekt prüfen",
-                    subtitle: "High-Risk Klassifizierung.",
-                    href: "/assessment"
+                    title: "Neuen Use Case dokumentieren",
+                    subtitle: "Register und Erfassung aktualisieren.",
+                    href: ROUTE_HREFS.register
                 },
                 {
                     title: "Strategie anpassen",
-                    subtitle: "Portfolio-Management.",
-                    href: "/portfolio"
+                    subtitle: "Governance-Steuerung.",
+                    href: ROUTE_HREFS.control
                 }
             ]
         };
@@ -54,11 +56,11 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
                 ? `Empfohlene Vorgehensweise für ${progress.projectName} (EU AI Act)`
                 : "Empfohlene Vorgehensweise (EU AI Act)",
             // Lead text handles "Basierend auf..." in component, logic returns structure
-            primaryTitle: "AI-Act-Basisdokumentation überprüfen",
+            primaryTitle: "Ersten KI-Einsatzfall dokumentieren",
             primaryMeta: "unter 5 Minuten · Grundlage für Nachweisfähigkeit und Haftungsbegrenzung",
             primaryWhy: "Kernvoraussetzung für Nachweisfähigkeit, Haftungsbegrenzung und spätere Audit-Sicherheit.",
-            primaryCtaLabel: "Basisdokumentation starten",
-            primaryHref: "/assessment",
+            primaryCtaLabel: "Zum Register",
+            primaryHref: ROUTE_HREFS.register,
             secondary: []
         };
     }
@@ -73,17 +75,17 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
             primaryMeta: "ca. 10–20 Minuten · Vorlagen vorhanden · sofort verwendbar",
             primaryWhy: "In dieser Phase ist es wichtiger, dass Ihre KI-Nutzung schriftlich greifbar ist, als bereits formale Managementstrukturen aufzubauen. Richtlinien und Policies sind die Dokumente, die intern, extern und bei Prüfungen tatsächlich vorgelegt werden.",
             primaryCtaLabel: "Smart Policy Engine starten",
-            primaryHref: "/cbs",
+            primaryHref: ROUTE_HREFS.controlPolicies,
             secondary: [
                 {
-                    title: "KI-Management & Governance (ISO 42001)",
-                    subtitle: "Für Unternehmen, die KI langfristig systematisch steuern wollen (wenn Richtlinien bereits existieren).",
-                    href: "/ai-management"
+                    title: "Governance Control",
+                    subtitle: "Für Teams mit strukturierten Reviews und Organisationssteuerung.",
+                    href: ROUTE_HREFS.control
                 },
                 {
                     title: "KI-Portfolio & Strategie",
                     subtitle: "Wenn mehrere Use Cases bestehen oder Prioritäten unklar sind.",
-                    href: "/portfolio" // Assuming existing path
+                    href: ROUTE_HREFS.control
                 }
             ]
         };
@@ -95,21 +97,21 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
             key: 'ISO_WIZARD',
             headline: "Dokumentation vorhanden – Governance sinnvoll ergänzen",
             acknowledgement: "Ihre Richtlinien sind nun dokumentiert. Der nächste sinnvolle Schritt ist, diese organisatorisch abzusichern.",
-            primaryTitle: "KI-Management-System aufsetzen (ISO 42001)",
+            primaryTitle: "Governance Control ausbauen",
             primaryMeta: "ca. 20–30 Minuten · Rollen, Verantwortlichkeiten und Prozesse klären",
             primaryWhy: "Damit Ihre Policies nicht nur existieren, sondern getragen werden: Governance, Verantwortlichkeiten und regelmäßige Risikoanalyse erhöhen Auditfähigkeit und Prozesssicherheit.",
-            primaryCtaLabel: "ISO-Wizard starten",
-            primaryHref: "/ai-management",
+            primaryCtaLabel: "Zu Control",
+            primaryHref: ROUTE_HREFS.control,
             secondary: [
                 {
-                    title: "Audit-Dossier",
+                    title: "Export-Center",
                     subtitle: "Alle Dokumente an einem Ort.",
-                    href: "/audit-report" // Assuming existing path
+                    href: ROUTE_HREFS.controlExports
                 },
                 {
                     title: "KI-Portfolio & Strategie",
                     subtitle: "Strategische Ausrichtung.",
-                    href: "/portfolio"
+                    href: ROUTE_HREFS.control
                 }
             ]
         };
@@ -121,16 +123,16 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
         key: 'ISO_WIZARD',
         headline: "KI-Management weiter vervollständigen",
         acknowledgement: "Sie haben bereits mit dem KI-Management begonnen.",
-        primaryTitle: "ISO-Governance weiter ausbauen",
+        primaryTitle: "Governance weiter ausbauen",
         primaryMeta: "ca. 20–30 Minuten · nächste Anforderungen bearbeiten",
         primaryWhy: "In dieser Phase bringt kontinuierliche Vervollständigung die größte Wirkung, weil sie Wiederholbarkeit und Auditfähigkeit erhöht.",
-        primaryCtaLabel: "Weiter im ISO-Wizard",
-        primaryHref: "/ai-management",
+        primaryCtaLabel: "Weiter in Control",
+        primaryHref: ROUTE_HREFS.control,
         secondary: [
             {
-                title: "Audit-Dossier",
+                title: "Export-Center",
                 subtitle: "Fortschritt prüfen.",
-                href: "/audit-report"
+                href: ROUTE_HREFS.controlExports
             }
         ]
     };

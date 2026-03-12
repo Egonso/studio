@@ -31,7 +31,10 @@ export async function runToolRegistrySmoke() {
   assert.ok(TOOL_TYPES.includes("OTHER"));
   assert.ok(TOOL_TYPES.length >= 10);
 
-  assert.deepEqual([...DATA_CATEGORIES], ["NONE", "INTERNAL", "PERSONAL", "SENSITIVE"]);
+  assert.ok(DATA_CATEGORIES.includes("NO_PERSONAL_DATA"));
+  assert.ok(DATA_CATEGORIES.includes("INTERNAL_CONFIDENTIAL"));
+  assert.ok(DATA_CATEGORIES.includes("NONE"));
+  assert.ok(DATA_CATEGORIES.includes("SENSITIVE"));
 
   // ── Zod toolType validation ─────────────────────────────────────────────
   assert.equal(toolTypeSchema.parse("LLM"), "LLM");

@@ -1,11 +1,18 @@
 "use client";
 
-import type { ReviewEvent, UseCaseCard } from "@/lib/register-first/types";
-import { registerUseCaseStatusLabels } from "@/lib/register-first";
+import { Badge } from "@/components/ui/badge";
+import {
+  buildUseCaseTimeline,
+  USE_CASE_BADGE_META,
+  type ExternalSubmission,
+  type RegisterTimelineEvent,
+  type UseCaseCard,
+} from "@/lib/register-first";
 import { cn } from "@/lib/utils";
 
 interface AuditTrailSectionProps {
   card: UseCaseCard;
+  submission?: ExternalSubmission | null;
 }
 
 function formatDate(isoDate: string): string {
@@ -20,51 +27,117 @@ function formatDate(isoDate: string): string {
   });
 }
 
-export function AuditTrailSection({ card }: AuditTrailSectionProps) {
-  const sortedReviews = [...card.reviews].reverse();
-  const isProofReady = card.status === "PROOF_READY";
+function toneClasses(event: RegisterTimelineEvent): {
+  dot: string;
+  ring: string;
+  title: string;
+} {
+  switch (event.tone) {
+    case "success":
+      return {
+        dot: "bg-emerald-600",
+        ring: "border-emerald-200 bg-white",
+        title: "text-slate-950",
+      };
+    case "warning":
+      return {
+        dot: "bg-slate-500",
+        ring: "border-slate-200 bg-white",
+        title: "text-slate-950",
+      };
+    case "danger":
+      return {
+        dot: "bg-slate-700",
+        ring: "border-slate-300 bg-white",
+        title: "text-slate-950",
+      };
+    default:
+      return {
+        dot: "bg-slate-500",
+        ring: "border-slate-200 bg-white",
+        title: "text-slate-900",
+      };
+  }
+}
+
+export function AuditTrailSection({
+  card,
+  submission = null,
+}: AuditTrailSectionProps) {
+  const timeline = buildUseCaseTimeline({ card, submission });
 
   return (
     <section className="border-t border-slate-200 pt-8">
-      <h2 className="text-[18px] font-semibold tracking-tight">Audit-Trail</h2>
-
-      {sortedReviews.length === 0 ? (
-        <p className="mt-5 text-sm text-muted-foreground">
-          Für diesen Use Case liegen noch keine dokumentierten Prüfungen vor.
+      <div className="flex flex-col gap-1">
+        <h2 className="text-[18px] font-semibold tracking-tight">
+          Timeline & Audit-Trail
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Neueste Ereignisse oben. Herkunft, Änderungen, Reviews und Freigaben
+          werden zusammengeführt.
         </p>
-      ) : (
-        <div
-          className={cn(
-            "mt-5 space-y-2",
-            isProofReady && "border-l border-emerald-300 pl-4"
-          )}
-        >
-          {sortedReviews.map((event, index) => (
-            <TimelineLine
-              key={event.reviewId}
-              event={event}
-              emphasize={isProofReady && index === 0}
-            />
-          ))}
-          <p className="text-sm text-slate-600">• {formatDate(card.createdAt)} – Erstellt</p>
-        </div>
-      )}
-    </section>
-  );
-}
+      </div>
 
-function TimelineLine({
-  event,
-  emphasize,
-}: {
-  event: ReviewEvent;
-  emphasize: boolean;
-}) {
-  return (
-    <p className={cn("text-sm text-slate-600", emphasize && "font-semibold text-slate-800")}>
-      • {formatDate(event.reviewedAt)} – Status geändert auf „
-      {registerUseCaseStatusLabels[event.nextStatus]}“
-      {event.notes ? ` (${event.notes})` : ""}
-    </p>
+      <div className="mt-6 space-y-4">
+        {timeline.map((event) => {
+          const tone = toneClasses(event);
+          const showSourceBadges =
+            event.kind === "origin" || event.kind === "external_submission";
+
+          return (
+            <article
+              key={event.id}
+              className={cn(
+                "relative rounded-md border px-4 py-4 pl-6",
+                tone.ring
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute left-4 top-6 h-2.5 w-2.5 rounded-full",
+                  tone.dot
+                )}
+              />
+              <div className="ml-3 space-y-2">
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className={cn("text-sm font-semibold", tone.title)}>
+                        {event.title}
+                      </h3>
+                      {showSourceBadges
+                        ? event.badges.map((badgeKey) => {
+                            const badge = USE_CASE_BADGE_META[badgeKey];
+                            return (
+                              <Badge
+                                key={`${event.id}_${badge.key}`}
+                                variant="outline"
+                                className={badge.className}
+                              >
+                                {badge.label}
+                              </Badge>
+                            );
+                          })
+                        : null}
+                    </div>
+                    {event.description ? (
+                      <p className="text-sm text-slate-700">{event.description}</p>
+                    ) : null}
+                  </div>
+                  <p className="shrink-0 text-xs text-muted-foreground">
+                    {formatDate(event.timestamp)}
+                  </p>
+                </div>
+                {event.actor ? (
+                  <p className="text-xs text-muted-foreground">
+                    Dokumentiert von {event.actor}
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }

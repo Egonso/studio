@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { DATA_CATEGORIES } from "./card-model";
+
+export { DATA_CATEGORIES };
 
 // ── Tool Type Enum ──────────────────────────────────────────────────────────
 export const TOOL_TYPES = [
@@ -17,25 +20,6 @@ export const TOOL_TYPES = [
 ] as const;
 
 export type ToolType = (typeof TOOL_TYPES)[number];
-
-// ── Data Category Enum (for Use-Case Pass v1.1+) ───────────────────────────
-export const DATA_CATEGORIES = [
-  // New canonical values
-  "NO_PERSONAL_DATA",
-  "PERSONAL_DATA",
-  "SPECIAL_PERSONAL",
-  "HEALTH_DATA",
-  "BIOMETRIC_DATA",
-  "POLITICAL_RELIGIOUS",
-  "OTHER_SENSITIVE",
-  "INTERNAL_CONFIDENTIAL",
-  "PUBLIC_DATA",
-  // Legacy (backward-compatible)
-  "NONE",
-  "INTERNAL",
-  "PERSONAL",
-  "SENSITIVE",
-] as const;
 
 // DataCategory type is canonically defined in ./types.ts
 // DATA_CATEGORIES const and dataCategorySchema are kept here for Zod validation.

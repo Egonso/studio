@@ -165,7 +165,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                     </div>
 
                     <div className="space-y-3">
-                        <Button className="w-full text-base h-11" onClick={() => router.push('/kurs')}>
+                        <Button className="w-full text-base h-11" onClick={() => router.push('/academy')}>
                             <FileText className="mr-2 h-4 w-4" />
                             Zu den Kursmodulen
                         </Button>

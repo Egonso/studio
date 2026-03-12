@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowLeft, Download, FileJson, Pencil, Trash2, X, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   createAiToolsRegistryService,
+  getUseCaseSource,
+  getUseCaseSourceBadges,
+  getUseCaseSourceLabel,
+  getUseCaseSubmitterIdentity,
   riskLevelLabels,
 } from "@/lib/register-first";
 import { RegisterStatusPill } from "@/components/register/detail/status-pill";
@@ -91,6 +96,26 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
   const ownerLabel = card.responsibility.isCurrentlyResponsible
     ? "Erfasser:in (selbst)"
     : card.responsibility.responsibleParty || "Nicht zugewiesen";
+  const source = getUseCaseSource(card);
+  const sourceBadges = getUseCaseSourceBadges(card);
+  const submitterIdentity = getUseCaseSubmitterIdentity(card);
+  const sourceReference =
+    card.origin?.sourceRequestId ??
+    card.externalIntake?.submissionId ??
+    card.externalIntake?.requestTokenId ??
+    card.externalIntake?.accessCodeId ??
+    null;
+  const provenanceLine = [
+    `Herkunft: ${getUseCaseSourceLabel(source)}`,
+    submitterIdentity
+      ? source === "manual"
+        ? `Erfasst von ${submitterIdentity}`
+        : `Eingereicht von ${submitterIdentity}`
+      : null,
+    sourceReference ? `Referenz ${sourceReference}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -142,6 +167,10 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
       createdAt: card.createdAt,
       updatedAt: card.updatedAt,
       reviews: card.reviews,
+      statusHistory: card.statusHistory,
+      manualEdits: card.manualEdits,
+      origin: card.origin,
+      externalIntake: card.externalIntake,
     };
     const json = JSON.stringify(exportData, null, 2);
     const filename = `use-case-pass-${card.globalUseCaseId || card.useCaseId}.json`;
@@ -152,7 +181,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
     toolDisplayName,
     card.globalUseCaseId ?? "EUKI-ID offen",
     `v${card.cardVersion}`,
-    card.isPublicVisible ? "Oeffentlich" : "Privat",
+    card.isPublicVisible ? "Nachweis sichtbar" : "Nachweis intern",
     formatDate(card.updatedAt),
   ].join(" · ");
 
@@ -198,7 +227,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
                 isProofReady && "font-[650]"
               )}
             >
-              Use Case: {card.purpose}
+              {card.purpose}
             </h1>
             <p
               className={cn(
@@ -208,9 +237,21 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
             >
               {subline}
             </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {sourceBadges.map((badge) => (
+                <Badge
+                  key={badge.key}
+                  variant="outline"
+                  className={badge.className}
+                >
+                  {badge.label}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-slate-600">{provenanceLine}</p>
             {isProofReady && (
               <p className="text-xs text-emerald-700">
-                Dieser Einsatzfall ist formal geprüft und dokumentiert.
+                Dieser Einsatzfall ist formal geprüft und nachweisfähig dokumentiert.
               </p>
             )}
           </div>
@@ -224,15 +265,15 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
             )}
             {!card.sealedAt && profile?.isOfficer && (
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={handleSeal}
                 disabled={isSealing}
-                className="bg-slate-800 hover:bg-slate-700 text-white mr-2"
-                title="Als EUKI Officer signieren"
+                className="mr-2"
+                title="Dokument formal signieren"
               >
                 <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-                {isSealing ? "Signiere..." : "Sign off & Seal"}
+                {isSealing ? "Signiere..." : "Formal signieren"}
               </Button>
             )}
             <RegisterStatusPill status={card.status} />
@@ -240,15 +281,15 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
               variant="outline"
               size="sm"
               onClick={() => router.push(`/pass/${card.useCaseId}`)}
-              title="Use-Case Pass anzeigen"
+              title="Use-Case-Pass öffnen"
             >
-              Use-Case Pass
+              Use-Case-Pass öffnen
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => window.print()}
-              title="Use-Case Pass als PDF exportieren"
+              title="Use-Case-Pass als PDF exportieren"
             >
               <Download className="mr-1.5 h-3.5 w-3.5" />
               PDF
@@ -257,7 +298,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
               variant="outline"
               size="sm"
               onClick={handleExportJSON}
-              title="Use-Case Pass als JSON exportieren"
+              title="Use-Case-Pass als JSON exportieren"
             >
               <FileJson className="mr-1.5 h-3.5 w-3.5" />
               JSON

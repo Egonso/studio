@@ -1,30 +1,24 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { AppHeader } from "@/components/app-header";
-import { ControlExportCenter } from "@/components/control/control-export-center";
-import { useAuth } from "@/context/auth-context";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { trackControlOpened } from "@/lib/analytics/control-events";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ControlExportCenter } from '@/components/control/control-export-center';
+import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { useAuth } from '@/context/auth-context';
+import { Button } from '@/components/ui/button';
+import { trackControlOpened } from '@/lib/analytics/control-events';
 import {
   buildOrgExportArtifacts,
   type OrgExportArtifact,
-} from "@/lib/control/exports/org-export-center";
-import { policyService } from "@/lib/policy-engine";
-import type { PolicyDocument } from "@/lib/policy-engine/types";
-import { registerFirstFlags } from "@/lib/register-first/flags";
-import { registerService } from "@/lib/register-first/register-service";
-import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
+} from '@/lib/control/exports/org-export-center';
+import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import { policyService } from '@/lib/policy-engine';
+import type { PolicyDocument } from '@/lib/policy-engine/types';
+import { registerFirstFlags } from '@/lib/register-first/flags';
+import { registerService } from '@/lib/register-first/register-service';
+import type { OrgSettings, UseCaseCard } from '@/lib/register-first/types';
 
 interface ExportSnapshot {
   useCases: UseCaseCard[];
@@ -37,6 +31,10 @@ interface ExportSnapshot {
 export default function ControlExportsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const {
+    allowed: exportAllowed,
+    loading: capabilityLoading,
+  } = useCapability('auditExport');
 
   const [snapshot, setSnapshot] = useState<ExportSnapshot | null>(null);
   const [policies, setPolicies] = useState<PolicyDocument[]>([]);
@@ -45,7 +43,7 @@ export default function ControlExportsPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login");
+      router.push('/login');
     }
   }, [loading, user, router]);
 
@@ -53,8 +51,8 @@ export default function ControlExportsPage() {
     if (!registerFirstFlags.controlAnalytics) return;
     if (loading || !user || !registerFirstFlags.controlShell) return;
     trackControlOpened({
-      route: "control_exports",
-      entry: "direct",
+      route: 'control_exports',
+      entry: 'direct',
     });
   }, [loading, user]);
 
@@ -68,7 +66,9 @@ export default function ControlExportsPage() {
       const registerId = register?.registerId ?? null;
 
       const useCases = registerId
-        ? await registerService.listUseCases(registerId, { includeDeleted: false }).catch(() => [])
+        ? await registerService
+            .listUseCases(registerId, { includeDeleted: false })
+            .catch(() => [])
         : [];
 
       const loadedPolicies = registerId
@@ -84,9 +84,9 @@ export default function ControlExportsPage() {
       });
       setPolicies(loadedPolicies);
     } catch (error) {
-      console.error("Failed to load control export data", error);
+      console.error('Failed to load control export data', error);
       setDataError(
-        "Export-Daten konnten nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut."
+        'Export-Daten konnten nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut.',
       );
     } finally {
       setIsDataLoading(false);
@@ -115,103 +115,116 @@ export default function ControlExportsPage() {
     });
   }, [snapshot, policies]);
 
-  if (loading) {
+  if (loading || capabilityLoading) {
     return (
-      <div className="flex h-screen w-full flex-col">
-        <AppHeader />
-        <div className="flex flex-1 items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </div>
+      <SignedInAreaFrame
+        area="paid_governance_control"
+        title="Exports"
+        description="Audit- und Exportzentrum für Nachweise, Dossiers und Organisationsausgaben."
+        nextStep="Export-Artefakte werden vorbereitet."
+      >
+        <PageStatePanel
+          tone="loading"
+          area="paid_governance_control"
+          title="Exports werden geladen"
+          description="Export-Artefakte und Organisationsdaten werden vorbereitet."
+        />
+      </SignedInAreaFrame>
     );
   }
 
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <AppHeader />
-      <main className="flex-1 p-4 md:p-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          {!registerFirstFlags.controlShell ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
-                <CardDescription>
-                  Das Organisations-Export-Center ist vorbereitet und bleibt bis zur Freigabe verborgen.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
+    <SignedInAreaFrame
+      area="paid_governance_control"
+      title="Exports"
+      description={
+        snapshot?.organisationName
+          ? `Audit- und Exportzentrum für ${snapshot.organisationName}.`
+          : 'Audit- und Exportzentrum für Nachweise, Dossiers und Organisationsausgaben.'
+      }
+      nextStep={
+        snapshot
+          ? 'Stellen Sie die passenden Audit- und Nachweisartefakte für Ihre Governance zusammen.'
+          : 'Laden Sie Register- und Policy-Daten, um Exporte zu erzeugen.'
+      }
+    >
+      <div className="space-y-6">
+        {!registerFirstFlags.controlShell ? (
+          <PageStatePanel
+            area="paid_governance_control"
+            title="Exports sind noch nicht freigeschaltet"
+            description="Das Organisations-Export-Center ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
+            actions={
+              <Button asChild>
+                <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+              </Button>
+            }
+          />
+        ) : !exportAllowed ? (
+          <PageStatePanel
+            area="paid_governance_control"
+            title="Exports gehören zur Governance-Stufe"
+            description="Audit-Dossiers und Organisations-Exporte werden über das bezahlte Governance-Entitlement freigeschaltet."
+            actions={
+              <>
                 <Button asChild>
-                  <Link href="/my-register">Zurueck zum Register</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : !registerFirstFlags.controlOrgExportCenter ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Organisations-Export-Center ist vorbereitet</CardTitle>
-                <CardDescription>
-                  Der Bereich kann ueber das Feature-Flag `controlOrgExportCenter` aktiviert werden.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
-                <Button asChild variant="outline">
-                  <Link href="/control">Zurueck zu Control</Link>
+                  <Link href={ROUTE_HREFS.control}>Overview öffnen</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/my-register">Zurueck zum Register</Link>
+                  <Link href={ROUTE_HREFS.controlPolicies}>
+                    Policy Engine öffnen
+                  </Link>
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <Card>
-                <CardHeader className="flex flex-row items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <CardTitle>Control Bereich: Organisations-Export-Center</CardTitle>
-                    <CardDescription>
-                      {snapshot?.organisationName
-                        ? `Org-weite Exporte fuer ${snapshot.organisationName}.`
-                        : "Org-weite Exporte fuer Audit, Reporting und Nachweis."}
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button asChild variant="outline" size="sm">
-                      <Link href="/control">Zurueck zu Control</Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href="/my-register">Zurueck zum Register</Link>
-                    </Button>
-                  </div>
-                </CardHeader>
-              </Card>
+              </>
+            }
+          />
+        ) : !registerFirstFlags.controlOrgExportCenter ? (
+          <PageStatePanel
+            area="paid_governance_control"
+            title="Export Center ist vorbereitet"
+            description="Der Bereich ist angelegt und kann über das Feature-Flag controlOrgExportCenter aktiviert werden."
+            actions={
+              <>
+                <Button asChild variant="outline">
+                  <Link href={ROUTE_HREFS.control}>Zu Control</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={ROUTE_HREFS.register}>Zum Register</Link>
+                </Button>
+              </>
+            }
+          />
+        ) : (
+          <>
+            {isDataLoading && !snapshot && (
+              <PageStatePanel
+                tone="loading"
+                area="paid_governance_control"
+                title="Export-Daten werden geladen"
+                description="Register-, Policy- und Organisationsdaten werden vorbereitet."
+              />
+            )}
 
-              {isDataLoading && !snapshot && (
-                <Card>
-                  <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Export-Daten werden geladen.
-                  </CardContent>
-                </Card>
-              )}
+            {dataError && (
+              <PageStatePanel
+                tone="error"
+                area="paid_governance_control"
+                title="Exports konnten nicht geladen werden"
+                description={dataError}
+              />
+            )}
 
-              {dataError && (
-                <Card>
-                  <CardContent className="py-6 text-sm text-muted-foreground">{dataError}</CardContent>
-                </Card>
-              )}
-
-              {snapshot && (
-                <ControlExportCenter
-                  artifacts={artifacts}
-                  generatedAt={snapshot.capturedAt}
-                />
-              )}
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+            {snapshot ? (
+              <ControlExportCenter
+                artifacts={artifacts}
+                generatedAt={snapshot.capturedAt}
+              />
+            ) : null}
+          </>
+        )}
+      </div>
+    </SignedInAreaFrame>
   );
 }

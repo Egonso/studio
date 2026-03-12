@@ -1,0 +1,61 @@
+import { readdirSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const ROOT_DIR = process.cwd();
+const SRC_DIR = path.join(ROOT_DIR, 'src');
+
+function collectFiles(dir, matcher, result = []) {
+  for (const entry of readdirSync(dir)) {
+    const fullPath = path.join(dir, entry);
+    const stats = statSync(fullPath);
+    if (stats.isDirectory()) {
+      collectFiles(fullPath, matcher, result);
+      continue;
+    }
+
+    if (matcher(fullPath)) {
+      result.push(path.relative(ROOT_DIR, fullPath));
+    }
+  }
+
+  return result;
+}
+
+function runCommand(label, command, args) {
+  console.log(`\n==> ${label}`);
+  const result = spawnSync(command, args, {
+    cwd: ROOT_DIR,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_OPTIONS: process.env.NODE_OPTIONS ?? '--max-old-space-size=6144',
+    },
+  });
+
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1);
+  }
+}
+
+const unitTestFiles = collectFiles(SRC_DIR, (filePath) =>
+  /\.test\.tsx?$/.test(filePath),
+).sort();
+
+const smokeFiles = collectFiles(SRC_DIR, (filePath) =>
+  /\.smoke\.tsx?$/.test(filePath),
+).sort();
+
+if (unitTestFiles.length > 0) {
+  runCommand('Running unit and source tests', 'npx', [
+    'tsx',
+    '--test',
+    ...unitTestFiles,
+  ]);
+}
+
+for (const smokeFile of smokeFiles) {
+  runCommand(`Running smoke: ${smokeFile}`, 'npx', ['tsx', smokeFile]);
+}
+
+console.log('\nAll tests completed.');

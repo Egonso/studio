@@ -1,81 +1,68 @@
-export const CAPTURE_STEP_3_LABEL = "Bist du aktuell dafür verantwortlich?" as const;
+import type {
+  ApprovalWorkflow,
+} from '@/lib/enterprise/workspace';
 
-export type RegisterUseCaseStatus =
-  | "UNREVIEWED"
-  | "REVIEW_RECOMMENDED"
-  | "REVIEWED"
-  | "PROOF_READY";
+export const CAPTURE_STEP_3_LABEL =
+  'Bist du aktuell dafür verantwortlich?' as const;
 
-export type GovernanceDecisionActor = "HUMAN" | "SYSTEM" | "AUTOMATION";
+export type {
+  AffectedParty,
+  CardVersion,
+  CaptureUsageContext,
+  DataCategory,
+  DecisionImpact,
+  DecisionInfluence,
+  RegisterUseCaseStatus,
+  UseCaseOriginSource,
+} from './card-model';
 
-export type CaptureUsageContext =
-  | "INTERNAL_ONLY"
-  | "CUSTOMER_FACING"   // legacy alias for CUSTOMERS
-  | "EMPLOYEE_FACING"   // legacy alias for EMPLOYEES
-  | "EXTERNAL_PUBLIC"   // legacy alias for PUBLIC
-  | "EMPLOYEES"
-  | "CUSTOMERS"
-  | "APPLICANTS"
-  | "PUBLIC";
+export {
+  CANONICAL_CARD_VERSION,
+  DATA_CATEGORIES,
+  DATA_CATEGORY_LABELS,
+  DATA_CATEGORY_MAIN_OPTIONS,
+  DATA_CATEGORY_SPECIAL_OPTIONS,
+  DECISION_IMPACT_VALUES,
+  DECISION_INFLUENCE_LABELS,
+  DECISION_INFLUENCE_OPTIONS,
+  DECISION_INFLUENCE_VALUES,
+  AFFECTED_PARTY_VALUES,
+  USAGE_CONTEXT_LABELS,
+  USAGE_CONTEXT_OPTIONS,
+  REGISTER_USE_CASE_STATUS_VALUES,
+  normalizeCaptureUsageContexts,
+  normalizeDataCategories,
+  normalizeDataCategory,
+} from './card-model';
 
-/** Canonical German labels for the Wirkungsbereich multi-select */
-export const USAGE_CONTEXT_LABELS: Record<CaptureUsageContext, string> = {
-  INTERNAL_ONLY: "Nur interne Prozesse",
-  EMPLOYEES: "Mitarbeitende betroffen",
-  CUSTOMERS: "Kund*innen betroffen",
-  APPLICANTS: "Bewerber*innen betroffen",
-  PUBLIC: "Öffentlichkeit betroffen",
-  // Legacy labels (still valid for old data)
-  CUSTOMER_FACING: "Kund*innen betroffen",
-  EMPLOYEE_FACING: "Mitarbeitende betroffen",
-  EXTERNAL_PUBLIC: "Öffentlichkeit betroffen",
-};
+import { normalizeDataCategories } from './card-model';
+import type {
+  CardVersion,
+  CaptureUsageContext,
+  DataCategory,
+  DecisionImpact,
+  DecisionInfluence,
+  RegisterUseCaseStatus,
+  UseCaseOriginSource,
+  AffectedParty,
+} from './card-model';
 
-/** The 5 canonical options shown in the UI */
-export const USAGE_CONTEXT_OPTIONS: CaptureUsageContext[] = [
-  "INTERNAL_ONLY",
-  "EMPLOYEES",
-  "CUSTOMERS",
-  "APPLICANTS",
-  "PUBLIC",
-];
-
-/** @deprecated Use DecisionInfluence instead */
-export type DecisionImpact = "YES" | "NO" | "UNSURE";
-
-/** @deprecated Redundant with Wirkungsbereich (usageContexts) */
-export type AffectedParty =
-  | "INDIVIDUALS"
-  | "GROUPS_OR_TEAMS"
-  | "EXTERNAL_PEOPLE"
-  | "INTERNAL_PROCESSES";
+export type GovernanceDecisionActor = 'HUMAN' | 'SYSTEM' | 'AUTOMATION';
 
 // ── Decision Influence (replaces DecisionImpact) ─────────────────────────────
 
-export type DecisionInfluence =
-  | "ASSISTANCE"    // Reine Assistenz (keine Entscheidungsrelevanz)
-  | "PREPARATION"   // Vorbereitung von Entscheidungen
-  | "AUTOMATED";    // Trifft oder automatisiert Entscheidungen
-
-export const DECISION_INFLUENCE_LABELS: Record<DecisionInfluence, string> = {
-  ASSISTANCE: "Reine Assistenz (keine Entscheidungsrelevanz)",
-  PREPARATION: "Vorbereitung von Entscheidungen",
-  AUTOMATED: "Trifft oder automatisiert Entscheidungen",
-};
-
-export const DECISION_INFLUENCE_OPTIONS: DecisionInfluence[] = [
-  "ASSISTANCE",
-  "PREPARATION",
-  "AUTOMATED",
-];
-
 /** Map legacy DecisionImpact to DecisionInfluence */
-export function mapLegacyDecisionImpact(impact: DecisionImpact | undefined): DecisionInfluence | undefined {
+export function mapLegacyDecisionImpact(
+  impact: DecisionImpact | undefined,
+): DecisionInfluence | undefined {
   if (!impact) return undefined;
   switch (impact) {
-    case "NO": return "ASSISTANCE";
-    case "YES": return "PREPARATION";
-    case "UNSURE": return "PREPARATION";
+    case 'NO':
+      return 'ASSISTANCE';
+    case 'YES':
+      return 'PREPARATION';
+    case 'UNSURE':
+      return 'PREPARATION';
   }
 }
 
@@ -101,73 +88,34 @@ export interface CaptureInput {
   organisation?: string | null;
 }
 
-export type DataCategory =
-  // New canonical values
-  | "NO_PERSONAL_DATA"       // Keine personenbezogenen Daten
-  | "PERSONAL_DATA"          // Personenbezogene Daten
-  | "SPECIAL_PERSONAL"       // Besondere personenbezogene Daten (parent)
-  | "HEALTH_DATA"            // ↳ Gesundheitsdaten
-  | "BIOMETRIC_DATA"         // ↳ Biometrische Daten
-  | "POLITICAL_RELIGIOUS"    // ↳ Politische / religiöse Angaben
-  | "OTHER_SENSITIVE"        // ↳ Weitere sensible Daten
-  | "INTERNAL_CONFIDENTIAL"  // Interne / vertrauliche Unternehmensdaten
-  | "PUBLIC_DATA"            // Öffentlich zugängliche Daten
-  // Legacy (backward-compatible)
-  | "NONE"                   // → NO_PERSONAL_DATA
-  | "INTERNAL"               // → INTERNAL_CONFIDENTIAL
-  | "PERSONAL"               // → PERSONAL_DATA
-  | "SENSITIVE";             // → SPECIAL_PERSONAL
-
-/** Canonical German labels */
-export const DATA_CATEGORY_LABELS: Record<DataCategory, string> = {
-  NO_PERSONAL_DATA: "Keine personenbezogenen Daten",
-  PERSONAL_DATA: "Personenbezogene Daten",
-  SPECIAL_PERSONAL: "Besondere personenbezogene Daten",
-  HEALTH_DATA: "Gesundheitsdaten",
-  BIOMETRIC_DATA: "Biometrische Daten",
-  POLITICAL_RELIGIOUS: "Politische / religiöse Angaben",
-  OTHER_SENSITIVE: "Weitere sensible Daten",
-  INTERNAL_CONFIDENTIAL: "Interne / vertrauliche Unternehmensdaten",
-  PUBLIC_DATA: "Öffentlich zugängliche Daten",
-  // Legacy labels
-  NONE: "Keine besonderen Daten",
-  INTERNAL: "Interne Daten",
-  PERSONAL: "Personenbezogene Daten",
-  SENSITIVE: "Sensible Daten",
-};
-
-/** Main options shown in UI (top-level checkboxes) */
-export const DATA_CATEGORY_MAIN_OPTIONS: DataCategory[] = [
-  "NO_PERSONAL_DATA",
-  "PERSONAL_DATA",
-  "SPECIAL_PERSONAL",
-  "INTERNAL_CONFIDENTIAL",
-  "PUBLIC_DATA",
-];
-
-/** Sub-options for SPECIAL_PERSONAL (expandable section) */
-export const DATA_CATEGORY_SPECIAL_OPTIONS: DataCategory[] = [
-  "HEALTH_DATA",
-  "BIOMETRIC_DATA",
-  "POLITICAL_RELIGIOUS",
-  "OTHER_SENSITIVE",
-];
-
 /** Read helper: get dataCategories from card (with backward compat) */
-export function resolveDataCategories(card: { dataCategories?: DataCategory[]; dataCategory?: DataCategory }): DataCategory[] {
-  return card.dataCategories ?? (card.dataCategory ? [card.dataCategory] : []);
+export function resolveDataCategories(card: {
+  dataCategories?: DataCategory[];
+  dataCategory?: DataCategory;
+}): DataCategory[] {
+  return normalizeDataCategories(card.dataCategories, card.dataCategory);
 }
 
 /** Read helper: get decisionInfluence from card (with backward compat) */
-export function resolveDecisionInfluence(card: { decisionInfluence?: DecisionInfluence; decisionImpact?: DecisionImpact }): DecisionInfluence | undefined {
+export function resolveDecisionInfluence(card: {
+  decisionInfluence?: DecisionInfluence;
+  decisionImpact?: DecisionImpact;
+}): DecisionInfluence | undefined {
   return card.decisionInfluence ?? mapLegacyDecisionImpact(card.decisionImpact);
+}
+
+export function resolvePrimaryDataCategory(card: {
+  dataCategories?: DataCategory[];
+  dataCategory?: DataCategory;
+}): DataCategory | undefined {
+  return resolveDataCategories(card)[0];
 }
 
 export interface ReviewEvent {
   reviewId: string;
   reviewedAt: string;
   reviewedBy: string;
-  nextStatus: Exclude<RegisterUseCaseStatus, "UNREVIEWED">;
+  nextStatus: Exclude<RegisterUseCaseStatus, 'UNREVIEWED'>;
   notes?: string;
 }
 
@@ -184,11 +132,9 @@ export interface ProofMeta {
 export interface EvidenceReference {
   evidenceId: string;
   label: string;
-  type: "NOTE" | "DOCUMENT" | "LINK";
+  type: 'NOTE' | 'DOCUMENT' | 'LINK';
   uri?: string;
 }
-
-export type CardVersion = "1.0" | "1.1";
 
 export interface StatusChange {
   from: RegisterUseCaseStatus;
@@ -197,6 +143,89 @@ export interface StatusChange {
   changedBy: string;
   changedByName: string;
   reason?: string;
+}
+
+export interface ManualEditEvent {
+  editId: string;
+  editedAt: string;
+  editedBy: string;
+  editedByName?: string | null;
+  summary: string;
+  changedFields: string[];
+}
+
+export type ExternalIntakeSource = 'ACCESS_CODE' | 'SUPPLIER_REQUEST_LINK';
+
+export type ExternalSubmissionSourceType =
+  | 'supplier_request'
+  | 'access_code'
+  | 'manual_import';
+
+export type ExternalSubmissionStatus =
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'merged';
+
+export interface ExternalIntakeTrace {
+  source: ExternalIntakeSource;
+  submittedAt: string;
+  registerId: string;
+  ownerId?: string | null;
+  submissionId?: string | null;
+  sourceType?: ExternalSubmissionSourceType | null;
+  submittedByName?: string | null;
+  submittedByEmail?: string | null;
+  submittedByRole?: string | null;
+  requestPath?: string | null;
+  requestTokenId?: string | null;
+  requestCode?: string | null;
+  accessCodeId?: string | null;
+  accessCode?: string | null;
+  accessCodeLabel?: string | null;
+}
+
+export interface SupplierRequestTokenRecord {
+  tokenId: string;
+  registerId: string;
+  ownerId: string;
+  tokenHash: string;
+  createdAt: string;
+  createdBy: string;
+  createdByEmail?: string | null;
+  expiresAt: string;
+  revokedAt?: string | null;
+  revokedBy?: string | null;
+  revokedByEmail?: string | null;
+  revocationReason?: 'manual' | 'replaced' | 'register_deleted' | null;
+  lastUsedAt?: string | null;
+}
+
+export interface ExternalSubmission {
+  submissionId: string;
+  registerId: string;
+  ownerId: string;
+  sourceType: ExternalSubmissionSourceType;
+  requestTokenId?: string | null;
+  accessCodeId?: string | null;
+  submittedByName?: string | null;
+  submittedByEmail?: string | null;
+  submittedAt: string;
+  rawPayloadSnapshot: Record<string, unknown>;
+  status: ExternalSubmissionStatus;
+  linkedUseCaseId?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  reviewNote?: string | null;
+  approvalWorkflow?: ApprovalWorkflow | null;
+}
+
+export interface UseCaseOrigin {
+  source: UseCaseOriginSource;
+  submittedByName?: string | null;
+  submittedByEmail?: string | null;
+  sourceRequestId?: string | null;
+  capturedByUserId?: string | null;
 }
 
 export interface UseCaseCard {
@@ -255,7 +284,7 @@ export interface UseCaseCard {
       assessedAt?: string;
     };
     flex: {
-      maturityLevel?: "Level 1" | "Level 2" | "Level 3" | null;
+      maturityLevel?: 'Level 1' | 'Level 2' | 'Level 3' | null;
       oversightModel?: string | null;
       reviewFrequency?: string | null;
       riskControls?: string[];
@@ -266,10 +295,21 @@ export interface UseCaseCard {
 
       // Sprint 18: Strict ISO-Micro Schema (Registers-First)
       iso?: {
-        reviewCycle: "annual" | "semiannual" | "quarterly" | "monthly" | "ad_hoc" | "unknown";
-        oversightModel: "HITL" | "HOTL" | "HUMAN_REVIEW" | "NO_HUMAN" | "unknown";
-        documentationLevel: "minimal" | "standard" | "extended" | "unknown";
-        lifecycleStatus: "pilot" | "active" | "retired" | "unknown";
+        reviewCycle:
+          | 'annual'
+          | 'semiannual'
+          | 'quarterly'
+          | 'monthly'
+          | 'ad_hoc'
+          | 'unknown';
+        oversightModel:
+          | 'HITL'
+          | 'HOTL'
+          | 'HUMAN_REVIEW'
+          | 'NO_HUMAN'
+          | 'unknown';
+        documentationLevel: 'minimal' | 'standard' | 'extended' | 'unknown';
+        lifecycleStatus: 'pilot' | 'active' | 'retired' | 'unknown';
         lastReviewedAt?: string | null;
         nextReviewAt?: string | null;
       };
@@ -280,40 +320,46 @@ export interface UseCaseCard {
         valueRationale: string | null; // max 300 chars
         riskScore: 0 | 1 | 2 | 3 | 4 | 5 | null;
         riskRationale: string | null; // max 300 chars
-        strategyTag: "pilot" | "scale" | "monitor" | "stop" | null;
+        strategyTag: 'pilot' | 'scale' | 'monitor' | 'stop' | null;
       };
     };
   };
 
   // ── Inheritance Provenance (Sprint S3) ────────────────────────────────────
-  fieldProvenance?: Record<string, {
-    source: 'inherit' | 'override';
-    overrideReason?: string;
-    approvedBy?: string;
-    timestamp: string;
-  }>;
+  fieldProvenance?: Record<
+    string,
+    {
+      source: 'inherit' | 'override';
+      overrideReason?: string;
+      approvedBy?: string;
+      timestamp: string;
+    }
+  >;
 
   // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
   statusHistory?: StatusChange[];
+  manualEdits?: ManualEditEvent[];
+  origin?: UseCaseOrigin | null;
   capturedBy?: string;
   capturedByName?: string;
   capturedViaCode?: boolean;
   accessCodeLabel?: string;
+  externalIntake?: ExternalIntakeTrace | null;
 }
 
-export type ConfidenceLevel = "low" | "medium" | "high";
-export type FlagStatus = "yes" | "no" | "not_found";
+export type ConfidenceLevel = 'low' | 'medium' | 'high';
+export type FlagStatus = 'yes' | 'no' | 'not_found';
 
 export interface PublicInfoSource {
   title: string;
   url: string;
-  type: "trust_center" | "privacy" | "terms" | "dpa" | "scc" | "blog" | "other";
+  type: 'trust_center' | 'privacy' | 'terms' | 'dpa' | 'scc' | 'blog' | 'other';
   accessedAt: string; // ISO Date
 }
 
 export interface ToolPublicInfo {
   lastCheckedAt: string | null; // ISO Date
-  checker: "perplexity" | "manual" | "web" | null;
+  checker: 'perplexity' | 'manual' | 'web' | null;
   summary: string | null; // Max 300 chars, neutral
   flags: {
     gdprClaim: FlagStatus;
@@ -331,7 +377,7 @@ export const REGISTER_FIRST_GOVERNANCE_POLICY = Object.freeze({
   automatedReviewRequired: false,
   automatedEscalation: false,
   automatedPolicyGeneration: false,
-  decisionMode: "MANUAL_ONLY" as const,
+  decisionMode: 'MANUAL_ONLY' as const,
 });
 
 // ── OrgSettings (Global Governance & Identity) ──────────────────────────────
@@ -356,7 +402,7 @@ export interface OrgSettings {
     booleanDefined?: boolean;
   } | null;
 
-  reviewStandard?: "annual" | "semiannual" | "risk-based" | null;
+  reviewStandard?: 'annual' | 'semiannual' | 'risk-based' | null;
 
   // ── Extended Governance Settings (Pro/Enterprise) ─────────────────────────
 
@@ -418,12 +464,43 @@ export interface RoleEntry {
 
 export type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
 
+export type RegisterEntitlementStatus = 'active' | 'inactive';
+
+export type RegisterEntitlementSource =
+  | 'default_free'
+  | 'legacy_plan_field'
+  | 'customer_entitlement_sync'
+  | 'stripe_checkout'
+  | 'stripe_webhook'
+  | 'billing_repair'
+  | 'legacy_purchase_import'
+  | 'manual';
+
+export type BillingProductKey =
+  | 'free_register'
+  | 'governance_control_center'
+  | 'enterprise_suite';
+
+export interface RegisterEntitlement {
+  plan: SubscriptionPlan;
+  status: RegisterEntitlementStatus;
+  source: RegisterEntitlementSource;
+  updatedAt: string;
+  customerEmail?: string | null;
+  productId?: string | null;
+  billingProductKey?: BillingProductKey | null;
+  checkoutSessionId?: string | null;
+  stripeCustomerId?: string | null;
+  subscriptionId?: string | null;
+}
+
 // ── Standalone Register (User-Scoped) ───────────────────────────────────────
 
 export interface Register {
   registerId: string;
   name: string;
   createdAt: string;
+  workspaceId?: string | null;
   linkedProjectId?: string | null;
   organisationName?: string | null;
   organisationUnit?: string | null;
@@ -432,6 +509,7 @@ export interface Register {
 
   // ── Subscription & Feature Gating ─────────────────────────────────────────
   plan?: SubscriptionPlan; // 'free' (default) | 'pro' | 'enterprise'
+  entitlement?: RegisterEntitlement | null;
 
   // ── Register-First Architecture: Org Baseline ─────────────────────────────
   governanceMaturityLevel?: 1 | 2 | 3; // Baseline Level for all enclosed Use Cases
@@ -440,7 +518,7 @@ export interface Register {
 }
 
 export interface RegisterDeletionState {
-  strategy: "SOFT_DELETE";
+  strategy: 'SOFT_DELETE';
   deletedAt: string;
   deletedBy: string;
   totalUseCaseCount: number;
@@ -463,7 +541,7 @@ export interface RegisterAccessCode {
   usageCount: number;
   maxUsageCount?: number | null;
   isActive: boolean;
-  deactivatedReason?: "MANUAL" | "REGISTER_DELETED" | null;
+  deactivatedReason?: 'MANUAL' | 'REGISTER_DELETED' | null;
   deactivatedAt?: string | null;
 }
 

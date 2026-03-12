@@ -30,18 +30,6 @@ export function buildPublicAppUrl(path: string): string {
   return new URL(normalizedPath, `${getPublicAppOrigin()}/`).toString();
 }
 
-export function buildSupplierRequestUrl(
-  registerId: string,
-  ownerId?: string | null
-): string {
-  const url = new URL(
-    `/request/${encodeURIComponent(registerId)}`,
-    `${getPublicAppOrigin()}/`
-  );
-
-  if (ownerId && ownerId.trim().length > 0) {
-    url.searchParams.set("owner", ownerId.trim());
-  }
-
-  return url.toString();
+export function buildSupplierRequestUrl(token: string): string {
+  return buildPublicAppUrl(`/request/${encodeURIComponent(token)}`);
 }

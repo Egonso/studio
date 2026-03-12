@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { ServerAuthError, requireUser } from '@/lib/server-auth';
 
 export async function POST(req: Request) {
     try {
+        await requireUser(req.headers.get("authorization"));
         const { systemName, vendor, purpose, usageContexts, dataCategories } = await req.json();
 
         if (!systemName && !purpose) {
@@ -73,6 +75,9 @@ Verwende einen sachlichen, gutachtlichen Stil. Keine Floskeln, keine Einleitung 
         });
 
     } catch (error) {
+        if (error instanceof ServerAuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error('Error drafting assessment:', error);
         return NextResponse.json({ error: 'Failed to generate draft' }, { status: 500 });
     }

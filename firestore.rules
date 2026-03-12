@@ -1,156 +1,417 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper Functions
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
-    // Simplified Org Access: In real app, check user claims or 'users' collection
-    function canAccessOrg(orgId) {
-       return isSignedIn(); // Placeholder - allows authenticated users
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // --- LEGACY DATA ---
-    // Allow access to user-specific project lists (Missing in previous version!)
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function hasCurrentUserDoc() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function workspaceDoc(orgId) {
+      return get(/databases/$(database)/documents/workspaces/$(orgId));
+    }
+
+    function hasWorkspaceDoc(orgId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/workspaces/$(orgId));
+    }
+
+    function isWorkspaceOwner(orgId) {
+      return hasWorkspaceDoc(orgId) &&
+        workspaceDoc(orgId).data.ownerUserId == request.auth.uid;
+    }
+
+    function workspaceMemberDoc(orgId) {
+      return get(/databases/$(database)/documents/workspaces/$(orgId)/members/$(request.auth.uid));
+    }
+
+    function hasWorkspaceMemberDoc(orgId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/workspaces/$(orgId)/members/$(request.auth.uid));
+    }
+
+    function workspaceRole(orgId) {
+      return isWorkspaceOwner(orgId)
+        ? 'OWNER'
+        : hasWorkspaceMemberDoc(orgId) &&
+          workspaceMemberDoc(orgId).data.role is string
+          ? workspaceMemberDoc(orgId).data.role
+          : hasCurrentUserDoc() &&
+            currentUserDoc().data.workspaceRolesByOrg is map &&
+            currentUserDoc().data.workspaceRolesByOrg[orgId] is string
+            ? currentUserDoc().data.workspaceRolesByOrg[orgId]
+            : null;
+    }
+
+    function hasWorkspaceMembership(orgId) {
+      return isOwner(orgId) ||
+        isWorkspaceOwner(orgId) ||
+        hasWorkspaceMemberDoc(orgId) ||
+        (
+          hasCurrentUserDoc() &&
+          currentUserDoc().data.workspaceOrgIds is list &&
+          currentUserDoc().data.workspaceOrgIds.hasAny([orgId])
+        );
+    }
+
+    function canAccessOrg(orgId) {
+      return isSignedIn() && hasWorkspaceMembership(orgId);
+    }
+
+    function canManageOrg(orgId) {
+      return isSignedIn() &&
+        (
+          isOwner(orgId) ||
+          isWorkspaceOwner(orgId) ||
+          (
+            hasWorkspaceMembership(orgId) &&
+            ["ADMIN", "OWNER"].hasAny([workspaceRole(orgId)])
+          )
+        );
+    }
+
+    function canReviewOrg(orgId) {
+      return isSignedIn() &&
+        (
+          isOwner(orgId) ||
+          isWorkspaceOwner(orgId) ||
+          (
+            hasWorkspaceMembership(orgId) &&
+            ["ADMIN", "OWNER", "REVIEWER", "EXTERNAL_OFFICER"].hasAny([workspaceRole(orgId)])
+          )
+        );
+    }
+
+    function restrictedUserProfileKeys() {
+      return [
+        'isOfficer',
+        'verifiedAt',
+        'certifiedBy',
+        'licenseKey',
+        'workspaces',
+        'workspaceOrgIds',
+        'workspaceRolesByOrg'
+      ];
+    }
+
+    function hasOnlyFreeEntitlement(data) {
+      return (
+        !data.keys().hasAny(['plan']) ||
+        data.plan == 'free'
+      ) && (
+        !data.keys().hasAny(['entitlement']) ||
+        (
+          data.entitlement.plan == 'free' &&
+          data.entitlement.status == 'active' &&
+          data.entitlement.source == 'default_free'
+        )
+      );
+    }
+
+    function ownsLegacyProject(projectId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/projects/$(projectId));
+    }
+
+    function ownsRegister(registerId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/registers/$(registerId));
+    }
+
+    function registerDoc(userId, registerId) {
+      return get(/databases/$(database)/documents/users/$(userId)/registers/$(registerId));
+    }
+
+    function hasRegisterDoc(userId, registerId) {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(userId)/registers/$(registerId));
+    }
+
+    function registerWorkspaceId(userId, data) {
+      return data.workspaceId is string
+        ? data.workspaceId
+        : userId;
+    }
+
+    function canReadRegister(userId, data) {
+      return isOwner(userId) ||
+        canAccessOrg(registerWorkspaceId(userId, data));
+    }
+
+    function canManageRegister(userId, data) {
+      return isOwner(userId) ||
+        canManageOrg(registerWorkspaceId(userId, data));
+    }
+
+    function canAccessRegisterContents(userId, registerId) {
+      return isOwner(userId) ||
+        (
+          hasRegisterDoc(userId, registerId) &&
+          canAccessOrg(registerWorkspaceId(userId, registerDoc(userId, registerId).data))
+        );
+    }
+
+    function canWriteRegisterContents(userId, registerId) {
+      return isOwner(userId) ||
+        (
+          hasRegisterDoc(userId, registerId) &&
+          canAccessOrg(registerWorkspaceId(userId, registerDoc(userId, registerId).data))
+        );
+    }
+
+    function canReviewRegisterContents(userId, registerId) {
+      return isOwner(userId) ||
+        (
+          hasRegisterDoc(userId, registerId) &&
+          canReviewOrg(registerWorkspaceId(userId, registerDoc(userId, registerId).data))
+        );
+    }
+
+    function canWriteSharedPolicy(data) {
+      return isSignedIn() &&
+        data.authorId == request.auth.uid &&
+        (
+          (
+            data.keys().hasAny(['orgId']) &&
+            canAccessOrg(data.orgId)
+          ) ||
+          (
+            data.keys().hasAny(['projectId']) &&
+            ownsLegacyProject(data.projectId)
+          )
+        );
+    }
+
+    function hasUnchangedOptionalStringKey(nextData, currentData, key) {
+      return (
+        !currentData.keys().hasAny([key]) &&
+        !nextData.keys().hasAny([key])
+      ) || (
+        currentData.keys().hasAny([key]) &&
+        nextData.keys().hasAny([key]) &&
+        nextData[key] == currentData[key]
+      );
+    }
+
+    function hasSharedPolicyScope(nextData, currentData) {
+      return nextData.authorId == currentData.authorId &&
+        hasUnchangedOptionalStringKey(nextData, currentData, 'orgId') &&
+        hasUnchangedOptionalStringKey(nextData, currentData, 'projectId');
+    }
+
+    function canWritePublicTrustPortal(docId, data) {
+      return isSignedIn() &&
+        data.ownerId == request.auth.uid &&
+        (
+          !data.keys().hasAny(['projectId']) ||
+          data.projectId == docId
+        ) &&
+        (
+          ownsLegacyProject(docId) ||
+          ownsRegister(docId)
+        );
+    }
+
+    function hasAiSystemOrgAccess(systemId) {
+      return exists(/databases/$(database)/documents/aiSystems/$(systemId)) &&
+        canAccessOrg(
+          get(/databases/$(database)/documents/aiSystems/$(systemId)).data.orgId
+        );
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && (!request.resource.data.keys().hasAny(['isOfficer', 'verifiedAt', 'certifiedBy']));
-      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isOfficer', 'verifiedAt', 'certifiedBy']));
-      
-      // --- LEGACY PROJECTS (Deprecated: Removed in Sprint 7) ---
-      // These rules are only left active so the Sprint 1 automatic migration script can read them.
+      allow create: if isOwner(userId) &&
+        !request.resource.data.keys().hasAny(restrictedUserProfileKeys());
+      allow update: if isOwner(userId) &&
+        !request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasAny(restrictedUserProfileKeys());
+
       match /projects/{projectId} {
         allow read, write: if isOwner(userId);
-        
-        // Allow access to subcollections of projects (legacy portfolio, etc.)
+
         match /{document=**} {
-            allow read, write: if isOwner(userId);
+          allow read, write: if isOwner(userId);
         }
       }
-      
+
       match /appData/{docId} {
         allow read, write: if isOwner(userId);
       }
 
-      // Standalone Registers (User-Scoped)
       match /registers/{registerId} {
-        allow read, write: if isOwner(userId);
+        allow read: if canReadRegister(userId, resource.data);
+        allow create: if isOwner(userId) &&
+          request.resource.data.registerId == registerId &&
+          hasOnlyFreeEntitlement(request.resource.data);
+        allow update: if canManageRegister(userId, resource.data) &&
+          registerWorkspaceId(userId, request.resource.data) ==
+            registerWorkspaceId(userId, resource.data) &&
+          !request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasAny(['plan', 'entitlement']);
+        allow delete: if false;
 
         match /useCases/{useCaseId} {
-          allow read, write: if isOwner(userId);
+          allow read, write: if canWriteRegisterContents(userId, registerId);
+        }
+
+        match /externalSubmissions/{submissionId} {
+          allow read: if canAccessRegisterContents(userId, registerId);
+          allow write: if canReviewRegisterContents(userId, registerId);
         }
       }
     }
 
-    // Register Access Codes (Hybrid Auth – employees capture without login)
-    // Client cannot read lists. Only validate server-side via API or if owner.
     match /registerAccessCodes/{code} {
       allow read: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn()
-        && request.resource.data.ownerId == request.auth.uid;
-      allow update: if isSignedIn()
-        && resource.data.ownerId == request.auth.uid;
-      allow delete: if isSignedIn()
-        && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() &&
+        request.resource.data.ownerId == request.auth.uid &&
+        ownsRegister(request.resource.data.registerId);
+      allow update: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid &&
+        request.resource.data.ownerId == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid;
     }
 
-    // Public Use-Case Index (Verify Lookup)
-    // Anyone can read (public verify). Only the owner can write.
-    match /publicUseCases/{hashId} {
-      allow read: if true;
-      allow create: if isSignedIn()
-        && request.resource.data.ownerId == request.auth.uid;
-      allow update: if isSignedIn()
-        && resource.data.ownerId == request.auth.uid;
-      allow delete: if isSignedIn()
-        && resource.data.ownerId == request.auth.uid;
+    match /registerRequestTokens/{tokenId} {
+      allow read, write: if false;
     }
 
-    // --- NEW ARCHITECTURE ---
-
-    // 1. Workspace Projects (Containers)
-    match /workspaceProjects/{projectId} {
-      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
+    match /pendingWorkspaceInvites/{inviteId} {
+      allow read, write: if false;
     }
-    
-    // 2. AI Systems (Core Object)
-    // Note: List queries MUST filter by 'orgId' for this rule to work strictly on lists.
-    match /aiSystems/{systemId} {
-      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
-      
-      // Subcollection: Assessments
-      match /assessments/{assessmentId} {
-        allow read, write: if isSignedIn();
+
+    match /workspaces/{orgId} {
+      allow read: if canAccessOrg(orgId);
+      allow create: if isSignedIn() &&
+        request.resource.data.orgId == orgId &&
+        request.resource.data.ownerUserId == request.auth.uid;
+      allow update: if canManageOrg(orgId) &&
+        request.resource.data.orgId == resource.data.orgId &&
+        request.resource.data.ownerUserId == resource.data.ownerUserId;
+      allow delete: if false;
+
+      match /members/{memberId} {
+        allow read: if canAccessOrg(orgId);
+        allow create, update, delete: if canManageOrg(orgId);
+      }
+
+      match /governanceSignOffs/{signOffId} {
+        allow read: if canAccessOrg(orgId);
+        allow create: if canManageOrg(orgId);
+        allow update: if canReviewOrg(orgId);
+        allow delete: if false;
       }
     }
-    
-    // 3. ISO AIMS (Org Singleton)
+
+    match /publicUseCases/{hashId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        request.resource.data.ownerId == request.auth.uid;
+      allow update: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid &&
+        request.resource.data.ownerId == request.auth.uid;
+      allow delete: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid;
+    }
+
+    match /workspaceProjects/{projectId} {
+      allow read: if canAccessOrg(resource.data.orgId);
+      allow create: if canManageOrg(request.resource.data.orgId) &&
+        request.resource.data.createdBy == request.auth.uid;
+      allow update: if canManageOrg(resource.data.orgId) &&
+        request.resource.data.orgId == resource.data.orgId;
+      allow delete: if canManageOrg(resource.data.orgId);
+    }
+
+    match /aiSystems/{systemId} {
+      allow read: if canAccessOrg(resource.data.orgId);
+      allow create: if canAccessOrg(request.resource.data.orgId);
+      allow update: if canAccessOrg(resource.data.orgId) &&
+        request.resource.data.orgId == resource.data.orgId;
+      allow delete: if canAccessOrg(resource.data.orgId);
+
+      match /assessments/{assessmentId} {
+        allow read, write: if hasAiSystemOrgAccess(systemId);
+      }
+    }
+
     match /isoAIMS/{aimsId} {
-      allow read, write: if isSignedIn() && canAccessOrg(resource.data.orgId);
+      allow read: if canAccessOrg(resource.data.orgId);
+      allow create: if canAccessOrg(request.resource.data.orgId);
+      allow update: if canAccessOrg(resource.data.orgId) &&
+        request.resource.data.orgId == resource.data.orgId;
+      allow delete: if canManageOrg(resource.data.orgId);
     }
-    
-    // 4. Shared Policies (Used in CBS)
+
     match /sharedPolicies/{policyId} {
-        allow read: if true; // Public read for sharing
-        allow create: if isSignedIn();
+      allow read: if true;
+      allow create: if canWriteSharedPolicy(request.resource.data);
+      allow update: if canWriteSharedPolicy(request.resource.data) &&
+        hasSharedPolicyScope(request.resource.data, resource.data);
+      allow delete: if canWriteSharedPolicy(resource.data);
     }
-    
-    // --- STRIPE & USER DATA (Option C Architecture) ---
-    
-    // 5. Customers Collection - Created by Stripe Webhook (Admin SDK only writes)
-    // Users can only read their own customer record
+
     match /customers/{email} {
-      allow read: if isSignedIn() && request.auth.token.email.lower() == email.lower();
-      allow write: if false; // Only Admin SDK (webhook) can write
+      allow read: if isSignedIn() &&
+        request.auth.token.email.lower() == email.lower();
+      allow write: if false;
     }
-    
-    // 6. User Exams - Synced from Landing Page (Admin SDK only writes)
-    // Users can only read their own exam results
+
+    match /customerEntitlements/{email} {
+      allow read, write: if false;
+    }
+
     match /user_exams/{email} {
-      allow read: if isSignedIn() && request.auth.token.email.lower() == email.lower();
-      allow write: if false; // Only Admin SDK (API) can write
+      allow read: if isSignedIn() &&
+        request.auth.token.email.lower() == email.lower();
+      allow write: if false;
     }
-    
-    // 7. User Certificates - Synced from Landing Page (Admin SDK only writes)
-    // Users can only read their own certificate data
+
     match /user_certificates/{email} {
-      allow read: if isSignedIn() && request.auth.token.email.lower() == email.lower();
-      allow write: if false; // Only Admin SDK (API) can write
+      allow read: if isSignedIn() &&
+        request.auth.token.email.lower() == email.lower();
+      allow write: if false;
     }
-    
-    // 8. Public Certificates - Safe subset for Trust Portal
-    // Anyone can read if they have the code (docId)
+
     match /public_certificates/{code} {
       allow read: if true;
-      allow write: if false; // Only Admin SDK (API) can write
+      allow write: if false;
     }
 
-    // 9. Stripe Events Log - Admin only, no client access
     match /stripe_events/{eventId} {
-      allow read, write: if false; // Only Admin SDK
+      allow read, write: if false;
     }
 
-    // 10. Public Trust Portals
     match /publicTrustPortals/{projectId} {
       allow read: if true;
-      // Allow any authenticated user to write - ownerId is set by the application
-      allow write: if isSignedIn();
-      allow delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if canWritePublicTrustPortal(projectId, request.resource.data);
+      allow update: if canWritePublicTrustPortal(projectId, request.resource.data) &&
+        request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if canWritePublicTrustPortal(projectId, resource.data);
     }
 
-    // 11. Legacy Global Projects (Deprecated: Removed in Sprint 7)
-    // Only active for Sprint 1 Migration Script. Use Register-First /registers/{registerId}/useCases
     match /projects/{projectId} {
-      allow read, write: if isSignedIn(); 
-      
-      match /tools/{toolId} {
-        allow read, write: if isSignedIn();
+      allow read, write: if false;
+
+      match /{document=**} {
+        allow read, write: if false;
       }
     }
   }

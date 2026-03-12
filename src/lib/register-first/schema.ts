@@ -1,48 +1,81 @@
 import { z } from "zod";
 import type {
   CaptureInput,
+  ExternalSubmission,
   GovernanceDecisionActor,
   RegisterUseCaseStatus,
+  SupplierRequestTokenRecord,
+  UseCaseOrigin,
   UseCaseCard,
 } from "./types";
 import { dataCategorySchema } from "./tool-registry-types";
+import {
+  AFFECTED_PARTY_VALUES,
+  CARD_VERSION_VALUES,
+  CAPTURE_USAGE_CONTEXT_VALUES,
+  DECISION_IMPACT_VALUES,
+  DECISION_INFLUENCE_VALUES,
+  REGISTER_USE_CASE_STATUS_VALUES,
+  USE_CASE_ORIGIN_SOURCE_VALUES,
+  normalizeCaptureUsageContexts,
+  normalizeDataCategories,
+} from "./card-model";
+import {
+  createUseCaseOrigin,
+  normalizeUseCaseCardRecord,
+} from "./migration";
+import { generateGlobalUseCaseId, generatePublicHashId } from "./id-generation";
 
-const registerUseCaseStatusValues = [
-  "UNREVIEWED",
-  "REVIEW_RECOMMENDED",
-  "REVIEWED",
-  "PROOF_READY",
+const externalSubmissionSourceTypeValues = [
+  "supplier_request",
+  "access_code",
+  "manual_import",
 ] as const;
 
-const captureUsageContextValues = [
-  "INTERNAL_ONLY",
-  "CUSTOMER_FACING",
-  "EMPLOYEE_FACING",
-  "EXTERNAL_PUBLIC",
-  "EMPLOYEES",
-  "CUSTOMERS",
-  "APPLICANTS",
-  "PUBLIC",
+const externalSubmissionStatusValues = [
+  "submitted",
+  "approved",
+  "rejected",
+  "merged",
+] as const;
+const workspaceRoleValues = [
+  "OWNER",
+  "ADMIN",
+  "REVIEWER",
+  "MEMBER",
+  "EXTERNAL_OFFICER",
 ] as const;
 
-const decisionImpactValues = ["YES", "NO", "UNSURE"] as const;
-const decisionInfluenceValues = ["ASSISTANCE", "PREPARATION", "AUTOMATED"] as const;
-
-const affectedPartyValues = [
-  "INDIVIDUALS",
-  "GROUPS_OR_TEAMS",
-  "EXTERNAL_PEOPLE",
-  "INTERNAL_PROCESSES",
-] as const;
-
-export const registerUseCaseStatusSchema = z.enum(registerUseCaseStatusValues);
-export const captureUsageContextSchema = z.enum(captureUsageContextValues);
-export const decisionImpactSchema = z.enum(decisionImpactValues);
-export const decisionInfluenceSchema = z.enum(decisionInfluenceValues);
-export const affectedPartySchema = z.enum(affectedPartyValues);
+export const registerUseCaseStatusSchema = z.enum(REGISTER_USE_CASE_STATUS_VALUES);
+export const captureUsageContextSchema = z.enum(CAPTURE_USAGE_CONTEXT_VALUES);
+export const decisionImpactSchema = z.enum(DECISION_IMPACT_VALUES);
+export const decisionInfluenceSchema = z.enum(DECISION_INFLUENCE_VALUES);
+export const affectedPartySchema = z.enum(AFFECTED_PARTY_VALUES);
+export const externalSubmissionSourceTypeSchema = z.enum(
+  externalSubmissionSourceTypeValues
+);
+export const externalSubmissionStatusSchema = z.enum(
+  externalSubmissionStatusValues
+);
+const workspaceRoleSchema = z.enum(workspaceRoleValues);
+const approvalDecisionRecordSchema = z.object({
+  decisionId: z.string().trim().min(1).max(200),
+  role: workspaceRoleSchema,
+  actorUserId: z.string().trim().min(1).max(200),
+  decision: z.enum(["approved", "rejected"]),
+  note: z.string().trim().min(1).max(2000).optional().nullable(),
+  decidedAt: z.string().datetime(),
+});
+const approvalWorkflowSchema = z.object({
+  status: z.enum(["not_required", "pending", "approved", "rejected"]),
+  requiredRoles: z.array(workspaceRoleSchema).max(5),
+  requestedAt: z.string().datetime().optional().nullable(),
+  requestedBy: z.string().trim().min(1).max(200).optional().nullable(),
+  decisions: z.array(approvalDecisionRecordSchema),
+});
 
 // ── Card version schema ─────────────────────────────────────────────────────
-const cardVersionSchema = z.enum(["1.0", "1.1"]);
+const cardVersionSchema = z.enum(CARD_VERSION_VALUES);
 
 // ── Capture Input Schema (extended for v1.1) ────────────────────────────────
 export const captureInputSchema = z
@@ -121,6 +154,15 @@ const proofMetaSchema = z.object({
   }),
 });
 
+const manualEditEventSchema = z.object({
+  editId: z.string().min(1),
+  editedAt: z.string().datetime(),
+  editedBy: z.string().min(1),
+  editedByName: z.string().trim().min(1).max(200).optional().nullable(),
+  summary: z.string().trim().min(1).max(300),
+  changedFields: z.array(z.string().trim().min(1).max(200)).max(20),
+});
+
 const evidenceReferenceSchema = z.object({
   evidenceId: z.string().min(1),
   label: z.string().trim().min(1).max(200),
@@ -169,6 +211,70 @@ export const statusChangeSchema = z.object({
   changedBy: z.string(),
   changedByName: z.string(),
   reason: z.string().optional(),
+});
+
+const externalIntakeTraceSchema = z.object({
+  source: z.enum(["ACCESS_CODE", "SUPPLIER_REQUEST_LINK"]),
+  submittedAt: z.string().datetime(),
+  registerId: z.string().min(1).max(200),
+  ownerId: z.string().min(1).max(200).optional().nullable(),
+  submissionId: z.string().min(1).max(200).optional().nullable(),
+  sourceType: externalSubmissionSourceTypeSchema.optional().nullable(),
+  submittedByName: z.string().trim().min(1).max(200).optional().nullable(),
+  submittedByEmail: z.string().trim().email().max(320).optional().nullable(),
+  submittedByRole: z.string().trim().min(1).max(200).optional().nullable(),
+  requestPath: z.string().trim().min(1).max(500).optional().nullable(),
+  requestTokenId: z.string().trim().min(1).max(200).optional().nullable(),
+  requestCode: z.string().trim().min(1).max(120).optional().nullable(),
+  accessCodeId: z.string().trim().min(1).max(200).optional().nullable(),
+  accessCode: z.string().trim().min(1).max(120).optional().nullable(),
+  accessCodeLabel: z.string().trim().min(1).max(200).optional().nullable(),
+});
+
+const useCaseOriginSchema = z.object({
+  source: z.enum(USE_CASE_ORIGIN_SOURCE_VALUES),
+  submittedByName: z.string().trim().min(1).max(200).optional().nullable(),
+  submittedByEmail: z.string().trim().email().max(320).optional().nullable(),
+  sourceRequestId: z.string().trim().min(1).max(200).optional().nullable(),
+  capturedByUserId: z.string().trim().min(1).max(200).optional().nullable(),
+});
+
+export const supplierRequestTokenRecordSchema = z.object({
+  tokenId: z.string().trim().min(1).max(200),
+  registerId: z.string().trim().min(1).max(200),
+  ownerId: z.string().trim().min(1).max(200),
+  tokenHash: z.string().trim().min(32).max(256),
+  createdAt: z.string().datetime(),
+  createdBy: z.string().trim().min(1).max(200),
+  createdByEmail: z.string().trim().email().max(320).optional().nullable(),
+  expiresAt: z.string().datetime(),
+  revokedAt: z.string().datetime().optional().nullable(),
+  revokedBy: z.string().trim().min(1).max(200).optional().nullable(),
+  revokedByEmail: z.string().trim().email().max(320).optional().nullable(),
+  revocationReason: z
+    .enum(["manual", "replaced", "register_deleted"])
+    .optional()
+    .nullable(),
+  lastUsedAt: z.string().datetime().optional().nullable(),
+});
+
+export const externalSubmissionSchema = z.object({
+  submissionId: z.string().trim().min(1).max(200),
+  registerId: z.string().trim().min(1).max(200),
+  ownerId: z.string().trim().min(1).max(200),
+  sourceType: externalSubmissionSourceTypeSchema,
+  requestTokenId: z.string().trim().min(1).max(200).optional().nullable(),
+  accessCodeId: z.string().trim().min(1).max(200).optional().nullable(),
+  submittedByName: z.string().trim().min(1).max(200).optional().nullable(),
+  submittedByEmail: z.string().trim().email().max(320).optional().nullable(),
+  submittedAt: z.string().datetime(),
+  rawPayloadSnapshot: z.record(z.string(), z.unknown()),
+  status: externalSubmissionStatusSchema,
+  linkedUseCaseId: z.string().trim().min(1).max(200).optional().nullable(),
+  reviewedAt: z.string().datetime().optional().nullable(),
+  reviewedBy: z.string().trim().min(1).max(200).optional().nullable(),
+  reviewNote: z.string().trim().min(1).max(2000).optional().nullable(),
+  approvalWorkflow: approvalWorkflowSchema.optional().nullable(),
 });
 
 // ── UseCaseCard Schema (accepts both v1.0 and v1.1) ─────────────────────────
@@ -254,10 +360,13 @@ export const useCaseCardSchema = z
     }).optional(),
     // ── Audit Trail (Sprint 4) ──────────────────────────────────────────────
     statusHistory: z.array(statusChangeSchema).optional(),
+    manualEdits: z.array(manualEditEventSchema).default([]),
+    origin: useCaseOriginSchema.optional().nullable(),
     capturedBy: z.string().optional(),
     capturedByName: z.string().optional(),
     capturedViaCode: z.boolean().optional(),
     accessCodeLabel: z.string().optional(),
+    externalIntake: externalIntakeTraceSchema.optional().nullable(),
   })
   .superRefine((value, ctx) => {
     // v1.1: if toolId is "other", toolFreeText is required
@@ -275,14 +384,31 @@ export const useCaseCardSchema = z
 
 export function parseCaptureInput(input: unknown): CaptureInput {
   const parsed = captureInputSchema.parse(input);
+  const dataCategories = normalizeDataCategories(
+    parsed.dataCategories,
+    parsed.dataCategory
+  );
   return {
     ...parsed,
+    usageContexts: normalizeCaptureUsageContexts(parsed.usageContexts),
+    dataCategory: dataCategories[0],
+    dataCategories: dataCategories.length > 0 ? dataCategories : undefined,
     affectedParties: parsed.affectedParties ?? [],
   };
 }
 
 export function parseUseCaseCard(input: unknown): UseCaseCard {
-  return useCaseCardSchema.parse(input) as UseCaseCard;
+  return useCaseCardSchema.parse(normalizeUseCaseCardRecord(input)) as UseCaseCard;
+}
+
+export function parseSupplierRequestTokenRecord(
+  input: unknown
+): SupplierRequestTokenRecord {
+  return supplierRequestTokenRecordSchema.parse(input) as SupplierRequestTokenRecord;
+}
+
+export function parseExternalSubmission(input: unknown): ExternalSubmission {
+  return externalSubmissionSchema.parse(input) as ExternalSubmission;
 }
 
 export function assertManualGovernanceDecision(actor: GovernanceDecisionActor) {
@@ -293,50 +419,40 @@ export function assertManualGovernanceDecision(actor: GovernanceDecisionActor) {
   }
 }
 
-// ── v1.0 Card Draft (backward compat – no v1.1 fields) ─────────────────────
+// ── Canonical Card Draft (kept under legacy name for compatibility) ───────
 interface CreateUseCaseCardDraftParams {
   useCaseId: string;
   now?: Date;
   status?: RegisterUseCaseStatus;
+  origin?: UseCaseOrigin | null;
+  globalUseCaseId?: string;
+  publicHashId?: string;
 }
 
 export function createUseCaseCardDraft(
   input: unknown,
   params: CreateUseCaseCardDraftParams
 ): UseCaseCard {
-  const capture = parseCaptureInput(input);
-  const timestamp = (params.now ?? new Date()).toISOString();
-  const status = params.status ?? "UNREVIEWED";
-
-  return parseUseCaseCard({
-    cardVersion: "1.0",
+  const currentTime = params.now ?? new Date();
+  return createUseCaseCardV11Draft(input, {
     useCaseId: params.useCaseId,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-    purpose: capture.purpose,
-    usageContexts: capture.usageContexts,
-    responsibility: {
-      isCurrentlyResponsible: capture.isCurrentlyResponsible,
-      responsibleParty: capture.responsibleParty ?? null,
-      contactPersonName: capture.contactPersonName ?? null,
-    },
-    decisionImpact: capture.decisionImpact,
-    affectedParties: capture.affectedParties ?? [],
-    status,
-    reviewHints: [],
-    evidences: [],
-    reviews: [],
-    proof: null,
+    globalUseCaseId:
+      params.globalUseCaseId ?? generateGlobalUseCaseId(currentTime),
+    publicHashId: params.publicHashId ?? generatePublicHashId(),
+    now: currentTime,
+    status: params.status,
+    origin: params.origin ?? createUseCaseOrigin({ source: "manual" }),
   });
 }
 
-// ── v1.1 Card Draft (with tool, dataCategory, IDs) ─────────────────────────
+// ── v1.1 Card Draft (canonical write path) ────────────────────────────────
 interface CreateUseCaseCardV11DraftParams {
   useCaseId: string;
   globalUseCaseId: string;
   publicHashId: string;
   now?: Date;
   status?: RegisterUseCaseStatus;
+  origin?: UseCaseOrigin | null;
 }
 
 export function createUseCaseCardV11Draft(
@@ -346,6 +462,17 @@ export function createUseCaseCardV11Draft(
   const capture = parseCaptureInput(input);
   const timestamp = (params.now ?? new Date()).toISOString();
   const status = params.status ?? "UNREVIEWED";
+  const dataCategories = normalizeDataCategories(
+    capture.dataCategories,
+    capture.dataCategory
+  );
+  const decisionImpact =
+    capture.decisionImpact ??
+    (capture.decisionInfluence === "ASSISTANCE"
+      ? "NO"
+      : capture.decisionInfluence === "AUTOMATED"
+        ? "YES"
+        : "UNSURE");
 
   return parseUseCaseCard({
     cardVersion: "1.1",
@@ -359,7 +486,7 @@ export function createUseCaseCardV11Draft(
       responsibleParty: capture.responsibleParty ?? null,
       contactPersonName: capture.contactPersonName ?? null,
     },
-    decisionImpact: capture.decisionImpact ?? "NO",
+    decisionImpact,
     decisionInfluence: capture.decisionInfluence,
     affectedParties: capture.affectedParties ?? [],
     status,
@@ -367,13 +494,15 @@ export function createUseCaseCardV11Draft(
     evidences: [],
     reviews: [],
     proof: null,
+    origin: params.origin ?? createUseCaseOrigin({ source: "manual" }),
     // v1.1 fields
     globalUseCaseId: params.globalUseCaseId,
     formatVersion: "v1.1",
     toolId: capture.toolId,
     toolFreeText: capture.toolFreeText,
-    dataCategory: capture.dataCategory ?? "INTERNAL",
-    dataCategories: capture.dataCategories,
+    dataCategory: dataCategories[0] ?? "INTERNAL_CONFIDENTIAL",
+    dataCategories:
+      dataCategories.length > 0 ? dataCategories : ["INTERNAL_CONFIDENTIAL"],
     publicHashId: params.publicHashId,
     isPublicVisible: false,
     // v1.2 fields

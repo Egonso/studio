@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download, ExternalLink, ShieldCheck } from "lucide-react";
+import { Download, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Downloads | KI-Register",
   description:
-    "Chrome Plugin und macOS Menüleisten-App für KI-Register Quick Capture herunterladen und installieren.",
+    "Chrome Plugin und macOS Menüleisten-App für KI-Register herunterladen.",
 };
 
 const chromeSteps = [
@@ -100,13 +100,6 @@ export default function DownloadsPage() {
             >
               Zur Startseite
             </Link>
-            <a
-              href="/downloads/SHA256SUMS.txt"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              Checksums
-              <ExternalLink className="h-4 w-4" />
-            </a>
           </div>
         </header>
 

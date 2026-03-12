@@ -1,6 +1,9 @@
 export * from "./types";
+export * from "./card-model";
 export * from "./schema";
 export * from "./flags";
+export * from "./entitlement";
+export * from "./entitlement-client";
 export * from "./repository";
 export * from "./service";
 export * from "./capture-flow";
@@ -14,7 +17,11 @@ export * from "./tool-registry-service";
 export * from "./id-generation";
 export * from "./migration";
 export * from "./use-case-builder";
+export * from "./source";
+export * from "./timeline";
 export * from "./supplier-requests";
+export * from "./external-intake";
+export * from "./external-submissions";
 export {
   type RegisterScope,
   type RegisterRepository,

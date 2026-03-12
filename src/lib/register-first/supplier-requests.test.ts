@@ -39,6 +39,8 @@ test("createSupplierRequestUseCase erzeugt eine schema-kompatible Registerkarte"
   assert.equal(card.createdAt, now.toISOString());
   assert.equal(card.updatedAt, now.toISOString());
   assert.equal(card.capturedBy, "SUPPLIER_REQUEST");
+  assert.equal(card.origin?.source, "supplier_request");
+  assert.equal(card.origin?.submittedByEmail, "vendor@example.com");
   assert.ok(isSupplierRequestCard(card));
   assert.equal(getSupplierRequestContact(card), "vendor@example.com");
   assert.ok(card.reviewHints.includes("Lieferantenanfrage eingegangen."));

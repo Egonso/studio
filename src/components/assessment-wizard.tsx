@@ -1,12 +1,11 @@
+'use client';
 
-"use client";
+import * as React from 'react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-import * as React from "react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
-
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -14,18 +13,29 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { saveAssessmentAnswers, getActiveProjectId, updateWizardStatus } from "@/lib/data-service";
-import { useUserStatus } from "@/hooks/use-user-status";
-import { useAuth } from "@/context/auth-context";
-import { checkCapability } from "@/lib/compliance-engine/capability/useCapability";
-import { ShieldAlert } from "lucide-react";
+} from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import {
+  saveAssessmentAnswers,
+  getActiveProjectId,
+  updateWizardStatus,
+} from '@/lib/data-service';
+import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import { ShieldAlert } from 'lucide-react';
 
-type QuestionId = 'q1' | 'q2' | 'q3' | 'q4' | 'q5' | 'q6' | 'q7' | 'q_final_compliant' | 'q_final_review';
+type QuestionId =
+  | 'q1'
+  | 'q2'
+  | 'q3'
+  | 'q4'
+  | 'q5'
+  | 'q6'
+  | 'q7'
+  | 'q_final_compliant'
+  | 'q_final_review';
 
 interface Question {
   title: string;
@@ -38,80 +48,103 @@ interface Question {
   next?: QuestionId; // Default next question if no option specifies one
 }
 
-const questions: Record<QuestionId, Question | { final: boolean, title: string, description: string }> = {
+const questions: Record<
+  QuestionId,
+  Question | { final: boolean; title: string; description: string }
+> = {
   q1: {
-    title: "Anwendbarkeit des AI Acts",
-    question: "Setzt Ihr Unternehmen KI-Systeme ein oder stellt diese auf dem EU-Markt bereit, verkauft sie oder nimmt sie in Betrieb?",
+    title: 'Anwendbarkeit des AI Acts',
+    question:
+      'Setzt Ihr Unternehmen KI-Systeme ein oder stellt diese auf dem EU-Markt bereit, verkauft sie oder nimmt sie in Betrieb?',
     options: [
-      { label: "Ja, wir entwickeln, betreiben oder verkaufen KI-Systeme.", value: "yes", next: "q2" },
-      { label: "Nein, wir nutzen keine KI.", value: "no", next: "q_final_compliant" },
-      { label: "Ich bin mir nicht sicher.", value: "unsure", next: "q2" },
+      {
+        label: 'Ja, wir entwickeln, betreiben oder verkaufen KI-Systeme.',
+        value: 'yes',
+        next: 'q2',
+      },
+      {
+        label: 'Nein, wir nutzen keine KI.',
+        value: 'no',
+        next: 'q_final_compliant',
+      },
+      { label: 'Ich bin mir nicht sicher.', value: 'unsure', next: 'q2' },
     ],
   },
   q2: {
-    title: "Verbotene Praktiken (Art. 5)",
-    question: "Nutzt Ihr KI-System Techniken, die das Verhalten von Personen manipulieren (z.B. unterschwellige Beeinflussung), 'Social Scoring' zur Bewertung von Personen einsetzen oder Echtzeit-Fernidentifizierung im öffentlichen Raum ohne richterliche Genehmigung durchführen?",
+    title: 'Verbotene Praktiken (Art. 5)',
+    question:
+      "Nutzt Ihr KI-System Techniken, die das Verhalten von Personen manipulieren (z.B. unterschwellige Beeinflussung), 'Social Scoring' zur Bewertung von Personen einsetzen oder Echtzeit-Fernidentifizierung im öffentlichen Raum ohne richterliche Genehmigung durchführen?",
     options: [
-      { label: "Ja, eines oder mehrere davon treffen zu.", value: "yes_forbidden" },
-      { label: "Nein, nichts davon trifft zu.", value: "no" },
+      {
+        label: 'Ja, eines oder mehrere davon treffen zu.',
+        value: 'yes_forbidden',
+      },
+      { label: 'Nein, nichts davon trifft zu.', value: 'no' },
     ],
-    next: 'q3'
+    next: 'q3',
   },
   q3: {
-    title: "Hochrisiko-System: Kritische Infrastruktur",
-    question: "Wird Ihr KI-System zur Steuerung oder als Sicherheitskomponente in kritischen Infrastrukturen wie Wasser-, Gas-, Stromversorgung oder im Verkehr eingesetzt?",
+    title: 'Hochrisiko-System: Kritische Infrastruktur',
+    question:
+      'Wird Ihr KI-System zur Steuerung oder als Sicherheitskomponente in kritischen Infrastrukturen wie Wasser-, Gas-, Stromversorgung oder im Verkehr eingesetzt?',
     options: [
-      { label: "Ja", value: "yes_high_risk" },
-      { label: "Nein", value: "no" },
+      { label: 'Ja', value: 'yes_high_risk' },
+      { label: 'Nein', value: 'no' },
     ],
-    next: 'q4'
+    next: 'q4',
   },
   q4: {
-    title: "Hochrisiko-System: Bildung / Berufliche Bildung",
-    question: "Wird Ihr KI-System eingesetzt, um über den Zugang zu Bildungseinrichtungen zu entscheiden oder die Leistung von Studierenden zu bewerten (z.B. bei Prüfungen)?",
+    title: 'Hochrisiko-System: Bildung / Berufliche Bildung',
+    question:
+      'Wird Ihr KI-System eingesetzt, um über den Zugang zu Bildungseinrichtungen zu entscheiden oder die Leistung von Studierenden zu bewerten (z.B. bei Prüfungen)?',
     options: [
-      { label: "Ja", value: "yes_high_risk" },
-      { label: "Nein", value: "no" },
+      { label: 'Ja', value: 'yes_high_risk' },
+      { label: 'Nein', value: 'no' },
     ],
-    next: 'q5'
+    next: 'q5',
   },
   q5: {
-    title: "Hochrisiko-System: Personalwesen",
-    question: "Trifft Ihr KI-System Entscheidungen im Personalbereich, z.B. bei der Auswahl von Bewerbern, bei Beförderungen oder Kündigungen?",
+    title: 'Hochrisiko-System: Personalwesen',
+    question:
+      'Trifft Ihr KI-System Entscheidungen im Personalbereich, z.B. bei der Auswahl von Bewerbern, bei Beförderungen oder Kündigungen?',
     options: [
-      { label: "Ja", value: "yes_high_risk" },
-      { label: "Nein", value: "no" },
+      { label: 'Ja', value: 'yes_high_risk' },
+      { label: 'Nein', value: 'no' },
     ],
-    next: 'q6'
+    next: 'q6',
   },
   q6: {
-    title: "Hochrisiko-System: Zugang zu Leistungen",
-    question: "Entscheidet Ihr KI-System über den Zugang zu wesentlichen privaten oder öffentlichen Dienstleistungen, wie z.B. die Kreditwürdigkeitsprüfung für einen Kredit?",
+    title: 'Hochrisiko-System: Zugang zu Leistungen',
+    question:
+      'Entscheidet Ihr KI-System über den Zugang zu wesentlichen privaten oder öffentlichen Dienstleistungen, wie z.B. die Kreditwürdigkeitsprüfung für einen Kredit?',
     options: [
-      { label: "Ja", value: "yes_high_risk" },
-      { label: "Nein", value: "no" },
+      { label: 'Ja', value: 'yes_high_risk' },
+      { label: 'Nein', value: 'no' },
     ],
-    next: 'q7'
+    next: 'q7',
   },
   q7: {
-    title: "Hochrisiko-System: Strafverfolgung & Biometrie",
-    question: "Wird Ihr System im Bereich der Strafverfolgung eingesetzt, z.B. zur Bewertung der Zuverlässigkeit von Beweismitteln oder zur Vorhersage von Straftaten?",
+    title: 'Hochrisiko-System: Strafverfolgung & Biometrie',
+    question:
+      'Wird Ihr System im Bereich der Strafverfolgung eingesetzt, z.B. zur Bewertung der Zuverlässigkeit von Beweismitteln oder zur Vorhersage von Straftaten?',
     options: [
-      { label: "Ja", value: "yes_high_risk" },
-      { label: "Nein", value: "no" },
+      { label: 'Ja', value: 'yes_high_risk' },
+      { label: 'Nein', value: 'no' },
     ],
-    next: 'q_final_review'
+    next: 'q_final_review',
   },
   q_final_compliant: {
     final: true,
-    title: "Kein direkter Handlungsbedarf",
-    description: "Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Organisation weiter, das diesen Status widerspiegelt.",
+    title: 'Kein direkter Handlungsbedarf',
+    description:
+      'Basierend auf Ihrer Antwort scheinen Sie vom EU AI Act nicht direkt betroffen zu sein. Es werden keine KI-Systeme eingesetzt. Wir leiten Sie zum Dashboard für dieses Organisation weiter, das diesen Status widerspiegelt.',
   },
   q_final_review: {
     final: true,
-    title: "Bewertung abgeschlossen",
-    description: "Vielen Dank. Ihre Antworten wurden für dieses Organisation aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.",
-  }
+    title: 'Bewertung abgeschlossen',
+    description:
+      'Vielen Dank. Ihre Antworten wurden für dieses Organisation aufgezeichnet. Im nächsten Schritt erfassen wir weitere Details zu Ihrem Unternehmen, um die Ratschläge zu personalisieren.',
+  },
 };
 
 const questionOrder: QuestionId[] = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7'];
@@ -124,8 +157,7 @@ export function AssessmentWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
-  const { data: userStatus } = useUserStatus(user?.email);
+  const { allowed: canRunAssessment } = useCapability('assessmentWizard');
 
   const currentStepId = stepHistory[stepHistory.length - 1];
   const currentQuestionDef = questions[currentStepId];
@@ -136,7 +168,9 @@ export function AssessmentWizard() {
       const projectId = projectIdParam || getActiveProjectId();
 
       if (!projectId) {
-        console.warn("No active project found in wizard, redirecting to projects.");
+        console.warn(
+          'No active project found in wizard, redirecting to projects.',
+        );
         router.push('/projects');
         return;
       }
@@ -147,7 +181,10 @@ export function AssessmentWizard() {
         setIsSubmitting(true);
         await saveAssessmentAnswers(currentAnswers);
 
-        if (currentStepId === 'q_final_compliant' || currentStepId === 'q_final_review') {
+        if (
+          currentStepId === 'q_final_compliant' ||
+          currentStepId === 'q_final_review'
+        ) {
           await updateWizardStatus('completed');
           router.push(`/dashboard?projectId=${projectId}`);
         } else {
@@ -168,7 +205,7 @@ export function AssessmentWizard() {
       // Normal navigation
       if (!('final' in question)) {
         const value = currentAnswers[currentStepId];
-        const selectedOption = question.options.find(o => o.value === value);
+        const selectedOption = question.options.find((o) => o.value === value);
         let nextStepId = selectedOption?.next || question.next;
 
         if (!nextStepId) {
@@ -182,7 +219,7 @@ export function AssessmentWizard() {
         setStepHistory([...stepHistory, nextStepId]);
       }
     } catch (error: any) {
-      console.error("Error in wizard next step:", error);
+      console.error('Error in wizard next step:', error);
       setIsSubmitting(false);
       // If we hit a permission error (e.g. session expired), maybe redirect or show toast
       // For now, we rely on the global error emitter or just log it.
@@ -217,26 +254,34 @@ export function AssessmentWizard() {
           <p>{currentQuestionDef.description}</p>
         </CardContent>
         <CardFooter className="flex justify-end">
-          {(!userStatus || checkCapability(userStatus.purchase?.productId === 'pro' ? 'pro' : 'free', 'assessmentWizard')) ? (
-            <Button onClick={() => handleNextStep(answers)} disabled={isSubmitting}>
+          {canRunAssessment ? (
+            <Button
+              onClick={() => handleNextStep(answers)}
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Weiterleiten...
                 </>
+              ) : currentStepId === 'q_final_compliant' ? (
+                'Zum Dashboard'
               ) : (
-                currentStepId === 'q_final_compliant' ? 'Zum Dashboard' : 'Weiter zum nächsten Schritt'
+                'Weiter zum nächsten Schritt'
               )}
             </Button>
           ) : (
-            <Button disabled className="bg-slate-300 text-slate-600 cursor-not-allowed">
+            <Button
+              disabled
+              className="bg-slate-300 text-slate-600 cursor-not-allowed"
+            >
               <ShieldAlert className="mr-2 h-4 w-4" />
               Pro-Plan erforderlich
             </Button>
           )}
         </CardFooter>
       </Card>
-    )
+    );
   }
 
   return (
@@ -244,7 +289,8 @@ export function AssessmentWizard() {
       <CardHeader>
         <CardTitle>Compliance-Bewertung</CardTitle>
         <CardDescription>
-          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI Acts für Ihr Organisation.
+          Führt Sie Schritt für Schritt durch die relevanten Fragen des EU AI
+          Acts für Ihr Organisation.
         </CardDescription>
         <Progress value={progress} className="mt-2" />
       </CardHeader>
@@ -257,7 +303,9 @@ export function AssessmentWizard() {
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
           >
-            <h3 className="font-semibold text-lg mb-4">{currentQuestionDef.title}</h3>
+            <h3 className="font-semibold text-lg mb-4">
+              {currentQuestionDef.title}
+            </h3>
             <p className="mb-6">{currentQuestionDef.question}</p>
             <RadioGroup
               onValueChange={handleAnswerChange}
@@ -265,9 +313,20 @@ export function AssessmentWizard() {
               className="space-y-2"
             >
               {currentQuestionDef.options.map((option) => (
-                <div key={option.value} className="flex items-center space-x-2 p-3 rounded-md border border-transparent hover:border-primary has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-secondary transition-all">
-                  <RadioGroupItem value={option.value} id={`${currentStepId}-${option.value}`} />
-                  <Label htmlFor={`${currentStepId}-${option.value}`} className="flex-1 cursor-pointer">{option.label}</Label>
+                <div
+                  key={option.value}
+                  className="flex items-center space-x-2 p-3 rounded-md border border-transparent hover:border-primary has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-secondary transition-all"
+                >
+                  <RadioGroupItem
+                    value={option.value}
+                    id={`${currentStepId}-${option.value}`}
+                  />
+                  <Label
+                    htmlFor={`${currentStepId}-${option.value}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    {option.label}
+                  </Label>
                 </div>
               ))}
             </RadioGroup>
@@ -275,7 +334,11 @@ export function AssessmentWizard() {
         </AnimatePresence>
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={handleBack} disabled={stepHistory.length <= 1}>
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          disabled={stepHistory.length <= 1}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Zurück
         </Button>
       </CardFooter>

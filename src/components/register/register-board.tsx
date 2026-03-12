@@ -63,10 +63,13 @@ import {
   createStaticToolRegistryService,
   createAiToolsRegistryService,
   buildVerifyPassAbsoluteUrl,
-  getSupplierRequestContact,
-  isSupplierRequestCard,
+  getUseCaseSource,
+  getUseCaseSourceBadges,
+  getUseCaseSubmitterIdentity,
+  matchesUseCaseSourceFilter,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
+  type UseCaseSourceFilter,
   type UseCaseCard,
 } from "@/lib/register-first";
 import { RegisterStatusBadge } from "./status-badge";
@@ -90,7 +93,6 @@ interface RegisterBoardProps {
 type StatusFilter = RegisterUseCaseStatus | "ALL";
 type SortField = "updatedAt" | "createdAt" | "purpose" | "owner" | "status" | "tool";
 type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
-type DocumentView = "ALL" | "SUPPLIER_REQUESTS";
 type ProofBooleanChoice = "YES" | "NO";
 
 interface ProofMetaDraft {
@@ -219,8 +221,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   const isStandalone = mode === "standalone";
   const router = useRouter();
   const { toast } = useToast();
-  const initialDocumentView: DocumentView =
-    initialFilter === SUPPLIER_REQUEST_FILTER ? "SUPPLIER_REQUESTS" : "ALL";
+  const initialSourceFilter: UseCaseSourceFilter =
+    initialFilter === SUPPLIER_REQUEST_FILTER ? "LIEFERANT" : "ALL";
   const initialCustomFilter =
     initialFilter && initialFilter !== SUPPLIER_REQUEST_FILTER
       ? initialFilter
@@ -230,7 +232,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   const [error, setError] = useState<string | null>(null);
 
   const [activeCustomFilter, setActiveCustomFilter] = useState<string | null>(initialCustomFilter);
-  const [documentView, setDocumentView] = useState<DocumentView>(initialDocumentView);
+  const [sourceFilter, setSourceFilter] =
+    useState<UseCaseSourceFilter>(initialSourceFilter);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -347,12 +350,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
   useEffect(() => {
     if (initialFilter === SUPPLIER_REQUEST_FILTER) {
-      setDocumentView("SUPPLIER_REQUESTS");
+      setSourceFilter("LIEFERANT");
       setActiveCustomFilter(null);
       return;
     }
 
-    setDocumentView("ALL");
+    setSourceFilter("ALL");
     setActiveCustomFilter(initialFilter || null);
   }, [initialFilter]);
 
@@ -367,21 +370,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     setStatusFilter("ALL");
     setRiskFilter("ALL");
     setActiveCustomFilter(null);
-    setDocumentView("ALL");
+    setSourceFilter("ALL");
   };
 
-  const supplierRequestCount = useMemo(
-    () => useCases.filter((card) => isSupplierRequestCard(card)).length,
-    [useCases]
-  );
-
   const visibleUseCases = useMemo(() => {
-    if (documentView === "SUPPLIER_REQUESTS") {
-      return useCases.filter((card) => isSupplierRequestCard(card));
-    }
-
-    return useCases;
-  }, [documentView, useCases]);
+    return useCases.filter((card) => matchesUseCaseSourceFilter(card, sourceFilter));
+  }, [sourceFilter, useCases]);
 
   const sortedUseCases = useMemo(() => {
     const sorted = [...visibleUseCases];
@@ -760,10 +754,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     }
   };
 
-  const isSupplierSubview = documentView === "SUPPLIER_REQUESTS";
-  const resultCountLabel = isSupplierSubview
-    ? `${sortedUseCases.length} Lieferantenanfragen`
-    : `${sortedUseCases.length} Einsatzf${sortedUseCases.length === 1 ? "all" : "älle"}`;
+  const resultCountLabel = [
+    `${sortedUseCases.length} Einsatzf${sortedUseCases.length === 1 ? "all" : "aelle"}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="space-y-4">
@@ -842,29 +837,6 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             <SelectItem value="BY_STATUS">Nach Status</SelectItem>
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-1 rounded-md border border-border/70 bg-background p-1">
-          <Button
-            type="button"
-            variant={documentView === "ALL" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => setDocumentView("ALL")}
-          >
-            Alle Dokumente
-          </Button>
-          <Button
-            type="button"
-            variant={documentView === "SUPPLIER_REQUESTS" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={() => setDocumentView("SUPPLIER_REQUESTS")}
-          >
-            Lieferantenanfragen
-            <span className="ml-1 text-[11px] text-muted-foreground">
-              {supplierRequestCount}
-            </span>
-          </Button>
-        </div>
         <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title="Filter anwenden"><Search className="h-3.5 w-3.5" /></Button>
         <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
           Zurücksetzen
@@ -901,19 +873,6 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         </Alert>
       )}
 
-      {isSupplierSubview && !isLoading && (
-        <Card className="border-slate-200 bg-slate-50/80">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-base font-medium text-slate-900">
-              Lieferantenanfragen
-            </CardTitle>
-            <CardDescription>
-              Extern eingegangene Lieferantenangaben werden als normale Registerkarten mit Herkunftslabel geführt.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
       {isLoading ? (
         <div className="flex items-center justify-center rounded-md border p-12">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -921,24 +880,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       ) : useCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Noch keine Einsatzfälle erfasst</CardTitle>
+            <CardTitle>Noch keine Einsatzfälle dokumentiert</CardTitle>
             <CardDescription>
-              Erfasse den ersten Einsatzfall mit <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘K</kbd> oder dem Button oben.
+              Dokumentiere den ersten Einsatzfall über die Register-Aktion oben.
             </CardDescription>
           </CardHeader>
         </Card>
       ) : sortedUseCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>
-              {isSupplierSubview
-                ? "Keine Lieferantenanfragen im aktuellen Filter"
-                : "Keine Einträge für den aktuellen Filter"}
-            </CardTitle>
+            <CardTitle>Keine Einträge für den aktuellen Filter</CardTitle>
             <CardDescription>
-              {isSupplierSubview
-                ? "Sobald ein Lieferant das Anfrageformular absendet, erscheint der Vorgang hier."
-                : "Passe Suche, Status oder Dokumentansicht an, um weitere Registerkarten anzuzeigen."}
+              Passe Suche, Status, Herkunft oder Dokumentansicht an, um weitere
+              Registerkarten anzuzeigen.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -947,19 +901,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">
-                  {isSupplierSubview ? "Anfrage" : "System"}
-                </TableHead>
+                <TableHead className="w-[360px]">System</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>
-                  {isSupplierSubview ? "Lieferant" : "Owner-Rolle"}
-                </TableHead>
-                <TableHead>
-                  {isSupplierSubview ? "Erfasst am" : "Risikoklasse"}
-                </TableHead>
-                <TableHead>
-                  {isSupplierSubview ? "Risikoklasse" : "Aktivität"}
-                </TableHead>
+                <TableHead>Owner-Rolle</TableHead>
+                <TableHead>Risikoklasse</TableHead>
+                <TableHead>Aktivität</TableHead>
                 <TableHead className="w-[80px] text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
@@ -999,9 +945,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                 }
 
                 const nextStatuses = getNextManualStatuses(card.status);
-                const supplierRequest = isSupplierRequestCard(card);
                 const toolDisplayName = getCardToolDisplayName(card);
-                const supplierContact = getSupplierRequestContact(card);
+                const source = getUseCaseSource(card);
+                const sourceBadges = getUseCaseSourceBadges(card);
+                const submitterIdentity = getUseCaseSubmitterIdentity(card);
+                const ownerRole =
+                  card.responsibility.responsibleParty || "Nicht zugewiesen";
+                const originLine =
+                  source === "supplier_request" && submitterIdentity
+                    ? `Lieferant: ${submitterIdentity}`
+                    : source !== "manual" && submitterIdentity
+                      ? `Einreichung: ${submitterIdentity}`
+                      : null;
                 const outputState = getStatusGatedOutputState(
                   card.status,
                   registerFirstFlags
@@ -1011,7 +966,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                 return (
                   <React.Fragment key={card.useCaseId}>
                     {showGroupHeader && groupHeader && (
-                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableRow className="bg-white hover:bg-white">
                         <TableCell colSpan={6} className="h-10 text-xs font-semibold uppercase text-muted-foreground">
                           {groupHeader}
                         </TableCell>
@@ -1022,28 +977,36 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                       className={`cursor-pointer group ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
                     >
                       <TableCell>
-                        <div className="flex flex-col gap-0.5 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm ${card.isDeleted ? "line-through" : ""}`}>
-                              {isSupplierSubview ? toolDisplayName : card.purpose}
+                        <div className="flex min-w-0 flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-sm font-medium text-slate-950 ${card.isDeleted ? "line-through" : ""}`}>
+                              {card.purpose}
                             </span>
                             {card.isDeleted && (
-                              <Badge variant="destructive" className="shrink-0 text-[10px]">Gelöscht</Badge>
-                            )}
-                            {supplierRequest && (
-                              <Badge variant="outline" className="shrink-0 border-slate-300 text-[10px] text-slate-600">
-                                Lieferantenanfrage
-                              </Badge>
+                              <Badge variant="destructive" className="shrink-0">Gelöscht</Badge>
                             )}
                           </div>
-                          <span className="text-xs text-muted-foreground pl-1">
-                            {isSupplierSubview ? card.purpose : `Tool: ${toolDisplayName}`}
+                          <span className="text-xs text-muted-foreground">
+                            Tool: {toolDisplayName}
                           </span>
-                          {!isSupplierSubview && supplierContact && (
-                            <span className="text-xs text-muted-foreground pl-1">
-                              Lieferant: {supplierContact}
+                          {originLine ? (
+                            <span className="text-xs text-muted-foreground">
+                              {originLine}
                             </span>
-                          )}
+                          ) : null}
+                          {sourceBadges.length > 0 ? (
+                            <div className="flex flex-wrap items-center gap-1 pt-1">
+                              {sourceBadges.map((badge) => (
+                                <Badge
+                                  key={`${card.useCaseId}_${badge.key}`}
+                                  variant="outline"
+                                  className={`shrink-0 ${badge.className}`}
+                                >
+                                  {badge.label}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       </TableCell>
 
@@ -1052,35 +1015,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-xs">
-                          {supplierRequest
-                            ? supplierContact || <span className="text-muted-foreground">Nicht hinterlegt</span>
-                            : card.responsibility.responsibleParty || <span className="text-muted-foreground">Nicht zugewiesen</span>}
+                        <span className="text-sm text-slate-700">{ownerRole}</span>
+                      </TableCell>
+
+                      <TableCell>
+                        <span className="text-sm text-slate-700">
+                          {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
                         </span>
                       </TableCell>
 
                       <TableCell>
-                        {isSupplierSubview ? (
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(card.createdAt)}
-                          </span>
-                        ) : (
-                          <span className="text-xs">
-                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
-                          </span>
-                        )}
-                      </TableCell>
-
-                      <TableCell>
-                        {isSupplierSubview ? (
-                          <span className="text-xs">
-                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(card.updatedAt)}
-                          </span>
-                        )}
+                        <span className="text-sm text-muted-foreground">
+                          {formatDate(card.updatedAt)}
+                        </span>
                       </TableCell>
 
                       <TableCell className="text-right align-middle" onClick={(e) => e.stopPropagation()}>

@@ -39,14 +39,15 @@ export type FeatureCapability =
 //   Monetized: Governance-Fähigkeiten, Komfort, externe Signalgebung.
 
 const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
-    free: [],
-    // Free gets: Register, Quick Capture, Read-Only Use Case View, Basic Org Settings
+    free: [
+        'editUseCase',
+        'assessmentWizard',
+    ],
+    // Free gets: Register, Quick Capture, Use-Case editing, basic pass preparation and external intake.
 
     pro: [
-        'editUseCase',
         'isoLifecycleTab',
         'portfolioTab',
-        'assessmentWizard',
         'extendedOrgSettings',
         'governanceWizard',
         'policyEngine',
@@ -54,14 +55,13 @@ const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
         'isoAlignmentPack',
         'competencyMatrix',
         'reviewWorkflow',
+        'trustPortal',
     ],
 
     enterprise: [
         // All pro features +
-        'editUseCase',
         'isoLifecycleTab',
         'portfolioTab',
-        'assessmentWizard',
         'extendedOrgSettings',
         'governanceWizard',
         'policyEngine',
@@ -69,8 +69,8 @@ const PLAN_CAPABILITIES: Record<SubscriptionPlan, FeatureCapability[]> = {
         'isoAlignmentPack',
         'competencyMatrix',
         'reviewWorkflow',
-        // Enterprise-only:
         'trustPortal',
+        // Enterprise-only:
         'benchmarkInsights',
         'apiAccess',
         'executiveReporting',
@@ -108,8 +108,8 @@ export function getRequiredPlan(feature: FeatureCapability): SubscriptionPlan {
  */
 export function getPlanLabel(plan: SubscriptionPlan): string {
     switch (plan) {
-        case 'free': return 'Register (Free)';
-        case 'pro': return 'Governance Toolkit';
+        case 'free': return 'Free Register';
+        case 'pro': return 'Governance Control Center';
         case 'enterprise': return 'Enterprise';
     }
 }

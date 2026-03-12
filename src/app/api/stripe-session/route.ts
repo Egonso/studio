@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { inferCheckoutEntitlementPlan } from '@/lib/billing/stripe-entitlements';
 
 const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
 
@@ -39,6 +40,10 @@ export async function GET(request: NextRequest) {
         });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
+        const lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
+            limit: 20,
+            expand: ['data.price.product'],
+        });
 
         // Get email from various possible sources
         const customerEmail =
@@ -46,13 +51,33 @@ export async function GET(request: NextRequest) {
             session.customer_email ||
             null;
 
+        const entitlementPlan = inferCheckoutEntitlementPlan({
+            metadata: session.metadata,
+            productId: session.metadata?.productId ?? null,
+            lineItems: lineItems.data.map((item) => {
+                const product = item.price?.product;
+                return {
+                    priceId: item.price?.id ?? null,
+                    lookupKey: item.price?.lookup_key ?? null,
+                    productId: typeof product === 'string' ? product : product?.id ?? null,
+                    productName:
+                        typeof product === 'object' && product && 'name' in product
+                            ? product.name ?? null
+                            : null,
+                    description: item.description ?? null,
+                };
+            }),
+        });
+
         if (!customerEmail) {
             // Try to get from customer object if available
             if (typeof session.customer === 'string') {
                 const customer = await stripe.customers.retrieve(session.customer);
                 if (customer && !customer.deleted && customer.email) {
                     return NextResponse.json({
-                        customer_email: customer.email.toLowerCase()
+                        customer_email: customer.email.toLowerCase(),
+                        entitlement_plan: entitlementPlan,
+                        checkout_claimable: entitlementPlan === 'pro' || entitlementPlan === 'enterprise',
                     });
                 }
             }
@@ -64,7 +89,9 @@ export async function GET(request: NextRequest) {
         }
 
         return NextResponse.json({
-            customer_email: customerEmail.toLowerCase()
+            customer_email: customerEmail.toLowerCase(),
+            entitlement_plan: entitlementPlan,
+            checkout_claimable: entitlementPlan === 'pro' || entitlementPlan === 'enterprise',
         });
 
     } catch (error: any) {

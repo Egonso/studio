@@ -4,7 +4,6 @@
  */
 import {
   parseCaptureInput,
-  createUseCaseCardDraft,
   createUseCaseCardV11Draft,
 } from "./schema";
 import {
@@ -20,28 +19,19 @@ export interface PrepareUseCaseOptions {
 
 /**
  * Parses raw capture input and creates a validated UseCaseCard draft.
- * Automatically detects v1.0 vs v1.1 based on whether toolId/dataCategory are present.
+ * All new writes use the canonical v1.1 card shape.
  */
 export function prepareUseCaseForStorage(
   input: unknown,
   options: PrepareUseCaseOptions
 ): UseCaseCard {
   const currentTime = options.now ?? new Date();
-  const parsed = parseCaptureInput(input);
-  const isV11 = !!(parsed.toolId || parsed.dataCategory);
+  parseCaptureInput(input);
 
-  if (isV11) {
-    return createUseCaseCardV11Draft(input, {
-      useCaseId: options.useCaseId,
-      globalUseCaseId: generateGlobalUseCaseId(currentTime),
-      publicHashId: generatePublicHashId(),
-      now: currentTime,
-      status: "UNREVIEWED",
-    });
-  }
-
-  return createUseCaseCardDraft(input, {
+  return createUseCaseCardV11Draft(input, {
     useCaseId: options.useCaseId,
+    globalUseCaseId: generateGlobalUseCaseId(currentTime),
+    publicHashId: generatePublicHashId(),
     now: currentTime,
     status: "UNREVIEWED",
   });

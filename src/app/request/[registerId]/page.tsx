@@ -1,87 +1,84 @@
-import { db } from "@/lib/firebase-admin";
 import SupplierRequestForm from "./client";
-import { FieldPath } from "firebase-admin/firestore";
+
+import { PageStatePanel, PublicIntakeShell } from "@/components/product-shells";
+import { resolveSupplierRequestTokenAccess } from "@/lib/register-first/request-token-admin";
+
+function renderError(title: string, description: string) {
+  return (
+    <PublicIntakeShell
+      title="Lieferantenangaben einreichen"
+      description="Dieser öffentliche Lieferantenlink dient nur zur strukturierten Erfassung von Angaben. Interne Register- oder Governance-Ansichten bleiben dabei verborgen."
+      actions={[]}
+      asidePoints={[
+        "Lieferantenangaben werden intern als nachvollziehbare Einreichung gespeichert.",
+        "Nur der signierte und noch gültige Link erlaubt diese Einreichung.",
+      ]}
+    >
+      <PageStatePanel
+        tone="error"
+        area="public_external_intake"
+        title={title}
+        description={description}
+      />
+    </PublicIntakeShell>
+  );
+}
 
 export default async function SupplierRequestPage({
-    params,
-    searchParams,
+  params,
 }: {
-    params: Promise<{ registerId: string }>;
-    searchParams?: Promise<{ owner?: string | string[] | undefined }>;
+  params: Promise<{ registerId: string }>;
 }) {
-    const { registerId } = await params;
-    const resolvedSearchParams = searchParams ? await searchParams : undefined;
-    const ownerParam = Array.isArray(resolvedSearchParams?.owner)
-        ? resolvedSearchParams?.owner[0]
-        : resolvedSearchParams?.owner;
-    const ownerId = typeof ownerParam === "string" && ownerParam.trim().length > 0
-        ? ownerParam.trim()
-        : null;
+  const { registerId: encodedRequestToken } = await params;
+  const requestToken = decodeURIComponent(encodedRequestToken);
+  let tokenAccess;
 
-    let organisationName = "Unbekannt";
-    let isValid = false;
-    let isOperationalError = false;
+  try {
+    tokenAccess = await resolveSupplierRequestTokenAccess(requestToken);
+  } catch (error) {
+    console.error("Supplier request token resolution failed:", error);
+    return renderError(
+      "Dienst nicht verfuegbar",
+      "Bitte versuchen Sie es in wenigen Minuten erneut."
+    );
+  }
 
-    try {
-        if (ownerId) {
-            const directDoc = await db.doc(`users/${ownerId}/registers/${registerId}`).get();
-            if (directDoc.exists && directDoc.data()?.isDeleted !== true) {
-                organisationName = directDoc.data()?.organisationName || "Unbekannt";
-                isValid = true;
-            } else if (directDoc.exists) {
-                return (
-                    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-                        <div className="bg-white p-8 rounded-lg shadow-sm border max-w-md w-full text-center">
-                            <h1 className="text-xl font-bold text-slate-900 mb-2">Ungültiger Link</h1>
-                            <p className="text-slate-500">
-                                Dieser Erfassungs-Link ist nicht mehr aktiv.
-                            </p>
-                        </div>
-                    </div>
-                );
-            }
-        }
-
-        if (!isValid) {
-            let snap = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
-            if (snap.empty) {
-                snap = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
-            }
-            if (!snap.empty) {
-                const doc = snap.docs[0];
-                if (doc.data()?.isDeleted !== true) {
-                    organisationName = doc.data()?.organisationName || "Unbekannt";
-                    isValid = true;
-                }
-            }
-        }
-    } catch (e) {
-        isOperationalError = true;
-        console.error("Failed to load register for supplier request", e);
-    }
-
-    if (!isValid) {
-        return (
-            <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
-                <div className="bg-white p-8 rounded-lg shadow-sm border max-w-md w-full text-center">
-                    <h1 className="text-xl font-bold text-slate-900 mb-2">
-                        {isOperationalError ? "Dienst vorübergehend nicht verfügbar" : "Ungültiger Link"}
-                    </h1>
-                    <p className="text-slate-500">
-                        {isOperationalError
-                            ? "Bitte versuchen Sie es in wenigen Minuten erneut."
-                            : "Dieser Erfassungs-Link ist abgelaufen oder ungültig."}
-                    </p>
-                </div>
-            </div>
+  if (!tokenAccess.ok) {
+    switch (tokenAccess.reason) {
+      case "expired":
+        return renderError(
+          "Link abgelaufen",
+          "Dieser Lieferanten-Link ist nicht mehr gueltig."
+        );
+      case "revoked":
+        return renderError(
+          "Link widerrufen",
+          "Dieser Lieferanten-Link wurde bereits widerrufen."
+        );
+      case "register_not_found":
+        return renderError(
+          "Register nicht verfuegbar",
+          "Dieses Register ist nicht mehr aktiv."
+        );
+      default:
+        return renderError(
+          "Ungueltiger Link",
+          "Dieser Lieferanten-Link ist ungueltig oder beschaedigt."
         );
     }
+  }
 
-    return (
-        <SupplierRequestForm
-            registerId={registerId}
-            ownerId={ownerId}
-            organisationName={organisationName}
-        />
-    );
+  const organisationName =
+    tokenAccess.value.register.organisationName ??
+    tokenAccess.value.register.name ??
+    "Unbekannt";
+
+  return (
+    <SupplierRequestForm
+      requestToken={requestToken}
+      requestTokenId={tokenAccess.value.token.tokenId}
+      organisationName={organisationName}
+      expiresAt={tokenAccess.value.token.expiresAt}
+    />
+  );
 }

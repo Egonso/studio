@@ -49,7 +49,7 @@ export async function runFoundationSmoke() {
   });
 
   assert.equal(parsed.purpose, "Support-Anfragen priorisieren");
-  assert.deepEqual(parsed.usageContexts, ["INTERNAL_ONLY", "EMPLOYEE_FACING"]);
+  assert.deepEqual(parsed.usageContexts, ["INTERNAL_ONLY", "EMPLOYEES"]);
 
   assert.throws(() =>
     parseCaptureInput({
@@ -75,7 +75,7 @@ export async function runFoundationSmoke() {
   );
 
   assert.equal(card.status, "UNREVIEWED");
-  assert.equal(card.cardVersion, "1.0");
+  assert.equal(card.cardVersion, "1.1");
 
   assert.doesNotThrow(() => assertManualGovernanceDecision("HUMAN"));
   assert.throws(() => assertManualGovernanceDecision("AUTOMATION"));
@@ -95,13 +95,13 @@ export async function runFoundationSmoke() {
   assert.equal(envFlags.proofGate, true);
   assert.equal(isHybridEntryEnabled(envFlags), true);
   assert.equal(isHybridEntryEnabled(registerFirstDefaultFlags), false);
-  assert.equal(buildRegisterHref("project_123"), "/register?projectId=project_123");
-  assert.equal(buildRegisterHref(undefined), "/register");
+  assert.equal(buildRegisterHref("project_123"), "/my-register?projectId=project_123");
+  assert.equal(buildRegisterHref(undefined), "/my-register");
   assert.equal(
     buildCaptureHref("project alpha"),
-    "/register/capture?projectId=project%20alpha"
+    "/capture?projectId=project%20alpha"
   );
-  assert.equal(buildCaptureHref(null), "/register/capture");
+  assert.equal(buildCaptureHref(null), "/capture");
 
   assert.deepEqual(getNextManualStatuses("UNREVIEWED"), [
     "REVIEW_RECOMMENDED",

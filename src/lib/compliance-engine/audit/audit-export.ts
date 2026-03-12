@@ -1,4 +1,5 @@
 import type { UseCaseCard, Register } from '@/lib/register-first/types';
+import { resolveRegisterPlan } from '@/lib/register-first/entitlement';
 import type { DiagnosticReport } from '../types';
 import { calculateDiagnosticReport } from '../index/calculator';
 import { aggregateOrgScores, type OrgScoreAggregation } from '../scores';
@@ -106,7 +107,7 @@ export function generateAuditExport(
             organisationName: register.organisationName || '–',
             organisationUnit: register.organisationUnit || '–',
             industry: register.orgSettings?.industry || '–',
-            plan: register.plan || 'free',
+            plan: resolveRegisterPlan(register),
         },
         summary: {
             totalUseCases: useCases.length,

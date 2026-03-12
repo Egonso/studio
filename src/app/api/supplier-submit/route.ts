@@ -1,107 +1,213 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase-admin";
-import { FieldPath } from "firebase-admin/firestore";
-import { ZodError } from "zod";
+import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
+
+import { db } from '@/lib/firebase-admin';
+import { deliverWorkspaceNotificationHooks } from '@/lib/enterprise/notifications';
+import { captureException } from '@/lib/observability/error-tracking';
+import { logInfo, logWarn } from '@/lib/observability/logger';
 import {
-    createSupplierRequestUseCase,
-    sanitizeSupplierRequestCard,
-} from "@/lib/register-first/supplier-requests";
+  buildExternalSubmissionRecord,
+  createSubmissionApprovalWorkflow,
+} from '@/lib/register-first/external-submissions';
+import { sanitizeFirestorePayload } from '@/lib/register-first/firestore-sanitize';
+import {
+  markSupplierRequestTokenUsed,
+  resolveSupplierRequestTokenAccess,
+} from '@/lib/register-first/request-token-admin';
+import { parseSupplierRequestSubmission } from '@/lib/register-first/supplier-requests';
+import type { Register } from '@/lib/register-first/types';
+import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
+
+function mapTokenFailure(reason: string): { status: number; error: string } {
+  switch (reason) {
+    case 'expired':
+      return {
+        status: 410,
+        error: 'Dieser Lieferanten-Link ist abgelaufen.',
+      };
+    case 'revoked':
+      return {
+        status: 410,
+        error: 'Dieser Lieferanten-Link wurde widerrufen.',
+      };
+    case 'register_not_found':
+      return {
+        status: 410,
+        error: 'Dieses Register ist nicht mehr aktiv.',
+      };
+    default:
+      return {
+        status: 404,
+        error: 'Ungueltiger Lieferanten-Link.',
+      };
+  }
+}
 
 export async function POST(req: Request) {
-    try {
-        const body = await req.json();
-        const {
-            registerId,
-            ownerId,
-            toolName,
-            purpose,
-            dataCategory,
-            aiActCategory,
-            supplierEmail,
-        } = body;
+  let phase = 'parse_request';
+  try {
+    const body = await req.json();
+    phase = 'resolve_token';
+    const requestToken =
+      typeof body?.requestToken === 'string' ? body.requestToken.trim() : '';
 
-        if (!registerId || !toolName || !supplierEmail) {
-            return NextResponse.json({ error: "Fehlende Pflichtfelder (Register, Tool-Name oder Email)" }, { status: 400 });
-        }
-
-        // Verify register exists (prefer direct owner/register path when available)
-        let registerRef: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData> | null = null;
-        let organisationName = "";
-
-        if (typeof ownerId === "string" && ownerId.trim().length > 0) {
-            const directRef = db.doc(`users/${ownerId.trim()}/registers/${registerId}`);
-            const directDoc = await directRef.get();
-            if (directDoc.exists && directDoc.data()?.isDeleted !== true) {
-                registerRef = directRef;
-                organisationName = directDoc.data()?.organisationName || "";
-            } else if (directDoc.exists) {
-                return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
-            }
-        }
-
-        if (!registerRef) {
-            let registerQuery = await db.collectionGroup("registers").where("registerId", "==", registerId).limit(1).get();
-            if (registerQuery.empty) {
-                registerQuery = await db.collectionGroup("registers").where(FieldPath.documentId(), "==", registerId).limit(1).get();
-            }
-
-            if (registerQuery.empty) {
-                return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
-            }
-
-            const registerDoc = registerQuery.docs[0];
-            if (registerDoc.data()?.isDeleted !== true) {
-                registerRef = registerDoc.ref;
-                organisationName = registerDoc.data()?.organisationName || "";
-            }
-        }
-
-        if (!registerRef) {
-            return NextResponse.json({ error: "Register nicht gefunden / Ungültiger Magic Link" }, { status: 404 });
-        }
-
-        const useCaseId = crypto.randomUUID();
-        const currentTime = new Date();
-
-        const newUseCase = createSupplierRequestUseCase(
-            {
-                supplierEmail,
-                toolName,
-                purpose,
-                dataCategory,
-                aiActCategory,
-            },
-            {
-                useCaseId,
-                now: currentTime,
-                organisationName,
-            }
-        );
-
-        // Firebase Admin ignores client security rules, allowing this secure unauthenticated write
-        await registerRef
-            .collection("useCases")
-            .doc(useCaseId)
-            .set(sanitizeSupplierRequestCard(newUseCase));
-
-        return NextResponse.json({ success: true, useCaseId });
-    } catch (error: unknown) {
-        if (error instanceof ZodError) {
-            return NextResponse.json(
-                { error: "Bitte pruefen Sie die uebermittelten Lieferantenangaben." },
-                { status: 400 }
-            );
-        }
-
-        console.error("Supplier Request error:", error);
-        return NextResponse.json(
-            {
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Interner Serverfehler",
-            },
-            { status: 500 }
-        );
+    if (!requestToken) {
+      return NextResponse.json(
+        { error: 'requestToken is required.' },
+        { status: 400 },
+      );
     }
+
+    const tokenAccess = await resolveSupplierRequestTokenAccess(requestToken);
+    if (!tokenAccess.ok) {
+      const mapped = mapTokenFailure(tokenAccess.reason);
+      logWarn('supplier_submit_token_rejected', {
+        reason: tokenAccess.reason,
+      });
+      return NextResponse.json(
+        { error: mapped.error },
+        { status: mapped.status },
+      );
+    }
+
+    phase = 'parse_submission';
+    const parsedSubmission = parseSupplierRequestSubmission({
+      supplierEmail: body?.supplierEmail,
+      toolName: body?.toolName,
+      purpose: body?.purpose,
+      dataCategory: body?.dataCategory,
+      aiActCategory: body?.aiActCategory,
+    });
+    phase = 'load_register';
+    const registerRef = db.doc(
+      `users/${tokenAccess.value.token.ownerId}/registers/${tokenAccess.value.token.registerId}`,
+    );
+    const registerSnapshot = await registerRef.get();
+    const register = registerSnapshot.exists
+      ? (registerSnapshot.data() as Register)
+      : null;
+    phase = 'load_workspace_settings';
+    const workspaceSettings = await getWorkspaceSettingsForRegister({
+      registerWorkspaceId: register?.workspaceId,
+      registerOwnerId: tokenAccess.value.token.ownerId,
+    });
+    phase = 'build_approval_workflow';
+    const approvalWorkflow = createSubmissionApprovalWorkflow({
+      settings: workspaceSettings,
+      requestedAt: new Date().toISOString(),
+      requestedBy: parsedSubmission.supplierEmail,
+    });
+
+    phase = 'build_submission_record';
+    const submission = buildExternalSubmissionRecord({
+      registerId: tokenAccess.value.token.registerId,
+      ownerId: tokenAccess.value.token.ownerId,
+      sourceType: 'supplier_request',
+      requestTokenId: tokenAccess.value.token.tokenId,
+      submittedByName: parsedSubmission.supplierEmail,
+      submittedByEmail: parsedSubmission.supplierEmail,
+      submittedAt: new Date(),
+      rawPayloadSnapshot: parsedSubmission,
+      status: 'submitted',
+      approvalWorkflow,
+    });
+
+    phase = 'persist_submission';
+    await db
+      .doc(
+        `users/${submission.ownerId}/registers/${submission.registerId}/externalSubmissions/${submission.submissionId}`,
+      )
+      .set(sanitizeFirestorePayload(submission));
+
+    phase = 'mark_token_used';
+    await markSupplierRequestTokenUsed(tokenAccess.value.token.tokenId);
+
+    const workspaceId = register?.workspaceId ?? tokenAccess.value.token.ownerId;
+    phase = 'notify_submission_received';
+    await deliverWorkspaceNotificationHooks({
+      workspaceId,
+      eventType: 'submission_received',
+      eventId: submission.submissionId,
+      data: {
+        kind: 'supplier_request',
+        submissionId: submission.submissionId,
+        registerId: submission.registerId,
+        submittedByEmail: submission.submittedByEmail,
+      },
+    }).catch((hookError) => {
+      logWarn('supplier_submission_hook_failed', {
+        submissionId: submission.submissionId,
+        workspaceId,
+        error:
+          hookError instanceof Error ? hookError.message : 'unknown_hook_error',
+      });
+    });
+
+    if (approvalWorkflow?.status === 'pending') {
+      phase = 'notify_approval_needed';
+      await deliverWorkspaceNotificationHooks({
+        workspaceId,
+        eventType: 'approval_needed',
+        eventId: `${submission.submissionId}_approval`,
+        data: {
+          kind: 'supplier_request',
+          submissionId: submission.submissionId,
+          registerId: submission.registerId,
+          requiredRoles: approvalWorkflow.requiredRoles,
+        },
+      }).catch((hookError) => {
+        logWarn('supplier_submission_approval_hook_failed', {
+          submissionId: submission.submissionId,
+          workspaceId,
+          error:
+            hookError instanceof Error ? hookError.message : 'unknown_hook_error',
+        });
+      });
+    }
+
+    logInfo('supplier_submission_created', {
+      ownerId: submission.ownerId,
+      registerId: submission.registerId,
+      requestTokenId: submission.requestTokenId,
+      submissionId: submission.submissionId,
+    });
+
+    return NextResponse.json({
+      success: true,
+      submissionId: submission.submissionId,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: 'Bitte pruefen Sie die uebermittelten Lieferantenangaben.' },
+        { status: 400 },
+      );
+    }
+
+    logWarn('supplier_submit_failed', {
+      phase,
+      error: error instanceof Error ? error.message : 'unknown_error',
+    });
+    captureException(error, {
+      boundary: 'app',
+      component: 'supplier-submit-route',
+      route: '/api/supplier-submit',
+      tags: {
+        phase,
+      },
+    });
+    return NextResponse.json(
+      {
+        error: 'Lieferantenangaben konnten nicht gespeichert werden.',
+        ...(process.env.NODE_ENV !== 'production'
+          ? {
+              detail:
+                error instanceof Error ? error.message : 'unknown_error',
+              phase,
+            }
+          : {}),
+      },
+      { status: 500 },
+    );
+  }
 }

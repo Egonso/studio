@@ -1,99 +1,154 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { registerService } from '@/lib/register-first/register-service';
-import type { SubscriptionPlan } from '@/lib/register-first/types';
+
 import {
-    hasCapability,
-    getRequiredPlan,
-    getPlanLabel,
-    type FeatureCapability,
+  getEntitlementAccessPlan,
+  getActiveRegisterId,
+  normalizeRegisterEntitlement,
+  registerService,
+  resolveRegisterEntitlement,
+  syncRegisterEntitlement,
+  type RegisterEntitlement,
+  type SubscriptionPlan,
+} from '@/lib/register-first';
+import {
+  getPlanLabel,
+  getRequiredPlan,
+  hasCapability,
+  type FeatureCapability,
 } from '@/lib/compliance-engine/capability/featureChecker';
 
-interface UseCapabilityResult {
-    /** Whether the feature is allowed for the current plan */
-    allowed: boolean;
-    /** The current plan of the active register */
-    plan: SubscriptionPlan;
-    /** The minimum plan required for this feature */
-    requiredPlan: SubscriptionPlan;
-    /** Human-readable label of the required plan */
-    requiredPlanLabel: string;
-    /** True while the plan is being loaded */
-    loading: boolean;
+interface EntitlementCacheEntry {
+  entitlement: RegisterEntitlement;
+  registerId: string | null;
 }
 
-// Module-level cache so all hook instances share the same resolved plan
-let planCache: { plan: SubscriptionPlan; registerId: string } | null = null;
-let planPromise: Promise<SubscriptionPlan> | null = null;
+interface UseEntitlementResult {
+  entitlement: RegisterEntitlement;
+  plan: SubscriptionPlan;
+  loading: boolean;
+}
 
-async function resolveCurrentPlan(): Promise<SubscriptionPlan> {
-    try {
-        const registers = await registerService.listRegisters();
-        if (registers.length === 0) return 'free';
-        const active = registers[0];
-        const plan = active.plan || 'free';
-        planCache = { plan, registerId: active.registerId };
-        return plan;
-    } catch {
-        return 'free';
+interface UseCapabilityResult extends UseEntitlementResult {
+  allowed: boolean;
+  requiredPlan: SubscriptionPlan;
+  requiredPlanLabel: string;
+}
+
+let entitlementCache: EntitlementCacheEntry | null = null;
+let entitlementPromise: Promise<EntitlementCacheEntry> | null = null;
+
+async function loadWorkspaceEntitlement(): Promise<RegisterEntitlement | null> {
+  const { getFirebaseAuth, getFirebaseDb } = await import('@/lib/firebase');
+  const auth = await getFirebaseAuth();
+  const userId = auth.currentUser?.uid;
+  if (!userId) {
+    return null;
+  }
+
+  const db = await getFirebaseDb();
+  const { doc, getDoc } = await import('firebase/firestore');
+  const snapshot = await getDoc(doc(db, 'users', userId));
+  const data = snapshot.data() as
+    | { workspaceEntitlement?: Partial<RegisterEntitlement> | null }
+    | undefined;
+
+  return normalizeRegisterEntitlement(data?.workspaceEntitlement);
+}
+
+async function resolveCurrentEntitlement(): Promise<EntitlementCacheEntry> {
+  try {
+    await syncRegisterEntitlement().catch(() => null);
+
+    const registers = await registerService.listRegisters();
+    if (registers.length === 0) {
+      const entitlement =
+        (await loadWorkspaceEntitlement()) ?? resolveRegisterEntitlement(null);
+      entitlementCache = { entitlement, registerId: null };
+      return entitlementCache;
     }
-}
 
-/**
- * React hook to check if the current register's plan allows a feature.
- *
- * Usage:
- *   const { allowed, requiredPlanLabel } = useCapability('editUseCase');
- *   if (!allowed) showLock(requiredPlanLabel);
- */
-export function useCapability(feature: FeatureCapability): UseCapabilityResult {
-    const [plan, setPlan] = useState<SubscriptionPlan>(planCache?.plan ?? 'free');
-    const [loading, setLoading] = useState(!planCache);
+    const activeRegisterId = getActiveRegisterId();
+    const activeRegister =
+      registers.find((register) => register.registerId === activeRegisterId) ??
+      registers[0];
+    const entitlement = resolveRegisterEntitlement(activeRegister);
 
-    useEffect(() => {
-        if (planCache) {
-            setPlan(planCache.plan);
-            setLoading(false);
-            return;
-        }
-
-        if (!planPromise) {
-            planPromise = resolveCurrentPlan();
-        }
-
-        planPromise.then((resolved) => {
-            setPlan(resolved);
-            setLoading(false);
-            planPromise = null;
-        });
-    }, []);
-
-    const requiredPlan = getRequiredPlan(feature);
-
-    return {
-        allowed: hasCapability(plan, feature),
-        plan,
-        requiredPlan,
-        requiredPlanLabel: getPlanLabel(requiredPlan),
-        loading,
+    entitlementCache = {
+      entitlement,
+      registerId: activeRegister.registerId,
     };
+    return entitlementCache;
+  } catch {
+    const entitlement = resolveRegisterEntitlement(null);
+    entitlementCache = { entitlement, registerId: null };
+    return entitlementCache;
+  }
 }
 
-/**
- * Invalidate the plan cache (call after Stripe checkout success).
- */
+export function useEntitlement(): UseEntitlementResult {
+  const [state, setState] = useState<EntitlementCacheEntry | null>(
+    entitlementCache,
+  );
+  const [loading, setLoading] = useState(!entitlementCache);
+
+  useEffect(() => {
+    if (entitlementCache) {
+      setState(entitlementCache);
+      setLoading(false);
+      return;
+    }
+
+    if (!entitlementPromise) {
+      entitlementPromise = resolveCurrentEntitlement();
+    }
+
+    entitlementPromise
+      .then((resolved) => {
+        setState(resolved);
+        setLoading(false);
+      })
+      .finally(() => {
+        entitlementPromise = null;
+      });
+  }, []);
+
+  const entitlement = state?.entitlement ?? resolveRegisterEntitlement(null);
+
+  return {
+    entitlement,
+    plan: getEntitlementAccessPlan(entitlement),
+    loading,
+  };
+}
+
+export function useCapability(feature: FeatureCapability): UseCapabilityResult {
+  const { entitlement, plan, loading } = useEntitlement();
+  const requiredPlan = getRequiredPlan(feature);
+
+  return {
+    allowed: hasCapability(plan, feature),
+    entitlement,
+    plan,
+    requiredPlan,
+    requiredPlanLabel: getPlanLabel(requiredPlan),
+    loading,
+  };
+}
+
 export function invalidatePlanCache(): void {
-    planCache = null;
-    planPromise = null;
+  entitlementCache = null;
+  entitlementPromise = null;
 }
 
-/**
- * Directly check a feature without the hook (for non-component code).
- */
+export function invalidateEntitlementCache(): void {
+  invalidatePlanCache();
+}
+
 export function checkCapability(
-    plan: SubscriptionPlan | undefined | null,
-    feature: FeatureCapability,
+  plan: SubscriptionPlan | undefined | null,
+  feature: FeatureCapability,
 ): boolean {
-    return hasCapability(plan, feature);
+  return hasCapability(plan, feature);
 }

@@ -1,18 +1,22 @@
-export type LoginMode = "login" | "signup";
+export type AuthMode = "login" | "signup";
+export type LoginMode = AuthMode;
+export type AuthIntent = "create_register" | "join_register";
 
 interface SearchParamsReader {
   get(name: string): string | null;
 }
 
-export interface LoginRouteOptions {
-  mode?: LoginMode | null;
+export interface AuthRouteOptions {
+  mode?: AuthMode | null;
+  intent?: AuthIntent | null;
   email?: string | null;
   code?: string | null;
   workspaceInvite?: string | null;
   importUseCase?: string | null;
-  purchase?: boolean;
   sessionId?: string | null;
 }
+
+export type LoginRouteOptions = AuthRouteOptions;
 
 function setQueryParam(
   params: URLSearchParams,
@@ -27,23 +31,34 @@ function setQueryParam(
 
 export function readLoginRouteOptions(
   searchParams: SearchParamsReader
-): LoginRouteOptions {
+): AuthRouteOptions {
+  const rawIntent = searchParams.get("intent");
+
   return {
-    mode: searchParams.get("mode") as LoginMode | null,
+    mode: searchParams.get("mode") as AuthMode | null,
+    intent:
+      rawIntent === "create_register" || rawIntent === "join_register"
+        ? rawIntent
+        : null,
     email: searchParams.get("email"),
     code: searchParams.get("code"),
     workspaceInvite: searchParams.get("workspaceInvite"),
     importUseCase: searchParams.get("importUseCase"),
-    purchase: searchParams.get("purchase") === "true",
-    sessionId: searchParams.get("session_id"),
+    sessionId:
+      searchParams.get("session_id") ??
+      searchParams.get("checkout_session_id"),
   };
 }
 
-export function buildLoginPath(options: LoginRouteOptions = {}): string {
+export function buildAuthPath(options: AuthRouteOptions = {}): string {
   const params = new URLSearchParams();
 
   if (options.mode) {
     params.set("mode", options.mode);
+  }
+
+  if (options.intent) {
+    params.set("intent", options.intent);
   }
 
   setQueryParam(params, "email", options.email);
@@ -52,20 +67,20 @@ export function buildLoginPath(options: LoginRouteOptions = {}): string {
   setQueryParam(params, "importUseCase", options.importUseCase);
   setQueryParam(params, "session_id", options.sessionId);
 
-  if (options.purchase) {
-    params.set("purchase", "true");
-  }
-
   const query = params.toString();
-  return query ? `/login?${query}` : "/login";
+  return query ? `/?${query}` : "/";
 }
 
-export function getInitialLoginMode(
+export function buildLoginPath(options: LoginRouteOptions = {}): string {
+  return buildAuthPath(options);
+}
+
+export function getInitialAuthMode(
   options: Pick<
-    LoginRouteOptions,
-    "mode" | "workspaceInvite" | "importUseCase" | "purchase" | "sessionId"
+    AuthRouteOptions,
+    "mode" | "workspaceInvite" | "importUseCase" | "sessionId" | "code"
   >
-): LoginMode {
+): AuthMode {
   if (options.mode === "login" || options.mode === "signup") {
     return options.mode;
   }
@@ -73,11 +88,37 @@ export function getInitialLoginMode(
   if (
     options.workspaceInvite ||
     options.importUseCase ||
-    options.purchase ||
-    options.sessionId
+    options.sessionId ||
+    options.code
   ) {
     return "signup";
   }
 
-  return "login";
+  return "signup";
+}
+
+export function getInitialLoginMode(
+  options: Pick<
+    LoginRouteOptions,
+    "mode" | "workspaceInvite" | "importUseCase" | "sessionId" | "code"
+  >
+): LoginMode {
+  return getInitialAuthMode(options);
+}
+
+export function getInitialAuthIntent(
+  options: Pick<AuthRouteOptions, "intent" | "code">
+): AuthIntent {
+  if (
+    options.intent === "create_register" ||
+    options.intent === "join_register"
+  ) {
+    return options.intent;
+  }
+
+  if (options.code) {
+    return "join_register";
+  }
+
+  return "create_register";
 }

@@ -74,6 +74,9 @@ export async function runRegisterStandaloneSmoke() {
   assert.ok(register.registerId, "Register should have an ID");
   assert.equal(register.name, "Test Register");
   assert.equal(register.linkedProjectId, null);
+  assert.equal(register.plan, "free");
+  assert.equal(register.entitlement?.plan, "free");
+  assert.equal(register.entitlement?.source, "default_free");
   assert.equal(defaultRegisterId, register.registerId, "Should set as default");
   console.log("  [2] Create register ✓");
 

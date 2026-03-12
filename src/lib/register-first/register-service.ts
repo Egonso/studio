@@ -6,13 +6,12 @@
  * but operates on RegisterScope { userId, registerId } instead of
  * RegisterUseCaseScope { userId, projectId }.
  */
-import { ZodError } from "zod";
-import {
-  assertManualGovernanceDecision,
-  parseUseCaseCard,
-} from "./schema";
-import { isStatusTransitionAllowed } from "./status-flow";
-import { prepareUseCaseForStorage } from "./use-case-builder";
+import { ZodError } from 'zod';
+import { assertManualGovernanceDecision, parseUseCaseCard } from './schema';
+import { createUseCaseOrigin, ensureV1_1Shape } from './migration';
+import { isStatusTransitionAllowed } from './status-flow';
+import { createManualEditEvent } from './timeline';
+import { prepareUseCaseForStorage } from './use-case-builder';
 import {
   createFirestoreRegisterRepository,
   createFirestoreRegisterUseCaseRepo,
@@ -24,19 +23,23 @@ import {
   type RegisterAccessCodeRepository,
   type RegisterScope,
   type RegisterUseCaseFilters,
-} from "./register-repository";
+} from './register-repository';
 import {
   clearActiveRegisterId,
   getActiveRegisterId,
   setActiveRegisterId,
   getDefaultRegisterId,
   setDefaultRegisterId,
-} from "./register-settings-client";
-import { getRegisterDisplayName } from "./register-helpers";
+} from './register-settings-client';
+import { getRegisterDisplayName } from './register-helpers';
+import { getEntitlementAccessPlan } from './entitlement';
+import { resolvePrimaryDataCategory } from './types';
 import type {
+  ExternalIntakeTrace,
   GovernanceDecisionActor,
   PublicUseCaseIndexEntry,
   Register,
+  RegisterEntitlement,
   RegisterUseCaseStatus,
   RegisterAccessCode,
   ReviewEvent,
@@ -44,20 +47,21 @@ import type {
   UseCaseCard,
   RegisterMetrics,
   RegisterDeletionState,
-} from "./types";
+  UseCaseOrigin,
+} from './types';
 
 // ── Error Types ─────────────────────────────────────────────────────────────
 
 export type RegisterServiceErrorCode =
-  | "UNAUTHENTICATED"
-  | "REGISTER_NOT_FOUND"
-  | "REGISTER_DELETE_FORBIDDEN"
-  | "REGISTER_CONFIRMATION_MISMATCH"
-  | "USE_CASE_NOT_FOUND"
-  | "INVALID_STATUS_TRANSITION"
-  | "AUTOMATION_FORBIDDEN"
-  | "VALIDATION_FAILED"
-  | "PERSISTENCE_FAILED";
+  | 'UNAUTHENTICATED'
+  | 'REGISTER_NOT_FOUND'
+  | 'REGISTER_DELETE_FORBIDDEN'
+  | 'REGISTER_CONFIRMATION_MISMATCH'
+  | 'USE_CASE_NOT_FOUND'
+  | 'INVALID_STATUS_TRANSITION'
+  | 'AUTOMATION_FORBIDDEN'
+  | 'VALIDATION_FAILED'
+  | 'PERSISTENCE_FAILED';
 
 export class RegisterServiceError extends Error {
   public readonly code: RegisterServiceErrorCode;
@@ -67,10 +71,10 @@ export class RegisterServiceError extends Error {
   constructor(
     code: RegisterServiceErrorCode,
     message: string,
-    options?: { details?: unknown; cause?: unknown }
+    options?: { details?: unknown; cause?: unknown },
   ) {
     super(message);
-    this.name = "RegisterServiceError";
+    this.name = 'RegisterServiceError';
     this.code = code;
     this.details = options?.details;
     this.cause = options?.cause;
@@ -82,10 +86,12 @@ export class RegisterServiceError extends Error {
 export interface CreateUseCaseOptions {
   registerId?: string;
   useCaseId?: string;
+  origin?: UseCaseOrigin | null;
   capturedBy?: string;
   capturedByName?: string;
   capturedViaCode?: boolean;
   accessCodeLabel?: string;
+  externalIntake?: ExternalIntakeTrace | null;
 }
 
 export interface UpdateStatusInput {
@@ -111,8 +117,8 @@ export interface UpdateAssessmentInput {
   registerId?: string;
   useCaseId: string;
   actor?: GovernanceDecisionActor;
-  core: NonNullable<UseCaseCard["governanceAssessment"]>["core"];
-  flex?: NonNullable<UseCaseCard["governanceAssessment"]>["flex"];
+  core: NonNullable<UseCaseCard['governanceAssessment']>['core'];
+  flex?: NonNullable<UseCaseCard['governanceAssessment']>['flex'];
 }
 
 export interface SetVisibilityInput {
@@ -147,9 +153,9 @@ export interface RegisterDeleteImpact {
 export interface RegisterDeletePreview {
   registerId: string;
   displayName: string;
-  strategy: "SOFT_DELETE";
+  strategy: 'SOFT_DELETE';
   canDelete: boolean;
-  blockedReason?: "LAST_REGISTER";
+  blockedReason?: 'LAST_REGISTER';
   fallbackRegisterId: string | null;
   fallbackRegisterName: string | null;
   impact: RegisterDeleteImpact;
@@ -160,42 +166,68 @@ export interface DeleteRegisterResult {
   deletedRegisterId: string;
   fallbackRegisterId: string;
   fallbackRegisterName: string;
-  strategy: "SOFT_DELETE";
+  strategy: 'SOFT_DELETE';
   impact: RegisterDeleteImpact;
 }
 
 export interface RegisterService {
-  createRegister(name: string, linkedProjectId?: string | null): Promise<Register>;
+  createRegister(
+    name: string,
+    linkedProjectId?: string | null,
+  ): Promise<Register>;
   listRegisters(): Promise<Register[]>;
   getFirstRegister(): Promise<Register | null>;
   setActiveRegister(registerId: string): Promise<Register>;
   updateRegisterProfile(
     registerId: string,
-    profile: Partial<Pick<Register, "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
+    profile: Partial<
+      Pick<
+        Register,
+        | 'organisationName'
+        | 'organisationUnit'
+        | 'publicOrganisationDisclosure'
+        | 'orgSettings'
+      >
+    >,
   ): Promise<void>;
-  getRegisterDeletionPreview(registerId: string): Promise<RegisterDeletePreview>;
+  setRegisterEntitlement(
+    registerId: string,
+    entitlement: RegisterEntitlement,
+  ): Promise<Register>;
+  getRegisterDeletionPreview(
+    registerId: string,
+  ): Promise<RegisterDeletePreview>;
   deleteRegister(input: DeleteRegisterInput): Promise<DeleteRegisterResult>;
   restoreRegister(registerId: string): Promise<Register>;
   createUseCaseFromCapture(
     input: unknown,
-    options?: CreateUseCaseOptions
+    options?: CreateUseCaseOptions,
   ): Promise<UseCaseCard>;
-  getUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard | null>;
+  getUseCase(
+    registerId: string | undefined,
+    useCaseId: string,
+  ): Promise<UseCaseCard | null>;
   listUseCases(
     registerId?: string,
-    filters?: RegisterUseCaseFilters
+    filters?: RegisterUseCaseFilters,
   ): Promise<UseCaseCard[]>;
   updateUseCase(
     useCaseId: string,
-    updates: Partial<UseCaseCard>
+    updates: Partial<UseCaseCard>,
   ): Promise<UseCaseCard>;
   updateUseCaseStatusManual(input: UpdateStatusInput): Promise<UseCaseCard>;
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
   updateAssessmentManual(input: UpdateAssessmentInput): Promise<UseCaseCard>;
   setPublicVisibility(input: SetVisibilityInput): Promise<UseCaseCard>;
   sealUseCaseManual(input: SealUseCaseInput): Promise<UseCaseCard>;
-  softDeleteUseCase(registerId: string | undefined, useCaseId: string): Promise<void>;
-  restoreUseCase(registerId: string | undefined, useCaseId: string): Promise<UseCaseCard>;
+  softDeleteUseCase(
+    registerId: string | undefined,
+    useCaseId: string,
+  ): Promise<void>;
+  restoreUseCase(
+    registerId: string | undefined,
+    useCaseId: string,
+  ): Promise<UseCaseCard>;
   getRegisterMetrics(registerId?: string): Promise<RegisterMetrics>;
 }
 
@@ -216,7 +248,10 @@ interface RegisterServiceDependencies {
   reviewIdGenerator?: IdGenerator;
   // For tests: override settings resolution
   getDefaultRegisterIdFn?: (userId: string) => Promise<string | null>;
-  setDefaultRegisterIdFn?: (userId: string, registerId: string) => Promise<void>;
+  setDefaultRegisterIdFn?: (
+    userId: string,
+    registerId: string,
+  ) => Promise<void>;
   getActiveRegisterIdFn?: () => string | null;
   setActiveRegisterIdFn?: (id: string) => void;
   clearActiveRegisterIdFn?: () => void;
@@ -226,15 +261,18 @@ interface RegisterServiceDependencies {
 
 function createDefaultIdGenerator(prefix: string): IdGenerator {
   return () => {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return `${prefix}_${crypto.randomUUID().replace(/-/g, "")}`;
+    if (
+      typeof crypto !== 'undefined' &&
+      typeof crypto.randomUUID === 'function'
+    ) {
+      return `${prefix}_${crypto.randomUUID().replace(/-/g, '')}`;
     }
     return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
   };
 }
 
 async function defaultResolveUserId(): Promise<string | null> {
-  const { getFirebaseAuth } = await import("@/lib/firebase");
+  const { getFirebaseAuth } = await import('@/lib/firebase');
   const auth = await getFirebaseAuth();
   return auth.currentUser?.uid || null;
 }
@@ -243,37 +281,103 @@ function mapServiceError(error: unknown): RegisterServiceError {
   if (error instanceof RegisterServiceError) return error;
   if (error instanceof ZodError) {
     return new RegisterServiceError(
-      "VALIDATION_FAILED",
-      "Register payload validation failed.",
-      { details: error.flatten(), cause: error }
+      'VALIDATION_FAILED',
+      'Register payload validation failed.',
+      { details: error.flatten(), cause: error },
     );
   }
   return new RegisterServiceError(
-    "PERSISTENCE_FAILED",
-    "Register operation failed.",
-    { cause: error }
+    'PERSISTENCE_FAILED',
+    'Register operation failed.',
+    { cause: error },
   );
 }
 
+function appendManualEdit(
+  existing: UseCaseCard,
+  updated: UseCaseCard,
+  input: {
+    editedAt: string;
+    editedBy: string;
+    editedByName?: string | null;
+    summary?: string;
+  },
+): UseCaseCard {
+  const manualEdit = createManualEditEvent({
+    before: existing,
+    after: updated,
+    editedAt: input.editedAt,
+    editedBy: input.editedBy,
+    editedByName: input.editedByName,
+    summary: input.summary,
+  });
+
+  if (!manualEdit) {
+    return updated;
+  }
+
+  return parseUseCaseCard({
+    ...updated,
+    manualEdits: [...(updated.manualEdits ?? []), manualEdit],
+  });
+}
+
+function sanitizeUseCaseUpdates(
+  updates: Partial<UseCaseCard>,
+): Partial<UseCaseCard> {
+  const {
+    useCaseId: _useCaseId,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    status: _status,
+    reviews: _reviews,
+    statusHistory: _statusHistory,
+    manualEdits: _manualEdits,
+    proof: _proof,
+    origin: _origin,
+    externalIntake: _externalIntake,
+    capturedBy: _capturedBy,
+    capturedByName: _capturedByName,
+    capturedViaCode: _capturedViaCode,
+    accessCodeLabel: _accessCodeLabel,
+    sealedAt: _sealedAt,
+    sealedBy: _sealedBy,
+    sealedByName: _sealedByName,
+    sealHash: _sealHash,
+    isDeleted: _isDeleted,
+    ...safeUpdates
+  } = updates;
+
+  return safeUpdates;
+}
+
 export function createRegisterService(
-  dependencies: RegisterServiceDependencies = {}
+  dependencies: RegisterServiceDependencies = {},
 ): RegisterService {
-  const registerRepo = dependencies.registerRepo ?? createFirestoreRegisterRepository();
-  const useCaseRepo = dependencies.useCaseRepo ?? createFirestoreRegisterUseCaseRepo();
-  const publicIndexRepo = dependencies.publicIndexRepo ?? createFirestorePublicIndexRepo();
+  const registerRepo =
+    dependencies.registerRepo ?? createFirestoreRegisterRepository();
+  const useCaseRepo =
+    dependencies.useCaseRepo ?? createFirestoreRegisterUseCaseRepo();
+  const publicIndexRepo =
+    dependencies.publicIndexRepo ?? createFirestorePublicIndexRepo();
   const accessCodeRepo =
     dependencies.accessCodeRepo ?? createFirestoreRegisterAccessCodeRepo();
   const resolveUserId = dependencies.resolveUserId ?? defaultResolveUserId;
   const now = dependencies.now ?? (() => new Date());
   const generateUseCaseId =
-    dependencies.useCaseIdGenerator ?? createDefaultIdGenerator("uc");
-  const reviewIdGenerator = dependencies.reviewIdGenerator ?? createDefaultIdGenerator("review");
+    dependencies.useCaseIdGenerator ?? createDefaultIdGenerator('uc');
+  const reviewIdGenerator =
+    dependencies.reviewIdGenerator ?? createDefaultIdGenerator('review');
 
   // Settings resolution (injectable for tests)
-  const getDefaultRegId = dependencies.getDefaultRegisterIdFn ?? getDefaultRegisterId;
-  const setDefaultRegId = dependencies.setDefaultRegisterIdFn ?? setDefaultRegisterId;
-  const getActiveRegId = dependencies.getActiveRegisterIdFn ?? getActiveRegisterId;
-  const setActiveRegId = dependencies.setActiveRegisterIdFn ?? setActiveRegisterId;
+  const getDefaultRegId =
+    dependencies.getDefaultRegisterIdFn ?? getDefaultRegisterId;
+  const setDefaultRegId =
+    dependencies.setDefaultRegisterIdFn ?? setDefaultRegisterId;
+  const getActiveRegId =
+    dependencies.getActiveRegisterIdFn ?? getActiveRegisterId;
+  const setActiveRegId =
+    dependencies.setActiveRegisterIdFn ?? setActiveRegisterId;
   const clearActiveRegId =
     dependencies.clearActiveRegisterIdFn ?? clearActiveRegisterId;
 
@@ -281,8 +385,8 @@ export function createRegisterService(
     const userId = await resolveUserId();
     if (!userId) {
       throw new RegisterServiceError(
-        "UNAUTHENTICATED",
-        "A signed-in user is required for Register operations."
+        'UNAUTHENTICATED',
+        'A signed-in user is required for Register operations.',
       );
     }
     return userId;
@@ -290,13 +394,14 @@ export function createRegisterService(
 
   function buildRegisterDeleteImpact(
     useCases: UseCaseCard[],
-    accessCodes: RegisterAccessCode[]
+    accessCodes: RegisterAccessCode[],
   ): RegisterDeleteImpact {
     return {
       totalUseCaseCount: useCases.length,
       activeUseCaseCount: useCases.filter((card) => !card.isDeleted).length,
       publicUseCaseCount: useCases.filter(
-        (card) => !card.isDeleted && card.isPublicVisible && Boolean(card.publicHashId)
+        (card) =>
+          !card.isDeleted && card.isPublicVisible && Boolean(card.publicHashId),
       ).length,
       totalAccessCodeCount: accessCodes.length,
       activeAccessCodeCount: accessCodes.filter((code) => code.isActive).length,
@@ -307,7 +412,7 @@ export function createRegisterService(
   async function requireRegister(
     userId: string,
     registerId: string,
-    options?: { includeDeleted?: boolean }
+    options?: { includeDeleted?: boolean },
   ): Promise<Register> {
     const register = await registerRepo.getRegister(userId, registerId, {
       includeDeleted: options?.includeDeleted,
@@ -315,8 +420,8 @@ export function createRegisterService(
 
     if (!register) {
       throw new RegisterServiceError(
-        "REGISTER_NOT_FOUND",
-        `Register '${registerId}' was not found.`
+        'REGISTER_NOT_FOUND',
+        `Register '${registerId}' was not found.`,
       );
     }
 
@@ -325,7 +430,7 @@ export function createRegisterService(
 
   async function setActiveRegisterInternal(
     userId: string,
-    registerId: string
+    registerId: string,
   ): Promise<Register> {
     const register = await requireRegister(userId, registerId);
     await setDefaultRegId(userId, register.registerId);
@@ -336,13 +441,14 @@ export function createRegisterService(
   async function buildPublicIndexEntry(
     scope: RegisterScope,
     card: UseCaseCard,
-    resolvedToolName?: string
+    resolvedToolName?: string,
   ): Promise<PublicUseCaseIndexEntry | null> {
+    const normalizedCard = ensureV1_1Shape(card);
+
     if (
-      card.cardVersion !== "1.1" ||
-      !card.publicHashId ||
-      !card.isPublicVisible ||
-      card.isDeleted
+      !normalizedCard.publicHashId ||
+      !normalizedCard.isPublicVisible ||
+      normalizedCard.isDeleted
     ) {
       return null;
     }
@@ -354,35 +460,43 @@ export function createRegisterService(
         : null;
 
     return {
-      publicHashId: card.publicHashId,
-      globalUseCaseId: card.globalUseCaseId ?? "",
-      formatVersion: card.formatVersion ?? "v1.1",
-      purpose: card.purpose,
-      toolName: resolvedToolName ?? card.toolFreeText ?? card.toolId ?? "",
-      dataCategory: card.dataCategory ?? "INTERNAL",
-      status: card.status,
-      createdAt: card.createdAt,
+      publicHashId: normalizedCard.publicHashId,
+      globalUseCaseId: normalizedCard.globalUseCaseId ?? '',
+      formatVersion: normalizedCard.formatVersion ?? 'v1.1',
+      purpose: normalizedCard.purpose,
+      toolName:
+        resolvedToolName ??
+        normalizedCard.toolFreeText ??
+        normalizedCard.toolId ??
+        '',
+      dataCategory:
+        resolvePrimaryDataCategory(normalizedCard) ?? 'INTERNAL_CONFIDENTIAL',
+      status: normalizedCard.status,
+      createdAt: normalizedCard.createdAt,
       ownerId: scope.userId,
-      verification: card.proof?.verification ?? null,
+      verification: normalizedCard.proof?.verification ?? null,
       organisationName,
     };
   }
 
-  async function republishRegisterPublicEntries(scope: RegisterScope): Promise<void> {
-      const cards = await useCaseRepo.list(scope, { includeDeleted: true });
-      for (const card of cards) {
+  async function republishRegisterPublicEntries(
+    scope: RegisterScope,
+  ): Promise<void> {
+    const cards = await useCaseRepo.list(scope, { includeDeleted: true });
+    for (const card of cards) {
       const entry = await buildPublicIndexEntry(scope, card);
-        if (entry) {
-          await publicIndexRepo.publishToIndex(entry);
-        }
+      if (entry) {
+        await publicIndexRepo.publishToIndex(entry);
       }
+    }
   }
 
   async function loadDeleteContext(userId: string, registerId: string) {
     const register = await requireRegister(userId, registerId);
-    const fallbackRegister = (await registerRepo.listRegisters(userId)).find(
-      (candidate) => candidate.registerId !== registerId
-    ) ?? null;
+    const fallbackRegister =
+      (await registerRepo.listRegisters(userId)).find(
+        (candidate) => candidate.registerId !== registerId,
+      ) ?? null;
     const scope: RegisterScope = { userId, registerId };
     const [useCases, accessCodes] = await Promise.all([
       useCaseRepo.list(scope, { includeDeleted: true }),
@@ -443,8 +557,8 @@ export function createRegisterService(
     // 5. No register found – do NOT auto-create
     clearActiveRegId();
     throw new RegisterServiceError(
-      "REGISTER_NOT_FOUND",
-      "No register found. Please create a register first."
+      'REGISTER_NOT_FOUND',
+      'No register found. Please create a register first.',
     );
   }
 
@@ -455,7 +569,7 @@ export function createRegisterService(
         const register = await registerRepo.createRegister(
           userId,
           name,
-          linkedProjectId
+          linkedProjectId,
         );
         // Set as default
         await setDefaultRegId(userId, register.registerId);
@@ -503,20 +617,39 @@ export function createRegisterService(
       }
     },
 
+    async setRegisterEntitlement(registerId, entitlement) {
+      try {
+        const userId = await resolveUserIdOrThrow();
+        const register = await requireRegister(userId, registerId);
+        const nextRegister: Register = {
+          ...register,
+          plan: getEntitlementAccessPlan(entitlement),
+          entitlement,
+        };
+        await registerRepo.updateRegister(userId, registerId, {
+          plan: getEntitlementAccessPlan(entitlement),
+          entitlement,
+        });
+        return nextRegister;
+      } catch (error) {
+        throw mapServiceError(error);
+      }
+    },
+
     async getRegisterDeletionPreview(registerId) {
       try {
         const userId = await resolveUserIdOrThrow();
         const { register, fallbackRegister, impact } = await loadDeleteContext(
           userId,
-          registerId
+          registerId,
         );
 
         return {
           registerId: register.registerId,
           displayName: getRegisterDisplayName(register),
-          strategy: "SOFT_DELETE",
+          strategy: 'SOFT_DELETE',
           canDelete: Boolean(fallbackRegister),
-          blockedReason: fallbackRegister ? undefined : "LAST_REGISTER",
+          blockedReason: fallbackRegister ? undefined : 'LAST_REGISTER',
           fallbackRegisterId: fallbackRegister?.registerId ?? null,
           fallbackRegisterName: fallbackRegister
             ? getRegisterDisplayName(fallbackRegister)
@@ -532,27 +665,27 @@ export function createRegisterService(
     async deleteRegister(input) {
       try {
         const userId = await resolveUserIdOrThrow();
-        const { register, fallbackRegister, scope, useCases, impact } =
+        const { register, fallbackRegister, useCases, impact } =
           await loadDeleteContext(userId, input.registerId);
 
         if (!fallbackRegister) {
           throw new RegisterServiceError(
-            "REGISTER_DELETE_FORBIDDEN",
-            "The last remaining register cannot be deleted."
+            'REGISTER_DELETE_FORBIDDEN',
+            'The last remaining register cannot be deleted.',
           );
         }
 
         const expectedName = getRegisterDisplayName(register);
         if (input.confirmationName.trim() !== expectedName) {
           throw new RegisterServiceError(
-            "REGISTER_CONFIRMATION_MISMATCH",
-            "Register name confirmation did not match."
+            'REGISTER_CONFIRMATION_MISMATCH',
+            'Register name confirmation did not match.',
           );
         }
 
         const timestamp = now().toISOString();
         const publicUseCases = useCases.filter(
-          (card) => card.isPublicVisible && Boolean(card.publicHashId)
+          (card) => card.isPublicVisible && Boolean(card.publicHashId),
         );
 
         for (const card of publicUseCases) {
@@ -563,11 +696,11 @@ export function createRegisterService(
           await accessCodeRepo.deactivateCodesForRegister(
             userId,
             register.registerId,
-            timestamp
+            timestamp,
           );
 
         const deletionState: RegisterDeletionState = {
-          strategy: "SOFT_DELETE",
+          strategy: 'SOFT_DELETE',
           deletedAt: timestamp,
           deletedBy: userId,
           totalUseCaseCount: impact.totalUseCaseCount,
@@ -581,7 +714,7 @@ export function createRegisterService(
         await registerRepo.softDeleteRegister(
           userId,
           register.registerId,
-          deletionState
+          deletionState,
         );
 
         const activeRegisterId = getActiveRegId();
@@ -597,7 +730,7 @@ export function createRegisterService(
           deletedRegisterId: register.registerId,
           fallbackRegisterId: fallbackRegister.registerId,
           fallbackRegisterName: getRegisterDisplayName(fallbackRegister),
-          strategy: "SOFT_DELETE",
+          strategy: 'SOFT_DELETE',
           impact,
         };
       } catch (error) {
@@ -638,10 +771,31 @@ export function createRegisterService(
         });
         const card = parseUseCaseCard({
           ...cardDraft,
+          origin:
+            options.origin ??
+            createUseCaseOrigin({
+              source: options.capturedViaCode
+                ? 'access_code'
+                : options.externalIntake?.sourceType === 'supplier_request'
+                  ? 'supplier_request'
+                  : options.externalIntake?.sourceType === 'manual_import'
+                    ? 'import'
+                    : 'manual',
+              submittedByName: options.capturedByName ?? null,
+              submittedByEmail:
+                options.externalIntake?.submittedByEmail ?? null,
+              sourceRequestId:
+                options.externalIntake?.submissionId ??
+                options.externalIntake?.requestTokenId ??
+                options.externalIntake?.accessCodeId ??
+                null,
+              capturedByUserId: options.capturedBy ?? scope.userId,
+            }),
           capturedBy: options.capturedBy ?? scope.userId,
           capturedByName: options.capturedByName,
           capturedViaCode: options.capturedViaCode,
           accessCodeLabel: options.accessCodeLabel,
+          externalIntake: options.externalIntake ?? null,
         });
         return useCaseRepo.create(scope, card);
       } catch (error) {
@@ -672,28 +826,36 @@ export function createRegisterService(
         const scope = await resolveScope();
         const existing = await useCaseRepo.getById(scope, useCaseId);
         if (!existing) {
-          throw new RegisterServiceError("USE_CASE_NOT_FOUND", "Use case not found.");
+          throw new RegisterServiceError(
+            'USE_CASE_NOT_FOUND',
+            'Use case not found.',
+          );
         }
 
         const nowIso = now().toISOString();
+        const safeUpdates = sanitizeUseCaseUpdates(updates);
         const merged: UseCaseCard = {
           ...existing,
-          ...updates,
+          ...safeUpdates,
           responsibility: {
             ...existing.responsibility,
-            ...(updates.responsibility || {})
+            ...(safeUpdates.responsibility || {}),
           },
           governanceAssessment: {
             ...existing.governanceAssessment,
             core: existing.governanceAssessment?.core || {},
             flex: existing.governanceAssessment?.flex || {},
-            ...(updates.governanceAssessment || {})
+            ...(safeUpdates.governanceAssessment || {}),
           },
-          updatedAt: nowIso
+          updatedAt: nowIso,
         };
 
         const parsed = parseUseCaseCard(merged);
-        return await useCaseRepo.save(scope, parsed);
+        const updated = appendManualEdit(existing, parsed, {
+          editedAt: nowIso,
+          editedBy: scope.userId,
+        });
+        return await useCaseRepo.save(scope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -701,12 +863,12 @@ export function createRegisterService(
 
     async updateUseCaseStatusManual(input) {
       try {
-        assertManualGovernanceDecision(input.actor ?? "HUMAN");
+        assertManualGovernanceDecision(input.actor ?? 'HUMAN');
       } catch (error) {
         throw new RegisterServiceError(
-          "AUTOMATION_FORBIDDEN",
-          "Automated governance decisions are prohibited.",
-          { cause: error }
+          'AUTOMATION_FORBIDDEN',
+          'Automated governance decisions are prohibited.',
+          { cause: error },
         );
       }
 
@@ -715,31 +877,33 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, input.useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${input.useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${input.useCaseId}' was not found.`,
           );
         }
 
         if (!isStatusTransitionAllowed(existing.status, input.nextStatus)) {
           throw new RegisterServiceError(
-            "INVALID_STATUS_TRANSITION",
-            `Transition from ${existing.status} to ${input.nextStatus} is not allowed.`
+            'INVALID_STATUS_TRANSITION',
+            `Transition from ${existing.status} to ${input.nextStatus} is not allowed.`,
           );
         }
 
         if (existing.status === input.nextStatus) return existing;
 
-        if (input.nextStatus === "UNREVIEWED") {
+        if (input.nextStatus === 'UNREVIEWED') {
           throw new RegisterServiceError(
-            "INVALID_STATUS_TRANSITION",
-            "UNREVIEWED can only be set during initial capture creation."
+            'INVALID_STATUS_TRANSITION',
+            'UNREVIEWED can only be set during initial capture creation.',
           );
         }
 
+        const timestamp = now().toISOString();
+        const actorId = input.reviewedBy || scope.userId;
         const reviewEvent: ReviewEvent = {
           reviewId: reviewIdGenerator(),
-          reviewedAt: now().toISOString(),
-          reviewedBy: input.reviewedBy || scope.userId,
+          reviewedAt: timestamp,
+          reviewedBy: actorId,
           nextStatus: input.nextStatus,
           notes: input.reason,
         };
@@ -747,16 +911,16 @@ export function createRegisterService(
         const statusChange: StatusChange = {
           from: existing.status,
           to: input.nextStatus,
-          changedAt: now().toISOString(),
-          changedBy: input.reviewedBy || scope.userId,
-          changedByName: "Admin",
+          changedAt: timestamp,
+          changedBy: actorId,
+          changedByName: actorId,
           reason: input.reason,
         };
 
         const updated = parseUseCaseCard({
           ...existing,
           status: input.nextStatus,
-          updatedAt: now().toISOString(),
+          updatedAt: timestamp,
           reviews: [...existing.reviews, reviewEvent],
           statusHistory: [...(existing.statusHistory || []), statusChange],
         });
@@ -769,12 +933,12 @@ export function createRegisterService(
 
     async updateProofMetaManual(input) {
       try {
-        assertManualGovernanceDecision(input.actor ?? "HUMAN");
+        assertManualGovernanceDecision(input.actor ?? 'HUMAN');
       } catch (error) {
         throw new RegisterServiceError(
-          "AUTOMATION_FORBIDDEN",
-          "Automated governance decisions are prohibited.",
-          { cause: error }
+          'AUTOMATION_FORBIDDEN',
+          'Automated governance decisions are prohibited.',
+          { cause: error },
         );
       }
 
@@ -783,15 +947,15 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, input.useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${input.useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${input.useCaseId}' was not found.`,
           );
         }
 
-        if (existing.status !== "PROOF_READY") {
+        if (existing.status !== 'PROOF_READY') {
           throw new RegisterServiceError(
-            "INVALID_STATUS_TRANSITION",
-            "Proof metadata can only be updated in status PROOF_READY."
+            'INVALID_STATUS_TRANSITION',
+            'Proof metadata can only be updated in status PROOF_READY.',
           );
         }
 
@@ -818,12 +982,12 @@ export function createRegisterService(
 
     async updateAssessmentManual(input) {
       try {
-        assertManualGovernanceDecision(input.actor ?? "HUMAN");
+        assertManualGovernanceDecision(input.actor ?? 'HUMAN');
       } catch (error) {
         throw new RegisterServiceError(
-          "AUTOMATION_FORBIDDEN",
-          "Automated governance decisions are prohibited.",
-          { cause: error }
+          'AUTOMATION_FORBIDDEN',
+          'Automated governance decisions are prohibited.',
+          { cause: error },
         );
       }
 
@@ -832,8 +996,8 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, input.useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${input.useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${input.useCaseId}' was not found.`,
           );
         }
 
@@ -854,7 +1018,14 @@ export function createRegisterService(
           },
         });
 
-        return useCaseRepo.save(scope, updated);
+        return useCaseRepo.save(
+          scope,
+          appendManualEdit(existing, updated, {
+            editedAt: timestamp,
+            editedBy: scope.userId,
+            summary: 'Governance-Angaben aktualisiert',
+          }),
+        );
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -866,33 +1037,41 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, input.useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${input.useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${input.useCaseId}' was not found.`,
           );
         }
 
-        if (existing.cardVersion !== "1.1") {
+        if (existing.cardVersion !== '1.1') {
           throw new RegisterServiceError(
-            "VALIDATION_FAILED",
-            "Public visibility requires a v1.1 use case card."
+            'VALIDATION_FAILED',
+            'Public visibility requires a v1.1 use case card.',
           );
         }
 
+        const timestamp = now().toISOString();
         const updated = parseUseCaseCard({
           ...existing,
           isPublicVisible: input.isPublicVisible,
-          updatedAt: now().toISOString(),
+          updatedAt: timestamp,
+        });
+        const updatedWithEdit = appendManualEdit(existing, updated, {
+          editedAt: timestamp,
+          editedBy: scope.userId,
+          summary: input.isPublicVisible
+            ? 'Sichtbarkeit auf öffentlich gesetzt'
+            : 'Sichtbarkeit auf privat gesetzt',
         });
 
         // Save private card
-        const saved = await useCaseRepo.save(scope, updated);
+        const saved = await useCaseRepo.save(scope, updatedWithEdit);
 
         // Dual-Write: Public Index
         if (input.isPublicVisible && saved.publicHashId) {
           const indexEntry = await buildPublicIndexEntry(
             scope,
             saved,
-            input.resolvedToolName
+            input.resolvedToolName,
           );
           if (indexEntry) {
             await publicIndexRepo.publishToIndex(indexEntry);
@@ -913,15 +1092,17 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, input.useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${input.useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${input.useCaseId}' was not found.`,
           );
         }
 
         const timestamp = now().toISOString();
-        const sealHash = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : `seal-${Date.now()}`;
+        const sealHash =
+          typeof crypto !== 'undefined' &&
+          typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `seal-${Date.now()}`;
 
         const updated = parseUseCaseCard({
           ...existing,
@@ -944,8 +1125,8 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${useCaseId}' was not found.`,
           );
         }
 
@@ -960,7 +1141,10 @@ export function createRegisterService(
         // Remove from public index if it was visible
         if (existing.isPublicVisible && existing.publicHashId) {
           await publicIndexRepo.unpublishFromIndex(existing.publicHashId);
-          await useCaseRepo.save(scope, parseUseCaseCard({ ...updated, isPublicVisible: false }));
+          await useCaseRepo.save(
+            scope,
+            parseUseCaseCard({ ...updated, isPublicVisible: false }),
+          );
         }
       } catch (error) {
         throw mapServiceError(error);
@@ -973,8 +1157,8 @@ export function createRegisterService(
         const existing = await useCaseRepo.getById(scope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
-            "USE_CASE_NOT_FOUND",
-            `Use case '${useCaseId}' was not found.`
+            'USE_CASE_NOT_FOUND',
+            `Use case '${useCaseId}' was not found.`,
           );
         }
 
@@ -993,7 +1177,9 @@ export function createRegisterService(
     async getRegisterMetrics(registerId?: string): Promise<RegisterMetrics> {
       try {
         const scope = await resolveScope(registerId);
-        const activeUseCases = await useCaseRepo.list(scope, { includeDeleted: false });
+        const activeUseCases = await useCaseRepo.list(scope, {
+          includeDeleted: false,
+        });
 
         let publicCount = 0;
         let prohibited = 0;
@@ -1007,14 +1193,18 @@ export function createRegisterService(
           if (uc.isPublicVisible) publicCount++;
 
           const cat = uc.governanceAssessment?.core?.aiActCategory;
-          if (cat === "Verboten") prohibited++;
-          else if (cat === "Hochrisiko") high++;
-          else if (cat === "Transparenzpflichten") limited++;
-          else if (cat === "Minimales Risiko") minimal++;
+          if (cat === 'Verboten') prohibited++;
+          else if (cat === 'Hochrisiko') high++;
+          else if (cat === 'Transparenzpflichten') limited++;
+          else if (cat === 'Minimales Risiko') minimal++;
           else unassessed++;
 
           // A simple rule for action items: if it's high risk but lacks oversight
-          if (cat === "Hochrisiko" && (!uc.governanceAssessment?.core?.oversightDefined || !uc.governanceAssessment?.core?.reviewCycleDefined)) {
+          if (
+            cat === 'Hochrisiko' &&
+            (!uc.governanceAssessment?.core?.oversightDefined ||
+              !uc.governanceAssessment?.core?.reviewCycleDefined)
+          ) {
             actionItemsCount++;
           } else if (!cat) {
             actionItemsCount++; // Unassessed implies action required
@@ -1023,7 +1213,10 @@ export function createRegisterService(
 
         // Simple maturity calculation based on assessed KIs vs total active
         const assessedCount = activeUseCases.length - unassessed;
-        const maturityScore = activeUseCases.length > 0 ? Math.round((assessedCount / activeUseCases.length) * 100) : 100;
+        const maturityScore =
+          activeUseCases.length > 0
+            ? Math.round((assessedCount / activeUseCases.length) * 100)
+            : 100;
 
         return {
           totalUseCases: activeUseCases.length,
@@ -1034,15 +1227,15 @@ export function createRegisterService(
             high,
             limited,
             minimal,
-            unassessed
+            unassessed,
           },
           maturityScore,
-          actionItemsCount
+          actionItemsCount,
         };
       } catch (error) {
         throw mapServiceError(error);
       }
-    }
+    },
   };
 }
 

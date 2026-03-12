@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ToolPublicInfo, FlagStatus } from '@/lib/types';
+import { ServerAuthError, requireUser } from '@/lib/server-auth';
 
 // Rate Limiting: Simple in-memory map (Note: resets on serverless cold start)
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
@@ -18,6 +19,7 @@ function parseFlag(value: string | undefined): FlagStatus {
 
 export async function POST(req: NextRequest) {
     try {
+        await requireUser(req.headers.get("authorization"));
         const body = await req.json();
         const { toolName, toolVendor, force } = body;
 
@@ -151,6 +153,9 @@ Respond ONLY with a valid JSON object matching this structure (no markdown forma
         return NextResponse.json({ success: true, result: publicInfo });
 
     } catch (error: any) {
+        if (error instanceof ServerAuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error('API Route Error:', error);
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }

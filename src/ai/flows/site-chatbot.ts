@@ -262,7 +262,7 @@ export const navigateTool = ai.defineTool(
     inputSchema: z.object({
       path: z
         .string()
-        .describe('The relative path to navigate to, e.g., "/dashboard", "/kurs", "/trust".'),
+        .describe('The relative path to navigate to, e.g., "/my-register", "/academy", "/control".'),
       reason: z.string().describe('Short reason for navigation, for logging purposes.'),
     }),
     outputSchema: z.object({
@@ -323,7 +323,7 @@ ${COMMON_QUESTIONS}
 
 **Navigation:**
 Wenn der Nutzer nach einer bestimmten Funktion oder Seite fragt, nutze IMMER das 'navigateTool' um direkt dorthin zu leiten.
-Beispiel: "Wo kann ich ein Projekt anlegen?" → navigateTool mit path="/projects".
+Beispiel: "Wo dokumentiere ich einen Use Case?" → navigateTool mit path="/my-register".
 
 **Wichtig:**
 - Sei proaktiv: Wenn ein Nutzer ein Thema anspricht, schlage relevante Seiten und Funktionen vor.

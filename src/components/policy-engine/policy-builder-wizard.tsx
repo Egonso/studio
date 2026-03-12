@@ -91,10 +91,10 @@ const LEVEL_DETAILS: Record<
         ],
     },
     3: {
-        title: "Enterprise",
+        title: "Erweitert",
         pages: "8–10 Seiten",
         description:
-            "Enterprise-Policy mit Data Governance, Hochrisiko-Sections und Logging.",
+            "Erweiterte Policy mit Data Governance, Hochrisiko-Abschnitten und Logging.",
         sections: [
             "Alles aus Level 1 + 2",
             "Data Governance (bei personenbez. Daten)",

@@ -1,5 +1,5 @@
-import SimpleLandingPage from "./simplelanding/page";
+import AuthEntryPage from '@/components/auth/auth-entry-page';
 
 export default function RootPage() {
-  return <SimpleLandingPage />;
+  return <AuthEntryPage />;
 }

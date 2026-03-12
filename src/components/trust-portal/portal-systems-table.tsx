@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { PortalSystemEntry } from "@/lib/register-first/trust-portal-aggregator";
-import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
+import {
+  DATA_CATEGORY_LABELS,
+  type RegisterUseCaseStatus,
+} from "@/lib/register-first/types";
 import { buildLoginPath } from "@/lib/auth/login-routing";
 
 interface PortalSystemsTableProps {
@@ -42,13 +45,6 @@ const statusConfig: Record<
     bgColor: "bg-green-100",
     icon: CheckCircle2,
   },
-};
-
-const dataCategoryLabels: Record<string, string> = {
-  NONE: "Keine",
-  INTERNAL: "Intern",
-  PERSONAL: "Personenbezogen",
-  SENSITIVE: "Sensibel",
 };
 
 export function PortalSystemsTable({ systems, organizationName }: PortalSystemsTableProps) {
@@ -114,7 +110,8 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
                   variant="secondary"
                   className="text-xs bg-slate-100 text-slate-600"
                 >
-                  {dataCategoryLabels[system.dataCategory] || system.dataCategory}
+                  {DATA_CATEGORY_LABELS[system.dataCategory as keyof typeof DATA_CATEGORY_LABELS] ||
+                    system.dataCategory}
                 </Badge>
                 <Badge
                   variant="secondary"

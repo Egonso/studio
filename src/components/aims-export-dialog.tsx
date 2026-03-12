@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Download, FileJson, FileText, ClipboardCopy, FileType, FileSignature, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { getRequiredPlan, hasCapability } from '@/lib/compliance-engine/capability/featureChecker';
+import { getRequiredPlan } from '@/lib/compliance-engine/capability/featureChecker';
+import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import type { AimsProgress } from '@/lib/data-service';
 
 
@@ -108,8 +109,7 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
     const [markdownContent, setMarkdownContent] = useState('');
     const [jsonContent, setJsonContent] = useState('');
     const { toast } = useToast();
-    const userPlan = 'free' as const; // TODO: Get from auth context
-    const canExport = hasCapability(userPlan, 'auditExport');
+    const { allowed: canExport } = useCapability('auditExport');
     const requiredPlan = getRequiredPlan('auditExport');
 
     useEffect(() => {

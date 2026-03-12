@@ -18,7 +18,7 @@ const parsed = parseCaptureInput({
 });
 
 assert.equal(parsed.purpose, "Support-Anfragen priorisieren");
-assert.deepEqual(parsed.usageContexts, ["INTERNAL_ONLY", "EMPLOYEE_FACING"]);
+assert.deepEqual(parsed.usageContexts, ["INTERNAL_ONLY", "EMPLOYEES"]);
 
 assert.throws(() =>
   parseCaptureInput({
@@ -44,7 +44,7 @@ const card = createUseCaseCardDraft(
 );
 
 assert.equal(card.status, "UNREVIEWED");
-assert.equal(card.cardVersion, "1.0");
+assert.equal(card.cardVersion, "1.1");
 
 assert.doesNotThrow(() => assertManualGovernanceDecision("HUMAN"));
 assert.throws(() => assertManualGovernanceDecision("AUTOMATION"));

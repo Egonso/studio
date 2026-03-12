@@ -7,6 +7,17 @@ export interface CaptureByCodeErrorCopy {
 
 const DEBUG_SUFFIX_PATTERN = /\s*\[[A-Z]+-\d+-[^\]]+\]\s*$/i;
 
+function isLocalDevelopmentBrowser(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  );
+}
+
 export function stripCaptureByCodeDebugSuffix(
   message?: string | null
 ): string | null {
@@ -62,8 +73,9 @@ export function getCaptureByCodeErrorCopy(
     if (status === 503 || status >= 500) {
       return {
         title: "Dienst vorübergehend nicht verfügbar",
-        description:
-          "Der Zugangscode konnte gerade nicht geprüft werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        description: isLocalDevelopmentBrowser()
+          ? "Die öffentliche Erfassung ist lokal gerade nicht mit dem Serverdienst verbunden. Bitte prüfen Sie die lokale Server-Anbindung und versuchen Sie es erneut."
+          : "Der Zugangscode konnte gerade nicht geprüft werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
       };
     }
 
@@ -121,8 +133,9 @@ export function getCaptureByCodeErrorCopy(
   if (status === 503 || status >= 500) {
     return {
       title: "Dienst vorübergehend nicht verfügbar",
-      description:
-        "Der Einsatzfall konnte gerade nicht gespeichert werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
+      description: isLocalDevelopmentBrowser()
+        ? "Die öffentliche Erfassung ist lokal gerade nicht mit dem Serverdienst verbunden. Bitte prüfen Sie die lokale Server-Anbindung und versuchen Sie es erneut."
+        : "Der Einsatzfall konnte gerade nicht gespeichert werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
     };
   }
 

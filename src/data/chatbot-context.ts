@@ -7,38 +7,30 @@ export const SITE_TREE = `
 SITEMAP — EuKIGesetz Studio (kiregister.com)
 
 🏠 HAUPTNAVIGATION (eingeloggte User):
-├── /dashboard .............. Register-Übersicht (Alias)
-│   Technischer Kompatibilitäts-Pfad für die Register-Übersicht.
-│   Fokus: Dokumentation und Governance-Status im Register-Kontext.
+├── /my-register ............ AI Governance Register
+│   Kanonische Free-Register Oberfläche:
+│   - Register-Überblick
+│   - Use Cases
+│   - External Inbox
+│   - Quick Capture und Use-Case Pässe
 │
 ├── /control ................ AI Governance Control
-│   Organisationsweite Steuerungsebene (Feature-Flag gesteuert):
+│   Kanonische bezahlte Governance-Steuerung:
 │   - KPI Header
 │   - Governance Maturity Model
 │   - Action Queue (priorisierte Maßnahmen)
-│   - Portfolio-, Audit- und Policy-Module
+│   - Policies, Exports, Trust Portal, Academy
 │
-├── /projects ............... Meine Projekte (KI-Einsatzfälle)
-│   Zentrale Verwaltung aller KI-Projekte/Einsatzfälle:
-│   - Neues Projekt erstellen (Name, Beschreibung, Risikokategorie)
-│   - Projekte bearbeiten, löschen, archivieren
-│   - Pro Projekt: Risikoklasse, Status, Compliance-Fortschritt
-│   - Jedes Projekt kann AI-Tools zuordnen
+├── /control/policies ....... Policy Engine
+│   Organisationsweite Richtlinien und Policy-Steuerung
 │
-├── /cbs .................... Smart Policy Engine
-│   KI-gestützte Compliance-Richtlinien erstellen:
-│   - Automatische Richtlinienerstellung basierend auf Projektdaten
-│   - Richtlinien bearbeiten, exportieren, teilen
-│   - Mapping auf EU AI Act Artikel
-│   └── /cbs/share/[policyId] ... Geteilte Richtlinie (öffentlicher Link)
+├── /control/exports ........ Export Center
+│   Organisationsweite Audit- und Nachweis-Exporte
 │
-├── /cbd .................... Compliance by Design
-│   Anforderungen direkt in die Entwicklung integrieren:
-│   - Design Canvas für KI-Anforderungen
-│   - Compliance-Checks während der Entwicklung
-│   - Integration von Transparenz, Fairness, Sicherheit
+├── /control/trust .......... Trust Portal Management
+│   Öffentliche Vertrauenssignale und Verify-Ausgaben
 │
-├── /kurs ................... AI-Act-Kompetenz Kurs
+├── /academy ................. AI Governance Academy
 │   Strukturierter Online-Kurs zum EU AI Act:
 │   - Module 1-5 mit Videos und Materialien
 │   - Fortschrittsanzeige pro Modul
@@ -58,51 +50,16 @@ SITEMAP — EuKIGesetz Studio (kiregister.com)
 │   - Bestehensgrenze und Ergebnisanzeige
 │   - Zertifikat nach Bestehen
 │
-├── /my-register ............ AI Governance Register
-│   Formale Dokumentation aller KI-Einsatzfälle:
-│   - Quick Capture: Schnellerfassung von Use Cases
-│   - Status-Workflow: Prüfung ausstehend → empfohlen → abgeschlossen → nachweisfähig
-│   - Öffentliche Verifizierung einzelner Einträge
-│   - Organisation & Scope-Einstellungen (Zahnrad-Icon)
-│   - Register-Kennzahlen: Registrierte Fälle, Status-Verteilung
-│
 ├── /capture ................. Standalone Quick Capture
 │   Schnellerfassung eines KI-Einsatzfalls (ohne Register-Kontext)
-│
-├── /ai-management .......... KI-Management System
-│   Überblick und Verwaltung aller KI-Systeme:
-│   - Tool-Inventar
-│   - Risikobewertungen
-│   - Compliance-Status je Tool
-│
-├── /aims ................... AIMS Setup (AI Management System)
-│   Ersteinrichtung des KI-Management-Systems:
-│   - Wizard-basierte Konfiguration
-│   - Organisationskontext definieren
-│
-├── /audit-report ........... Audit Report
-│   Generierung von Compliance-Berichten:
-│   - Automatischer Report basierend auf Projektdaten
-│   - Export-Funktionen
-│   - Auflistung von Compliance-Lücken
-│
-├── /portfolio .............. Compliance-Portfolio
-│   Gesamtansicht aller Compliance-Nachweise:
-│   - Projektstatus-Übersicht
-│   - Dokumentationsstatus
-│   - Reifegradanzeige
-│
-├── /assessment ............. Risiko-Assessment
-│   AI-Risikobewertung durchführen:
-│   - Geführter Assessment-Wizard
-│   - Risikoklassifizierung nach EU AI Act
-│   └── /assessment/context ... Kontextbezogenes Assessment
 │
 └── /login .................. Anmeldeseite
     Login/Registrierung für die Plattform
 
 🌐 ÖFFENTLICHE SEITEN (kein Login erforderlich):
 ├── / ....................... Landingpage
+├── /erfassen ............... Öffentliche Erfassung per Zugangscode
+├── /request/[requestToken] ... Öffentliche Lieferantenanfrage
 ├── /verify/[code] ......... Verifikationsseite (Code-basiert)
 ├── /verify/pass/[hashId] .. Verifikations-Pass (öffentliche Use-Case Prüfung)
 ├── /trust/[projectId] ..... Öffentliches Trust Portal
@@ -114,14 +71,20 @@ FEATURES & FUNKTIONEN — EuKIGesetz Studio
 
 ═══════════════════════════════════════════════════════════
 
-📊 REGISTER-ÜBERSICHT (/dashboard Alias)
-Was es tut: Zentraler Überblick über Register-Status und Dokumentationsstand
-Für wen: Alle eingeloggten Nutzer
+📋 AI GOVERNANCE REGISTER (/my-register)
+Was es tut: Formale Dokumentation aller KI-Einsatzfälle
+Für wen: Free-Register Nutzer, Compliance-Officer, Datenschutzbeauftragte
 Kernfunktionen:
-- Register-Status und offene Prüfungen auf einen Blick
-- Schnellzugriff auf Register und Capture
-- Kompatibler Einstiegspunkt für bestehende /dashboard-Links
-- Keine Vermischung mit der organisationsweiten Control-Ebene
+- Quick Capture: Use Cases schnell erfassen (Name, Tool, Kontext, Daten)
+- 4-stufiger Status-Workflow:
+  • Formale Prüfung ausstehend
+  • Prüfung empfohlen
+  • Prüfung abgeschlossen
+  • Nachweisfähig
+- Öffentliche Verifizierung einzelner Einträge
+- Organisations-Scope konfigurieren (Name, Einheit)
+- Audit-Trail mit Statusänderungen
+- External Inbox für tracebare externe Einreichungen
 
 ═══════════════════════════════════════════════════════════
 
@@ -132,23 +95,11 @@ Kernfunktionen:
 - KPI Header (10-Sekunden-Überblick)
 - Maturity Level (Level 1-5)
 - Priorisierte Maßnahmen mit Deep Links ins Register
-- Organisationsweite Audit-, Policy- und Export-Funktionen
+- Organisationsweite Policy-, Export- und Trust-Funktionen
 
 ═══════════════════════════════════════════════════════════
 
-📂 PROJEKTE & EINSATZFÄLLE (/projects)
-Was es tut: Verwaltung aller KI-Projekte und Einsatzfälle
-Für wen: Compliance-Verantwortliche, Projektleiter
-Kernfunktionen:
-- Neues Projekt anlegen mit Name, Beschreibung, Kategorie
-- Risikokategorie zuweisen (minimal, begrenzt, hoch, verboten)
-- Tools/KI-Systeme dem Projekt zuordnen
-- Compliance-Status pro Projekt verfolgen
-- Projekte archivieren oder löschen
-
-═══════════════════════════════════════════════════════════
-
-⚙️ SMART POLICY ENGINE (/cbs)
+⚙️ POLICY ENGINE (/control/policies)
 Was es tut: Automatische Erstellung von Compliance-Richtlinien
 Für wen: Compliance-Verantwortliche, Rechtsabteilung
 Kernfunktionen:
@@ -160,17 +111,18 @@ Kernfunktionen:
 
 ═══════════════════════════════════════════════════════════
 
-🎨 COMPLIANCE BY DESIGN (/cbd)
-Was es tut: Compliance-Anforderungen in den Entwicklungsprozess integrieren
-Für wen: Entwickler, Product Owner, Compliance-Beauftragte
+📦 EXPORT CENTER (/control/exports)
+Was es tut: Organisationsweite Audit- und Nachweis-Exporte bündeln
+Für wen: Audit, Compliance-Leitung, Procurement, externe Prüfer
 Kernfunktionen:
-- Design Canvas für KI-Anforderungen
-- Transparenz-, Fairness- und Sicherheitschecks
-- Integration in die Produktentwicklung
+- Governance Report
+- ISO / Audit Dossier
+- Policy Bundle
+- Trust Portal Bundle
 
 ═══════════════════════════════════════════════════════════
 
-🎓 AI-ACT-KOMPETENZ KURS (/kurs)
+🎓 AI GOVERNANCE ACADEMY (/academy)
 Was es tut: Strukturierter Lernkurs zum EU AI Act
 Für wen: Alle Mitarbeiter, die mit KI arbeiten
 Kernfunktionen:
@@ -208,49 +160,12 @@ Kernfunktionen:
 
 ═══════════════════════════════════════════════════════════
 
-📋 AI GOVERNANCE REGISTER (/my-register)
-Was es tut: Formale Dokumentation aller KI-Einsatzfälle
-Für wen: Compliance-Officer, Datenschutzbeauftragte
-Kernfunktionen:
-- Quick Capture: Use Cases schnell erfassen (Name, Tool, Kontext, Daten)
-- 4-stufiger Status-Workflow:
-  • Formale Prüfung ausstehend
-  • Prüfung empfohlen
-  • Prüfung abgeschlossen
-  • Nachweisfähig
-- Öffentliche Verifizierung einzelner Einträge
-- Organisations-Scope konfigurieren (Name, Einheit)
-- Audit-Trail mit Statusänderungen
-- Register-Kennzahlen
-
-═══════════════════════════════════════════════════════════
-
-🔍 RISIKO-ASSESSMENT (/assessment)
-Was es tut: Geführte Risikobewertung von KI-Systemen
-Für wen: Projektleiter, Risk Manager
-Kernfunktionen:
-- Wizard-basiertes Assessment
-- Risikoklassifizierung nach EU AI Act Kategorien
-- Kontextbezogene Bewertung
-
-═══════════════════════════════════════════════════════════
-
-📊 AUDIT REPORT (/audit-report)
-Was es tut: Automatisierte Compliance-Berichte generieren
-Für wen: Management, Audit-Teams, externe Prüfer
-Kernfunktionen:
-- Automatischer Report aus Projektdaten
-- Compliance-Lücken identifizieren
-- Export-Funktionen
-
-═══════════════════════════════════════════════════════════
-
-🌐 TRUST PORTAL (/trust/[projectId])
+🌐 TRUST & VERIFY
 Was es tut: Öffentlich einsehbarer Compliance-Nachweis
 Für wen: Externe Stakeholder, Kunden, Regulatoren
 Kernfunktionen:
-- Öffentliche Darstellung des Compliance-Status
-- Vertrauensscore
+- Öffentliche Verify-Pässe für einzelne Use Cases
+- Trust Portal Ausgabe für geteilte Nachweise
 - Keine Anmeldung erforderlich
 
 ═══════════════════════════════════════════════════════════
@@ -268,8 +183,8 @@ export const COMMON_QUESTIONS = `
 HÄUFIGE NUTZER-SZENARIEN (Chatbot-Wissen)
 
 Q: "Wie starte ich mit der Compliance?"
-A: Beginne mit einem Projekt unter /projects. Erstelle dort deinen ersten KI-Einsatzfall. 
-   Dann nutze den Kurs (/kurs) für das nötige Grundwissen und die Zertifizierung (/exam).
+A: Starte im Register unter /my-register. Erfasse dort deinen ersten KI-Einsatzfall.
+   Für Governance-Aufbau und Richtlinien geht es danach in /control und /control/policies weiter.
 
 Q: "Wo finde ich den Text vom EU AI Act?"
 A: Unter /gesetz findest du den Volltext. Du kannst direkt zu Artikeln springen, z.B. /gesetz#art_5.
@@ -278,17 +193,17 @@ Q: "Wie dokumentiere ich unsere KI-Nutzung?"
 A: Nutze das AI Governance Register unter /my-register. Klicke auf "+ Erfassen" für Quick Capture.
    Dort gibst du den Use-Case-Namen, das genutzten Tool und den Datenkontext an.
 
-Q: "Was ist der Unterschied zwischen Projekten und Register?"
-A: Projekte (/projects) = tiefe Compliance-Analyse einzelner KI-Vorhaben.
-   Register (/my-register) = schnelle, formale Dokumentation aller KI-Einsatzfälle (Governance).
+Q: "Was ist der Unterschied zwischen Register und Control?"
+A: Register (/my-register) = schnelle, formale Dokumentation aller KI-Einsatzfälle.
+   Control (/control) = organisationsweite Steuerung mit Policies, Exports, Trust und Academy.
 
 Q: "Wie erstelle ich eine Richtlinie?"
-A: Gehe zur Smart Policy Engine (/cbs). Dort kannst du KI-gestützt Compliance-Richtlinien erstellen,
+A: Gehe zur Policy Engine unter /control/policies. Dort kannst du KI-gestützt Compliance-Richtlinien erstellen,
    die automatisch auf relevante EU AI Act Artikel gemappt werden.
 
 Q: "Wie kann ich den Compliance-Status öffentlich zeigen?"
-A: Konfiguriere dein Trust Portal in der Register-Übersicht (/dashboard, Alias) oder im Register. Es erstellt eine öffentliche Seite 
-   unter /trust/[projektId], die Kunden und Partnern deinen Compliance-Status zeigt.
+A: Nutze /control/trust für die interne Steuerung und aktiviere öffentliche Nachweise direkt an den Use Cases im Register.
+   Öffentliche Verify-Links laufen über /verify/pass/[hashId].
 
 Q: "Was passiert nach der Zertifizierungsprüfung?"
 A: Nach Bestehen der Prüfung (/exam) erhältst du ein Zertifikat. Dieses kann auch über das 

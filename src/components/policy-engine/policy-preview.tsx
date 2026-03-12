@@ -97,10 +97,20 @@ export function PolicyPreview({
 
         try {
             setImprovingSections(prev => new Set(prev).add(section.sectionId));
+            const { getFirebaseAuth } = await import("@/lib/firebase");
+            const auth = await getFirebaseAuth();
+            const token = await auth.currentUser?.getIdToken();
+
+            if (!token) {
+                throw new Error("Anmeldung erforderlich.");
+            }
 
             const res = await fetch("/api/policy/improve", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
                 body: JSON.stringify({
                     section,
                     registerId: document?.registerId,

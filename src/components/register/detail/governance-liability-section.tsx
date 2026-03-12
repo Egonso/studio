@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
     AlertCircle,
     Check,
@@ -20,9 +21,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { UseCaseCard, OrgSettings } from "@/lib/register-first/types";
+import {
+    resolvePrimaryDataCategory,
+    type UseCaseCard,
+    type OrgSettings,
+} from "@/lib/register-first/types";
 import { useToast } from "@/hooks/use-toast";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
+import { getFeatureUpgradeHref } from "@/lib/compliance-engine/capability/upgrade-paths";
 import { registerService } from "@/lib/register-first/register-service";
 import { ReviewDialog } from "./review-dialog";
 
@@ -87,6 +93,7 @@ export function GovernanceLiabilitySection({
     focusField = null,
     autoOpenField = null,
 }: GovernanceLiabilitySectionProps) {
+    const router = useRouter();
     const { toast } = useToast();
     const [isActivatingPortal, setIsActivatingPortal] = useState(false);
     const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
@@ -105,7 +112,7 @@ export function GovernanceLiabilitySection({
     const iso = card.governanceAssessment?.flex?.iso;
 
     const hasRiskClass = !!card.governanceAssessment?.core?.aiActCategory
-        || (!!card.dataCategory && card.dataCategory !== "NONE");
+        || !!resolvePrimaryDataCategory(card);
     const hasOwner = !!card.responsibility?.responsibleParty
         || card.responsibility?.isCurrentlyResponsible === true;
     // OrgSettings fallback: If per-card ISO data is missing, check org-wide reviewStandard
@@ -152,21 +159,15 @@ export function GovernanceLiabilitySection({
 
     const handleActivateReviewWorkflow = useCallback(() => {
         if (!reviewCap.allowed) {
-            toast({
-                title: "Funktion nicht verfügbar",
-                description: `Diese Funktion ist in Ihrem aktuellen Plan nicht enthalten. Details unter Einstellungen.`,
-            });
+            router.push(getFeatureUpgradeHref("reviewWorkflow"));
             return;
         }
         setReviewDialogOpen(true);
-    }, [reviewCap, toast]);
+    }, [reviewCap.allowed, router]);
 
     const handleActivateTrustPortal = useCallback(async () => {
         if (!trustCap.allowed) {
-            toast({
-                title: "Funktion nicht verfügbar",
-                description: `Diese Funktion ist in Ihrem aktuellen Plan nicht enthalten. Details unter Einstellungen.`,
-            });
+            router.push(getFeatureUpgradeHref("trustPortal"));
             return;
         }
 
@@ -188,7 +189,7 @@ export function GovernanceLiabilitySection({
         } finally {
             setIsActivatingPortal(false);
         }
-    }, [card.useCaseId, trustCap, toast, onCardUpdate]);
+    }, [card.useCaseId, onCardUpdate, router, toast, trustCap.allowed]);
 
     const handleDownloadReport = useCallback(() => {
         if (!orgSettings) return;
@@ -325,8 +326,8 @@ export function GovernanceLiabilitySection({
                             )}
                         </li>
                         {editingField === "oversight" && (
-                            <li className="ml-5 p-2 bg-blue-50 border border-blue-100 rounded-md">
-                                <label className="text-[11px] font-medium text-blue-800 block mb-1">Aufsichtsmodell wählen:</label>
+                            <li className="ml-5 rounded-md border border-slate-200 bg-slate-50 p-2">
+                                <label className="mb-1 block text-[11px] font-medium text-slate-700">Aufsichtsmodell wählen:</label>
                                 <Select value={editValue} onValueChange={setEditValue}>
                                     <SelectTrigger className="h-8 text-xs">
                                         <SelectValue placeholder="Modell wählen" />
@@ -365,8 +366,8 @@ export function GovernanceLiabilitySection({
                             )}
                         </li>
                         {editingField === "reviewCycle" && (
-                            <li className="ml-5 p-2 bg-blue-50 border border-blue-100 rounded-md">
-                                <label className="text-[11px] font-medium text-blue-800 block mb-1">Review-Zyklus wählen:</label>
+                            <li className="ml-5 rounded-md border border-slate-200 bg-slate-50 p-2">
+                                <label className="mb-1 block text-[11px] font-medium text-slate-700">Review-Zyklus wählen:</label>
                                 <Select value={editValue} onValueChange={setEditValue}>
                                     <SelectTrigger className="h-8 text-xs">
                                         <SelectValue placeholder="Zyklus wählen" />
@@ -428,7 +429,7 @@ export function GovernanceLiabilitySection({
                                     </span>
                                     <button
                                         onClick={handleActivateReviewWorkflow}
-                                        className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                        className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-950 hover:underline"
                                     >
                                         + Review
                                     </button>
@@ -441,7 +442,7 @@ export function GovernanceLiabilitySection({
                                     {canGenerateReport && (
                                         <button
                                             onClick={handleDownloadReport}
-                                            className="ml-auto inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                            className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-950 hover:underline"
                                         >
                                             <Download className="w-3 h-3" /> CSV
                                         </button>
@@ -508,8 +509,8 @@ export function GovernanceLiabilitySection({
                                 </li>
                                 {hasTrustPortal && verifyUrl && (
                                     <li className="ml-5 flex items-center gap-1.5">
-                                        <ExternalLink className="w-3 h-3 shrink-0 text-blue-600" />
-                                        <a href={verifyUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 hover:underline truncate">
+                                        <ExternalLink className="w-3 h-3 shrink-0 text-slate-600" />
+                                        <a href={verifyUrl} target="_blank" rel="noopener noreferrer" className="truncate text-slate-600 hover:text-slate-950 hover:underline">
                                             {verifyUrl}
                                         </a>
                                     </li>
@@ -590,7 +591,7 @@ function DeadlineDisplay({
     }
     if (status === "due_soon" && daysRemaining !== null) {
         return (
-            <span className="text-amber-600 font-medium">
+            <span className="font-medium text-slate-700">
                 Fällig in {daysRemaining} {daysRemaining === 1 ? "Tag" : "Tagen"}
             </span>
         );

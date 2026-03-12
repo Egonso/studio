@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseUseCaseCard } from "./schema";
+import { createUseCaseOrigin } from "./migration";
 import { sanitizeFirestorePayload } from "./firestore-sanitize";
 import { dataCategorySchema, TOOL_ID_OTHER } from "./tool-registry-types";
 import type { UseCaseCard } from "./types";
@@ -111,17 +112,27 @@ export function createSupplierRequestUseCase(
       },
       flex: {},
     },
+    origin: createUseCaseOrigin({
+      source: "supplier_request",
+      submittedByName: submission.supplierEmail,
+      submittedByEmail: submission.supplierEmail,
+      sourceRequestId: null,
+      capturedByUserId: null,
+    }),
     capturedBy: "SUPPLIER_REQUEST",
     capturedByName: submission.supplierEmail,
   });
 }
 
 export function isSupplierRequestCard(
-  card: Pick<UseCaseCard, "labels">
+  card: Pick<UseCaseCard, "labels" | "origin" | "externalIntake" | "capturedBy">
 ): boolean {
   return (
     getUseCaseLabelValue(card, SUPPLIER_REQUEST_SOURCE_LABEL_KEY) ===
-    SUPPLIER_REQUEST_SOURCE_LABEL_VALUE
+      SUPPLIER_REQUEST_SOURCE_LABEL_VALUE ||
+    card.origin?.source === "supplier_request" ||
+    card.externalIntake?.sourceType === "supplier_request" ||
+    card.capturedBy === "SUPPLIER_REQUEST"
   );
 }
 
@@ -134,9 +145,10 @@ export function getUseCaseLabelValue(
 }
 
 export function getSupplierRequestContact(
-  card: Pick<UseCaseCard, "labels" | "responsibility">
+  card: Pick<UseCaseCard, "labels" | "responsibility" | "origin">
 ): string | null {
   return (
+    normalizeOptionalText(card.origin?.submittedByEmail) ??
     getUseCaseLabelValue(card, SUPPLIER_REQUEST_EMAIL_LABEL_KEY) ??
     normalizeOptionalText(card.responsibility.responsibleParty)
   );

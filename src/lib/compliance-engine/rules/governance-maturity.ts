@@ -1,85 +1,100 @@
 import { EngineContext, ActionItem } from '../types';
+import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 
 /**
  * Calculates the Governance Maturity Index (0-100)
  * 100 = Fully mature, all policies and governance structures in place.
  * 0 = Immature, no processes, no policies.
  */
-export function evaluateGovernanceMaturity(context: EngineContext): { index: number; actions: ActionItem[] } {
-    let maturityScore = 100; // Start at perfect, deduct points for missing
-    const actions: ActionItem[] = [];
+export function evaluateGovernanceMaturity(context: EngineContext): {
+  index: number;
+  actions: ActionItem[];
+} {
+  let maturityScore = 100; // Start at perfect, deduct points for missing
+  const actions: ActionItem[] = [];
 
-    // 1. Global AI Policy (PE-5: 3-tier scoring based on policyStatus)
-    if (context.orgStatus.policyStatus === 'draft' || context.orgStatus.policyStatus === 'review') {
-        maturityScore -= 20;
-        actions.push({
-            id: 'policy_draft_org',
-            type: 'policy_missing',
-            title: 'KI-Richtlinie ist noch im Entwurf',
-            description: 'Ihre Richtlinie wurde noch nicht genehmigt. Mitarbeiter haben dadurch noch keine verbindliche Handlungsanweisung.',
-            impactIncreaseEstimate: 20,
-            severity: 'medium',
-            href: '/cbs'
-        });
-    } else if (context.orgStatus.policyStatus !== 'approved' && !context.orgStatus.hasPolicy) {
-        // Missing entirely
-        maturityScore -= 40;
-        actions.push({
-            id: 'policy_missing_org',
-            type: 'policy_missing',
-            title: 'Fehlende KI-Richtlinie (AI Policy)',
-            description: 'Ohne eine zentrale Richtlinie haben Ihre Mitarbeiter keine Handlungssicherheit beim Einsatz von KI.',
-            impactIncreaseEstimate: 40,
-            severity: 'high',
-            href: '/cbs'
-        });
-    }
+  // 1. Global AI Policy (PE-5: 3-tier scoring based on policyStatus)
+  if (
+    context.orgStatus.policyStatus === 'draft' ||
+    context.orgStatus.policyStatus === 'review'
+  ) {
+    maturityScore -= 20;
+    actions.push({
+      id: 'policy_draft_org',
+      type: 'policy_missing',
+      title: 'KI-Richtlinie ist noch im Entwurf',
+      description:
+        'Ihre Richtlinie wurde noch nicht genehmigt. Mitarbeiter haben dadurch noch keine verbindliche Handlungsanweisung.',
+      impactIncreaseEstimate: 20,
+      severity: 'medium',
+      href: ROUTE_HREFS.controlPolicies,
+    });
+  } else if (
+    context.orgStatus.policyStatus !== 'approved' &&
+    !context.orgStatus.hasPolicy
+  ) {
+    // Missing entirely
+    maturityScore -= 40;
+    actions.push({
+      id: 'policy_missing_org',
+      type: 'policy_missing',
+      title: 'Fehlende KI-Richtlinie (AI Policy)',
+      description:
+        'Ohne eine zentrale Richtlinie haben Ihre Mitarbeiter keine Handlungssicherheit beim Einsatz von KI.',
+      impactIncreaseEstimate: 40,
+      severity: 'high',
+      href: ROUTE_HREFS.controlPolicies,
+    });
+  }
 
-    // 2. Incident Process
-    if (!context.orgStatus.hasIncidentProcess) {
-        maturityScore -= 30;
-        actions.push({
-            id: 'incident_process_missing_org',
-            type: 'incident_process_missing',
-            title: 'Kein KI-Incident Prozess definiert',
-            description: 'Sie müssen festlegen, wer im Fall einer KI-Fehlfunktion (Verletzung der Grundrechte) im Unternehmen entscheidet.',
-            impactIncreaseEstimate: 30,
-            severity: 'medium',
-            href: '/my-register?openSettings=true'
-        });
-    }
+  // 2. Incident Process
+  if (!context.orgStatus.hasIncidentProcess) {
+    maturityScore -= 30;
+    actions.push({
+      id: 'incident_process_missing_org',
+      type: 'incident_process_missing',
+      title: 'Kein KI-Incident Prozess definiert',
+      description:
+        'Sie müssen festlegen, wer im Fall einer KI-Fehlfunktion (Verletzung der Grundrechte) im Unternehmen entscheidet.',
+      impactIncreaseEstimate: 30,
+      severity: 'medium',
+      href: ROUTE_HREFS.governanceSettings,
+    });
+  }
 
-    // 3. RACI (Roles) not defined
-    if (!context.orgStatus.hasRaciDefined) {
-        maturityScore -= 30;
-        actions.push({
-            id: 'raci_missing_org',
-            type: 'raci_missing',
-            title: 'KI-Rollen & Verantwortlichkeiten fehlen',
-            description: 'Weisen Sie klare Rollen (z.B. AI Officer, Legal) für die Freigabe und Überwachung von KI-Systemen zu.',
-            impactIncreaseEstimate: 30,
-            severity: 'medium',
-            href: '/my-register?openSettings=true'
-        });
-    }
+  // 3. RACI (Roles) not defined
+  if (!context.orgStatus.hasRaciDefined) {
+    maturityScore -= 30;
+    actions.push({
+      id: 'raci_missing_org',
+      type: 'raci_missing',
+      title: 'KI-Rollen & Verantwortlichkeiten fehlen',
+      description:
+        'Weisen Sie klare Rollen (z.B. AI Officer, Legal) für die Freigabe und Überwachung von KI-Systemen zu.',
+      impactIncreaseEstimate: 30,
+      severity: 'medium',
+      href: ROUTE_HREFS.governanceSettings,
+    });
+  }
 
-    // 4. Zero Use Cases (Unmature Registry)
-    if (context.useCases.length === 0) {
-        maturityScore -= 20; // Additional penalty if registry is entirely empty
-        actions.push({
-            id: 'use_cases_empty',
-            type: 'first_use_case_missing',
-            title: 'Register ist leer',
-            description: 'Eine Governance-Strategie ohne erfasste Systeme (Schatten-IT) ist wirkungslos. Erfassen Sie Ihr erstes KI-Tool.',
-            impactIncreaseEstimate: 20,
-            severity: 'high',
-            href: '/my-register'
-        });
-    }
+  // 4. Zero Use Cases (Unmature Registry)
+  if (context.useCases.length === 0) {
+    maturityScore -= 20; // Additional penalty if registry is entirely empty
+    actions.push({
+      id: 'use_cases_empty',
+      type: 'first_use_case_missing',
+      title: 'Register ist leer',
+      description:
+        'Eine Governance-Strategie ohne erfasste Systeme (Schatten-IT) ist wirkungslos. Erfassen Sie Ihr erstes KI-Tool.',
+      impactIncreaseEstimate: 20,
+      severity: 'high',
+      href: '/my-register',
+    });
+  }
 
-    // Clamp score
-    return {
-        index: Math.max(0, maturityScore),
-        actions
-    };
+  // Clamp score
+  return {
+    index: Math.max(0, maturityScore),
+    actions,
+  };
 }

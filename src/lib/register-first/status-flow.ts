@@ -1,27 +1,9 @@
+export {
+  registerUseCaseStatusLabels,
+  registerUseCaseStatusOrder,
+} from "./card-model";
+import { registerUseCaseStatusTransitions } from "./card-model";
 import type { RegisterUseCaseStatus } from "./types";
-
-export const registerUseCaseStatusOrder: RegisterUseCaseStatus[] = [
-  "UNREVIEWED",
-  "REVIEW_RECOMMENDED",
-  "REVIEWED",
-  "PROOF_READY",
-];
-
-export const registerUseCaseStatusLabels: Record<RegisterUseCaseStatus, string> =
-  Object.freeze({
-    UNREVIEWED: "Formale Prüfung ausstehend",
-    REVIEW_RECOMMENDED: "Prüfung empfohlen",
-    REVIEWED: "Prüfung abgeschlossen",
-    PROOF_READY: "Nachweisfähig",
-  });
-
-const statusTransitions: Record<RegisterUseCaseStatus, RegisterUseCaseStatus[]> =
-  Object.freeze({
-    UNREVIEWED: ["REVIEW_RECOMMENDED", "REVIEWED"],
-    REVIEW_RECOMMENDED: ["REVIEWED"],
-    REVIEWED: ["REVIEW_RECOMMENDED", "PROOF_READY"],
-    PROOF_READY: ["REVIEWED"],
-  });
 
 export interface RegisterOutputProfile {
   artifactName: string;
@@ -56,7 +38,7 @@ const outputProfiles: Record<RegisterUseCaseStatus, RegisterOutputProfile> =
 export function getNextManualStatuses(
   currentStatus: RegisterUseCaseStatus
 ): RegisterUseCaseStatus[] {
-  return [...statusTransitions[currentStatus]];
+  return [...registerUseCaseStatusTransitions[currentStatus]];
 }
 
 export function isStatusTransitionAllowed(
@@ -66,7 +48,7 @@ export function isStatusTransitionAllowed(
   if (currentStatus === nextStatus) {
     return true;
   }
-  return statusTransitions[currentStatus].includes(nextStatus);
+  return registerUseCaseStatusTransitions[currentStatus].includes(nextStatus);
 }
 
 export function getOutputProfileByStatus(

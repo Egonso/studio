@@ -1,22 +1,30 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/context/auth-context";
-import { UseCaseHeader } from "@/components/register/detail/use-case-header";
-import { UseCaseMetadataSection } from "@/components/register/detail/use-case-metadata-section";
-import { GovernanceLiabilitySection } from "@/components/register/detail/governance-liability-section";
-import { ReviewSection } from "@/components/register/detail/review-section";
-import { AuditTrailSection } from "@/components/register/detail/audit-trail-section";
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { useAuth } from '@/context/auth-context';
+import { UseCaseHeader } from '@/components/register/detail/use-case-header';
+import { UseCaseMetadataSection } from '@/components/register/detail/use-case-metadata-section';
+import { GovernanceLiabilitySection } from '@/components/register/detail/governance-liability-section';
+import { ReviewSection } from '@/components/register/detail/review-section';
+import { AuditTrailSection } from '@/components/register/detail/audit-trail-section';
+import { Button } from '@/components/ui/button';
 import {
   isGovernanceRepairField,
   isControlFocusTarget,
   type ControlFocusTarget,
-} from "@/lib/control/deep-link";
-import { registerFirstFlags } from "@/lib/register-first/flags";
-import { registerService } from "@/lib/register-first/register-service";
-import type { OrgSettings, RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
+} from '@/lib/control/deep-link';
+import { registerFirstFlags } from '@/lib/register-first/flags';
+import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
+import { registerService } from '@/lib/register-first/register-service';
+import type {
+  ExternalSubmission,
+  OrgSettings,
+  RegisterUseCaseStatus,
+  UseCaseCard,
+} from '@/lib/register-first/types';
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
@@ -25,26 +33,37 @@ export default function UseCaseDetailPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
+  const [relatedSubmission, setRelatedSubmission] =
+    useState<ExternalSubmission | null>(null);
   const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
   const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(null);
+  const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(
+    null,
+  );
   const [invalidFocus, setInvalidFocus] = useState<string | null>(null);
 
   const useCaseId = params.useCaseId;
-  const focusParam = searchParams.get("focus");
-  const editParam = searchParams.get("edit");
-  const fieldParam = searchParams.get("field");
+  const focusParam = searchParams.get('focus');
+  const editParam = searchParams.get('edit');
+  const fieldParam = searchParams.get('field');
   const requestedFocus = isControlFocusTarget(focusParam) ? focusParam : null;
   const resolvedFocus = resolveFocusTarget(requestedFocus);
   const governanceField = resolveGovernanceField(requestedFocus, fieldParam);
   const governanceAutoOpenField =
-    editParam === "1" &&
-    (governanceField === "oversight" || governanceField === "reviewCycle")
+    editParam === '1' &&
+    (governanceField === 'oversight' || governanceField === 'reviewCycle')
       ? governanceField
       : null;
+  const detailNextStep = relatedSubmission
+    ? relatedSubmission.status === 'submitted'
+      ? 'Prüfen Sie die externe Einreichung und entscheiden Sie über Übernahme, Ablehnung oder Review.'
+      : 'Pflegen Sie Dokumentation, Review und Governance-Details auf Basis der bereits verarbeiteten Herkunft.'
+    : card?.origin?.source === 'manual'
+      ? 'Ergänzen Sie Dokumentation, Review und Nachweise für diesen manuell angelegten Use Case.'
+      : 'Prüfen Sie Herkunft, Review und Governance-Details für diesen Use Case.';
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -63,21 +82,38 @@ export default function UseCaseDetailPage() {
           : Promise.resolve([]),
       ]);
       if (!result) {
-        setError("Einsatzfall nicht gefunden.");
+        setRelatedSubmission(null);
+        setError('Einsatzfall nicht gefunden.');
       } else {
+        const related =
+          result.origin?.source !== 'manual' &&
+          result.externalIntake?.registerId
+            ? await externalSubmissionService
+                .findRelatedToUseCase({
+                  registerId: result.externalIntake.registerId,
+                  useCaseId: result.useCaseId,
+                  submissionId:
+                    result.origin?.sourceRequestId ??
+                    result.externalIntake?.submissionId ??
+                    null,
+                })
+                .catch(() => null)
+            : null;
         setCard(result);
+        setRelatedSubmission(related);
         setAllUseCases(useCases);
         setOrgSettings(register?.orgSettings ?? null);
       }
     } catch (err) {
-      if (isServiceError(err, "UNAUTHENTICATED")) {
-        router.push("/login");
+      setRelatedSubmission(null);
+      if (isServiceError(err, 'UNAUTHENTICATED')) {
+        router.push('/login');
         return;
       }
-      if (isServiceError(err, "REGISTER_NOT_FOUND")) {
-        setError("Kein Register gefunden. Bitte erstelle zuerst ein Register.");
+      if (isServiceError(err, 'REGISTER_NOT_FOUND')) {
+        setError('Kein Register gefunden. Bitte erstelle zuerst ein Register.');
       } else {
-        setError("Einsatzfall konnte nicht geladen werden.");
+        setError('Einsatzfall konnte nicht geladen werden.');
       }
     } finally {
       setIsLoading(false);
@@ -85,14 +121,14 @@ export default function UseCaseDetailPage() {
   }, [useCaseId, router]);
 
   useEffect(() => {
-    if (editParam !== "1") return;
-    if (resolvedFocus !== "owner") return;
+    if (editParam !== '1') return;
+    if (resolvedFocus !== 'owner') return;
     setIsEditing(true);
   }, [editParam, resolvedFocus, useCaseId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/login");
+      router.push('/login');
       return;
     }
     if (!authLoading && user) {
@@ -121,7 +157,7 @@ export default function UseCaseDetailPage() {
     const focusTargetId = getFocusTargetId(resolvedFocus);
     const frameId = window.requestAnimationFrame(() => {
       const element = document.getElementById(focusTargetId);
-      element?.scrollIntoView({ behavior: "smooth", block: "center" });
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     const timeoutId = window.setTimeout(() => {
@@ -134,13 +170,16 @@ export default function UseCaseDetailPage() {
     };
   }, [card, focusParam, requestedFocus, resolvedFocus]);
 
-  const handleStatusChange = async (nextStatus: RegisterUseCaseStatus, reason?: string) => {
+  const handleStatusChange = async (
+    nextStatus: RegisterUseCaseStatus,
+    reason?: string,
+  ) => {
     if (!card) return;
     await registerService.updateUseCaseStatusManual({
       useCaseId: card.useCaseId,
       nextStatus,
       reason,
-      actor: "HUMAN",
+      actor: 'HUMAN',
     });
     await loadUseCase();
   };
@@ -152,31 +191,53 @@ export default function UseCaseDetailPage() {
       await loadUseCase();
       setIsEditing(false);
     } catch (err) {
-      console.error("Failed to save metadata", err);
-      // We don't necessarily want to replace the whole page with an error, 
+      console.error('Failed to save metadata', err);
+      // We don't necessarily want to replace the whole page with an error,
       // but if we do, setting error works:
-      setError("Fehler beim Speichern der Änderungen.");
+      setError('Fehler beim Speichern der Änderungen.');
     }
   };
 
   if (authLoading || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <SignedInAreaFrame
+        area="signed_in_free_register"
+        title="Use Case im Register"
+        description="Detailansicht für Dokumentation, Reviews, Herkunft und Timeline."
+        nextStep="Wir laden Dokumentation, Review-Kontext und Timeline."
+        width="5xl"
+      >
+        <PageStatePanel
+          tone="loading"
+          area="signed_in_free_register"
+          title="Use Case wird geladen"
+          description="Details, Timeline und Review-Kontext werden vorbereitet."
+        />
+      </SignedInAreaFrame>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen p-4 pt-12">
-        <div className="mx-auto max-w-4xl">
-          <div className="border-l-2 border-red-300 pl-3 text-sm text-red-700">
-            <p className="font-medium">Fehler</p>
-            <p>{error}</p>
-          </div>
-        </div>
-      </div>
+      <SignedInAreaFrame
+        area="signed_in_free_register"
+        title="Use Case im Register"
+        description="Detailansicht für Dokumentation, Reviews, Herkunft und Timeline."
+        nextStep="Öffnen Sie das Register oder laden Sie den Use Case erneut."
+        width="5xl"
+      >
+        <PageStatePanel
+          tone="error"
+          area="signed_in_free_register"
+          title="Use Case konnte nicht geladen werden"
+          description={error}
+          actions={
+            <Button asChild variant="outline">
+              <Link href="/my-register">Zurück zum Register</Link>
+            </Button>
+          }
+        />
+      </SignedInAreaFrame>
     );
   }
 
@@ -185,8 +246,14 @@ export default function UseCaseDetailPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-8">
-      <div className="mx-auto max-w-[1024px] space-y-10">
+    <SignedInAreaFrame
+      area="signed_in_free_register"
+      title="Use Case im Register"
+      description="Dokumentieren, reviewen und Herkunft nachvollziehen in einer gemeinsamen Detailansicht."
+      nextStep={detailNextStep}
+      width="5xl"
+    >
+      <div className="space-y-10">
         <UseCaseHeader
           card={card}
           isEditing={isEditing}
@@ -198,7 +265,8 @@ export default function UseCaseDetailPage() {
           <div className="border-l-2 border-slate-300 pl-3 text-sm text-slate-600">
             <p className="font-medium">Hinweis</p>
             <p>
-              Der Focus-Parameter "{invalidFocus}" ist nicht gueltig und wurde ignoriert.
+              Der Focus-Parameter "{invalidFocus}" ist nicht gueltig und wurde
+              ignoriert.
             </p>
           </div>
         )}
@@ -213,14 +281,18 @@ export default function UseCaseDetailPage() {
         {registerFirstFlags.controlShell && (
           <div
             id="usecase-focus-governance"
-            className={activeFocus === "governance" ? focusHighlightClassName : undefined}
+            className={
+              activeFocus === 'governance' ? focusHighlightClassName : undefined
+            }
           >
             <GovernanceLiabilitySection
               card={card}
               useCases={allUseCases.length > 0 ? allUseCases : [card]}
               orgSettings={orgSettings}
-              focusField={activeFocus === "governance" ? governanceField : null}
-              autoOpenField={activeFocus === "governance" ? governanceAutoOpenField : null}
+              focusField={activeFocus === 'governance' ? governanceField : null}
+              autoOpenField={
+                activeFocus === 'governance' ? governanceAutoOpenField : null
+              }
               onCardUpdate={() => {
                 void loadUseCase();
               }}
@@ -230,52 +302,56 @@ export default function UseCaseDetailPage() {
 
         <div
           id="usecase-focus-review"
-          className={activeFocus === "review" ? focusHighlightClassName : undefined}
+          className={
+            activeFocus === 'review' ? focusHighlightClassName : undefined
+          }
         >
           <ReviewSection card={card} onStatusChange={handleStatusChange} />
         </div>
         <div
           id="usecase-focus-audit"
-          className={activeFocus === "audit" ? focusHighlightClassName : undefined}
+          className={
+            activeFocus === 'audit' ? focusHighlightClassName : undefined
+          }
         >
-          <AuditTrailSection card={card} />
+          <AuditTrailSection card={card} submission={relatedSubmission} />
         </div>
       </div>
-    </div>
+    </SignedInAreaFrame>
   );
 }
 
-const focusHighlightClassName = "border-l-2 border-slate-300 pl-3";
+const focusHighlightClassName = 'border-l-2 border-slate-300 pl-3';
 
 function resolveFocusTarget(
-  focus: ControlFocusTarget | null
+  focus: ControlFocusTarget | null,
 ): ControlFocusTarget | null {
-  if (focus === "oversight") return "governance";
+  if (focus === 'oversight') return 'governance';
   return focus;
 }
 
 function resolveGovernanceField(
   focus: ControlFocusTarget | null,
-  field: string | null
-): "oversight" | "reviewCycle" | "history" | null {
-  if (focus === "oversight") return "oversight";
+  field: string | null,
+): 'oversight' | 'reviewCycle' | 'history' | null {
+  if (focus === 'oversight') return 'oversight';
   return isGovernanceRepairField(field) ? field : null;
 }
 
 function getFocusTargetId(focus: ControlFocusTarget): string {
-  if (focus === "owner") return "usecase-focus-owner";
-  if (focus === "governance") return "usecase-focus-governance";
-  if (focus === "oversight") return "usecase-focus-oversight";
-  if (focus === "policy") return "usecase-focus-policy";
-  if (focus === "audit") return "usecase-focus-audit";
-  return "usecase-focus-review";
+  if (focus === 'owner') return 'usecase-focus-owner';
+  if (focus === 'governance') return 'usecase-focus-governance';
+  if (focus === 'oversight') return 'usecase-focus-oversight';
+  if (focus === 'policy') return 'usecase-focus-policy';
+  if (focus === 'audit') return 'usecase-focus-audit';
+  return 'usecase-focus-review';
 }
 
 function isServiceError(err: unknown, code: string): boolean {
   return (
     err !== null &&
-    typeof err === "object" &&
-    "code" in err &&
+    typeof err === 'object' &&
+    'code' in err &&
     String((err as { code: unknown }).code) === code
   );
 }

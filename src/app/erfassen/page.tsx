@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageStatePanel, PublicIntakeShell } from "@/components/product-shells";
 import { useAuth } from "@/context/auth-context";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 import {
@@ -49,6 +49,17 @@ const EMPTY_FORM: CaptureFormData = {
   decisionInfluence: null,
 };
 
+function isLocalCaptureDevelopment(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  );
+}
+
 export default function ErfassenPage() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -64,6 +75,7 @@ export default function ErfassenPage() {
   const [form, setForm] = useState<CaptureFormData>({ ...EMPTY_FORM });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdPurpose, setCreatedPurpose] = useState("");
+  const validatedCodeRef = useRef<string | null>(null);
   const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   const patch = (p: Partial<CaptureFormData>) => setForm((f) => ({ ...f, ...p }));
@@ -75,11 +87,13 @@ export default function ErfassenPage() {
 
   // Validate code from URL param on mount
   useEffect(() => {
-    if (codeParam) {
-      validateCode(codeParam);
+    if (!codeParam || validatedCodeRef.current === codeParam) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    validatedCodeRef.current = codeParam;
+    void validateCode(codeParam);
+  }, [codeParam]);
 
   async function validateCode(c: string) {
     setPageState("loading");
@@ -95,6 +109,11 @@ export default function ErfassenPage() {
             error?: string;
           };
         if (res.status === 503) {
+          if (isLocalCaptureDevelopment()) {
+            console.warn(
+              "Public capture is unavailable locally because the server has no Firebase Admin credentials. Configure ADC or a service account for no-login capture routes."
+            );
+          }
           const fallbackInfo = await resolveOwnedCaptureCodeFallback(c);
           if (fallbackInfo) {
             setCodeInfo({
@@ -189,6 +208,11 @@ export default function ErfassenPage() {
           .catch(() => ({ error: "Fehler beim Speichern." })) as {
             error?: string;
           };
+        if (res.status === 503 && isLocalCaptureDevelopment()) {
+          console.warn(
+            "Public capture submission is unavailable locally because the server has no Firebase Admin credentials. Configure ADC or a service account for no-login capture routes."
+          );
+        }
         const copy = getCaptureByCodeErrorCopy(res.status, data.error, "submit");
         setErrorTitle(copy.title);
         setErrorMsg(copy.description);
@@ -219,32 +243,40 @@ export default function ErfassenPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-6 flex w-full max-w-[480px] items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Image src="/register-logo.png" alt="Logo" width={32} height={32} className="h-8 w-8" />
-          <span className="text-lg font-semibold">KI-Einsatzfall erfassen</span>
-        </div>
-        <Link
-          href="/my-register"
-          className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Zum Register
-        </Link>
-      </div>
-
-      {/* Loading */}
+    <PublicIntakeShell
+      title="KI-Einsatzfall ohne Login erfassen"
+      description="Nutzen Sie einen Zugangscode, um Angaben direkt in das richtige Register einzureichen. Das Formular ist vom internen Arbeitsbereich getrennt und dient nur der strukturierten Erfassung."
+      meta={
+        codeInfo ? (
+          <p>
+            Zielregister:{" "}
+            <span className="font-medium text-slate-950">
+              {codeInfo.organisationName ?? codeInfo.label}
+            </span>
+          </p>
+        ) : null
+      }
+      asidePoints={[
+        "Angaben werden als nachvollziehbarer Eingang gespeichert und intern geprüft.",
+        "Öffentliche Formulare zeigen keine internen Register- oder Governance-Ansichten.",
+        "Nach dem Absenden ist der nächste Schritt intern: dokumentieren, reviewen oder nachfassen.",
+      ]}
+    >
       {pageState === "loading" && (
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <PageStatePanel
+          tone="loading"
+          area="public_external_intake"
+          title="Code wird geprüft"
+          description="Wir prüfen, ob dieser Zugangscode aktiv ist und zu einem gültigen Register gehört."
+        />
       )}
 
-      {/* Enter code manually */}
       {pageState === "enter_code" && (
-        <Card className="w-full max-w-md">
+        <Card className="w-full shadow-sm">
           <CardHeader>
             <CardTitle>Zugangscode eingeben</CardTitle>
             <CardDescription>
-              Gib den Code ein, den du von deinem Admin erhalten hast.
+              Geben Sie den Code ein, den Sie von der verantwortlichen Organisation erhalten haben.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -255,7 +287,7 @@ export default function ErfassenPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="access-code">Code</Label>
+              <Label htmlFor="access-code">Zugangscode</Label>
               <Input
                 id="access-code"
                 placeholder="z. B. AI-K7M2X9"
@@ -269,20 +301,19 @@ export default function ErfassenPage() {
               disabled={code.trim().length < 4}
               className="w-full"
             >
-              Code prüfen
+              Weiter zur Erfassung
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* Invalid code */}
       {pageState === "invalid" && (
-        <Card className="w-full max-w-md">
-          <CardContent className="space-y-4 pt-6">
-            <Alert variant="destructive">
-              <AlertTitle>{errorTitle}</AlertTitle>
-              <AlertDescription>{errorMsg}</AlertDescription>
-            </Alert>
+        <PageStatePanel
+          tone="error"
+          area="public_external_intake"
+          title={errorTitle}
+          description={errorMsg ?? "Dieser Zugangscode konnte nicht verwendet werden."}
+          actions={
             <Button
               variant="outline"
               onClick={() => {
@@ -290,22 +321,20 @@ export default function ErfassenPage() {
                 setErrorTitle("Fehler");
                 setErrorMsg(null);
               }}
-              className="w-full"
             >
               Anderen Code eingeben
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       )}
 
-      {/* Capture Form */}
       {pageState === "form" && (
-        <Card className="w-full max-w-[480px]">
+        <Card className="w-full shadow-sm">
           <CardHeader>
-            <CardTitle>KI-Einsatzfall erfassen</CardTitle>
+            <CardTitle>Angaben einreichen</CardTitle>
             <CardDescription>
               {codeInfo?.organisationName
-                ? `Register: ${codeInfo.organisationName}`
+                ? `Diese Einreichung geht an ${codeInfo.organisationName}.`
                 : codeInfo?.label}
             </CardDescription>
           </CardHeader>
@@ -314,9 +343,7 @@ export default function ErfassenPage() {
               <Alert>
                 <AlertTitle>Direkter Registerzugang erkannt</AlertTitle>
                 <AlertDescription>
-                  Sie sind bereits als Registerinhaber:in angemeldet. Dieser Link wird
-                  direkt gegen Ihr Register verwendet, auch wenn die öffentliche
-                  Code-Prüfung gerade nicht verfügbar ist.
+                  Sie sind als Registerinhaber:in angemeldet. Dieser Link wird direkt Ihrem Register zugeordnet, auch wenn die öffentliche Codeprüfung gerade nicht verfügbar ist.
                 </AlertDescription>
               </Alert>
             )}
@@ -337,9 +364,9 @@ export default function ErfassenPage() {
               <div
                 role="status"
                 aria-live="polite"
-                className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground"
+                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
               >
-                Bitte ergänze die markierten Pflichtfelder, bevor du fortfährst.
+                Bitte ergänzen Sie die markierten Pflichtfelder, bevor Sie fortfahren.
               </div>
             )}
 
@@ -349,34 +376,39 @@ export default function ErfassenPage() {
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Einsatzfall erfassen
+              Einreichung absenden
             </Button>
           </CardContent>
         </Card>
       )}
 
-      {/* Success */}
       {pageState === "success" && (
-        <Card className="w-full max-w-md">
-          <CardContent className="space-y-4 pt-6 text-center">
-            <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
-            <h2 className="text-lg font-semibold">Erfolgreich erfasst</h2>
-            <p className="text-sm text-muted-foreground">
-              „{createdPurpose}" wurde im Register dokumentiert.
-            </p>
-            <Button
-              onClick={() => {
-                setForm({ ...EMPTY_FORM });
-                setPageState("form");
-                setErrorMsg(null);
-              }}
-              className="w-full"
-            >
-              Weiteren Einsatzfall erfassen
-            </Button>
-          </CardContent>
-        </Card>
+        <PageStatePanel
+          tone="success"
+          icon={CheckCircle2}
+          area="public_external_intake"
+          title="Einreichung gespeichert"
+          description={`„${createdPurpose}“ wurde als nachvollziehbare externe Einreichung aufgenommen.`}
+          actions={
+            <>
+              <Button
+                onClick={() => {
+                  setForm({ ...EMPTY_FORM });
+                  setPageState("form");
+                  setErrorMsg(null);
+                }}
+              >
+                Weiteren Einsatzfall erfassen
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/?mode=signup&intent=create_register">
+                  Eigenes Register anlegen
+                </Link>
+              </Button>
+            </>
+          }
+        />
       )}
-    </div>
+    </PublicIntakeShell>
   );
 }

@@ -27,13 +27,23 @@ export default function AdminPage() {
     const [isLoadingData, setIsLoadingData] = useState(false);
     const feedbackFilter = "all";
 
+    const getAdminIdToken = useCallback(async () => {
+        const token = await user?.getIdToken();
+        if (!token) {
+            throw new Error("Admin authentication token missing.");
+        }
+        return token;
+    }, [user]);
+
     const fetchData = useCallback(async () => {
+        if (!user) return;
         setIsLoadingData(true);
         try {
+            const idToken = await getAdminIdToken();
             const [statsData, feedbackData, usersData] = await Promise.all([
-                getAdminStats(),
-                getFeedbackList(feedbackFilter),
-                getPlatformUsers(50)
+                getAdminStats(idToken),
+                getFeedbackList(idToken, feedbackFilter),
+                getPlatformUsers(idToken, 50)
             ]);
 
             setStats(statsData);
@@ -44,7 +54,7 @@ export default function AdminPage() {
         } finally {
             setIsLoadingData(false);
         }
-    }, [feedbackFilter]);
+    }, [feedbackFilter, getAdminIdToken, user]);
 
     useEffect(() => {
         if (loading) return;
@@ -63,11 +73,12 @@ export default function AdminPage() {
     }, [user, loading, router, fetchData]);
 
     const handleResolveFeedback = async (id: string) => {
-        await updateFeedbackStatus(id, 'resolved');
+        const idToken = await getAdminIdToken();
+        await updateFeedbackStatus(idToken, id, 'resolved');
         // Optimistic update
         setFeedback(prev => prev.map(item => item.id === id ? { ...item, status: 'resolved' } : item));
         // Refresh stats
-        const newStats = await getAdminStats();
+        const newStats = await getAdminStats(idToken);
         setStats(newStats);
     };
 
@@ -89,8 +100,8 @@ export default function AdminPage() {
                 <p className="text-muted-foreground text-center max-w-md">
                     Dein Account <span className="font-mono font-bold text-foreground bg-muted px-1 rounded">{user?.email}</span> hat keine Admin-Rechte.
                 </p>
-                <Button variant="outline" onClick={() => router.push('/dashboard')}>
-                    Zurück zum Dashboard
+                <Button variant="outline" onClick={() => router.push('/my-register')}>
+                    Zurück zum Register
                 </Button>
             </div>
         );

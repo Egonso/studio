@@ -25,7 +25,7 @@ import {
 export async function runV11SchemaSmoke() {
   const now = new Date("2026-02-10T10:00:00.000Z");
 
-  // ── 1. v1.0 cards still parse correctly ───────────────────────────────
+  // ── 1. Canonical draft creation ───────────────────────────────────────
   const v10Card = createUseCaseCardDraft(
     {
       purpose: "Kundenfeedback analysieren",
@@ -35,10 +35,11 @@ export async function runV11SchemaSmoke() {
     },
     { useCaseId: "uc_v10_test", now }
   );
-  assert.equal(v10Card.cardVersion, "1.0");
-  assert.equal(v10Card.globalUseCaseId, undefined);
+  assert.equal(v10Card.cardVersion, "1.1");
+  assert.ok(v10Card.globalUseCaseId);
+  assert.ok(v10Card.publicHashId);
   assert.equal(v10Card.toolId, undefined);
-  assert.equal(v10Card.publicHashId, undefined);
+  assert.equal(v10Card.origin?.source, "manual");
 
   // ── 2. v1.1 card creation ─────────────────────────────────────────────
   const globalId = generateGlobalUseCaseId(now);
@@ -70,7 +71,7 @@ export async function runV11SchemaSmoke() {
   assert.equal(v11Card.formatVersion, "v1.1");
   assert.equal(v11Card.toolId, "chatgpt_openai");
   assert.equal(v11Card.toolFreeText, undefined);
-  assert.equal(v11Card.dataCategory, "INTERNAL");
+  assert.equal(v11Card.dataCategory, "INTERNAL_CONFIDENTIAL");
   assert.equal(v11Card.publicHashId, hashId);
   assert.equal(v11Card.isPublicVisible, false);
   // Existing fields unchanged
@@ -97,7 +98,7 @@ export async function runV11SchemaSmoke() {
   );
   assert.equal(v11OtherTool.toolId, "other");
   assert.equal(v11OtherTool.toolFreeText, "Internes Python Script");
-  assert.equal(v11OtherTool.dataCategory, "SENSITIVE");
+  assert.equal(v11OtherTool.dataCategory, "SPECIAL_PERSONAL");
 
   // ── 4. OTHER tool without freeText should fail ────────────────────────
   assert.throws(() =>
@@ -127,7 +128,7 @@ export async function runV11SchemaSmoke() {
   assert.equal(ids.size, 50, "50 generated publicHashIds must all be unique");
 
   // ── 7. Migration v1.0 → v1.1 ─────────────────────────────────────────
-  assert.equal(needsMigrationToV1_1(v10Card), true);
+  assert.equal(needsMigrationToV1_1(v10Card), false);
   assert.equal(needsMigrationToV1_1(v11Card), false);
 
   const migrated = migrateCardToV1_1(v10Card, now);
@@ -137,7 +138,7 @@ export async function runV11SchemaSmoke() {
   assert.ok(migrated.publicHashId);
   assert.ok(isValidPublicHashId(migrated.publicHashId!));
   assert.equal(migrated.formatVersion, "v1.1");
-  assert.equal(migrated.dataCategory, "INTERNAL");
+  assert.equal(migrated.dataCategory, "INTERNAL_CONFIDENTIAL");
   assert.equal(migrated.isPublicVisible, false);
   // Original fields preserved
   assert.equal(migrated.purpose, v10Card.purpose);
@@ -221,7 +222,7 @@ export async function runV11SchemaSmoke() {
       now,
     }
   );
-  assert.equal(v11NoCategory.dataCategory, "INTERNAL"); // default
+  assert.equal(v11NoCategory.dataCategory, "INTERNAL_CONFIDENTIAL"); // default
 
   console.log("v1.1 schema smoke tests passed.");
 }

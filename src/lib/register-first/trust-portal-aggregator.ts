@@ -97,7 +97,7 @@ export function computePortalKpis(
     }
 
     // Data category
-    const cat = entry.dataCategory || "NONE";
+    const cat = entry.dataCategory || "INTERNAL_CONFIDENTIAL";
     dataCategoryDistribution[cat] = (dataCategoryDistribution[cat] || 0) + 1;
 
     // Verified proofs
@@ -138,7 +138,7 @@ export function aggregatePortalData(
     publicHashId: e.publicHashId,
     purpose: e.purpose,
     toolName: e.toolName || "Unbenannt",
-    dataCategory: e.dataCategory || "NONE",
+    dataCategory: e.dataCategory || "INTERNAL_CONFIDENTIAL",
     status: e.status,
     isVerified: !!(e.verification?.isReal && e.verification?.isCurrent),
   }));

@@ -1,13 +1,21 @@
-import { parseUseCaseCard } from "./schema";
+import { parseUseCaseCard } from './schema';
+import { ensureV1_1Shape } from './migration';
+import { resolvePrimaryDataCategory } from './types';
 import type {
   Register,
+  RegisterEntitlement,
   RegisterAccessCode,
   RegisterDeletionState,
   RegisterUseCaseStatus,
   UseCaseCard,
   PublicUseCaseIndexEntry,
-} from "./types";
-import { sanitizeFirestorePayload } from "./firestore-sanitize";
+} from './types';
+import { sanitizeFirestorePayload } from './firestore-sanitize';
+import {
+  createFreeRegisterEntitlement,
+  getEntitlementAccessPlan,
+  normalizeRegisterEntitlement,
+} from './entitlement';
 
 // ── Scope ───────────────────────────────────────────────────────────────────
 
@@ -33,39 +41,48 @@ export interface RegisterRepository {
   createRegister(
     userId: string,
     name: string,
-    linkedProjectId?: string | null
+    linkedProjectId?: string | null,
   ): Promise<Register>;
   getRegister(
     userId: string,
     registerId: string,
-    options?: RegisterQueryOptions
+    options?: RegisterQueryOptions,
   ): Promise<Register | null>;
   listRegisters(
     userId: string,
-    options?: RegisterQueryOptions
+    options?: RegisterQueryOptions,
   ): Promise<Register[]>;
   updateRegister(
     userId: string,
     registerId: string,
-    partial: Partial<Pick<Register, "name" | "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
+    partial: Partial<
+      Pick<
+        Register,
+        | 'name'
+        | 'workspaceId'
+        | 'organisationName'
+        | 'organisationUnit'
+        | 'publicOrganisationDisclosure'
+        | 'orgSettings'
+        | 'plan'
+        | 'entitlement'
+      >
+    >,
   ): Promise<void>;
   softDeleteRegister(
     userId: string,
     registerId: string,
-    deletionState: RegisterDeletionState
+    deletionState: RegisterDeletionState,
   ): Promise<Register>;
   restoreRegister(userId: string, registerId: string): Promise<Register>;
 }
 
 export interface RegisterUseCaseRepository {
   create(scope: RegisterScope, card: UseCaseCard): Promise<UseCaseCard>;
-  getById(
-    scope: RegisterScope,
-    useCaseId: string
-  ): Promise<UseCaseCard | null>;
+  getById(scope: RegisterScope, useCaseId: string): Promise<UseCaseCard | null>;
   list(
     scope: RegisterScope,
-    filters?: RegisterUseCaseFilters
+    filters?: RegisterUseCaseFilters,
   ): Promise<UseCaseCard[]>;
   save(scope: RegisterScope, card: UseCaseCard): Promise<UseCaseCard>;
 }
@@ -73,9 +90,7 @@ export interface RegisterUseCaseRepository {
 export interface PublicIndexRepository {
   publishToIndex(entry: PublicUseCaseIndexEntry): Promise<void>;
   unpublishFromIndex(publicHashId: string): Promise<void>;
-  getPublicEntry(
-    publicHashId: string
-  ): Promise<PublicUseCaseIndexEntry | null>;
+  getPublicEntry(publicHashId: string): Promise<PublicUseCaseIndexEntry | null>;
 }
 
 export interface RegisterAccessCodeRepository {
@@ -83,7 +98,7 @@ export interface RegisterAccessCodeRepository {
   deactivateCodesForRegister(
     userId: string,
     registerId: string,
-    deletedAt: string
+    deletedAt: string,
   ): Promise<number>;
   restoreCodesForRegister(userId: string, registerId: string): Promise<number>;
 }
@@ -96,7 +111,7 @@ function normalizeSearch(value: string): string {
 
 function applyFilters(
   cards: UseCaseCard[],
-  filters: RegisterUseCaseFilters = {}
+  filters: RegisterUseCaseFilters = {},
 ): UseCaseCard[] {
   let result = [...cards];
 
@@ -113,13 +128,13 @@ function applyFilters(
     result = result.filter((card) => {
       const searchable = [
         card.purpose,
-        card.toolFreeText ?? "",
-        card.toolId ?? "",
-        card.responsibility.responsibleParty ?? "",
+        card.toolFreeText ?? '',
+        card.toolId ?? '',
+        card.responsibility.responsibleParty ?? '',
         ...(card.labels ?? []).map((label) => `${label.key} ${label.value}`),
         ...card.reviewHints,
       ]
-        .join(" ")
+        .join(' ')
         .toLowerCase();
       return searchable.includes(query);
     });
@@ -128,7 +143,7 @@ function applyFilters(
   result.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   if (
-    typeof filters.limit === "number" &&
+    typeof filters.limit === 'number' &&
     Number.isFinite(filters.limit) &&
     filters.limit > 0
   ) {
@@ -144,7 +159,7 @@ function cloneCard(card: UseCaseCard): UseCaseCard {
 
 function shouldIncludeRegister(
   register: Register,
-  options?: RegisterQueryOptions
+  options?: RegisterQueryOptions,
 ): boolean {
   return options?.includeDeleted === true || register.isDeleted !== true;
 }
@@ -152,13 +167,29 @@ function shouldIncludeRegister(
 // ── Firestore: Register CRUD ────────────────────────────────────────────────
 
 export function createFirestoreRegisterRepository(): RegisterRepository {
+  async function loadWorkspaceEntitlement(
+    userId: string,
+  ): Promise<RegisterEntitlement | null> {
+    const { getFirebaseDb } = await import('@/lib/firebase');
+    const db = await getFirebaseDb();
+    const { doc, getDoc } = await import('firebase/firestore');
+
+    const userRef = doc(db, `users/${userId}`);
+    const snapshot = await getDoc(userRef);
+    const data = snapshot.data() as
+      | { workspaceEntitlement?: Partial<RegisterEntitlement> | null }
+      | undefined;
+
+    return normalizeRegisterEntitlement(data?.workspaceEntitlement);
+  }
+
   async function loadRegister(
     userId: string,
-    registerId: string
+    registerId: string,
   ): Promise<Register | null> {
-    const { getFirebaseDb } = await import("@/lib/firebase");
+    const { getFirebaseDb } = await import('@/lib/firebase');
     const db = await getFirebaseDb();
-    const { doc, getDoc } = await import("firebase/firestore");
+    const { doc, getDoc } = await import('firebase/firestore');
 
     const docRef = doc(db, `users/${userId}/registers/${registerId}`);
     const snapshot = await getDoc(docRef);
@@ -168,17 +199,24 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
 
   return {
     async createRegister(userId, name, linkedProjectId = null) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { collection, doc, setDoc } = await import("firebase/firestore");
+      const { collection, doc, setDoc } = await import('firebase/firestore');
 
       const registersRef = collection(db, `users/${userId}/registers`);
       const newDoc = doc(registersRef);
+      const createdAt = new Date().toISOString();
+      const workspaceEntitlement =
+        (await loadWorkspaceEntitlement(userId)) ??
+        createFreeRegisterEntitlement(createdAt);
       const register: Register = {
         registerId: newDoc.id,
         name,
-        createdAt: new Date().toISOString(),
+        createdAt,
+        workspaceId: userId,
         linkedProjectId: linkedProjectId ?? null,
+        plan: getEntitlementAccessPlan(workspaceEntitlement),
+        entitlement: workspaceEntitlement,
       };
       await setDoc(newDoc, register);
       return register;
@@ -191,14 +229,13 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
     },
 
     async listRegisters(userId, options) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { collection, getDocs, orderBy, query } = await import(
-        "firebase/firestore"
-      );
+      const { collection, getDocs, orderBy, query } =
+        await import('firebase/firestore');
 
       const registersRef = collection(db, `users/${userId}/registers`);
-      const q = query(registersRef, orderBy("createdAt", "desc"));
+      const q = query(registersRef, orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
       return snapshot.docs
         .map((d) => d.data() as Register)
@@ -206,9 +243,9 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
     },
 
     async updateRegister(userId, registerId, partial) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, updateDoc } = await import("firebase/firestore");
+      const { doc, updateDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `users/${userId}/registers/${registerId}`);
       await updateDoc(docRef, sanitizeFirestorePayload(partial));
@@ -220,9 +257,9 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
         throw new Error(`Register '${registerId}' not found`);
       }
 
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, updateDoc } = await import("firebase/firestore");
+      const { doc, updateDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `users/${userId}/registers/${registerId}`);
       const nextRegister: Register = {
@@ -230,10 +267,13 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
         isDeleted: true,
         deletionState,
       };
-      await updateDoc(docRef, sanitizeFirestorePayload({
-        isDeleted: true,
-        deletionState,
-      }));
+      await updateDoc(
+        docRef,
+        sanitizeFirestorePayload({
+          isDeleted: true,
+          deletionState,
+        }),
+      );
       return nextRegister;
     },
 
@@ -243,9 +283,9 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
         throw new Error(`Register '${registerId}' not found`);
       }
 
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, updateDoc } = await import("firebase/firestore");
+      const { doc, updateDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `users/${userId}/registers/${registerId}`);
       const restored: Register = {
@@ -253,10 +293,13 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
         isDeleted: false,
         deletionState: null,
       };
-      await updateDoc(docRef, sanitizeFirestorePayload({
-        isDeleted: false,
-        deletionState: null,
-      }));
+      await updateDoc(
+        docRef,
+        sanitizeFirestorePayload({
+          isDeleted: false,
+          deletionState: null,
+        }),
+      );
       return restored;
     },
   };
@@ -265,19 +308,19 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
 // ── Firestore: UseCase CRUD ─────────────────────────────────────────────────
 
 async function getUseCasesCollectionRef(scope: RegisterScope) {
-  const { getFirebaseDb } = await import("@/lib/firebase");
+  const { getFirebaseDb } = await import('@/lib/firebase');
   const db = await getFirebaseDb();
-  const { collection } = await import("firebase/firestore");
+  const { collection } = await import('firebase/firestore');
   return collection(
     db,
-    `users/${scope.userId}/registers/${scope.registerId}/useCases`
+    `users/${scope.userId}/registers/${scope.registerId}/useCases`,
   );
 }
 
 export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository {
   return {
     async create(scope, card) {
-      const { doc, setDoc } = await import("firebase/firestore");
+      const { doc, setDoc } = await import('firebase/firestore');
       const collectionRef = await getUseCasesCollectionRef(scope);
       const docRef = doc(collectionRef, card.useCaseId);
       // Sanitize undefined values (Firestore rejects them by default)
@@ -287,7 +330,7 @@ export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository 
     },
 
     async getById(scope, useCaseId) {
-      const { doc, getDoc } = await import("firebase/firestore");
+      const { doc, getDoc } = await import('firebase/firestore');
       const collectionRef = await getUseCasesCollectionRef(scope);
       const docRef = doc(collectionRef, useCaseId);
       const snapshot = await getDoc(docRef);
@@ -296,18 +339,18 @@ export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository 
     },
 
     async list(scope, filters = {}) {
-      const { getDocs, orderBy, query } = await import("firebase/firestore");
+      const { getDocs, orderBy, query } = await import('firebase/firestore');
       const collectionRef = await getUseCasesCollectionRef(scope);
-      const q = query(collectionRef, orderBy("updatedAt", "desc"));
+      const q = query(collectionRef, orderBy('updatedAt', 'desc'));
       const snapshot = await getDocs(q);
       const cards = snapshot.docs.map((entry) =>
-        parseUseCaseCard(entry.data())
+        parseUseCaseCard(entry.data()),
       );
       return applyFilters(cards, filters);
     },
 
     async save(scope, card) {
-      const { doc, setDoc } = await import("firebase/firestore");
+      const { doc, setDoc } = await import('firebase/firestore');
       const collectionRef = await getUseCasesCollectionRef(scope);
       const docRef = doc(collectionRef, card.useCaseId);
       // Sanitize undefined values
@@ -323,27 +366,27 @@ export function createFirestoreRegisterUseCaseRepo(): RegisterUseCaseRepository 
 export function createFirestorePublicIndexRepo(): PublicIndexRepository {
   return {
     async publishToIndex(entry) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, setDoc } = await import("firebase/firestore");
+      const { doc, setDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `publicUseCases/${entry.publicHashId}`);
       await setDoc(docRef, entry, { merge: false });
     },
 
     async unpublishFromIndex(publicHashId) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, deleteDoc } = await import("firebase/firestore");
+      const { doc, deleteDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `publicUseCases/${publicHashId}`);
       await deleteDoc(docRef);
     },
 
     async getPublicEntry(publicHashId) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, getDoc } = await import("firebase/firestore");
+      const { doc, getDoc } = await import('firebase/firestore');
 
       const docRef = doc(db, `publicUseCases/${publicHashId}`);
       const snapshot = await getDoc(docRef);
@@ -356,18 +399,17 @@ export function createFirestorePublicIndexRepo(): PublicIndexRepository {
 export function createFirestoreRegisterAccessCodeRepo(): RegisterAccessCodeRepository {
   async function loadCodes(
     userId: string,
-    registerId: string
+    registerId: string,
   ): Promise<RegisterAccessCode[]> {
-    const { getFirebaseDb } = await import("@/lib/firebase");
+    const { getFirebaseDb } = await import('@/lib/firebase');
     const db = await getFirebaseDb();
-    const { collection, getDocs, query, where } = await import(
-      "firebase/firestore"
-    );
+    const { collection, getDocs, query, where } =
+      await import('firebase/firestore');
 
     const q = query(
-      collection(db, "registerAccessCodes"),
-      where("registerId", "==", registerId),
-      where("ownerId", "==", userId)
+      collection(db, 'registerAccessCodes'),
+      where('registerId', '==', registerId),
+      where('ownerId', '==', userId),
     );
 
     const snapshot = await getDocs(q);
@@ -386,15 +428,15 @@ export function createFirestoreRegisterAccessCodeRepo(): RegisterAccessCodeRepos
         return 0;
       }
 
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, writeBatch } = await import("firebase/firestore");
+      const { doc, writeBatch } = await import('firebase/firestore');
       const batch = writeBatch(db);
 
       activeCodes.forEach((codeEntry) => {
-        batch.update(doc(db, "registerAccessCodes", codeEntry.code), {
+        batch.update(doc(db, 'registerAccessCodes', codeEntry.code), {
           isActive: false,
-          deactivatedReason: "REGISTER_DELETED",
+          deactivatedReason: 'REGISTER_DELETED',
           deactivatedAt: deletedAt,
         });
       });
@@ -407,20 +449,20 @@ export function createFirestoreRegisterAccessCodeRepo(): RegisterAccessCodeRepos
       const codes = await loadCodes(userId, registerId);
       const restorableCodes = codes.filter(
         (code) =>
-          !code.isActive && code.deactivatedReason === "REGISTER_DELETED"
+          !code.isActive && code.deactivatedReason === 'REGISTER_DELETED',
       );
 
       if (restorableCodes.length === 0) {
         return 0;
       }
 
-      const { getFirebaseDb } = await import("@/lib/firebase");
+      const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
-      const { doc, writeBatch } = await import("firebase/firestore");
+      const { doc, writeBatch } = await import('firebase/firestore');
       const batch = writeBatch(db);
 
       restorableCodes.forEach((codeEntry) => {
-        batch.update(doc(db, "registerAccessCodes", codeEntry.code), {
+        batch.update(doc(db, 'registerAccessCodes', codeEntry.code), {
           isActive: true,
           deactivatedReason: null,
           deactivatedAt: null,
@@ -437,7 +479,7 @@ export function createFirestoreRegisterAccessCodeRepo(): RegisterAccessCodeRepos
 
 export async function lookupPublicUseCase(
   publicHashId: string,
-  publicIndexRepo?: PublicIndexRepository
+  publicIndexRepo?: PublicIndexRepository,
 ): Promise<PublicUseCaseIndexEntry | null> {
   // 1. Try the public index (fast, single doc read)
   const repo = publicIndexRepo ?? createFirestorePublicIndexRepo();
@@ -445,19 +487,19 @@ export async function lookupPublicUseCase(
   if (entry) return entry;
 
   // 2. Legacy fallback: Collection Group Query on registerUseCases
-  const { getByPublicHashIdFirestore } = await import("./repository");
+  const { getByPublicHashIdFirestore } = await import('./repository');
   const legacyResult = await getByPublicHashIdFirestore(publicHashId);
   if (!legacyResult) return null;
 
   // Convert legacy result to PublicUseCaseIndexEntry shape
-  const card = legacyResult.card;
+  const card = ensureV1_1Shape(legacyResult.card);
   return {
     publicHashId: card.publicHashId ?? publicHashId,
-    globalUseCaseId: card.globalUseCaseId ?? "",
-    formatVersion: card.formatVersion ?? "v1.0",
+    globalUseCaseId: card.globalUseCaseId ?? '',
+    formatVersion: card.formatVersion ?? 'v1.1',
     purpose: card.purpose,
-    toolName: card.toolFreeText ?? card.toolId ?? "",
-    dataCategory: card.dataCategory ?? "INTERNAL",
+    toolName: card.toolFreeText ?? card.toolId ?? '',
+    dataCategory: resolvePrimaryDataCategory(card) ?? 'INTERNAL_CONFIDENTIAL',
     status: card.status,
     createdAt: card.createdAt,
     ownerId: legacyResult.userId,
@@ -469,15 +511,22 @@ export async function lookupPublicUseCase(
 
 export function createInMemoryRegisterRepository(): RegisterRepository {
   const registers = new Map<string, Register>();
+  const workspaceEntitlements = new Map<string, RegisterEntitlement>();
 
   return {
     async createRegister(userId, name, linkedProjectId = null) {
       const registerId = `reg_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      const createdAt = new Date().toISOString();
+      const workspaceEntitlement =
+        workspaceEntitlements.get(userId) ??
+        createFreeRegisterEntitlement(createdAt);
       const register: Register = {
         registerId,
         name,
-        createdAt: new Date().toISOString(),
+        createdAt,
         linkedProjectId: linkedProjectId ?? null,
+        plan: getEntitlementAccessPlan(workspaceEntitlement),
+        entitlement: workspaceEntitlement,
       };
       registers.set(`${userId}/${registerId}`, register);
       return register;
@@ -492,7 +541,10 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
     async listRegisters(userId, options) {
       const result: Register[] = [];
       for (const [key, reg] of registers) {
-        if (key.startsWith(`${userId}/`) && shouldIncludeRegister(reg, options)) {
+        if (
+          key.startsWith(`${userId}/`) &&
+          shouldIncludeRegister(reg, options)
+        ) {
           result.push(reg);
         }
       }
@@ -600,16 +652,15 @@ export function createInMemoryPublicIndexRepo(): PublicIndexRepository {
   };
 }
 
-export interface InMemoryRegisterAccessCodeRepository
-  extends RegisterAccessCodeRepository {
+export interface InMemoryRegisterAccessCodeRepository extends RegisterAccessCodeRepository {
   seedCode(code: RegisterAccessCode): void;
 }
 
 export function createInMemoryRegisterAccessCodeRepo(
-  initialCodes: RegisterAccessCode[] = []
+  initialCodes: RegisterAccessCode[] = [],
 ): InMemoryRegisterAccessCodeRepository {
   const codes = new Map<string, RegisterAccessCode>(
-    initialCodes.map((code) => [code.code, { ...code }])
+    initialCodes.map((code) => [code.code, { ...code }]),
   );
 
   return {
@@ -620,7 +671,7 @@ export function createInMemoryRegisterAccessCodeRepo(
     async listCodes(userId, registerId) {
       return Array.from(codes.values())
         .filter(
-          (code) => code.ownerId === userId && code.registerId === registerId
+          (code) => code.ownerId === userId && code.registerId === registerId,
         )
         .map((code) => ({ ...code }));
     },
@@ -636,7 +687,7 @@ export function createInMemoryRegisterAccessCodeRepo(
           codes.set(codeValue, {
             ...code,
             isActive: false,
-            deactivatedReason: "REGISTER_DELETED",
+            deactivatedReason: 'REGISTER_DELETED',
             deactivatedAt: deletedAt,
           });
           deactivatedCount += 1;
@@ -652,7 +703,7 @@ export function createInMemoryRegisterAccessCodeRepo(
           code.ownerId === userId &&
           code.registerId === registerId &&
           !code.isActive &&
-          code.deactivatedReason === "REGISTER_DELETED"
+          code.deactivatedReason === 'REGISTER_DELETED'
         ) {
           codes.set(codeValue, {
             ...code,

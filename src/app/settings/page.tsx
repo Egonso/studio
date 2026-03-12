@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { AppHeader } from '@/components/app-header';
+import { SignedInAreaFrame } from '@/components/product-shells';
 import { Loader2, Mail, Lock, User, ShieldCheck } from 'lucide-react';
 import { verifyOfficerKey } from '@/actions/officer-actions';
 import { useUserProfile } from '@/hooks/use-user-profile';
@@ -164,12 +164,17 @@ export default function SettingsPage() {
     : '–';
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <AppHeader />
-      <main className="flex-1 container max-w-2xl mx-auto px-4 py-10 space-y-6">
+    <SignedInAreaFrame
+      area="signed_in_free_register"
+      title="Settings"
+      description="Verwalten Sie Anmeldedaten, Registerzugang und persönliche Freischaltungen."
+      nextStep="Prüfen Sie zuerst Konto, Einladungen und Governance-Einstellungen."
+      width="5xl"
+    >
+      <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Kontoeinstellungen</h1>
-          <p className="text-muted-foreground text-sm mt-1">Verwalten Sie Ihre Anmeldedaten und Kontosicherheit.</p>
+          <h2 className="text-2xl font-bold">Kontoeinstellungen</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Verwalten Sie Ihre Anmeldedaten und Kontosicherheit.</p>
         </div>
 
         {/* Kontoinformationen */}
@@ -314,9 +319,17 @@ export default function SettingsPage() {
               <form onSubmit={inviteForm.handleSubmit(async (data) => {
                 setIsInviteLoading(true);
                 try {
+                  const token = await user?.getIdToken();
+                  if (!token) {
+                    throw new Error('Nicht autorisiert');
+                  }
+
                   const res = await fetch('/api/invites', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`,
+                    },
                     body: JSON.stringify({
                       email: data.email,
                       role: data.role,
@@ -452,7 +465,7 @@ export default function SettingsPage() {
             </Form>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </SignedInAreaFrame>
   );
 }

@@ -30,7 +30,7 @@ export function ControlKpiHeader({ snapshot, capturedAt }: ControlKpiHeaderProps
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h2 className="text-lg font-semibold">10-Sekunden-Ueberblick</h2>
+        <h2 className="text-lg font-semibold">Überblick</h2>
         <p className="text-xs text-muted-foreground">
           Stand: {capturedAt.toLocaleString("de-DE")}
         </p>
@@ -38,7 +38,7 @@ export function ControlKpiHeader({ snapshot, capturedAt }: ControlKpiHeaderProps
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
-          title="Systeme gesamt"
+          title="Dokumentierte Systeme"
           value={String(snapshot.totalSystems)}
           description="Aktiv dokumentierte Systeme im Register."
         />
@@ -48,7 +48,7 @@ export function ControlKpiHeader({ snapshot, capturedAt }: ControlKpiHeaderProps
           description="Anteil mit Einstufung Hochrisiko."
         />
         <KpiCard
-          title="Reviews faellig / ueberfaellig"
+          title="Reviews fällig / überfällig"
           value={`${snapshot.reviewsDue} / ${snapshot.reviewsOverdue}`}
           description="Faellig in 30 Tagen / bereits ueberfaellig."
         />

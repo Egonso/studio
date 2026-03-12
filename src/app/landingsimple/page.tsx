@@ -6,6 +6,7 @@ import { useAuth } from "@/context/auth-context";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { SetupSection } from "@/components/landing/setup-section";
+import { MarketingShell } from "@/components/product-shells";
 import { ThemeAwareLogo } from "@/components/theme-aware-logo";
 import { buildLoginPath } from "@/lib/auth/login-routing";
 
@@ -60,7 +61,7 @@ export default function LandingSimplePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <MarketingShell>
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-2xl mx-auto w-full">
         <div className="flex items-center gap-2">
@@ -176,35 +177,46 @@ export default function LandingSimplePage() {
       {/* Footer */}
       <footer className="border-t py-6 px-6">
         <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>KI-Register ist ein offener Dokumentationsstandard.</span>
+          <div className="space-y-1 text-center sm:text-left">
+            <p>KI-Register ist ein offener Dokumentationsstandard.</p>
+            <p>Alle Nutzerdaten im KI-Register bleiben in der EU.</p>
+          </div>
           <div className="flex gap-4">
+            <Link
+              href="/downloads"
+              className="hover:text-foreground"
+            >
+              Downloads
+            </Link>
             <a
-              href="https://eukigesetz.com/impressum"
+              href="/downloads/KIregister_Whitepaper_EU_AI_Act.pdf"
               target="_blank"
               rel="noreferrer"
+              className="hover:text-foreground"
+            >
+              Whitepaper
+            </a>
+            <Link
+              href="/impressum"
               className="hover:text-foreground"
             >
               Impressum
-            </a>
-            <a
-              href="https://eukigesetz.com/datenschutz"
-              target="_blank"
-              rel="noreferrer"
+            </Link>
+            <Link
+              href="/datenschutz"
               className="hover:text-foreground"
             >
               Datenschutz
-            </a>
-            <a
-              href="https://eukigesetz.com/agb"
-              target="_blank"
-              rel="noreferrer"
+            </Link>
+            <Link
+              href="/agb"
               className="hover:text-foreground"
             >
               AGB
-            </a>
+            </Link>
           </div>
         </div>
       </footer>
-    </div>
+    </MarketingShell>
   );
 }

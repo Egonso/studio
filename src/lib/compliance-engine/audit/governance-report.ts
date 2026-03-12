@@ -14,7 +14,12 @@
  * Sprint: GN-C Governance-Stichtagsreport
  */
 
-import type { UseCaseCard, OrgSettings } from '@/lib/register-first/types';
+import {
+    DATA_CATEGORY_LABELS,
+    resolvePrimaryDataCategory,
+    type UseCaseCard,
+    type OrgSettings,
+} from '@/lib/register-first/types';
 import { registerUseCaseStatusLabels } from '@/lib/register-first/status-flow';
 import {
     calculateGovernanceQuality,
@@ -70,15 +75,8 @@ export interface GovernanceReportData {
 
 // ── German Labels ───────────────────────────────────────────────────────────
 
-const DATA_CATEGORY_LABELS: Record<string, string> = {
-    NONE: 'Keine besonderen Daten',
-    INTERNAL: 'Interne Daten',
-    PERSONAL: 'Personenbezogene Daten',
-    SENSITIVE: 'Sensible Daten',
-};
-
 function getDataCategoryLabel(category: string | undefined): string {
-    return DATA_CATEGORY_LABELS[category ?? 'NONE'] ?? category ?? '–';
+    return DATA_CATEGORY_LABELS[(category ?? 'INTERNAL_CONFIDENTIAL') as keyof typeof DATA_CATEGORY_LABELS] ?? category ?? '–';
 }
 
 // ── Generator ───────────────────────────────────────────────────────────────
@@ -168,7 +166,7 @@ export function generateGovernanceReport(
             qualityScore: quality,
             qualityLabel: getGovernanceQualityLabel(quality),
             responsibleParty: responsible,
-            dataCategory: getDataCategoryLabel(uc.dataCategory),
+            dataCategory: getDataCategoryLabel(resolvePrimaryDataCategory(uc)),
             toolName: uc.toolFreeText || uc.toolId || '–',
         });
     }

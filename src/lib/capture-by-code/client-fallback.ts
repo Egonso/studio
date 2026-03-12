@@ -1,9 +1,13 @@
 import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase";
+import type { ExternalIntakeTrace } from "@/lib/register-first/types";
 import { registerService } from "@/lib/register-first/register-service";
+import { buildAccessCodeTrace } from "@/lib/register-first/external-intake";
+import { buildAccessCodeSubmissionSnapshot, buildExternalSubmissionRecord } from "@/lib/register-first/external-submissions";
 import type {
   CaptureUsageContext,
   DataCategory,
   DecisionInfluence,
+  ExternalSubmission,
   RegisterAccessCode,
   UseCaseCard,
 } from "@/lib/register-first/types";
@@ -51,8 +55,12 @@ interface SubmitOwnedCaptureCodeDeps {
       capturedViaCode: true;
       accessCodeLabel?: string;
       capturedByName?: string;
+      externalIntake?: ExternalIntakeTrace | null;
     }
   ) => Promise<UseCaseCard>;
+  createExternalSubmission?: (
+    submission: ExternalSubmission
+  ) => Promise<void>;
   incrementUsageCount: (code: string) => Promise<void>;
 }
 
@@ -123,29 +131,74 @@ export async function submitOwnedCaptureCode(
     dataCategories: input.dataCategories,
     decisionInfluence: input.decisionInfluence,
   });
+  const snapshot = buildAccessCodeSubmissionSnapshot({
+    purpose: input.purpose,
+    toolId: input.toolId,
+    toolFreeText: input.toolFreeText,
+    usageContexts: normalizedSelections.usageContexts,
+    dataCategories:
+      normalizedSelections.dataCategories ??
+      (normalizedSelections.dataCategory
+        ? [normalizedSelections.dataCategory]
+        : []),
+    decisionInfluence: normalizedSelections.decisionInfluence,
+    ownerRole: input.ownerRole,
+    contactPersonName: input.contactPersonName,
+    organisation: input.organisation,
+  });
+  const submission = buildExternalSubmissionRecord({
+    registerId: input.registerId,
+    ownerId: "owner_fallback",
+    sourceType: "access_code",
+    accessCodeId: input.code,
+    submittedByName: input.contactPersonName?.trim() || null,
+    submittedAt: new Date(),
+    rawPayloadSnapshot: snapshot,
+    status: "merged",
+  });
 
   const card = await deps.createUseCase(
     {
-      purpose: input.purpose.trim(),
-      usageContexts: normalizedSelections.usageContexts,
+      purpose: snapshot.purpose,
+      usageContexts: snapshot.usageContexts,
       isCurrentlyResponsible: false,
-      responsibleParty: input.ownerRole.trim(),
-      contactPersonName: input.contactPersonName?.trim() || undefined,
+      responsibleParty: snapshot.ownerRole,
+      contactPersonName: snapshot.contactPersonName || undefined,
       decisionImpact: "UNSURE",
-      decisionInfluence: normalizedSelections.decisionInfluence,
-      toolId: input.toolId || undefined,
-      toolFreeText: input.toolFreeText?.trim() || undefined,
-      dataCategory: normalizedSelections.dataCategory,
-      dataCategories: normalizedSelections.dataCategories,
-      organisation: input.organisation?.trim() || undefined,
+      decisionInfluence: snapshot.decisionInfluence || undefined,
+      toolId: snapshot.toolId || undefined,
+      toolFreeText: snapshot.toolFreeText || undefined,
+      dataCategory: snapshot.dataCategories[0],
+      dataCategories: snapshot.dataCategories,
+      organisation: snapshot.organisation || undefined,
     },
     {
       registerId: input.registerId,
       capturedViaCode: true,
       accessCodeLabel: input.accessCodeLabel ?? undefined,
-      capturedByName: input.contactPersonName?.trim() || undefined,
+      capturedByName: snapshot.contactPersonName || undefined,
+      externalIntake: buildAccessCodeTrace({
+        submittedAt: new Date(),
+        registerId: input.registerId,
+        submissionId: submission.submissionId,
+        accessCode: input.code,
+        accessCodeId: input.code,
+        accessCodeLabel: input.accessCodeLabel ?? null,
+        submittedByName: snapshot.contactPersonName || null,
+        submittedByRole: snapshot.ownerRole,
+      }),
     }
   );
+
+  if (deps.createExternalSubmission) {
+    await deps.createExternalSubmission({
+      ...submission,
+      linkedUseCaseId: card.useCaseId,
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: "owner_fallback",
+      reviewNote: "Use case created via owner fallback capture.",
+    });
+  }
 
   await deps.incrementUsageCount(input.code);
   return card;
@@ -155,11 +208,34 @@ export async function submitOwnedCaptureCodeFallback(
   input: OwnerCaptureSubmissionInput
 ): Promise<UseCaseCard> {
   const db = await getFirebaseDb();
-  const { doc, updateDoc, increment } = await import("firebase/firestore");
+  const { doc, setDoc, updateDoc, increment } = await import("firebase/firestore");
+  const auth = await getFirebaseAuth();
+  const ownerId = auth.currentUser?.uid;
+  if (!ownerId) {
+    throw new Error("UNAUTHENTICATED");
+  }
 
   return submitOwnedCaptureCode(input, {
     createUseCase: (payload, options) =>
       registerService.createUseCaseFromCapture(payload, options),
+    createExternalSubmission: async (submission) => {
+      await setDoc(
+        doc(
+          db,
+          "users",
+          ownerId,
+          "registers",
+          input.registerId,
+          "externalSubmissions",
+          submission.submissionId
+        ),
+        {
+          ...submission,
+          ownerId,
+          reviewedBy: ownerId,
+        }
+      );
+    },
     incrementUsageCount: async (code) => {
       await updateDoc(doc(db, "registerAccessCodes", code), {
         usageCount: increment(1),

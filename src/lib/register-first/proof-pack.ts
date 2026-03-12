@@ -1,4 +1,9 @@
-import type { DataCategory, UseCaseCard } from "./types";
+import { ensureV1_1Shape } from "./migration";
+import {
+  resolvePrimaryDataCategory,
+  type DataCategory,
+  type UseCaseCard,
+} from "./types";
 import type { ToolType } from "./tool-registry-types";
 
 export interface ProofPackDocument {
@@ -133,39 +138,38 @@ export function createProofPackV11Document(
   resolvedTool: ResolvedProofPackToolInfo = {},
   now: Date = new Date()
 ): ProofPackV11Document {
-  if (card.status !== "PROOF_READY") {
+  const normalizedCard = ensureV1_1Shape(card);
+
+  if (normalizedCard.status !== "PROOF_READY") {
     throw new Error("Proof Pack requires status PROOF_READY.");
   }
 
-  if (!card.proof) {
+  if (!normalizedCard.proof) {
     throw new Error("Proof Pack requires verify-link metadata.");
-  }
-
-  if (card.cardVersion !== "1.1") {
-    throw new Error("v1.1 Proof Pack requires a v1.1 use case card.");
   }
 
   return {
     schemaVersion: "1.1",
     generatedAt: now.toISOString(),
-    globalUseCaseId: card.globalUseCaseId ?? card.useCaseId,
-    useCaseId: card.useCaseId,
+    globalUseCaseId: normalizedCard.globalUseCaseId ?? normalizedCard.useCaseId,
+    useCaseId: normalizedCard.useCaseId,
     status: "PROOF_READY",
-    purpose: card.purpose,
+    purpose: normalizedCard.purpose,
     tool: {
-      toolId: card.toolId ?? "unknown",
+      toolId: normalizedCard.toolId ?? "unknown",
       vendor: resolvedTool.vendor ?? null,
       productName: resolvedTool.productName ?? null,
       toolType: resolvedTool.toolType ?? null,
-      freeText: card.toolFreeText ?? null,
+      freeText: normalizedCard.toolFreeText ?? null,
     },
-    dataCategory: card.dataCategory ?? "INTERNAL",
-    publicHashId: card.publicHashId ?? null,
+    dataCategory:
+      resolvePrimaryDataCategory(normalizedCard) ?? "INTERNAL_CONFIDENTIAL",
+    publicHashId: normalizedCard.publicHashId ?? null,
     verifyLink: {
-      url: card.proof.verifyUrl,
-      isReal: card.proof.verification.isReal,
-      isCurrent: card.proof.verification.isCurrent,
-      scope: card.proof.verification.scope,
+      url: normalizedCard.proof.verifyUrl,
+      isReal: normalizedCard.proof.verification.isReal,
+      isCurrent: normalizedCard.proof.verification.isCurrent,
+      scope: normalizedCard.proof.verification.scope,
     },
   };
 }

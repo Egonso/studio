@@ -1,418 +1,575 @@
-
 'use client';
 
 import { useEffect, useState, useCallback, Fragment, ChangeEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AppHeader } from '@/components/app-header';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  analyzeDocumentAction,
+  getImplementationGuideAction,
+} from '@/ai/actions';
+import type {
+  AnalyzeDocumentOutput,
+  ComplianceChecklistItem as GetComplianceChecklistOutput_Checklist,
+  GetImplementationGuideOutput,
+} from '@/ai/shared-types';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Lightbulb, Bot, Loader2, ThumbsUp, ThumbsDown, ShieldCheck, ShieldX, Upload, Info, RotateCcw } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Lightbulb,
+  Bot,
+  Loader2,
+  ThumbsUp,
+  ThumbsDown,
+  ShieldCheck,
+  ShieldX,
+  Upload,
+  Info,
+  RotateCcw,
+} from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { type GetComplianceChecklistOutput_Checklist } from '@/ai/flows/get-compliance-checklist';
-import { analyzeDocument, type AnalyzeDocumentOutput } from '@/ai/flows/document-analyzer';
-import { getImplementationGuide, type GetImplementationGuideOutput } from '@/ai/flows/get-implementation-guide';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { getCompanyContext, saveCompanyContext, getCurrentTask, saveChecklistState, getChecklistState, clearCurrentTask, getActiveProjectId, saveTaskGuide, getTaskGuide } from '@/lib/data-service';
+import {
+  getCompanyContext,
+  saveCompanyContext,
+  getCurrentTask,
+  saveChecklistState,
+  getChecklistState,
+  clearCurrentTask,
+  getActiveProjectId,
+  saveTaskGuide,
+  getTaskGuide,
+} from '@/lib/data-service';
 
 interface Task extends GetComplianceChecklistOutput_Checklist {
-    complianceItemId: string;
-    complianceItemTitle: string;
-    pillar?: 'ai-act' | 'iso-42001' | 'portfolio';
+  complianceItemId: string;
+  complianceItemTitle: string;
+  pillar?: 'ai-act' | 'iso-42001' | 'portfolio';
 }
 
 type Guide = GetImplementationGuideOutput['guide'];
 
 const StepContent = ({ content }: { content: string }) => {
-    const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
-    return (
-        <Fragment>
-            {parts.map((part, index) => {
-                if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={index}>{part.slice(2, -2)}</strong>;
-                }
-                if (part.startsWith('*') && part.endsWith('*')) {
-                    return <em key={index}>{part.slice(1, -1)}</em>;
-                }
-                if (part.startsWith('`') && part.endsWith('`')) {
-                    return (
-                        <code key={index} className="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm">
-                            {part.slice(1, -1)}
-                        </code>
-                    );
-                }
-                return <Fragment key={index}>{part}</Fragment>;
-            })}
-        </Fragment>
-    );
+  const parts = content.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`)/g);
+  return (
+    <Fragment>
+      {parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith('*') && part.endsWith('*')) {
+          return <em key={index}>{part.slice(1, -1)}</em>;
+        }
+        if (part.startsWith('`') && part.endsWith('`')) {
+          return (
+            <code
+              key={index}
+              className="bg-muted text-muted-foreground rounded-sm px-1 py-0.5 font-mono text-sm"
+            >
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <Fragment key={index}>{part}</Fragment>;
+      })}
+    </Fragment>
+  );
 };
 
 export default function TaskPage() {
-    const [task, setTask] = useState<Task | null>(null);
-    const [documentText, setDocumentText] = useState("");
-    const [fileName, setFileName] = useState<string | null>(null);
-    const [analysisResult, setAnalysisResult] = useState<AnalyzeDocumentOutput | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+  const [documentText, setDocumentText] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] =
+    useState<AnalyzeDocumentOutput | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-    const [guide, setGuide] = useState<Guide | null>(null);
-    const [isGuideLoading, setIsGuideLoading] = useState(true);
-    const [guideError, setGuideError] = useState<string | null>(null);
+  const [guide, setGuide] = useState<Guide | null>(null);
+  const [isGuideLoading, setIsGuideLoading] = useState(true);
+  const [guideError, setGuideError] = useState<string | null>(null);
 
-    const router = useRouter();
-    const params = useParams();
-    const taskId = params.id as string;
-    const { user, loading: authLoading } = useAuth();
-    const { toast } = useToast();
+  const router = useRouter();
+  const params = useParams();
+  const taskId = params.id as string;
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
-    const loadTask = useCallback(async () => {
-        const storedTask = await getCurrentTask();
-        if (storedTask && storedTask.id === taskId) {
-            setTask(storedTask as Task);
-        } else {
-            await clearCurrentTask();
-            const projectId = getActiveProjectId();
-            router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
-        }
-    }, [router, taskId]);
+  const loadTask = useCallback(async () => {
+    const storedTask = await getCurrentTask();
+    if (storedTask && storedTask.id === taskId) {
+      setTask(storedTask as Task);
+    } else {
+      await clearCurrentTask();
+      const projectId = getActiveProjectId();
+      router.push(
+        projectId ? `/dashboard?projectId=${projectId}` : '/projects',
+      );
+    }
+  }, [router, taskId]);
 
-    useEffect(() => {
-        if (!authLoading && !user) {
-            router.push('/login');
-            return;
-        }
-        if (user) {
-            if (!getActiveProjectId()) {
-                router.push('/my-register');
-                return;
-            }
-            loadTask();
-        }
-    }, [user, authLoading, loadTask, router]);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+      return;
+    }
+    if (user) {
+      if (!getActiveProjectId()) {
+        router.push('/my-register');
+        return;
+      }
+      loadTask();
+    }
+  }, [user, authLoading, loadTask, router]);
 
-    const fetchAndSetGuide = useCallback(async (forceRegenerate = false) => {
-        if (!task || !user) return;
+  const fetchAndSetGuide = useCallback(
+    async (forceRegenerate = false) => {
+      if (!task || !user) return;
 
-        setIsGuideLoading(true);
-        setGuideError(null);
-        try {
-            // Check cache first if not forcing regeneration
-            if (!forceRegenerate) {
-                const cachedGuide = await getTaskGuide(task.id);
-                if (cachedGuide) {
-                    setGuide(cachedGuide);
-                    setIsGuideLoading(false);
-                    return;
-                }
-            }
-
-            const companyContext = await getCompanyContext();
-            const result = await getImplementationGuide({
-                taskDescription: task.description,
-                companyDescription: (companyContext as any)?.companyDescription,
-                riskProfile: (companyContext as any)?.riskProfile,
-                existingAuditData: (companyContext as any)?.existingAuditData,
-                pillar: task.pillar
-            });
-            setGuide(result.guide);
-            await saveTaskGuide(task.id, result.guide);
-
-            if (forceRegenerate) {
-                toast({
-                    title: "Anleitung aktualisiert",
-                    description: "Die Umsetzungshilfe wurde basierend auf den neuesten Daten neu generiert.",
-                });
-            }
-        } catch (e) {
-            console.error("Failed to fetch implementation guide", e);
-            setGuideError("Die Anleitung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.");
-            toast({
-                title: "Fehler",
-                description: "Die Anleitung konnte nicht geladen werden.",
-                variant: "destructive",
-            });
-        } finally {
+      setIsGuideLoading(true);
+      setGuideError(null);
+      try {
+        // Check cache first if not forcing regeneration
+        if (!forceRegenerate) {
+          const cachedGuide = await getTaskGuide(task.id);
+          if (cachedGuide) {
+            setGuide(cachedGuide);
             setIsGuideLoading(false);
-        }
-    }, [task, user, toast]);
-
-
-    useEffect(() => {
-        if (task) {
-            fetchAndSetGuide();
-        }
-    }, [task, fetchAndSetGuide]);
-
-    const handleMarkAsDone = async () => {
-        if (!task || !user) return;
-
-        const currentState: Record<string, any> = (await getChecklistState()) || {};
-        const complianceItemId = task.complianceItemId;
-        const taskId = task.id;
-
-        if (!currentState[complianceItemId]) {
-            currentState[complianceItemId] = { data: null, checkedTasks: {} };
+            return;
+          }
         }
 
-        currentState[complianceItemId].checkedTasks[taskId] = true;
-
-        await saveChecklistState(currentState);
-        await clearCurrentTask();
-
-        toast({
-            title: "Aufgabe erledigt",
-            description: "Der Status wurde erfolgreich gespeichert.",
+        const companyContext = await getCompanyContext();
+        const result = await getImplementationGuideAction({
+          taskDescription: task.description,
+          companyDescription: (companyContext as any)?.companyDescription,
+          riskProfile: (companyContext as any)?.riskProfile,
+          existingAuditData: (companyContext as any)?.existingAuditData,
+          pillar: task.pillar,
         });
+        setGuide(result.guide);
+        await saveTaskGuide(task.id, result.guide);
 
-        const projectId = getActiveProjectId();
-        router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
-    };
-
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setFileName(file.name);
-            setAnalysisResult(null);
-
-            const processFileContent = async (content: string) => {
-                setDocumentText(content);
-                const companyContext: any = await getCompanyContext() || {};
-                const updatedAuditData = companyContext.existingAuditData
-                    ? `${companyContext.existingAuditData}\n\n---\n\n[Inhalt von ${file.name}]:\n${content}`
-                    : `[Inhalt von ${file.name}]:\n${content}`;
-
-                await saveCompanyContext({
-                    ...companyContext,
-                    existingAuditData: updatedAuditData
-                });
-                fetchAndSetGuide();
-            };
-
-            if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.text')) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const textContent = event.target?.result as string;
-                    processFileContent(textContent);
-                };
-                reader.readAsText(file);
-            } else {
-                const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden.`;
-                processFileContent(fileContentPlaceholder);
-            }
+        if (forceRegenerate) {
+          toast({
+            title: 'Anleitung aktualisiert',
+            description:
+              'Die Umsetzungshilfe wurde basierend auf den neuesten Daten neu generiert.',
+          });
         }
-    };
-
-    const handleAnalyze = async () => {
-        if (!documentText || !task) return;
-        setIsAnalyzing(true);
-        setAnalysisError(null);
-        setAnalysisResult(null);
-        try {
-            const result = await analyzeDocument({
-                documentText: documentText,
-                complianceTopic: task.complianceItemTitle,
-                taskDescription: task.description,
-            });
-            setAnalysisResult(result);
-        } catch (e) {
-            console.error("Analysis failed", e);
-            setAnalysisError("Die Analyse ist fehlgeschlagen. Bitte versuchen Sie es später erneut.");
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
-
-    const handleBackToDashboard = () => {
-        const projectId = getActiveProjectId();
-        router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
-    };
-
-    if (authLoading || !task) {
-        return (
-            <div className="flex flex-col min-h-screen bg-background">
-                <AppHeader />
-                <div className="flex-1 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-            </div>
+      } catch (e) {
+        console.error('Failed to fetch implementation guide', e);
+        setGuideError(
+          'Die Anleitung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.',
         );
+        toast({
+          title: 'Fehler',
+          description: 'Die Anleitung konnte nicht geladen werden.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsGuideLoading(false);
+      }
+    },
+    [task, user, toast],
+  );
+
+  useEffect(() => {
+    if (task) {
+      fetchAndSetGuide();
+    }
+  }, [task, fetchAndSetGuide]);
+
+  const handleMarkAsDone = async () => {
+    if (!task || !user) return;
+
+    const currentState: Record<string, any> = (await getChecklistState()) || {};
+    const complianceItemId = task.complianceItemId;
+    const taskId = task.id;
+
+    if (!currentState[complianceItemId]) {
+      currentState[complianceItemId] = { data: null, checkedTasks: {} };
     }
 
+    currentState[complianceItemId].checkedTasks[taskId] = true;
+
+    await saveChecklistState(currentState);
+    await clearCurrentTask();
+
+    toast({
+      title: 'Aufgabe erledigt',
+      description: 'Der Status wurde erfolgreich gespeichert.',
+    });
+
+    const projectId = getActiveProjectId();
+    router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      setAnalysisResult(null);
+
+      const processFileContent = async (content: string) => {
+        setDocumentText(content);
+        const companyContext: any = (await getCompanyContext()) || {};
+        const updatedAuditData = companyContext.existingAuditData
+          ? `${companyContext.existingAuditData}\n\n---\n\n[Inhalt von ${file.name}]:\n${content}`
+          : `[Inhalt von ${file.name}]:\n${content}`;
+
+        await saveCompanyContext({
+          ...companyContext,
+          existingAuditData: updatedAuditData,
+        });
+        fetchAndSetGuide();
+      };
+
+      if (
+        file.type === 'text/plain' ||
+        file.type === 'text/markdown' ||
+        file.name.endsWith('.text')
+      ) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const textContent = event.target?.result as string;
+          processFileContent(textContent);
+        };
+        reader.readAsText(file);
+      } else {
+        const fileContentPlaceholder = `Platzhalter für Datei: "${file.name}". Der Inhalt dieses Dateityps kann im Browser nicht direkt ausgelesen werden.`;
+        processFileContent(fileContentPlaceholder);
+      }
+    }
+  };
+
+  const handleAnalyze = async () => {
+    if (!documentText || !task) return;
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    setAnalysisResult(null);
+    try {
+      const result = await analyzeDocumentAction({
+        documentText: documentText,
+        complianceTopic: task.complianceItemTitle,
+        taskDescription: task.description,
+      });
+      setAnalysisResult(result);
+    } catch (e) {
+      console.error('Analysis failed', e);
+      setAnalysisError(
+        'Die Analyse ist fehlgeschlagen. Bitte versuchen Sie es später erneut.',
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleBackToDashboard = () => {
+    const projectId = getActiveProjectId();
+    router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
+  };
+
+  if (authLoading || !task) {
     return (
-        <div className="flex flex-col min-h-screen bg-background">
-            <AppHeader />
-            <main className="flex-1 p-4 md:p-8 flex items-start justify-center">
-                <div className="w-full max-w-4xl space-y-8">
-                    <Card className="w-full shadow-lg">
-                        <CardHeader>
-                            <Button variant="ghost" size="sm" className="justify-start p-0 h-auto mb-4" onClick={handleBackToDashboard}>
-                                <ArrowLeft className="mr-2 h-4 w-4" />
-                                Zurück zum Dashboard
-                            </Button>
-                            <CardTitle className="text-2xl">{task.complianceItemTitle}</CardTitle>
-                            <CardDescription>Detaillierte Anleitung zur Erfüllung der folgenden Anforderung:</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <blockquote className="mt-2 border-l-2 pl-6 italic">
-                                <StepContent content={task.description} />
-                            </blockquote>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="w-full shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="text-xl flex items-center gap-2">
-                                <Lightbulb className="h-6 w-6 text-primary" />
-                                Personalisierte Umsetzungshilfe
-                            </CardTitle>
-                            <CardDescription>
-                                Dieser Leitfaden wird durch die von Ihnen im Onboarding und hier bereitgestellten Kontextinformationen personalisiert.
-                            </CardDescription>
-                            <div className="absolute top-4 right-4">
-                                <Button variant="outline" size="sm" onClick={() => fetchAndSetGuide(true)} disabled={isGuideLoading}>
-                                    <RotateCcw className={isGuideLoading ? "animate-spin h-4 w-4" : "mr-2 h-4 w-4"} />
-                                    {isGuideLoading ? null : "Neu generieren"}
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {isGuideLoading && (
-                                <div className="space-y-4">
-                                    <Skeleton className="h-6 w-1/3" />
-                                    <div className="pl-5 space-y-2">
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-5/6" />
-                                        <Skeleton className="h-4 w-full" />
-                                    </div>
-                                    <Skeleton className="h-6 w-1/4 mt-4" />
-                                    <div className="pl-5 space-y-2">
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-4/6" />
-                                    </div>
-                                </div>
-                            )}
-                            {guideError && <Alert variant="destructive"><AlertTitle>Fehler</AlertTitle><AlertDescription>{guideError}</AlertDescription></Alert>}
-
-                            {guide && guide.map((section, index) => (
-                                <div key={index}>
-                                    <h3 className="font-semibold mb-2">{section.title}</h3>
-                                    <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                                        {section.steps.map((step, stepIndex) => (
-                                            <li key={stepIndex}>
-                                                <StepContent content={step} />
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </CardContent>
-                        <CardFooter className="flex justify-end">
-                            <Button onClick={handleMarkAsDone}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Als erledigt markieren
-                            </Button>
-                        </CardFooter>
-                    </Card>
-
-                    <Card className="w-full shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="text-xl flex items-center gap-2">
-                                <Bot className="h-6 w-6 text-primary" />
-                                KI-gestützter Dokumenten-Check
-                            </CardTitle>
-                            <CardDescription>
-                                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine Datei hoch, um eine schnelle KI-Analyse zu erhalten. Hochgeladene Dateien werden zum Organisationkontext hinzugefügt.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Alert>
-                                <Info className="h-4 w-4" />
-                                <AlertTitle>Wichtiger technischer Hinweis</AlertTitle>
-                                <AlertDescription>
-                                    Das Auslesen des Inhalts von .pdf- oder .docx-Dateien ist leider technisch nicht verlässlich möglich. Für eine vollständige Analyse müssen Sie den Text aus diesen Dateien entweder manuell kopieren und in das Textfeld einfügen oder als Textdatei (.txt, .md) hochladen.
-                                </AlertDescription>
-                            </Alert>
-                            <Textarea
-                                placeholder="Fügen Sie den Inhalt Ihres Dokuments hier ein..."
-                                className="min-h-[150px]"
-                                value={documentText}
-                                onChange={(e) => setDocumentText(e.target.value)}
-                            />
-
-                            <div className="space-y-2">
-                                <Input
-                                    id="document-upload"
-                                    type="file"
-                                    className="hidden"
-                                    accept=".txt,.md,.text,.pdf,.doc,.docx"
-                                    onChange={handleFileChange}
-                                />
-                                <label htmlFor="document-upload" className="w-full">
-                                    <Button type="button" asChild className="w-full cursor-pointer">
-                                        <span>
-                                            <Upload className="mr-2 h-4 w-4" />
-                                            Oder Dokument hochladen...
-                                        </span>
-                                    </Button>
-                                </label>
-                                {fileName && <p className="text-sm text-muted-foreground mt-2">Ausgewählte Datei: {fileName}</p>}
-                            </div>
-                            <Button onClick={handleAnalyze} disabled={isAnalyzing || !documentText}>
-                                {isAnalyzing ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Analysiere...
-                                    </>
-                                ) : "Dokument analysieren"}
-                            </Button>
-
-                            {analysisError && <Alert variant="destructive"><AlertTitle>Fehler</AlertTitle><AlertDescription>{analysisError}</AlertDescription></Alert>}
-
-                            {analysisResult && (
-                                <div className="space-y-6 pt-4">
-                                    <h3 className="font-semibold text-lg">Analyseergebnis</h3>
-
-                                    <Alert variant={analysisResult.isFulfilled ? 'default' : 'destructive'} className={analysisResult.isFulfilled ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50' : ''}>
-                                        {analysisResult.isFulfilled ? <ShieldCheck className="h-4 w-4 text-green-700 dark:text-green-400" /> : <ShieldX className="h-4 w-4" />}
-                                        <AlertTitle className={analysisResult.isFulfilled ? 'text-green-800 dark:text-green-300' : ''}>
-                                            KI-Einschätzung: {analysisResult.isFulfilled ? "Anforderung scheint erfüllt" : "Anforderung scheint nicht erfüllt"}
-                                        </AlertTitle>
-                                        <AlertDescription className={analysisResult.isFulfilled ? 'text-green-700 dark:text-green-400' : ''}>
-                                            Basierend auf dem bereitgestellten Text scheint das Dokument die Kernpunkte der Aufgabe {analysisResult.isFulfilled ? "zu adressieren" : "noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken."}
-                                        </AlertDescription>
-                                    </Alert>
-
-                                    <div>
-                                        <h4 className="font-semibold mb-2">Zusammenfassung des Dokuments</h4>
-                                        <p className="text-sm text-muted-foreground p-4 bg-secondary rounded-md">{analysisResult.summary}</p>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsUp className="h-5 w-5 text-green-600" /> Stärken</h4>
-                                            <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                                                {analysisResult.strengths.map((item, index) => <li key={index}><StepContent content={item} /></li>)}
-                                                {analysisResult.strengths.length === 0 && <li className="text-muted-foreground">Keine spezifischen Stärken identifiziert.</li>}
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2 flex items-center gap-2"><ThumbsDown className="h-5 w-5 text-red-600" />Potenzielle Lücken</h4>
-                                            <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                                                {analysisResult.weaknesses.map((item, index) => <li key={index}><StepContent content={item} /></li>)}
-                                                {analysisResult.weaknesses.length === 0 && <li className="text-muted-foreground">Keine spezifischen Lücken identifiziert.</li>}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </main>
+      <div className="flex flex-col min-h-screen bg-background">
+        <AppHeader />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
+      </div>
     );
-}
+  }
 
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <AppHeader />
+      <main className="flex-1 p-4 md:p-8 flex items-start justify-center">
+        <div className="w-full max-w-4xl space-y-8">
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start p-0 h-auto mb-4"
+                onClick={handleBackToDashboard}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Zurück zum Dashboard
+              </Button>
+              <CardTitle className="text-2xl">
+                {task.complianceItemTitle}
+              </CardTitle>
+              <CardDescription>
+                Detaillierte Anleitung zur Erfüllung der folgenden Anforderung:
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <blockquote className="mt-2 border-l-2 pl-6 italic">
+                <StepContent content={task.description} />
+              </blockquote>
+            </CardContent>
+          </Card>
+
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Lightbulb className="h-6 w-6 text-primary" />
+                Personalisierte Umsetzungshilfe
+              </CardTitle>
+              <CardDescription>
+                Dieser Leitfaden wird durch die von Ihnen im Onboarding und hier
+                bereitgestellten Kontextinformationen personalisiert.
+              </CardDescription>
+              <div className="absolute top-4 right-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchAndSetGuide(true)}
+                  disabled={isGuideLoading}
+                >
+                  <RotateCcw
+                    className={
+                      isGuideLoading ? 'animate-spin h-4 w-4' : 'mr-2 h-4 w-4'
+                    }
+                  />
+                  {isGuideLoading ? null : 'Neu generieren'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isGuideLoading && (
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-1/3" />
+                  <div className="pl-5 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                  <Skeleton className="h-6 w-1/4 mt-4" />
+                  <div className="pl-5 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/6" />
+                  </div>
+                </div>
+              )}
+              {guideError && (
+                <Alert variant="destructive">
+                  <AlertTitle>Fehler</AlertTitle>
+                  <AlertDescription>{guideError}</AlertDescription>
+                </Alert>
+              )}
+
+              {guide &&
+                guide.map((section, index) => (
+                  <div key={index}>
+                    <h3 className="font-semibold mb-2">{section.title}</h3>
+                    <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+                      {section.steps.map((step, stepIndex) => (
+                        <li key={stepIndex}>
+                          <StepContent content={step} />
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button onClick={handleMarkAsDone}>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Als erledigt markieren
+              </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="w-full shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Bot className="h-6 w-6 text-primary" />
+                KI-gestützter Dokumenten-Check
+              </CardTitle>
+              <CardDescription>
+                Fügen Sie hier den Text Ihres Dokuments ein oder laden Sie eine
+                Datei hoch, um eine schnelle KI-Analyse zu erhalten.
+                Hochgeladene Dateien werden zum Organisationkontext hinzugefügt.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Wichtiger technischer Hinweis</AlertTitle>
+                <AlertDescription>
+                  Das Auslesen des Inhalts von .pdf- oder .docx-Dateien ist
+                  leider technisch nicht verlässlich möglich. Für eine
+                  vollständige Analyse müssen Sie den Text aus diesen Dateien
+                  entweder manuell kopieren und in das Textfeld einfügen oder
+                  als Textdatei (.txt, .md) hochladen.
+                </AlertDescription>
+              </Alert>
+              <Textarea
+                placeholder="Fügen Sie den Inhalt Ihres Dokuments hier ein..."
+                className="min-h-[150px]"
+                value={documentText}
+                onChange={(e) => setDocumentText(e.target.value)}
+              />
+
+              <div className="space-y-2">
+                <Input
+                  id="document-upload"
+                  type="file"
+                  className="hidden"
+                  accept=".txt,.md,.text,.pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                />
+                <label htmlFor="document-upload" className="w-full">
+                  <Button
+                    type="button"
+                    asChild
+                    className="w-full cursor-pointer"
+                  >
+                    <span>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Oder Dokument hochladen...
+                    </span>
+                  </Button>
+                </label>
+                {fileName && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Ausgewählte Datei: {fileName}
+                  </p>
+                )}
+              </div>
+              <Button
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !documentText}
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analysiere...
+                  </>
+                ) : (
+                  'Dokument analysieren'
+                )}
+              </Button>
+
+              {analysisError && (
+                <Alert variant="destructive">
+                  <AlertTitle>Fehler</AlertTitle>
+                  <AlertDescription>{analysisError}</AlertDescription>
+                </Alert>
+              )}
+
+              {analysisResult && (
+                <div className="space-y-6 pt-4">
+                  <h3 className="font-semibold text-lg">Analyseergebnis</h3>
+
+                  <Alert
+                    variant={
+                      analysisResult.isFulfilled ? 'default' : 'destructive'
+                    }
+                    className={
+                      analysisResult.isFulfilled
+                        ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50'
+                        : ''
+                    }
+                  >
+                    {analysisResult.isFulfilled ? (
+                      <ShieldCheck className="h-4 w-4 text-green-700 dark:text-green-400" />
+                    ) : (
+                      <ShieldX className="h-4 w-4" />
+                    )}
+                    <AlertTitle
+                      className={
+                        analysisResult.isFulfilled
+                          ? 'text-green-800 dark:text-green-300'
+                          : ''
+                      }
+                    >
+                      KI-Einschätzung:{' '}
+                      {analysisResult.isFulfilled
+                        ? 'Anforderung scheint erfüllt'
+                        : 'Anforderung scheint nicht erfüllt'}
+                    </AlertTitle>
+                    <AlertDescription
+                      className={
+                        analysisResult.isFulfilled
+                          ? 'text-green-700 dark:text-green-400'
+                          : ''
+                      }
+                    >
+                      Basierend auf dem bereitgestellten Text scheint das
+                      Dokument die Kernpunkte der Aufgabe{' '}
+                      {analysisResult.isFulfilled
+                        ? 'zu adressieren'
+                        : 'noch nicht ausreichend zu adressieren. Beachten Sie die potenziellen Lücken.'}
+                    </AlertDescription>
+                  </Alert>
+
+                  <div>
+                    <h4 className="font-semibold mb-2">
+                      Zusammenfassung des Dokuments
+                    </h4>
+                    <p className="text-sm text-muted-foreground p-4 bg-secondary rounded-md">
+                      {analysisResult.summary}
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <ThumbsUp className="h-5 w-5 text-green-600" /> Stärken
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                        {analysisResult.strengths.map((item, index) => (
+                          <li key={index}>
+                            <StepContent content={item} />
+                          </li>
+                        ))}
+                        {analysisResult.strengths.length === 0 && (
+                          <li className="text-muted-foreground">
+                            Keine spezifischen Stärken identifiziert.
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2 flex items-center gap-2">
+                        <ThumbsDown className="h-5 w-5 text-red-600" />
+                        Potenzielle Lücken
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
+                        {analysisResult.weaknesses.map((item, index) => (
+                          <li key={index}>
+                            <StepContent content={item} />
+                          </li>
+                        ))}
+                        {analysisResult.weaknesses.length === 0 && (
+                          <li className="text-muted-foreground">
+                            Keine spezifischen Lücken identifiziert.
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

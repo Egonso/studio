@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { ServerAuthError, requireUser } from '@/lib/server-auth';
 
 export async function POST(req: Request) {
     try {
+        await requireUser(req.headers.get("authorization"));
         const { toolName } = await req.json();
 
         if (!toolName) {
@@ -79,6 +81,9 @@ Antworte bitte im reinen JSON-Format (ohne Markdown Code-Blöcke) mit folgender 
         });
 
     } catch (error) {
+        if (error instanceof ServerAuthError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error('Error checking compliance:', error);
         return NextResponse.json({ error: 'Failed to verify compliance' }, { status: 500 });
     }

@@ -1,27 +1,39 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { db } from "@/lib/firebase-admin";
+import {
+  AuthenticatedIdentityError,
+  assertAuthenticatedIdentity,
+} from "@/lib/server-access";
+import { ServerAuthError, requireUser } from "@/lib/server-auth";
+import {
+  ensureWorkspaceRecord,
+  syncUserWorkspaceAccess,
+  upsertWorkspaceMemberRecord,
+} from '@/lib/workspace-admin';
 
 const AcceptInviteSchema = z.object({
-  userId: z.string().min(1),
+  userId: z.string().trim().min(1).regex(/^[^/]+$/),
   email: z.string().email(),
-  workspaceInvite: z.string().optional(),
+  workspaceInvite: z.string().trim().regex(/^[^/]+$/).optional(),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const payload = AcceptInviteSchema.parse(await request.json());
+    const actor = await requireUser(request.headers.get("authorization"));
+    assertAuthenticatedIdentity(actor, {
+      userId: payload.userId,
+      email: payload.email,
+    });
+
     const normalizedEmail = payload.email.trim().toLowerCase();
     const nowIso = new Date().toISOString();
 
     const userRef = db.collection("users").doc(payload.userId);
     const userSnap = await userRef.get();
-    if (!userSnap.exists) {
-      return NextResponse.json({ error: "Benutzerprofil nicht gefunden." }, { status: 404 });
-    }
-
     const userData = userSnap.data() ?? {};
-    const userWorkspaces = Array.isArray(userData.workspaces) ? userData.workspaces : [];
 
     let inviteDocs: any[] = [];
 
@@ -36,7 +48,7 @@ export async function POST(request: Request) {
         String(singleInvite.data()?.email ?? "").toLowerCase() === normalizedEmail &&
         String(singleInvite.data()?.expiresAt ?? nowIso) > nowIso
       ) {
-        inviteDocs = [singleInvite as any];
+        inviteDocs = [singleInvite];
       }
     } else {
       const invitesSnap = await db
@@ -52,35 +64,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, applied: 0 });
     }
 
-    const workspaceByOrg = new Map<string, any>();
-    for (const workspace of userWorkspaces) {
-      if (workspace?.orgId) {
-        workspaceByOrg.set(workspace.orgId, workspace);
-      }
-    }
-
     for (const inviteDoc of inviteDocs) {
       const invite = inviteDoc.data();
       if (!invite?.targetOrgId) continue;
-
-      if (!workspaceByOrg.has(invite.targetOrgId)) {
-        workspaceByOrg.set(invite.targetOrgId, {
-          orgId: invite.targetOrgId,
-          orgName: invite.targetOrgName || "KI-Register Workspace",
-          role: invite.role || "MEMBER",
-        });
-      }
+      const orgName = invite.targetOrgName || 'KI-Register Workspace';
+      await ensureWorkspaceRecord({
+        orgId: invite.targetOrgId,
+        name: orgName,
+        ownerUserId: invite.targetOrgId,
+        plan: 'enterprise',
+      });
+      await syncUserWorkspaceAccess({
+        userId: payload.userId,
+        email: normalizedEmail,
+        orgId: invite.targetOrgId,
+        orgName,
+        role: invite.role || 'MEMBER',
+      });
+      await upsertWorkspaceMemberRecord({
+        orgId: invite.targetOrgId,
+        orgName,
+        userId: payload.userId,
+        email: normalizedEmail,
+        role: invite.role || 'MEMBER',
+        displayName:
+          typeof userData.displayName === 'string'
+            ? userData.displayName
+            : typeof userData.name === 'string'
+              ? userData.name
+              : null,
+        source: 'invite',
+        invitedByUserId:
+          typeof invite.createdByUserId === 'string'
+            ? invite.createdByUserId
+            : null,
+      });
 
       await inviteDoc.ref.update({
         status: "accepted",
         acceptedAt: nowIso,
         acceptedByUserId: payload.userId,
+        acceptedByEmail: normalizedEmail,
       });
     }
 
     await userRef.set(
       {
-        workspaces: Array.from(workspaceByOrg.values()),
+        email: normalizedEmail,
+        updatedAt: nowIso,
       },
       { merge: true }
     );
@@ -91,6 +122,14 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error("Invite accept error:", error);
+
+    if (error instanceof ServerAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+
+    if (error instanceof AuthenticatedIdentityError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

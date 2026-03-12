@@ -1,37 +1,25 @@
 'use client';
 
-import type { FirebaseApp } from 'firebase/app';
-import type { Auth } from 'firebase/auth';
-import type { Firestore } from 'firebase/firestore';
-
-// Node.js 25 compatibility fix: provide a minimal localStorage mock if missing or incomplete on the server
-if (typeof window === 'undefined') {
-  if (typeof global !== 'undefined' && !global.localStorage) {
-    (global as any).localStorage = {
-      getItem: () => null,
-      setItem: () => { },
-      removeItem: () => { },
-      clear: () => { },
-      key: () => null,
-      length: 0
-    };
-  }
-}
+import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  "projectId": "ai-act-compass-m6o05",
-  "appId": "1:516664005385:web:8a51acd112bc94dc4d39d8",
-  "storageBucket": "ai-act-compass-m6o05.firebasestorage.app",
-  "apiKey": "AIzaSyBH2zJUhiLEK3fPjTb-KltdYjEQGcT--yo",
-  "authDomain": "ai-act-compass-m6o05.firebaseapp.com",
-  "messagingSenderId": "516664005385"
+  projectId: 'ai-act-compass-m6o05',
+  appId: '1:516664005385:web:8a51acd112bc94dc4d39d8',
+  storageBucket: 'ai-act-compass-m6o05.firebasestorage.app',
+  apiKey: 'AIzaSyBH2zJUhiLEK3fPjTb-KltdYjEQGcT--yo',
+  authDomain: 'ai-act-compass-m6o05.firebaseapp.com',
+  messagingSenderId: '516664005385',
 };
 
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let db: Firestore | undefined;
+let initPromise:
+  | Promise<{ app: FirebaseApp; auth: Auth; db: Firestore }>
+  | null = null;
 
-// Lazy initialization function
 async function initializeFirebase() {
   if (typeof window === 'undefined') {
     throw new Error('Firebase can only be initialized on the client side');
@@ -41,23 +29,34 @@ async function initializeFirebase() {
     return { app, auth, db };
   }
 
-  const { initializeApp, getApps, getApp } = await import('firebase/app');
-  const { getAuth } = await import('firebase/auth');
-  const { getFirestore } = await import('firebase/firestore');
-
-  if (getApps().length === 0) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
+  if (initPromise) {
+    return initPromise;
   }
 
-  auth = getAuth(app);
-  db = getFirestore(app);
+  initPromise = Promise.resolve().then(() => {
+    if (app && auth && db) {
+      return { app, auth, db };
+    }
 
-  return { app, auth, db };
+    const resolvedApp =
+      getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+    const resolvedAuth = getAuth(resolvedApp);
+    const resolvedDb = getFirestore(resolvedApp);
+
+    app = resolvedApp;
+    auth = resolvedAuth;
+    db = resolvedDb;
+
+    return {
+      app: resolvedApp,
+      auth: resolvedAuth,
+      db: resolvedDb,
+    };
+  });
+
+  return initPromise;
 }
 
-// Export lazy getters
 export async function getFirebaseApp(): Promise<FirebaseApp> {
   const { app } = await initializeFirebase();
   return app!;
@@ -73,5 +72,4 @@ export async function getFirebaseDb(): Promise<Firestore> {
   return db!;
 }
 
-// For backwards compatibility - synchronous access (only works after initialization)
 export { app, auth, db };

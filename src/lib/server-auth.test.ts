@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const serverAuthSource = readFileSync(
+  resolve(process.cwd(), "src/lib/server-auth.ts"),
+  "utf8"
+);
+
+test("server auth exports canonical auth helpers", () => {
+  assert.match(serverAuthSource, /export async function requireUser\(/);
+  assert.match(serverAuthSource, /export async function requireAdmin\(/);
+  assert.match(serverAuthSource, /export async function requireWorkspaceMember\(/);
+  assert.match(serverAuthSource, /export async function requireRegisterOwner\(/);
+});
+
+test("server auth validates path-safe resource identifiers", () => {
+  assert.match(serverAuthSource, /function requireResourceId\(/);
+  assert.match(serverAuthSource, /normalized\.includes\("\/"\)/);
+  assert.match(serverAuthSource, /throw new ServerAuthError\(`\$\{label\} is invalid\.`\, 400\)/);
+});
+
+test("workspace authorization resolves against persisted membership state", () => {
+  assert.match(serverAuthSource, /const profile = await getUserProfile\(user\.uid\);/);
+  assert.match(serverAuthSource, /const access = buildWorkspaceAccessState\(user\.uid, profile\);/);
+  assert.match(serverAuthSource, /hasWorkspaceAccess\(access, normalizedOrgId\)/);
+});
