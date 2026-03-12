@@ -35,9 +35,9 @@ export const ROUTE_HREFS = {
   useCases: `${ROUTE_PATHS.register}?section=use-cases`,
   externalInbox: `${ROUTE_PATHS.register}?filter=${EXTERNAL_INBOX_FILTER}`,
   settings: ROUTE_PATHS.settings,
+  governanceSettings: `${ROUTE_PATHS.settings}?section=governance`,
   control: ROUTE_PATHS.control,
   controlReviews: ROUTE_PATHS.controlReviews,
-  governanceSettings: ROUTE_PATHS.governanceSettings,
   controlPolicies: ROUTE_PATHS.controlPolicies,
   controlExports: ROUTE_PATHS.controlExports,
   controlTrust: ROUTE_PATHS.controlTrust,
@@ -183,7 +183,8 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
     segment: 'paid_governance_control',
     href: ROUTE_HREFS.control,
     label: 'Governance-Bericht',
-    description: 'Registerbasierte Analyse und Einstieg in weiterführende Governance-Bereiche.',
+    description:
+      'Registerbasierte Analyse und Einstieg in weiterführende Governance-Bereiche.',
   },
   {
     segment: 'paid_governance_control',
@@ -195,8 +196,7 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
     segment: 'signed_in_free_register',
     href: ROUTE_HREFS.governanceSettings,
     label: 'Governance Settings',
-    description:
-      'Organisation-wide governance settings used by register and control.',
+    description: 'Governance section inside the canonical settings surface.',
     notes: 'Also linked as a premium governance destination.',
   },
   {
@@ -334,6 +334,12 @@ export const DEPRECATED_ROUTE_ALIASES: DeprecatedRouteAlias[] = [
     reason: 'Broken legacy dashboard deep link now resolves to Policies.',
   },
   {
+    source: ROUTE_PATHS.governanceSettings,
+    destination: ROUTE_HREFS.governanceSettings,
+    permanent: false,
+    reason: 'Governance settings now live inside the unified settings page.',
+  },
+  {
     source: '/landingpage',
     destination: ROUTE_PATHS.marketingHome,
     permanent: false,
@@ -408,8 +414,6 @@ export function getProductAreaForPathname(
   }
 
   if (
-    pathname === ROUTE_PATHS.governanceSettings ||
-    pathname.startsWith(`${ROUTE_PATHS.governanceSettings}/`) ||
     pathname === ROUTE_PATHS.control ||
     pathname.startsWith(`${ROUTE_PATHS.control}/`) ||
     pathname === ROUTE_PATHS.academy ||
@@ -425,6 +429,8 @@ export function getProductAreaForPathname(
     pathname.startsWith(`${ROUTE_PATHS.register}/`) ||
     pathname === ROUTE_PATHS.capture ||
     pathname === ROUTE_PATHS.settings ||
+    pathname === ROUTE_PATHS.governanceSettings ||
+    pathname.startsWith(`${ROUTE_PATHS.governanceSettings}/`) ||
     pathname.startsWith(`${ROUTE_PATHS.settings}/`) ||
     pathname.startsWith('/pass/')
   ) {
@@ -642,15 +648,17 @@ export function isPremiumControlNavActive(
   pathname: string,
   searchParams?: SearchParamsLike | null,
 ): boolean {
-  void searchParams;
-
   switch (item.id) {
     case 'overview':
       return pathname === ROUTE_PATHS.control;
     case 'reviews':
       return pathname.startsWith(ROUTE_PATHS.controlReviews);
     case 'governanceSettings':
-      return pathname.startsWith(ROUTE_PATHS.governanceSettings);
+      return (
+        (pathname === ROUTE_PATHS.settings &&
+          searchParams?.get('section') === 'governance') ||
+        pathname.startsWith(ROUTE_PATHS.governanceSettings)
+      );
     case 'policies':
       return pathname.startsWith(ROUTE_PATHS.controlPolicies);
     case 'exports':

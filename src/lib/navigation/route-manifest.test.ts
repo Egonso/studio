@@ -5,6 +5,7 @@ import {
   getVisiblePremiumControlNav,
   getProductAreaForPathname,
   getVisibleProductNav,
+  isPremiumControlNavActive,
   LEGACY_ROUTE_REDIRECTS,
   ROUTE_HREFS,
   showGlobalFooterForPathname,
@@ -63,13 +64,20 @@ test('legacy redirect config covers the old primary routes', () => {
   assert.equal(redirects.get('/login'), '/');
   assert.equal(redirects.get('/einrichten'), '/');
   assert.equal(redirects.get('/einladen'), '/');
-  assert.equal(redirects.get('/control/enterprise'), ROUTE_HREFS.controlEnterprise);
+  assert.equal(
+    redirects.get('/control/enterprise'),
+    ROUTE_HREFS.controlEnterprise,
+  );
   assert.equal(redirects.get('/projects'), ROUTE_HREFS.register);
   assert.equal(redirects.get('/ai-management'), ROUTE_HREFS.control);
   assert.equal(redirects.get('/assessment'), ROUTE_HREFS.register);
   assert.equal(redirects.get('/cbs'), ROUTE_HREFS.controlPolicies);
   assert.equal(redirects.get('/audit-report'), ROUTE_HREFS.controlExports);
   assert.equal(redirects.get('/kurs'), ROUTE_HREFS.academy);
+  assert.equal(
+    redirects.get('/settings/governance'),
+    ROUTE_HREFS.governanceSettings,
+  );
 });
 
 test('pathname classification keeps marketing, intake, register and control separate', () => {
@@ -100,11 +108,27 @@ test('pathname classification keeps marketing, intake, register and control sepa
   );
   assert.equal(
     getProductAreaForPathname('/settings/governance'),
-    'paid_governance_control',
+    'signed_in_free_register',
   );
   assert.equal(
     getProductAreaForPathname('/academy'),
     'paid_governance_control',
+  );
+});
+
+test('governance settings nav stays active on the unified settings page', () => {
+  const governanceSettingsItem = getVisiblePremiumControlNav('pro').find(
+    (item) => item.id === 'governanceSettings',
+  );
+
+  assert.ok(governanceSettingsItem);
+  assert.equal(
+    isPremiumControlNavActive(governanceSettingsItem!, '/settings', {
+      get(name: string) {
+        return name === 'section' ? 'governance' : null;
+      },
+    }),
+    true,
   );
 });
 

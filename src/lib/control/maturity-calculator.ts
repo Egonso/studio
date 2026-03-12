@@ -1,8 +1,9 @@
-import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
+import type { OrgSettings, UseCaseCard } from '@/lib/register-first/types';
 import {
   buildUseCaseDetailLink,
   buildUseCaseFocusLink,
-} from "@/lib/control/deep-link";
+} from '@/lib/control/deep-link';
+import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 
 export const CONTROL_REVIEW_DUE_WINDOW_DAYS = 30;
 
@@ -79,7 +80,7 @@ interface UseCaseControlState {
   hasAuditHistory: boolean;
   hasDocumentationLevel: boolean;
   isHighRisk: boolean;
-  reviewWindow: "NONE" | "DUE" | "OVERDUE";
+  reviewWindow: 'NONE' | 'DUE' | 'OVERDUE';
 }
 
 function percentage(part: number, total: number): number {
@@ -98,17 +99,21 @@ function hasResponsibleOwner(useCase: UseCaseCard): boolean {
 }
 
 function hasStructuredReview(useCase: UseCaseCard): boolean {
-  const coreDefined = useCase.governanceAssessment?.core?.reviewCycleDefined === true;
+  const coreDefined =
+    useCase.governanceAssessment?.core?.reviewCycleDefined === true;
   const isoReviewCycle = useCase.governanceAssessment?.flex?.iso?.reviewCycle;
-  const hasIsoCycle = Boolean(isoReviewCycle && isoReviewCycle !== "unknown");
-  const hasNextReviewDate = Boolean(useCase.governanceAssessment?.flex?.iso?.nextReviewAt);
+  const hasIsoCycle = Boolean(isoReviewCycle && isoReviewCycle !== 'unknown');
+  const hasNextReviewDate = Boolean(
+    useCase.governanceAssessment?.flex?.iso?.nextReviewAt,
+  );
   return coreDefined || hasIsoCycle || hasNextReviewDate;
 }
 
 function hasDefinedOversight(useCase: UseCaseCard): boolean {
-  const coreDefined = useCase.governanceAssessment?.core?.oversightDefined === true;
+  const coreDefined =
+    useCase.governanceAssessment?.core?.oversightDefined === true;
   const isoOversight = useCase.governanceAssessment?.flex?.iso?.oversightModel;
-  return coreDefined || Boolean(isoOversight && isoOversight !== "unknown");
+  return coreDefined || Boolean(isoOversight && isoOversight !== 'unknown');
 }
 
 function hasPolicyMapping(useCase: UseCaseCard): boolean {
@@ -124,9 +129,14 @@ function hasAuditHistory(useCase: UseCaseCard): boolean {
 }
 
 function hasDocumentationLevel(useCase: UseCaseCard): boolean {
-  const coreDefined = useCase.governanceAssessment?.core?.documentationLevelDefined === true;
-  const isoDocumentationLevel = useCase.governanceAssessment?.flex?.iso?.documentationLevel;
-  return coreDefined || Boolean(isoDocumentationLevel && isoDocumentationLevel !== "unknown");
+  const coreDefined =
+    useCase.governanceAssessment?.core?.documentationLevelDefined === true;
+  const isoDocumentationLevel =
+    useCase.governanceAssessment?.flex?.iso?.documentationLevel;
+  return (
+    coreDefined ||
+    Boolean(isoDocumentationLevel && isoDocumentationLevel !== 'unknown')
+  );
 }
 
 function isDocumented(useCase: UseCaseCard): boolean {
@@ -136,27 +146,35 @@ function isDocumented(useCase: UseCaseCard): boolean {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  return category.includes("hochrisiko") || category.includes("high risk");
+  const category =
+    useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? '';
+  return category.includes('hochrisiko') || category.includes('high risk');
 }
 
-function getReviewWindow(useCase: UseCaseCard, now: Date): "NONE" | "DUE" | "OVERDUE" {
+function getReviewWindow(
+  useCase: UseCaseCard,
+  now: Date,
+): 'NONE' | 'DUE' | 'OVERDUE' {
   const nextReviewAt = useCase.governanceAssessment?.flex?.iso?.nextReviewAt;
-  if (!nextReviewAt) return "NONE";
+  if (!nextReviewAt) return 'NONE';
 
   const nextReviewTimestamp = Date.parse(nextReviewAt);
-  if (Number.isNaN(nextReviewTimestamp)) return "NONE";
+  if (Number.isNaN(nextReviewTimestamp)) return 'NONE';
 
   const nowTimestamp = now.getTime();
-  if (nextReviewTimestamp < nowTimestamp) return "OVERDUE";
+  if (nextReviewTimestamp < nowTimestamp) return 'OVERDUE';
 
-  const dueThreshold = nowTimestamp + CONTROL_REVIEW_DUE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-  if (nextReviewTimestamp <= dueThreshold) return "DUE";
+  const dueThreshold =
+    nowTimestamp + CONTROL_REVIEW_DUE_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  if (nextReviewTimestamp <= dueThreshold) return 'DUE';
 
-  return "NONE";
+  return 'NONE';
 }
 
-function deriveControlState(useCase: UseCaseCard, now: Date): UseCaseControlState {
+function deriveControlState(
+  useCase: UseCaseCard,
+  now: Date,
+): UseCaseControlState {
   return {
     isDocumented: isDocumented(useCase),
     hasOwner: hasResponsibleOwner(useCase),
@@ -173,23 +191,25 @@ function deriveControlState(useCase: UseCaseCard, now: Date): UseCaseControlStat
 function levelLabel(level: 1 | 2 | 3 | 4 | 5): string {
   switch (level) {
     case 1:
-      return "Level 1 - Dokumentiert";
+      return 'Level 1 - Dokumentiert';
     case 2:
-      return "Level 2 - Verantwortlichkeiten definiert";
+      return 'Level 2 - Verantwortlichkeiten definiert';
     case 3:
-      return "Level 3 - Reviews strukturiert";
+      return 'Level 3 - Reviews strukturiert';
     case 4:
-      return "Level 4 - Policies konsistent gemappt";
+      return 'Level 4 - Policies konsistent gemappt';
     case 5:
-      return "Level 5 - Audit-ready";
+      return 'Level 5 - Audit-ready';
   }
 }
 
 function buildLevel(
   level: 1 | 2 | 3 | 4 | 5,
-  criteria: MaturityCriterionResult[]
+  criteria: MaturityCriterionResult[],
 ): MaturityLevelResult {
-  const achievedCriteria = criteria.filter((criterion) => criterion.fulfilled).length;
+  const achievedCriteria = criteria.filter(
+    (criterion) => criterion.fulfilled,
+  ).length;
   return {
     level,
     title: levelLabel(level),
@@ -205,8 +225,8 @@ function buildUseCaseRepairAction(
   predicate: (useCase: UseCaseCard) => boolean,
   focus: Parameters<typeof buildUseCaseFocusLink>[1],
   label: string,
-  options?: Parameters<typeof buildUseCaseFocusLink>[2]
-): Pick<MaturityCriterionResult, "actionHref" | "actionLabel"> {
+  options?: Parameters<typeof buildUseCaseFocusLink>[2],
+): Pick<MaturityCriterionResult, 'actionHref' | 'actionLabel'> {
   const match = useCases.find(predicate);
   if (!match) {
     return {};
@@ -221,8 +241,8 @@ function buildUseCaseRepairAction(
 function buildUseCaseViewAction(
   useCases: UseCaseCard[],
   predicate: (useCase: UseCaseCard) => boolean,
-  label: string
-): Pick<MaturityCriterionResult, "actionHref" | "actionLabel"> {
+  label: string,
+): Pick<MaturityCriterionResult, 'actionHref' | 'actionLabel'> {
   const match = useCases.find(predicate);
   if (!match) {
     return {};
@@ -237,25 +257,35 @@ function buildUseCaseViewAction(
 export function calculateControlOverview(
   useCases: UseCaseCard[],
   orgSettings?: OrgSettings | null,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): ControlOverview {
   const states = useCases.map((useCase) => deriveControlState(useCase, now));
   const totalSystems = states.length;
 
   const documentedSystems = states.filter((state) => state.isDocumented).length;
   const systemsWithOwner = states.filter((state) => state.hasOwner).length;
-  const systemsWithReviewStructure = states.filter((state) => state.hasReviewStructure).length;
-  const systemsWithPolicyMapping = states.filter((state) => state.hasPolicyMapping).length;
-  const systemsWithAuditHistory = states.filter((state) => state.hasAuditHistory).length;
+  const systemsWithReviewStructure = states.filter(
+    (state) => state.hasReviewStructure,
+  ).length;
+  const systemsWithPolicyMapping = states.filter(
+    (state) => state.hasPolicyMapping,
+  ).length;
+  const systemsWithAuditHistory = states.filter(
+    (state) => state.hasAuditHistory,
+  ).length;
   const systemsWithDocumentationLevel = states.filter(
-    (state) => state.hasDocumentationLevel
+    (state) => state.hasDocumentationLevel,
   ).length;
   const highRiskSystems = states.filter((state) => state.isHighRisk).length;
   const highRiskWithOversight = states.filter(
-    (state) => state.isHighRisk && state.hasOversight
+    (state) => state.isHighRisk && state.hasOversight,
   ).length;
-  const reviewsDue = states.filter((state) => state.reviewWindow === "DUE").length;
-  const reviewsOverdue = states.filter((state) => state.reviewWindow === "OVERDUE").length;
+  const reviewsDue = states.filter(
+    (state) => state.reviewWindow === 'DUE',
+  ).length;
+  const reviewsOverdue = states.filter(
+    (state) => state.reviewWindow === 'OVERDUE',
+  ).length;
   const systemsWithoutOwner = totalSystems - systemsWithOwner;
 
   const documentationCoverage = percentage(documentedSystems, totalSystems);
@@ -264,182 +294,197 @@ export function calculateControlOverview(
   const policyCoverage = percentage(systemsWithPolicyMapping, totalSystems);
   const oversightCoverage = percentage(
     states.filter((state) => state.hasOversight).length,
-    totalSystems
+    totalSystems,
   );
   const auditCoverage = percentage(systemsWithAuditHistory, totalSystems);
-  const documentationLevelCoverage = percentage(systemsWithDocumentationLevel, totalSystems);
-  const highRiskOversightCoverage = percentage(highRiskWithOversight, highRiskSystems);
+  const documentationLevelCoverage = percentage(
+    systemsWithDocumentationLevel,
+    totalSystems,
+  );
+  const highRiskOversightCoverage = percentage(
+    highRiskWithOversight,
+    highRiskSystems,
+  );
 
   const governanceScore = Math.round(
     documentationCoverage * 0.3 +
       ownerCoverage * 0.2 +
       reviewCoverage * 0.2 +
       oversightCoverage * 0.15 +
-      policyCoverage * 0.15
+      policyCoverage * 0.15,
   );
 
   const isoReadinessPercent = Math.round(
     reviewCoverage * 0.35 +
       documentationLevelCoverage * 0.25 +
       oversightCoverage * 0.25 +
-      auditCoverage * 0.15
+      auditCoverage * 0.15,
   );
 
   const hasAnySystems = totalSystems > 0;
   const hasOrgPolicyBaseline = Boolean(
-    orgSettings?.aiPolicy?.url || orgSettings?.incidentProcess?.url
+    orgSettings?.aiPolicy?.url || orgSettings?.incidentProcess?.url,
   );
 
   const level1 = buildLevel(1, [
     {
-      id: "systems-documented",
-      label: "Systeme im Register dokumentiert",
+      id: 'systems-documented',
+      label: 'Systeme im Register dokumentiert',
       fulfilled: hasAnySystems,
       evidence: `${totalSystems} dokumentierte Systeme`,
-      missing: "Mindestens einen Einsatzfall im Register dokumentieren.",
-      actionHref: "/capture",
-      actionLabel: "Einsatzfall erfassen",
+      missing: 'Mindestens einen Einsatzfall im Register dokumentieren.',
+      actionHref: '/capture',
+      actionLabel: 'Einsatzfall erfassen',
     },
     {
-      id: "documentation-coverage",
-      label: "Stammdokumentation weitgehend vollständig",
+      id: 'documentation-coverage',
+      label: 'Stammdokumentation weitgehend vollständig',
       fulfilled:
-        documentationCoverage >= CONTROL_MATURITY_THRESHOLDS.documentationCoverage,
+        documentationCoverage >=
+        CONTROL_MATURITY_THRESHOLDS.documentationCoverage,
       evidence: `${documentedSystems}/${totalSystems} Systeme (${documentationCoverage}%)`,
-      missing: "Zweck und Verwendungskontext in offenen Use Cases nachziehen.",
+      missing: 'Zweck und Verwendungskontext in offenen Use Cases nachziehen.',
       ...buildUseCaseViewAction(
         useCases,
         (useCase) => !isDocumented(useCase),
-        "Unvollständigen Einsatzfall öffnen"
+        'Unvollständigen Einsatzfall öffnen',
       ),
     },
   ]);
 
   const level2 = buildLevel(2, [
     {
-      id: "level-1-prerequisite",
-      label: "Level 1 vollständig erfüllt",
+      id: 'level-1-prerequisite',
+      label: 'Level 1 vollständig erfüllt',
       fulfilled: level1.fulfilled,
-      evidence: level1.fulfilled ? "Ja" : "Nein",
-      missing: "Dokumentationsbasis aus Level 1 abschließen.",
+      evidence: level1.fulfilled ? 'Ja' : 'Nein',
+      missing: 'Dokumentationsbasis aus Level 1 abschließen.',
     },
     {
-      id: "owner-coverage",
-      label: "Verantwortlichkeiten klar zugeordnet",
+      id: 'owner-coverage',
+      label: 'Verantwortlichkeiten klar zugeordnet',
       fulfilled: ownerCoverage >= CONTROL_MATURITY_THRESHOLDS.ownerCoverage,
       evidence: `${systemsWithOwner}/${totalSystems} Systeme (${ownerCoverage}%)`,
-      missing: "Owner-Feld für offene Systeme ergänzen.",
+      missing: 'Owner-Feld für offene Systeme ergänzen.',
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasResponsibleOwner(useCase),
-        "owner",
-        "Owner ergänzen",
-        { edit: true }
+        'owner',
+        'Owner ergänzen',
+        { edit: true },
       ),
     },
   ]);
 
   const level3 = buildLevel(3, [
     {
-      id: "level-2-prerequisite",
-      label: "Level 2 vollständig erfüllt",
+      id: 'level-2-prerequisite',
+      label: 'Level 2 vollständig erfüllt',
       fulfilled: level2.fulfilled,
-      evidence: level2.fulfilled ? "Ja" : "Nein",
-      missing: "Verantwortlichkeiten zuerst konsolidieren.",
+      evidence: level2.fulfilled ? 'Ja' : 'Nein',
+      missing: 'Verantwortlichkeiten zuerst konsolidieren.',
     },
     {
-      id: "review-structure",
-      label: "Review-Zyklen strukturiert hinterlegt",
+      id: 'review-structure',
+      label: 'Review-Zyklen strukturiert hinterlegt',
       fulfilled: reviewCoverage >= CONTROL_MATURITY_THRESHOLDS.reviewCoverage,
       evidence: `${systemsWithReviewStructure}/${totalSystems} Systeme (${reviewCoverage}%)`,
-      missing: "Review-Zyklus oder nächstes Review-Datum erfassen.",
+      missing: 'Review-Zyklus oder nächstes Review-Datum erfassen.',
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasStructuredReview(useCase),
-        "governance",
-        "Review-Zyklus setzen",
-        { edit: true, field: "reviewCycle" }
+        'governance',
+        'Review-Zyklus setzen',
+        { edit: true, field: 'reviewCycle' },
       ),
     },
     {
-      id: "high-risk-oversight",
-      label: "Hochrisiko-Systeme mit Aufsicht abgedeckt",
+      id: 'high-risk-oversight',
+      label: 'Hochrisiko-Systeme mit Aufsicht abgedeckt',
       fulfilled:
         highRiskOversightCoverage >=
         CONTROL_MATURITY_THRESHOLDS.highRiskOversightCoverage,
       evidence:
         highRiskSystems === 0
-          ? "Kein Hochrisiko-System im Register"
+          ? 'Kein Hochrisiko-System im Register'
           : `${highRiskWithOversight}/${highRiskSystems} Systeme (${highRiskOversightCoverage}%)`,
-      missing: "Für jedes Hochrisiko-System ein Aufsichtsmodell dokumentieren.",
+      missing: 'Für jedes Hochrisiko-System ein Aufsichtsmodell dokumentieren.',
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => isHighRisk(useCase) && !hasDefinedOversight(useCase),
-        "governance",
-        "Aufsichtsmodell festlegen",
-        { edit: true, field: "oversight" }
+        'governance',
+        'Aufsichtsmodell festlegen',
+        { edit: true, field: 'oversight' },
       ),
     },
   ]);
 
   const level4 = buildLevel(4, [
     {
-      id: "level-3-prerequisite",
-      label: "Level 3 vollständig erfüllt",
+      id: 'level-3-prerequisite',
+      label: 'Level 3 vollständig erfüllt',
       fulfilled: level3.fulfilled,
-      evidence: level3.fulfilled ? "Ja" : "Nein",
-      missing: "Review-Struktur und Hochrisiko-Aufsicht zuerst stabilisieren.",
+      evidence: level3.fulfilled ? 'Ja' : 'Nein',
+      missing: 'Review-Struktur und Hochrisiko-Aufsicht zuerst stabilisieren.',
     },
     {
-      id: "policy-mapping",
-      label: "Policies konsistent auf Systeme gemappt",
+      id: 'policy-mapping',
+      label: 'Policies konsistent auf Systeme gemappt',
       fulfilled: policyCoverage >= CONTROL_MATURITY_THRESHOLDS.policyCoverage,
       evidence: `${systemsWithPolicyMapping}/${totalSystems} Systeme (${policyCoverage}%)`,
-      missing: "Policy-Links pro Use Case ergänzen.",
+      missing: 'Policy-Links pro Use Case ergänzen.',
     },
     {
-      id: "org-policy-baseline",
-      label: "Organisationsweite Policy-Basis vorhanden",
+      id: 'org-policy-baseline',
+      label: 'Organisationsweite Policy-Basis vorhanden',
       fulfilled: hasOrgPolicyBaseline,
-      evidence: hasOrgPolicyBaseline ? "Ja" : "Nein",
-      missing: "Mindestens AI-Policy oder Incident-Prozess im Registerprofil hinterlegen.",
-      actionHref: "/settings/governance",
-      actionLabel: "Governance-Einstellungen öffnen",
+      evidence: hasOrgPolicyBaseline ? 'Ja' : 'Nein',
+      missing:
+        'Mindestens AI-Policy oder Incident-Prozess im Registerprofil hinterlegen.',
+      actionHref: ROUTE_HREFS.governanceSettings,
+      actionLabel: 'Governance-Einstellungen öffnen',
     },
   ]);
 
   const level5 = buildLevel(5, [
     {
-      id: "level-4-prerequisite",
-      label: "Level 4 vollständig erfüllt",
+      id: 'level-4-prerequisite',
+      label: 'Level 4 vollständig erfüllt',
       fulfilled: level4.fulfilled,
-      evidence: level4.fulfilled ? "Ja" : "Nein",
-      missing: "Policy-Mapping und Organisationsbasis zuerst schließen.",
+      evidence: level4.fulfilled ? 'Ja' : 'Nein',
+      missing: 'Policy-Mapping und Organisationsbasis zuerst schließen.',
     },
     {
-      id: "audit-history",
-      label: "Audit-Historie ist breit vorhanden",
+      id: 'audit-history',
+      label: 'Audit-Historie ist breit vorhanden',
       fulfilled: auditCoverage >= CONTROL_MATURITY_THRESHOLDS.auditCoverage,
       evidence: `${systemsWithAuditHistory}/${totalSystems} Systeme (${auditCoverage}%)`,
-      missing: "Review-Historie und Nachweise systematisch vervollständigen.",
+      missing: 'Review-Historie und Nachweise systematisch vervollständigen.',
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasAuditHistory(useCase),
-        "governance",
-        "Prüfhistorie aufbauen",
-        { field: "history" }
+        'governance',
+        'Prüfhistorie aufbauen',
+        { field: 'history' },
       ),
     },
     {
-      id: "iso-readiness-threshold",
-      label: "ISO-Readiness erreicht Schwellwert",
-      fulfilled: isoReadinessPercent >= CONTROL_MATURITY_THRESHOLDS.isoReadiness,
+      id: 'iso-readiness-threshold',
+      label: 'ISO-Readiness erreicht Schwellwert',
+      fulfilled:
+        isoReadinessPercent >= CONTROL_MATURITY_THRESHOLDS.isoReadiness,
       evidence: `${isoReadinessPercent}%`,
-      missing: "Review-, Dokumentations- und Auditdaten weiter schließen.",
+      missing: 'Review-, Dokumentations- und Auditdaten weiter schließen.',
     },
   ]);
 
-  const levels: MaturityLevelResult[] = [level1, level2, level3, level4, level5];
+  const levels: MaturityLevelResult[] = [
+    level1,
+    level2,
+    level3,
+    level4,
+    level5,
+  ];
 
   let currentLevel: 1 | 2 | 3 | 4 | 5 = 1;
   for (const level of levels) {
@@ -480,10 +525,14 @@ export function calculateControlOverview(
   };
 }
 
-export function calculateRiskConcentrationIndex(useCases: UseCaseCard[]): number {
+export function calculateRiskConcentrationIndex(
+  useCases: UseCaseCard[],
+): number {
   if (useCases.length === 0) return 0;
 
-  const highRiskCount = useCases.filter((useCase) => isHighRisk(useCase)).length;
+  const highRiskCount = useCases.filter((useCase) =>
+    isHighRisk(useCase),
+  ).length;
   const highRiskRatio = toRatio(highRiskCount, useCases.length);
   return Math.round(highRiskRatio * 100);
 }
