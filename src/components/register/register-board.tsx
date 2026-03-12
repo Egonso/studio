@@ -57,11 +57,14 @@ import {
   registerFirstService,
   registerUseCaseStatusLabels,
   registerUseCaseStatusOrder,
+  SUPPLIER_REQUEST_FILTER,
   serializePrettyJson,
   validateVerifyLinkInput,
   createStaticToolRegistryService,
   createAiToolsRegistryService,
   buildVerifyPassAbsoluteUrl,
+  getSupplierRequestContact,
+  isSupplierRequestCard,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
   type UseCaseCard,
@@ -86,6 +89,7 @@ interface RegisterBoardProps {
 type StatusFilter = RegisterUseCaseStatus | "ALL";
 type SortField = "updatedAt" | "createdAt" | "purpose" | "owner" | "status" | "tool";
 type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
+type DocumentView = "ALL" | "SUPPLIER_REQUESTS";
 type ProofBooleanChoice = "YES" | "NO";
 
 interface ProofMetaDraft {
@@ -129,6 +133,19 @@ function formatDate(isoDate: string): string {
     return "unbekannt";
   }
   return date.toLocaleString("de-DE");
+}
+
+function getCardToolDisplayName(card: UseCaseCard): string {
+  if (card.toolId === "other") {
+    return card.toolFreeText ?? "Anderes Tool";
+  }
+
+  if (card.toolId) {
+    const registryEntry = aiToolsRegistry.getById(card.toolId);
+    return registryEntry?.productName ?? card.toolFreeText ?? card.toolId;
+  }
+
+  return card.toolFreeText ?? "Kein Tool";
 }
 
 function createProofMetaDraft(card: UseCaseCard): ProofMetaDraft {
@@ -201,11 +218,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
   const isStandalone = mode === "standalone";
   const router = useRouter();
   const { toast } = useToast();
+  const initialDocumentView: DocumentView =
+    initialFilter === SUPPLIER_REQUEST_FILTER ? "SUPPLIER_REQUESTS" : "ALL";
+  const initialCustomFilter =
+    initialFilter && initialFilter !== SUPPLIER_REQUEST_FILTER
+      ? initialFilter
+      : null;
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [activeCustomFilter, setActiveCustomFilter] = useState<string | null>(initialFilter || null);
+  const [activeCustomFilter, setActiveCustomFilter] = useState<string | null>(initialCustomFilter);
+  const [documentView, setDocumentView] = useState<DocumentView>(initialDocumentView);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -320,6 +344,17 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     onUseCasesLoaded?.(useCases);
   }, [useCases, onUseCasesLoaded]);
 
+  useEffect(() => {
+    if (initialFilter === SUPPLIER_REQUEST_FILTER) {
+      setDocumentView("SUPPLIER_REQUESTS");
+      setActiveCustomFilter(null);
+      return;
+    }
+
+    setDocumentView("ALL");
+    setActiveCustomFilter(initialFilter || null);
+  }, [initialFilter]);
+
   const handleApplyFilters = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSearchQuery(searchInput.trim());
@@ -331,10 +366,24 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     setStatusFilter("ALL");
     setRiskFilter("ALL");
     setActiveCustomFilter(null);
+    setDocumentView("ALL");
   };
 
+  const supplierRequestCount = useMemo(
+    () => useCases.filter((card) => isSupplierRequestCard(card)).length,
+    [useCases]
+  );
+
+  const visibleUseCases = useMemo(() => {
+    if (documentView === "SUPPLIER_REQUESTS") {
+      return useCases.filter((card) => isSupplierRequestCard(card));
+    }
+
+    return useCases;
+  }, [documentView, useCases]);
+
   const sortedUseCases = useMemo(() => {
-    const sorted = [...useCases];
+    const sorted = [...visibleUseCases];
     sorted.sort((a, b) => {
       let cmp = 0;
       switch (sortField) {
@@ -349,7 +398,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
       return sortDir === "asc" ? cmp : -cmp; // flip if desc
     });
     return sorted;
-  }, [useCases, sortField, sortDir]);
+  }, [visibleUseCases, sortField, sortDir]);
 
   const groupedUseCases = useMemo(() => {
     if (viewMode === "ALL") return null;
@@ -701,6 +750,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
     }
   };
 
+  const isSupplierSubview = documentView === "SUPPLIER_REQUESTS";
+  const resultCountLabel = isSupplierSubview
+    ? `${sortedUseCases.length} Lieferantenanfragen`
+    : `${sortedUseCases.length} Einsatzf${sortedUseCases.length === 1 ? "all" : "älle"}`;
 
   return (
     <div className="space-y-4">
@@ -779,6 +832,29 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             <SelectItem value="BY_STATUS">Nach Status</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-1 rounded-md border border-border/70 bg-background p-1">
+          <Button
+            type="button"
+            variant={documentView === "ALL" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => setDocumentView("ALL")}
+          >
+            Alle Dokumente
+          </Button>
+          <Button
+            type="button"
+            variant={documentView === "SUPPLIER_REQUESTS" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => setDocumentView("SUPPLIER_REQUESTS")}
+          >
+            Lieferantenanfragen
+            <span className="ml-1 text-[11px] text-muted-foreground">
+              {supplierRequestCount}
+            </span>
+          </Button>
+        </div>
         <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title="Filter anwenden"><Search className="h-3.5 w-3.5" /></Button>
         <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
           Zurücksetzen
@@ -799,7 +875,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         )}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {useCases.length} Einsatzf{useCases.length === 1 ? "all" : "älle"}
+            {resultCountLabel}
           </span>
           <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => void loadUseCases()}>
             <RefreshCw className="h-3.5 w-3.5" />
@@ -815,6 +891,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
         </Alert>
       )}
 
+      {isSupplierSubview && !isLoading && (
+        <Card className="border-slate-200 bg-slate-50/80">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-base font-medium text-slate-900">
+              Lieferantenanfragen
+            </CardTitle>
+            <CardDescription>
+              Extern eingegangene Lieferantenangaben werden als normale Registerkarten mit Herkunftslabel geführt.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center rounded-md border p-12">
           <Loader2 className="h-6 w-6 animate-spin" />
@@ -828,16 +917,39 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
             </CardDescription>
           </CardHeader>
         </Card>
+      ) : sortedUseCases.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {isSupplierSubview
+                ? "Keine Lieferantenanfragen im aktuellen Filter"
+                : "Keine Einträge für den aktuellen Filter"}
+            </CardTitle>
+            <CardDescription>
+              {isSupplierSubview
+                ? "Sobald ein Lieferant das Anfrageformular absendet, erscheint der Vorgang hier."
+                : "Passe Suche, Status oder Dokumentansicht an, um weitere Registerkarten anzuzeigen."}
+            </CardDescription>
+          </CardHeader>
+        </Card>
       ) : (
         <div className="rounded-md border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[300px]">System</TableHead>
+                <TableHead className="w-[300px]">
+                  {isSupplierSubview ? "Anfrage" : "System"}
+                </TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Owner-Rolle</TableHead>
-                <TableHead>Risikoklasse</TableHead>
-                <TableHead>Aktivität</TableHead>
+                <TableHead>
+                  {isSupplierSubview ? "Lieferant" : "Owner-Rolle"}
+                </TableHead>
+                <TableHead>
+                  {isSupplierSubview ? "Erfasst am" : "Risikoklasse"}
+                </TableHead>
+                <TableHead>
+                  {isSupplierSubview ? "Risikoklasse" : "Aktivität"}
+                </TableHead>
                 <TableHead className="w-[80px] text-right">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
@@ -877,6 +989,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                 }
 
                 const nextStatuses = getNextManualStatuses(card.status);
+                const supplierRequest = isSupplierRequestCard(card);
+                const toolDisplayName = getCardToolDisplayName(card);
+                const supplierContact = getSupplierRequestContact(card);
                 const outputState = getStatusGatedOutputState(
                   card.status,
                   registerFirstFlags
@@ -900,15 +1015,23 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className={`text-sm ${card.isDeleted ? "line-through" : ""}`}>
-                              {card.purpose}
+                              {isSupplierSubview ? toolDisplayName : card.purpose}
                             </span>
                             {card.isDeleted && (
                               <Badge variant="destructive" className="shrink-0 text-[10px]">Gelöscht</Badge>
                             )}
+                            {supplierRequest && (
+                              <Badge variant="outline" className="shrink-0 border-slate-300 text-[10px] text-slate-600">
+                                Lieferantenanfrage
+                              </Badge>
+                            )}
                           </div>
-                          {(card.toolId || card.toolFreeText) && (
+                          <span className="text-xs text-muted-foreground pl-1">
+                            {isSupplierSubview ? card.purpose : `Tool: ${toolDisplayName}`}
+                          </span>
+                          {!isSupplierSubview && supplierContact && (
                             <span className="text-xs text-muted-foreground pl-1">
-                              {card.toolId === "other" ? card.toolFreeText ?? "Anderes Tool" : card.toolId}
+                              Lieferant: {supplierContact}
                             </span>
                           )}
                         </div>
@@ -920,20 +1043,34 @@ export function RegisterBoard({ projectId, mode = "dashboard", refreshKey = 0, o
 
                       <TableCell>
                         <span className="text-xs">
-                          {card.responsibility.responsibleParty || <span className="text-muted-foreground">Nicht zugewiesen</span>}
+                          {supplierRequest
+                            ? supplierContact || <span className="text-muted-foreground">Nicht hinterlegt</span>
+                            : card.responsibility.responsibleParty || <span className="text-muted-foreground">Nicht zugewiesen</span>}
                         </span>
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-xs">
-                          {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
-                        </span>
+                        {isSupplierSubview ? (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(card.createdAt)}
+                          </span>
+                        ) : (
+                          <span className="text-xs">
+                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
+                          </span>
+                        )}
                       </TableCell>
 
                       <TableCell>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(card.updatedAt)}
-                        </span>
+                        {isSupplierSubview ? (
+                          <span className="text-xs">
+                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(card.updatedAt)}
+                          </span>
+                        )}
                       </TableCell>
 
                       <TableCell className="text-right align-middle" onClick={(e) => e.stopPropagation()}>

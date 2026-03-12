@@ -14,6 +14,7 @@ export * from "./tool-registry-service";
 export * from "./id-generation";
 export * from "./migration";
 export * from "./use-case-builder";
+export * from "./supplier-requests";
 export {
   type RegisterScope,
   type RegisterRepository,
