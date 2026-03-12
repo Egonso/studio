@@ -4,6 +4,7 @@ export interface RegisterFirstFeatureFlags {
   stickyLauncher: boolean;
   proofGate: boolean;
   standaloneMode: boolean;
+  registerDeletion: boolean;
   controlShell: boolean;
   controlKpiHeader: boolean;
   controlMaturityModel: boolean;
@@ -23,6 +24,7 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     stickyLauncher: false,
     proofGate: false,
     standaloneMode: false,
+    registerDeletion: false,
     controlShell: false,
     controlKpiHeader: false,
     controlMaturityModel: false,
@@ -49,6 +51,10 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
   standaloneMode: [
     "NEXT_PUBLIC_REGISTER_FIRST_STANDALONE",
     "REGISTER_FIRST_STANDALONE",
+  ],
+  registerDeletion: [
+    "NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION",
+    "REGISTER_FIRST_REGISTER_DELETION",
   ],
   controlShell: [
     "NEXT_PUBLIC_CONTROL_SHELL_ENABLED",
@@ -122,6 +128,7 @@ export function getRegisterFirstFeatureFlags(
       stickyLauncher: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER"] ?? env["REGISTER_FIRST_STICKY_LAUNCHER"]) || registerFirstDefaultFlags.stickyLauncher,
       proofGate: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE"] ?? env["REGISTER_FIRST_PROOF_GATE"]) || registerFirstDefaultFlags.proofGate,
       standaloneMode: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STANDALONE"] ?? env["REGISTER_FIRST_STANDALONE"]) || registerFirstDefaultFlags.standaloneMode,
+      registerDeletion: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION"] ?? env["REGISTER_FIRST_REGISTER_DELETION"]) || registerFirstDefaultFlags.registerDeletion,
       controlShell: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_SHELL_ENABLED"] ?? env["CONTROL_SHELL_ENABLED"]) || registerFirstDefaultFlags.controlShell,
       controlKpiHeader: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED"] ?? env["CONTROL_KPI_HEADER_ENABLED"]) || registerFirstDefaultFlags.controlKpiHeader,
       controlMaturityModel: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_MATURITY_MODEL_ENABLED"] ?? env["CONTROL_MATURITY_MODEL_ENABLED"]) || registerFirstDefaultFlags.controlMaturityModel,
@@ -152,6 +159,9 @@ export function getRegisterFirstFeatureFlags(
     standaloneMode:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_STANDALONE) ||
       registerFirstDefaultFlags.standaloneMode,
+    registerDeletion:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION) ||
+      registerFirstDefaultFlags.registerDeletion,
     controlShell:
       parseBooleanFlag(process.env.NEXT_PUBLIC_CONTROL_SHELL_ENABLED) ||
       registerFirstDefaultFlags.controlShell,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import {
   createInMemoryRegisterRepository,
+  createInMemoryRegisterAccessCodeRepo,
   createInMemoryRegisterUseCaseRepo,
   createInMemoryPublicIndexRepo,
 } from "../register-repository";
@@ -23,13 +24,14 @@ let defaultRegisterId: string | null = null;
 const registerRepo = createInMemoryRegisterRepository();
 const useCaseRepo = createInMemoryRegisterUseCaseRepo();
 const publicIndexRepo = createInMemoryPublicIndexRepo();
+const accessCodeRepo = createInMemoryRegisterAccessCodeRepo();
 
 function buildService(userId: string | null = "user_standalone") {
-  tick = 0;
   return createRegisterService({
     registerRepo,
     useCaseRepo,
     publicIndexRepo,
+    accessCodeRepo,
     resolveUserId: async () => userId,
     now: () => new Date(baseNow + tick++ * 1000),
     useCaseIdGenerator: () => `uc_s_${String(useCaseCounter++).padStart(3, "0")}`,
@@ -42,6 +44,9 @@ function buildService(userId: string | null = "user_standalone") {
     setActiveRegisterIdFn: (id) => {
       activeRegisterId = id;
     },
+    clearActiveRegisterIdFn: () => {
+      activeRegisterId = null;
+    },
   });
 }
 
@@ -49,6 +54,7 @@ export async function runRegisterStandaloneSmoke() {
   // Reset state
   activeRegisterId = null;
   defaultRegisterId = null;
+  tick = 0;
   useCaseCounter = 1;
   reviewCounter = 1;
 
@@ -76,6 +82,22 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(registers.length, 1);
   assert.equal(registers[0].registerId, register.registerId);
   console.log("  [3] List registers ✓");
+
+  // ── 3b. Last register delete is blocked ──
+  const deletePreview = await service.getRegisterDeletionPreview(register.registerId);
+  assert.equal(deletePreview.canDelete, false);
+  assert.equal(deletePreview.blockedReason, "LAST_REGISTER");
+  await assert.rejects(
+    () =>
+      service.deleteRegister({
+        registerId: register.registerId,
+        confirmationName: "Test Register",
+      }),
+    (error) =>
+      error instanceof RegisterServiceError &&
+      error.code === "REGISTER_DELETE_FORBIDDEN"
+  );
+  console.log("  [3b] Last register delete blocked ✓");
 
   // ── 4. Capture use case ──
   const card = await service.createUseCaseFromCapture({
@@ -249,6 +271,170 @@ export async function runRegisterStandaloneSmoke() {
   assert.equal(reviewedOnly.length, 1);
   assert.equal(reviewedOnly[0].useCaseId, card.useCaseId);
   console.log("  [15] Filter by status ✓");
+
+  // ── 16. Register delete preview, soft delete, and restore ──
+  const secondRegister = await service.createRegister("Second Register");
+  await service.setActiveRegister(secondRegister.registerId);
+
+  accessCodeRepo.seedCode({
+    code: "AI-DEL001",
+    registerId: secondRegister.registerId,
+    ownerId: "user_standalone",
+    createdAt: new Date(baseNow + tick++ * 1000).toISOString(),
+    expiresAt: null,
+    label: "Delete Test",
+    usageCount: 0,
+    maxUsageCount: null,
+    isActive: true,
+    deactivatedReason: null,
+    deactivatedAt: null,
+  });
+  accessCodeRepo.seedCode({
+    code: "AI-MANUAL1",
+    registerId: secondRegister.registerId,
+    ownerId: "user_standalone",
+    createdAt: new Date(baseNow + tick++ * 1000).toISOString(),
+    expiresAt: null,
+    label: "Manual Revoke",
+    usageCount: 0,
+    maxUsageCount: null,
+    isActive: false,
+    deactivatedReason: "MANUAL",
+    deactivatedAt: new Date(baseNow + tick++ * 1000).toISOString(),
+  });
+
+  const secondCard = await service.createUseCaseFromCapture(
+    {
+      purpose: "Standalone: Öffentliches Register",
+      usageContexts: ["PUBLIC"],
+      isCurrentlyResponsible: true,
+      decisionImpact: "YES",
+      dataCategory: "PUBLIC_DATA",
+      toolId: "other",
+      toolFreeText: "Portal",
+    },
+    { registerId: secondRegister.registerId }
+  );
+
+  await service.setPublicVisibility({
+    registerId: secondRegister.registerId,
+    useCaseId: secondCard.useCaseId,
+    isPublicVisible: true,
+    resolvedToolName: "Public Portal",
+  });
+
+  const secondDeletePreview = await service.getRegisterDeletionPreview(
+    secondRegister.registerId
+  );
+  assert.equal(secondDeletePreview.canDelete, true);
+  assert.equal(secondDeletePreview.fallbackRegisterId, register.registerId);
+  assert.equal(secondDeletePreview.impact.totalUseCaseCount, 1);
+  assert.equal(secondDeletePreview.impact.publicUseCaseCount, 1);
+  assert.equal(secondDeletePreview.impact.activeAccessCodeCount, 1);
+
+  await assert.rejects(
+    () =>
+      service.deleteRegister({
+        registerId: secondRegister.registerId,
+        confirmationName: "Falscher Name",
+      }),
+    (error) =>
+      error instanceof RegisterServiceError &&
+      error.code === "REGISTER_CONFIRMATION_MISMATCH"
+  );
+
+  const deleteResult = await service.deleteRegister({
+    registerId: secondRegister.registerId,
+    confirmationName: "Second Register",
+  });
+  assert.equal(deleteResult.fallbackRegisterId, register.registerId);
+  assert.equal(deleteResult.strategy, "SOFT_DELETE");
+  assert.equal(activeRegisterId, register.registerId);
+  assert.equal(defaultRegisterId, register.registerId);
+
+  const deletedRegister = await registerRepo.getRegister(
+    "user_standalone",
+    secondRegister.registerId,
+    { includeDeleted: true }
+  );
+  assert.equal(deletedRegister?.isDeleted, true);
+  assert.equal(deletedRegister?.deletionState?.strategy, "SOFT_DELETE");
+  assert.equal(deletedRegister?.deletionState?.deactivatedAccessCodeCount, 1);
+
+  const visibleRegistersAfterDelete = await service.listRegisters();
+  assert.equal(
+    visibleRegistersAfterDelete.some(
+      (entry) => entry.registerId === secondRegister.registerId
+    ),
+    false
+  );
+
+  const publicEntryAfterDelete = await publicIndexRepo.getPublicEntry(
+    secondCard.publicHashId!
+  );
+  assert.equal(publicEntryAfterDelete, null);
+
+  const codesAfterDelete = await accessCodeRepo.listCodes(
+    "user_standalone",
+    secondRegister.registerId
+  );
+  assert.equal(
+    codesAfterDelete.find((entry) => entry.code === "AI-DEL001")?.isActive,
+    false
+  );
+  assert.equal(
+    codesAfterDelete.find((entry) => entry.code === "AI-DEL001")?.deactivatedReason,
+    "REGISTER_DELETED"
+  );
+  assert.equal(
+    codesAfterDelete.find((entry) => entry.code === "AI-MANUAL1")?.deactivatedReason,
+    "MANUAL"
+  );
+
+  await assert.rejects(
+    () => service.listUseCases(secondRegister.registerId),
+    (error) =>
+      error instanceof RegisterServiceError &&
+      error.code === "REGISTER_NOT_FOUND"
+  );
+
+  const restoredRegister = await service.restoreRegister(secondRegister.registerId);
+  assert.equal(restoredRegister.isDeleted, false);
+
+  const visibleRegistersAfterRestore = await service.listRegisters();
+  assert.equal(
+    visibleRegistersAfterRestore.some(
+      (entry) => entry.registerId === secondRegister.registerId
+    ),
+    true
+  );
+
+  const publicEntryAfterRestore = await publicIndexRepo.getPublicEntry(
+    secondCard.publicHashId!
+  );
+  assert.ok(publicEntryAfterRestore, "Public entry should be republished on restore");
+
+  const codesAfterRestore = await accessCodeRepo.listCodes(
+    "user_standalone",
+    secondRegister.registerId
+  );
+  assert.equal(
+    codesAfterRestore.find((entry) => entry.code === "AI-DEL001")?.isActive,
+    true
+  );
+  assert.equal(
+    codesAfterRestore.find((entry) => entry.code === "AI-DEL001")?.deactivatedReason,
+    null
+  );
+  assert.equal(
+    codesAfterRestore.find((entry) => entry.code === "AI-MANUAL1")?.isActive,
+    false
+  );
+  assert.equal(
+    codesAfterRestore.find((entry) => entry.code === "AI-MANUAL1")?.deactivatedReason,
+    "MANUAL"
+  );
+  console.log("  [16] Register delete + restore flow ✓");
 
   console.log("Register-First standalone smoke tests passed.");
 }

@@ -1,6 +1,8 @@
 import { parseUseCaseCard } from "./schema";
 import type {
   Register,
+  RegisterAccessCode,
+  RegisterDeletionState,
   RegisterUseCaseStatus,
   UseCaseCard,
   PublicUseCaseIndexEntry,
@@ -21,6 +23,10 @@ export interface RegisterUseCaseFilters {
   includeDeleted?: boolean;
 }
 
+export interface RegisterQueryOptions {
+  includeDeleted?: boolean;
+}
+
 // ── Repository Interfaces ───────────────────────────────────────────────────
 
 export interface RegisterRepository {
@@ -29,13 +35,26 @@ export interface RegisterRepository {
     name: string,
     linkedProjectId?: string | null
   ): Promise<Register>;
-  getRegister(userId: string, registerId: string): Promise<Register | null>;
-  listRegisters(userId: string): Promise<Register[]>;
+  getRegister(
+    userId: string,
+    registerId: string,
+    options?: RegisterQueryOptions
+  ): Promise<Register | null>;
+  listRegisters(
+    userId: string,
+    options?: RegisterQueryOptions
+  ): Promise<Register[]>;
   updateRegister(
     userId: string,
     registerId: string,
     partial: Partial<Pick<Register, "name" | "organisationName" | "organisationUnit" | "publicOrganisationDisclosure" | "orgSettings">>
   ): Promise<void>;
+  softDeleteRegister(
+    userId: string,
+    registerId: string,
+    deletionState: RegisterDeletionState
+  ): Promise<Register>;
+  restoreRegister(userId: string, registerId: string): Promise<Register>;
 }
 
 export interface RegisterUseCaseRepository {
@@ -57,6 +76,16 @@ export interface PublicIndexRepository {
   getPublicEntry(
     publicHashId: string
   ): Promise<PublicUseCaseIndexEntry | null>;
+}
+
+export interface RegisterAccessCodeRepository {
+  listCodes(userId: string, registerId: string): Promise<RegisterAccessCode[]>;
+  deactivateCodesForRegister(
+    userId: string,
+    registerId: string,
+    deletedAt: string
+  ): Promise<number>;
+  restoreCodesForRegister(userId: string, registerId: string): Promise<number>;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -110,9 +139,30 @@ function cloneCard(card: UseCaseCard): UseCaseCard {
   return parseUseCaseCard(JSON.parse(JSON.stringify(card)));
 }
 
+function shouldIncludeRegister(
+  register: Register,
+  options?: RegisterQueryOptions
+): boolean {
+  return options?.includeDeleted === true || register.isDeleted !== true;
+}
+
 // ── Firestore: Register CRUD ────────────────────────────────────────────────
 
 export function createFirestoreRegisterRepository(): RegisterRepository {
+  async function loadRegister(
+    userId: string,
+    registerId: string
+  ): Promise<Register | null> {
+    const { getFirebaseDb } = await import("@/lib/firebase");
+    const db = await getFirebaseDb();
+    const { doc, getDoc } = await import("firebase/firestore");
+
+    const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+    const snapshot = await getDoc(docRef);
+    if (!snapshot.exists()) return null;
+    return snapshot.data() as Register;
+  }
+
   return {
     async createRegister(userId, name, linkedProjectId = null) {
       const { getFirebaseDb } = await import("@/lib/firebase");
@@ -131,18 +181,13 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       return register;
     },
 
-    async getRegister(userId, registerId) {
-      const { getFirebaseDb } = await import("@/lib/firebase");
-      const db = await getFirebaseDb();
-      const { doc, getDoc } = await import("firebase/firestore");
-
-      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
-      const snapshot = await getDoc(docRef);
-      if (!snapshot.exists()) return null;
-      return snapshot.data() as Register;
+    async getRegister(userId, registerId, options) {
+      const register = await loadRegister(userId, registerId);
+      if (!register) return null;
+      return shouldIncludeRegister(register, options) ? register : null;
     },
 
-    async listRegisters(userId) {
+    async listRegisters(userId, options) {
       const { getFirebaseDb } = await import("@/lib/firebase");
       const db = await getFirebaseDb();
       const { collection, getDocs, orderBy, query } = await import(
@@ -152,7 +197,9 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       const registersRef = collection(db, `users/${userId}/registers`);
       const q = query(registersRef, orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
-      return snapshot.docs.map((d) => d.data() as Register);
+      return snapshot.docs
+        .map((d) => d.data() as Register)
+        .filter((register) => shouldIncludeRegister(register, options));
     },
 
     async updateRegister(userId, registerId, partial) {
@@ -162,6 +209,52 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
 
       const docRef = doc(db, `users/${userId}/registers/${registerId}`);
       await updateDoc(docRef, sanitizeFirestorePayload(partial));
+    },
+
+    async softDeleteRegister(userId, registerId, deletionState) {
+      const existing = await loadRegister(userId, registerId);
+      if (!existing) {
+        throw new Error(`Register '${registerId}' not found`);
+      }
+
+      const { getFirebaseDb } = await import("@/lib/firebase");
+      const db = await getFirebaseDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+
+      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      const nextRegister: Register = {
+        ...existing,
+        isDeleted: true,
+        deletionState,
+      };
+      await updateDoc(docRef, sanitizeFirestorePayload({
+        isDeleted: true,
+        deletionState,
+      }));
+      return nextRegister;
+    },
+
+    async restoreRegister(userId, registerId) {
+      const existing = await loadRegister(userId, registerId);
+      if (!existing) {
+        throw new Error(`Register '${registerId}' not found`);
+      }
+
+      const { getFirebaseDb } = await import("@/lib/firebase");
+      const db = await getFirebaseDb();
+      const { doc, updateDoc } = await import("firebase/firestore");
+
+      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      const restored: Register = {
+        ...existing,
+        isDeleted: false,
+        deletionState: null,
+      };
+      await updateDoc(docRef, sanitizeFirestorePayload({
+        isDeleted: false,
+        deletionState: null,
+      }));
+      return restored;
     },
   };
 }
@@ -257,6 +350,86 @@ export function createFirestorePublicIndexRepo(): PublicIndexRepository {
   };
 }
 
+export function createFirestoreRegisterAccessCodeRepo(): RegisterAccessCodeRepository {
+  async function loadCodes(
+    userId: string,
+    registerId: string
+  ): Promise<RegisterAccessCode[]> {
+    const { getFirebaseDb } = await import("@/lib/firebase");
+    const db = await getFirebaseDb();
+    const { collection, getDocs, query, where } = await import(
+      "firebase/firestore"
+    );
+
+    const q = query(
+      collection(db, "registerAccessCodes"),
+      where("registerId", "==", registerId),
+      where("ownerId", "==", userId)
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => doc.data() as RegisterAccessCode);
+  }
+
+  return {
+    async listCodes(userId, registerId) {
+      return loadCodes(userId, registerId);
+    },
+
+    async deactivateCodesForRegister(userId, registerId, deletedAt) {
+      const codes = await loadCodes(userId, registerId);
+      const activeCodes = codes.filter((code) => code.isActive);
+      if (activeCodes.length === 0) {
+        return 0;
+      }
+
+      const { getFirebaseDb } = await import("@/lib/firebase");
+      const db = await getFirebaseDb();
+      const { doc, writeBatch } = await import("firebase/firestore");
+      const batch = writeBatch(db);
+
+      activeCodes.forEach((codeEntry) => {
+        batch.update(doc(db, "registerAccessCodes", codeEntry.code), {
+          isActive: false,
+          deactivatedReason: "REGISTER_DELETED",
+          deactivatedAt: deletedAt,
+        });
+      });
+
+      await batch.commit();
+      return activeCodes.length;
+    },
+
+    async restoreCodesForRegister(userId, registerId) {
+      const codes = await loadCodes(userId, registerId);
+      const restorableCodes = codes.filter(
+        (code) =>
+          !code.isActive && code.deactivatedReason === "REGISTER_DELETED"
+      );
+
+      if (restorableCodes.length === 0) {
+        return 0;
+      }
+
+      const { getFirebaseDb } = await import("@/lib/firebase");
+      const db = await getFirebaseDb();
+      const { doc, writeBatch } = await import("firebase/firestore");
+      const batch = writeBatch(db);
+
+      restorableCodes.forEach((codeEntry) => {
+        batch.update(doc(db, "registerAccessCodes", codeEntry.code), {
+          isActive: true,
+          deactivatedReason: null,
+          deactivatedAt: null,
+        });
+      });
+
+      await batch.commit();
+      return restorableCodes.length;
+    },
+  };
+}
+
 // ── Verify Lookup (Public Index + Legacy Fallback) ──────────────────────────
 
 export async function lookupPublicUseCase(
@@ -307,14 +480,16 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
       return register;
     },
 
-    async getRegister(userId, registerId) {
-      return registers.get(`${userId}/${registerId}`) ?? null;
+    async getRegister(userId, registerId, options) {
+      const register = registers.get(`${userId}/${registerId}`) ?? null;
+      if (!register) return null;
+      return shouldIncludeRegister(register, options) ? { ...register } : null;
     },
 
-    async listRegisters(userId) {
+    async listRegisters(userId, options) {
       const result: Register[] = [];
       for (const [key, reg] of registers) {
-        if (key.startsWith(`${userId}/`)) {
+        if (key.startsWith(`${userId}/`) && shouldIncludeRegister(reg, options)) {
           result.push(reg);
         }
       }
@@ -327,6 +502,38 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
       if (existing) {
         registers.set(key, { ...existing, ...partial });
       }
+    },
+
+    async softDeleteRegister(userId, registerId, deletionState) {
+      const key = `${userId}/${registerId}`;
+      const existing = registers.get(key);
+      if (!existing) {
+        throw new Error(`Register '${registerId}' not found`);
+      }
+
+      const updated: Register = {
+        ...existing,
+        isDeleted: true,
+        deletionState,
+      };
+      registers.set(key, updated);
+      return { ...updated };
+    },
+
+    async restoreRegister(userId, registerId) {
+      const key = `${userId}/${registerId}`;
+      const existing = registers.get(key);
+      if (!existing) {
+        throw new Error(`Register '${registerId}' not found`);
+      }
+
+      const updated: Register = {
+        ...existing,
+        isDeleted: false,
+        deletionState: null,
+      };
+      registers.set(key, updated);
+      return { ...updated };
     },
   };
 }
@@ -386,6 +593,74 @@ export function createInMemoryPublicIndexRepo(): PublicIndexRepository {
     async getPublicEntry(publicHashId) {
       const entry = index.get(publicHashId);
       return entry ? { ...entry } : null;
+    },
+  };
+}
+
+export interface InMemoryRegisterAccessCodeRepository
+  extends RegisterAccessCodeRepository {
+  seedCode(code: RegisterAccessCode): void;
+}
+
+export function createInMemoryRegisterAccessCodeRepo(
+  initialCodes: RegisterAccessCode[] = []
+): InMemoryRegisterAccessCodeRepository {
+  const codes = new Map<string, RegisterAccessCode>(
+    initialCodes.map((code) => [code.code, { ...code }])
+  );
+
+  return {
+    seedCode(code) {
+      codes.set(code.code, { ...code });
+    },
+
+    async listCodes(userId, registerId) {
+      return Array.from(codes.values())
+        .filter(
+          (code) => code.ownerId === userId && code.registerId === registerId
+        )
+        .map((code) => ({ ...code }));
+    },
+
+    async deactivateCodesForRegister(userId, registerId, deletedAt) {
+      let deactivatedCount = 0;
+      for (const [codeValue, code] of codes.entries()) {
+        if (
+          code.ownerId === userId &&
+          code.registerId === registerId &&
+          code.isActive
+        ) {
+          codes.set(codeValue, {
+            ...code,
+            isActive: false,
+            deactivatedReason: "REGISTER_DELETED",
+            deactivatedAt: deletedAt,
+          });
+          deactivatedCount += 1;
+        }
+      }
+      return deactivatedCount;
+    },
+
+    async restoreCodesForRegister(userId, registerId) {
+      let restoredCount = 0;
+      for (const [codeValue, code] of codes.entries()) {
+        if (
+          code.ownerId === userId &&
+          code.registerId === registerId &&
+          !code.isActive &&
+          code.deactivatedReason === "REGISTER_DELETED"
+        ) {
+          codes.set(codeValue, {
+            ...code,
+            isActive: true,
+            deactivatedReason: null,
+            deactivatedAt: null,
+          });
+          restoredCount += 1;
+        }
+      }
+      return restoredCount;
     },
   };
 }

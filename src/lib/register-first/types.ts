@@ -435,6 +435,20 @@ export interface Register {
 
   // ── Register-First Architecture: Org Baseline ─────────────────────────────
   governanceMaturityLevel?: 1 | 2 | 3; // Baseline Level for all enclosed Use Cases
+  isDeleted?: boolean;
+  deletionState?: RegisterDeletionState | null;
+}
+
+export interface RegisterDeletionState {
+  strategy: "SOFT_DELETE";
+  deletedAt: string;
+  deletedBy: string;
+  totalUseCaseCount: number;
+  activeUseCaseCount: number;
+  publicUseCaseCount: number;
+  totalAccessCodeCount: number;
+  deactivatedAccessCodeCount: number;
+  supplierRequestLinkDisabled: boolean;
 }
 
 // ── Access Codes (Hybrid Auth) ───────────────────────────────────────────────
@@ -449,6 +463,8 @@ export interface RegisterAccessCode {
   usageCount: number;
   maxUsageCount?: number | null;
   isActive: boolean;
+  deactivatedReason?: "MANUAL" | "REGISTER_DELETED" | null;
+  deactivatedAt?: string | null;
 }
 
 // ── Public Index ─────────────────────────────────────────────────────────────
