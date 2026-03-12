@@ -25,6 +25,7 @@ import {
   getVisiblePremiumControlNav,
   isPremiumControlNavActive,
   ROUTE_HREFS,
+  ROUTE_PATHS,
 } from '@/lib/navigation/route-manifest';
 
 export function AppHeader() {
@@ -34,10 +35,7 @@ export function AppHeader() {
   const { user } = useAuth();
   const { plan } = useCapability('trustPortal');
   const area = getProductAreaForPathname(pathname);
-  const brandHref =
-    area === 'paid_governance_control'
-      ? ROUTE_HREFS.control
-      : ROUTE_HREFS.register;
+  const brandHref = user ? ROUTE_HREFS.register : ROUTE_PATHS.marketingHome;
 
   const premiumNavItems = getVisiblePremiumControlNav(plan);
   const showControlNav =
@@ -91,7 +89,7 @@ export function AppHeader() {
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <ShieldCheck className="h-4 w-4" />
-                      {area === 'paid_governance_control' ? 'Control' : 'Register'}
+                      {area === 'paid_governance_control' ? 'Bericht' : 'Register'}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -141,32 +139,34 @@ export function AppHeader() {
       </div>
 
       {user && showControlNav ? (
-        <nav className="flex items-center gap-5 overflow-x-auto pb-2 pt-0.5">
-          {premiumNavItems.map((item) => {
-            const active = isPremiumControlNavActive(
-              item,
-              pathname,
-              searchParams,
-            );
+        <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
+          <nav className="flex items-center gap-5 overflow-x-auto pb-2 pt-0.5">
+            {premiumNavItems.map((item) => {
+              const active = isPremiumControlNavActive(
+                item,
+                pathname,
+                searchParams,
+              );
 
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                prefetch={false}
-                className={cn(
-                  'inline-flex h-9 shrink-0 items-center border-b-2 px-0 text-[14px] font-medium transition-colors',
-                  active
-                    ? 'border-slate-950 text-slate-950'
-                    : 'border-transparent text-slate-600 hover:text-slate-950',
-                )}
-                title={item.description}
-              >
-                {item.id === 'overview' ? 'Control' : item.label}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  prefetch={false}
+                  className={cn(
+                    'inline-flex h-9 shrink-0 items-center border-b-2 px-0 text-[14px] font-medium transition-colors',
+                    active
+                      ? 'border-slate-950 text-slate-950'
+                      : 'border-transparent text-slate-600 hover:text-slate-950',
+                  )}
+                  title={item.description}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       ) : null}
     </header>
   );

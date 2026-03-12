@@ -109,8 +109,8 @@ export function getRequiredPlan(feature: FeatureCapability): SubscriptionPlan {
 export function getPlanLabel(plan: SubscriptionPlan): string {
     switch (plan) {
         case 'free': return 'Free Register';
-        case 'pro': return 'Governance Control Center';
-        case 'enterprise': return 'Enterprise';
+        case 'pro': return 'Organisationssteuerung';
+        case 'enterprise': return 'Erweiterte Organisationssteuerung';
     }
 }
 

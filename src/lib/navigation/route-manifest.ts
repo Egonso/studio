@@ -105,13 +105,13 @@ export const PRODUCT_AREA_DEFINITIONS: Record<
   },
   paid_governance_control: {
     id: 'paid_governance_control',
-    shellLabel: 'Governance Control Center',
-    shortLabel: 'Control',
-    headline: 'Governance steuern',
+    shellLabel: 'Governance',
+    shortLabel: 'Bericht',
+    headline: 'Governance-Bericht',
     description:
-      'Bezahlte Governance-Ebene für Reviews, Policies, Exporte, Trust Portal und Academy.',
+      'Registerbasierte Analyse für Reifegrad, Prüfungen, Nachweise und weiterführende Governance-Bereiche.',
     primaryHref: ROUTE_HREFS.control,
-    primaryCtaLabel: 'Control öffnen',
+    primaryCtaLabel: 'Bericht öffnen',
     secondaryHref: ROUTE_HREFS.controlPolicies,
     secondaryCtaLabel: 'Policies',
   },
@@ -182,8 +182,8 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
   {
     segment: 'paid_governance_control',
     href: ROUTE_HREFS.control,
-    label: 'Control',
-    description: 'Governance Control Center overview.',
+    label: 'Governance-Bericht',
+    description: 'Registerbasierte Analyse und Einstieg in weiterführende Governance-Bereiche.',
   },
   {
     segment: 'paid_governance_control',
@@ -486,11 +486,11 @@ export const PRODUCT_NAV_MANIFEST: ProductNavItem[] = [
   },
   {
     id: 'control',
-    label: 'Control',
+    label: 'Bericht',
     href: ROUTE_HREFS.control,
     group: 'governance',
     premiumFeature: 'reviewWorkflow',
-    description: 'Governance Control Center.',
+    description: 'Registerbasierte Governance-Analyse.',
   },
 ];
 
@@ -533,10 +533,10 @@ export interface PremiumControlNavItem {
 export const PREMIUM_CONTROL_NAV_MANIFEST: PremiumControlNavItem[] = [
   {
     id: 'overview',
-    label: 'Overview',
+    label: 'Bericht',
     href: ROUTE_HREFS.control,
     description:
-      'Governance KPIs, maturity, course progress and premium overview.',
+      'Registerbasierte Analyse zu Reifegrad, Prüfungen, Kursfortschritt und Nachweisen.',
     premiumFeature: 'reviewWorkflow',
   },
   {

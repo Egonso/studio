@@ -10,6 +10,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -43,9 +44,11 @@ import type { Register, UseCaseCard } from '@/lib/register-first/types';
 import {
   EXTERNAL_INBOX_FILTER,
   getVisiblePremiumControlNav,
+  ROUTE_HREFS,
 } from '@/lib/navigation/route-manifest';
 
 type OnboardingState = 'loading' | 'no_register' | 'ready';
+const CREATE_REGISTER_VALUE = '__create_register__';
 
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === 'object' && 'code' in error) {
@@ -85,6 +88,7 @@ export default function MyRegisterPage() {
     string | null
   >(null);
   const controlNavItems = getVisiblePremiumControlNav(plan);
+  const hasGovernanceMenu = controlNavItems.length > 0;
 
   useEffect(() => {
     setHasChecked(false);
@@ -342,9 +346,14 @@ export default function MyRegisterPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <Select
                   value={activeRegister?.registerId ?? ''}
-                  onValueChange={(registerId) =>
-                    void handleSwitchRegister(registerId)
-                  }
+                  onValueChange={(registerId) => {
+                    if (registerId === CREATE_REGISTER_VALUE) {
+                      setShowWizard(true);
+                      return;
+                    }
+
+                    void handleSwitchRegister(registerId);
+                  }}
                 >
                   <SelectTrigger className="w-[280px]">
                     <SelectValue placeholder="Register auswählen" />
@@ -355,24 +364,20 @@ export default function MyRegisterPage() {
                         {r.organisationName || r.name}
                       </SelectItem>
                     ))}
+                    <SelectSeparator />
+                    <SelectItem value={CREATE_REGISTER_VALUE}>
+                      Neues Register anlegen
+                    </SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="outline"
-                  className="h-10 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                  onClick={() => setShowWizard(true)}
-                >
-                  Neues Register anlegen
-                </Button>
-                {(controlNavItems.length > 0 ||
-                  (registerFirstFlags.registerDeletion && activeRegister)) && (
+                {hasGovernanceMenu ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
                         className="h-10 gap-1.5 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
                       >
-                        Control
+                        Bericht
                         <ChevronDown className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -382,7 +387,9 @@ export default function MyRegisterPage() {
                           key={item.id}
                           onClick={() => router.push(item.href)}
                         >
-                          {item.id === 'overview' ? 'Control öffnen' : item.label}
+                          {item.id === 'overview'
+                            ? 'Bericht öffnen'
+                            : item.label}
                         </DropdownMenuItem>
                       ))}
                       {registerFirstFlags.registerDeletion && activeRegister && (
@@ -398,6 +405,14 @@ export default function MyRegisterPage() {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="h-10 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                    onClick={() => router.push(ROUTE_HREFS.control)}
+                  >
+                    Bericht
+                  </Button>
                 )}
               </div>
             )}

@@ -47,7 +47,8 @@ export default function ControlPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  useCapability('trustPortal');
+  const { plan } = useCapability('reviewWorkflow');
+  const hasGovernanceMenu = plan !== 'free';
 
   const [snapshot, setSnapshot] = useState<ControlSnapshot | null>(null);
   const [academyProgress, setAcademyProgress] = useState(() =>
@@ -84,7 +85,7 @@ export default function ControlPage() {
     } catch (error) {
       console.error('Failed to load control snapshot', error);
       setDataError(
-        'Control-Daten konnten nicht geladen werden. Bitte oeffnen Sie zuerst ein Register und versuchen Sie es erneut.',
+        'Berichtsdaten konnten nicht geladen werden. Bitte öffnen Sie zuerst ein Register und versuchen Sie es erneut.',
       );
     } finally {
       setIsDataLoading(false);
@@ -162,15 +163,15 @@ export default function ControlPage() {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
-        title="Governance Control Center"
-        description="Strukturierte Governance-Ebene für Reviews, Policies, Exporte, Trust Portal und Academy."
-        nextStep="Wir bereiten Ihre Governance-Ansicht vor."
+        title="Governance-Bericht"
+        description="Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise."
+        nextStep="Wir bereiten Ihren Bericht vor."
       >
         <PageStatePanel
           tone="loading"
           area="paid_governance_control"
-          title="Control wird geladen"
-          description="Governance-Kennzahlen, Action Queue und Reifegrad werden vorbereitet."
+          title="Bericht wird geladen"
+          description="Reifegrad, Kennzahlen und priorisierte Aufgaben werden vorbereitet."
         />
       </SignedInAreaFrame>
     );
@@ -181,24 +182,28 @@ export default function ControlPage() {
   return (
     <SignedInAreaFrame
       area="paid_governance_control"
-      title="Governance Control Center"
+      title="Governance-Bericht"
       description={
         snapshot?.organisationName
-          ? `Governance steuern für ${snapshot.organisationName}. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.`
-          : 'Governance steuern. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.'
+          ? hasGovernanceMenu
+            ? `Analyse für ${snapshot.organisationName}. Reifegrad, Prüfungen und Nachweise sind hier zusammengeführt; weitere Governance-Bereiche stehen in der Navigation bereit.`
+            : `Analyse für ${snapshot.organisationName}. Reifegrad, Prüfungen und Nachweise werden direkt aus dem Register abgeleitet.`
+          : hasGovernanceMenu
+            ? 'Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise. Weitere Governance-Bereiche stehen in der Navigation bereit.'
+            : 'Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise.'
       }
       nextStep={
         actionQueue.length > 0
-          ? 'Arbeiten Sie zuerst die priorisierten Governance-Aufgaben ab.'
-          : 'Prüfen Sie Policies, Exporte oder Trust Portal als nächsten Governance-Schritt.'
+          ? 'Arbeiten Sie zuerst die priorisierten Aufgaben aus dem Bericht ab.'
+          : 'Nutzen Sie den Bericht, um Dokumentations-, Review- und Nachweislücken zu erkennen.'
       }
     >
       <div className="space-y-6">
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Control ist noch nicht freigeschaltet"
-            description="Die bezahlte Governance-Ebene ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
+            title="Governance-Bericht ist noch nicht verfügbar"
+            description="Die Berichtsebene ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
             actions={
               <Button asChild>
                 <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
@@ -211,7 +216,7 @@ export default function ControlPage() {
               <PageStatePanel
                 area="paid_governance_control"
                 title="Kontext aus dem Register übernommen"
-                description={`Use Case ${focusedUseCaseId} wurde als Kontext in Control geöffnet.`}
+                description={`Use Case ${focusedUseCaseId} wurde als Kontext in den Bericht übernommen.`}
               />
             )}
 
@@ -228,7 +233,7 @@ export default function ControlPage() {
               <PageStatePanel
                 tone="error"
                 area="paid_governance_control"
-                title="Control konnte nicht geladen werden"
+                title="Bericht konnte nicht geladen werden"
                 description={dataError}
               />
             )}

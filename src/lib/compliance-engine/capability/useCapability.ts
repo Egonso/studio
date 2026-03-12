@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/auth-context';
 
 import {
   getEntitlementAccessPlan,
@@ -88,12 +89,21 @@ async function resolveCurrentEntitlement(): Promise<EntitlementCacheEntry> {
 }
 
 export function useEntitlement(): UseEntitlementResult {
+  const { user } = useAuth();
+  const userId = user?.uid ?? null;
   const [state, setState] = useState<EntitlementCacheEntry | null>(
     entitlementCache,
   );
-  const [loading, setLoading] = useState(!entitlementCache);
+  const [loading, setLoading] = useState(Boolean(userId) && !entitlementCache);
 
   useEffect(() => {
+    if (!userId) {
+      invalidatePlanCache();
+      setState(null);
+      setLoading(false);
+      return;
+    }
+
     if (entitlementCache) {
       setState(entitlementCache);
       setLoading(false);
@@ -112,7 +122,7 @@ export function useEntitlement(): UseEntitlementResult {
       .finally(() => {
         entitlementPromise = null;
       });
-  }, []);
+  }, [userId]);
 
   const entitlement = state?.entitlement ?? resolveRegisterEntitlement(null);
 

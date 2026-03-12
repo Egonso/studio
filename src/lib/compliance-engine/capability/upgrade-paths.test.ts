@@ -33,7 +33,7 @@ test('feature upgrade CTA labels match the destination surface', () => {
     getFeatureUpgradeCtaLabel('extendedOrgSettings'),
     'Governance Settings öffnen',
   );
-  assert.equal(getFeatureUpgradeCtaLabel('reviewWorkflow'), 'Reviews öffnen');
+  assert.equal(getFeatureUpgradeCtaLabel('reviewWorkflow'), 'Bericht öffnen');
   assert.equal(getFeatureUpgradeCtaLabel('policyEngine'), 'Policies öffnen');
   assert.equal(getFeatureUpgradeCtaLabel('auditExport'), 'Exports öffnen');
   assert.equal(getFeatureUpgradeCtaLabel('trustPortal'), 'Trust Portal öffnen');

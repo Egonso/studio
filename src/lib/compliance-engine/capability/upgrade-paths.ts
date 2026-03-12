@@ -33,7 +33,7 @@ export function getFeatureUpgradeCtaLabel(feature: FeatureCapability): string {
     case 'governanceWizard':
       return 'Governance Settings öffnen';
     case 'reviewWorkflow':
-      return 'Reviews öffnen';
+      return 'Bericht öffnen';
     case 'policyEngine':
       return 'Policies öffnen';
     case 'auditExport':
@@ -43,6 +43,6 @@ export function getFeatureUpgradeCtaLabel(feature: FeatureCapability): string {
     case 'competencyMatrix':
       return 'Academy öffnen';
     default:
-      return 'Control öffnen';
+      return 'Bericht öffnen';
   }
 }
