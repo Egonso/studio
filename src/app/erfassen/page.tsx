@@ -22,6 +22,12 @@ import {
   TOOL_PLACEHOLDER_ID,
   type QuickCaptureFieldsDraft,
 } from "@/components/register/quick-capture-fields";
+import {
+  SHARED_CAPTURE_FIELD_IDS,
+  validateSharedCaptureFields,
+  type SharedCaptureFieldErrors,
+  type SharedCaptureFieldName,
+} from "@/lib/register-first/shared-capture-fields";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
@@ -54,11 +60,18 @@ export default function ErfassenPage() {
   const [ownerFallbackInfo, setOwnerFallbackInfo] = useState<OwnerCaptureFallbackInfo | null>(null);
   const [errorTitle, setErrorTitle] = useState("Fehler");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<SharedCaptureFieldErrors>({});
   const [form, setForm] = useState<CaptureFormData>({ ...EMPTY_FORM });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdPurpose, setCreatedPurpose] = useState("");
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   const patch = (p: Partial<CaptureFormData>) => setForm((f) => ({ ...f, ...p }));
+
+  useEffect(() => {
+    if (!hasFieldErrors) return;
+    setFieldErrors(validateSharedCaptureFields(form).errors);
+  }, [form, hasFieldErrors]);
 
   // Validate code from URL param on mount
   useEffect(() => {
@@ -123,23 +136,31 @@ export default function ErfassenPage() {
   }
 
   async function handleSubmit() {
-    setIsSubmitting(true);
     setErrorTitle("Fehler");
     setErrorMsg(null);
+    const validation = validateSharedCaptureFields(form);
+    if (!validation.isValid) {
+      setFieldErrors(validation.errors);
+      focusCaptureField(validation.firstInvalidField);
+      return;
+    }
+
+    setFieldErrors({});
+    setIsSubmitting(true);
     try {
       if (ownerFallbackInfo) {
         const card = await submitOwnedCaptureCodeFallback({
           code,
           registerId: ownerFallbackInfo.registerId,
           accessCodeLabel: ownerFallbackInfo.label,
-          purpose: form.purpose.trim(),
-          toolId: form.toolId || undefined,
-          toolFreeText: form.toolFreeText.trim() || undefined,
-          usageContexts: form.usageContexts,
-          dataCategories: form.dataCategories,
-          decisionInfluence: form.decisionInfluence ?? undefined,
-          ownerRole: form.ownerRole.trim(),
-          contactPersonName: form.contactPersonName.trim() || undefined,
+          purpose: validation.normalized.purpose,
+          toolId: validation.normalized.toolId,
+          toolFreeText: validation.normalized.toolFreeText,
+          usageContexts: validation.normalized.usageContexts,
+          dataCategories: validation.normalized.dataCategories,
+          decisionInfluence: validation.normalized.decisionInfluence,
+          ownerRole: validation.normalized.ownerRole,
+          contactPersonName: validation.normalized.contactPersonName,
         });
         setCreatedPurpose(card.purpose);
         setPageState("success");
@@ -151,14 +172,14 @@ export default function ErfassenPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code,
-          purpose: form.purpose.trim(),
-          toolId: form.toolId || undefined,
-          toolFreeText: form.toolFreeText.trim() || undefined,
-          usageContexts: form.usageContexts,
-          dataCategories: form.dataCategories,
-          decisionInfluence: form.decisionInfluence ?? undefined,
-          ownerRole: form.ownerRole.trim(),
-          contactPersonName: form.contactPersonName.trim() || undefined,
+          purpose: validation.normalized.purpose,
+          toolId: validation.normalized.toolId,
+          toolFreeText: validation.normalized.toolFreeText,
+          usageContexts: validation.normalized.usageContexts,
+          dataCategories: validation.normalized.dataCategories,
+          decisionInfluence: validation.normalized.decisionInfluence,
+          ownerRole: validation.normalized.ownerRole,
+          contactPersonName: validation.normalized.contactPersonName,
         }),
       });
 
@@ -174,7 +195,7 @@ export default function ErfassenPage() {
         return;
       }
 
-      setCreatedPurpose(form.purpose.trim());
+      setCreatedPurpose(validation.normalized.purpose);
       setPageState("success");
     } catch {
       setErrorTitle("Verbindungsfehler");
@@ -184,12 +205,18 @@ export default function ErfassenPage() {
     }
   }
 
-  const canSubmit =
-    form.purpose.trim().length >= 3 &&
-    form.ownerRole.trim().length >= 2 &&
-    form.toolId.length > 0 &&
-    form.toolId !== TOOL_PLACEHOLDER_ID &&
-    (form.toolId !== "other" || form.toolFreeText.trim().length > 0);
+  const focusCaptureField = (fieldName: SharedCaptureFieldName | null) => {
+    if (!fieldName) return;
+    const fieldId = SHARED_CAPTURE_FIELD_IDS[fieldName];
+    window.requestAnimationFrame(() => {
+      const element = document.getElementById(fieldId);
+      if (!element) return;
+      element.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (element instanceof HTMLElement) {
+        element.focus();
+      }
+    });
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -304,11 +331,21 @@ export default function ErfassenPage() {
               draft={form}
               onChange={patch}
               autoFocusPurpose
+              errors={fieldErrors}
             />
+            {hasFieldErrors && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground"
+              >
+                Bitte ergänze die markierten Pflichtfelder, bevor du fortfährst.
+              </div>
+            )}
 
             <Button
               onClick={() => void handleSubmit()}
-              disabled={!canSubmit || isSubmitting}
+              disabled={isSubmitting}
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

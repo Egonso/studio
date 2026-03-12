@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,17 @@ interface ToolAutocompleteProps {
     value: string;
     onChange: (value: string, toolData?: any) => void;
     disabled?: boolean;
+    inputClassName?: string;
+    inputId?: string;
 }
 
-export function ToolAutocomplete({ value, onChange, disabled }: ToolAutocompleteProps) {
+export function ToolAutocomplete({
+    value,
+    onChange,
+    disabled,
+    inputClassName,
+    inputId,
+}: ToolAutocompleteProps) {
     const [open, setOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState(value);
     const wrapperRef = React.useRef<HTMLDivElement>(null);
@@ -59,18 +67,29 @@ export function ToolAutocomplete({ value, onChange, disabled }: ToolAutocomplete
         setOpen(true);
     };
 
+    const customToolValue = inputValue.trim();
+
+    const handleUseCustomTool = () => {
+        if (!customToolValue) return;
+        setInputValue(customToolValue);
+        onChange(customToolValue, undefined);
+        setOpen(false);
+    };
+
     return (
         <div ref={wrapperRef} className="relative w-full">
             <div className="relative">
                 <Input
+                    id={inputId}
                     value={inputValue}
                     onChange={handleInputChange}
                     onFocus={() => setOpen(true)}
                     disabled={disabled}
                     placeholder="z.B. ChatGPT, Midjourney..."
-                    className="pr-10"
+                    className={cn("pr-10", inputClassName)}
                 />
                 <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
@@ -84,7 +103,27 @@ export function ToolAutocomplete({ value, onChange, disabled }: ToolAutocomplete
             {open && (
                 <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
                     {filteredTools.length === 0 ? (
-                        <div className="py-6 text-center text-sm">Kein Tool gefunden.</div>
+                        customToolValue ? (
+                            <div className="p-2">
+                                <button
+                                    type="button"
+                                    onClick={handleUseCustomTool}
+                                    className="flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                >
+                                    <Plus className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                                    <div className="space-y-0.5">
+                                        <p>{`„${customToolValue}“ als Custom Tool anlegen`}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Der Name wird direkt als eigenes Tool gespeichert.
+                                        </p>
+                                    </div>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="py-6 text-center text-sm text-muted-foreground">
+                                Der Tool-Katalog ist aktuell leer.
+                            </div>
+                        )
                     ) : (
                         <div className="p-1">
                             {filteredTools.map((tool) => (

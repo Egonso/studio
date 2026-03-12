@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { parseUseCaseCard } from "@/lib/register-first/schema";
 import { prepareUseCaseForStorage } from "@/lib/register-first/use-case-builder";
 import { normalizeCaptureByCodeSelections } from "@/lib/capture-by-code/selections";
+import { validateSharedCaptureFields } from "@/lib/register-first/shared-capture-fields";
 
 interface CaptureByCodeBody {
   code: string;
@@ -248,7 +249,6 @@ export async function POST(req: NextRequest) {
     const code = rawCode ? normalizeCode(rawCode) : "";
     const normalizedOwnerRole =
       normalizeOptionalText(ownerRole) ?? normalizeOptionalText(ownerName);
-    const normalizedContactPersonName = normalizeOptionalText(contactPersonName);
     const normalizedOrganisation = normalizeOptionalText(organisation);
     const normalizedSelections = normalizeCaptureByCodeSelections({
       usageContext,
@@ -256,6 +256,16 @@ export async function POST(req: NextRequest) {
       dataCategory,
       dataCategories,
       decisionInfluence,
+    });
+    const validation = validateSharedCaptureFields({
+      purpose,
+      ownerRole: normalizedOwnerRole ?? "",
+      contactPersonName,
+      toolId,
+      toolFreeText,
+      usageContexts: normalizedSelections.usageContexts,
+      dataCategories: normalizedSelections.dataCategories,
+      decisionInfluence: normalizedSelections.decisionInfluence,
     });
 
     if (code) {
@@ -276,16 +286,21 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate required fields
-    if (!code || !purpose?.trim() || !normalizedOwnerRole) {
+    if (!code) {
       return NextResponse.json(
         { error: "Code, Use-Case Name und Owner-Rolle sind Pflichtfelder" },
         { status: 400 }
       );
     }
 
-    if (normalizedOwnerRole.length < 2) {
+    if (!validation.isValid) {
       return NextResponse.json(
-        { error: "Owner-Rolle muss mindestens 2 Zeichen haben" },
+        {
+          error:
+            validation.errors.purpose ??
+            validation.errors.ownerRole ??
+            "Bitte überprüfe die eingegebenen Pflichtfelder.",
+        },
         { status: 400 }
       );
     }
@@ -316,17 +331,17 @@ export async function POST(req: NextRequest) {
     const useCaseId = crypto.randomUUID();
     const cardDraft = prepareUseCaseForStorage(
       {
-        purpose: purpose.trim(),
-        usageContexts: normalizedSelections.usageContexts,
+        purpose: validation.normalized.purpose,
+        usageContexts: validation.normalized.usageContexts,
         isCurrentlyResponsible: false,
-        responsibleParty: normalizedOwnerRole,
-        contactPersonName: normalizedContactPersonName,
+        responsibleParty: validation.normalized.ownerRole,
+        contactPersonName: validation.normalized.contactPersonName,
         decisionImpact: "UNSURE",
-        decisionInfluence: normalizedSelections.decisionInfluence,
-        toolId: toolId || undefined,
-        toolFreeText: normalizeOptionalText(toolFreeText) ?? undefined,
+        decisionInfluence: validation.normalized.decisionInfluence,
+        toolId: validation.normalized.toolId,
+        toolFreeText: validation.normalized.toolFreeText,
         dataCategory: normalizedSelections.dataCategory,
-        dataCategories: normalizedSelections.dataCategories,
+        dataCategories: validation.normalized.dataCategories,
         organisation: normalizedOrganisation,
       },
       {
@@ -337,7 +352,7 @@ export async function POST(req: NextRequest) {
     const card = parseUseCaseCard({
       ...cardDraft,
       capturedBy: "ANONYMOUS",
-      capturedByName: normalizedContactPersonName ?? undefined,
+      capturedByName: validation.normalized.contactPersonName,
       capturedViaCode: true,
       accessCodeLabel: codeData.label,
     });

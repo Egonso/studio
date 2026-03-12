@@ -21,6 +21,12 @@ import type {
 import { applyOrgDefaults } from "@/lib/register-first/inheritance";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 import {
+    SHARED_CAPTURE_FIELD_IDS,
+    validateSharedCaptureFields,
+    type SharedCaptureFieldErrors,
+    type SharedCaptureFieldName,
+} from "@/lib/register-first/shared-capture-fields";
+import {
     QuickCaptureFields,
     TOOL_PLACEHOLDER_ID,
     type QuickCaptureFieldsDraft,
@@ -82,16 +88,19 @@ export function QuickCaptureModal({
 }: QuickCaptureModalProps) {
     const isGuestMode = mode === "guest";
     const [draft, setDraft] = useState<QuickDraft>(() => createInitialDraft(initialDraft));
+    const [fieldErrors, setFieldErrors] = useState<SharedCaptureFieldErrors>({});
     const [isSaving, setIsSaving] = useState(false);
     const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
     const [inheritanceApplied, setInheritanceApplied] = useState(false);
     const { allowed: canInheritRaw } = useCapability("extendedOrgSettings");
     const canInherit = canInheritRaw && !isGuestMode;
     const { toast } = useToast();
+    const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
     useEffect(() => {
         if (open) {
             setDraft(createInitialDraft(initialDraft));
+            setFieldErrors({});
         }
     }, [initialDraft, open]);
 
@@ -111,15 +120,33 @@ export function QuickCaptureModal({
         }).catch(() => { });
     }, [canInherit]);
 
-    const canSave =
-        draft.purpose.trim().length > 0 &&
-        draft.ownerRole.trim().length >= 2 &&
-        draft.toolId.length > 0 &&
-        draft.toolId !== TOOL_PLACEHOLDER_ID &&
-        (draft.toolId !== "other" || draft.toolFreeText.trim().length > 0);
+    useEffect(() => {
+        if (!hasFieldErrors) return;
+        setFieldErrors(validateSharedCaptureFields(draft).errors);
+    }, [draft, hasFieldErrors]);
+
+    const focusCaptureField = (fieldName: SharedCaptureFieldName | null) => {
+        if (!fieldName) return;
+        const fieldId = SHARED_CAPTURE_FIELD_IDS[fieldName];
+        window.requestAnimationFrame(() => {
+            const element = document.getElementById(fieldId);
+            if (!element) return;
+            element.scrollIntoView({ block: "center", behavior: "smooth" });
+            if (element instanceof HTMLElement) {
+                element.focus();
+            }
+        });
+    };
 
     const handleSave = async () => {
-        if (!canSave) return;
+        const validation = validateSharedCaptureFields(draft);
+        if (!validation.isValid) {
+            setFieldErrors(validation.errors);
+            focusCaptureField(validation.firstInvalidField);
+            return;
+        }
+
+        setFieldErrors({});
         setIsSaving(true);
 
         try {
@@ -127,13 +154,16 @@ export function QuickCaptureModal({
                 const guestEntry: GuestCaptureEntry = {
                     id: `guest_${Date.now()}`,
                     capturedAt: new Date().toISOString(),
-                    purpose: draft.purpose.trim(),
-                    ownerRole: draft.ownerRole.trim(),
-                    contactPersonName: draft.contactPersonName.trim() || undefined,
-                    tool: draft.toolId === "other" ? draft.toolFreeText.trim() : draft.toolId,
-                    usageContexts: draft.usageContexts,
-                    dataCategories: draft.dataCategories,
-                    decisionInfluence: draft.decisionInfluence,
+                    purpose: validation.normalized.purpose,
+                    ownerRole: validation.normalized.ownerRole,
+                    contactPersonName: validation.normalized.contactPersonName,
+                    tool:
+                        validation.normalized.toolId === "other"
+                            ? validation.normalized.toolFreeText ?? ""
+                            : validation.normalized.toolId ?? "",
+                    usageContexts: validation.normalized.usageContexts,
+                    dataCategories: validation.normalized.dataCategories ?? [],
+                    decisionInfluence: validation.normalized.decisionInfluence ?? null,
                     description: draft.description.trim(),
                 };
 
@@ -154,15 +184,15 @@ export function QuickCaptureModal({
             }
 
             const card = await registerService.createUseCaseFromCapture({
-                purpose: draft.purpose.trim(),
-                toolId: draft.toolId === "other" ? "other" : draft.toolId,
-                toolFreeText: draft.toolId === "other" ? draft.toolFreeText.trim() : undefined,
-                usageContexts: draft.usageContexts.length > 0 ? draft.usageContexts : ["INTERNAL_ONLY"],
-                dataCategories: draft.dataCategories.length > 0 ? draft.dataCategories : undefined,
-                decisionInfluence: draft.decisionInfluence ?? undefined,
+                purpose: validation.normalized.purpose,
+                toolId: validation.normalized.toolId,
+                toolFreeText: validation.normalized.toolFreeText,
+                usageContexts: validation.normalized.usageContexts,
+                dataCategories: validation.normalized.dataCategories,
+                decisionInfluence: validation.normalized.decisionInfluence,
                 isCurrentlyResponsible: false,
-                responsibleParty: draft.ownerRole.trim(),
-                contactPersonName: draft.contactPersonName.trim() || undefined,
+                responsibleParty: validation.normalized.ownerRole,
+                contactPersonName: validation.normalized.contactPersonName,
                 decisionImpact: "UNSURE",
             });
 
@@ -216,7 +246,7 @@ export function QuickCaptureModal({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canSave) {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
             e.preventDefault();
             void handleSave();
         }
@@ -261,7 +291,17 @@ export function QuickCaptureModal({
                         onChange={patch}
                         autoFocusPurpose
                         showDescription
+                        errors={fieldErrors}
                     />
+                    {hasFieldErrors && (
+                        <div
+                            role="status"
+                            aria-live="polite"
+                            className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground"
+                        >
+                            Bitte ergänze die markierten Pflichtfelder, bevor du speicherst.
+                        </div>
+                    )}
                     {/* Inheritance Hint */}
                     {canInherit && inheritanceApplied && (
                         <div className="rounded-md border border-blue-100 bg-blue-50/50 px-3 py-2">
@@ -285,7 +325,7 @@ export function QuickCaptureModal({
                         <Button variant="outline" onClick={() => onOpenChange(false)}>
                             Abbrechen
                         </Button>
-                        <Button onClick={() => void handleSave()} disabled={!canSave || isSaving}>
+                        <Button onClick={() => void handleSave()} disabled={isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {isGuestMode ? "Lokal speichern" : "Speichern"}
                         </Button>

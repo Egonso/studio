@@ -8,6 +8,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  CAPTURE_TOOL_PLACEHOLDER_ID,
+  SHARED_CAPTURE_FIELD_IDS,
+  type SharedCaptureFieldErrors,
+} from "@/lib/register-first/shared-capture-fields";
 import { applyDataCategoryLogic, toggleMultiSelect } from "@/lib/register-first/capture-selections";
 import type {
   CaptureUsageContext,
@@ -24,7 +29,7 @@ import {
   USAGE_CONTEXT_OPTIONS,
 } from "@/lib/register-first/types";
 
-export const TOOL_PLACEHOLDER_ID = "__placeholder__";
+export const TOOL_PLACEHOLDER_ID = CAPTURE_TOOL_PLACEHOLDER_ID;
 
 export interface QuickCaptureFieldsDraft {
   purpose: string;
@@ -43,6 +48,7 @@ interface QuickCaptureFieldsProps {
   onChange: (patch: Partial<QuickCaptureFieldsDraft>) => void;
   autoFocusPurpose?: boolean;
   showDescription?: boolean;
+  errors?: SharedCaptureFieldErrors;
 }
 
 export function QuickCaptureFields({
@@ -50,6 +56,7 @@ export function QuickCaptureFields({
   onChange,
   autoFocusPurpose = false,
   showDescription = false,
+  errors = {},
 }: QuickCaptureFieldsProps) {
   const [section1Open, setSection1Open] = useState(false);
   const [section2Open, setSection2Open] = useState(false);
@@ -63,31 +70,47 @@ export function QuickCaptureFields({
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-1.5">
-        <Label htmlFor="qc-purpose">
+        <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.purpose}>
           Use-Case Name <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="qc-purpose"
+          id={SHARED_CAPTURE_FIELD_IDS.purpose}
           placeholder="z. B. Marketing Copy Generator"
           value={draft.purpose}
           onChange={(event) => onChange({ purpose: event.target.value })}
           autoFocus={autoFocusPurpose}
+          aria-invalid={Boolean(errors.purpose)}
+          aria-describedby={errors.purpose ? "qc-purpose-error" : undefined}
+          className={errors.purpose ? "border-destructive focus-visible:ring-destructive" : undefined}
         />
+        {errors.purpose && (
+          <p id="qc-purpose-error" className="text-xs text-destructive">
+            {errors.purpose}
+          </p>
+        )}
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="qc-owner">
+        <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.ownerRole}>
           Owner-Rolle (funktional) <span className="text-destructive">*</span>
         </Label>
         <Input
-          id="qc-owner"
+          id={SHARED_CAPTURE_FIELD_IDS.ownerRole}
           placeholder="z. B. Head of Marketing / HR Lead / IT Security"
           value={draft.ownerRole}
           onChange={(event) => onChange({ ownerRole: event.target.value })}
+          aria-invalid={Boolean(errors.ownerRole)}
+          aria-describedby={errors.ownerRole ? "qc-owner-error" : undefined}
+          className={errors.ownerRole ? "border-destructive focus-visible:ring-destructive" : undefined}
         />
         <p className="text-xs text-muted-foreground">
           Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.
         </p>
+        {errors.ownerRole && (
+          <p id="qc-owner-error" className="text-xs text-destructive">
+            {errors.ownerRole}
+          </p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -103,15 +126,17 @@ export function QuickCaptureFields({
       </div>
 
       <div className="space-y-1.5">
-        <Label>
-          System / Tool <span className="text-destructive">*</span>
+        <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
+          System / Tool <span className="text-muted-foreground">(optional)</span>
         </Label>
         <ToolAutocomplete
+          inputId={SHARED_CAPTURE_FIELD_IDS.tool}
           value={
             draft.toolId === "other" || draft.toolId === TOOL_PLACEHOLDER_ID
               ? draft.toolFreeText
               : draft.toolId
           }
+          inputClassName="pr-10"
           onChange={(value, toolData) => {
             if (toolData) {
               onChange({
@@ -132,6 +157,9 @@ export function QuickCaptureFields({
             });
           }}
         />
+        <p className="text-xs text-muted-foreground">
+          Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.
+        </p>
       </div>
 
       <div className="rounded-md border">
