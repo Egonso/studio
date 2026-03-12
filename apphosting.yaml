@@ -21,6 +21,8 @@ env:
     value: "true"
   - variable: NEXT_PUBLIC_REGISTER_FIRST_STANDALONE
     value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_WORKFLOW_LINKS_ENABLED
+    value: "true"
   - variable: NEXT_PUBLIC_CONTROL_SHELL_ENABLED
     value: "true"
   - variable: NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED

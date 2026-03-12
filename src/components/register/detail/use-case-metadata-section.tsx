@@ -34,6 +34,8 @@ import {
   applyDataCategoryLogic,
   toggleMultiSelect,
 } from "@/lib/register-first/capture-selections";
+import { registerFirstFlags } from "@/lib/register-first/flags";
+import { UseCaseWorkflowLinkSection } from "./use-case-workflow-link-section";
 import { cn } from "@/lib/utils";
 
 const aiRegistry = createAiToolsRegistryService();
@@ -56,7 +58,9 @@ interface UseCaseMetadataSectionProps {
   card: UseCaseCard;
   isEditing: boolean;
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
+  registerId?: string | null;
   focusTarget?: ControlFocusTarget | null;
+  autoOpenWorkflowLinkEditor?: boolean;
 }
 
 interface UseCaseEditDraft {
@@ -76,7 +80,9 @@ export function UseCaseMetadataSection({
   card,
   isEditing,
   onSave,
+  registerId = null,
   focusTarget = null,
+  autoOpenWorkflowLinkEditor = false,
 }: UseCaseMetadataSectionProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -609,17 +615,28 @@ export function UseCaseMetadataSection({
           </FieldBlock>
         </div>
 
+        {registerFirstFlags.registerWorkflowLinks && (
+          <div className="mt-6">
+            <UseCaseWorkflowLinkSection
+              card={card}
+              registerId={registerId}
+              highlighted={focusTarget === "policy"}
+              autoOpen={autoOpenWorkflowLinkEditor}
+              onSave={onSave}
+            />
+          </div>
+        )}
+
         <div
           id="usecase-focus-oversight"
           className={cn(
             "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
-            (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
+            focusTarget === "oversight" && focusClassName
           )}
         >
-          <div id="usecase-focus-policy" className="h-px w-px" />
           <p className="font-medium text-slate-600">Organisation KI-gerecht steuern</p>
           <p>
-            Zuständigkeiten, Prüfmodelle und Policies werden in der
+            Zuständigkeiten, Prüfmodelle und übergreifende Policies werden in der
             Organisationssteuerung verwaltet.
           </p>
           <button

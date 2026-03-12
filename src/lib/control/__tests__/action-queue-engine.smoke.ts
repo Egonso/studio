@@ -98,6 +98,16 @@ export function runActionQueueEngineSmoke() {
   assert.equal(queue[0]?.deepLinkLabel, "Aufsichtsmodell festlegen");
   assert.match(queue[0]?.viewLink ?? "", /^\/my-register\/[^?]+$/);
 
+  const policyRecommendation = queue.find(
+    (recommendation) => recommendation.useCaseId === "uc_policy_gap"
+  );
+  assert.equal(policyRecommendation?.focus, "policy");
+  assert.match(
+    policyRecommendation?.deepLink ?? "",
+    /^\/my-register\/[^?]+\?focus=policy&edit=1$/
+  );
+  assert.equal(policyRecommendation?.deepLinkLabel, "Verknüpfung setzen");
+
   for (const recommendation of queue) {
     assert.ok(isControlFocusTarget(recommendation.focus));
     if (recommendation.deepLink) {

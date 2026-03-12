@@ -15,6 +15,7 @@ import {
   type ControlFocusTarget,
 } from "@/lib/control/deep-link";
 import { registerFirstFlags } from "@/lib/register-first/flags";
+import { getActiveRegisterId } from "@/lib/register-first/register-settings-client";
 import { registerService } from "@/lib/register-first/register-service";
 import type { OrgSettings, RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 
@@ -27,6 +28,7 @@ export default function UseCaseDetailPage() {
   const [card, setCard] = useState<UseCaseCard | null>(null);
   const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
   const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
+  const [registerId, setRegisterId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -45,11 +47,14 @@ export default function UseCaseDetailPage() {
     (governanceField === "oversight" || governanceField === "reviewCycle")
       ? governanceField
       : null;
+  const autoOpenWorkflowLinkEditor =
+    editParam === "1" && resolvedFocus === "policy";
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
     setIsLoading(true);
     setError(null);
+    setRegisterId(null);
     try {
       const [result, register, useCases] = await Promise.all([
         registerService.getUseCase(undefined, useCaseId),
@@ -65,6 +70,7 @@ export default function UseCaseDetailPage() {
       if (!result) {
         setError("Einsatzfall nicht gefunden.");
       } else {
+        setRegisterId(register?.registerId ?? getActiveRegisterId());
         setCard(result);
         setAllUseCases(useCases);
         setOrgSettings(register?.orgSettings ?? null);
@@ -207,7 +213,9 @@ export default function UseCaseDetailPage() {
           card={card}
           isEditing={isEditing}
           onSave={handleSaveMetadata}
+          registerId={registerId}
           focusTarget={activeFocus}
+          autoOpenWorkflowLinkEditor={autoOpenWorkflowLinkEditor}
         />
 
         {registerFirstFlags.controlShell && (

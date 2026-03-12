@@ -281,8 +281,10 @@ export function buildControlActionQueue(
           "Kontrollmassnahmen sind nicht konsistent zugeordnet.",
           "Policy-Links fuer dieses System im Register hinterlegen.",
           {
-            deepLink: null,
-            deepLinkLabel: null,
+            deepLink: buildUseCaseFocusLink(useCase.useCaseId, "policy", {
+              edit: true,
+            }),
+            deepLinkLabel: "Verknüpfung setzen",
           }
         )
       );
@@ -299,8 +301,10 @@ export function buildControlActionQueue(
           "Governance-Regeln sind schwer nachweisbar.",
           "Relevante Policy-Referenzen mit dem Einsatzfall verknuepfen.",
           {
-            deepLink: null,
-            deepLinkLabel: null,
+            deepLink: buildUseCaseFocusLink(useCase.useCaseId, "policy", {
+              edit: true,
+            }),
+            deepLinkLabel: "Verknüpfung setzen",
           }
         )
       );
