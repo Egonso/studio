@@ -63,9 +63,6 @@ import {
   createStaticToolRegistryService,
   createAiToolsRegistryService,
   buildVerifyPassAbsoluteUrl,
-  getUseCaseSource,
-  getUseCaseSourceBadges,
-  getUseCaseSubmitterIdentity,
   matchesUseCaseSourceFilter,
   type RegisterFirstServiceErrorCode,
   type RegisterUseCaseStatus,
@@ -946,17 +943,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
                 const nextStatuses = getNextManualStatuses(card.status);
                 const toolDisplayName = getCardToolDisplayName(card);
-                const source = getUseCaseSource(card);
-                const sourceBadges = getUseCaseSourceBadges(card);
-                const submitterIdentity = getUseCaseSubmitterIdentity(card);
                 const ownerRole =
                   card.responsibility.responsibleParty || "Nicht zugewiesen";
-                const originLine =
-                  source === "supplier_request" && submitterIdentity
-                    ? `Lieferant: ${submitterIdentity}`
-                    : source !== "manual" && submitterIdentity
-                      ? `Einreichung: ${submitterIdentity}`
-                      : null;
                 const outputState = getStatusGatedOutputState(
                   card.status,
                   registerFirstFlags
@@ -989,24 +977,6 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                           <span className="text-xs text-muted-foreground">
                             Tool: {toolDisplayName}
                           </span>
-                          {originLine ? (
-                            <span className="text-xs text-muted-foreground">
-                              {originLine}
-                            </span>
-                          ) : null}
-                          {sourceBadges.length > 0 ? (
-                            <div className="flex flex-wrap items-center gap-1 pt-1">
-                              {sourceBadges.map((badge) => (
-                                <Badge
-                                  key={`${card.useCaseId}_${badge.key}`}
-                                  variant="outline"
-                                  className={`shrink-0 ${badge.className}`}
-                                >
-                                  {badge.label}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : null}
                         </div>
                       </TableCell>
 
