@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,11 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail } from "lucide-react";
 import {
     getAdminStats,
+    getCertificationCertificateDetail,
     getCertificationAdminData,
     getFeedbackList,
     getPlatformUsers,
     issueManualCertification,
+    repairBillingEntitlement,
     regenerateCertificationDocument,
+    saveCertificationSettings,
     updateCertificationCertificate,
     updateFeedbackStatus,
 } from "@/app/actions/admin";
@@ -23,6 +26,7 @@ import { CertificationAdminPanel } from "@/components/admin/certification-admin-
 import { isAdminEmail } from "@/lib/admin-config";
 import type { AdminCertificationOverview } from "@/lib/certification/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -37,6 +41,24 @@ export default function AdminPage() {
     const [usersList, setUsersList] = useState<any[]>([]);
     const [certificationOverview, setCertificationOverview] = useState<AdminCertificationOverview | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [billingRepairState, setBillingRepairState] = useState<{
+        email: string;
+        userId: string;
+        loading: boolean;
+        error: string | null;
+        result: {
+            entitlement: { plan?: string | null; status?: string | null } | null;
+            appliedUserIds: string[];
+            appliedRegisterIds: string[];
+            needsUserSignup: boolean;
+        } | null;
+    }>({
+        email: '',
+        userId: '',
+        loading: false,
+        error: null,
+        result: null,
+    });
     const feedbackFilter = "all";
 
     const getAdminIdToken = useCallback(async () => {
@@ -124,6 +146,106 @@ export default function AdminPage() {
         await fetchData();
     };
 
+    const handleLoadCertificateDetail = async (certificateId: string) => {
+        const idToken = await getAdminIdToken();
+        return getCertificationCertificateDetail(idToken, certificateId);
+    };
+
+    const handleSaveCertificationSettings = async (input: {
+        defaultValidityMonths?: number | null;
+        documentTemplateId?: string | null;
+        badgeAssetUrl?: string | null;
+    }) => {
+        const idToken = await getAdminIdToken();
+        await saveCertificationSettings(idToken, input);
+        await fetchData();
+    };
+
+    const handleRepairBilling = async () => {
+        const normalizedEmail = billingRepairState.email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            setBillingRepairState((current) => ({
+                ...current,
+                error: 'Bitte eine E-Mail-Adresse eingeben.',
+                result: null,
+            }));
+            return;
+        }
+
+        setBillingRepairState((current) => ({
+            ...current,
+            loading: true,
+            error: null,
+            result: null,
+        }));
+
+        try {
+            const idToken = await getAdminIdToken();
+            const result = await repairBillingEntitlement(
+                idToken,
+                normalizedEmail,
+                billingRepairState.userId.trim() || null,
+            );
+            setBillingRepairState((current) => ({
+                ...current,
+                loading: false,
+                result,
+            }));
+            await fetchData();
+        } catch (error) {
+            console.error('Billing repair failed', error);
+            setBillingRepairState((current) => ({
+                ...current,
+                loading: false,
+                error: 'Die Billing-Synchronisierung konnte nicht ausgeführt werden.',
+            }));
+        }
+    };
+
+    const featureRequestSummary = useMemo(() => {
+        const featureEntries = feedback.filter((item) => item.type === 'feature');
+        const groups = new Map<string, {
+            label: string;
+            count: number;
+            open: number;
+            resolved: number;
+            lastSeen: string | null;
+        }>();
+
+        for (const item of featureEntries) {
+            const label = typeof item.message === 'string' && item.message.trim().length > 0
+                ? item.message.trim()
+                : 'Ohne Beschreibung';
+            const key = label.toLowerCase();
+            const existing = groups.get(key) ?? {
+                label,
+                count: 0,
+                open: 0,
+                resolved: 0,
+                lastSeen: null,
+            };
+
+            existing.count += 1;
+            existing.open += item.status === 'resolved' ? 0 : 1;
+            existing.resolved += item.status === 'resolved' ? 1 : 0;
+            existing.lastSeen =
+                typeof item.createdAt === 'string'
+                    ? existing.lastSeen && existing.lastSeen > item.createdAt
+                        ? existing.lastSeen
+                        : item.createdAt
+                    : existing.lastSeen;
+
+            groups.set(key, existing);
+        }
+
+        return Array.from(groups.values()).sort((left, right) => {
+            if (right.count !== left.count) {
+                return right.count - left.count;
+            }
+            return (right.lastSeen ?? '').localeCompare(left.lastSeen ?? '');
+        });
+    }, [feedback]);
+
 
     if (loading) {
         return (
@@ -199,22 +321,22 @@ export default function AdminPage() {
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Organisatione</CardTitle>
+                            <CardTitle className="text-sm font-medium">Organisationen</CardTitle>
                             <ListTodo className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats.projects}</div>
-                            <p className="text-xs text-muted-foreground">Aktive Organisatione</p>
+                            <p className="text-xs text-muted-foreground">Aktive Organisationen</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 <Tabs defaultValue="certification" className="space-y-4">
-                    <TabsList>
+                    <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0">
                         <TabsTrigger value="certification">Zertifizierung</TabsTrigger>
                         <TabsTrigger value="feedback">Feedback Inbox</TabsTrigger>
                         <TabsTrigger value="users">User Management</TabsTrigger>
-                        <TabsTrigger value="features">Roadmap (Feature Requests)</TabsTrigger>
+                        <TabsTrigger value="features">Feature-Radar</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="certification" className="space-y-4">
@@ -225,6 +347,8 @@ export default function AdminPage() {
                             onRegenerate={handleRegenerateCertificate}
                             onUpdate={handleUpdateCertificate}
                             onManualIssue={handleIssueManualCertificate}
+                            onLoadDetail={handleLoadCertificateDetail}
+                            onSaveSettings={handleSaveCertificationSettings}
                         />
                     </TabsContent>
 
@@ -295,6 +419,72 @@ export default function AdminPage() {
                     <TabsContent value="users" className="space-y-4">
                         <Card>
                             <CardHeader>
+                                <CardTitle>Billing Repair</CardTitle>
+                                <CardDescription>
+                                    Repariert Legacy-Käufe, synchronisiert Entitlements und zieht Workspace-Freischaltungen nach.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                                    <Input
+                                        placeholder="E-Mail-Adresse"
+                                        value={billingRepairState.email}
+                                        onChange={(event) =>
+                                            setBillingRepairState((current) => ({
+                                                ...current,
+                                                email: event.target.value,
+                                            }))
+                                        }
+                                    />
+                                    <Input
+                                        placeholder="User ID (optional)"
+                                        value={billingRepairState.userId}
+                                        onChange={(event) =>
+                                            setBillingRepairState((current) => ({
+                                                ...current,
+                                                userId: event.target.value,
+                                            }))
+                                        }
+                                    />
+                                    <Button onClick={handleRepairBilling} disabled={billingRepairState.loading}>
+                                        {billingRepairState.loading ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <RefreshCw className="mr-2 h-4 w-4" />
+                                        )}
+                                        Synchronisieren
+                                    </Button>
+                                </div>
+                                {billingRepairState.error ? (
+                                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        {billingRepairState.error}
+                                    </div>
+                                ) : null}
+                                {billingRepairState.result ? (
+                                    <div className="grid gap-3 md:grid-cols-4">
+                                        <div className="rounded-xl border bg-slate-50 p-4">
+                                            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Plan</p>
+                                            <p className="mt-2 text-lg font-semibold">{billingRepairState.result.entitlement?.plan || 'Kein Treffer'}</p>
+                                        </div>
+                                        <div className="rounded-xl border bg-slate-50 p-4">
+                                            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Status</p>
+                                            <p className="mt-2 text-lg font-semibold">{billingRepairState.result.entitlement?.status || '—'}</p>
+                                        </div>
+                                        <div className="rounded-xl border bg-slate-50 p-4">
+                                            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">User aktualisiert</p>
+                                            <p className="mt-2 text-lg font-semibold">{billingRepairState.result.appliedUserIds.length}</p>
+                                        </div>
+                                        <div className="rounded-xl border bg-slate-50 p-4">
+                                            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Register aktualisiert</p>
+                                            <p className="mt-2 text-lg font-semibold">{billingRepairState.result.appliedRegisterIds.length}</p>
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
                                 <CardTitle>Benutzerverwaltung</CardTitle>
                                 <CardDescription>Die neuesten 50 registrierten Nutzer.</CardDescription>
                             </CardHeader>
@@ -348,15 +538,39 @@ export default function AdminPage() {
                     <TabsContent value="features" className="space-y-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Feature Requests & Roadmap</CardTitle>
-                                <CardDescription>Aggregierte Wünsche aus dem Feedback-System (Typ: Feature).</CardDescription>
+                                <CardTitle>Feature-Radar</CardTitle>
+                                <CardDescription>Aggregierte Produktwünsche aus dem Feedback-System.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="rounded-md border p-8 text-center text-muted-foreground bg-muted/20">
-                                    <ListTodo className="h-10 w-10 mx-auto mb-2 opacity-20" />
-                                    <p>Hier können später Feature-Requests priorisiert und in eine Roadmap überführt werden.</p>
-                                    <p className="text-xs mt-2">Aktuell: Siehe "Feedback Inbox" für rohe Feature-Anfragen.</p>
-                                </div>
+                                {featureRequestSummary.length === 0 ? (
+                                    <div className="rounded-md border p-8 text-center text-muted-foreground bg-muted/20">
+                                        <ListTodo className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                                        <p>Aktuell liegen keine Feature-Anfragen vor.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {featureRequestSummary.slice(0, 12).map((entry) => (
+                                            <div key={entry.label} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="font-medium text-slate-950">{entry.label}</p>
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            Zuletzt eingegangen:{' '}
+                                                            {entry.lastSeen ? format(new Date(entry.lastSeen), 'dd.MM.yyyy HH:mm', { locale: de }) : '—'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <Badge variant="outline">{entry.count} gesamt</Badge>
+                                                        <Badge variant="secondary">{entry.open} offen</Badge>
+                                                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                                                            {entry.resolved} erledigt
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </TabsContent>

@@ -12,6 +12,7 @@ import { buildCertificateBadgeMarkup, CERTIFICATE_BADGE_ASSET_URL } from './badg
 import { LEGACY_EXAM_DEFINITION } from './legacy-question-bank';
 import { buildCertificateVerifyUrl } from './public';
 import type {
+  AdminCertificateDetail,
   AdminCertificationOverview,
   CertificateAuditEvent,
   CertificateDocumentRecord,
@@ -604,6 +605,43 @@ async function getSettings(): Promise<CertificationSettings> {
   };
 }
 
+export async function updateCertificationSettings(
+  input: Partial<
+    Pick<
+      CertificationSettings,
+      'defaultValidityMonths' | 'documentTemplateId' | 'badgeAssetUrl'
+    >
+  >,
+): Promise<CertificationSettings> {
+  const nextSettings: CertificationSettings = {
+    ...(await getSettings()),
+    ...(typeof input.defaultValidityMonths === 'number' &&
+    Number.isFinite(input.defaultValidityMonths) &&
+    input.defaultValidityMonths > 0
+      ? { defaultValidityMonths: Math.round(input.defaultValidityMonths) }
+      : {}),
+    ...(typeof input.documentTemplateId === 'string' &&
+    input.documentTemplateId.trim().length > 0
+      ? { documentTemplateId: input.documentTemplateId.trim() }
+      : {}),
+    ...(typeof input.badgeAssetUrl === 'string' && input.badgeAssetUrl.trim().length > 0
+      ? { badgeAssetUrl: input.badgeAssetUrl.trim() }
+      : {}),
+  };
+
+  if (!hasFirebaseAdminCredentials()) {
+    getMemoryStore().settings = nextSettings;
+    return nextSettings;
+  }
+
+  await getAdminDb()
+    .collection('certification_settings')
+    .doc('default')
+    .set(nextSettings, { merge: true });
+
+  return nextSettings;
+}
+
 function computeSectionResults(
   answers: number[][],
 ): { sectionResults: ExamSectionResult[]; totalScore: number } {
@@ -1111,21 +1149,21 @@ export async function getCertificateBadgeMarkup(
     return null;
   }
 
+  const settings = await getSettings();
+
   return buildCertificateBadgeMarkup(
     {
       certificateCode: publicRecord.certificateCode,
       holderName: publicRecord.holderName,
     },
     alignment,
+    settings.badgeAssetUrl,
   );
 }
 
 export async function getCertificateWithDocuments(
   certificateId: string,
-): Promise<{
-  certificate: PersonCertificateRecord | null;
-  documents: CertificateDocumentRecord[];
-}> {
+): Promise<AdminCertificateDetail> {
   const certificate = await findCertificateById(certificateId);
   const documents = certificate
     ? await listCertificateDocuments(certificateId)

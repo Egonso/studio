@@ -147,3 +147,8 @@ export interface AdminCertificationOverview {
   attempts: ExamAttemptRecord[];
   certificates: PersonCertificateRecord[];
 }
+
+export interface AdminCertificateDetail {
+  certificate: PersonCertificateRecord | null;
+  documents: CertificateDocumentRecord[];
+}

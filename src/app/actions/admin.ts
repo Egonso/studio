@@ -7,9 +7,11 @@ import {
 } from '@/lib/firebase-admin';
 import { repairAndSyncBillingEntitlement } from '@/lib/billing/product-entitlement-sync';
 import {
+  getCertificateWithDocuments,
   getCertificationOverview,
   issueManualCertificate,
   regenerateCertificateDocument,
+  updateCertificationSettings,
   updateCertificateByAdmin,
 } from '@/lib/certification/server';
 import { requireAdmin } from '@/lib/server-auth';
@@ -167,6 +169,15 @@ export async function getCertificationAdminData(idToken: string) {
   return getCertificationOverview();
 }
 
+export async function getCertificationCertificateDetail(
+  idToken: string,
+  certificateId: string,
+) {
+  const actor = await verifyAdmin(idToken);
+  void actor;
+  return getCertificateWithDocuments(certificateId);
+}
+
 export async function regenerateCertificationDocument(
   idToken: string,
   certificateId: string,
@@ -221,4 +232,24 @@ export async function issueManualCertification(
     },
     input,
   );
+}
+
+export async function saveCertificationSettings(
+  idToken: string,
+  input: {
+    defaultValidityMonths?: number | null;
+    documentTemplateId?: string | null;
+    badgeAssetUrl?: string | null;
+  },
+) {
+  const actor = await verifyAdmin(idToken);
+  void actor;
+  return updateCertificationSettings({
+    defaultValidityMonths:
+      typeof input.defaultValidityMonths === 'number'
+        ? input.defaultValidityMonths
+        : undefined,
+    documentTemplateId: input.documentTemplateId ?? undefined,
+    badgeAssetUrl: input.badgeAssetUrl ?? undefined,
+  });
 }

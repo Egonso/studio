@@ -13,12 +13,14 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 interface CertificateBadgeCardProps {
   certificateCode: string;
   holderName: string;
+  badgeAssetUrl?: string;
   className?: string;
 }
 
 export function CertificateBadgeCard({
   certificateCode,
   holderName,
+  badgeAssetUrl,
   className,
 }: CertificateBadgeCardProps) {
   const [alignment, setAlignment] = useState<BadgeAlignment>('center');
@@ -32,8 +34,9 @@ export function CertificateBadgeCard({
           holderName,
         },
         alignment,
+        badgeAssetUrl,
       ),
-    [alignment, certificateCode, holderName],
+    [alignment, badgeAssetUrl, certificateCode, holderName],
   );
 
   const verifyUrl = buildCertificateVerifyUrl(certificateCode);
