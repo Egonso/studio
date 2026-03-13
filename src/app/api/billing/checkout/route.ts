@@ -344,6 +344,7 @@ export async function POST(request: NextRequest) {
       cancel_url: buildBillingCancelUrl(),
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
+      payment_method_collection: 'if_required',
       billing_address_collection: 'auto',
       tax_id_collection: { enabled: true },
       client_reference_id: decoded.uid,
