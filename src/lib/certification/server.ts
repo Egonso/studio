@@ -92,6 +92,14 @@ type LegacyCertificateDocumentRecord = {
   generatedAt?: string;
 };
 
+type StoredExamAnswerSection = {
+  answers?: number[];
+};
+
+type StoredExamAttemptRecord = Omit<ExamAttemptRecord, 'sectionAnswers'> & {
+  sectionAnswers: StoredExamAnswerSection[] | null;
+};
+
 declare global {
   // eslint-disable-next-line no-var
   var __kiregisterCertificationMemory__: MemoryStore | undefined;
@@ -356,6 +364,40 @@ function buildLegacyUserSnapshot(
   };
 }
 
+function serializeExamAttempt(
+  attempt: ExamAttemptRecord,
+): StoredExamAttemptRecord {
+  return {
+    ...attempt,
+    sectionAnswers: attempt.sectionAnswers
+      ? attempt.sectionAnswers.map((answers) => ({ answers }))
+      : null,
+  };
+}
+
+function deserializeExamAttempt(
+  input: StoredExamAttemptRecord | ExamAttemptRecord,
+): ExamAttemptRecord {
+  const rawSectionAnswers = input.sectionAnswers;
+
+  return {
+    ...input,
+    sectionAnswers: Array.isArray(rawSectionAnswers)
+      ? rawSectionAnswers.map((entry) => {
+          if (Array.isArray(entry)) {
+            return entry.filter((value): value is number => Number.isFinite(value));
+          }
+
+          if (entry && Array.isArray(entry.answers)) {
+            return entry.answers.filter((value): value is number => Number.isFinite(value));
+          }
+
+          return [];
+        })
+      : null,
+  };
+}
+
 async function listAttemptsForEmail(email: string): Promise<ExamAttemptRecord[]> {
   const normalizedEmail = normalizeEmail(email);
 
@@ -373,7 +415,9 @@ async function listAttemptsForEmail(email: string): Promise<ExamAttemptRecord[]>
     .get();
 
   return sortNewestFirst(
-    snapshot.docs.map((doc) => doc.data() as ExamAttemptRecord),
+    snapshot.docs.map((doc) =>
+      deserializeExamAttempt(doc.data() as StoredExamAttemptRecord),
+    ),
   );
 }
 
@@ -443,7 +487,7 @@ async function saveAttempt(attempt: ExamAttemptRecord): Promise<void> {
   await getAdminDb()
     .collection('person_exam_attempts')
     .doc(attempt.attemptId)
-    .set(attempt, { merge: true });
+    .set(serializeExamAttempt(attempt), { merge: true });
 }
 
 async function saveCertificate(
@@ -780,7 +824,9 @@ export async function listAttemptsForAdmin(): Promise<ExamAttemptRecord[]> {
 
   const snapshot = await getAdminDb().collection('person_exam_attempts').get();
   return sortNewestFirst(
-    snapshot.docs.map((doc) => doc.data() as ExamAttemptRecord),
+    snapshot.docs.map((doc) =>
+      deserializeExamAttempt(doc.data() as StoredExamAttemptRecord),
+    ),
   );
 }
 

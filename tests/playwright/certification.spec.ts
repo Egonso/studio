@@ -33,7 +33,7 @@ function extractCertificateCode(value: string | null): string {
 
 test.describe.serial('certification flows', () => {
   test('smokes core routes', async ({ request }) => {
-    for (const path of ['/', '/academy', '/exam', '/verify/UNKNOWN-CODE']) {
+    for (const path of ['/', '/academy', '/exam', '/verify', '/verify/UNKNOWN-CODE']) {
       const response = await request.get(path);
       expect(response.ok()).toBeTruthy();
     }
@@ -79,6 +79,9 @@ test.describe.serial('certification flows', () => {
     await page.goto('/verify/KI-REG-1999-0000');
     await expect(page.getByText('Verifizierung fehlgeschlagen').first()).toBeVisible();
     await expect(page.getByText('Zertifikat nicht gefunden oder ungültig.')).toBeVisible();
+    await page.getByRole('button', { name: 'Neuen Zertifikatscode eingeben' }).click();
+    await expect(page).toHaveURL('/verify');
+    await expect(page.getByRole('heading', { name: 'Zertifikate direkt im KI-Register prüfen' })).toBeVisible();
   });
 
   test('supports dev-only admin certificate issue, regeneration and revocation', async ({

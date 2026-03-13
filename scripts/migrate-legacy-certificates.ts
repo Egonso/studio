@@ -1,8 +1,8 @@
+import { applicationDefault, getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+
 import { buildPublicAppUrl } from '../src/lib/app-url';
-import {
-  getAdminDb,
-  hasFirebaseAdminCredentials,
-} from '../src/lib/firebase-admin';
+import { hasFirebaseAdminCredentials } from '../src/lib/firebase-admin';
 import type {
   CertificateAuditEvent,
   CertificateDocumentRecord,
@@ -15,6 +15,8 @@ type MigrationOptions = {
   apply: boolean;
   includeTestData: boolean;
   overwriteExisting: boolean;
+  sourceProjectId: string;
+  targetProjectId: string;
 };
 
 type LegacyCertificateRecord = {
@@ -77,6 +79,8 @@ type MigrationPlan = {
 
 const DEFAULT_MODULES = ['EU AI Act Basics'];
 const MIGRATION_ACTOR_EMAIL = 'migration@kiregister.com';
+const DEFAULT_SOURCE_PROJECT_ID = 'ki-eu-akt-zertifizierung';
+const DEFAULT_TARGET_PROJECT_ID = 'ai-act-compass-m6o05';
 const TEST_MARKERS = [
   'test',
   'demo',
@@ -95,11 +99,33 @@ const TEST_MARKERS = [
   '@demo.',
 ];
 
+function readArgValue(argv: string[], flag: string): string | null {
+  const index = argv.indexOf(flag);
+  if (index === -1) {
+    return null;
+  }
+
+  const value = argv[index + 1]?.trim();
+  return value ? value : null;
+}
+
 function parseArgs(argv: string[]): MigrationOptions {
   return {
     apply: argv.includes('--apply'),
     includeTestData: argv.includes('--include-test-data'),
     overwriteExisting: argv.includes('--overwrite-existing'),
+    sourceProjectId:
+      readArgValue(argv, '--source-project') ??
+      process.env.LEGACY_FIREBASE_PROJECT_ID?.trim() ??
+      DEFAULT_SOURCE_PROJECT_ID,
+    targetProjectId:
+      readArgValue(argv, '--target-project') ??
+      process.env.FIREBASE_ADMIN_PROJECT_ID?.trim() ??
+      process.env.FIREBASE_PROJECT_ID?.trim() ??
+      process.env.GCLOUD_PROJECT?.trim() ??
+      process.env.GCP_PROJECT?.trim() ??
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim() ??
+      DEFAULT_TARGET_PROJECT_ID,
   };
 }
 
@@ -379,6 +405,22 @@ function chunkArray<T>(values: T[], size: number): T[][] {
   return chunks;
 }
 
+function getProjectDb(projectId: string): Firestore {
+  const appName = `legacy-migration-${projectId}`;
+  const existing = getApps().find((app) => app.name === appName);
+  const app =
+    existing ??
+    initializeApp(
+      {
+        credential: applicationDefault(),
+        projectId,
+      },
+      appName,
+    );
+
+  return getFirestore(existing ? getApp(appName) : app);
+}
+
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
 
@@ -388,10 +430,14 @@ async function main(): Promise<void> {
     );
   }
 
-  const db = getAdminDb();
+  const sourceDb = getProjectDb(options.sourceProjectId);
+  const targetDb = getProjectDb(options.targetProjectId);
 
   console.log(
     `Starting legacy certificate migration in ${options.apply ? 'apply' : 'dry-run'} mode.`,
+  );
+  console.log(
+    `Projects: source=${options.sourceProjectId} target=${options.targetProjectId}`,
   );
   console.log(
     `Flags: includeTestData=${options.includeTestData} overwriteExisting=${options.overwriteExisting}`,
@@ -403,10 +449,10 @@ async function main(): Promise<void> {
     existingPublicSnapshot,
     existingUserSnapshot,
   ] = await Promise.all([
-    db.collection('zertifikatspruefung').get(),
-    db.collection('certificate_documents').get(),
-    db.collection('public_certificates').get(),
-    db.collection('user_certificates').get(),
+    sourceDb.collection('zertifikatspruefung').get(),
+    sourceDb.collection('certificate_documents').get(),
+    targetDb.collection('public_certificates').get(),
+    targetDb.collection('user_certificates').get(),
   ]);
 
   const latestLegacyDocumentBySourceId = new Map<
@@ -627,10 +673,10 @@ async function main(): Promise<void> {
 
   for (const writeGroup of chunkArray(writes, 400)) {
     operationGroups.push(() => {
-      const batch = db.batch();
+      const batch = targetDb.batch();
       for (const write of writeGroup) {
         const [collectionName, documentId] = write.path.split('/');
-        batch.set(db.collection(collectionName).doc(documentId), write.data, {
+        batch.set(targetDb.collection(collectionName).doc(documentId), write.data, {
           merge: true,
         });
       }
