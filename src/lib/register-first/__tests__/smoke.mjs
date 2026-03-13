@@ -124,7 +124,7 @@ const proofDisabledState = getStatusGatedOutputState("PROOF_READY", {
 assert.equal(proofDisabledState.proofPackDraftEnabled, false);
 assert.equal(
   proofDisabledState.proofPackDraftBlockedReason,
-  "Proof-Pack-Entwurf ist per Feature-Flag deaktiviert (registerFirst.proofGate=false)."
+  "Proof-Pack-Entwurf ist aktuell nicht verfügbar."
 );
 
 const proofEnabledState = getStatusGatedOutputState("PROOF_READY", envFlags);
@@ -178,7 +178,7 @@ const proofPdfBlockedByFlag = getProofPackPdfState(proofReadyCard, {
 assert.equal(proofPdfBlockedByFlag.enabled, false);
 assert.equal(
   proofPdfBlockedByFlag.blockedReason,
-  "Proof Pack (PDF) ist per Feature-Flag deaktiviert (registerFirst.proofGate=false)."
+  "Proof Pack (PDF) ist aktuell nicht verfügbar."
 );
 
 const proofPdfEnabled = getProofPackPdfState(proofReadyCard, envFlags);

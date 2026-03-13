@@ -690,7 +690,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       toast({
         variant: "destructive",
         title: "Vorschau deaktiviert",
-        description: "Proof Pack ist per Feature-Flag deaktiviert.",
+        description: "Die Vorschau ist aktuell nicht verfügbar.",
       });
       return;
     }

@@ -119,7 +119,7 @@ export default function ControlAuditPage() {
               <CardHeader>
                 <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
                 <CardDescription>
-                  Die Audit-Route ist vorbereitet und bleibt bis zur Freigabe verborgen.
+                  Der Audit-Bereich ist für diesen Workspace noch nicht freigeschaltet.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
@@ -131,9 +131,9 @@ export default function ControlAuditPage() {
           ) : !registerFirstFlags.controlIsoAudit ? (
             <Card>
               <CardHeader>
-                <CardTitle>ISO & Audit Layer ist vorbereitet</CardTitle>
+                <CardTitle>ISO & Audit Layer folgt in Kürze</CardTitle>
                 <CardDescription>
-                  Der Bereich kann ueber das Feature-Flag `controlIsoAudit` aktiviert werden.
+                  Die Audit-Ansicht wird aktuell erweitert und steht bald bereit.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">

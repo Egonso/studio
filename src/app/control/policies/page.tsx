@@ -192,7 +192,7 @@ export default function ControlPoliciesPage() {
           <PageStatePanel
             area="paid_governance_control"
             title="Policies sind noch nicht freigeschaltet"
-            description="Der Policy-Bereich ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
+            description="Die Policy Engine ist für diesen Workspace noch nicht aktiviert."
             actions={
               <Button asChild>
                 <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
@@ -220,8 +220,8 @@ export default function ControlPoliciesPage() {
         ) : !registerFirstFlags.controlPolicyEngine ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Policy Engine ist vorbereitet"
-            description="Der Bereich ist angelegt und kann über das Feature-Flag controlPolicyEngine aktiviert werden."
+            title="Policy Engine folgt in Kürze"
+            description="Dieser Bereich wird aktuell erweitert und steht bald bereit."
             actions={
               <>
                 <Button asChild variant="outline">

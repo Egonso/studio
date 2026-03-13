@@ -112,7 +112,7 @@ export function getStatusGatedOutputState(
       cardJsonEnabled: true,
       proofPackDraftEnabled: false,
       proofPackDraftBlockedReason:
-        "Proof-Pack-Entwurf ist per Feature-Flag deaktiviert (registerFirst.proofGate=false).",
+        "Proof-Pack-Entwurf ist aktuell nicht verfügbar.",
     };
   }
 
@@ -138,8 +138,7 @@ export function getProofPackPdfState(
   if (!flags.proofGate) {
     return {
       enabled: false,
-      blockedReason:
-        "Proof Pack (PDF) ist per Feature-Flag deaktiviert (registerFirst.proofGate=false).",
+      blockedReason: "Proof Pack (PDF) ist aktuell nicht verfügbar.",
     };
   }
 

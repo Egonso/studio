@@ -102,7 +102,7 @@ export default function ControlPortfolioPage() {
               <CardHeader>
                 <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
                 <CardDescription>
-                  Die Portfolio-Ansicht ist vorbereitet und bleibt bis zur Freigabe verborgen.
+                  Die Portfolio-Ansicht ist für diesen Workspace noch nicht freigeschaltet.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
@@ -114,10 +114,9 @@ export default function ControlPortfolioPage() {
           ) : !registerFirstFlags.controlPortfolioIntelligence ? (
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Intelligence ist vorbereitet</CardTitle>
+                <CardTitle>Portfolio Intelligence folgt in Kürze</CardTitle>
                 <CardDescription>
-                  Der Bereich kann ueber das Feature-Flag `controlPortfolioIntelligence`
-                  aktiviert werden.
+                  Die Portfolio-Ansicht wird aktuell erweitert und steht bald bereit.
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">

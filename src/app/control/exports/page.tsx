@@ -155,7 +155,7 @@ export default function ControlExportsPage() {
           <PageStatePanel
             area="paid_governance_control"
             title="Exports sind noch nicht freigeschaltet"
-            description="Das Organisations-Export-Center ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
+            description="Das Export Center ist für diesen Workspace noch nicht aktiviert."
             actions={
               <Button asChild>
                 <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
@@ -183,8 +183,8 @@ export default function ControlExportsPage() {
         ) : !registerFirstFlags.controlOrgExportCenter ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Export Center ist vorbereitet"
-            description="Der Bereich ist angelegt und kann über das Feature-Flag controlOrgExportCenter aktiviert werden."
+            title="Export Center folgt in Kürze"
+            description="Dieser Bereich wird aktuell erweitert und steht bald bereit."
             actions={
               <>
                 <Button asChild variant="outline">

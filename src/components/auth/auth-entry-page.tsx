@@ -74,60 +74,40 @@ function getContextNotices(
   checkoutContext: CheckoutReturnContext,
 ): ContextNotice[] {
   const notices: ContextNotice[] = [];
+  void checkoutContext;
 
   if (context.workspaceInvite) {
     notices.push({
       id: 'workspace_invite',
-      title: 'Workspace-Einladung bleibt erhalten',
+      title: 'Einladung erkannt',
       description:
-        'Nach der Anmeldung oder Registrierung wird die Einladung automatisch übernommen.',
+        'Nach der Anmeldung öffnen wir direkt den gemeinsamen Arbeitsbereich.',
     });
   }
 
   if (context.importUseCase) {
     notices.push({
       id: 'import_use_case',
-      title: 'Import bleibt erhalten',
-      description:
-        'Der Importkontext wird übernommen. Falls noch kein Register existiert, führen wir direkt in die Register-Anlage auf derselben Seite.',
+      title: 'Vorgang fortsetzen',
+      description: 'Sie setzen direkt dort fort, wo Sie zuletzt gestartet sind.',
     });
   }
 
   if (context.code && mode === 'login') {
     notices.push({
       id: 'join_after_login',
-      title: 'Einladungscode bleibt erhalten',
+      title: 'Einladungscode erkannt',
       description:
-        'Nach der Anmeldung geht es direkt in die Erfassung mit dem vorhandenen Einladungscode.',
+        'Nach der Anmeldung können Sie Ihrer Organisation direkt beitreten.',
     });
   }
 
   if (context.code && mode === 'signup' && intent === 'join_register') {
     notices.push({
       id: 'join_context',
-      title: 'Beitritt mit Einladungscode',
+      title: 'Beitritt vorbereiten',
       description:
-        'Sie legen Ihren Zugang an und wechseln danach direkt in die Erfassung Ihrer Organisation.',
-    });
-  }
-
-  if (context.sessionId && checkoutContext.claimable) {
-    notices.push({
-      id: 'checkout_return',
-      title: 'Checkout erkannt',
-      description:
-        checkoutContext.emailHint
-          ? `Nutzen Sie dieselbe E-Mail-Adresse wie beim Checkout (${checkoutContext.emailHint}). Die Freischaltung wird nach der Anmeldung oder Register-Anlage zugeordnet.`
-          : 'Nutzen Sie dieselbe E-Mail-Adresse wie beim Checkout. Die Freischaltung wird nach der Anmeldung oder Register-Anlage zugeordnet.',
-    });
-  }
-
-  if (context.sessionId && checkoutContext.status === 'error') {
-    notices.push({
-      id: 'checkout_return_error',
-      title: 'Checkout-Rückkehr wird geprüft',
-      description:
-        'Melden Sie sich mit derselben E-Mail-Adresse wie im Checkout an. Falls die Freischaltung nicht sofort erscheint, kann sie über die Billing-Synchronisierung nachgezogen werden.',
+        'Nach der Registrierung setzen Sie den Beitritt direkt fort.',
     });
   }
 
@@ -813,7 +793,7 @@ export default function AuthEntryPage() {
 
   const authPanelDescription =
     mode === 'login'
-      ? 'Melden Sie sich mit Ihrem bestehenden Zugang an. Einladungen, Importkontexte und Checkout-Rückkehr bleiben erhalten.'
+      ? 'Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort.'
       : intent === 'join_register'
         ? 'Prüfen Sie zuerst den Einladungscode und legen Sie danach Ihren Zugang an.'
         : createStep === 1
@@ -847,15 +827,6 @@ export default function AuthEntryPage() {
             Status und Nachweise in revisionsfähiger Form fest, wie es der EU
             AI Act fordert.
           </p>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-sm font-medium text-slate-950">
-              Free Register ist self-serve.
-            </p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Die Registrierung ist self-serve und startet direkt auf dieser
-              Seite, ohne vorher zu kaufen.
-            </p>
-          </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link
               href="/downloads"
@@ -1403,7 +1374,7 @@ export default function AuthEntryPage() {
             Registerinstanz.
           </p>
           <p className="text-sm leading-6 text-slate-600">
-            Output: Use-Case-Pass als PDF und JSON.
+            Nachweise und Registerauszüge lassen sich standardisiert teilen.
           </p>
         </section>
 

@@ -31,7 +31,7 @@ function readSource(filePath: string): string {
   return readFileSync(resolve(process.cwd(), filePath), 'utf8');
 }
 
-test('free signup/login entry stays self-serve', () => {
+test('free signup/login entry stays focused and direct', () => {
   const rootPageSource = readSource('src/app/page.tsx');
   const authEntrySource = readSource('src/components/auth/auth-entry-page.tsx');
 
@@ -47,6 +47,16 @@ test('free signup/login entry stays self-serve', () => {
     authEntrySource,
     /Governance Control Center wird für dieses Konto freigeschaltet\./,
   );
+  assert.match(
+    authEntrySource,
+    /Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort\./,
+  );
+  assert.match(
+    authEntrySource,
+    /Nachweise und Registerauszüge lassen sich standardisiert teilen\./,
+  );
+  assert.doesNotMatch(authEntrySource, /self-serve/i);
+  assert.doesNotMatch(authEntrySource, /Checkout erkannt/);
   assert.doesNotMatch(authEntrySource, /Public Marketing/);
   assert.doesNotMatch(authEntrySource, /purchase required/i);
 });

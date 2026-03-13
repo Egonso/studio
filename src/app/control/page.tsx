@@ -215,7 +215,7 @@ export default function ControlPage() {
           <PageStatePanel
             area="paid_governance_control"
             title="Governance-Bericht ist noch nicht verfügbar"
-            description="Die Berichtsebene ist vorbereitet, aber in diesem Workspace noch nicht aktiviert."
+            description="Der Governance-Bericht ist für diesen Workspace noch nicht freigeschaltet."
             actions={
               <Button asChild>
                 <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
@@ -255,7 +255,7 @@ export default function ControlPage() {
                 tone="loading"
                 area="paid_governance_control"
                 title="Governance-Daten werden geladen"
-                description="Maturity, KPIs und Action Queue werden aus dem Register abgeleitet."
+                description="Kennzahlen, Aufgaben und Reifegrad werden geladen."
               />
             )}
 
@@ -280,8 +280,8 @@ export default function ControlPage() {
                     <CardHeader>
                       <CardTitle>KPI Header</CardTitle>
                       <CardDescription>
-                        Die KPI-Ansicht ist vorbereitet und kann per
-                        Feature-Flag aktiviert werden.
+                        Kennzahlen erscheinen hier, sobald dieser Bereich
+                        verfügbar ist.
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -294,8 +294,8 @@ export default function ControlPage() {
                     <CardHeader>
                       <CardTitle>Governance Maturity Model</CardTitle>
                       <CardDescription>
-                        Das Maturity-Panel ist vorbereitet und kann per
-                        Feature-Flag aktiviert werden.
+                        Die Reifegradübersicht erscheint hier, sobald dieser
+                        Bereich verfügbar ist.
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -406,8 +406,8 @@ export default function ControlPage() {
                     <CardHeader>
                       <CardTitle>Action Queue</CardTitle>
                       <CardDescription>
-                        Die priorisierte Maßnahmenliste ist vorbereitet und kann
-                        per Feature-Flag aktiviert werden.
+                        Die priorisierte Maßnahmenliste erscheint hier, sobald
+                        dieser Bereich verfügbar ist.
                       </CardDescription>
                     </CardHeader>
                   </Card>
