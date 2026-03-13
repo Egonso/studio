@@ -19,11 +19,11 @@ test("server auth exports canonical auth helpers", () => {
 test("admin allowlist contains only the two canonical admin emails", () => {
   assert.deepEqual(ADMIN_EMAILS, [
     "mo.feich@gmail.com",
-    "zoltangal@web.com",
+    "zoltangal@web.de",
   ]);
   assert.equal(isAdminEmail("mo.feich@gmail.com"), true);
-  assert.equal(isAdminEmail("  ZOLTANGAL@WEB.COM "), true);
-  assert.equal(isAdminEmail("zoltangal@web.de"), false);
+  assert.equal(isAdminEmail("  ZOLTANGAL@WEB.DE "), true);
+  assert.equal(isAdminEmail("zoltangal@web.com"), false);
   assert.equal(isAdminEmail("someone@example.com"), false);
 });
 

@@ -1,6 +1,6 @@
 const RAW_ADMIN_EMAILS = [
   'mo.feich@gmail.com',
-  'zoltangal@web.com',
+  'zoltangal@web.de',
 ] as const;
 
 export const ADMIN_EMAILS = Object.freeze(
