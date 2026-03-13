@@ -6,6 +6,12 @@ import {
   hasFirebaseAdminCredentials,
 } from '@/lib/firebase-admin';
 import { repairAndSyncBillingEntitlement } from '@/lib/billing/product-entitlement-sync';
+import {
+  getCertificationOverview,
+  issueManualCertificate,
+  regenerateCertificateDocument,
+  updateCertificateByAdmin,
+} from '@/lib/certification/server';
 import { requireAdmin } from '@/lib/server-auth';
 
 function canLoadAdminData(): boolean {
@@ -153,4 +159,66 @@ export async function repairBillingEntitlement(
     userId: userId ?? null,
     source: 'billing_repair',
   });
+}
+
+export async function getCertificationAdminData(idToken: string) {
+  const actor = await verifyAdmin(idToken);
+  void actor;
+  return getCertificationOverview();
+}
+
+export async function regenerateCertificationDocument(
+  idToken: string,
+  certificateId: string,
+) {
+  const actor = await verifyAdmin(idToken);
+  return regenerateCertificateDocument(
+    {
+      uid: actor.uid,
+      email: actor.email,
+      displayName: typeof actor.name === 'string' ? actor.name : null,
+    },
+    certificateId,
+  );
+}
+
+export async function updateCertificationCertificate(
+  idToken: string,
+  input: {
+    certificateId: string;
+    status?: 'active' | 'expired' | 'revoked';
+    validUntil?: string | null;
+    note?: string;
+  },
+) {
+  const actor = await verifyAdmin(idToken);
+  return updateCertificateByAdmin(
+    {
+      uid: actor.uid,
+      email: actor.email,
+      displayName: typeof actor.name === 'string' ? actor.name : null,
+    },
+    input,
+  );
+}
+
+export async function issueManualCertification(
+  idToken: string,
+  input: {
+    email: string;
+    holderName: string;
+    company?: string | null;
+    validityMonths?: number | null;
+    userId?: string | null;
+  },
+) {
+  const actor = await verifyAdmin(idToken);
+  return issueManualCertificate(
+    {
+      uid: actor.uid,
+      email: actor.email,
+      displayName: typeof actor.name === 'string' ? actor.name : null,
+    },
+    input,
+  );
 }

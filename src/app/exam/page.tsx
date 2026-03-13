@@ -1,38 +1,16 @@
-
-'use client';
-
-import { AppHeader } from "@/components/app-header";
-import { useAuth } from "@/context/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { ExamCard } from "@/components/exam-card";
-
+import { CertificationExamClient } from '@/components/certification/exam-client';
+import { SignedInAreaFrame } from '@/components/product-shells';
 
 export default function ExamPage() {
-    const { user, loading } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
-        }
-    }, [user, loading, router]);
-
-    if (loading || !user) {
-        return null;
-    }
-
-
-    return (
-        <div className="flex flex-col min-h-screen bg-background">
-            <AppHeader />
-            <main className="flex-1 p-4 md:p-8">
-                <div className="flex items-center justify-center">
-                    <ExamCard />
-                </div>
-            </main>
-        </div>
-    );
+  return (
+    <SignedInAreaFrame
+      area="paid_governance_control"
+      title="Zertifizierungsprüfung"
+      description="Die Kompetenzprüfung findet direkt im KI-Register statt. Prüfungsversuche, Zertifikate, Badge und öffentliche Verifikation bleiben damit in einem konsistenten Produktfluss."
+      nextStep="Schließen Sie die Prüfung ab, um Ihr Personenzertifikat und den verifizierbaren Badge zu erhalten."
+      width="5xl"
+    >
+      <CertificationExamClient />
+    </SignedInAreaFrame>
+  );
 }
-
-    

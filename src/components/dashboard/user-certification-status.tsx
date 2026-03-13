@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Award, FileText, Lock, ExternalLink, GraduationCap, ShieldCheck, Share2 } from "lucide-react";
+import { CheckCircle2, Award, FileText, Lock, ExternalLink, GraduationCap, ShieldCheck, Share2, Download } from "lucide-react";
+import { CertificateBadgeCard } from "@/components/certification/certificate-badge-card";
 import type { UserStatus } from "@/hooks/use-user-status";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -32,10 +33,18 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
     const passed = status.examPassed;
     const courseProgress = status.courseProgress || [];
     const hasStartedCourse = courseProgress.length > 0;
+    const certificateStatus = status.certificate?.status ?? null;
+    const isCertificateActive = certificateStatus === 'active';
+    const certificateStatusLabel =
+        certificateStatus === 'expired'
+            ? 'Abgelaufen'
+            : certificateStatus === 'revoked'
+                ? 'Widerrufen'
+                : 'Aktiv';
 
     // Logic for "Trusted" state could be: passed AND user has clicked publish/share (mocked here)
     // Or if backend eventually supports "published" flag.
-    const isTrusted = passed && isPublished;
+    const isTrusted = passed && isPublished && isCertificateActive;
 
     // --- State 3: Trusted Personenzertifikat (Final Stage) ---
     if (isTrusted && status.certificate) {
@@ -61,22 +70,37 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 <p><span className="font-semibold">Inhaber:</span> {status.certificate.holderName}</p>
                                 <p><span className="font-semibold">Code:</span> <span className="font-mono">{status.certificate.code}</span></p>
                                 <p><span className="font-semibold">Gültig bis:</span> {status.certificate.validUntil}</p>
+                                <p><span className="font-semibold">Status:</span> {certificateStatusLabel}</p>
                             </div>
                         </div>
                         <div className="flex flex-col gap-3 justify-center">
                             <Button variant="outline" className="w-full bg-white border-green-200 text-green-800 hover:bg-green-50" onClick={() => {
-                                navigator.clipboard.writeText(`https://kiregister.com/verify/${status.certificate!.code}`);
+                                navigator.clipboard.writeText(status.certificate!.verifyUrl);
                                 alert("Link kopiert!");
                             }}>
                                 <Share2 className="mr-2 h-4 w-4" />
                                 Verifizierungs-Link teilen
                             </Button>
+                            {status.certificate.latestDocumentUrl ? (
+                                <Button variant="outline" className="w-full bg-white border-green-200 text-green-800 hover:bg-green-50" asChild>
+                                    <a href={status.certificate.latestDocumentUrl} target="_blank" rel="noreferrer">
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Zertifikat öffnen
+                                    </a>
+                                </Button>
+                            ) : null}
                             <Button variant="ghost" className="w-full text-green-700 hover:text-green-900 hover:bg-green-50/50" asChild>
-                                <a href={`https://kiregister.com/verify/${status.certificate!.code}`} target="_blank" rel="noreferrer">
+                                <a href={status.certificate.verifyUrl} target="_blank" rel="noreferrer">
                                     Öffentliches Profil ansehen <ExternalLink className="ml-2 h-3 w-3" />
                                 </a>
                             </Button>
                         </div>
+                    </div>
+                    <div className="mt-6">
+                        <CertificateBadgeCard
+                            certificateCode={status.certificate.code}
+                            holderName={status.certificate.holderName}
+                        />
                     </div>
                 </CardContent>
             </Card>
@@ -104,7 +128,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 Herzlichen Glückwunsch! Sie haben die Prüfung erfolgreich bestanden.
                             </p>
                             <div className="bg-white/60 p-3 rounded-lg border border-blue-100 space-y-1 text-sm text-slate-700">
-                                <p><span className="font-semibold text-blue-900">Zertifikat:</span> Aktiv</p>
+                                <p><span className="font-semibold text-blue-900">Zertifikat:</span> {certificateStatusLabel}</p>
                                 <p><span className="font-semibold text-blue-900">Code:</span> {status.certificate.code}</p>
                             </div>
                         </div>
@@ -112,9 +136,11 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                         <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
                             <h4 className="font-semibold text-sm mb-2 text-blue-900">Nächster Schritt: Sichtbarkeit</h4>
                             <p className="text-xs text-muted-foreground mb-4">
-                                Veröffentlichen Sie Ihr Zertifikat im AI Trust Portal, um Ihren Expertenstatus für Kunden und Partner sichtbar zu machen.
+                                {isCertificateActive
+                                    ? 'Veröffentlichen Sie Ihr Zertifikat im AI Trust Portal, um Ihren Expertenstatus für Kunden und Partner sichtbar zu machen.'
+                                    : 'Badge und öffentliche Aktivierung bleiben nur für aktuell gültige Zertifikate verfügbar.'}
                             </p>
-                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsPublished(true)}>
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsPublished(true)} disabled={!isCertificateActive}>
                                 <ShieldCheck className="mr-2 h-4 w-4" />
                                 Zertifikat veröffentlichen & aktivieren
                             </Button>
@@ -178,7 +204,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 asChild={hasStartedCourse}
                             >
                                 {hasStartedCourse ? (
-                                    <a href="https://kiregister.com/exam" target="_blank" rel="noopener noreferrer">
+                                    <a href="/exam">
                                         <span>Zur Prüfung</span>
                                         <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
                                     </a>

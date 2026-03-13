@@ -9,8 +9,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail } from "lucide-react";
-import { getAdminStats, getFeedbackList, getPlatformUsers, updateFeedbackStatus } from "@/app/actions/admin";
+import {
+    getAdminStats,
+    getCertificationAdminData,
+    getFeedbackList,
+    getPlatformUsers,
+    issueManualCertification,
+    regenerateCertificationDocument,
+    updateCertificationCertificate,
+    updateFeedbackStatus,
+} from "@/app/actions/admin";
+import { CertificationAdminPanel } from "@/components/admin/certification-admin-panel";
 import { isAdminEmail } from "@/lib/admin-config";
+import type { AdminCertificationOverview } from "@/lib/certification/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -24,6 +35,7 @@ export default function AdminPage() {
     const [stats, setStats] = useState({ projects: 0, feedbackTotal: 0, openBugs: 0, usersEstimate: 0 });
     const [feedback, setFeedback] = useState<any[]>([]);
     const [usersList, setUsersList] = useState<any[]>([]);
+    const [certificationOverview, setCertificationOverview] = useState<AdminCertificationOverview | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(false);
     const feedbackFilter = "all";
 
@@ -40,15 +52,17 @@ export default function AdminPage() {
         setIsLoadingData(true);
         try {
             const idToken = await getAdminIdToken();
-            const [statsData, feedbackData, usersData] = await Promise.all([
+            const [statsData, feedbackData, usersData, certificationData] = await Promise.all([
                 getAdminStats(idToken),
                 getFeedbackList(idToken, feedbackFilter),
-                getPlatformUsers(idToken, 50)
+                getPlatformUsers(idToken, 50),
+                getCertificationAdminData(idToken),
             ]);
 
             setStats(statsData);
             setFeedback(feedbackData);
             setUsersList(usersData);
+            setCertificationOverview(certificationData);
         } catch (error) {
             console.error("Failed to load admin data", error);
         } finally {
@@ -80,6 +94,34 @@ export default function AdminPage() {
         // Refresh stats
         const newStats = await getAdminStats(idToken);
         setStats(newStats);
+    };
+
+    const handleRegenerateCertificate = async (certificateId: string) => {
+        const idToken = await getAdminIdToken();
+        await regenerateCertificationDocument(idToken, certificateId);
+        await fetchData();
+    };
+
+    const handleUpdateCertificate = async (input: {
+        certificateId: string;
+        status?: 'active' | 'expired' | 'revoked';
+        validUntil?: string | null;
+        note?: string;
+    }) => {
+        const idToken = await getAdminIdToken();
+        await updateCertificationCertificate(idToken, input);
+        await fetchData();
+    };
+
+    const handleIssueManualCertificate = async (input: {
+        email: string;
+        holderName: string;
+        company?: string | null;
+        validityMonths?: number | null;
+    }) => {
+        const idToken = await getAdminIdToken();
+        await issueManualCertification(idToken, input);
+        await fetchData();
     };
 
 
@@ -120,7 +162,7 @@ export default function AdminPage() {
                         </Button>
                     </div>
                     <p className="text-muted-foreground">
-                        Verwaltung von Feedback, Features und Nutzern für EuKIGesetz Studio.
+                        Verwaltung von Zertifizierung, Feedback, Features und Nutzern für das KI-Register.
                     </p>
                 </div>
 
@@ -167,12 +209,24 @@ export default function AdminPage() {
                     </Card>
                 </div>
 
-                <Tabs defaultValue="feedback" className="space-y-4">
+                <Tabs defaultValue="certification" className="space-y-4">
                     <TabsList>
+                        <TabsTrigger value="certification">Zertifizierung</TabsTrigger>
                         <TabsTrigger value="feedback">Feedback Inbox</TabsTrigger>
                         <TabsTrigger value="users">User Management</TabsTrigger>
                         <TabsTrigger value="features">Roadmap (Feature Requests)</TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="certification" className="space-y-4">
+                        <CertificationAdminPanel
+                            overview={certificationOverview}
+                            loading={isLoadingData}
+                            onRefresh={fetchData}
+                            onRegenerate={handleRegenerateCertificate}
+                            onUpdate={handleUpdateCertificate}
+                            onManualIssue={handleIssueManualCertificate}
+                        />
+                    </TabsContent>
 
                     <TabsContent value="feedback" className="space-y-4">
                         <Card>

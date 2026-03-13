@@ -11,6 +11,7 @@
     "lint": "eslint next.config.ts scripts src --ext .js,.jsx,.ts,.tsx,.mjs --max-warnings 0",
     "typecheck": "node --max-old-space-size=6144 ./node_modules/typescript/bin/tsc --noEmit --incremental false",
     "test": "node ./scripts/run-tests.mjs",
+    "test:playwright": "playwright test",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "postinstall": "patch-package"
   },
@@ -68,6 +69,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
