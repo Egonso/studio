@@ -69,6 +69,29 @@ type MemoryStore = {
   settings: CertificationSettings;
 };
 
+type LegacyCertificateRecord = {
+  code?: string;
+  holder?: {
+    name?: string;
+    company?: string;
+    email?: string;
+  };
+  dates?: {
+    issued?: string;
+    validUntil?: string;
+  };
+  issueDate?: string;
+  expiryDate?: string;
+  modules?: string[];
+  status?: string;
+};
+
+type LegacyCertificateDocumentRecord = {
+  certificateId?: string;
+  url?: string;
+  generatedAt?: string;
+};
+
 declare global {
   // eslint-disable-next-line no-var
   var __kiregisterCertificationMemory__: MemoryStore | undefined;
@@ -86,6 +109,25 @@ function addMonthsToIso(issuedAtIso: string, months: number): string {
   const value = new Date(issuedAtIso);
   value.setMonth(value.getMonth() + months);
   return value.toISOString();
+}
+
+function parseLegacyDate(value: string | null | undefined): string | null {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const germanMatch = normalized.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (germanMatch) {
+    const [, day, month, year] = germanMatch;
+    const parsed = new Date(
+      Date.UTC(Number(year), Number(month) - 1, Number(day), 12, 0, 0),
+    );
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
+
+  const parsed = new Date(normalized);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function sortNewestFirst<T extends { startedAt?: string; issuedAt?: string; generatedAt?: string }>(
@@ -221,6 +263,60 @@ function buildPublicRecord(
     modules: certificate.modules,
     verifyUrl: certificate.publicUrl,
     latestDocumentUrl: certificate.latestDocumentUrl,
+  };
+}
+
+function mapLegacyStatus(status: string | undefined, validUntil: string | null): CertificateStatus {
+  const normalized = status?.trim().toLowerCase();
+  if (normalized === 'inactive') {
+    return 'revoked';
+  }
+
+  if (normalized === 'expired') {
+    return 'expired';
+  }
+
+  if (validUntil) {
+    const parsed = new Date(validUntil);
+    if (!Number.isNaN(parsed.getTime()) && parsed.getTime() < Date.now()) {
+      return 'expired';
+    }
+  }
+
+  return 'active';
+}
+
+function mapLegacyCertificateToPublicRecord(input: {
+  certificateId: string;
+  data: LegacyCertificateRecord;
+  latestDocumentUrl: string | null;
+}): PublicCertificateRecord | null {
+  const certificateCode = input.data.code?.trim();
+  const holderName = input.data.holder?.name?.trim();
+  if (!certificateCode || !holderName) {
+    return null;
+  }
+
+  const issuedDate =
+    parseLegacyDate(input.data.issueDate) ??
+    parseLegacyDate(input.data.dates?.issued) ??
+    new Date().toISOString();
+  const validUntil =
+    parseLegacyDate(input.data.expiryDate) ??
+    parseLegacyDate(input.data.dates?.validUntil);
+  const status = mapLegacyStatus(input.data.status, validUntil);
+
+  return {
+    certificateCode,
+    certificateId: `legacy:${input.certificateId}`,
+    holderName,
+    company: input.data.holder?.company?.trim() || null,
+    issuedDate,
+    validUntil,
+    status,
+    modules: Array.isArray(input.data.modules) ? input.data.modules : [],
+    verifyUrl: buildCertificateVerifyUrl(certificateCode),
+    latestDocumentUrl: input.latestDocumentUrl,
   };
 }
 
@@ -533,6 +629,58 @@ async function getPublicCertificate(
   return snapshot.exists
     ? ((snapshot.data() as PublicCertificateRecord) ?? null)
     : null;
+}
+
+async function getLegacyCertificateDocumentUrl(
+  certificateId: string,
+): Promise<string | null> {
+  if (!hasFirebaseAdminCredentials()) {
+    return null;
+  }
+
+  const snapshot = await getAdminDb()
+    .collection('certificate_documents')
+    .where('certificateId', '==', certificateId)
+    .get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const documents = snapshot.docs
+    .map((doc) => doc.data() as LegacyCertificateDocumentRecord)
+    .filter((entry) => typeof entry.url === 'string' && entry.url.trim().length > 0)
+    .sort((left, right) =>
+      (right.generatedAt ?? '').localeCompare(left.generatedAt ?? ''),
+    );
+
+  return documents[0]?.url?.trim() || null;
+}
+
+async function getLegacyPublicCertificate(
+  certificateCode: string,
+): Promise<PublicCertificateRecord | null> {
+  if (!hasFirebaseAdminCredentials()) {
+    return null;
+  }
+
+  const snapshot = await getAdminDb()
+    .collection('zertifikatspruefung')
+    .where('code', '==', certificateCode)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  const legacyDoc = snapshot.docs[0];
+  const latestDocumentUrl = await getLegacyCertificateDocumentUrl(legacyDoc.id);
+  return mapLegacyCertificateToPublicRecord({
+    certificateId: legacyDoc.id,
+    data: legacyDoc.data() as LegacyCertificateRecord,
+    latestDocumentUrl,
+  });
 }
 
 function createCertificateRecord(
@@ -895,7 +1043,17 @@ export async function issueManualCertificate(
 export async function getPublicCertificateRecord(
   certificateCode: string,
 ): Promise<PublicCertificateRecord | null> {
-  return getPublicCertificate(certificateCode);
+  const normalizedCode = certificateCode.trim();
+  if (!normalizedCode) {
+    return null;
+  }
+
+  const currentRecord = await getPublicCertificate(normalizedCode);
+  if (currentRecord) {
+    return currentRecord;
+  }
+
+  return getLegacyPublicCertificate(normalizedCode);
 }
 
 export async function getCertificateBadgeMarkup(

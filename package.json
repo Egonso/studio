@@ -12,6 +12,7 @@
     "typecheck": "node --max-old-space-size=6144 ./node_modules/typescript/bin/tsc --noEmit --incremental false",
     "test": "node ./scripts/run-tests.mjs",
     "test:playwright": "playwright test",
+    "migrate:legacy-certificates": "npx tsx scripts/migrate-legacy-certificates.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "postinstall": "patch-package"
   },
