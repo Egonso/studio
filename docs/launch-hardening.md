@@ -30,4 +30,5 @@
   - `migrate`
 - Current default posture is isolation-first:
   - public users and signed-in users stay on canonical register/control routes
-  - legacy project-era pages stay redirected or isolated until their data-service dependencies are retired
+  - redirect-only legacy route implementations are removed where they no longer carry active product logic
+  - project-era data-service dependencies remain isolated until their remaining consumers are retired

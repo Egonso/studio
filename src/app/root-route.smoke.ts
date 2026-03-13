@@ -76,7 +76,6 @@ async function waitForRootRoute(timeoutMs: number): Promise<{
       const looksLikeRootRoute =
         response.status === 200 &&
         (/\/_next\/static\/chunks\/app\/page\.js/i.test(html) ||
-          /src\/app\/landingsimple\/page\.tsx/i.test(html) ||
           /KI-Register/i.test(html));
 
       if (looksLikeRootRoute) {
@@ -124,7 +123,6 @@ export async function runRootRouteSmoke() {
     assert.equal(status, 200);
     assert.ok(
       /\/_next\/static\/chunks\/app\/page\.js/i.test(html) ||
-        /src\/app\/landingsimple\/page\.tsx/i.test(html) ||
         /KI-Register/i.test(html),
       'Root route should render the app entry instead of failing during SSR.',
     );

@@ -74,4 +74,4 @@ Configured in [route-manifest.ts](/Users/momofeichtinger/.codex/worktrees/3d18/s
 - Additional control modules still exist under `/control/audit`, `/control/portfolio`, and `/control/batch-sealing`, but they are subordinate to the canonical `/control` shell.
 - Free user navigation should always expose Register, Use Cases, External Inbox, and Settings.
 - Paid navigation should always expose Control, Reviews, Governance Settings, Policies, Exports, Trust Portal, Organisation, and Academy.
-- Legacy project-era pages may still exist in the tree for compatibility or code reuse, but they must not remain the primary path for a workflow.
+- Redirect-only legacy route wrappers and orphan landing variants have been removed from the app tree where they no longer served active product logic.
