@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Info, Printer, Sparkles, Loader2, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 import type { PolicyDocument, PolicySection } from "@/lib/policy-engine/types";
 import { generatePolicyPdf, downloadBlob } from "@/lib/policy-engine/export/policy-pdf";
-
-// ── Props ─────────────────────────────────────────────────────────────────────
+import { renderPolicyMarkdown } from "@/lib/policy-engine/render-policy-markdown";
 
 interface PolicyPreviewProps {
     sections: PolicySection[];
@@ -20,23 +19,6 @@ interface PolicyPreviewProps {
     /** Callback when sections are updated (e.g. via AI) */
     onSectionsChange?: (sections: PolicySection[]) => void;
 }
-
-// ── Minimal Markdown Renderer ────────────────────────────────────────────────
-
-function renderMarkdown(md: string): string {
-    return md
-        .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-4 mb-1">$1</h3>')
-        .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold mt-5 mb-2">$1</h2>')
-        .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold mt-6 mb-3">$1</h1>')
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.+?)\*/g, "<em>$1</em>")
-        .replace(/^\* (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-        .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-        .replace(/\n{2,}/g, '<div class="h-3"></div>')
-        .replace(/\n/g, "<br />");
-}
-
-// ── Component ───────────────────────────────────────────────────────────────
 
 export function PolicyPreview({
     sections,
@@ -54,10 +36,9 @@ export function PolicyPreview({
     const [proposals, setProposals] = useState<Record<string, string>>({});
     const [localSections, setLocalSections] = useState<PolicySection[]>(sections);
 
-    // Sync local sections if props change (though usually managed via service)
-    useState(() => {
+    useEffect(() => {
         setLocalSections(sections);
-    });
+    }, [sections]);
 
     const toggle = (id: string) => {
         setCollapsed((prev) => {
@@ -298,7 +279,7 @@ export function PolicyPreview({
                                                 <div
                                                     className="prose prose-sm dark:prose-invert"
                                                     dangerouslySetInnerHTML={{
-                                                        __html: renderMarkdown(proposal),
+                                                        __html: renderPolicyMarkdown(proposal),
                                                     }}
                                                 />
                                             </div>
@@ -306,7 +287,7 @@ export function PolicyPreview({
                                             <div
                                                 className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert opacity-50"
                                                 dangerouslySetInnerHTML={{
-                                                    __html: renderMarkdown(section.content),
+                                                    __html: renderPolicyMarkdown(section.content),
                                                 }}
                                             />
                                         </div>
@@ -314,7 +295,7 @@ export function PolicyPreview({
                                         <div
                                             className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert print:px-0 print:pl-0"
                                             dangerouslySetInnerHTML={{
-                                                __html: renderMarkdown(section.content),
+                                                __html: renderPolicyMarkdown(section.content),
                                             }}
                                         />
                                     )}

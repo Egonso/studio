@@ -14,7 +14,7 @@ test('buildCheckoutReturnPayload prefers the checkout session email', () => {
       entitlementPlan: 'pro',
     }),
     {
-      customer_email: 'buyer@example.com',
+      customer_email_hint: 'bu***@example.com',
       entitlement_plan: 'pro',
       checkout_claimable: true,
     },
@@ -29,7 +29,7 @@ test('buildCheckoutReturnPayload falls back to the Stripe customer email', () =>
       entitlementPlan: 'enterprise',
     }),
     {
-      customer_email: 'customer@example.com',
+      customer_email_hint: 'cu******@example.com',
       entitlement_plan: 'enterprise',
       checkout_claimable: true,
     },
@@ -43,7 +43,7 @@ test('buildCheckoutReturnPayload keeps free checkout returns non-claimable', () 
       entitlementPlan: 'free',
     }),
     {
-      customer_email: 'free@example.com',
+      customer_email_hint: 'fr**@example.com',
       entitlement_plan: 'free',
       checkout_claimable: false,
     },

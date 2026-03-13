@@ -92,7 +92,7 @@ test('billing return and cancel urls use the configured public app origin', asyn
       );
       assert.equal(
         buildBillingReturnUrl('{CHECKOUT_SESSION_ID}'),
-        'https://app.example.com/settings?section=governance&checkout_session_id={CHECKOUT_SESSION_ID}#upgrade-panel',
+        'https://app.example.com/control/welcome?checkout_session_id={CHECKOUT_SESSION_ID}&source=checkout',
       );
     },
   );

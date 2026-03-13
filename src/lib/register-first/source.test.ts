@@ -105,6 +105,18 @@ test("manual and access-code records resolve distinct source labels and filters"
   assert.equal(getUseCaseSubmitterIdentity(manualCard), "Anna Team");
   assert.equal(matchesUseCaseSourceFilter(manualCard, "MANUELL"), true);
 
+  const opaqueManualCard = createBaseCard({
+    origin: {
+      source: "manual",
+      submittedByName: null,
+      submittedByEmail: null,
+      sourceRequestId: null,
+      capturedByUserId: "cnqqywNvMbV5CJH6ZRS29I7yNFl1",
+    },
+  });
+
+  assert.equal(getUseCaseSubmitterIdentity(opaqueManualCard), null);
+
   assert.equal(getUseCaseSourceLabel(getUseCaseSource(accessCodeCard)), "Zugangscode");
   assert.equal(
     getUseCaseSubmitterIdentity(accessCodeCard),

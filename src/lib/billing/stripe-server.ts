@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 
 import { buildPublicAppUrl } from '@/lib/app-url';
+import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import {
   getGovernanceLookupKey,
   type GovernanceBillingInterval,
@@ -111,11 +112,11 @@ export function createStripeServerClient(
 export function buildBillingReturnUrl(
   checkoutSessionIdPlaceholder?: string,
 ): string {
-  const base = '/settings?section=governance';
-  const withSession = checkoutSessionIdPlaceholder
-    ? `${base}&checkout_session_id=${checkoutSessionIdPlaceholder}`
-    : base;
-  return `${buildPublicAppUrl(withSession)}#upgrade-panel`;
+  return buildPublicAppUrl(
+    buildBillingWelcomePath(checkoutSessionIdPlaceholder, {
+      source: 'checkout',
+    }),
+  );
 }
 
 export function buildBillingCancelUrl(): string {

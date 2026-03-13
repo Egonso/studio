@@ -16,7 +16,11 @@ import {
 } from '@/lib/register-first/request-token-admin';
 import { parseSupplierRequestSubmission } from '@/lib/register-first/supplier-requests';
 import type { Register } from '@/lib/register-first/types';
+import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
+
+const SUPPLIER_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const SUPPLIER_RATE_LIMIT_MAX_REQUESTS = 8;
 
 function mapTokenFailure(reason: string): { status: number; error: string } {
   switch (reason) {
@@ -43,6 +47,12 @@ function mapTokenFailure(reason: string): { status: number; error: string } {
   }
 }
 
+function resolveSupplierRateLimitKey(request: Request, requestToken: string): string {
+  const forwardedFor = request.headers.get('x-forwarded-for') ?? 'unknown';
+  const firstIp = forwardedFor.split(',')[0]?.trim() || 'unknown';
+  return `${firstIp}:${requestToken}`;
+}
+
 export async function POST(req: Request) {
   let phase = 'parse_request';
   try {
@@ -55,6 +65,27 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'requestToken is required.' },
         { status: 400 },
+      );
+    }
+
+    const rateLimitKey = resolveSupplierRateLimitKey(req, requestToken);
+    const supplierRateLimit = await checkPublicRateLimit({
+      namespace: 'supplier-submit',
+      key: rateLimitKey,
+      limit: SUPPLIER_RATE_LIMIT_MAX_REQUESTS,
+      windowMs: SUPPLIER_RATE_LIMIT_WINDOW_MS,
+    });
+    if (!supplierRateLimit.ok) {
+      logWarn('supplier_submit_rate_limited', {
+        requestTokenPreview: requestToken.slice(0, 8),
+        limiterSource: supplierRateLimit.source,
+      });
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Einreichungsversuche in kurzer Zeit. Bitte warten Sie kurz und versuchen Sie es erneut.',
+        },
+        { status: 429 },
       );
     }
 

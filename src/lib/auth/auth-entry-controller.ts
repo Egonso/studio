@@ -1,6 +1,7 @@
 import type { Auth, UserCredential } from 'firebase/auth';
 
 import { getPublicAppOrigin } from '@/lib/app-url';
+import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import {
   captureException,
@@ -443,6 +444,12 @@ export async function resolveAuthenticatedDestination(input: {
       intent: 'create_register',
       email: input.email,
       sessionId: input.context.sessionId,
+    });
+  }
+
+  if (input.context.sessionId) {
+    return buildBillingWelcomePath(input.context.sessionId, {
+      source: 'checkout',
     });
   }
 

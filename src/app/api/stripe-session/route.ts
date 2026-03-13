@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import {
+  getCheckoutEligibility,
+  getCheckoutEligibilityErrorMessage,
+} from '@/lib/billing/checkout-eligibility';
 import { inferCheckoutEntitlementPlan } from '@/lib/billing/stripe-entitlements';
 import { buildCheckoutReturnPayload } from '@/lib/billing/checkout-return';
 import {
@@ -51,9 +55,14 @@ export async function GET(request: NextRequest) {
         });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.status !== 'complete') {
+        const subscription =
+          typeof session.subscription === 'string'
+            ? await stripe.subscriptions.retrieve(session.subscription)
+            : null;
+        const eligibility = getCheckoutEligibility({ session, subscription });
+        if (!eligibility.ok && eligibility.reason) {
             return NextResponse.json(
-                { error: 'Checkout session not completed' },
+                { error: getCheckoutEligibilityErrorMessage(eligibility.reason) },
                 { status: 409 }
             );
         }

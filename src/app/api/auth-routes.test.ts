@@ -16,6 +16,8 @@ const entitlementSyncRoute = readSource("src/app/api/entitlements/sync/route.ts"
 const billingCheckoutRoute = readSource("src/app/api/billing/checkout/route.ts");
 const billingPortalRoute = readSource("src/app/api/billing/portal/route.ts");
 const stripeSessionRoute = readSource("src/app/api/stripe-session/route.ts");
+const captureByCodeRoute = readSource("src/app/api/capture-by-code/route.ts");
+const supplierSubmitRoute = readSource("src/app/api/supplier-submit/route.ts");
 const registerExternalSubmissionsRoute = readSource(
   "src/app/api/registers/[registerId]/external-submissions/route.ts",
 );
@@ -55,7 +57,13 @@ test("internal compliance helper routes require authenticated users", () => {
 
 test("checkout return route validates session ids and only exposes completed sessions", () => {
   assert.match(stripeSessionRoute, /isValidStripeCheckoutSessionId/);
-  assert.match(stripeSessionRoute, /session\.status !== 'complete'/);
+  assert.match(stripeSessionRoute, /getCheckoutEligibility\(/);
+  assert.match(stripeSessionRoute, /getCheckoutEligibilityErrorMessage\(eligibility\.reason\)/);
+});
+
+test("public intake routes rely on centralized server-side rate limiting", () => {
+  assert.match(captureByCodeRoute, /checkPublicRateLimit\(/);
+  assert.match(supplierSubmitRoute, /checkPublicRateLimit\(/);
 });
 
 test("register-owned external submission routes require server-side register ownership", () => {

@@ -24,6 +24,7 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import type { GovernanceBillingInterval } from '@/lib/billing/governance-volume-pricing';
+import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import { getGovernanceUpgradeDestination } from '@/lib/billing/upgrade-surface';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
@@ -353,7 +354,11 @@ export function GovernanceSettingsSection() {
               ? 'Enterprise wurde für dieses Workspace-Profil zugeordnet.'
               : 'Governance Control Center wurde für dieses Konto freigeschaltet.',
         });
-        router.replace('/settings?section=governance#upgrade-panel');
+        router.replace(
+          buildBillingWelcomePath(checkoutSessionId, {
+            source: 'checkout',
+          }),
+        );
       })
       .catch((error) => {
         console.error('Governance entitlement sync failed', error);

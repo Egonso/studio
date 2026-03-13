@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 import {
   authenticateWithEmailPassword,
@@ -55,6 +56,7 @@ const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
 
 interface CheckoutReturnContext {
   claimable: boolean;
+  emailHint: string | null;
   plan: SubscriptionPlan | null;
   status: 'idle' | 'loaded' | 'error';
 }
@@ -114,7 +116,9 @@ function getContextNotices(
       id: 'checkout_return',
       title: 'Checkout erkannt',
       description:
-        'Nutzen Sie dieselbe E-Mail-Adresse wie beim Checkout. Die Freischaltung wird nach der Anmeldung oder Register-Anlage zugeordnet.',
+        checkoutContext.emailHint
+          ? `Nutzen Sie dieselbe E-Mail-Adresse wie beim Checkout (${checkoutContext.emailHint}). Die Freischaltung wird nach der Anmeldung oder Register-Anlage zugeordnet.`
+          : 'Nutzen Sie dieselbe E-Mail-Adresse wie beim Checkout. Die Freischaltung wird nach der Anmeldung oder Register-Anlage zugeordnet.',
     });
   }
 
@@ -166,6 +170,7 @@ export default function AuthEntryPage() {
   const [checkoutContext, setCheckoutContext] = useState<CheckoutReturnContext>(
     {
       claimable: false,
+      emailHint: null,
       plan: null,
       status: 'idle',
     },
@@ -278,7 +283,12 @@ export default function AuthEntryPage() {
 
   useEffect(() => {
     if (!routeContext.sessionId) {
-      setCheckoutContext({ claimable: false, plan: null, status: 'idle' });
+      setCheckoutContext({
+        claimable: false,
+        emailHint: null,
+        plan: null,
+        status: 'idle',
+      });
       return;
     }
 
@@ -303,15 +313,12 @@ export default function AuthEntryPage() {
           return;
         }
 
-        if (!routeContext.email && data.customer_email) {
-          const normalized = String(data.customer_email).toLowerCase();
-          setLoginEmail((current) => current || normalized);
-          setCreateEmail((current) => current || normalized);
-          setJoinEmail((current) => current || normalized);
-        }
-
         setCheckoutContext({
           claimable: data.checkout_claimable === true,
+          emailHint:
+            typeof data.customer_email_hint === 'string'
+              ? data.customer_email_hint
+              : null,
           plan:
             data.entitlement_plan === 'pro' ||
             data.entitlement_plan === 'enterprise'
@@ -323,7 +330,12 @@ export default function AuthEntryPage() {
       .catch((error) => {
         if (!cancelled) {
           console.error('Failed to fetch checkout session context', error);
-          setCheckoutContext({ claimable: false, plan: null, status: 'error' });
+          setCheckoutContext({
+            claimable: false,
+            emailHint: null,
+            plan: null,
+            status: 'error',
+          });
         }
       });
 
@@ -644,6 +656,19 @@ export default function AuthEntryPage() {
         role: organisationRole,
         sessionId: routeContext.sessionId,
       });
+
+      if (
+        routeContext.sessionId &&
+        (result.syncedPlan === 'pro' || result.syncedPlan === 'enterprise')
+      ) {
+        router.push(
+          buildBillingWelcomePath(routeContext.sessionId, {
+            source: 'checkout',
+            first_run: true,
+          }),
+        );
+        return;
+      }
 
       setShareInviteCode(result.inviteCode);
       setShareCaptureLink(result.captureLink);

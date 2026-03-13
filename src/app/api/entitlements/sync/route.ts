@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 import {
+  getCheckoutEligibility,
+  getCheckoutEligibilityErrorMessage,
+} from '@/lib/billing/checkout-eligibility';
+import {
   buildCustomerEntitlementRecord,
   inferCheckoutBillingProduct,
   type BillingLineItemHint,
@@ -60,6 +64,19 @@ async function getCheckoutEntitlementFromSession(
     apiVersion: STRIPE_API_VERSION,
   });
   const session = await stripe.checkout.sessions.retrieve(sessionId);
+  let subscription: Stripe.Subscription | null = null;
+  if (typeof session.subscription === 'string') {
+    subscription = await stripe.subscriptions.retrieve(session.subscription);
+  }
+
+  const eligibility = getCheckoutEligibility({ session, subscription });
+  if (!eligibility.ok && eligibility.reason) {
+    throw new ServerAuthError(
+      getCheckoutEligibilityErrorMessage(eligibility.reason),
+      409,
+    );
+  }
+
   let customerEmail = customerEmailFromSession(session);
 
   if (!customerEmail && typeof session.customer === 'string') {
@@ -301,53 +318,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    try {
-      if (sessionId) {
-        const claimedFromSession = await getCheckoutEntitlementFromSession(
-          sessionId,
-          decoded.email,
-        );
-        if (claimedFromSession) {
-          await upsertCustomerEntitlement(claimedFromSession);
-        }
-      }
-
-      const customerEntitlement =
-        (await readCustomerEntitlement(decoded.email)) ??
-        (await repairCustomerEntitlementFromLegacyPurchase(decoded.email));
-      if (!customerEntitlement) {
-        return freeFallback(workspaceAccessSynced);
-      }
-
-      const applied = await applyCustomerEntitlementToWorkspace(
-        decoded.uid,
+    if (sessionId) {
+      const claimedFromSession = await getCheckoutEntitlementFromSession(
+        sessionId,
         decoded.email,
-        customerEntitlement,
-        {
-          source: sessionId ? 'stripe_checkout' : 'customer_entitlement_sync',
-        },
       );
+      if (claimedFromSession) {
+        await upsertCustomerEntitlement(claimedFromSession);
+      }
+    }
 
-      const responseRegisterId =
-        registerId && applied.registerIds.includes(registerId)
-          ? registerId
-          : (applied.registerIds[0] ?? null);
-
-      return NextResponse.json({
-        applied: true,
-        needsRegister: applied.registerIds.length === 0,
-        plan: getEntitlementAccessPlan(customerEntitlement),
-        registerId: responseRegisterId,
-        source: sessionId ? 'stripe_checkout' : 'customer_entitlement_sync',
-        workspaceAccessSynced,
-      });
-    } catch (error) {
-      logWarn('entitlement_sync_fallback_free', {
-        errorMessage: error instanceof Error ? error.message : 'unknown',
-        userId: decoded.uid,
-      });
+    const customerEntitlement =
+      (await readCustomerEntitlement(decoded.email)) ??
+      (await repairCustomerEntitlementFromLegacyPurchase(decoded.email));
+    if (!customerEntitlement) {
       return freeFallback(workspaceAccessSynced);
     }
+
+    const applied = await applyCustomerEntitlementToWorkspace(
+      decoded.uid,
+      decoded.email,
+      customerEntitlement,
+      {
+        source: sessionId ? 'stripe_checkout' : 'customer_entitlement_sync',
+      },
+    );
+
+    const responseRegisterId =
+      registerId && applied.registerIds.includes(registerId)
+        ? registerId
+        : (applied.registerIds[0] ?? null);
+
+    return NextResponse.json({
+      applied: true,
+      needsRegister: applied.registerIds.length === 0,
+      plan: getEntitlementAccessPlan(customerEntitlement),
+      registerId: responseRegisterId,
+      source: sessionId ? 'stripe_checkout' : 'customer_entitlement_sync',
+      workspaceAccessSynced,
+    });
   } catch (error) {
     if (error instanceof ServerAuthError) {
       return NextResponse.json(

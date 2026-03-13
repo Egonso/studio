@@ -66,6 +66,23 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
   return normalized ? normalized : null;
 }
 
+function looksLikeOpaqueIdentity(value: string): boolean {
+  return (
+    /^[A-Za-z0-9_-]{20,}$/.test(value) ||
+    /^user[_-]/i.test(value) ||
+    /^anon/i.test(value)
+  );
+}
+
+function normalizeReadableIdentity(value: string | null | undefined): string | null {
+  const normalized = normalizeOptionalText(value);
+  if (!normalized) {
+    return null;
+  }
+
+  return looksLikeOpaqueIdentity(normalized) ? null : normalized;
+}
+
 function formatIdentity(
   name: string | null,
   email: string | null,
@@ -158,7 +175,7 @@ export function getUseCaseSubmitterIdentity(
   if (source === "manual") {
     return (
       normalizeOptionalText(card.capturedByName) ??
-      normalizeOptionalText(card.origin?.capturedByUserId)
+      normalizeReadableIdentity(card.origin?.capturedByUserId)
     );
   }
 

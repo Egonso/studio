@@ -306,10 +306,6 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
           ? "Import übernommen"
           : "Manuell erfasst";
 
-  const descriptionParts = [
-    submitter ? `Von ${submitter}` : null,
-    requestId ? `Referenz ${requestId}` : null,
-  ].filter(Boolean);
   const tone: RegisterTimelineEvent["tone"] =
     source === "manual" ? "default" : "warning";
   const actorFallback =
@@ -318,8 +314,15 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
       : source === "access_code"
         ? "Erfassung über Zugangscode"
         : source === "import"
-          ? "Import"
+        ? "Import"
           : "Internes Team";
+  const actor = formatTimelineActor(submitter, actorFallback);
+  const descriptionParts = [
+    actor && (source !== "manual" || actor !== "Internes Team")
+      ? `Von ${actor}`
+      : null,
+    requestId ? `Referenz ${requestId}` : null,
+  ].filter(Boolean);
 
   return {
     id: `origin_${card.useCaseId}`,
@@ -327,7 +330,7 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
     timestamp,
     title,
     description: descriptionParts.join(" · ") || null,
-    actor: formatTimelineActor(submitter, actorFallback),
+    actor,
     badges,
     tone,
   };

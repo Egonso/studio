@@ -99,6 +99,8 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
   const source = getUseCaseSource(card);
   const sourceBadges = getUseCaseSourceBadges(card);
   const submitterIdentity = getUseCaseSubmitterIdentity(card);
+  const displaySubmitterIdentity =
+    submitterIdentity ?? (source === "manual" ? "Internes Team" : null);
   const sourceReference =
     card.origin?.sourceRequestId ??
     card.externalIntake?.submissionId ??
@@ -107,10 +109,10 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
     null;
   const provenanceLine = [
     `Herkunft: ${getUseCaseSourceLabel(source)}`,
-    submitterIdentity
+    displaySubmitterIdentity
       ? source === "manual"
-        ? `Erfasst von ${submitterIdentity}`
-        : `Eingereicht von ${submitterIdentity}`
+        ? `Erfasst von ${displaySubmitterIdentity}`
+        : `Eingereicht von ${displaySubmitterIdentity}`
       : null,
     sourceReference ? `Referenz ${sourceReference}` : null,
   ]

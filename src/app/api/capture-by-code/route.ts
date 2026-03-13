@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
 import { normalizeCaptureByCodeSelections } from '@/lib/capture-by-code/selections';
+import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 import { validateSharedCaptureFields } from '@/lib/register-first/shared-capture-fields';
 import {
   buildAccessCodeSubmissionSnapshot,
@@ -27,9 +28,6 @@ interface CaptureByCodeBody {
   contactPersonName?: string;
   organisation?: string;
 }
-
-// Simple in-memory rate limiting (use Redis for production scale)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 const RATE_LIMIT_PER_CODE = 10; // 10 submissions per hour per code
 const RATE_LIMIT_PER_IP = 100; // 100 submissions per day per IP
@@ -167,24 +165,6 @@ function mapOperationalError(error: unknown): {
   }
 
   return { status: 500, message: 'Interner Fehler' };
-}
-
-function checkRateLimit(key: string, limit: number, window: number): boolean {
-  const now = Date.now();
-  const rateData = rateLimitMap.get(key);
-
-  if (!rateData || now > rateData.resetAt) {
-    // Reset or first request
-    rateLimitMap.set(key, { count: 1, resetAt: now + window });
-    return true;
-  }
-
-  if (rateData.count >= limit) {
-    return false; // Rate limit exceeded
-  }
-
-  rateData.count++;
-  return true;
 }
 
 // GET: Validate code and return register info
@@ -337,9 +317,13 @@ export async function POST(req: NextRequest) {
     });
 
     if (code) {
-      if (
-        !checkRateLimit(`code:${code}`, RATE_LIMIT_PER_CODE, RATE_WINDOW_CODE)
-      ) {
+      const codeRateLimit = await checkPublicRateLimit({
+        namespace: 'capture-by-code:code',
+        key: code,
+        limit: RATE_LIMIT_PER_CODE,
+        windowMs: RATE_WINDOW_CODE,
+      });
+      if (!codeRateLimit.ok) {
         return NextResponse.json(
           { error: 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.' },
           { status: 429 },
@@ -348,7 +332,13 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = req.headers.get('x-forwarded-for') || 'unknown';
-    if (!checkRateLimit(`ip:${ip}`, RATE_LIMIT_PER_IP, RATE_WINDOW_IP)) {
+    const ipRateLimit = await checkPublicRateLimit({
+      namespace: 'capture-by-code:ip',
+      key: ip,
+      limit: RATE_LIMIT_PER_IP,
+      windowMs: RATE_WINDOW_IP,
+    });
+    if (!ipRateLimit.ok) {
       return NextResponse.json(
         { error: 'Zu viele Anfragen von Ihrer IP-Adresse.' },
         { status: 429 },

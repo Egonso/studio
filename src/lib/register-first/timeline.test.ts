@@ -166,6 +166,7 @@ test("buildUseCaseTimeline tolerates legacy cards without statusHistory", () => 
     ["origin", "created"]
   );
   assert.equal(timeline[0]?.actor, "Internes Team");
+  assert.equal(timeline[0]?.description, null);
 });
 
 test("manual edit labels stay customer-friendly and deduplicated", () => {
