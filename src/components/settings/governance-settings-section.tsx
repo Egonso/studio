@@ -320,6 +320,32 @@ export function GovernanceSettingsSection() {
         }
 
         invalidateEntitlementCache();
+        setRegister((current) =>
+          current
+            ? {
+                ...current,
+                plan: result.plan,
+                entitlement: {
+                  ...current.entitlement,
+                  plan: result.plan,
+                  status: 'active',
+                  source:
+                    result.source === 'stripe_checkout' ||
+                    result.source === 'stripe_webhook' ||
+                    result.source === 'customer_entitlement_sync' ||
+                    result.source === 'billing_repair' ||
+                    result.source === 'legacy_purchase_import' ||
+                    result.source === 'legacy_plan_field' ||
+                    result.source === 'default_free' ||
+                    result.source === 'manual'
+                      ? result.source
+                      : 'customer_entitlement_sync',
+                  updatedAt: new Date().toISOString(),
+                  checkoutSessionId,
+                },
+              }
+            : current,
+        );
         toast({
           title: 'Freischaltung aktiv',
           description:
