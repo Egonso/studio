@@ -113,9 +113,7 @@ export function buildBillingReturnUrl(
 ): string {
   const base = '/settings?section=governance';
   const withSession = checkoutSessionIdPlaceholder
-    ? `${base}&checkout_session_id=${encodeURIComponent(
-        checkoutSessionIdPlaceholder,
-      )}`
+    ? `${base}&checkout_session_id=${checkoutSessionIdPlaceholder}`
     : base;
   return `${buildPublicAppUrl(withSession)}#upgrade-panel`;
 }
