@@ -36,12 +36,16 @@ test('free signup/login entry stays self-serve', () => {
   const authEntrySource = readSource('src/components/auth/auth-entry-page.tsx');
 
   assert.match(rootPageSource, /AuthEntryPage/);
-  assert.match(authEntrySource, />Neu</);
   assert.match(authEntrySource, />Anmelden</);
-  assert.match(authEntrySource, /Free Register ist self-serve/);
+  assert.match(authEntrySource, />Registrieren</);
+  assert.match(authEntrySource, /Eigenes Register anlegen/);
   assert.match(
     authEntrySource,
-    /Die Registrierung ist self-serve[\s\S]*ohne vorher zu kaufen\./,
+    /Jede Organisation mit KI-Einsatz führt ein KI-Register\./,
+  );
+  assert.match(
+    authEntrySource,
+    /Governance Control Center wird für dieses Konto freigeschaltet\./,
   );
   assert.doesNotMatch(authEntrySource, /Public Marketing/);
   assert.doesNotMatch(authEntrySource, /purchase required/i);
@@ -196,12 +200,14 @@ test('external inbox and premium destinations stay discoverable', () => {
   const inboxSource = readSource(
     'src/components/register/external-submissions-inbox.tsx',
   );
+  const controlSource = readSource('src/app/control/page.tsx');
   assert.match(inboxSource, /Eingegangen/);
   assert.match(inboxSource, /Freigegeben/);
   assert.match(inboxSource, /Abgelehnt/);
   assert.match(inboxSource, /Uebernommen/);
   assert.match(inboxSource, /Ablehnen/);
   assert.match(inboxSource, /Freigeben/);
+  assert.match(controlSource, /Governance-Bericht gehört zur Governance-Stufe/);
 
   const premiumNavHrefs = new Set(
     getVisiblePremiumControlNav('pro').map((entry) => entry.href),

@@ -11,7 +11,7 @@ export function getFeatureUpgradeHref(feature: FeatureCapability): string {
     case 'auditExport':
       return ROUTE_HREFS.controlExports;
     case 'reviewWorkflow':
-      return ROUTE_HREFS.controlReviews;
+      return ROUTE_HREFS.control;
     case 'trustPortal':
       return ROUTE_HREFS.controlTrust;
     case 'competencyMatrix':

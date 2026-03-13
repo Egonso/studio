@@ -7,16 +7,14 @@ import {
   type BillingLineItemHint,
   type CustomerEntitlementRecord,
 } from '@/lib/billing/stripe-entitlements';
+import {
+  resolveStripeSecretKey,
+  STRIPE_API_VERSION,
+} from '@/lib/billing/stripe-server';
 import { getEntitlementAccessPlan } from '@/lib/register-first/entitlement';
 import { materializeWorkspaceAccessWriteModel } from '@/lib/server-access';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
 import { logWarn } from '@/lib/observability/logger';
-
-const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
-
-function resolveStripeSecretKey(): string | null {
-  return process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY || null;
-}
 
 function normalizeEmail(value: string | null | undefined): string | null {
   const normalized = value?.trim().toLowerCase();

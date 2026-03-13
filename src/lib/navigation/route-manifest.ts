@@ -36,6 +36,7 @@ export const ROUTE_HREFS = {
   externalInbox: `${ROUTE_PATHS.register}?filter=${EXTERNAL_INBOX_FILTER}`,
   settings: ROUTE_PATHS.settings,
   governanceSettings: `${ROUTE_PATHS.settings}?section=governance`,
+  governanceUpgrade: `${ROUTE_PATHS.settings}?section=governance#upgrade-panel`,
   control: ROUTE_PATHS.control,
   controlReviews: ROUTE_PATHS.controlReviews,
   controlPolicies: ROUTE_PATHS.controlPolicies,
@@ -240,6 +241,15 @@ export interface DeprecatedRouteAlias {
   reason: string;
 }
 
+export type LegacyRouteDisposition = 'archive' | 'keep_isolated' | 'migrate';
+
+export interface LegacyRouteInventoryEntry {
+  source: string;
+  disposition: LegacyRouteDisposition;
+  canonicalDestination: string;
+  reason: string;
+}
+
 export const DEPRECATED_ROUTE_ALIASES: DeprecatedRouteAlias[] = [
   {
     source: '/login',
@@ -386,6 +396,63 @@ export const DEPRECATED_ROUTE_ALIASES: DeprecatedRouteAlias[] = [
     destination: ROUTE_PATHS.marketingHome,
     permanent: false,
     reason: 'Legacy landing alias.',
+  },
+];
+
+export const LEGACY_ROUTE_INVENTORY: LegacyRouteInventoryEntry[] = [
+  {
+    source: '/ai-management',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_HREFS.control,
+    reason: 'Legacy AI management shell is retained only as a redirected archive entry.',
+  },
+  {
+    source: '/aims',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_HREFS.control,
+    reason: 'Legacy AIMS wizard is no longer a primary product flow.',
+  },
+  {
+    source: '/assessment',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_HREFS.register,
+    reason: 'Assessment is subsumed by register-first capture and detail review.',
+  },
+  {
+    source: '/portfolio',
+    disposition: 'migrate',
+    canonicalDestination: '/control/portfolio',
+    reason: 'Portfolio remains available only through the Control module.',
+  },
+  {
+    source: '/audit-report',
+    disposition: 'migrate',
+    canonicalDestination: ROUTE_HREFS.controlExports,
+    reason: 'Legacy audit dossier functionality is replaced by the export center.',
+  },
+  {
+    source: '/landingpage',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_PATHS.marketingHome,
+    reason: 'Legacy landing variants now resolve into the canonical auth entry.',
+  },
+  {
+    source: '/landingpage2',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_PATHS.marketingHome,
+    reason: 'Legacy landing variants now resolve into the canonical auth entry.',
+  },
+  {
+    source: '/landingpage3',
+    disposition: 'archive',
+    canonicalDestination: ROUTE_PATHS.marketingHome,
+    reason: 'Legacy landing variants now resolve into the canonical auth entry.',
+  },
+  {
+    source: '/projects',
+    disposition: 'keep_isolated',
+    canonicalDestination: ROUTE_HREFS.register,
+    reason: 'Project-era flows remain isolated until the remaining project services are retired.',
   },
 ];
 

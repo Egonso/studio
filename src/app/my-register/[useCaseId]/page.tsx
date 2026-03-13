@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
@@ -18,6 +18,7 @@ import {
 } from '@/lib/control/deep-link';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
+import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
 import { registerService } from '@/lib/register-first/register-service';
 import type {
   ExternalSubmission,
@@ -25,6 +26,7 @@ import type {
   RegisterUseCaseStatus,
   UseCaseCard,
 } from '@/lib/register-first/types';
+import { setActiveWorkspaceId } from '@/lib/workspace-session';
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
@@ -49,6 +51,11 @@ export default function UseCaseDetailPage() {
   const focusParam = searchParams.get('focus');
   const editParam = searchParams.get('edit');
   const fieldParam = searchParams.get('field');
+  const workspaceScope = searchParams.get('workspace') ?? 'personal';
+  const scopeContext = useMemo(
+    () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
+    [workspaceScope],
+  );
   const requestedFocus = isControlFocusTarget(focusParam) ? focusParam : null;
   const resolvedFocus = resolveFocusTarget(requestedFocus);
   const governanceField = resolveGovernanceField(requestedFocus, fieldParam);
@@ -71,13 +78,13 @@ export default function UseCaseDetailPage() {
     setError(null);
     try {
       const [result, register, useCases] = await Promise.all([
-        registerService.getUseCase(undefined, useCaseId),
+        registerService.getUseCase(undefined, useCaseId, scopeContext),
         registerFirstFlags.controlShell
-          ? registerService.getFirstRegister().catch(() => null)
+          ? registerService.getFirstRegister(scopeContext).catch(() => null)
           : Promise.resolve(null),
         registerFirstFlags.controlShell
           ? registerService
-              .listUseCases(undefined, { includeDeleted: false })
+              .listUseCases(undefined, { includeDeleted: false }, scopeContext)
               .catch(() => [])
           : Promise.resolve([]),
       ]);
@@ -96,6 +103,7 @@ export default function UseCaseDetailPage() {
                     result.origin?.sourceRequestId ??
                     result.externalIntake?.submissionId ??
                     null,
+                  scopeContext,
                 })
                 .catch(() => null)
             : null;
@@ -118,7 +126,13 @@ export default function UseCaseDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [useCaseId, router]);
+  }, [scopeContext, useCaseId, router]);
+
+  useEffect(() => {
+    setActiveWorkspaceId(
+      scopeContext.kind === 'workspace' ? scopeContext.workspaceId ?? null : null,
+    );
+  }, [scopeContext]);
 
   useEffect(() => {
     if (editParam !== '1') return;
@@ -180,6 +194,7 @@ export default function UseCaseDetailPage() {
       nextStatus,
       reason,
       actor: 'HUMAN',
+      scopeContext,
     });
     await loadUseCase();
   };
@@ -187,7 +202,7 @@ export default function UseCaseDetailPage() {
   const handleSaveMetadata = async (updates: Partial<UseCaseCard>) => {
     if (!card) return;
     try {
-      await registerService.updateUseCase(card.useCaseId, updates);
+      await registerService.updateUseCase(card.useCaseId, updates, scopeContext);
       await loadUseCase();
       setIsEditing(false);
     } catch (err) {

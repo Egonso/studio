@@ -210,7 +210,9 @@ export default function ControlPoliciesPage() {
                   <Link href={ROUTE_HREFS.control}>Control öffnen</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                  <Link href={ROUTE_HREFS.governanceUpgrade}>
+                    Upgrade-Optionen
+                  </Link>
                 </Button>
               </>
             }

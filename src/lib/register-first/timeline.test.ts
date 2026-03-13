@@ -135,6 +135,14 @@ test("buildUseCaseTimeline merges provenance, edits, reviews, proof and submissi
     "Zweck"
   );
   assert.equal(
+    timeline.find((event) => event.kind === "review")?.actor,
+    "Internes Team",
+  );
+  assert.equal(
+    timeline.find((event) => event.kind === "created")?.actor,
+    "Lieferanteneinreichung",
+  );
+  assert.equal(
     timeline.some((event) => event.kind === "status_change"),
     false
   );
@@ -157,5 +165,47 @@ test("buildUseCaseTimeline tolerates legacy cards without statusHistory", () => 
     timeline.map((event) => event.kind),
     ["origin", "created"]
   );
-  assert.equal(timeline[0]?.actor, "user_manual");
+  assert.equal(timeline[0]?.actor, "Internes Team");
+});
+
+test("manual edit labels stay customer-friendly and deduplicated", () => {
+  const beforeEdit = createBaseCard({
+    decisionImpact: "UNSURE",
+    decisionInfluence: "PREPARATION",
+    governanceAssessment: {
+      core: {},
+      flex: {},
+    },
+  });
+
+  const afterEdit = createBaseCard({
+    ...beforeEdit,
+    decisionImpact: "YES",
+    decisionInfluence: "AUTOMATED",
+    governanceAssessment: {
+      core: {
+        aiActCategory: "hochrisiko",
+      },
+      flex: {},
+    },
+  });
+
+  const manualEdit = createManualEditEvent({
+    before: beforeEdit,
+    after: afterEdit,
+    editedAt: "2026-03-10T10:00:00.000Z",
+    editedBy: "user_editor",
+  });
+
+  const timeline = buildUseCaseTimeline({
+    card: createBaseCard({
+      ...afterEdit,
+      manualEdits: manualEdit ? [manualEdit] : [],
+    }),
+  });
+
+  assert.equal(
+    timeline.find((event) => event.kind === "manual_edit")?.description,
+    "Entscheidungsrelevanz, Entscheidungseinfluss, KI-Risikoklasse",
+  );
 });

@@ -21,7 +21,7 @@ admin.initializeApp();
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeApiKeyLegacy = defineSecret('STRIPE_API_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
-const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
+const STRIPE_API_VERSION = '2026-02-25.clover' as Stripe.LatestApiVersion;
 
 function safeSecretValue(secret: { value: () => string }): string {
   try {

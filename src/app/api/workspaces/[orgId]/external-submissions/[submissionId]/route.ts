@@ -6,12 +6,16 @@ import { deliverWorkspaceNotificationHooks } from '@/lib/enterprise/notification
 import { applyExternalSubmissionReview, buildUseCaseFromSupplierSubmission, isKmuRegisterMode } from '@/lib/register-first/external-submissions';
 import { findWorkspaceExternalSubmissionById } from '@/lib/register-first/register-admin';
 import { sanitizeSupplierRequestCard } from '@/lib/register-first/supplier-requests';
-import { ServerAuthError, requireWorkspaceReviewer } from '@/lib/server-auth';
+import {
+  ServerAuthError,
+  requireWorkspaceMember,
+  requireWorkspaceReviewer,
+} from '@/lib/server-auth';
 import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
 
 const ReviewExternalSubmissionSchema = z.object({
   action: z.enum(['approve', 'reject', 'merge']),
-  note: z.string().trim().max(1000).optional(),
+  note: z.string().trim().max(1000).nullable().optional(),
 });
 
 interface RouteContext {
@@ -199,6 +203,43 @@ export async function PATCH(req: NextRequest, context: RouteContext) {
     return NextResponse.json({
       success: true,
       submission: updatedSubmission,
+    });
+  } catch (error) {
+    return handleWorkspaceRouteError(error);
+  }
+}
+
+export async function GET(req: NextRequest, context: RouteContext) {
+  const { orgId, submissionId } = await context.params;
+
+  try {
+    await requireWorkspaceMember(req.headers.get('authorization'), orgId);
+    const location = await findWorkspaceExternalSubmissionById({
+      workspaceId: orgId,
+      submissionId,
+    });
+
+    if (!location) {
+      return NextResponse.json(
+        { error: 'Externe Einreichung nicht gefunden.' },
+        { status: 404 },
+      );
+    }
+
+    const requestedRegisterId = req.nextUrl.searchParams.get('registerId');
+    if (requestedRegisterId && requestedRegisterId !== location.registerId) {
+      return NextResponse.json(
+        { error: 'Externe Einreichung nicht im angefragten Register gefunden.' },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      submission: {
+        ...location.submission,
+        registerName: location.register.name,
+        organisationName: location.register.organisationName ?? null,
+      },
     });
   } catch (error) {
     return handleWorkspaceRouteError(error);

@@ -3,6 +3,10 @@
 
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import {
+    getActiveWorkspaceId as getActiveWorkspaceSessionId,
+    setActiveWorkspaceId as setActiveWorkspaceSessionId,
+} from './workspace-session';
 import type { AIProject, AIProjectAssessment, AIProjectDecisionLog } from './types-portfolio';
 import { saveIsoAims } from './aims-service';
 import type { TrustPortalConfig } from './types';
@@ -147,20 +151,11 @@ export function clearActiveProjectId() {
 // --- Active Workspace State (using sessionStorage) ---
 
 export function setActiveWorkspaceId(workspaceId: string | null) {
-    if (typeof window !== 'undefined') {
-        if (workspaceId) {
-            window.sessionStorage.setItem('activeWorkspaceId', workspaceId);
-        } else {
-            window.sessionStorage.removeItem('activeWorkspaceId');
-        }
-    }
+    setActiveWorkspaceSessionId(workspaceId);
 }
 
 export function getActiveWorkspaceId(): string | null {
-    if (typeof window !== 'undefined') {
-        return window.sessionStorage.getItem('activeWorkspaceId');
-    }
-    return null;
+    return getActiveWorkspaceSessionId();
 }
 
 

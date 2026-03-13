@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AlertTriangle,
   Building,
@@ -21,11 +22,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import type { GovernanceBillingInterval } from '@/lib/billing/governance-volume-pricing';
+import { getGovernanceUpgradeDestination } from '@/lib/billing/upgrade-surface';
+import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import { syncRegisterEntitlement } from '@/lib/register-first/entitlement-client';
+import {
+  parseRegisterScopeFromWorkspaceValue,
+  resolveClientRegisterScopeContext,
+} from '@/lib/register-first/register-scope';
 import { registerService } from '@/lib/register-first/register-service';
 import type {
   OrgSettings,
   Register,
+  RegisterScopeContext,
   RoleEntry,
 } from '@/lib/register-first/types';
 import {
@@ -146,12 +157,28 @@ function RoleInput({
 }
 
 export function GovernanceSettingsSection() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
   const { toast } = useToast();
+  const checkoutSessionId = searchParams.get('checkout_session_id');
+  const workspaceScopeValue = searchParams.get('workspace');
 
   const [register, setRegister] = useState<Register | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [billingAction, setBillingAction] = useState<
+    'checkout' | 'portal' | null
+  >(null);
+  const [billingInterval, setBillingInterval] =
+    useState<GovernanceBillingInterval>('month');
+  const [syncedCheckoutSessionId, setSyncedCheckoutSessionId] = useState<
+    string | null
+  >(null);
+  const [scopeContext, setScopeContext] = useState<RegisterScopeContext | null>(
+    null,
+  );
 
   const [orgName, setOrgName] = useState('');
   const [orgUnit, setOrgUnit] = useState('');
@@ -187,9 +214,25 @@ export function GovernanceSettingsSection() {
       return;
     }
 
-    registerService
-      .getFirstRegister()
-      .then((reg) => {
+    let isCancelled = false;
+    const requestedScope =
+      parseRegisterScopeFromWorkspaceValue(workspaceScopeValue);
+
+    void resolveClientRegisterScopeContext({
+      userId: user.uid,
+      requestedScope,
+    })
+      .then(async (resolvedScope) => {
+        if (isCancelled) {
+          return;
+        }
+
+        setScopeContext(resolvedScope);
+        const reg = await registerService.getFirstRegister(resolvedScope);
+        if (isCancelled || !reg) {
+          return;
+        }
+
         if (!reg) {
           return;
         }
@@ -250,7 +293,58 @@ export function GovernanceSettingsSection() {
         console.error('Governance settings load failed', error);
       })
       .finally(() => setIsLoading(false));
-  }, [user]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user, workspaceScopeValue]);
+
+  useEffect(() => {
+    if (!register?.registerId || !checkoutSessionId) {
+      return;
+    }
+
+    const syncKey = `${register.registerId}:${checkoutSessionId}`;
+    if (syncedCheckoutSessionId === syncKey) {
+      return;
+    }
+
+    setSyncedCheckoutSessionId(syncKey);
+    void syncRegisterEntitlement({
+      registerId: register.registerId,
+      sessionId: checkoutSessionId,
+    })
+      .then((result) => {
+        if (!result?.applied) {
+          return;
+        }
+
+        invalidateEntitlementCache();
+        toast({
+          title: 'Freischaltung aktiv',
+          description:
+            result.plan === 'enterprise'
+              ? 'Enterprise wurde für dieses Workspace-Profil zugeordnet.'
+              : 'Governance Control Center wurde für dieses Konto freigeschaltet.',
+        });
+        router.replace('/settings?section=governance#upgrade-panel');
+      })
+      .catch((error) => {
+        console.error('Governance entitlement sync failed', error);
+        toast({
+          variant: 'destructive',
+          title: 'Billing-Synchronisierung fehlgeschlagen',
+          description:
+            'Die Checkout-Rückkehr wurde erkannt, konnte aber noch nicht vollständig zugeordnet werden.',
+        });
+      });
+  }, [
+    checkoutSessionId,
+    register?.registerId,
+    router,
+    syncedCheckoutSessionId,
+    toast,
+  ]);
 
   if (!user) {
     return null;
@@ -262,6 +356,73 @@ export function GovernanceSettingsSection() {
         ? previous.filter((entry) => entry !== value)
         : [...previous, value],
     );
+  };
+
+  const handleBillingAction = async (
+    action: 'checkout' | 'portal',
+    targetPlan: 'pro' | 'enterprise' = 'pro',
+  ) => {
+    if (!user) {
+      return;
+    }
+
+    setBillingAction(action);
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(
+        action === 'checkout' ? '/api/billing/checkout' : '/api/billing/portal',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body:
+            action === 'checkout'
+              ? JSON.stringify({
+                  targetPlan,
+                  billingInterval,
+                  registerId: register?.registerId ?? null,
+                  workspaceId:
+                    scopeContext?.kind === 'workspace'
+                      ? scopeContext.workspaceId
+                      : register?.workspaceId ?? null,
+                })
+              : JSON.stringify({}),
+        },
+      );
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        url?: string;
+      };
+
+      if (!response.ok || typeof payload.url !== 'string') {
+        throw new Error(
+          typeof payload.error === 'string'
+            ? payload.error
+            : action === 'portal'
+              ? 'Billing konnte nicht geöffnet werden.'
+              : 'Checkout konnte nicht gestartet werden.',
+        );
+      }
+
+      window.location.assign(payload.url);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title:
+          action === 'portal'
+            ? 'Billing nicht verfügbar'
+            : 'Checkout nicht verfügbar',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Die Billing-Aktion ist gerade nicht verfügbar.',
+      });
+    } finally {
+      setBillingAction(null);
+    }
   };
 
   const handleSave = async () => {
@@ -404,6 +565,34 @@ export function GovernanceSettingsSection() {
     );
   }
 
+  const activeRegisterEntitlement =
+    register.entitlement?.status === 'active' ? register.entitlement : null;
+  const activeWorkspaceEntitlement =
+    profile?.workspaceEntitlement?.status === 'active'
+      ? profile.workspaceEntitlement
+      : null;
+  const currentPlan =
+    activeRegisterEntitlement?.plan ??
+    activeWorkspaceEntitlement?.plan ??
+    register.plan ??
+    'free';
+  const enterpriseUpgradeDestination =
+    currentPlan === 'pro' ? getGovernanceUpgradeDestination(currentPlan) : null;
+  const workspaceIdFromScope =
+    scopeContext?.kind === 'workspace' ? scopeContext.workspaceId : null;
+  const currentPlanLabel =
+    currentPlan === 'enterprise'
+      ? 'Enterprise'
+      : currentPlan === 'pro'
+        ? 'Governance Control Center'
+        : 'Free Register';
+  const currentPlanDescription =
+    currentPlan === 'enterprise'
+      ? 'Organisation, Reviews, Policies, Exports und Identity-Prozesse sind für dieses Workspace-Profil freigeschaltet.'
+      : currentPlan === 'pro'
+        ? 'Reviews, Policy Engine, Exports, Trust Portal und Academy sind freigeschaltet.'
+        : 'Register, Erfassung, externe Inbox und Basis-Governance bleiben aktiv. Reviews, Policies, Exports und Academy benötigen die Governance-Stufe.';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -418,6 +607,139 @@ export function GovernanceSettingsSection() {
           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Änderungen speichern
         </Button>
+      </div>
+
+      <div
+        id="upgrade-panel"
+        className="rounded-lg border border-slate-200 bg-slate-50 p-4"
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-slate-950">
+              Tarif & Freischaltung
+            </p>
+            <p className="text-sm text-slate-700">
+              Aktuell aktiv: {currentPlanLabel}
+            </p>
+            <p className="text-sm text-slate-600">{currentPlanDescription}</p>
+            {enterpriseUpgradeDestination ? (
+              <p className="text-xs text-slate-500">
+                {enterpriseUpgradeDestination.description}
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">
+                {currentPlan === 'free'
+                  ? 'Die Pro-Stufe wird im gehosteten Stripe-Checkout aus aktiven Usern und dokumentierten Einsatzfällen ermittelt und danach automatisch diesem Register oder Workspace zugeordnet.'
+                  : 'Dieses Workspace-Profil ist bereits auf der höchsten Freischaltungsstufe.'}
+              </p>
+            )}
+            {currentPlan === 'free' ? (
+              <div className="space-y-2 pt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={
+                      billingInterval === 'month' ? 'default' : 'outline'
+                    }
+                    onClick={() => setBillingInterval('month')}
+                    disabled={billingAction !== null}
+                  >
+                    Monatlich
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={billingInterval === 'year' ? 'default' : 'outline'}
+                    onClick={() => setBillingInterval('year')}
+                    disabled={billingAction !== null}
+                  >
+                    Jährlich
+                  </Button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Jährlich reduziert die Governance-Stufen gegenüber monatlicher
+                  Zahlung um fast zwei Monate.
+                </p>
+                {workspaceIdFromScope || register.workspaceId ? (
+                  <p className="text-xs text-slate-500">
+                    Abgerechnet wird auf Basis des aktuell geöffneten
+                    Workspace-Kontexts.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {currentPlan === 'free' ? (
+              <Button asChild variant="outline">
+                <Link href={ROUTE_HREFS.control}>Bericht ansehen</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline">
+                <Link href={ROUTE_HREFS.control}>Control öffnen</Link>
+              </Button>
+            )}
+            {currentPlan === 'free' ? (
+              <Button
+                onClick={() => void handleBillingAction('checkout', 'pro')}
+                disabled={billingAction !== null}
+              >
+                {billingAction === 'checkout' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Governance freischalten
+              </Button>
+            ) : null}
+            {currentPlan === 'pro' || currentPlan === 'enterprise' ? (
+              <Button
+                variant="outline"
+                onClick={() => void handleBillingAction('portal')}
+                disabled={billingAction !== null}
+              >
+                {billingAction === 'portal' ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Billing verwalten
+              </Button>
+            ) : null}
+            {enterpriseUpgradeDestination ? (
+              <Button
+                asChild
+                variant={
+                  enterpriseUpgradeDestination.checkoutConfigured
+                    ? 'default'
+                    : 'outline'
+                }
+              >
+                <a
+                  href={enterpriseUpgradeDestination.href}
+                  target={
+                    enterpriseUpgradeDestination.external &&
+                    !enterpriseUpgradeDestination.href.startsWith('mailto:')
+                      ? '_blank'
+                      : undefined
+                  }
+                  rel={
+                    enterpriseUpgradeDestination.external &&
+                    !enterpriseUpgradeDestination.href.startsWith('mailto:')
+                      ? 'noreferrer'
+                      : undefined
+                  }
+                >
+                  {enterpriseUpgradeDestination.label}
+                </a>
+              </Button>
+            ) : currentPlan === 'enterprise' ? (
+              <Button asChild>
+                <Link href={ROUTE_HREFS.controlEnterprise}>
+                  Organisation öffnen
+                </Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <Accordion

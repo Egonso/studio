@@ -34,7 +34,6 @@ import { useAuth } from '@/context/auth-context';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
-import { getActiveWorkspaceId } from '@/lib/data-service';
 import type { GovernanceSignOffRecord } from '@/lib/enterprise/governance-signoff';
 import {
   getWorkspaceRoleLabel,
@@ -46,6 +45,7 @@ import {
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 import { cn } from '@/lib/utils';
+import { getActiveWorkspaceId } from '@/lib/workspace-session';
 
 interface WorkspaceMembersResponse {
   workspace: {

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { inferCheckoutEntitlementPlan } from '@/lib/billing/stripe-entitlements';
-
-const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
+import { buildCheckoutReturnPayload } from '@/lib/billing/checkout-return';
+import {
+  resolveStripeSecretKey,
+  STRIPE_API_VERSION,
+} from '@/lib/billing/stripe-server';
 
 /**
  * API Route to retrieve customer email from a Stripe Checkout Session.
@@ -10,8 +13,9 @@ const STRIPE_API_VERSION = '2025-02-24.acacia' as Stripe.LatestApiVersion;
  * 
  * GET /api/stripe-session?session_id=cs_xxx
  */
-function resolveStripeSecretKey(): string | null {
-    return process.env.STRIPE_SECRET_KEY || process.env.STRIPE_API_KEY || null;
+
+function isValidStripeCheckoutSessionId(value: string): boolean {
+    return /^cs_(test|live)_[A-Za-z0-9]+$/.test(value);
 }
 
 export async function GET(request: NextRequest) {
@@ -20,6 +24,13 @@ export async function GET(request: NextRequest) {
     if (!sessionId) {
         return NextResponse.json(
             { error: 'Missing session_id parameter' },
+            { status: 400 }
+        );
+    }
+
+    if (!isValidStripeCheckoutSessionId(sessionId)) {
+        return NextResponse.json(
+            { error: 'Invalid session_id parameter' },
             { status: 400 }
         );
     }
@@ -40,6 +51,13 @@ export async function GET(request: NextRequest) {
         });
 
         const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session.status !== 'complete') {
+            return NextResponse.json(
+                { error: 'Checkout session not completed' },
+                { status: 409 }
+            );
+        }
+
         const lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
             limit: 20,
             expand: ['data.price.product'],
@@ -69,30 +87,28 @@ export async function GET(request: NextRequest) {
             }),
         });
 
-        if (!customerEmail) {
-            // Try to get from customer object if available
-            if (typeof session.customer === 'string') {
-                const customer = await stripe.customers.retrieve(session.customer);
-                if (customer && !customer.deleted && customer.email) {
-                    return NextResponse.json({
-                        customer_email: customer.email.toLowerCase(),
-                        entitlement_plan: entitlementPlan,
-                        checkout_claimable: entitlementPlan === 'pro' || entitlementPlan === 'enterprise',
-                    });
-                }
+        let customerObjectEmail: string | null = null;
+        if (!customerEmail && typeof session.customer === 'string') {
+            const customer = await stripe.customers.retrieve(session.customer);
+            if (customer && !customer.deleted) {
+                customerObjectEmail = customer.email ?? null;
             }
+        }
 
+        const payload = buildCheckoutReturnPayload({
+            sessionCustomerEmail: customerEmail,
+            customerEmail: customerObjectEmail,
+            entitlementPlan,
+        });
+
+        if (!payload) {
             return NextResponse.json(
                 { error: 'No email found in session' },
                 { status: 404 }
             );
         }
 
-        return NextResponse.json({
-            customer_email: customerEmail.toLowerCase(),
-            entitlement_plan: entitlementPlan,
-            checkout_claimable: entitlementPlan === 'pro' || entitlementPlan === 'enterprise',
-        });
+        return NextResponse.json(payload);
 
     } catch (error: any) {
         console.error('Error retrieving Stripe session:', error.message);

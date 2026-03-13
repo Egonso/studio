@@ -56,6 +56,7 @@ const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
 interface CheckoutReturnContext {
   claimable: boolean;
   plan: SubscriptionPlan | null;
+  status: 'idle' | 'loaded' | 'error';
 }
 
 interface ContextNotice {
@@ -117,6 +118,15 @@ function getContextNotices(
     });
   }
 
+  if (context.sessionId && checkoutContext.status === 'error') {
+    notices.push({
+      id: 'checkout_return_error',
+      title: 'Checkout-Rückkehr wird geprüft',
+      description:
+        'Melden Sie sich mit derselben E-Mail-Adresse wie im Checkout an. Falls die Freischaltung nicht sofort erscheint, kann sie über die Billing-Synchronisierung nachgezogen werden.',
+    });
+  }
+
   return notices;
 }
 
@@ -157,6 +167,7 @@ export default function AuthEntryPage() {
     {
       claimable: false,
       plan: null,
+      status: 'idle',
     },
   );
 
@@ -267,7 +278,7 @@ export default function AuthEntryPage() {
 
   useEffect(() => {
     if (!routeContext.sessionId) {
-      setCheckoutContext({ claimable: false, plan: null });
+      setCheckoutContext({ claimable: false, plan: null, status: 'idle' });
       return;
     }
 
@@ -276,7 +287,17 @@ export default function AuthEntryPage() {
     fetch(
       `/api/stripe-session?session_id=${encodeURIComponent(routeContext.sessionId)}`,
     )
-      .then((res) => res.json())
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(
+            typeof data?.error === 'string'
+              ? data.error
+              : 'Checkout context failed.',
+          );
+        }
+        return data;
+      })
       .then((data) => {
         if (cancelled) {
           return;
@@ -296,12 +317,13 @@ export default function AuthEntryPage() {
             data.entitlement_plan === 'enterprise'
               ? data.entitlement_plan
               : null,
+          status: 'loaded',
         });
       })
       .catch((error) => {
         if (!cancelled) {
           console.error('Failed to fetch checkout session context', error);
-          setCheckoutContext({ claimable: false, plan: null });
+          setCheckoutContext({ claimable: false, plan: null, status: 'error' });
         }
       });
 

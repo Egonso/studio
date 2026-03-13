@@ -494,6 +494,13 @@ export interface RegisterEntitlement {
   subscriptionId?: string | null;
 }
 
+export type RegisterScopeKind = 'personal' | 'workspace';
+
+export interface RegisterScopeContext {
+  kind: RegisterScopeKind;
+  workspaceId?: string | null;
+}
+
 // ── Standalone Register (User-Scoped) ───────────────────────────────────────
 
 export interface Register {

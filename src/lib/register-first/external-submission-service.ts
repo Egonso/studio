@@ -1,21 +1,21 @@
 'use client';
 
-import { getFirebaseAuth, getFirebaseDb } from '@/lib/firebase';
+import { getFirebaseAuth } from '@/lib/firebase';
+import {
+  resolveClientRegisterScopeContext,
+} from '@/lib/register-first/register-scope';
 
 import { parseExternalSubmission } from './schema';
 import {
-  applyExternalSubmissionReview,
-  buildUseCaseFromSupplierSubmission,
   getExternalSubmissionActor,
   getExternalSubmissionTitle,
-  isKmuRegisterMode,
 } from './external-submissions';
-import { sanitizeSupplierRequestCard } from './supplier-requests';
 import type {
   ExternalSubmission,
   ExternalSubmissionStatus,
   ExternalSubmissionSourceType,
   Register,
+  RegisterScopeContext,
 } from './types';
 import type { WorkspaceRole } from '@/lib/enterprise/workspace';
 
@@ -29,6 +29,7 @@ export interface ReviewExternalSubmissionInput {
   registerId: string;
   register?: Register | null;
   submissionId: string;
+  scopeContext?: RegisterScopeContext | null;
   action: 'approve' | 'reject' | 'merge';
   note?: string | null;
   actorRole?: WorkspaceRole | null;
@@ -38,6 +39,7 @@ export interface FindRelatedExternalSubmissionInput {
   registerId: string;
   useCaseId: string;
   submissionId?: string | null;
+  scopeContext?: RegisterScopeContext | null;
 }
 
 function normalizeOptionalText(
@@ -74,17 +76,48 @@ async function resolveUserIdOrThrow(): Promise<string> {
   return userId;
 }
 
-function createUseCaseId(): string {
-  if (
-    typeof crypto !== 'undefined' &&
-    typeof crypto.randomUUID === 'function'
-  ) {
-    return crypto.randomUUID();
+async function authFetchJson<T>(
+  input: string,
+  init?: RequestInit,
+): Promise<T> {
+  const auth = await getFirebaseAuth();
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) {
+    throw new Error('UNAUTHENTICATED');
   }
 
-  return `uc_${Date.now().toString(36)}_${Math.random()
-    .toString(36)
-    .slice(2, 10)}`;
+  const response = await fetch(input, {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      ...(init?.headers ?? {}),
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as
+      | { error?: string }
+      | null;
+    throw new Error(payload?.error ?? `Request failed with ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
+async function resolveScopeContext(
+  requestedScope?: RegisterScopeContext | null,
+): Promise<{ userId: string; scopeContext: RegisterScopeContext }> {
+  const userId = await resolveUserIdOrThrow();
+  const scopeContext = await resolveClientRegisterScopeContext({
+    userId,
+    requestedScope,
+  });
+
+  return {
+    userId,
+    scopeContext,
+  };
 }
 
 function matchesFilters(
@@ -134,61 +167,92 @@ export const externalSubmissionService = {
   async getById(
     registerId: string,
     submissionId: string | null | undefined,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<ExternalSubmission | null> {
     const normalizedSubmissionId = normalizeOptionalText(submissionId);
     if (!normalizedSubmissionId) {
       return null;
     }
 
-    const userId = await resolveUserIdOrThrow();
-    const db = await getFirebaseDb();
-    const { doc, getDoc } = await import('firebase/firestore');
+    const resolved = await resolveScopeContext(scopeContext);
+    if (resolved.scopeContext.kind === 'workspace') {
+      const payload = await authFetchJson<{
+        submission?: ExternalSubmission | null;
+      }>(
+        `/api/workspaces/${resolved.scopeContext.workspaceId}/external-submissions/${normalizedSubmissionId}?registerId=${encodeURIComponent(registerId)}`,
+      );
+      return payload.submission ? parseExternalSubmission(payload.submission) : null;
+    }
 
-    const snapshot = await getDoc(
-      doc(
-        db,
-        'users',
-        userId,
-        'registers',
-        registerId,
-        'externalSubmissions',
-        normalizedSubmissionId,
-      ),
+    const payload = await authFetchJson<{
+      submission?: ExternalSubmission | null;
+    }>(
+      `/api/registers/${encodeURIComponent(registerId)}/external-submissions/${encodeURIComponent(normalizedSubmissionId)}`,
     );
-
-    return snapshot.exists() ? parseExternalSubmission(snapshot.data()) : null;
+    return payload.submission ? parseExternalSubmission(payload.submission) : null;
   },
 
   async list(
     registerId: string,
     filters: ExternalSubmissionFilters = {},
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<ExternalSubmission[]> {
-    const userId = await resolveUserIdOrThrow();
-    const db = await getFirebaseDb();
-    const { collection, getDocs, orderBy, query } =
-      await import('firebase/firestore');
+    const resolved = await resolveScopeContext(scopeContext);
+    if (resolved.scopeContext.kind === 'workspace') {
+      const searchParams = new URLSearchParams();
+      searchParams.set('registerId', registerId);
+      if (filters.status && filters.status !== 'all') {
+        searchParams.set('status', filters.status);
+      }
+      if (filters.sourceType && filters.sourceType !== 'all') {
+        searchParams.set('sourceType', filters.sourceType);
+      }
+      if (filters.searchText?.trim()) {
+        searchParams.set('searchText', filters.searchText.trim());
+      }
 
-    const snapshot = await getDocs(
-      query(
-        collection(
-          db,
-          'users',
-          userId,
-          'registers',
-          registerId,
-          'externalSubmissions',
-        ),
-        orderBy('submittedAt', 'desc'),
-      ),
+      const payload = await authFetchJson<{
+        submissions: ExternalSubmission[];
+      }>(
+        `/api/workspaces/${resolved.scopeContext.workspaceId}/external-submissions?${searchParams.toString()}`,
+      );
+
+      return payload.submissions.map((submission) =>
+        parseExternalSubmission(submission),
+      );
+    }
+
+    const searchParams = new URLSearchParams();
+    if (filters.status && filters.status !== 'all') {
+      searchParams.set('status', filters.status);
+    }
+    if (filters.sourceType && filters.sourceType !== 'all') {
+      searchParams.set('sourceType', filters.sourceType);
+    }
+    if (filters.searchText?.trim()) {
+      searchParams.set('searchText', filters.searchText.trim());
+    }
+
+    const payload = await authFetchJson<{
+      submissions: ExternalSubmission[];
+    }>(
+      `/api/registers/${encodeURIComponent(registerId)}/external-submissions?${searchParams.toString()}`,
     );
 
-    return snapshot.docs
-      .map((doc) => parseExternalSubmission(doc.data()))
+    return payload.submissions
+      .map((submission) => parseExternalSubmission(submission))
       .filter((submission) => matchesFilters(submission, filters));
   },
 
-  async countOpen(registerId: string): Promise<number> {
-    const submissions = await this.list(registerId, { status: 'submitted' });
+  async countOpen(
+    registerId: string,
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<number> {
+    const submissions = await this.list(
+      registerId,
+      { status: 'submitted' },
+      scopeContext,
+    );
     return submissions.length;
   },
 
@@ -198,153 +262,75 @@ export const externalSubmissionService = {
     const directMatch = await this.getById(
       input.registerId,
       input.submissionId,
+      input.scopeContext,
     );
     if (directMatch) {
       return directMatch;
     }
 
-    const userId = await resolveUserIdOrThrow();
-    const db = await getFirebaseDb();
-    const { collection, getDocs, limit, query, where } =
-      await import('firebase/firestore');
+    const resolved = await resolveScopeContext(input.scopeContext);
+    if (resolved.scopeContext.kind === 'workspace') {
+      const searchParams = new URLSearchParams({
+        linkedUseCaseId: input.useCaseId,
+        registerId: input.registerId,
+      });
+      const payload = await authFetchJson<{
+        submissions: ExternalSubmission[];
+      }>(
+        `/api/workspaces/${resolved.scopeContext.workspaceId}/external-submissions?${searchParams.toString()}`,
+      );
+      return payload.submissions[0]
+        ? parseExternalSubmission(payload.submissions[0])
+        : null;
+    }
 
-    const snapshot = await getDocs(
-      query(
-        collection(
-          db,
-          'users',
-          userId,
-          'registers',
-          input.registerId,
-          'externalSubmissions',
-        ),
-        where('linkedUseCaseId', '==', input.useCaseId),
-        limit(1),
-      ),
+    const searchParams = new URLSearchParams({
+      linkedUseCaseId: input.useCaseId,
+    });
+    const payload = await authFetchJson<{
+      submissions: ExternalSubmission[];
+    }>(
+      `/api/registers/${encodeURIComponent(input.registerId)}/external-submissions?${searchParams.toString()}`,
     );
-
-    const match = snapshot.docs[0];
-    return match ? parseExternalSubmission(match.data()) : null;
+    return payload.submissions[0]
+      ? parseExternalSubmission(payload.submissions[0])
+      : null;
   },
 
   async review(
     input: ReviewExternalSubmissionInput,
   ): Promise<ExternalSubmission> {
-    const userId = await resolveUserIdOrThrow();
-    const db = await getFirebaseDb();
-    const { doc, getDoc, writeBatch } = await import('firebase/firestore');
-
-    const submissionRef = doc(
-      db,
-      'users',
-      userId,
-      'registers',
-      input.registerId,
-      'externalSubmissions',
-      input.submissionId,
-    );
-    const submissionSnapshot = await getDoc(submissionRef);
-    if (!submissionSnapshot.exists()) {
-      throw new Error('SUBMISSION_NOT_FOUND');
-    }
-
-    const submission = parseExternalSubmission(submissionSnapshot.data());
-    const reviewedAt = new Date().toISOString();
+    const resolved = await resolveScopeContext(input.scopeContext);
     const reviewNote = normalizeOptionalText(input.note);
-    const batch = writeBatch(db);
-    let linkedUseCaseId = submission.linkedUseCaseId ?? null;
-    const approvalPending =
-      input.action === 'merge' &&
-      submission.approvalWorkflow &&
-      submission.approvalWorkflow.status !== 'approved';
-    if (approvalPending) {
-      throw new Error('APPROVAL_PENDING');
-    }
-    if (input.action === 'approve') {
-      const shouldAutoCreate =
-        submission.sourceType === 'supplier_request' &&
-        !linkedUseCaseId &&
-        isKmuRegisterMode(input.register);
-      if (shouldAutoCreate) {
-        linkedUseCaseId = createUseCaseId();
-        const card = buildUseCaseFromSupplierSubmission({
-          useCaseId: linkedUseCaseId,
-          registerId: input.registerId,
-          ownerId: userId,
-          organisationName:
-            input.register?.organisationName ??
-            input.register?.orgSettings?.organisationName ??
-            input.register?.name ??
-            null,
-          requestTokenId: submission.requestTokenId,
-          submission: {
-            ...submission,
-            linkedUseCaseId,
-          },
-          now: new Date(reviewedAt),
-        });
-        batch.set(
-          doc(
-            db,
-            'users',
-            userId,
-            'registers',
-            input.registerId,
-            'useCases',
-            linkedUseCaseId,
-          ),
-          sanitizeSupplierRequestCard(card),
-        );
-      }
-    } else {
-      const shouldCreateMergedUseCase =
-        input.action === 'merge' &&
-        submission.sourceType === 'supplier_request' &&
-        !linkedUseCaseId;
-      if (shouldCreateMergedUseCase) {
-        linkedUseCaseId = createUseCaseId();
-        const card = buildUseCaseFromSupplierSubmission({
-          useCaseId: linkedUseCaseId,
-          registerId: input.registerId,
-          ownerId: userId,
-          organisationName:
-            input.register?.organisationName ??
-            input.register?.orgSettings?.organisationName ??
-            input.register?.name ??
-            null,
-          requestTokenId: submission.requestTokenId,
-          submission: {
-            ...submission,
-            linkedUseCaseId,
-          },
-          now: new Date(reviewedAt),
-        });
-        batch.set(
-          doc(
-            db,
-            'users',
-            userId,
-            'registers',
-            input.registerId,
-            'useCases',
-            linkedUseCaseId,
-          ),
-          sanitizeSupplierRequestCard(card),
-        );
-      }
+    if (resolved.scopeContext.kind === 'workspace') {
+      const payload = await authFetchJson<{
+        submission: ExternalSubmission;
+      }>(
+        `/api/workspaces/${resolved.scopeContext.workspaceId}/external-submissions/${input.submissionId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            action: input.action,
+            registerId: input.registerId,
+            ...(reviewNote ? { note: reviewNote } : {}),
+          }),
+        },
+      );
+      return parseExternalSubmission(payload.submission);
     }
 
-    const updatedSubmission = applyExternalSubmissionReview({
-      submission,
-      action: input.action,
-      linkedUseCaseId,
-      reviewedAt,
-      reviewedBy: userId,
-      reviewNote,
-      actorRole: input.actorRole ?? null,
-    });
-    batch.set(submissionRef, updatedSubmission);
-    await batch.commit();
-    return updatedSubmission;
+    const payload = await authFetchJson<{
+      submission: ExternalSubmission;
+    }>(
+      `/api/registers/${encodeURIComponent(input.registerId)}/external-submissions/${encodeURIComponent(input.submissionId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          action: input.action,
+          ...(reviewNote ? { note: reviewNote } : {}),
+        }),
+      },
+    );
+    return parseExternalSubmission(payload.submission);
   },
 };

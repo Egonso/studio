@@ -2,9 +2,6 @@ import type { NextConfig } from 'next';
 import { LEGACY_ROUTE_REDIRECTS } from './src/lib/navigation/route-manifest';
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -32,7 +29,7 @@ const nextConfig: NextConfig = {
       process.env.NEXT_PUBLIC_DOCUMENTERO_API_KEY,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    tsconfigPath: 'tsconfig.next.json',
   },
   serverExternalPackages: [
     'genkit',
@@ -40,6 +37,13 @@ const nextConfig: NextConfig = {
     '@genkit-ai/firebase',
     'handlebars',
   ],
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false;
+    }
+
+    return config;
+  },
   async redirects() {
     return LEGACY_ROUTE_REDIRECTS;
   },

@@ -47,7 +47,11 @@ export default function ControlPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { plan } = useCapability('reviewWorkflow');
+  const {
+    allowed: reviewAllowed,
+    loading: capabilityLoading,
+    plan,
+  } = useCapability('reviewWorkflow');
   const hasGovernanceMenu = plan !== 'free';
 
   const [snapshot, setSnapshot] = useState<ControlSnapshot | null>(null);
@@ -93,10 +97,16 @@ export default function ControlPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && user && registerFirstFlags.controlShell) {
+    if (
+      !loading &&
+      !capabilityLoading &&
+      user &&
+      registerFirstFlags.controlShell &&
+      reviewAllowed
+    ) {
       void loadControlSnapshot();
     }
-  }, [loading, user, loadControlSnapshot]);
+  }, [capabilityLoading, loadControlSnapshot, loading, reviewAllowed, user]);
 
   const overview = useMemo(() => {
     if (!snapshot) return null;
@@ -159,7 +169,7 @@ export default function ControlPage() {
     );
   }, [actionQueue]);
 
-  if (loading) {
+  if (loading || capabilityLoading) {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
@@ -193,7 +203,9 @@ export default function ControlPage() {
             : 'Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise.'
       }
       nextStep={
-        actionQueue.length > 0
+        !reviewAllowed
+          ? 'Governance Control Center gehört zur bezahlten Governance-Stufe.'
+          : actionQueue.length > 0
           ? 'Arbeiten Sie zuerst die priorisierten Aufgaben aus dem Bericht ab.'
           : 'Nutzen Sie den Bericht, um Dokumentations-, Review- und Nachweislücken zu erkennen.'
       }
@@ -208,6 +220,24 @@ export default function ControlPage() {
               <Button asChild>
                 <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
               </Button>
+            }
+          />
+        ) : !reviewAllowed ? (
+          <PageStatePanel
+            area="paid_governance_control"
+            title="Governance-Bericht gehört zur Governance-Stufe"
+            description="Maturity-Analyse, Action Queue und Organisationssteuerung bleiben für bezahlte Governance-Workspaces reserviert."
+            actions={
+              <>
+                <Button asChild>
+                  <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href={ROUTE_HREFS.governanceUpgrade}>
+                    Upgrade-Optionen
+                  </Link>
+                </Button>
+              </>
             }
           />
         ) : (

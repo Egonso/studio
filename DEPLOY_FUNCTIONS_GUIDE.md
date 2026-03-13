@@ -54,7 +54,22 @@ Dieser Befehl lädt die neue `firestore.rules`-Datei in Ihr Projekt hoch.
 firebase deploy --only firestore:rules
 ```
 
-### Schritt 6: Die Function bereitstellen (deployen)
+### Schritt 6: Stripe-Secrets sicher hinterlegen
+
+Die Function verwendet Firebase Functions v2 Secrets. Hinterlegen Sie die Stripe-Werte deshalb vor dem Deploy im Secret-Store und nicht als lose Klartext-Umgebungsvariablen in der UI.
+
+```bash
+firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+```
+
+Optional nur für ältere Fallbacks:
+
+```bash
+firebase functions:secrets:set STRIPE_API_KEY
+```
+
+### Schritt 7: Die Function bereitstellen (deployen)
 
 Jetzt laden wir den Code der Funktion in die Cloud hoch.
 
@@ -64,40 +79,16 @@ firebase deploy --only functions
 
 Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung, die Ihnen auch die URL Ihrer Webhook-Funktion anzeigt.
 
----
+### Schritt 8: Secret- und Webhook-Konfiguration prüfen
 
-### Schritt 7: Geheime Schlüssel (Environment Variables) hinzufügen
-
-Dies ist der wichtigste Schritt, um die Verbindung zu Stripe sicher zu machen. **Sie müssen dies nur einmal tun.**
-
-1.  **Öffnen Sie die Google Cloud Console:**
-    *   Gehen Sie zu [https://console.cloud.google.com/](https://console.cloud.google.com/).
-    *   Stellen Sie sicher, dass oben das richtige Projekt ausgewählt ist (es sollte den Namen Ihres Firebase-Projekts haben, z. B. `ai-act-compass-m6o05`).
-
-2.  **Finden Sie Ihre Cloud Function:**
-    *   Nutzen Sie die Suchleiste ganz oben und suchen Sie nach **"Cloud Functions"**. Klicken Sie auf das Ergebnis.
-    *   Sie sehen nun eine Liste Ihrer Funktionen. Klicken Sie auf den Namen `stripeWebhook`.
-
-3.  **Umgebungsvariablen bearbeiten:**
-    *   Klicken Sie oben auf **"BEARBEITEN"**.
-    *   Scrollen Sie nach unten zum Abschnitt **"Laufzeit-, Build- und Verbindungseinstellungen"** und öffnen Sie ihn.
-    *   Klicken Sie auf den Tab **"LAUFZEIT"**.
-
-4.  **Variablen hinzufügen:**
-    *   Sie sehen den Abschnitt **"Laufzeitumgebungsvariablen"**. Klicken Sie auf **"VARIABLE HINZUFÜGEN"**.
-    *   **Erste Variable:**
-        *   **Name:** `STRIPE_SECRET_KEY`
-        *   **Wert:** Fügen Sie hier Ihren **geheimen Stripe-Schlüssel** ein. Er beginnt mit `sk_live_...` oder `sk_test_...`.
-    *   *(Optional für Legacy-Deployments)* **Zusätzliche Variable:**
-        *   **Name:** `STRIPE_API_KEY`
-        *   **Wert:** derselbe Stripe-Secret-Key wie oben.
-    *   **Zweite Variable:** Klicken Sie erneut auf **"VARIABLE HINZUFÜGEN"**.
-        *   **Name:** `STRIPE_WEBHOOK_SECRET`
-        *   **Wert:** Fügen Sie hier Ihr **Webhook-Signaturgeheimnis** ein. Es beginnt mit `whsec_...`. Sie finden es in Ihrem Stripe-Dashboard unter Entwickler > Webhooks > Ihr Webhook-Endpunkt.
-
-5.  **Speichern:**
-    *   Scrollen Sie ganz nach unten und klicken Sie auf **"WEITER"** und dann auf **"BEREITSTELLEN"**.
-    *   Die Funktion wird nun mit den neuen, sicheren Schlüsseln aktualisiert. Dies kann wieder ein paar Minuten dauern.
+1.  Verifizieren Sie mit `firebase functions:secrets:access STRIPE_SECRET_KEY`, dass das Secret im richtigen Projekt liegt.
+2.  Prüfen Sie im Stripe-Dashboard unter Entwickler > Webhooks, dass Ihr Endpunkt auf die aktuelle Firebase-Function-URL zeigt.
+3.  Stellen Sie sicher, dass dort mindestens diese Events aktiviert sind:
+    *   `checkout.session.completed`
+    *   `invoice.paid`
+    *   `customer.subscription.updated`
+    *   `customer.subscription.deleted`
+    *   `charge.refunded`
 
 ---
 

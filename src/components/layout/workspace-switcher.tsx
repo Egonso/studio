@@ -6,11 +6,11 @@ import { useAuth } from '@/context/auth-context';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Building2 } from 'lucide-react';
+import { clearActiveProjectId } from '@/lib/data-service';
 import {
-    clearActiveProjectId,
     getActiveWorkspaceId,
     setActiveWorkspaceId,
-} from '@/lib/data-service';
+} from '@/lib/workspace-session';
 import {
     DropdownMenu,
     DropdownMenuContent,

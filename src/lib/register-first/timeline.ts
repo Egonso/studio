@@ -62,7 +62,8 @@ const FIELD_LABELS: Record<string, string> = {
   dataCategory: "Datenkategorie",
   dataCategories: "Datenkategorien",
   decisionImpact: "Entscheidungsrelevanz",
-  decisionInfluence: "Entscheidungsrelevanz",
+  decisionInfluence: "Entscheidungseinfluss",
+  governanceAssessment: "Governance-Einstellungen",
   "governanceAssessment.core.aiActCategory": "KI-Risikoklasse",
   "governanceAssessment.flex.iso.reviewCycle": "Review-Zyklus",
   "governanceAssessment.flex.iso.oversightModel": "Aufsichtsmodell",
@@ -75,6 +76,58 @@ const FIELD_LABELS: Record<string, string> = {
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+function looksLikeOpaqueActorId(value: string): boolean {
+  return (
+    /^[A-Za-z0-9_-]{20,}$/.test(value) ||
+    /^user[_-]/i.test(value) ||
+    /^anon/i.test(value)
+  );
+}
+
+function formatTimelineActor(
+  value: string | null | undefined,
+  fallback: string | null
+): string | null {
+  const normalized = normalizeOptionalText(value);
+  if (!normalized) {
+    return fallback;
+  }
+
+  const uppercased = normalized.toUpperCase();
+  if (
+    uppercased === "SUPPLIER_REQUEST" ||
+    uppercased === "SUPPLIER_REQUEST_LINK"
+  ) {
+    return "Lieferanteneinreichung";
+  }
+
+  if (uppercased === "ACCESS_CODE" || uppercased === "ACCESS_CODE_CAPTURE") {
+    return "Erfassung über Zugangscode";
+  }
+
+  if (uppercased === "IMPORT" || uppercased === "IMPORTED") {
+    return "Import";
+  }
+
+  if (uppercased === "ANONYMOUS") {
+    return "Öffentliche Einreichung";
+  }
+
+  if (uppercased === "HUMAN") {
+    return "Internes Team";
+  }
+
+  if (uppercased === "AUTOMATION" || uppercased === "SYSTEM") {
+    return "System";
+  }
+
+  if (looksLikeOpaqueActorId(normalized)) {
+    return fallback;
+  }
+
+  return normalized;
 }
 
 function compareJson(a: unknown, b: unknown): boolean {
@@ -177,6 +230,11 @@ export function formatChangedFieldLabel(path: string): string {
   return FIELD_LABELS[path] ?? path;
 }
 
+function formatChangedFieldLabels(paths: string[]): string[] {
+  const labels = paths.map(formatChangedFieldLabel);
+  return Array.from(new Set(labels));
+}
+
 export function createManualEditEvent(input: {
   before: UseCaseCard;
   after: UseCaseCard;
@@ -219,7 +277,11 @@ function buildStatusChangeEvent(
     timestamp: change.changedAt,
     title: `Status geändert: ${registerUseCaseStatusLabels[change.from]} → ${registerUseCaseStatusLabels[change.to]}`,
     description: normalizeOptionalText(change.reason),
-    actor: normalizeOptionalText(change.changedByName) ?? normalizeOptionalText(change.changedBy),
+    actor: formatTimelineActor(
+      normalizeOptionalText(change.changedByName) ??
+        normalizeOptionalText(change.changedBy),
+      "Internes Team"
+    ),
     badges,
     tone: change.to === "PROOF_READY" ? "success" : "default",
   };
@@ -250,6 +312,14 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
   ].filter(Boolean);
   const tone: RegisterTimelineEvent["tone"] =
     source === "manual" ? "default" : "warning";
+  const actorFallback =
+    source === "supplier_request"
+      ? "Lieferanteneinreichung"
+      : source === "access_code"
+        ? "Erfassung über Zugangscode"
+        : source === "import"
+          ? "Import"
+          : "Internes Team";
 
   return {
     id: `origin_${card.useCaseId}`,
@@ -257,7 +327,7 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
     timestamp,
     title,
     description: descriptionParts.join(" · ") || null,
-    actor: submitter,
+    actor: formatTimelineActor(submitter, actorFallback),
     badges,
     tone,
   };
@@ -297,7 +367,10 @@ function buildExternalSubmissionDecisionEvent(
     timestamp: submission.reviewedAt,
     title,
     description: details.join(" · ") || null,
-    actor: normalizeOptionalText(submission.reviewedBy),
+    actor: formatTimelineActor(
+      normalizeOptionalText(submission.reviewedBy),
+      "Internes Team"
+    ),
     badges,
     tone,
   };
@@ -323,9 +396,17 @@ export function buildUseCaseTimeline(input: {
       description: normalizeOptionalText(input.card.globalUseCaseId)
         ? `ID ${input.card.globalUseCaseId}`
         : null,
-      actor:
+      actor: formatTimelineActor(
         normalizeOptionalText(input.card.origin?.capturedByUserId) ??
-        normalizeOptionalText(input.card.capturedBy),
+          normalizeOptionalText(input.card.capturedBy),
+        getUseCaseSource(input.card) === "supplier_request"
+          ? "Lieferanteneinreichung"
+          : getUseCaseSource(input.card) === "access_code"
+            ? "Erfassung über Zugangscode"
+            : getUseCaseSource(input.card) === "import"
+              ? "Import"
+              : "Internes Team"
+      ),
       badges,
       tone: "default",
     },
@@ -337,9 +418,13 @@ export function buildUseCaseTimeline(input: {
       title: edit.summary,
       description:
         edit.changedFields.length > 0
-          ? edit.changedFields.map(formatChangedFieldLabel).join(", ")
+          ? formatChangedFieldLabels(edit.changedFields).join(", ")
           : null,
-      actor: normalizeOptionalText(edit.editedByName) ?? normalizeOptionalText(edit.editedBy),
+      actor: formatTimelineActor(
+        normalizeOptionalText(edit.editedByName) ??
+          normalizeOptionalText(edit.editedBy),
+        "Internes Team"
+      ),
       badges,
       tone: "default" as const,
     })),
@@ -360,7 +445,10 @@ export function buildUseCaseTimeline(input: {
         timestamp: review.reviewedAt,
         title: `Review dokumentiert: ${registerUseCaseStatusLabels[review.nextStatus]}`,
         description: normalizeOptionalText(review.notes),
-        actor: normalizeOptionalText(review.reviewedBy),
+        actor: formatTimelineActor(
+          normalizeOptionalText(review.reviewedBy),
+          "Internes Team"
+        ),
         badges,
         tone,
       };
@@ -384,9 +472,11 @@ export function buildUseCaseTimeline(input: {
           timestamp: input.card.sealedAt,
           title: "Use Case gezeichnet und versiegelt",
           description: normalizeOptionalText(input.card.sealHash),
-          actor:
+          actor: formatTimelineActor(
             normalizeOptionalText(input.card.sealedByName) ??
-            normalizeOptionalText(input.card.sealedBy),
+              normalizeOptionalText(input.card.sealedBy),
+            "EUKI Officer"
+          ),
           badges,
           tone: "success" as const,
         }

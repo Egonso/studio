@@ -4,7 +4,7 @@ import test from 'node:test';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 import { getGovernanceUpgradePrompt } from './governance-upgrade';
 
-test('free workspaces with review pressure are routed to reviews', () => {
+test('free workspaces with review pressure are routed to control overview', () => {
   const prompt = getGovernanceUpgradePrompt({
     plan: 'free',
     totalUseCases: 4,
@@ -15,7 +15,7 @@ test('free workspaces with review pressure are routed to reviews', () => {
   });
 
   assert.ok(prompt);
-  assert.equal(prompt?.href, ROUTE_HREFS.controlReviews);
+  assert.equal(prompt?.href, ROUTE_HREFS.control);
 });
 
 test('free workspaces with visible public evidence are routed to trust', () => {

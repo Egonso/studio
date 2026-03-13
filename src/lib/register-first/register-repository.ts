@@ -7,9 +7,11 @@ import type {
   RegisterAccessCode,
   RegisterDeletionState,
   RegisterUseCaseStatus,
+  RegisterScopeContext,
   UseCaseCard,
   PublicUseCaseIndexEntry,
 } from './types';
+import type { RegisterLocation } from './register-scope';
 import { sanitizeFirestorePayload } from './firestore-sanitize';
 import {
   createFreeRegisterEntitlement,
@@ -39,21 +41,34 @@ export interface RegisterQueryOptions {
 
 export interface RegisterRepository {
   createRegister(
-    userId: string,
+    ownerId: string,
     name: string,
     linkedProjectId?: string | null,
+    options?: { workspaceId?: string | null },
   ): Promise<Register>;
   getRegister(
-    userId: string,
+    ownerId: string,
     registerId: string,
     options?: RegisterQueryOptions,
   ): Promise<Register | null>;
   listRegisters(
-    userId: string,
+    ownerId: string,
     options?: RegisterQueryOptions,
   ): Promise<Register[]>;
+  listWorkspaceRegisters(
+    workspaceId: string,
+    options?: RegisterQueryOptions,
+  ): Promise<RegisterLocation[]>;
+  findRegisterLocation(
+    registerId: string,
+    options?: {
+      ownerId?: string | null;
+      scopeContext?: RegisterScopeContext | null;
+      includeDeleted?: boolean;
+    },
+  ): Promise<RegisterLocation | null>;
   updateRegister(
-    userId: string,
+    ownerId: string,
     registerId: string,
     partial: Partial<
       Pick<
@@ -70,11 +85,11 @@ export interface RegisterRepository {
     >,
   ): Promise<void>;
   softDeleteRegister(
-    userId: string,
+    ownerId: string,
     registerId: string,
     deletionState: RegisterDeletionState,
   ): Promise<Register>;
-  restoreRegister(userId: string, registerId: string): Promise<Register>;
+  restoreRegister(ownerId: string, registerId: string): Promise<Register>;
 }
 
 export interface RegisterUseCaseRepository {
@@ -164,6 +179,27 @@ function shouldIncludeRegister(
   return options?.includeDeleted === true || register.isDeleted !== true;
 }
 
+function normalizeOptionalText(value: string | null | undefined): string | null {
+  const normalized = value?.trim();
+  return normalized ? normalized : null;
+}
+
+function extractOwnerIdFromRegisterPath(path: string): string | null {
+  const match = path.match(/^users\/([^/]+)\/registers\/[^/]+$/);
+  return match?.[1] ?? null;
+}
+
+function matchesRegisterScope(
+  location: RegisterLocation,
+  scopeContext?: RegisterScopeContext | null,
+): boolean {
+  if (scopeContext?.kind === 'workspace') {
+    return location.register.workspaceId === scopeContext.workspaceId;
+  }
+
+  return true;
+}
+
 // ── Firestore: Register CRUD ────────────────────────────────────────────────
 
 export function createFirestoreRegisterRepository(): RegisterRepository {
@@ -184,36 +220,37 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
   }
 
   async function loadRegister(
-    userId: string,
+    ownerId: string,
     registerId: string,
   ): Promise<Register | null> {
     const { getFirebaseDb } = await import('@/lib/firebase');
     const db = await getFirebaseDb();
     const { doc, getDoc } = await import('firebase/firestore');
 
-    const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+    const docRef = doc(db, `users/${ownerId}/registers/${registerId}`);
     const snapshot = await getDoc(docRef);
     if (!snapshot.exists()) return null;
     return snapshot.data() as Register;
   }
 
   return {
-    async createRegister(userId, name, linkedProjectId = null) {
+    async createRegister(ownerId, name, linkedProjectId = null, options = {}) {
       const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
       const { collection, doc, setDoc } = await import('firebase/firestore');
 
-      const registersRef = collection(db, `users/${userId}/registers`);
+      const registersRef = collection(db, `users/${ownerId}/registers`);
       const newDoc = doc(registersRef);
       const createdAt = new Date().toISOString();
       const workspaceEntitlement =
-        (await loadWorkspaceEntitlement(userId)) ??
+        (await loadWorkspaceEntitlement(ownerId)) ??
         createFreeRegisterEntitlement(createdAt);
+      const workspaceId = normalizeOptionalText(options.workspaceId);
       const register: Register = {
         registerId: newDoc.id,
         name,
         createdAt,
-        workspaceId: userId,
+        workspaceId,
         linkedProjectId: linkedProjectId ?? null,
         plan: getEntitlementAccessPlan(workspaceEntitlement),
         entitlement: workspaceEntitlement,
@@ -222,19 +259,19 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       return register;
     },
 
-    async getRegister(userId, registerId, options) {
-      const register = await loadRegister(userId, registerId);
+    async getRegister(ownerId, registerId, options) {
+      const register = await loadRegister(ownerId, registerId);
       if (!register) return null;
       return shouldIncludeRegister(register, options) ? register : null;
     },
 
-    async listRegisters(userId, options) {
+    async listRegisters(ownerId, options) {
       const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
       const { collection, getDocs, orderBy, query } =
         await import('firebase/firestore');
 
-      const registersRef = collection(db, `users/${userId}/registers`);
+      const registersRef = collection(db, `users/${ownerId}/registers`);
       const q = query(registersRef, orderBy('createdAt', 'desc'));
       const snapshot = await getDocs(q);
       return snapshot.docs
@@ -242,17 +279,109 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
         .filter((register) => shouldIncludeRegister(register, options));
     },
 
-    async updateRegister(userId, registerId, partial) {
+    async listWorkspaceRegisters(workspaceId, options) {
+      const normalizedWorkspaceId = normalizeOptionalText(workspaceId);
+      if (!normalizedWorkspaceId) {
+        return [];
+      }
+
+      const { getFirebaseDb } = await import('@/lib/firebase');
+      const db = await getFirebaseDb();
+      const { collectionGroup, getDocs, query, where } =
+        await import('firebase/firestore');
+
+      const snapshot = await getDocs(
+        query(
+          collectionGroup(db, 'registers'),
+          where('workspaceId', '==', normalizedWorkspaceId),
+        ),
+      );
+
+      return snapshot.docs
+        .map((document) => {
+          const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
+          const register = document.data() as Register;
+          if (!ownerId || !shouldIncludeRegister(register, options)) {
+            return null;
+          }
+
+          return {
+            ownerId,
+            register,
+          } satisfies RegisterLocation;
+        })
+        .filter((entry): entry is RegisterLocation => entry !== null)
+        .sort((left, right) =>
+          right.register.createdAt.localeCompare(left.register.createdAt),
+        );
+    },
+
+    async findRegisterLocation(registerId, options) {
+      const normalizedRegisterId = normalizeOptionalText(registerId);
+      if (!normalizedRegisterId) {
+        return null;
+      }
+
+      if (options?.ownerId) {
+        const register = await loadRegister(options.ownerId, normalizedRegisterId);
+        if (!register || !shouldIncludeRegister(register, options)) {
+          return null;
+        }
+
+        const location: RegisterLocation = {
+          ownerId: options.ownerId,
+          register,
+        };
+
+        return matchesRegisterScope(location, options.scopeContext)
+          ? location
+          : null;
+      }
+
+      const { getFirebaseDb } = await import('@/lib/firebase');
+      const db = await getFirebaseDb();
+      const { collectionGroup, getDocs, limit, query, where } =
+        await import('firebase/firestore');
+
+      const snapshot = await getDocs(
+        query(
+          collectionGroup(db, 'registers'),
+          where('registerId', '==', normalizedRegisterId),
+          limit(10),
+        ),
+      );
+
+      for (const document of snapshot.docs) {
+        const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
+        const register = document.data() as Register;
+        if (!ownerId || !shouldIncludeRegister(register, options)) {
+          continue;
+        }
+
+        const location: RegisterLocation = {
+          ownerId,
+          register,
+        };
+
+        if (matchesRegisterScope(location, options?.scopeContext)) {
+          return location;
+        }
+      }
+
+      return null;
+    },
+
+    async updateRegister(ownerId, registerId, partial) {
       const { getFirebaseDb } = await import('@/lib/firebase');
       const db = await getFirebaseDb();
       const { doc, updateDoc } = await import('firebase/firestore');
 
-      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      const docRef = doc(db, `users/${ownerId}/registers/${registerId}`);
       await updateDoc(docRef, sanitizeFirestorePayload(partial));
     },
 
-    async softDeleteRegister(userId, registerId, deletionState) {
-      const existing = await loadRegister(userId, registerId);
+    async softDeleteRegister(ownerId, registerId, deletionState) {
+      const existing = await loadRegister(ownerId, registerId);
       if (!existing) {
         throw new Error(`Register '${registerId}' not found`);
       }
@@ -261,7 +390,7 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       const db = await getFirebaseDb();
       const { doc, updateDoc } = await import('firebase/firestore');
 
-      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      const docRef = doc(db, `users/${ownerId}/registers/${registerId}`);
       const nextRegister: Register = {
         ...existing,
         isDeleted: true,
@@ -277,8 +406,8 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       return nextRegister;
     },
 
-    async restoreRegister(userId, registerId) {
-      const existing = await loadRegister(userId, registerId);
+    async restoreRegister(ownerId, registerId) {
+      const existing = await loadRegister(ownerId, registerId);
       if (!existing) {
         throw new Error(`Register '${registerId}' not found`);
       }
@@ -287,7 +416,7 @@ export function createFirestoreRegisterRepository(): RegisterRepository {
       const db = await getFirebaseDb();
       const { doc, updateDoc } = await import('firebase/firestore');
 
-      const docRef = doc(db, `users/${userId}/registers/${registerId}`);
+      const docRef = doc(db, `users/${ownerId}/registers/${registerId}`);
       const restored: Register = {
         ...existing,
         isDeleted: false,
@@ -514,35 +643,36 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
   const workspaceEntitlements = new Map<string, RegisterEntitlement>();
 
   return {
-    async createRegister(userId, name, linkedProjectId = null) {
+    async createRegister(ownerId, name, linkedProjectId = null, options = {}) {
       const registerId = `reg_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       const createdAt = new Date().toISOString();
       const workspaceEntitlement =
-        workspaceEntitlements.get(userId) ??
+        workspaceEntitlements.get(ownerId) ??
         createFreeRegisterEntitlement(createdAt);
       const register: Register = {
         registerId,
         name,
         createdAt,
+        workspaceId: normalizeOptionalText(options.workspaceId),
         linkedProjectId: linkedProjectId ?? null,
         plan: getEntitlementAccessPlan(workspaceEntitlement),
         entitlement: workspaceEntitlement,
       };
-      registers.set(`${userId}/${registerId}`, register);
+      registers.set(`${ownerId}/${registerId}`, register);
       return register;
     },
 
-    async getRegister(userId, registerId, options) {
-      const register = registers.get(`${userId}/${registerId}`) ?? null;
+    async getRegister(ownerId, registerId, options) {
+      const register = registers.get(`${ownerId}/${registerId}`) ?? null;
       if (!register) return null;
       return shouldIncludeRegister(register, options) ? { ...register } : null;
     },
 
-    async listRegisters(userId, options) {
+    async listRegisters(ownerId, options) {
       const result: Register[] = [];
       for (const [key, reg] of registers) {
         if (
-          key.startsWith(`${userId}/`) &&
+          key.startsWith(`${ownerId}/`) &&
           shouldIncludeRegister(reg, options)
         ) {
           result.push(reg);
@@ -551,16 +681,73 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
       return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
 
-    async updateRegister(userId, registerId, partial) {
-      const key = `${userId}/${registerId}`;
+    async listWorkspaceRegisters(workspaceId, options) {
+      const normalizedWorkspaceId = normalizeOptionalText(workspaceId);
+      if (!normalizedWorkspaceId) {
+        return [];
+      }
+
+      const result: RegisterLocation[] = [];
+      for (const [key, register] of registers) {
+        const separator = key.indexOf('/');
+        const ownerId = separator >= 0 ? key.slice(0, separator) : null;
+        if (
+          ownerId &&
+          register.workspaceId === normalizedWorkspaceId &&
+          shouldIncludeRegister(register, options)
+        ) {
+          result.push({
+            ownerId,
+            register: { ...register },
+          });
+        }
+      }
+
+      return result.sort((left, right) =>
+        right.register.createdAt.localeCompare(left.register.createdAt),
+      );
+    },
+
+    async findRegisterLocation(registerId, options) {
+      const normalizedRegisterId = normalizeOptionalText(registerId);
+      if (!normalizedRegisterId) {
+        return null;
+      }
+
+      for (const [key, register] of registers) {
+        const separator = key.indexOf('/');
+        const ownerId = separator >= 0 ? key.slice(0, separator) : null;
+        if (!ownerId || register.registerId !== normalizedRegisterId) {
+          continue;
+        }
+
+        const location: RegisterLocation = {
+          ownerId,
+          register: { ...register },
+        };
+
+        if (
+          shouldIncludeRegister(register, options) &&
+          (!options?.ownerId || options.ownerId === ownerId) &&
+          matchesRegisterScope(location, options?.scopeContext)
+        ) {
+          return location;
+        }
+      }
+
+      return null;
+    },
+
+    async updateRegister(ownerId, registerId, partial) {
+      const key = `${ownerId}/${registerId}`;
       const existing = registers.get(key);
       if (existing) {
         registers.set(key, { ...existing, ...partial });
       }
     },
 
-    async softDeleteRegister(userId, registerId, deletionState) {
-      const key = `${userId}/${registerId}`;
+    async softDeleteRegister(ownerId, registerId, deletionState) {
+      const key = `${ownerId}/${registerId}`;
       const existing = registers.get(key);
       if (!existing) {
         throw new Error(`Register '${registerId}' not found`);
@@ -575,8 +762,8 @@ export function createInMemoryRegisterRepository(): RegisterRepository {
       return { ...updated };
     },
 
-    async restoreRegister(userId, registerId) {
-      const key = `${userId}/${registerId}`;
+    async restoreRegister(ownerId, registerId) {
+      const key = `${ownerId}/${registerId}`;
       const existing = registers.get(key);
       if (!existing) {
         throw new Error(`Register '${registerId}' not found`);

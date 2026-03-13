@@ -367,7 +367,9 @@ export function ExternalSubmissionsInbox({
                           variant="ghost"
                           size="sm"
                           className="h-auto px-0 text-primary"
-                          onClick={() => router.push(`/pass/${submission.linkedUseCaseId}`)}
+                          onClick={() =>
+                            router.push(`/my-register/${submission.linkedUseCaseId}`)
+                          }
                         >
                           {submission.linkedUseCaseId}
                           <ExternalLink className="ml-1 h-3.5 w-3.5" />

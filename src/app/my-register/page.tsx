@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
@@ -40,12 +40,14 @@ import {
   externalSubmissionService,
   isExternalSubmissionPermissionError,
 } from '@/lib/register-first/external-submission-service';
+import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
 import type { Register, UseCaseCard } from '@/lib/register-first/types';
 import {
   EXTERNAL_INBOX_FILTER,
   getVisiblePremiumControlNav,
   ROUTE_HREFS,
 } from '@/lib/navigation/route-manifest';
+import { setActiveWorkspaceId } from '@/lib/workspace-session';
 
 type OnboardingState = 'loading' | 'no_register' | 'ready';
 const CREATE_REGISTER_VALUE = '__create_register__';
@@ -68,6 +70,10 @@ export default function MyRegisterPage() {
   const onboardingParam = searchParams.get('onboarding');
   const workspaceScope = searchParams.get('workspace') ?? 'personal';
   const checkoutSessionId = searchParams.get('checkout_session_id');
+  const scopeContext = useMemo(
+    () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
+    [workspaceScope],
+  );
 
   const [onboardingState, setOnboardingState] =
     useState<OnboardingState>('loading');
@@ -91,6 +97,12 @@ export default function MyRegisterPage() {
   const hasGovernanceMenu = controlNavItems.length > 0;
 
   useEffect(() => {
+    setActiveWorkspaceId(
+      scopeContext.kind === 'workspace' ? scopeContext.workspaceId ?? null : null,
+    );
+  }, [scopeContext]);
+
+  useEffect(() => {
     setHasChecked(false);
     setOnboardingState('loading');
     setUseCases([]);
@@ -108,12 +120,12 @@ export default function MyRegisterPage() {
 
     setHasChecked(true);
     registerService
-      .listRegisters()
+      .listRegisters(scopeContext)
       .then(async (regs) => {
         if (regs.length > 0) {
           const selectedRegister =
             (await registerService
-              .setActiveRegister(regs[0].registerId)
+              .setActiveRegister(regs[0].registerId, scopeContext)
               .catch(() => regs[0])) ?? regs[0];
           setRegisters(regs);
           setActiveRegister(
@@ -129,7 +141,7 @@ export default function MyRegisterPage() {
         }
 
         registerService
-          .createRegister('Meine Organisation')
+          .createRegister('Meine Organisation', null, { scopeContext })
           .then((reg) => {
             return registerService
               .updateRegisterProfile(reg.registerId, {
@@ -139,7 +151,7 @@ export default function MyRegisterPage() {
                   industry: '',
                   contactPerson: { name: '', email: '' },
                 },
-              })
+              }, scopeContext)
               .then(() => {
                 setRegisters([reg]);
                 setActiveRegister(reg);
@@ -160,7 +172,7 @@ export default function MyRegisterPage() {
           setOnboardingState('no_register');
         }
       });
-  }, [authLoading, user, hasChecked, router, onboardingParam]);
+  }, [authLoading, user, hasChecked, router, onboardingParam, scopeContext]);
 
   useEffect(() => {
     if (!user || !activeRegister?.registerId) {
@@ -200,7 +212,7 @@ export default function MyRegisterPage() {
 
     let cancelled = false;
     void externalSubmissionService
-      .list(activeRegister.registerId)
+      .list(activeRegister.registerId, {}, scopeContext)
       .then((items) => {
         if (cancelled) return;
         setExternalInboxCounts({
@@ -220,12 +232,12 @@ export default function MyRegisterPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeRegister?.registerId, refreshKey, user]);
+  }, [activeRegister?.registerId, refreshKey, scopeContext, user]);
 
   const handleWizardComplete = async (registerId: string) => {
-    const regs = await registerService.listRegisters();
+    const regs = await registerService.listRegisters(scopeContext);
     const selectedRegister =
-      await registerService.setActiveRegister(registerId);
+      await registerService.setActiveRegister(registerId, scopeContext);
     setRegisters(regs);
     const newReg =
       regs.find((r) => r.registerId === selectedRegister.registerId) ??
@@ -238,7 +250,7 @@ export default function MyRegisterPage() {
 
   const handleSwitchRegister = async (registerId: string) => {
     const selectedRegister =
-      await registerService.setActiveRegister(registerId);
+      await registerService.setActiveRegister(registerId, scopeContext);
     const reg =
       registers.find(
         (entry) => entry.registerId === selectedRegister.registerId,
@@ -250,7 +262,7 @@ export default function MyRegisterPage() {
   const handleCaptured = (useCaseId?: string) => {
     setRefreshKey((k) => k + 1);
     if (useCaseId) {
-      router.push(`/pass/${useCaseId}`);
+      router.push(`/my-register/${useCaseId}`);
     }
   };
 
@@ -259,7 +271,7 @@ export default function MyRegisterPage() {
   };
 
   const handleRegisterDeleted = async (result: DeleteRegisterResult) => {
-    const regs = await registerService.listRegisters();
+    const regs = await registerService.listRegisters(scopeContext);
     const nextActiveRegister =
       regs.find(
         (register) => register.registerId === result.fallbackRegisterId,

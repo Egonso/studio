@@ -15,6 +15,8 @@ import {
   upsertCustomerEntitlement,
 } from './product-entitlement-sync';
 
+const STRIPE_API_VERSION = '2026-02-25.clover' as Stripe.LatestApiVersion;
+
 const STRIPE_SECRET_KEY = defineSecret('STRIPE_SECRET_KEY');
 const STRIPE_API_KEY = defineSecret('STRIPE_API_KEY');
 const STRIPE_WEBHOOK_SECRET = defineSecret('STRIPE_WEBHOOK_SECRET');
@@ -210,7 +212,7 @@ app.post('/check-stripe-purchase', async (req: Request, res: Response) => {
         .json({ hasPurchased: false, error: 'Stripe key not configured' });
       return;
     }
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' as any });
+    const stripe = new Stripe(stripeKey, { apiVersion: STRIPE_API_VERSION });
 
     const sessions = await stripe.checkout.sessions.list({ limit: 50 });
 

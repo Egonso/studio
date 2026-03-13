@@ -158,8 +158,8 @@ export default function ControlReviewsPage() {
                   <Link href={ROUTE_HREFS.control}>Overview öffnen</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.governanceSettings}>
-                    Governance Settings
+                  <Link href={ROUTE_HREFS.governanceUpgrade}>
+                    Upgrade-Optionen
                   </Link>
                 </Button>
               </>

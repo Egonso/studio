@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ROUTE_HREFS } from "@/lib/navigation/route-manifest";
 import {
     Dialog,
     DialogContent,
@@ -33,7 +34,7 @@ export function ToolkitPaywallDialog({
 
     const handleUpgrade = () => {
         onOpenChange(false);
-        router.push("/settings");
+        router.push(ROUTE_HREFS.governanceUpgrade);
     };
 
     return (

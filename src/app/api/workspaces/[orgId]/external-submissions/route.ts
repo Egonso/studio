@@ -27,10 +27,26 @@ export async function GET(req: NextRequest, context: RouteContext) {
   try {
     await requireWorkspaceMember(req.headers.get('authorization'), orgId);
     const statusFilter = req.nextUrl.searchParams.get('status');
+    const sourceTypeFilter = req.nextUrl.searchParams.get('sourceType');
+    const registerIdFilter = req.nextUrl.searchParams.get('registerId');
+    const linkedUseCaseIdFilter =
+      req.nextUrl.searchParams.get('linkedUseCaseId');
+    const searchText = req.nextUrl.searchParams
+      .get('searchText')
+      ?.trim()
+      .toLowerCase();
     const registers = await listWorkspaceRegisters(orgId);
 
     const nestedResults = await Promise.all(
       registers.map(async (location) => {
+        if (
+          registerIdFilter &&
+          registerIdFilter.trim().length > 0 &&
+          location.registerId !== registerIdFilter
+        ) {
+          return [];
+        }
+
         const snapshot = await db
           .doc(`users/${location.ownerId}/registers/${location.registerId}`)
           .collection('externalSubmissions')
@@ -49,6 +65,40 @@ export async function GET(req: NextRequest, context: RouteContext) {
       .filter((entry) =>
         statusFilter ? entry.status === statusFilter : true,
       )
+      .filter((entry) =>
+        sourceTypeFilter ? entry.sourceType === sourceTypeFilter : true,
+      )
+      .filter((entry) =>
+        linkedUseCaseIdFilter
+          ? entry.linkedUseCaseId === linkedUseCaseIdFilter
+          : true,
+      )
+      .filter((entry) => {
+        if (!searchText) {
+          return true;
+        }
+
+        const searchable = [
+          entry.submissionId,
+          entry.requestTokenId ?? '',
+          entry.accessCodeId ?? '',
+          entry.submittedByName ?? '',
+          entry.submittedByEmail ?? '',
+          entry.registerName ?? '',
+          entry.organisationName ?? '',
+          ...Object.values(entry.rawPayloadSnapshot).map((value) =>
+            typeof value === 'string'
+              ? value
+              : Array.isArray(value)
+                ? value.join(' ')
+                : '',
+          ),
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        return searchable.includes(searchText);
+      })
       .sort((left, right) => right.submittedAt.localeCompare(left.submittedAt));
 
     return NextResponse.json({

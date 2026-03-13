@@ -3,52 +3,96 @@
  *
  * Primary storage: Firestore (users/{userId}/appData/registerSettings)
  * Cache: sessionStorage (for fast client-side reads without network)
+ *
+ * Settings are scope-aware:
+ * - personal => users/{userId}/appData/registerSettings.defaultRegisterId
+ * - workspace => users/{userId}/appData/registerSettings.defaultRegisterIdByScope["workspace:{orgId}"]
  */
 
-const SESSION_KEY = "activeRegisterId";
+const SESSION_KEY_PREFIX = 'activeRegisterId';
+
+function normalizeScopeKey(scopeKey?: string | null): string {
+  const normalized = scopeKey?.trim();
+  return normalized && normalized.length > 0 ? normalized : 'personal';
+}
+
+function getSessionKey(scopeKey?: string | null): string {
+  const normalizedScopeKey = normalizeScopeKey(scopeKey);
+  return normalizedScopeKey === 'personal'
+    ? SESSION_KEY_PREFIX
+    : `${SESSION_KEY_PREFIX}:${normalizedScopeKey}`;
+}
 
 // ── sessionStorage (cache) ──────────────────────────────────────────────────
 
-export function getActiveRegisterId(): string | null {
+export function getActiveRegisterId(scopeKey?: string | null): string | null {
   if (typeof window === "undefined") return null;
-  return window.sessionStorage.getItem(SESSION_KEY);
+  return window.sessionStorage.getItem(getSessionKey(scopeKey));
 }
 
-export function setActiveRegisterId(registerId: string): void {
+export function setActiveRegisterId(
+  registerId: string,
+  scopeKey?: string | null,
+): void {
   if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(SESSION_KEY, registerId);
+  window.sessionStorage.setItem(getSessionKey(scopeKey), registerId);
 }
 
-export function clearActiveRegisterId(): void {
+export function clearActiveRegisterId(scopeKey?: string | null): void {
   if (typeof window === "undefined") return;
-  window.sessionStorage.removeItem(SESSION_KEY);
+  window.sessionStorage.removeItem(getSessionKey(scopeKey));
 }
 
 // ── Firestore (persistent) ──────────────────────────────────────────────────
 
 export async function getDefaultRegisterId(
-  userId: string
+  userId: string,
+  scopeKey?: string | null,
 ): Promise<string | null> {
   const { getFirebaseDb } = await import("@/lib/firebase");
   const db = await getFirebaseDb();
   const { doc, getDoc } = await import("firebase/firestore");
+  const normalizedScopeKey = normalizeScopeKey(scopeKey);
 
   const docRef = doc(db, `users/${userId}/appData/registerSettings`);
   const snapshot = await getDoc(docRef);
   if (!snapshot.exists()) return null;
-  return (snapshot.data()?.defaultRegisterId as string) ?? null;
+  const data = snapshot.data() as
+    | {
+        defaultRegisterId?: string;
+        defaultRegisterIdByScope?: Record<string, string>;
+      }
+    | undefined;
+
+  if (normalizedScopeKey === 'personal') {
+    return data?.defaultRegisterId ?? null;
+  }
+
+  return data?.defaultRegisterIdByScope?.[normalizedScopeKey] ?? null;
 }
 
 export async function setDefaultRegisterId(
   userId: string,
-  registerId: string
+  registerId: string,
+  scopeKey?: string | null,
 ): Promise<void> {
   const { getFirebaseDb } = await import("@/lib/firebase");
   const db = await getFirebaseDb();
   const { doc, setDoc } = await import("firebase/firestore");
+  const normalizedScopeKey = normalizeScopeKey(scopeKey);
 
   const docRef = doc(db, `users/${userId}/appData/registerSettings`);
-  await setDoc(docRef, { defaultRegisterId: registerId }, { merge: true });
+  await setDoc(
+    docRef,
+    normalizedScopeKey === 'personal'
+      ? { defaultRegisterId: registerId }
+      : {
+          defaultRegisterIdByScope: {
+            [normalizedScopeKey]: registerId,
+          },
+        },
+    { merge: true },
+  );
   // Also update session cache
-  setActiveRegisterId(registerId);
+  setActiveRegisterId(registerId, normalizedScopeKey);
 }

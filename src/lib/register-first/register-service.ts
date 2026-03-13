@@ -25,6 +25,13 @@ import {
   type RegisterUseCaseFilters,
 } from './register-repository';
 import {
+  getRegisterScopeKey,
+  loadAccessibleWorkspaceIds,
+  parseRegisterScopeFromWorkspaceValue,
+  resolveClientRegisterScopeContext,
+  type RegisterLocation,
+} from './register-scope';
+import {
   clearActiveRegisterId,
   getActiveRegisterId,
   setActiveRegisterId,
@@ -34,6 +41,7 @@ import {
 import { getRegisterDisplayName } from './register-helpers';
 import { getEntitlementAccessPlan } from './entitlement';
 import { resolvePrimaryDataCategory } from './types';
+import { getActiveWorkspaceId } from '@/lib/workspace-session';
 import type {
   ExternalIntakeTrace,
   GovernanceDecisionActor,
@@ -47,6 +55,7 @@ import type {
   UseCaseCard,
   RegisterMetrics,
   RegisterDeletionState,
+  RegisterScopeContext,
   UseCaseOrigin,
 } from './types';
 
@@ -86,6 +95,7 @@ export class RegisterServiceError extends Error {
 export interface CreateUseCaseOptions {
   registerId?: string;
   useCaseId?: string;
+  scopeContext?: RegisterScopeContext | null;
   origin?: UseCaseOrigin | null;
   capturedBy?: string;
   capturedByName?: string;
@@ -96,6 +106,7 @@ export interface CreateUseCaseOptions {
 
 export interface UpdateStatusInput {
   registerId?: string;
+  scopeContext?: RegisterScopeContext | null;
   useCaseId: string;
   nextStatus: RegisterUseCaseStatus;
   reason?: string;
@@ -105,6 +116,7 @@ export interface UpdateStatusInput {
 
 export interface UpdateProofInput {
   registerId?: string;
+  scopeContext?: RegisterScopeContext | null;
   useCaseId: string;
   verifyUrl: string;
   isReal: boolean;
@@ -115,6 +127,7 @@ export interface UpdateProofInput {
 
 export interface UpdateAssessmentInput {
   registerId?: string;
+  scopeContext?: RegisterScopeContext | null;
   useCaseId: string;
   actor?: GovernanceDecisionActor;
   core: NonNullable<UseCaseCard['governanceAssessment']>['core'];
@@ -123,6 +136,7 @@ export interface UpdateAssessmentInput {
 
 export interface SetVisibilityInput {
   registerId?: string;
+  scopeContext?: RegisterScopeContext | null;
   useCaseId: string;
   isPublicVisible: boolean;
   /** Resolved tool name for the public index entry */
@@ -131,6 +145,7 @@ export interface SetVisibilityInput {
 
 export interface SealUseCaseInput {
   registerId?: string;
+  scopeContext?: RegisterScopeContext | null;
   useCaseId: string;
   officerId: string;
   officerName: string;
@@ -174,10 +189,16 @@ export interface RegisterService {
   createRegister(
     name: string,
     linkedProjectId?: string | null,
+    options?: { scopeContext?: RegisterScopeContext | null },
   ): Promise<Register>;
-  listRegisters(): Promise<Register[]>;
-  getFirstRegister(): Promise<Register | null>;
-  setActiveRegister(registerId: string): Promise<Register>;
+  listRegisters(scopeContext?: RegisterScopeContext | null): Promise<Register[]>;
+  getFirstRegister(
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<Register | null>;
+  setActiveRegister(
+    registerId: string,
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<Register>;
   updateRegisterProfile(
     registerId: string,
     profile: Partial<
@@ -189,16 +210,24 @@ export interface RegisterService {
         | 'orgSettings'
       >
     >,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<void>;
   setRegisterEntitlement(
     registerId: string,
     entitlement: RegisterEntitlement,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<Register>;
   getRegisterDeletionPreview(
     registerId: string,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<RegisterDeletePreview>;
-  deleteRegister(input: DeleteRegisterInput): Promise<DeleteRegisterResult>;
-  restoreRegister(registerId: string): Promise<Register>;
+  deleteRegister(
+    input: DeleteRegisterInput & { scopeContext?: RegisterScopeContext | null },
+  ): Promise<DeleteRegisterResult>;
+  restoreRegister(
+    registerId: string,
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<Register>;
   createUseCaseFromCapture(
     input: unknown,
     options?: CreateUseCaseOptions,
@@ -206,14 +235,17 @@ export interface RegisterService {
   getUseCase(
     registerId: string | undefined,
     useCaseId: string,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<UseCaseCard | null>;
   listUseCases(
     registerId?: string,
     filters?: RegisterUseCaseFilters,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<UseCaseCard[]>;
   updateUseCase(
     useCaseId: string,
     updates: Partial<UseCaseCard>,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<UseCaseCard>;
   updateUseCaseStatusManual(input: UpdateStatusInput): Promise<UseCaseCard>;
   updateProofMetaManual(input: UpdateProofInput): Promise<UseCaseCard>;
@@ -223,12 +255,17 @@ export interface RegisterService {
   softDeleteUseCase(
     registerId: string | undefined,
     useCaseId: string,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<void>;
   restoreUseCase(
     registerId: string | undefined,
     useCaseId: string,
+    scopeContext?: RegisterScopeContext | null,
   ): Promise<UseCaseCard>;
-  getRegisterMetrics(registerId?: string): Promise<RegisterMetrics>;
+  getRegisterMetrics(
+    registerId?: string,
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<RegisterMetrics>;
 }
 
 // ── Dependencies ────────────────────────────────────────────────────────────
@@ -246,15 +283,25 @@ interface RegisterServiceDependencies {
   now?: Clock;
   useCaseIdGenerator?: IdGenerator;
   reviewIdGenerator?: IdGenerator;
+  resolveRequestedScopeContext?: () => Promise<RegisterScopeContext | null>;
+  resolveAccessibleWorkspaceIds?: (userId: string) => Promise<string[]>;
+  linkRegisterToWorkspace?: (input: {
+    orgId: string;
+    registerId: string;
+  }) => Promise<void>;
   // For tests: override settings resolution
-  getDefaultRegisterIdFn?: (userId: string) => Promise<string | null>;
+  getDefaultRegisterIdFn?: (
+    userId: string,
+    scopeKey?: string,
+  ) => Promise<string | null>;
   setDefaultRegisterIdFn?: (
     userId: string,
     registerId: string,
+    scopeKey?: string,
   ) => Promise<void>;
-  getActiveRegisterIdFn?: () => string | null;
-  setActiveRegisterIdFn?: (id: string) => void;
-  clearActiveRegisterIdFn?: () => void;
+  getActiveRegisterIdFn?: (scopeKey?: string) => string | null;
+  setActiveRegisterIdFn?: (id: string, scopeKey?: string) => void;
+  clearActiveRegisterIdFn?: (scopeKey?: string) => void;
 }
 
 // ── Factory ─────────────────────────────────────────────────────────────────
@@ -275,6 +322,45 @@ async function defaultResolveUserId(): Promise<string | null> {
   const { getFirebaseAuth } = await import('@/lib/firebase');
   const auth = await getFirebaseAuth();
   return auth.currentUser?.uid || null;
+}
+
+async function defaultResolveRequestedScopeContext(): Promise<RegisterScopeContext | null> {
+  return parseRegisterScopeFromWorkspaceValue(getActiveWorkspaceId());
+}
+
+async function defaultLinkRegisterToWorkspace(input: {
+  orgId: string;
+  registerId: string;
+}): Promise<void> {
+  const { getFirebaseAuth } = await import('@/lib/firebase');
+  const auth = await getFirebaseAuth();
+  const token = await auth.currentUser?.getIdToken();
+  if (!token) {
+    throw new RegisterServiceError(
+      'UNAUTHENTICATED',
+      'A signed-in user is required for workspace register linking.',
+    );
+  }
+
+  const response = await fetch(`/api/workspaces/${input.orgId}/registers/link`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      registerId: input.registerId,
+    }),
+  });
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as
+      | { error?: string }
+      | null;
+    throw new Error(
+      payload?.error ?? `Workspace register link failed with ${response.status}`,
+    );
+  }
 }
 
 function mapServiceError(error: unknown): RegisterServiceError {
@@ -368,6 +454,13 @@ export function createRegisterService(
     dependencies.useCaseIdGenerator ?? createDefaultIdGenerator('uc');
   const reviewIdGenerator =
     dependencies.reviewIdGenerator ?? createDefaultIdGenerator('review');
+  const resolveRequestedScopeContext =
+    dependencies.resolveRequestedScopeContext ??
+    defaultResolveRequestedScopeContext;
+  const resolveAccessibleWorkspaceIds =
+    dependencies.resolveAccessibleWorkspaceIds ?? loadAccessibleWorkspaceIds;
+  const linkRegisterToWorkspace =
+    dependencies.linkRegisterToWorkspace ?? defaultLinkRegisterToWorkspace;
 
   // Settings resolution (injectable for tests)
   const getDefaultRegId =
@@ -380,6 +473,20 @@ export function createRegisterService(
     dependencies.setActiveRegisterIdFn ?? setActiveRegisterId;
   const clearActiveRegId =
     dependencies.clearActiveRegisterIdFn ?? clearActiveRegisterId;
+
+  interface ResolvedRegisterScope {
+    actorUserId: string;
+    ownerId: string;
+    registerId: string;
+    scopeContext: RegisterScopeContext;
+  }
+
+  function toStorageScope(scope: ResolvedRegisterScope): RegisterScope {
+    return {
+      userId: scope.ownerId,
+      registerId: scope.registerId,
+    };
+  }
 
   async function resolveUserIdOrThrow(): Promise<string> {
     const userId = await resolveUserId();
@@ -410,11 +517,11 @@ export function createRegisterService(
   }
 
   async function requireRegister(
-    userId: string,
+    ownerId: string,
     registerId: string,
     options?: { includeDeleted?: boolean },
   ): Promise<Register> {
-    const register = await registerRepo.getRegister(userId, registerId, {
+    const register = await registerRepo.getRegister(ownerId, registerId, {
       includeDeleted: options?.includeDeleted,
     });
 
@@ -428,14 +535,70 @@ export function createRegisterService(
     return register;
   }
 
+  async function resolveScopeContext(
+    explicitScopeContext?: RegisterScopeContext | null,
+    actorUserId?: string,
+  ): Promise<RegisterScopeContext> {
+    const resolvedActorUserId = actorUserId ?? (await resolveUserIdOrThrow());
+    const requestedScopeContext =
+      explicitScopeContext ?? (await resolveRequestedScopeContext());
+
+    if (requestedScopeContext?.kind !== 'workspace') {
+      return { kind: 'personal' };
+    }
+
+    const accessibleWorkspaceIds = await resolveAccessibleWorkspaceIds(
+      resolvedActorUserId,
+    );
+
+    return resolveClientRegisterScopeContext({
+      userId: resolvedActorUserId,
+      requestedScope: requestedScopeContext,
+      accessibleWorkspaceIds,
+    });
+  }
+
+  async function listRegisterLocations(
+    actorUserId: string,
+    scopeContext: RegisterScopeContext,
+    options?: { includeDeleted?: boolean },
+  ): Promise<RegisterLocation[]> {
+    if (scopeContext.kind === 'workspace') {
+      return registerRepo.listWorkspaceRegisters(scopeContext.workspaceId!, {
+        includeDeleted: options?.includeDeleted,
+      });
+    }
+
+    return (await registerRepo.listRegisters(actorUserId, {
+      includeDeleted: options?.includeDeleted,
+    })).map((register) => ({
+      ownerId: actorUserId,
+      register,
+    }));
+  }
+
   async function setActiveRegisterInternal(
-    userId: string,
+    actorUserId: string,
     registerId: string,
+    scopeContext: RegisterScopeContext,
   ): Promise<Register> {
-    const register = await requireRegister(userId, registerId);
-    await setDefaultRegId(userId, register.registerId);
-    setActiveRegId(register.registerId);
-    return register;
+    const location = await registerRepo.findRegisterLocation(registerId, {
+      ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+      scopeContext,
+      includeDeleted: false,
+    });
+
+    if (!location) {
+      throw new RegisterServiceError(
+        'REGISTER_NOT_FOUND',
+        `Register '${registerId}' was not found.`,
+      );
+    }
+
+    const scopeKey = getRegisterScopeKey(scopeContext);
+    await setDefaultRegId(actorUserId, location.register.registerId, scopeKey);
+    setActiveRegId(location.register.registerId, scopeKey);
+    return location.register;
   }
 
   async function buildPublicIndexEntry(
@@ -491,19 +654,40 @@ export function createRegisterService(
     }
   }
 
-  async function loadDeleteContext(userId: string, registerId: string) {
-    const register = await requireRegister(userId, registerId);
+  async function loadDeleteContext(
+    actorUserId: string,
+    registerId: string,
+    scopeContext: RegisterScopeContext,
+  ) {
+    const location = await registerRepo.findRegisterLocation(registerId, {
+      ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+      scopeContext,
+      includeDeleted: false,
+    });
+
+    if (!location) {
+      throw new RegisterServiceError(
+        'REGISTER_NOT_FOUND',
+        `Register '${registerId}' was not found.`,
+      );
+    }
+
+    const register = location.register;
     const fallbackRegister =
-      (await registerRepo.listRegisters(userId)).find(
-        (candidate) => candidate.registerId !== registerId,
+      (await listRegisterLocations(actorUserId, scopeContext)).find(
+        (candidate) => candidate.register.registerId !== registerId,
       ) ?? null;
-    const scope: RegisterScope = { userId, registerId };
+    const scope: RegisterScope = {
+      userId: location.ownerId,
+      registerId,
+    };
     const [useCases, accessCodes] = await Promise.all([
       useCaseRepo.list(scope, { includeDeleted: true }),
-      accessCodeRepo.listCodes(userId, registerId),
+      accessCodeRepo.listCodes(location.ownerId, registerId),
     ]);
 
     return {
+      location,
       register,
       fallbackRegister,
       scope,
@@ -517,45 +701,93 @@ export function createRegisterService(
    * Resolve register scope WITHOUT auto-creating a register.
    * Throws REGISTER_NOT_FOUND if no register can be resolved.
    */
-  async function resolveScope(registerId?: string): Promise<RegisterScope> {
-    const userId = await resolveUserIdOrThrow();
+  async function resolveScope(
+    registerId?: string,
+    explicitScopeContext?: RegisterScopeContext | null,
+  ): Promise<ResolvedRegisterScope> {
+    const actorUserId = await resolveUserIdOrThrow();
+    const scopeContext = await resolveScopeContext(
+      explicitScopeContext,
+      actorUserId,
+    );
+    const scopeKey = getRegisterScopeKey(scopeContext);
 
-    // 1. Explicit registerId
     if (registerId) {
-      await requireRegister(userId, registerId);
-      return { userId, registerId };
+      const location = await registerRepo.findRegisterLocation(registerId, {
+        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+        scopeContext,
+        includeDeleted: false,
+      });
+
+      if (!location) {
+        throw new RegisterServiceError(
+          'REGISTER_NOT_FOUND',
+          `Register '${registerId}' was not found.`,
+        );
+      }
+
+      return {
+        actorUserId,
+        ownerId: location.ownerId,
+        registerId,
+        scopeContext,
+      };
     }
 
-    // 2. sessionStorage cache
-    const cached = getActiveRegId();
+    const cached = getActiveRegId(scopeKey);
     if (cached) {
-      const register = await registerRepo.getRegister(userId, cached);
-      if (register) {
-        return { userId, registerId: cached };
+      const location = await registerRepo.findRegisterLocation(cached, {
+        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+        scopeContext,
+        includeDeleted: false,
+      });
+      if (location) {
+        return {
+          actorUserId,
+          ownerId: location.ownerId,
+          registerId: cached,
+          scopeContext,
+        };
       }
-      clearActiveRegId();
+      clearActiveRegId(scopeKey);
     }
 
-    // 3. Firestore persisted default
-    const persisted = await getDefaultRegId(userId);
+    const persisted = await getDefaultRegId(actorUserId, scopeKey);
     if (persisted) {
-      const register = await registerRepo.getRegister(userId, persisted);
-      if (register) {
-        setActiveRegId(persisted); // warm cache
-        return { userId, registerId: persisted };
+      const location = await registerRepo.findRegisterLocation(persisted, {
+        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+        scopeContext,
+        includeDeleted: false,
+      });
+      if (location) {
+        setActiveRegId(persisted, scopeKey);
+        return {
+          actorUserId,
+          ownerId: location.ownerId,
+          registerId: persisted,
+          scopeContext,
+        };
       }
     }
 
-    // 4. First available active register
-    const registers = await registerRepo.listRegisters(userId);
-    if (registers.length > 0) {
-      await setDefaultRegId(userId, registers[0].registerId);
-      setActiveRegId(registers[0].registerId);
-      return { userId, registerId: registers[0].registerId };
+    const locations = await listRegisterLocations(actorUserId, scopeContext);
+    if (locations.length > 0) {
+      const firstLocation = locations[0];
+      await setDefaultRegId(
+        actorUserId,
+        firstLocation.register.registerId,
+        scopeKey,
+      );
+      setActiveRegId(firstLocation.register.registerId, scopeKey);
+      return {
+        actorUserId,
+        ownerId: firstLocation.ownerId,
+        registerId: firstLocation.register.registerId,
+        scopeContext,
+      };
     }
 
-    // 5. No register found – do NOT auto-create
-    clearActiveRegId();
+    clearActiveRegId(scopeKey);
     throw new RegisterServiceError(
       'REGISTER_NOT_FOUND',
       'No register found. Please create a register first.',
@@ -563,70 +795,110 @@ export function createRegisterService(
   }
 
   return {
-    async createRegister(name, linkedProjectId = null) {
+    async createRegister(name, linkedProjectId = null, options = {}) {
       try {
-        const userId = await resolveUserIdOrThrow();
+        const actorUserId = await resolveUserIdOrThrow();
+        const scopeContext = await resolveScopeContext(
+          options.scopeContext,
+          actorUserId,
+        );
+        const scopeKey = getRegisterScopeKey(scopeContext);
         const register = await registerRepo.createRegister(
-          userId,
+          actorUserId,
           name,
           linkedProjectId,
+          {
+            workspaceId:
+              scopeContext.kind === 'workspace'
+                ? scopeContext.workspaceId
+                : null,
+          },
         );
-        // Set as default
-        await setDefaultRegId(userId, register.registerId);
+        await setDefaultRegId(actorUserId, register.registerId, scopeKey);
+        setActiveRegId(register.registerId, scopeKey);
+        if (scopeContext.kind === 'workspace') {
+          await linkRegisterToWorkspace({
+            orgId: scopeContext.workspaceId!,
+            registerId: register.registerId,
+          });
+        }
         return register;
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async listRegisters() {
+    async listRegisters(scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        return registerRepo.listRegisters(userId);
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          scopeContext,
+          actorUserId,
+        );
+        const locations = await listRegisterLocations(
+          actorUserId,
+          resolvedScopeContext,
+        );
+        return locations.map((location) => location.register);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async getFirstRegister() {
+    async getFirstRegister(scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        const registers = await registerRepo.listRegisters(userId);
-        return registers.length > 0 ? registers[0] : null;
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          scopeContext,
+          actorUserId,
+        );
+        const locations = await listRegisterLocations(
+          actorUserId,
+          resolvedScopeContext,
+        );
+        return locations[0]?.register ?? null;
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async setActiveRegister(registerId) {
+    async setActiveRegister(registerId, scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        return await setActiveRegisterInternal(userId, registerId);
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          scopeContext,
+          actorUserId,
+        );
+        return await setActiveRegisterInternal(
+          actorUserId,
+          registerId,
+          resolvedScopeContext,
+        );
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async updateRegisterProfile(registerId, profile) {
+    async updateRegisterProfile(registerId, profile, scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        await requireRegister(userId, registerId);
-        await registerRepo.updateRegister(userId, registerId, profile);
+        const scope = await resolveScope(registerId, scopeContext);
+        await requireRegister(scope.ownerId, registerId);
+        await registerRepo.updateRegister(scope.ownerId, registerId, profile);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async setRegisterEntitlement(registerId, entitlement) {
+    async setRegisterEntitlement(registerId, entitlement, scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        const register = await requireRegister(userId, registerId);
+        const scope = await resolveScope(registerId, scopeContext);
+        const register = await requireRegister(scope.ownerId, registerId);
         const nextRegister: Register = {
           ...register,
           plan: getEntitlementAccessPlan(entitlement),
           entitlement,
         };
-        await registerRepo.updateRegister(userId, registerId, {
+        await registerRepo.updateRegister(scope.ownerId, registerId, {
           plan: getEntitlementAccessPlan(entitlement),
           entitlement,
         });
@@ -636,23 +908,28 @@ export function createRegisterService(
       }
     },
 
-    async getRegisterDeletionPreview(registerId) {
+    async getRegisterDeletionPreview(registerId, scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          scopeContext,
+          actorUserId,
+        );
         const { register, fallbackRegister, impact } = await loadDeleteContext(
-          userId,
+          actorUserId,
           registerId,
+          resolvedScopeContext,
         );
 
         return {
           registerId: register.registerId,
           displayName: getRegisterDisplayName(register),
           strategy: 'SOFT_DELETE',
-          canDelete: Boolean(fallbackRegister),
-          blockedReason: fallbackRegister ? undefined : 'LAST_REGISTER',
-          fallbackRegisterId: fallbackRegister?.registerId ?? null,
-          fallbackRegisterName: fallbackRegister
-            ? getRegisterDisplayName(fallbackRegister)
+          canDelete: Boolean(fallbackRegister?.register),
+          blockedReason: fallbackRegister?.register ? undefined : 'LAST_REGISTER',
+          fallbackRegisterId: fallbackRegister?.register.registerId ?? null,
+          fallbackRegisterName: fallbackRegister?.register
+            ? getRegisterDisplayName(fallbackRegister.register)
             : null,
           impact,
           restoreAvailable: true,
@@ -664,11 +941,19 @@ export function createRegisterService(
 
     async deleteRegister(input) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        const { register, fallbackRegister, useCases, impact } =
-          await loadDeleteContext(userId, input.registerId);
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          input.scopeContext,
+          actorUserId,
+        );
+        const { location, register, fallbackRegister, useCases, impact } =
+          await loadDeleteContext(
+            actorUserId,
+            input.registerId,
+            resolvedScopeContext,
+          );
 
-        if (!fallbackRegister) {
+        if (!fallbackRegister?.register) {
           throw new RegisterServiceError(
             'REGISTER_DELETE_FORBIDDEN',
             'The last remaining register cannot be deleted.',
@@ -694,7 +979,7 @@ export function createRegisterService(
 
         const deactivatedAccessCodeCount =
           await accessCodeRepo.deactivateCodesForRegister(
-            userId,
+            location.ownerId,
             register.registerId,
             timestamp,
           );
@@ -702,7 +987,7 @@ export function createRegisterService(
         const deletionState: RegisterDeletionState = {
           strategy: 'SOFT_DELETE',
           deletedAt: timestamp,
-          deletedBy: userId,
+          deletedBy: actorUserId,
           totalUseCaseCount: impact.totalUseCaseCount,
           activeUseCaseCount: impact.activeUseCaseCount,
           publicUseCaseCount: impact.publicUseCaseCount,
@@ -712,24 +997,29 @@ export function createRegisterService(
         };
 
         await registerRepo.softDeleteRegister(
-          userId,
+          location.ownerId,
           register.registerId,
           deletionState,
         );
 
-        const activeRegisterId = getActiveRegId();
-        const defaultRegisterId = await getDefaultRegId(userId);
+        const scopeKey = getRegisterScopeKey(resolvedScopeContext);
+        const activeRegisterId = getActiveRegId(scopeKey);
+        const defaultRegisterId = await getDefaultRegId(actorUserId, scopeKey);
         if (
           activeRegisterId === register.registerId ||
           defaultRegisterId === register.registerId
         ) {
-          await setActiveRegisterInternal(userId, fallbackRegister.registerId);
+          await setActiveRegisterInternal(
+            actorUserId,
+            fallbackRegister.register.registerId,
+            resolvedScopeContext,
+          );
         }
 
         return {
           deletedRegisterId: register.registerId,
-          fallbackRegisterId: fallbackRegister.registerId,
-          fallbackRegisterName: getRegisterDisplayName(fallbackRegister),
+          fallbackRegisterId: fallbackRegister.register.registerId,
+          fallbackRegisterName: getRegisterDisplayName(fallbackRegister.register),
           strategy: 'SOFT_DELETE',
           impact,
         };
@@ -738,10 +1028,28 @@ export function createRegisterService(
       }
     },
 
-    async restoreRegister(registerId) {
+    async restoreRegister(registerId, scopeContext) {
       try {
-        const userId = await resolveUserIdOrThrow();
-        const register = await requireRegister(userId, registerId, {
+        const actorUserId = await resolveUserIdOrThrow();
+        const resolvedScopeContext = await resolveScopeContext(
+          scopeContext,
+          actorUserId,
+        );
+        const location = await registerRepo.findRegisterLocation(registerId, {
+          ownerId:
+            resolvedScopeContext.kind === 'personal' ? actorUserId : undefined,
+          scopeContext: resolvedScopeContext,
+          includeDeleted: true,
+        });
+
+        if (!location) {
+          throw new RegisterServiceError(
+            'REGISTER_NOT_FOUND',
+            `Register '${registerId}' was not found.`,
+          );
+        }
+
+        const register = await requireRegister(location.ownerId, registerId, {
           includeDeleted: true,
         });
 
@@ -749,10 +1057,13 @@ export function createRegisterService(
           return register;
         }
 
-        const restored = await registerRepo.restoreRegister(userId, registerId);
-        await accessCodeRepo.restoreCodesForRegister(userId, registerId);
+        const restored = await registerRepo.restoreRegister(
+          location.ownerId,
+          registerId,
+        );
+        await accessCodeRepo.restoreCodesForRegister(location.ownerId, registerId);
         await republishRegisterPublicEntries({
-          userId,
+          userId: location.ownerId,
           registerId: restored.registerId,
         });
         return restored;
@@ -763,7 +1074,11 @@ export function createRegisterService(
 
     async createUseCaseFromCapture(input, options = {}) {
       try {
-        const scope = await resolveScope(options.registerId);
+        const scope = await resolveScope(
+          options.registerId,
+          options.scopeContext,
+        );
+        const storageScope = toStorageScope(scope);
         const useCaseId = options.useCaseId ?? generateUseCaseId();
         const cardDraft = prepareUseCaseForStorage(input, {
           useCaseId,
@@ -789,42 +1104,43 @@ export function createRegisterService(
                 options.externalIntake?.requestTokenId ??
                 options.externalIntake?.accessCodeId ??
                 null,
-              capturedByUserId: options.capturedBy ?? scope.userId,
+              capturedByUserId: options.capturedBy ?? scope.actorUserId,
             }),
-          capturedBy: options.capturedBy ?? scope.userId,
+          capturedBy: options.capturedBy ?? scope.actorUserId,
           capturedByName: options.capturedByName,
           capturedViaCode: options.capturedViaCode,
           accessCodeLabel: options.accessCodeLabel,
           externalIntake: options.externalIntake ?? null,
         });
-        return useCaseRepo.create(scope, card);
+        return useCaseRepo.create(storageScope, card);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async getUseCase(registerId, useCaseId) {
+    async getUseCase(registerId, useCaseId, scopeContext) {
       try {
-        const scope = await resolveScope(registerId);
-        return useCaseRepo.getById(scope, useCaseId);
+        const scope = await resolveScope(registerId, scopeContext);
+        return useCaseRepo.getById(toStorageScope(scope), useCaseId);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async listUseCases(registerId, filters = {}) {
+    async listUseCases(registerId, filters = {}, scopeContext) {
       try {
-        const scope = await resolveScope(registerId);
-        return useCaseRepo.list(scope, filters);
+        const scope = await resolveScope(registerId, scopeContext);
+        return useCaseRepo.list(toStorageScope(scope), filters);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async updateUseCase(useCaseId, updates) {
+    async updateUseCase(useCaseId, updates, scopeContext) {
       try {
-        const scope = await resolveScope();
-        const existing = await useCaseRepo.getById(scope, useCaseId);
+        const scope = await resolveScope(undefined, scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(storageScope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -853,9 +1169,9 @@ export function createRegisterService(
         const parsed = parseUseCaseCard(merged);
         const updated = appendManualEdit(existing, parsed, {
           editedAt: nowIso,
-          editedBy: scope.userId,
+          editedBy: scope.actorUserId,
         });
-        return await useCaseRepo.save(scope, updated);
+        return await useCaseRepo.save(storageScope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -873,8 +1189,12 @@ export function createRegisterService(
       }
 
       try {
-        const scope = await resolveScope(input.registerId);
-        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        const scope = await resolveScope(input.registerId, input.scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(
+          storageScope,
+          input.useCaseId,
+        );
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -899,7 +1219,7 @@ export function createRegisterService(
         }
 
         const timestamp = now().toISOString();
-        const actorId = input.reviewedBy || scope.userId;
+        const actorId = input.reviewedBy || scope.actorUserId;
         const reviewEvent: ReviewEvent = {
           reviewId: reviewIdGenerator(),
           reviewedAt: timestamp,
@@ -925,7 +1245,7 @@ export function createRegisterService(
           statusHistory: [...(existing.statusHistory || []), statusChange],
         });
 
-        return useCaseRepo.save(scope, updated);
+        return useCaseRepo.save(storageScope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -943,8 +1263,12 @@ export function createRegisterService(
       }
 
       try {
-        const scope = await resolveScope(input.registerId);
-        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        const scope = await resolveScope(input.registerId, input.scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(
+          storageScope,
+          input.useCaseId,
+        );
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -974,7 +1298,7 @@ export function createRegisterService(
           },
         });
 
-        return useCaseRepo.save(scope, updated);
+        return useCaseRepo.save(storageScope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
@@ -992,8 +1316,12 @@ export function createRegisterService(
       }
 
       try {
-        const scope = await resolveScope(input.registerId);
-        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        const scope = await resolveScope(input.registerId, input.scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(
+          storageScope,
+          input.useCaseId,
+        );
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -1019,10 +1347,10 @@ export function createRegisterService(
         });
 
         return useCaseRepo.save(
-          scope,
+          storageScope,
           appendManualEdit(existing, updated, {
             editedAt: timestamp,
-            editedBy: scope.userId,
+            editedBy: scope.actorUserId,
             summary: 'Governance-Angaben aktualisiert',
           }),
         );
@@ -1033,8 +1361,12 @@ export function createRegisterService(
 
     async setPublicVisibility(input) {
       try {
-        const scope = await resolveScope(input.registerId);
-        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        const scope = await resolveScope(input.registerId, input.scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(
+          storageScope,
+          input.useCaseId,
+        );
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -1057,19 +1389,19 @@ export function createRegisterService(
         });
         const updatedWithEdit = appendManualEdit(existing, updated, {
           editedAt: timestamp,
-          editedBy: scope.userId,
+          editedBy: scope.actorUserId,
           summary: input.isPublicVisible
             ? 'Sichtbarkeit auf öffentlich gesetzt'
             : 'Sichtbarkeit auf privat gesetzt',
         });
 
         // Save private card
-        const saved = await useCaseRepo.save(scope, updatedWithEdit);
+        const saved = await useCaseRepo.save(storageScope, updatedWithEdit);
 
         // Dual-Write: Public Index
         if (input.isPublicVisible && saved.publicHashId) {
           const indexEntry = await buildPublicIndexEntry(
-            scope,
+            storageScope,
             saved,
             input.resolvedToolName,
           );
@@ -1088,8 +1420,12 @@ export function createRegisterService(
 
     async sealUseCaseManual(input) {
       try {
-        const scope = await resolveScope(input.registerId);
-        const existing = await useCaseRepo.getById(scope, input.useCaseId);
+        const scope = await resolveScope(input.registerId, input.scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(
+          storageScope,
+          input.useCaseId,
+        );
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -1113,16 +1449,17 @@ export function createRegisterService(
           updatedAt: timestamp,
         });
 
-        return useCaseRepo.save(scope, updated);
+        return useCaseRepo.save(storageScope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async softDeleteUseCase(registerId, useCaseId) {
+    async softDeleteUseCase(registerId, useCaseId, scopeContext) {
       try {
-        const scope = await resolveScope(registerId);
-        const existing = await useCaseRepo.getById(scope, useCaseId);
+        const scope = await resolveScope(registerId, scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(storageScope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -1136,13 +1473,13 @@ export function createRegisterService(
           updatedAt: now().toISOString(),
         });
 
-        await useCaseRepo.save(scope, updated);
+        await useCaseRepo.save(storageScope, updated);
 
         // Remove from public index if it was visible
         if (existing.isPublicVisible && existing.publicHashId) {
           await publicIndexRepo.unpublishFromIndex(existing.publicHashId);
           await useCaseRepo.save(
-            scope,
+            storageScope,
             parseUseCaseCard({ ...updated, isPublicVisible: false }),
           );
         }
@@ -1151,10 +1488,11 @@ export function createRegisterService(
       }
     },
 
-    async restoreUseCase(registerId, useCaseId) {
+    async restoreUseCase(registerId, useCaseId, scopeContext) {
       try {
-        const scope = await resolveScope(registerId);
-        const existing = await useCaseRepo.getById(scope, useCaseId);
+        const scope = await resolveScope(registerId, scopeContext);
+        const storageScope = toStorageScope(scope);
+        const existing = await useCaseRepo.getById(storageScope, useCaseId);
         if (!existing) {
           throw new RegisterServiceError(
             'USE_CASE_NOT_FOUND',
@@ -1168,16 +1506,19 @@ export function createRegisterService(
           updatedAt: now().toISOString(),
         });
 
-        return useCaseRepo.save(scope, updated);
+        return useCaseRepo.save(storageScope, updated);
       } catch (error) {
         throw mapServiceError(error);
       }
     },
 
-    async getRegisterMetrics(registerId?: string): Promise<RegisterMetrics> {
+    async getRegisterMetrics(
+      registerId?: string,
+      scopeContext?: RegisterScopeContext | null,
+    ): Promise<RegisterMetrics> {
       try {
-        const scope = await resolveScope(registerId);
-        const activeUseCases = await useCaseRepo.list(scope, {
+        const scope = await resolveScope(registerId, scopeContext);
+        const activeUseCases = await useCaseRepo.list(toStorageScope(scope), {
           includeDeleted: false,
         });
 

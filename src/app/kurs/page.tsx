@@ -215,7 +215,9 @@ export default function CoursePage() {
                 <Link href={ROUTE_HREFS.control}>Overview öffnen</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                <Link href={ROUTE_HREFS.governanceUpgrade}>
+                  Upgrade-Optionen
+                </Link>
               </Button>
             </>
           }

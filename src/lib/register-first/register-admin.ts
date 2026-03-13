@@ -1,4 +1,6 @@
 import { db } from '@/lib/firebase-admin';
+import { logWarn } from '@/lib/observability/logger';
+import { getWorkspaceRecord, listWorkspaceMembers } from '@/lib/workspace-admin';
 
 import type { ExternalSubmission, Register } from './types';
 
@@ -13,6 +15,11 @@ export interface ServerExternalSubmissionLocation {
   registerId: string;
   register: Register;
   submission: ExternalSubmission;
+}
+
+interface FindRegisterLocationOptions {
+  ownerId?: string | null;
+  workspaceId?: string | null;
 }
 
 function normalizeOptionalText(value: string | null | undefined): string | null {
@@ -30,6 +37,39 @@ function extractRegisterPathFromSubmissionPath(path: string): string | null {
   return match?.[1] ?? null;
 }
 
+function isFailedPreconditionError(error: unknown): boolean {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    Number((error as { code?: unknown }).code) === 9
+  ) {
+    return true;
+  }
+
+  return (
+    error instanceof Error &&
+    error.message.toUpperCase().includes('FAILED_PRECONDITION')
+  );
+}
+
+function normalizeOwnerIds(ownerIds: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const ownerId of ownerIds) {
+    const normalized = normalizeOptionalText(ownerId);
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+
+    seen.add(normalized);
+    result.push(normalized);
+  }
+
+  return result;
+}
+
 export async function getServerRegister(
   ownerId: string,
   registerId: string,
@@ -38,36 +78,141 @@ export async function getServerRegister(
   return snapshot.exists ? (snapshot.data() as Register) : null;
 }
 
+async function findRegisterLocationByOwnerCandidates(
+  registerId: string,
+  ownerIds: string[],
+): Promise<ServerRegisterLocation | null> {
+  for (const ownerId of ownerIds) {
+    const register = await getServerRegister(ownerId, registerId);
+    if (!register || register.isDeleted === true) {
+      continue;
+    }
+
+    return {
+      ownerId,
+      registerId,
+      register,
+    };
+  }
+
+  return null;
+}
+
+async function resolveWorkspaceOwnerIds(workspaceId: string): Promise<string[]> {
+  const [workspace, members] = await Promise.all([
+    getWorkspaceRecord(workspaceId),
+    listWorkspaceMembers(workspaceId),
+  ]);
+
+  return normalizeOwnerIds([
+    workspace?.ownerUserId,
+    ...members.map((member) => member.userId),
+  ]);
+}
+
+async function listWorkspaceRegistersFromLinks(
+  workspaceId: string,
+): Promise<ServerRegisterLocation[]> {
+  const workspace = await getWorkspaceRecord(workspaceId);
+  const linkedRegisterIds = Array.isArray(workspace?.linkedRegisterIds)
+    ? workspace!.linkedRegisterIds
+    : [];
+
+  if (linkedRegisterIds.length === 0) {
+    return [];
+  }
+
+  const ownerIds = await resolveWorkspaceOwnerIds(workspaceId);
+  const seen = new Set<string>();
+  const locations: ServerRegisterLocation[] = [];
+
+  for (const registerId of linkedRegisterIds) {
+    const normalizedRegisterId = normalizeOptionalText(registerId);
+    if (!normalizedRegisterId || seen.has(normalizedRegisterId)) {
+      continue;
+    }
+
+    const location = await findRegisterLocationByOwnerCandidates(
+      normalizedRegisterId,
+      ownerIds,
+    );
+
+    if (
+      !location ||
+      location.register.workspaceId !== workspaceId ||
+      location.register.isDeleted === true
+    ) {
+      continue;
+    }
+
+    seen.add(normalizedRegisterId);
+    locations.push(location);
+  }
+
+  return locations;
+}
+
 export async function findRegisterLocationById(
   registerId: string,
+  options: FindRegisterLocationOptions = {},
 ): Promise<ServerRegisterLocation | null> {
   const normalizedRegisterId = normalizeOptionalText(registerId);
   if (!normalizedRegisterId) {
     return null;
   }
 
-  const snapshot = await db
-    .collectionGroup('registers')
-    .where('registerId', '==', normalizedRegisterId)
-    .limit(5)
-    .get();
+  const directOwnerMatch = await findRegisterLocationByOwnerCandidates(
+    normalizedRegisterId,
+    normalizeOwnerIds([options.ownerId]),
+  );
+  if (directOwnerMatch) {
+    return directOwnerMatch;
+  }
 
-  for (const document of snapshot.docs) {
-    const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
-    if (!ownerId) {
-      continue;
+  try {
+    const snapshot = await db
+      .collectionGroup('registers')
+      .where('registerId', '==', normalizedRegisterId)
+      .limit(5)
+      .get();
+
+    for (const document of snapshot.docs) {
+      const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
+      if (!ownerId) {
+        continue;
+      }
+
+      const register = document.data() as Register;
+      if (register.isDeleted === true) {
+        continue;
+      }
+
+      return {
+        ownerId,
+        registerId: normalizedRegisterId,
+        register,
+      };
+    }
+  } catch (error) {
+    if (!isFailedPreconditionError(error)) {
+      throw error;
     }
 
-    const register = document.data() as Register;
-    if (register.isDeleted === true) {
-      continue;
-    }
-
-    return {
-      ownerId,
+    logWarn('register_admin_collection_group_fallback', {
       registerId: normalizedRegisterId,
-      register,
-    };
+      workspaceId: options.workspaceId ?? null,
+      ownerId: options.ownerId ?? null,
+    });
+  }
+
+  const workspaceId = normalizeOptionalText(options.workspaceId);
+  if (workspaceId) {
+    const workspaceRegisters = await listWorkspaceRegistersFromLinks(workspaceId);
+    return (
+      workspaceRegisters.find(
+        (location) => location.registerId === normalizedRegisterId,
+      ) ?? null
+    );
   }
 
   return null;
@@ -81,26 +226,42 @@ export async function listWorkspaceRegisters(
     return [];
   }
 
-  const snapshot = await db
-    .collectionGroup('registers')
-    .where('workspaceId', '==', normalizedWorkspaceId)
-    .get();
+  try {
+    const snapshot = await db
+      .collectionGroup('registers')
+      .where('workspaceId', '==', normalizedWorkspaceId)
+      .get();
 
-  return snapshot.docs
-    .map((document) => {
-      const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
-      const register = document.data() as Register;
-      if (!ownerId || register.isDeleted === true) {
-        return null;
-      }
+    const locations = snapshot.docs
+      .map((document) => {
+        const ownerId = extractOwnerIdFromRegisterPath(document.ref.path);
+        const register = document.data() as Register;
+        if (!ownerId || register.isDeleted === true) {
+          return null;
+        }
 
-      return {
-        ownerId,
-        registerId: String(register.registerId ?? document.id),
-        register,
-      } satisfies ServerRegisterLocation;
-    })
-    .filter((entry): entry is ServerRegisterLocation => entry !== null);
+        return {
+          ownerId,
+          registerId: String(register.registerId ?? document.id),
+          register,
+        } satisfies ServerRegisterLocation;
+      })
+      .filter((entry): entry is ServerRegisterLocation => entry !== null);
+
+    if (locations.length > 0) {
+      return locations;
+    }
+  } catch (error) {
+    if (!isFailedPreconditionError(error)) {
+      throw error;
+    }
+
+    logWarn('workspace_register_collection_group_fallback', {
+      workspaceId: normalizedWorkspaceId,
+    });
+  }
+
+  return listWorkspaceRegistersFromLinks(normalizedWorkspaceId);
 }
 
 export async function findWorkspaceExternalSubmissionById(input: {

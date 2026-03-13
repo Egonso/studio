@@ -14,7 +14,7 @@ test('feature upgrades point to canonical premium destinations', () => {
   );
   assert.equal(
     getFeatureUpgradeHref('reviewWorkflow'),
-    ROUTE_HREFS.controlReviews,
+    ROUTE_HREFS.control,
   );
   assert.equal(
     getFeatureUpgradeHref('policyEngine'),

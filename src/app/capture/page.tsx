@@ -143,7 +143,7 @@ export default function StandaloneCapturePage() {
       return;
     }
     if (useCaseId) {
-      router.push(`/pass/${useCaseId}`);
+      router.push(`/my-register/${useCaseId}`);
       return;
     }
     closeCapture();

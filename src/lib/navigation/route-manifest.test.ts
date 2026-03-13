@@ -6,6 +6,7 @@ import {
   getProductAreaForPathname,
   getVisibleProductNav,
   isPremiumControlNavActive,
+  LEGACY_ROUTE_INVENTORY,
   LEGACY_ROUTE_REDIRECTS,
   ROUTE_HREFS,
   showGlobalFooterForPathname,
@@ -22,6 +23,10 @@ test('canonical route map covers the primary register and control destinations',
   assert.ok(hrefs.has(ROUTE_HREFS.control));
   assert.ok(hrefs.has(ROUTE_HREFS.controlReviews));
   assert.ok(hrefs.has(ROUTE_HREFS.governanceSettings));
+  assert.equal(
+    ROUTE_HREFS.governanceUpgrade,
+    '/settings?section=governance#upgrade-panel',
+  );
   assert.ok(hrefs.has(ROUTE_HREFS.controlPolicies));
   assert.ok(hrefs.has(ROUTE_HREFS.controlExports));
   assert.ok(hrefs.has(ROUTE_HREFS.controlTrust));
@@ -78,6 +83,19 @@ test('legacy redirect config covers the old primary routes', () => {
     redirects.get('/settings/governance'),
     ROUTE_HREFS.governanceSettings,
   );
+});
+
+test('legacy route inventory classifies archived and migrated surfaces', () => {
+  const bySource = new Map(
+    LEGACY_ROUTE_INVENTORY.map((entry) => [entry.source, entry]),
+  );
+
+  assert.equal(bySource.get('/ai-management')?.disposition, 'archive');
+  assert.equal(bySource.get('/aims')?.disposition, 'archive');
+  assert.equal(bySource.get('/assessment')?.disposition, 'archive');
+  assert.equal(bySource.get('/portfolio')?.disposition, 'migrate');
+  assert.equal(bySource.get('/audit-report')?.disposition, 'migrate');
+  assert.equal(bySource.get('/projects')?.disposition, 'keep_isolated');
 });
 
 test('pathname classification keeps marketing, intake, register and control separate', () => {
