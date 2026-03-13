@@ -6,7 +6,7 @@ import { BookOpen, LogOut, Settings, ShieldCheck, UserCircle } from 'lucide-reac
 
 import { useAuth } from '@/context/auth-context';
 import { clearActiveProjectId } from '@/lib/data-service';
-import { ADMIN_EMAILS } from '@/lib/admin-config';
+import { isAdminEmail } from '@/lib/admin-config';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,7 +111,7 @@ export function AppHeader() {
                       Gesetz
                     </Link>
                   </DropdownMenuItem>
-                  {user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()) ? (
+                  {isAdminEmail(user.email) ? (
                     <DropdownMenuItem asChild>
                       <Link
                         href="/admin"

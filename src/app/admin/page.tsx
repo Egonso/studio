@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail } from "lucide-react";
 import { getAdminStats, getFeedbackList, getPlatformUsers, updateFeedbackStatus } from "@/app/actions/admin";
-import { ADMIN_EMAILS } from "@/lib/admin-config";
+import { isAdminEmail } from "@/lib/admin-config";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -64,7 +64,7 @@ export default function AdminPage() {
             return;
         }
 
-        if (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+        if (isAdminEmail(user.email)) {
             setIsAuthorized(true);
             void fetchData();
         }

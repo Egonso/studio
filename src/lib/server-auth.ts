@@ -1,6 +1,6 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
 
-import { ADMIN_EMAILS } from "@/lib/admin-config";
+import { isAdminEmail } from "@/lib/admin-config";
 import { normalizeWorkspaceRole } from "@/lib/enterprise/workspace";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 import {
@@ -70,7 +70,7 @@ export async function verifyAdminToken(
   token: string | null | undefined
 ): Promise<DecodedIdToken & { email: string }> {
   const decoded = await verifyFirebaseToken(token);
-  if (!ADMIN_EMAILS.includes(decoded.email)) {
+  if (!isAdminEmail(decoded.email)) {
     throw new ServerAuthError("Admin access denied.", 403);
   }
   return decoded;
