@@ -36,8 +36,8 @@ test('free signup/login entry stays self-serve', () => {
   const authEntrySource = readSource('src/components/auth/auth-entry-page.tsx');
 
   assert.match(rootPageSource, /AuthEntryPage/);
-  assert.match(authEntrySource, />Anmelden</);
   assert.match(authEntrySource, />Registrieren</);
+  assert.match(authEntrySource, />Anmelden</);
   assert.match(authEntrySource, /Eigenes Register anlegen/);
   assert.match(
     authEntrySource,

@@ -847,6 +847,15 @@ export default function AuthEntryPage() {
             Status und Nachweise in revisionsfähiger Form fest, wie es der EU
             AI Act fordert.
           </p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <p className="text-sm font-medium text-slate-950">
+              Free Register ist self-serve.
+            </p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Die Registrierung ist self-serve und startet direkt auf dieser
+              Seite, ohne vorher zu kaufen.
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link
               href="/downloads"
