@@ -333,7 +333,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
               {isEditing ? (
                 <>
                   <X className="mr-1.5 h-3.5 w-3.5" />
-                  Bearbeiten beenden
+                  Abbrechen
                 </>
               ) : (
                 <>

@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import {
   buildUseCaseWorkflowUpdates,
+  getUseCaseSystemSectionMode,
   resolveUseCaseWorkflowDisplay,
 } from "@/lib/register-first/systems";
 import { createAiToolsRegistryService } from "@/lib/register-first/tool-registry-service";
@@ -55,6 +56,8 @@ interface WorkflowDraftSystem extends OrderedUseCaseSystem {
 interface UseCaseWorkflowSectionProps {
   card: UseCaseCard;
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
+  mode?: "single" | "multi";
+  layout?: "standalone" | "embedded";
 }
 
 function normalizeOptionalText(value: string | null | undefined): string | null {
@@ -118,6 +121,8 @@ function withNormalizedPositions(
 export function UseCaseWorkflowSection({
   card,
   onSave,
+  mode,
+  layout = "standalone",
 }: UseCaseWorkflowSectionProps) {
   const workflow = useMemo(
     () =>
@@ -126,6 +131,16 @@ export function UseCaseWorkflowSection({
       }),
     [card]
   );
+  const resolvedMode =
+    mode ??
+    getUseCaseSystemSectionMode(card, {
+      resolveToolName: resolveToolDisplay,
+    });
+  const isSingleMode = resolvedMode === "single";
+  const sectionClassName =
+    layout === "embedded"
+      ? "space-y-5"
+      : "rounded-lg border border-slate-200 bg-white p-5 md:p-6";
   const canEditWorkflow =
     registerFirstFlags.multisystemCapture ||
     workflow.hasMultipleSystems ||
@@ -256,22 +271,25 @@ export function UseCaseWorkflowSection({
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+    <section className={sectionClassName}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-[18px] font-semibold tracking-tight">
-            Ablauf & Systeme
+            {isSingleMode ? "System" : "Ablauf & Systeme"}
           </h2>
           <p className="text-xs text-muted-foreground">
-            Dokumentiert die beteiligten Systeme in Reihenfolge, inklusive APIs
-            und optionalem Ablaufhinweis.
+            {isSingleMode
+              ? "Dokumentiert das aktuell beteiligte System. Sie koennen spaeter weitere Systeme ergaenzen."
+              : "Dokumentiert die beteiligten Systeme in Reihenfolge, inklusive APIs und optionalem Ablaufhinweis."}
           </p>
         </div>
 
         {canEditWorkflow && !isEditing ? (
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
-            Ablauf bearbeiten
+            {isSingleMode
+              ? "Zu mehrstufigem Ablauf erweitern"
+              : "Ablauf bearbeiten"}
           </Button>
         ) : null}
       </div>
@@ -436,35 +454,51 @@ export function UseCaseWorkflowSection({
       ) : (
         <div className="mt-5 space-y-4">
           {workflow.systemCount > 0 ? (
-            <ol className="space-y-2">
-              {workflow.systems.map((system) => (
-                <li
-                  key={system.entryId}
-                  className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50/40 px-4 py-3"
-                >
-                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-700">
-                    {system.position}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-900">
-                      {system.displayName}
-                    </p>
-                    {system.toolId && system.toolId !== "other" ? (
-                      <p className="text-xs text-muted-foreground">
-                        Referenz: {system.toolId}
+            isSingleMode ? (
+              <div className="rounded-md border border-slate-200 bg-slate-50/40 px-4 py-4">
+                <p className="text-sm font-medium text-slate-900">
+                  {workflow.systems[0]?.displayName}
+                </p>
+                {workflow.systems[0]?.toolId &&
+                workflow.systems[0]?.toolId !== "other" ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Referenz: {workflow.systems[0]?.toolId}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <ol className="space-y-2">
+                {workflow.systems.map((system) => (
+                  <li
+                    key={system.entryId}
+                    className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50/40 px-4 py-3"
+                  >
+                    <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-700">
+                      {system.position}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-900">
+                        {system.displayName}
                       </p>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ol>
+                      {system.toolId && system.toolId !== "other" ? (
+                        <p className="text-xs text-muted-foreground">
+                          Referenz: {system.toolId}
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )
           ) : (
             <div className="rounded-md border border-dashed border-slate-200 px-4 py-6 text-sm text-muted-foreground">
-              Noch keine beteiligten Systeme dokumentiert.
+              {isSingleMode
+                ? "Noch kein System dokumentiert."
+                : "Noch keine beteiligten Systeme dokumentiert."}
             </div>
           )}
 
-          {(workflow.connectionModeLabel || workflow.summary) && (
+          {!isSingleMode && (workflow.connectionModeLabel || workflow.summary) && (
             <div className="grid gap-3 md:grid-cols-2">
               {workflow.connectionModeLabel ? (
                 <div className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3">

@@ -4,8 +4,10 @@ import test from "node:test";
 import {
   createUseCaseSystemPublicInfoEntry,
   buildUseCaseWorkflowUpdates,
+  getUseCaseSystemSectionMode,
   getUseCaseSystemsSummary,
   getUseCaseWorkflowBadge,
+  hasUseCaseWorkflowMetadata,
   resolveUniqueSystemsForCompliance,
   resolveUseCaseWorkflowDisplay,
 } from "./systems";
@@ -118,6 +120,45 @@ test("buildUseCaseWorkflowUpdates collapses back to a single primary system", ()
   assert.equal(updates.toolId, "other");
   assert.equal(updates.toolFreeText, "Perplexity API");
   assert.equal(updates.workflow, undefined);
+});
+
+test("getUseCaseSystemSectionMode keeps plain single-system cards compact", () => {
+  const mode = getUseCaseSystemSectionMode({
+    toolId: "other",
+    toolFreeText: "Midjourney",
+  });
+
+  assert.equal(mode, "single");
+  assert.equal(
+    hasUseCaseWorkflowMetadata({
+      workflow: undefined,
+    }),
+    false
+  );
+});
+
+test("getUseCaseSystemSectionMode upgrades to multi when workflow metadata exists", () => {
+  const mode = getUseCaseSystemSectionMode({
+    toolId: "other",
+    toolFreeText: "Gemini",
+    workflow: {
+      additionalSystems: [],
+      connectionMode: "SEMI_AUTOMATED",
+      summary: "Entwurf -> Freigabe",
+    },
+  });
+
+  assert.equal(mode, "multi");
+  assert.equal(
+    hasUseCaseWorkflowMetadata({
+      workflow: {
+        additionalSystems: [],
+        connectionMode: "SEMI_AUTOMATED",
+        summary: "Entwurf -> Freigabe",
+      },
+    }),
+    true
+  );
 });
 
 test("resolveUniqueSystemsForCompliance deduplicates repeated workflow systems", () => {

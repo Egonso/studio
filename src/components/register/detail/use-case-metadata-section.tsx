@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { UseCaseSystemsComplianceSection } from "@/components/register/detail/use-case-systems-compliance-section";
 import type { ControlFocusTarget } from "@/lib/control/deep-link";
 import type {
   CaptureUsageContext,
@@ -151,6 +148,9 @@ export function UseCaseMetadataSection({
   }, [toast]);
 
   const handleSave = async () => {
+    if (isSaving) {
+      return;
+    }
     setIsSaving(true);
     try {
       const normalizedDataCategories =
@@ -199,22 +199,6 @@ export function UseCaseMetadataSection({
 
   return (
     <div className="space-y-8">
-      {isEditing && (
-        <div className="sticky top-3 z-20 flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/75">
-          <p className="text-sm text-slate-700">
-            Bearbeitungsmodus aktiv. Die Stammdaten dieses Einsatzfalls können jetzt geändert werden.
-          </p>
-          <Button onClick={() => void handleSave()} disabled={isSaving} size="sm">
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="mr-2 h-4 w-4" />
-            )}
-            Speichern
-          </Button>
-        </div>
-      )}
-
       {!isEditing && (
         <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
           <p className="font-medium text-slate-700">Stammdaten sind schreibgeschützt.</p>
@@ -222,280 +206,266 @@ export function UseCaseMetadataSection({
         </div>
       )}
 
-      <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
-        <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          <FieldBlock
-            label="Zweck"
-            className="rounded-md border border-slate-200 bg-white px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <Textarea
-                value={editDraft.purpose}
-                onChange={(event) =>
-                  setEditDraft((prev) => ({ ...prev, purpose: event.target.value }))
-                }
-                rows={3}
-              />
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{card.purpose}</p>
-            )}
-          </FieldBlock>
-          <FieldBlock
-            label="Wirkungsbereich"
-            className="rounded-md border border-slate-200 bg-white px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <div className="space-y-2">
-                {USAGE_CONTEXT_OPTIONS.map((option) => (
-                  <label key={option} className="flex items-center gap-2 text-sm text-slate-800">
-                    <Checkbox
-                      checked={editDraft.usageContexts.includes(option)}
-                      onCheckedChange={() =>
-                        setEditDraft((prev) => ({
-                          ...prev,
-                          usageContexts: toggleMultiSelect(prev.usageContexts, option),
-                        }))
-                      }
-                    />
-                    {USAGE_CONTEXT_LABELS[option]}
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{usageScope}</p>
-            )}
-          </FieldBlock>
-          <FieldBlock
-            label="Einfluss auf Entscheidungen"
-            className="rounded-md border border-slate-200 bg-white px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <div className="space-y-2">
-                {DECISION_INFLUENCE_OPTIONS.map((option) => (
-                  <label key={option} className="flex items-center gap-2 text-sm text-slate-800">
-                    <input
-                      type="radio"
-                      name="decisionInfluence"
-                      checked={editDraft.decisionInfluence === option}
-                      onChange={() =>
-                        setEditDraft((prev) => ({ ...prev, decisionInfluence: option }))
-                      }
-                      className="h-4 w-4"
-                    />
-                    {DECISION_INFLUENCE_LABELS[option]}
-                  </label>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{decisionLabel}</p>
-            )}
-          </FieldBlock>
-          <FieldBlock
-            label="Risikoklasse"
-            className="rounded-md border border-slate-200 bg-white px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <Input
-                value={editDraft.aiActCategory}
-                onChange={(event) =>
-                  setEditDraft((prev) => ({
-                    ...prev,
-                    aiActCategory: event.target.value,
-                  }))
-                }
-                placeholder="z. B. Transparenz-Risiko"
-              />
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
-            )}
-          </FieldBlock>
-          <FieldBlock
-            label="Datenkategorien"
-            className="rounded-md border border-slate-200 bg-white px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <div className="space-y-2">
-                {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
-                  <div key={option}>
-                    <label className="flex items-center gap-2 text-sm text-slate-800">
+      <form
+        id="use-case-metadata-form"
+        className="space-y-8"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSave();
+        }}
+      >
+        <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
+          <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <FieldBlock
+              label="Zweck"
+              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <Textarea
+                  value={editDraft.purpose}
+                  onChange={(event) =>
+                    setEditDraft((prev) => ({ ...prev, purpose: event.target.value }))
+                  }
+                  rows={3}
+                />
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">{card.purpose}</p>
+              )}
+            </FieldBlock>
+            <FieldBlock
+              label="Wirkungsbereich"
+              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <div className="space-y-2">
+                  {USAGE_CONTEXT_OPTIONS.map((option) => (
+                    <label key={option} className="flex items-center gap-2 text-sm text-slate-800">
                       <Checkbox
-                        checked={editDraft.dataCategories.includes(option)}
+                        checked={editDraft.usageContexts.includes(option)}
                         onCheckedChange={() =>
                           setEditDraft((prev) => ({
                             ...prev,
-                            dataCategories: applyDataCategoryLogic(prev.dataCategories, option),
+                            usageContexts: toggleMultiSelect(prev.usageContexts, option),
                           }))
                         }
                       />
-                      <span>{DATA_CATEGORY_LABELS[option]}</span>
+                      {USAGE_CONTEXT_LABELS[option]}
                     </label>
-
-                    {option === "SPECIAL_PERSONAL" &&
-                      editDraft.dataCategories.includes("SPECIAL_PERSONAL") && (
-                        <div className="ml-6 mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-2">
-                          <button
-                            type="button"
-                            className="text-xs text-muted-foreground underline underline-offset-2"
-                            onClick={() => setSpecialOpen((prev) => !prev)}
-                          >
-                            {specialOpen
-                              ? "Unterkategorien ausblenden"
-                              : "Unterkategorien bearbeiten"}
-                          </button>
-
-                          {specialOpen &&
-                            DATA_CATEGORY_SPECIAL_OPTIONS.map((sub) => (
-                              <label key={sub} className="flex items-center gap-2 text-sm text-slate-800">
-                                <Checkbox
-                                  checked={editDraft.dataCategories.includes(sub)}
-                                  onCheckedChange={() =>
-                                    setEditDraft((prev) => ({
-                                      ...prev,
-                                      dataCategories: applyDataCategoryLogic(prev.dataCategories, sub),
-                                    }))
-                                  }
-                                />
-                                {DATA_CATEGORY_LABELS[sub]}
-                              </label>
-                            ))}
-                        </div>
-                      )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
-            )}
-          </FieldBlock>
-          <div className="rounded-md border border-dashed border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 md:col-span-2">
-            Systembezogene Compliance-Informationen finden Sie im Abschnitt
-            "Beteiligte Systeme & Compliance".
-          </div>
-        </div>
-      </section>
-
-      <UseCaseSystemsComplianceSection
-        card={card}
-        isEditing={isEditing}
-        onSave={onSave}
-      />
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <h2 className="text-[18px] font-semibold tracking-tight">Owner & Organisation</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          <div
-            id="usecase-focus-owner"
-            className={cn(focusTarget === "owner" && focusClassName)}
-          >
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">{usageScope}</p>
+              )}
+            </FieldBlock>
             <FieldBlock
-              label="Owner-Rolle (funktional)"
+              label="Einfluss auf Entscheidungen"
+              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <div className="space-y-2">
+                  {DECISION_INFLUENCE_OPTIONS.map((option) => (
+                    <label key={option} className="flex items-center gap-2 text-sm text-slate-800">
+                      <input
+                        type="radio"
+                        name="decisionInfluence"
+                        checked={editDraft.decisionInfluence === option}
+                        onChange={() =>
+                          setEditDraft((prev) => ({ ...prev, decisionInfluence: option }))
+                        }
+                        className="h-4 w-4"
+                      />
+                      {DECISION_INFLUENCE_LABELS[option]}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">{decisionLabel}</p>
+              )}
+            </FieldBlock>
+            <FieldBlock
+              label="Risikoklasse"
+              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <Input
+                  value={editDraft.aiActCategory}
+                  onChange={(event) =>
+                    setEditDraft((prev) => ({
+                      ...prev,
+                      aiActCategory: event.target.value,
+                    }))
+                  }
+                  placeholder="z. B. Transparenz-Risiko"
+                />
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
+              )}
+            </FieldBlock>
+            <FieldBlock
+              label="Datenkategorien"
+              className="rounded-md border border-slate-200 bg-white px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <div className="space-y-2">
+                  {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
+                    <div key={option}>
+                      <label className="flex items-center gap-2 text-sm text-slate-800">
+                        <Checkbox
+                          checked={editDraft.dataCategories.includes(option)}
+                          onCheckedChange={() =>
+                            setEditDraft((prev) => ({
+                              ...prev,
+                              dataCategories: applyDataCategoryLogic(prev.dataCategories, option),
+                            }))
+                          }
+                        />
+                        <span>{DATA_CATEGORY_LABELS[option]}</span>
+                      </label>
+
+                      {option === "SPECIAL_PERSONAL" &&
+                        editDraft.dataCategories.includes("SPECIAL_PERSONAL") && (
+                          <div className="ml-6 mt-2 space-y-2 rounded-md border border-slate-200 bg-slate-50 p-2">
+                            <button
+                              type="button"
+                              className="text-xs text-muted-foreground underline underline-offset-2"
+                              onClick={() => setSpecialOpen((prev) => !prev)}
+                            >
+                              {specialOpen
+                                ? "Unterkategorien ausblenden"
+                                : "Unterkategorien bearbeiten"}
+                            </button>
+
+                            {specialOpen &&
+                              DATA_CATEGORY_SPECIAL_OPTIONS.map((sub) => (
+                                <label key={sub} className="flex items-center gap-2 text-sm text-slate-800">
+                                  <Checkbox
+                                    checked={editDraft.dataCategories.includes(sub)}
+                                    onCheckedChange={() =>
+                                      setEditDraft((prev) => ({
+                                        ...prev,
+                                        dataCategories: applyDataCategoryLogic(prev.dataCategories, sub),
+                                      }))
+                                    }
+                                  />
+                                  {DATA_CATEGORY_LABELS[sub]}
+                                </label>
+                              ))}
+                          </div>
+                        )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
+              )}
+            </FieldBlock>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+          <h2 className="text-[18px] font-semibold tracking-tight">Owner & Organisation</h2>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div
+              id="usecase-focus-owner"
+              className={cn(focusTarget === "owner" && focusClassName)}
+            >
+              <FieldBlock
+                label="Owner-Rolle (funktional)"
+                className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+                onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+              >
+                {isEditing ? (
+                  <Input
+                    value={editDraft.responsibleParty}
+                    onChange={(event) =>
+                      setEditDraft((prev) => ({
+                        ...prev,
+                        responsibleParty: event.target.value,
+                      }))
+                    }
+                    placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                  />
+                ) : (
+                  <p className="text-[15px] font-medium text-slate-900">{ownerLabel}</p>
+                )}
+              </FieldBlock>
+            </div>
+            <FieldBlock
+              label="Kontaktperson (optional)"
               className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
               onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
             >
               {isEditing ? (
                 <Input
-                  value={editDraft.responsibleParty}
+                  value={editDraft.contactPersonName}
                   onChange={(event) =>
                     setEditDraft((prev) => ({
                       ...prev,
-                      responsibleParty: event.target.value,
+                      contactPersonName: event.target.value,
                     }))
                   }
-                  placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                  placeholder="z. B. Max Mustermann"
                 />
               ) : (
-                <p className="text-[15px] font-medium text-slate-900">{ownerLabel}</p>
+                <p className="text-[15px] font-medium text-slate-900">{contactPersonLabel}</p>
               )}
             </FieldBlock>
           </div>
-          <FieldBlock
-            label="Kontaktperson (optional)"
-            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <Input
-                value={editDraft.contactPersonName}
-                onChange={(event) =>
-                  setEditDraft((prev) => ({
-                    ...prev,
-                    contactPersonName: event.target.value,
-                  }))
-                }
-                placeholder="z. B. Max Mustermann"
-              />
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{contactPersonLabel}</p>
-            )}
-          </FieldBlock>
-        </div>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <FieldBlock
-            label="Organisation"
-            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <Input
-                value={editDraft.organisation}
-                onChange={(event) =>
-                  setEditDraft((prev) => ({
-                    ...prev,
-                    organisation: event.target.value,
-                  }))
-                }
-                placeholder="z. B. KI-Register GmbH"
-              />
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">
-                {card.organisation?.trim() || "Nicht hinterlegt"}
-              </p>
-            )}
-          </FieldBlock>
-        </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <FieldBlock
+              label="Organisation"
+              className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+            >
+              {isEditing ? (
+                <Input
+                  value={editDraft.organisation}
+                  onChange={(event) =>
+                    setEditDraft((prev) => ({
+                      ...prev,
+                      organisation: event.target.value,
+                    }))
+                  }
+                  placeholder="z. B. KI-Register GmbH"
+                />
+              ) : (
+                <p className="text-[15px] font-medium text-slate-900">
+                  {card.organisation?.trim() || "Nicht hinterlegt"}
+                </p>
+              )}
+            </FieldBlock>
+          </div>
 
-        <div
-          id="usecase-focus-oversight"
-          className={cn(
-            "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
-            (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
-          )}
-        >
-          <div id="usecase-focus-policy" className="h-px w-px" />
-          <p className="font-medium text-slate-600">Organisation KI-gerecht steuern</p>
-          <p>
-            Zuständigkeiten, Prüfmodelle und Policies werden in der
-            Organisationssteuerung verwaltet.
-          </p>
-          <button
-            type="button"
-            className="underline underline-offset-2"
-            onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
-          >
-            Im AI Governance Control anzeigen
-          </button>
-        </div>
-      </section>
-
-      {isEditing && (
-        <div className="flex justify-end border-t border-slate-200 pt-4">
-          <Button onClick={() => void handleSave()} disabled={isSaving}>
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="mr-2 h-4 w-4" />
+          <div
+            id="usecase-focus-oversight"
+            className={cn(
+              "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
+              (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
             )}
-            Änderungen speichern
-          </Button>
-        </div>
-      )}
+          >
+            <div id="usecase-focus-policy" className="h-px w-px" />
+            <p className="font-medium text-slate-600">Organisation KI-gerecht steuern</p>
+            <p>
+              Zuständigkeiten, Prüfmodelle und Policies werden in der
+              Organisationssteuerung verwaltet.
+            </p>
+            <button
+              type="button"
+              className="underline underline-offset-2"
+              onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
+            >
+              Im AI Governance Control anzeigen
+            </button>
+          </div>
+        </section>
+      </form>
     </div>
   );
 }
