@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  parseSupplierRequestSubmission,
   createSupplierRequestUseCase,
   getSupplierRequestContact,
   isSupplierRequestCard,
+  normalizeSupplierRequestDataCategories,
   SUPPLIER_REQUEST_DEFAULT_USAGE_CONTEXT,
   SUPPLIER_REQUEST_FILTER,
 } from "./supplier-requests";
@@ -57,4 +59,113 @@ test("getSupplierRequestContact nutzt den Registerwert als Fallback", () => {
 
   assert.equal(contact, "fallback@example.com");
   assert.equal(SUPPLIER_REQUEST_FILTER, "supplier_requests");
+});
+
+test("parseSupplierRequestSubmission normalisiert weitere Systeme und Ablaufmetadaten", () => {
+  const submission = parseSupplierRequestSubmission({
+    supplierEmail: "vendor@example.com",
+    toolName: "Perplexity API",
+    systems: [
+      "Perplexity API",
+      "Gemini API",
+      "Interner Freigabe-Webhook",
+    ],
+    purpose: "Unterstuetzt die Content-Produktion fuer Marketingtexte.",
+    dataCategory: "PERSONAL_DATA",
+    aiActCategory: "Geringes Risiko",
+    workflowConnectionMode: "semi_automated",
+    workflowSummary: "Recherche -> Entwurf -> Freigabe",
+  });
+
+  assert.equal(submission.toolName, "Perplexity API");
+  assert.equal(submission.workflow?.connectionMode, "SEMI_AUTOMATED");
+  assert.equal(submission.workflow?.summary, "Recherche -> Entwurf -> Freigabe");
+  assert.deepEqual(submission.workflow?.additionalSystems, [
+    {
+      entryId: "supplier_system_3",
+      position: 2,
+      toolId: "other",
+      toolFreeText: "Gemini API",
+    },
+    {
+      entryId: "supplier_system_4",
+      position: 3,
+      toolId: "other",
+      toolFreeText: "Interner Freigabe-Webhook",
+    },
+  ]);
+});
+
+test("createSupplierRequestUseCase uebernimmt den Mehrsystem-Ablauf in die Registerkarte", () => {
+  const card = createSupplierRequestUseCase(
+    {
+      supplierEmail: "vendor@example.com",
+      toolName: "Perplexity API",
+      systems: [
+        "Perplexity API",
+        "Gemini API",
+        "Interner Freigabe-Webhook",
+      ],
+      purpose: "Unterstuetzt die Content-Produktion fuer Marketingtexte.",
+      dataCategory: "PERSONAL_DATA",
+      aiActCategory: "Geringes Risiko",
+      workflowConnectionMode: "FULLY_AUTOMATED",
+      workflowSummary: "Recherche -> Entwurf -> Freigabe",
+    },
+    {
+      useCaseId: "uc_supplier_2",
+      now: new Date("2026-03-12T11:00:00.000Z"),
+    }
+  );
+
+  assert.equal(card.toolFreeText, "Perplexity API");
+  assert.equal(card.workflow?.connectionMode, "FULLY_AUTOMATED");
+  assert.equal(card.workflow?.additionalSystems.length, 2);
+  assert.equal(card.workflow?.additionalSystems[0].toolFreeText, "Gemini API");
+});
+
+test("parseSupplierRequestSubmission normalisiert mehrere Datenkategorien rueckwaertskompatibel", () => {
+  const submission = parseSupplierRequestSubmission({
+    supplierEmail: "vendor@example.com",
+    toolName: "SuperAgent AI",
+    purpose: "Unterstuetzt den Support.",
+    dataCategories: ["SPECIAL_PERSONAL"],
+    aiActCategory: "Geringes Risiko",
+  });
+
+  assert.equal(submission.dataCategory, "SPECIAL_PERSONAL");
+  assert.deepEqual(submission.dataCategories, [
+    "SPECIAL_PERSONAL",
+    "PERSONAL_DATA",
+  ]);
+});
+
+test("normalizeSupplierRequestDataCategories entfernt widerspruechliche Kombinationen", () => {
+  const categories = normalizeSupplierRequestDataCategories(
+    ["NO_PERSONAL_DATA", "SPECIAL_PERSONAL"]
+  );
+
+  assert.deepEqual(categories, ["SPECIAL_PERSONAL", "PERSONAL_DATA"]);
+});
+
+test("createSupplierRequestUseCase uebernimmt mehrere Datenkategorien konsistent", () => {
+  const card = createSupplierRequestUseCase(
+    {
+      supplierEmail: "vendor@example.com",
+      toolName: "Perplexity API",
+      purpose: "Marketing-Recherche",
+      dataCategories: ["SPECIAL_PERSONAL"],
+      aiActCategory: "Geringes Risiko",
+    },
+    {
+      useCaseId: "uc_supplier_3",
+      now: new Date("2026-03-12T12:00:00.000Z"),
+    }
+  );
+
+  assert.equal(card.dataCategory, "SPECIAL_PERSONAL");
+  assert.deepEqual(card.dataCategories, [
+    "SPECIAL_PERSONAL",
+    "PERSONAL_DATA",
+  ]);
 });

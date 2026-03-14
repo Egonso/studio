@@ -231,7 +231,7 @@ export function ExternalSubmissionsInbox({
                   setSearchQuery(searchInput.trim());
                 }
               }}
-              placeholder="Suche nach Tool, Zweck, Person oder Token"
+              placeholder="Suche nach System, API, Zweck, Person oder Token"
               className="pl-9"
             />
           </div>

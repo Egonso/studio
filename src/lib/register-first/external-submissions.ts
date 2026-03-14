@@ -16,6 +16,7 @@ import {
 } from './supplier-requests';
 import { prepareUseCaseForStorage } from './use-case-builder';
 import { getEntitlementAccessPlan } from './entitlement';
+import { normalizeUseCaseWorkflow, resolveOrderedSystemsFromCard } from './card-model';
 import type {
   CaptureUsageContext,
   DataCategory,
@@ -24,13 +25,16 @@ import type {
   ExternalSubmissionSourceType,
   ExternalSubmissionStatus,
   Register,
+  UseCaseWorkflow,
   UseCaseCard,
+  OrderedUseCaseSystem,
 } from './types';
 
 export interface AccessCodeSubmissionSnapshot extends Record<string, unknown> {
   purpose: string;
   toolId?: string;
   toolFreeText?: string;
+  workflow?: UseCaseWorkflow;
   usageContexts: CaptureUsageContext[];
   dataCategories: DataCategory[];
   decisionInfluence?: DecisionInfluence | null;
@@ -63,6 +67,46 @@ function normalizeOptionalText(
 ): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+}
+
+function resolvePrimarySnapshotSystem(
+  rawPayloadSnapshot: Record<string, unknown>,
+): Pick<OrderedUseCaseSystem, 'toolId' | 'toolFreeText'> | null {
+  const supplierToolName =
+    typeof rawPayloadSnapshot.toolName === 'string'
+      ? normalizeOptionalText(rawPayloadSnapshot.toolName)
+      : null;
+  if (supplierToolName) {
+    return {
+      toolId: 'other',
+      toolFreeText: supplierToolName,
+    };
+  }
+
+  const toolFreeText =
+    typeof rawPayloadSnapshot.toolFreeText === 'string'
+      ? normalizeOptionalText(rawPayloadSnapshot.toolFreeText)
+      : null;
+  const toolId =
+    typeof rawPayloadSnapshot.toolId === 'string'
+      ? normalizeOptionalText(rawPayloadSnapshot.toolId)
+      : null;
+
+  if (!toolId && !toolFreeText) {
+    return null;
+  }
+
+  return {
+    toolId: toolId ?? undefined,
+    toolFreeText: toolFreeText ?? undefined,
+  };
+}
+
+function resolveSystemDisplayName(
+  system: Pick<OrderedUseCaseSystem, 'toolId' | 'toolFreeText'>,
+): string | null {
+  return normalizeOptionalText(system.toolFreeText) ??
+    normalizeOptionalText(system.toolId);
 }
 
 export function buildExternalSubmissionRecord(input: {
@@ -179,6 +223,7 @@ export function buildAccessCodeSubmissionSnapshot(
     purpose: input.purpose.trim(),
     toolId: normalizeOptionalText(input.toolId) ?? undefined,
     toolFreeText: normalizeOptionalText(input.toolFreeText) ?? undefined,
+    workflow: normalizeUseCaseWorkflow(input.workflow),
     usageContexts: [...input.usageContexts],
     dataCategories: [...input.dataCategories],
     decisionInfluence: input.decisionInfluence ?? null,
@@ -211,6 +256,7 @@ export function buildUseCaseFromAccessCodeSubmission(input: {
       decisionInfluence: snapshot.decisionInfluence ?? undefined,
       toolId: snapshot.toolId,
       toolFreeText: snapshot.toolFreeText,
+      workflow: snapshot.workflow,
       dataCategory: snapshot.dataCategories[0],
       dataCategories: snapshot.dataCategories,
       organisation: snapshot.organisation,
@@ -294,17 +340,46 @@ export function buildUseCaseFromSupplierSubmission(input: {
   });
 }
 
+export function resolveExternalSubmissionOrderedSystems(
+  submission: Pick<ExternalSubmission, 'rawPayloadSnapshot'>,
+): OrderedUseCaseSystem[] {
+  const primarySystem = resolvePrimarySnapshotSystem(submission.rawPayloadSnapshot);
+  const workflow = normalizeUseCaseWorkflow(submission.rawPayloadSnapshot.workflow);
+
+  return resolveOrderedSystemsFromCard({
+    toolId: primarySystem?.toolId,
+    toolFreeText: primarySystem?.toolFreeText,
+    workflow,
+  });
+}
+
+export function getExternalSubmissionSystemNames(
+  submission: Pick<ExternalSubmission, 'rawPayloadSnapshot'>,
+): string[] {
+  return resolveExternalSubmissionOrderedSystems(submission)
+    .map((system) => resolveSystemDisplayName(system))
+    .filter((systemName): systemName is string => Boolean(systemName));
+}
+
+export function getExternalSubmissionSystemSummary(
+  submission: Pick<ExternalSubmission, 'rawPayloadSnapshot'>,
+): string {
+  const systemNames = getExternalSubmissionSystemNames(submission);
+  const [primarySystem, ...additionalSystems] = systemNames;
+
+  if (!primarySystem) {
+    return 'Ohne System';
+  }
+
+  return additionalSystems.length > 0
+    ? `${primarySystem} +${additionalSystems.length}`
+    : primarySystem;
+}
+
 export function getExternalSubmissionTitle(
   submission: Pick<ExternalSubmission, 'sourceType' | 'rawPayloadSnapshot'>,
 ): string {
-  const toolName =
-    typeof submission.rawPayloadSnapshot.toolName === 'string'
-      ? submission.rawPayloadSnapshot.toolName
-      : typeof submission.rawPayloadSnapshot.toolFreeText === 'string'
-        ? submission.rawPayloadSnapshot.toolFreeText
-        : typeof submission.rawPayloadSnapshot.toolId === 'string'
-          ? submission.rawPayloadSnapshot.toolId
-          : 'Ohne Tool';
+  const toolName = getExternalSubmissionSystemSummary(submission);
   const purpose =
     typeof submission.rawPayloadSnapshot.purpose === 'string'
       ? submission.rawPayloadSnapshot.purpose

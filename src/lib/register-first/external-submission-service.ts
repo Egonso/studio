@@ -8,6 +8,7 @@ import {
 import { parseExternalSubmission } from './schema';
 import {
   getExternalSubmissionActor,
+  getExternalSubmissionSystemNames,
   getExternalSubmissionTitle,
 } from './external-submissions';
 import type {
@@ -149,6 +150,7 @@ function matchesFilters(
     submission.submittedByEmail ?? '',
     getExternalSubmissionActor(submission),
     getExternalSubmissionTitle(submission),
+    ...getExternalSubmissionSystemNames(submission),
     ...Object.values(submission.rawPayloadSnapshot).map((value) =>
       typeof value === 'string'
         ? value

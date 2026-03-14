@@ -43,6 +43,7 @@ import {
   type WorkspaceWebhookConfig,
 } from '@/lib/enterprise/workspace';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
+import { getExternalSubmissionSystemSummary } from '@/lib/register-first/external-submissions';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 import { cn } from '@/lib/utils';
 import { getActiveWorkspaceId } from '@/lib/workspace-session';
@@ -142,9 +143,9 @@ function getSignOffStatusBadgeClass(status: GovernanceSignOffRecord['status']) {
 }
 
 function getSubmissionHeadline(submission: WorkspaceExternalSubmissionRow): string {
-  const toolName = submission.rawPayloadSnapshot['toolName'];
-  if (typeof toolName === 'string' && toolName.trim().length > 0) {
-    return toolName;
+  const systemSummary = getExternalSubmissionSystemSummary(submission);
+  if (systemSummary !== 'Ohne System') {
+    return systemSummary;
   }
 
   const purpose = submission.rawPayloadSnapshot['purpose'];
