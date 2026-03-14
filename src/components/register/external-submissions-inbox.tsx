@@ -33,6 +33,8 @@ import {
   externalSubmissionService,
   isExternalSubmissionPermissionError,
 } from "@/lib/register-first/external-submission-service";
+import { buildScopedUseCaseDetailHref } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 import type {
   ExternalSubmission,
   ExternalSubmissionSourceType,
@@ -97,6 +99,7 @@ export function ExternalSubmissionsInbox({
   description = "Nachvollziehbare externe Einreichungen aus Lieferantenlinks, Erfassungslinks und Imports.",
 }: ExternalSubmissionsInboxProps) {
   const router = useRouter();
+  const workspaceScope = useWorkspaceScope();
   const { toast } = useToast();
   const [submissions, setSubmissions] = useState<ExternalSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -368,7 +371,12 @@ export function ExternalSubmissionsInbox({
                           size="sm"
                           className="h-auto px-0 text-primary"
                           onClick={() =>
-                            router.push(`/my-register/${submission.linkedUseCaseId}`)
+                            router.push(
+                              buildScopedUseCaseDetailHref(
+                                submission.linkedUseCaseId!,
+                                workspaceScope,
+                              ),
+                            )
                           }
                         >
                           {submission.linkedUseCaseId}

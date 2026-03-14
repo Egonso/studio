@@ -71,7 +71,10 @@ import {
 } from "@/lib/register-first";
 import { RegisterStatusBadge } from "./status-badge";
 import { registerFirstFlags } from "@/lib/register-first/flags";
+import { parseRegisterScopeFromWorkspaceValue } from "@/lib/register-first/register-scope";
 import { registerService } from "@/lib/register-first/register-service";
+import { buildScopedUseCaseDetailHref } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 const toolRegistry = createStaticToolRegistryService();
 const aiToolsRegistry = createAiToolsRegistryService();
@@ -217,6 +220,11 @@ async function copyTextToClipboard(value: string): Promise<void> {
 export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
   const isStandalone = mode === "standalone";
   const router = useRouter();
+  const workspaceScope = useWorkspaceScope();
+  const scopeContext = useMemo(
+    () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
+    [workspaceScope],
+  );
   const { toast } = useToast();
   const initialSourceFilter: UseCaseSourceFilter =
     initialFilter === SUPPLIER_REQUEST_FILTER ? "LIEFERANT" : "ALL";
@@ -263,7 +271,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           searchText: searchQuery,
           limit: 150,
           includeDeleted: showDeleted,
-        })
+        }, scopeContext)
         : await registerFirstService.listUseCases(projectId, {
           status: statusFilter === "ALL" ? undefined : statusFilter,
           searchText: searchQuery,
@@ -335,7 +343,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } finally {
       setIsLoading(false);
     }
-  }, [activeCustomFilter, isStandalone, projectId, registerId, riskFilter, searchQuery, showDeleted, statusFilter]);
+  }, [activeCustomFilter, isStandalone, projectId, registerId, riskFilter, scopeContext, searchQuery, showDeleted, statusFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -422,6 +430,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       if (isStandalone) {
         await registerService.updateUseCaseStatusManual({
           registerId,
+          scopeContext,
           useCaseId: card.useCaseId,
           nextStatus,
           actor: "HUMAN",
@@ -464,7 +473,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     try {
       await registerService.softDeleteUseCase(
         isStandalone ? registerId : projectId,
-        card.useCaseId
+        card.useCaseId,
+        scopeContext,
       );
       await loadUseCases();
       toast({ title: "Gelöscht", description: "Use Case wurde in den Papierkorb verschoben." });
@@ -477,7 +487,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     try {
       await registerService.restoreUseCase(
         isStandalone ? registerId : projectId,
-        card.useCaseId
+        card.useCaseId,
+        scopeContext,
       );
       await loadUseCases();
       toast({ title: "Wiederhergestellt", description: "Use Case ist wieder aktiv." });
@@ -961,7 +972,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                       </TableRow>
                     )}
                     <TableRow
-                      onClick={() => router.push(`/my-register/${card.useCaseId}`)}
+                      onClick={() =>
+                        router.push(
+                          buildScopedUseCaseDetailHref(
+                            card.useCaseId,
+                            workspaceScope,
+                          ),
+                        )
+                      }
                       className={`cursor-pointer group ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
                     >
                       <TableCell>

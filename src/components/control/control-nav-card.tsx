@@ -6,6 +6,8 @@ import {
   isPremiumControlNavActive,
   isPremiumControlNavItemLocked,
 } from '@/lib/navigation/route-manifest';
+import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +17,7 @@ interface ControlNavCardProps {
 }
 
 export function ControlNavCard({ plan, pathname }: ControlNavCardProps) {
+  const workspaceScope = useWorkspaceScope();
   const items = getVisiblePremiumControlNav(plan);
 
   return (
@@ -36,7 +39,7 @@ export function ControlNavCard({ plan, pathname }: ControlNavCardProps) {
           return (
             <Link
               key={item.id}
-              href={item.href}
+              href={appendWorkspaceScope(item.href, workspaceScope)}
               className={cn(
                 'block rounded-md border px-3 py-3 transition-colors',
                 active

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { CheckCircle2, Circle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +9,16 @@ import type {
   MaturityCriterionResult,
   MaturityLevelResult,
 } from "@/lib/control/maturity-calculator";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface ControlMaturityPanelProps {
   maturity: ControlMaturityResult;
 }
 
 function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
+  const workspaceScope = useWorkspaceScope();
+
   return (
     <div className="rounded-md border p-3">
       <div className="flex items-start gap-2">
@@ -30,7 +36,14 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
           {!criterion.fulfilled && criterion.actionHref && criterion.actionLabel && (
             <div className="pt-1">
               <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                <Link href={criterion.actionHref}>{criterion.actionLabel}</Link>
+                <Link
+                  href={appendWorkspaceScope(
+                    criterion.actionHref,
+                    workspaceScope,
+                  )}
+                >
+                  {criterion.actionLabel}
+                </Link>
               </Button>
             </div>
           )}
@@ -41,6 +54,7 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
 }
 
 function LevelBlock({ level }: { level: MaturityLevelResult }) {
+  const workspaceScope = useWorkspaceScope();
   const firstActionableCriterion = level.criteria.find(
     (criterion) =>
       !criterion.fulfilled && criterion.actionHref && criterion.actionLabel
@@ -63,7 +77,12 @@ function LevelBlock({ level }: { level: MaturityLevelResult }) {
       {!level.fulfilled && firstActionableCriterion?.actionHref && firstActionableCriterion.actionLabel && (
         <div className="flex justify-end">
           <Button asChild variant="outline" size="sm" className="h-8 text-xs">
-            <Link href={firstActionableCriterion.actionHref}>
+            <Link
+              href={appendWorkspaceScope(
+                firstActionableCriterion.actionHref,
+                workspaceScope,
+              )}
+            >
               {firstActionableCriterion.actionLabel}
             </Link>
           </Button>

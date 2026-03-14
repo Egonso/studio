@@ -1,3 +1,5 @@
+import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
+
 export const CONTROL_FOCUS_TARGETS = [
   "owner",
   "review",
@@ -19,6 +21,7 @@ export type GovernanceRepairField = (typeof GOVERNANCE_REPAIR_FIELDS)[number];
 interface BuildUseCaseFocusLinkOptions {
   edit?: boolean;
   field?: GovernanceRepairField;
+  workspaceScope?: string | null;
 }
 
 export function isControlFocusTarget(value: string | null): value is ControlFocusTarget {
@@ -33,8 +36,14 @@ export function isGovernanceRepairField(
   return (GOVERNANCE_REPAIR_FIELDS as readonly string[]).includes(value);
 }
 
-export function buildUseCaseDetailLink(useCaseId: string): string {
-  return `/my-register/${encodeURIComponent(useCaseId)}`;
+export function buildUseCaseDetailLink(
+  useCaseId: string,
+  workspaceScope?: string | null,
+): string {
+  return appendWorkspaceScope(
+    `/my-register/${encodeURIComponent(useCaseId)}`,
+    workspaceScope,
+  );
 }
 
 export function buildUseCaseFocusLink(
@@ -52,5 +61,8 @@ export function buildUseCaseFocusLink(
     params.set("field", options.field);
   }
 
-  return `${buildUseCaseDetailLink(useCaseId)}?${params.toString()}`;
+  return appendWorkspaceScope(
+    `${buildUseCaseDetailLink(useCaseId)}?${params.toString()}`,
+    options.workspaceScope,
+  );
 }

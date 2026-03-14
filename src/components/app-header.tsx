@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, LogOut, Settings, ShieldCheck, UserCircle } from 'lucide-react';
+import { BookOpen, LogOut, Settings, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/auth-context';
 import { clearActiveProjectId } from '@/lib/data-service';
@@ -24,9 +24,11 @@ import {
   getProductAreaForPathname,
   getVisiblePremiumControlNav,
   isPremiumControlNavActive,
-  ROUTE_HREFS,
   ROUTE_PATHS,
 } from '@/lib/navigation/route-manifest';
+import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
+import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 
 export function AppHeader() {
   const pathname = usePathname();
@@ -35,7 +37,13 @@ export function AppHeader() {
   const { user } = useAuth();
   const { plan } = useCapability('trustPortal');
   const area = getProductAreaForPathname(pathname);
-  const brandHref = user ? ROUTE_HREFS.register : ROUTE_PATHS.marketingHome;
+  const workspaceScope = useWorkspaceScope();
+  const scopedHrefs = useScopedRouteHrefs();
+  const brandHref = user
+    ? area === 'paid_governance_control'
+      ? scopedHrefs.control
+      : scopedHrefs.register
+    : ROUTE_PATHS.marketingHome;
 
   const premiumNavItems = getVisiblePremiumControlNav(plan);
   const showControlNav =
@@ -85,16 +93,7 @@ export function AppHeader() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link
-                      href={area === 'paid_governance_control' ? ROUTE_HREFS.control : ROUTE_HREFS.register}
-                      className="flex cursor-pointer items-center gap-2"
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      {area === 'paid_governance_control' ? 'Bericht' : 'Register'}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/settings"
+                      href={scopedHrefs.settings}
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
@@ -151,7 +150,7 @@ export function AppHeader() {
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
+                  href={appendWorkspaceScope(item.href, workspaceScope)}
                   prefetch={false}
                   className={cn(
                     'inline-flex h-9 shrink-0 items-center border-b-2 px-0 text-[14px] font-medium transition-colors',
@@ -161,7 +160,7 @@ export function AppHeader() {
                   )}
                   title={item.description}
                 >
-                  {item.label}
+                  {item.id === 'overview' ? 'Control' : item.label}
                 </Link>
               );
             })}

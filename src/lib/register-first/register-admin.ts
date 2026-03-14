@@ -152,6 +152,32 @@ async function listWorkspaceRegistersFromLinks(
   return locations;
 }
 
+async function listWorkspaceRegistersFromOwners(
+  workspaceId: string,
+): Promise<ServerRegisterLocation[]> {
+  const ownerIds = await resolveWorkspaceOwnerIds(workspaceId);
+  const locations: ServerRegisterLocation[] = [];
+
+  for (const ownerId of ownerIds) {
+    const snapshot = await db.collection(`users/${ownerId}/registers`).get();
+
+    for (const document of snapshot.docs) {
+      const register = document.data() as Register;
+      if (register.workspaceId !== workspaceId || register.isDeleted === true) {
+        continue;
+      }
+
+      locations.push({
+        ownerId,
+        registerId: String(register.registerId ?? document.id),
+        register,
+      });
+    }
+  }
+
+  return locations;
+}
+
 export async function findRegisterLocationById(
   registerId: string,
   options: FindRegisterLocationOptions = {},
@@ -261,7 +287,14 @@ export async function listWorkspaceRegisters(
     });
   }
 
-  return listWorkspaceRegistersFromLinks(normalizedWorkspaceId);
+  const linkedLocations = await listWorkspaceRegistersFromLinks(
+    normalizedWorkspaceId,
+  );
+  if (linkedLocations.length > 0) {
+    return linkedLocations;
+  }
+
+  return listWorkspaceRegistersFromOwners(normalizedWorkspaceId);
 }
 
 export async function findWorkspaceExternalSubmissionById(input: {

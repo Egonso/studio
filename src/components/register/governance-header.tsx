@@ -20,7 +20,6 @@ import type {
 import { accessCodeService } from '@/lib/register-first/access-code-service';
 import { getPublicAppOrigin } from '@/lib/app-url';
 import { getFirebaseAuth } from '@/lib/firebase';
-import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -53,6 +53,7 @@ export function GovernanceHeader({
 }: GovernanceHeaderProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const scopedHrefs = useScopedRouteHrefs();
   const [supplierLinkCopied, setSupplierLinkCopied] = useState(false);
   const [captureLinkCopied, setCaptureLinkCopied] = useState(false);
   const [isCreatingSupplierLink, setIsCreatingSupplierLink] = useState(false);
@@ -268,7 +269,7 @@ export function GovernanceHeader({
           <div className="flex flex-wrap items-center justify-start gap-1.5 xl:justify-end">
             {register && (
               <button
-                onClick={() => router.push(ROUTE_HREFS.governanceSettings)}
+                onClick={() => router.push(scopedHrefs.governanceSettings)}
                 className="rounded-md border border-slate-300 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
                 title="Governance-Einstellungen"
               >
@@ -366,7 +367,7 @@ export function GovernanceHeader({
             </p>
             <button
               type="button"
-              onClick={() => router.push(ROUTE_HREFS.externalInbox)}
+              onClick={() => router.push(scopedHrefs.externalInbox)}
               className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             >
               Anzeigen

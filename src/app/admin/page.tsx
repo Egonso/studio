@@ -29,10 +29,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 
 export default function AdminPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const scopedHrefs = useScopedRouteHrefs();
     const [isAuthorized, setIsAuthorized] = useState(false);
 
     // Data State
@@ -264,7 +266,10 @@ export default function AdminPage() {
                 <p className="text-muted-foreground text-center max-w-md">
                     Dein Account <span className="font-mono font-bold text-foreground bg-muted px-1 rounded">{user?.email}</span> hat keine Admin-Rechte.
                 </p>
-                <Button variant="outline" onClick={() => router.push('/my-register')}>
+                <Button
+                    variant="outline"
+                    onClick={() => router.push(scopedHrefs.register)}
+                >
                     Zurück zum Register
                 </Button>
             </div>

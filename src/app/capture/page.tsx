@@ -14,6 +14,11 @@ import { useAuth } from "@/context/auth-context";
 import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
 import { syncRegisterEntitlement } from "@/lib/register-first/entitlement-client";
 import {
+  buildScopedRegisterHref,
+  buildScopedUseCaseDetailHref,
+} from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
+import {
   registerService,
   type RegisterServiceErrorCode,
 } from "@/lib/register-first/register-service";
@@ -31,6 +36,7 @@ export default function StandaloneCapturePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const workspaceScope = useWorkspaceScope();
   const source = searchParams.get("source");
   const prefill = (searchParams.get("prefill") ?? "").trim();
   const originUrl = (searchParams.get("originUrl") ?? "").trim();
@@ -127,7 +133,7 @@ export default function StandaloneCapturePage() {
       }
       return;
     }
-    router.push(guestMode ? "/" : "/my-register");
+    router.push(guestMode ? "/" : buildScopedRegisterHref(workspaceScope));
   };
 
   const handleModalChange = (nextOpen: boolean) => {
@@ -143,7 +149,7 @@ export default function StandaloneCapturePage() {
       return;
     }
     if (useCaseId) {
-      router.push(`/my-register/${useCaseId}`);
+      router.push(buildScopedUseCaseDetailHref(useCaseId, workspaceScope));
       return;
     }
     closeCapture();

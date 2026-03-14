@@ -9,6 +9,8 @@ import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
 import { createAiToolsRegistryService } from "@/lib/register-first";
 import type { UseCaseCard, Register } from "@/lib/register-first/types";
+import { buildScopedRegisterHref } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 const aiRegistry = createAiToolsRegistryService();
 
@@ -32,6 +34,7 @@ export default function UseCasePassPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const params = useParams();
+    const workspaceScope = useWorkspaceScope();
     const useCaseId = params.useCaseId as string;
 
     const [useCase, setUseCase] = useState<UseCaseCard | null>(null);
@@ -91,7 +94,10 @@ export default function UseCasePassPage() {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center p-4">
                 <h1 className="text-xl font-bold mb-4">Pass nicht gefunden</h1>
-                <Button variant="outline" onClick={() => router.push("/my-register")}>
+                <Button
+                    variant="outline"
+                    onClick={() => router.push(buildScopedRegisterHref(workspaceScope))}
+                >
                     Zurück zum Register
                 </Button>
             </div>
@@ -120,7 +126,12 @@ export default function UseCasePassPage() {
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 py-8 print:py-0 print:bg-white">
             {/* Action Bar (Hidden in Print) */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 print:hidden flex justify-between items-center">
-                <Button variant="ghost" size="sm" onClick={() => router.push("/my-register")} className="text-muted-foreground">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push(buildScopedRegisterHref(workspaceScope))}
+                    className="text-muted-foreground"
+                >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Zurück zum Register
                 </Button>
                 <div className="flex gap-2">

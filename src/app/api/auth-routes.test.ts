@@ -27,6 +27,7 @@ const registerExternalSubmissionItemRoute = readSource(
 const workspaceMembersRoute = readSource("src/app/api/workspaces/[orgId]/members/route.ts");
 const workspaceMemberItemRoute = readSource("src/app/api/workspaces/[orgId]/members/[memberId]/route.ts");
 const workspaceSettingsRoute = readSource("src/app/api/workspaces/[orgId]/settings/route.ts");
+const workspaceRegistersRoute = readSource("src/app/api/workspaces/[orgId]/registers/route.ts");
 const workspaceAuditExportRoute = readSource("src/app/api/workspaces/[orgId]/audit-export/route.ts");
 const workspaceNotificationsRoute = readSource("src/app/api/workspaces/[orgId]/notifications/dispatch/route.ts");
 const workspaceSignOffsRoute = readSource("src/app/api/workspaces/[orgId]/governance-signoffs/route.ts");
@@ -75,6 +76,7 @@ test("workspace enterprise routes enforce member, admin, and reviewer auth on th
   assert.match(workspaceMembersRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceMemberItemRoute, /requireWorkspaceAdmin\(/);
   assert.match(workspaceSettingsRoute, /requireWorkspaceMember\(/);
+  assert.match(workspaceRegistersRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceSettingsRoute, /requireWorkspaceAdmin\(/);
   assert.match(workspaceAuditExportRoute, /requireWorkspaceReviewer\(/);
   assert.match(workspaceNotificationsRoute, /requireWorkspaceAdmin\(/);

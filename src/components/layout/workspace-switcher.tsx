@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Building2 } from 'lucide-react';
 import { clearActiveProjectId } from '@/lib/data-service';
 import {
-    getActiveWorkspaceId,
-    setActiveWorkspaceId,
+  getActiveWorkspaceId,
+  setActiveWorkspaceId,
 } from '@/lib/workspace-session';
+import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -48,8 +49,7 @@ export function WorkspaceSwitcher() {
         setActiveWorkspaceId(orgId);
         setActiveId(orgId);
         clearActiveProjectId();
-        const workspaceScope = orgId ?? 'personal';
-        router.replace(`/my-register?workspace=${encodeURIComponent(workspaceScope)}`);
+        router.replace(buildScopedRegisterHref(orgId));
     };
 
     return (

@@ -505,6 +505,7 @@ export interface RegisterScopeContext {
 
 export interface Register {
   registerId: string;
+  ownerId?: string | null;
   name: string;
   createdAt: string;
   workspaceId?: string | null;

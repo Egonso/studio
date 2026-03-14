@@ -17,10 +17,12 @@ import { Button } from "@/components/ui/button";
 import { registerService } from "@/lib/register-first/register-service";
 import type { UseCaseCard } from "@/lib/register-first/types";
 import { BatchSealingView } from "@/components/control/batch-sealing-view";
+import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 
 export default function BatchSealingPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const scopedHrefs = useScopedRouteHrefs();
 
     const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -88,10 +90,10 @@ export default function BatchSealingPage() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button asChild variant="outline" size="sm">
-                                    <Link href="/control">Zurück zu Control</Link>
+                                    <Link href={scopedHrefs.control}>Zurück zu Control</Link>
                                 </Button>
                                 <Button asChild variant="outline" size="sm">
-                                    <Link href="/my-register">Zurück zum Register</Link>
+                                    <Link href={scopedHrefs.register}>Zurück zum Register</Link>
                                 </Button>
                             </div>
                         </CardHeader>

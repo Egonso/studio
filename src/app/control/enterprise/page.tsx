@@ -42,7 +42,7 @@ import {
   type WorkspaceRole,
   type WorkspaceWebhookConfig,
 } from '@/lib/enterprise/workspace';
-import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 import { cn } from '@/lib/utils';
 import { getActiveWorkspaceId } from '@/lib/workspace-session';
@@ -159,6 +159,7 @@ export default function ControlEnterprisePage() {
   const { user, loading } = useAuth();
   const { profile } = useUserProfile();
   const router = useRouter();
+  const scopedHrefs = useScopedRouteHrefs();
   const { toast } = useToast();
   const {
     allowed,
@@ -648,10 +649,10 @@ export default function ControlEnterprisePage() {
             actions={
               <>
                 <Button asChild>
-                  <Link href={ROUTE_HREFS.control}>Control Overview</Link>
+                  <Link href={scopedHrefs.control}>Control Overview</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.controlExports}>Exports / Audit</Link>
+                  <Link href={scopedHrefs.controlExports}>Exports / Audit</Link>
                 </Button>
               </>
             }
@@ -663,7 +664,7 @@ export default function ControlEnterprisePage() {
             description="Waehlen Sie ueber den Workspace-Switcher einen Workspace aus, um Mitglieder und Einstellungen zu verwalten."
             actions={
               <Button asChild>
-                <Link href={ROUTE_HREFS.register}>Zum Register</Link>
+                <Link href={scopedHrefs.register}>Zum Register</Link>
               </Button>
             }
           />

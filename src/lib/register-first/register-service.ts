@@ -499,6 +499,90 @@ export function createRegisterService(
     return userId;
   }
 
+  async function fetchWorkspaceRegisters(
+    workspaceId: string,
+  ): Promise<RegisterLocation[]> {
+    const { getFirebaseAuth } = await import('@/lib/firebase');
+    const auth = await getFirebaseAuth();
+    const token = await auth.currentUser?.getIdToken();
+
+    if (!token) {
+      throw new RegisterServiceError(
+        'UNAUTHENTICATED',
+        'A signed-in user is required for workspace register access.',
+      );
+    }
+
+    const response = await fetch(`/api/workspaces/${workspaceId}/registers`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(
+        payload?.error ??
+          `Workspace register lookup failed with ${response.status}`,
+      );
+    }
+
+    const payload = (await response.json()) as {
+      registers: Array<Register & { ownerId?: string | null }>;
+    };
+
+    return payload.registers
+      .map((register) => {
+        const ownerId = register.ownerId?.trim();
+        if (!ownerId) {
+          return null;
+        }
+
+        return {
+          ownerId,
+          register,
+        } satisfies RegisterLocation;
+      })
+      .filter((location): location is RegisterLocation => location !== null);
+  }
+
+  async function findRegisterLocationForScope(
+    actorUserId: string,
+    registerId: string,
+    scopeContext: RegisterScopeContext,
+    options?: { includeDeleted?: boolean },
+  ): Promise<RegisterLocation | null> {
+    let location: RegisterLocation | null = null;
+
+    try {
+      location = await registerRepo.findRegisterLocation(registerId, {
+        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+        scopeContext,
+        includeDeleted: options?.includeDeleted,
+      });
+    } catch (error) {
+      if (scopeContext.kind !== 'workspace') {
+        throw error;
+      }
+    }
+
+    if (location || scopeContext.kind !== 'workspace') {
+      return location;
+    }
+
+    const workspaceLocations = await fetchWorkspaceRegisters(
+      scopeContext.workspaceId!,
+    );
+
+    return (
+      workspaceLocations.find(
+        (entry) => entry.register.registerId === registerId,
+      ) ?? null
+    );
+  }
+
   function buildRegisterDeleteImpact(
     useCases: UseCaseCard[],
     accessCodes: RegisterAccessCode[],
@@ -564,9 +648,22 @@ export function createRegisterService(
     options?: { includeDeleted?: boolean },
   ): Promise<RegisterLocation[]> {
     if (scopeContext.kind === 'workspace') {
-      return registerRepo.listWorkspaceRegisters(scopeContext.workspaceId!, {
-        includeDeleted: options?.includeDeleted,
-      });
+      try {
+        const locations = await registerRepo.listWorkspaceRegisters(
+          scopeContext.workspaceId!,
+          {
+            includeDeleted: options?.includeDeleted,
+          },
+        );
+
+        if (locations.length > 0) {
+          return locations;
+        }
+      } catch {
+        // Fall back to the server-side workspace register route below.
+      }
+
+      return fetchWorkspaceRegisters(scopeContext.workspaceId!);
     }
 
     return (await registerRepo.listRegisters(actorUserId, {
@@ -582,11 +679,12 @@ export function createRegisterService(
     registerId: string,
     scopeContext: RegisterScopeContext,
   ): Promise<Register> {
-    const location = await registerRepo.findRegisterLocation(registerId, {
-      ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+    const location = await findRegisterLocationForScope(
+      actorUserId,
+      registerId,
       scopeContext,
-      includeDeleted: false,
-    });
+      { includeDeleted: false },
+    );
 
     if (!location) {
       throw new RegisterServiceError(
@@ -659,11 +757,12 @@ export function createRegisterService(
     registerId: string,
     scopeContext: RegisterScopeContext,
   ) {
-    const location = await registerRepo.findRegisterLocation(registerId, {
-      ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+    const location = await findRegisterLocationForScope(
+      actorUserId,
+      registerId,
       scopeContext,
-      includeDeleted: false,
-    });
+      { includeDeleted: false },
+    );
 
     if (!location) {
       throw new RegisterServiceError(
@@ -713,11 +812,12 @@ export function createRegisterService(
     const scopeKey = getRegisterScopeKey(scopeContext);
 
     if (registerId) {
-      const location = await registerRepo.findRegisterLocation(registerId, {
-        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+      const location = await findRegisterLocationForScope(
+        actorUserId,
+        registerId,
         scopeContext,
-        includeDeleted: false,
-      });
+        { includeDeleted: false },
+      );
 
       if (!location) {
         throw new RegisterServiceError(
@@ -736,11 +836,12 @@ export function createRegisterService(
 
     const cached = getActiveRegId(scopeKey);
     if (cached) {
-      const location = await registerRepo.findRegisterLocation(cached, {
-        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+      const location = await findRegisterLocationForScope(
+        actorUserId,
+        cached,
         scopeContext,
-        includeDeleted: false,
-      });
+        { includeDeleted: false },
+      );
       if (location) {
         return {
           actorUserId,
@@ -754,11 +855,12 @@ export function createRegisterService(
 
     const persisted = await getDefaultRegId(actorUserId, scopeKey);
     if (persisted) {
-      const location = await registerRepo.findRegisterLocation(persisted, {
-        ownerId: scopeContext.kind === 'personal' ? actorUserId : undefined,
+      const location = await findRegisterLocationForScope(
+        actorUserId,
+        persisted,
         scopeContext,
-        includeDeleted: false,
-      });
+        { includeDeleted: false },
+      );
       if (location) {
         setActiveRegId(persisted, scopeKey);
         return {
@@ -1035,12 +1137,12 @@ export function createRegisterService(
           scopeContext,
           actorUserId,
         );
-        const location = await registerRepo.findRegisterLocation(registerId, {
-          ownerId:
-            resolvedScopeContext.kind === 'personal' ? actorUserId : undefined,
-          scopeContext: resolvedScopeContext,
-          includeDeleted: true,
-        });
+        const location = await findRegisterLocationForScope(
+          actorUserId,
+          registerId,
+          resolvedScopeContext,
+          { includeDeleted: true },
+        );
 
         if (!location) {
           throw new RegisterServiceError(

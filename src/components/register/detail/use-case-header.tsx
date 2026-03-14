@@ -37,6 +37,11 @@ import { useUserProfile } from "@/hooks/use-user-profile";
 import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
 import { useToast } from "@/hooks/use-toast";
+import {
+  buildScopedRegisterHref,
+  buildScopedUseCasePassHref,
+} from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface UseCaseHeaderProps {
   card: UseCaseCard;
@@ -65,6 +70,7 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 
 export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefresh }: UseCaseHeaderProps) {
   const router = useRouter();
+  const workspaceScope = useWorkspaceScope();
   const { toast } = useToast();
   const { profile } = useUserProfile();
   const { user } = useAuth();
@@ -124,7 +130,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
     setIsDeleting(true);
     try {
       await onDelete();
-      router.push("/my-register");
+      router.push(buildScopedRegisterHref(workspaceScope));
     } finally {
       setIsDeleting(false);
       setShowDeleteConfirm(false);
@@ -212,7 +218,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
               if (window.history.length > 2) {
                 router.back();
               } else {
-                router.push("/my-register");
+                router.push(buildScopedRegisterHref(workspaceScope));
               }
             }}
           >
@@ -282,7 +288,9 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push(`/pass/${card.useCaseId}`)}
+              onClick={() =>
+                router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
+              }
               title="Use-Case-Pass öffnen"
             >
               Use-Case-Pass öffnen

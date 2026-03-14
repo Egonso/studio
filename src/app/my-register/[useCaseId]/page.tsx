@@ -16,6 +16,8 @@ import {
   isControlFocusTarget,
   type ControlFocusTarget,
 } from '@/lib/control/deep-link';
+import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
 import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
@@ -32,6 +34,7 @@ export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const workspaceScope = useWorkspaceScope();
   const { user, loading: authLoading } = useAuth();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
@@ -51,7 +54,6 @@ export default function UseCaseDetailPage() {
   const focusParam = searchParams.get('focus');
   const editParam = searchParams.get('edit');
   const fieldParam = searchParams.get('field');
-  const workspaceScope = searchParams.get('workspace') ?? 'personal';
   const scopeContext = useMemo(
     () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
     [workspaceScope],
@@ -248,7 +250,9 @@ export default function UseCaseDetailPage() {
           description={error}
           actions={
             <Button asChild variant="outline">
-              <Link href="/my-register">Zurück zum Register</Link>
+              <Link href={buildScopedRegisterHref(workspaceScope)}>
+                Zurück zum Register
+              </Link>
             </Button>
           }
         />

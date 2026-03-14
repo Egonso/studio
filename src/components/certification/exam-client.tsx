@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -166,35 +166,6 @@ export function CertificationExamClient() {
     };
   }, [identity]);
 
-  useEffect(() => {
-    if (!attemptId || sectionReview || result) {
-      return;
-    }
-
-    if (showExplanation) {
-      return;
-    }
-
-    const timer = window.setInterval(() => {
-      setTimeLeft((previous) => {
-        if (previous <= 1) {
-          handleAdvanceQuestion(true, sectionAnswersRef.current);
-          return LEGACY_EXAM_DEFINITION.questionTimeLimitSeconds;
-        }
-        return previous - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [
-    attemptId,
-    currentQuestionIndex,
-    currentSectionIndex,
-    result,
-    sectionReview,
-    showExplanation,
-  ]);
-
   const currentSection = LEGACY_EXAM_DEFINITION.sections[currentSectionIndex];
   const currentQuestion = currentSection.questions[currentQuestionIndex];
 
@@ -265,11 +236,11 @@ export function CertificationExamClient() {
     setShowExplanation(true);
   }
 
-  function resetQuestionTimer() {
+  const resetQuestionTimer = useCallback(() => {
     setTimeLeft(LEGACY_EXAM_DEFINITION.questionTimeLimitSeconds);
-  }
+  }, []);
 
-  function handleAdvanceQuestion(fromTimeout = false, answerState = sectionAnswers) {
+  const handleAdvanceQuestion = useCallback((fromTimeout = false, answerState = sectionAnswers) => {
     const nextAnswers = [...answerState];
     const sectionClone = [...nextAnswers[currentSectionIndex]];
 
@@ -296,7 +267,43 @@ export function CertificationExamClient() {
     setSelectedAnswer(null);
     setShowExplanation(false);
     resetQuestionTimer();
-  }
+  }, [
+    currentQuestionIndex,
+    currentSection.questions.length,
+    currentSectionIndex,
+    resetQuestionTimer,
+    sectionAnswers,
+  ]);
+
+  useEffect(() => {
+    if (!attemptId || sectionReview || result) {
+      return;
+    }
+
+    if (showExplanation) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setTimeLeft((previous) => {
+        if (previous <= 1) {
+          handleAdvanceQuestion(true, sectionAnswersRef.current);
+          return LEGACY_EXAM_DEFINITION.questionTimeLimitSeconds;
+        }
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [
+    attemptId,
+    currentQuestionIndex,
+    currentSectionIndex,
+    handleAdvanceQuestion,
+    result,
+    sectionReview,
+    showExplanation,
+  ]);
 
   function handleRepeatSection() {
     const nextAnswers = [...sectionAnswers];

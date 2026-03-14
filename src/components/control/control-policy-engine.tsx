@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +15,8 @@ import type {
   DeterministicPolicyPreview,
 } from "@/lib/control/policy/coverage";
 import type { PolicyLevel } from "@/lib/policy-engine/types";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface ControlPolicyEngineProps {
   coverage: ControlPolicyCoverageSnapshot;
@@ -29,6 +33,8 @@ export function ControlPolicyEngine({
   onLevelChange,
   onExportPreview,
 }: ControlPolicyEngineProps) {
+  const workspaceScope = useWorkspaceScope();
+
   return (
     <div className="space-y-6">
       <Card>
@@ -131,7 +137,9 @@ export function ControlPolicyEngine({
                   <p className="font-mono text-xs text-muted-foreground">{entry.useCaseId}</p>
                 </div>
                 <Button asChild variant="outline" size="sm">
-                  <Link href={entry.deepLink}>Mapping oeffnen</Link>
+                  <Link href={appendWorkspaceScope(entry.deepLink, workspaceScope)}>
+                    Mapping oeffnen
+                  </Link>
                 </Button>
               </div>
             ))

@@ -1,8 +1,12 @@
+'use client';
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { ControlActionRecommendation } from "@/lib/control/action-queue-engine";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface ActionQueueProps {
   recommendations: ControlActionRecommendation[];
@@ -13,6 +17,8 @@ function RecommendationItem({
 }: {
   recommendation: ControlActionRecommendation;
 }) {
+  const workspaceScope = useWorkspaceScope();
+
   return (
     <div className="rounded-md border p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -40,14 +46,24 @@ function RecommendationItem({
         <div className="flex flex-wrap gap-2">
           {recommendation.deepLink && recommendation.deepLinkLabel && (
             <Button asChild size="sm">
-              <Link href={recommendation.deepLink}>
+              <Link
+                href={appendWorkspaceScope(
+                  recommendation.deepLink,
+                  workspaceScope,
+                )}
+              >
                 {recommendation.deepLinkLabel}
                 <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
               </Link>
             </Button>
           )}
           <Button asChild variant="outline" size="sm">
-            <Link href={recommendation.viewLink}>
+            <Link
+              href={appendWorkspaceScope(
+                recommendation.viewLink,
+                workspaceScope,
+              )}
+            >
               Einsatzfall öffnen
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>

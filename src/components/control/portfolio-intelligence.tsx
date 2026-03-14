@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +12,8 @@ import type {
   PortfolioStatusMetric,
 } from "@/lib/control/portfolio-metrics";
 import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface PortfolioIntelligenceProps {
   metrics: PortfolioMetrics;
@@ -45,10 +49,11 @@ function DrilldownLink({
   link: string | null;
   label?: string;
 }) {
+  const workspaceScope = useWorkspaceScope();
   if (!link) return <span className="text-xs text-muted-foreground">-</span>;
   return (
     <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
-      <Link href={link}>
+      <Link href={appendWorkspaceScope(link, workspaceScope)}>
         {label ?? "Details"}
         <ArrowRight className="ml-1 h-3 w-3" />
       </Link>
@@ -335,4 +340,3 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
     </div>
   );
 }
-

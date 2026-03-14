@@ -48,6 +48,11 @@ import {
   ROUTE_HREFS,
 } from '@/lib/navigation/route-manifest';
 import { setActiveWorkspaceId } from '@/lib/workspace-session';
+import {
+  appendWorkspaceScope,
+  buildScopedUseCaseDetailHref,
+} from '@/lib/navigation/workspace-scope';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 
 type OnboardingState = 'loading' | 'no_register' | 'ready';
 const CREATE_REGISTER_VALUE = '__create_register__';
@@ -66,9 +71,9 @@ export default function MyRegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { plan } = useCapability('reviewWorkflow');
+  const workspaceScope = useWorkspaceScope();
   const initialFilter = searchParams.get('filter') as string | undefined;
   const onboardingParam = searchParams.get('onboarding');
-  const workspaceScope = searchParams.get('workspace') ?? 'personal';
   const checkoutSessionId = searchParams.get('checkout_session_id');
   const scopeContext = useMemo(
     () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
@@ -262,7 +267,7 @@ export default function MyRegisterPage() {
   const handleCaptured = (useCaseId?: string) => {
     setRefreshKey((k) => k + 1);
     if (useCaseId) {
-      router.push(`/my-register/${useCaseId}`);
+      router.push(buildScopedUseCaseDetailHref(useCaseId, workspaceScope));
     }
   };
 
@@ -295,7 +300,10 @@ export default function MyRegisterPage() {
 
     const nextQuery = nextSearchParams.toString();
     router.replace(
-      nextQuery.length > 0 ? `/my-register?${nextQuery}` : '/my-register',
+      appendWorkspaceScope(
+        nextQuery.length > 0 ? `/my-register?${nextQuery}` : '/my-register',
+        workspaceScope,
+      ),
     );
   };
 
@@ -397,7 +405,11 @@ export default function MyRegisterPage() {
                       {controlNavItems.map((item) => (
                         <DropdownMenuItem
                           key={item.id}
-                          onClick={() => router.push(item.href)}
+                          onClick={() =>
+                            router.push(
+                              appendWorkspaceScope(item.href, workspaceScope),
+                            )
+                          }
                         >
                           {item.id === 'overview'
                             ? 'Bericht öffnen'

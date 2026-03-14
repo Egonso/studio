@@ -36,6 +36,8 @@ import {
     getFeatureUpgradeCtaLabel,
     getFeatureUpgradeHref,
 } from "@/lib/compliance-engine/capability/upgrade-paths";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,7 @@ export function FeatureGateDialog({
     onOpenChange,
 }: FeatureGateDialogProps) {
     const router = useRouter();
+    const workspaceScope = useWorkspaceScope();
 
     const requiredPlan = getRequiredPlan(feature);
     const featureLabel = getFeatureLabel(feature);
@@ -66,7 +69,7 @@ export function FeatureGateDialog({
 
     const handleLearnMore = () => {
         onOpenChange(false);
-        router.push(upgradeHref);
+        router.push(appendWorkspaceScope(upgradeHref, workspaceScope));
     };
 
     return (

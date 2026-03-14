@@ -1,6 +1,6 @@
 'use client';
 
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -155,8 +155,8 @@ export function CertificationAdminPanel({
   const [busyCertificates, setBusyCertificates] = useState<Record<string, boolean>>({});
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
 
-  const certificates = overview?.certificates ?? [];
-  const attempts = overview?.attempts ?? [];
+  const certificates = useMemo(() => overview?.certificates ?? [], [overview?.certificates]);
+  const attempts = useMemo(() => overview?.attempts ?? [], [overview?.attempts]);
 
   useEffect(() => {
     if (!overview) {
@@ -231,7 +231,7 @@ export function CertificationAdminPanel({
     certificates.find((certificate) => certificate.certificateId === selectedCertificateId) ??
     null;
 
-  async function loadCertificateDetail(certificateId: string) {
+  const loadCertificateDetail = useCallback(async (certificateId: string) => {
     setSelectedCertificateId(certificateId);
     setDetailLoading(true);
     setDetailError(null);
@@ -245,7 +245,7 @@ export function CertificationAdminPanel({
     } finally {
       setDetailLoading(false);
     }
-  }
+  }, [onLoadDetail]);
 
   useEffect(() => {
     if (selectedCertificateId) {
@@ -262,7 +262,7 @@ export function CertificationAdminPanel({
     if (certificates.length > 0) {
       void loadCertificateDetail(certificates[0].certificateId);
     }
-  }, [certificates, selectedCertificateId]);
+  }, [certificates, loadCertificateDetail, selectedCertificateId]);
 
   async function copyValue(value: string, label: string) {
     await navigator.clipboard.writeText(value);

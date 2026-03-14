@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { trackControlOpened } from "@/lib/analytics/control-events";
 import { buildPortfolioMetrics } from "@/lib/control/portfolio-metrics";
+import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
 import type { UseCaseCard } from "@/lib/register-first/types";
@@ -24,6 +25,7 @@ interface PortfolioSnapshot {
 export default function ControlPortfolioPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const scopedHrefs = useScopedRouteHrefs();
 
   const [snapshot, setSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
@@ -107,7 +109,7 @@ export default function ControlPortfolioPage() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href="/my-register">Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -121,10 +123,10 @@ export default function ControlPortfolioPage() {
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild variant="outline">
-                  <Link href="/control">Zurueck zu Control</Link>
+                  <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="/my-register">Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -142,10 +144,10 @@ export default function ControlPortfolioPage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/control">Zurueck zu Control</Link>
+                      <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/my-register">Zurueck zum Register</Link>
+                      <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
                     </Button>
                   </div>
                 </CardHeader>

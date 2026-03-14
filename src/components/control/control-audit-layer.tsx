@@ -1,3 +1,5 @@
+'use client';
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +13,8 @@ import {
 import type { OrgAuditLayerSnapshot } from "@/lib/control/audit/org-audit-layer";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
 import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
+import { appendWorkspaceScope } from "@/lib/navigation/workspace-scope";
+import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 
 interface ControlAuditLayerProps {
   snapshot: OrgAuditLayerSnapshot;
@@ -42,6 +46,7 @@ function StatusRow({
 }
 
 export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
+  const workspaceScope = useWorkspaceScope();
   const historyRows = snapshot.immutableReviewHistory.slice(0, 100);
 
   return (
@@ -203,7 +208,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                   </div>
                   {gap.deepLink && (
                     <Button asChild variant="outline" size="sm">
-                      <Link href={gap.deepLink}>
+                      <Link href={appendWorkspaceScope(gap.deepLink, workspaceScope)}>
                         Einsatzfall oeffnen
                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
                       </Link>
@@ -260,7 +265,9 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                       <td className="px-3 py-2 font-mono">{entry.immutableReference}</td>
                       <td className="px-3 py-2">
                         <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                          <Link href={entry.deepLink}>Zum Eintrag</Link>
+                          <Link href={appendWorkspaceScope(entry.deepLink, workspaceScope)}>
+                            Zum Eintrag
+                          </Link>
                         </Button>
                       </td>
                     </tr>

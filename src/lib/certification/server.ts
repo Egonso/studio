@@ -110,10 +110,6 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
-function toIsoString(value: string | Date): string {
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
-}
-
 function addMonthsToIso(issuedAtIso: string, months: number): string {
   const value = new Date(issuedAtIso);
   value.setMonth(value.getMonth() + months);

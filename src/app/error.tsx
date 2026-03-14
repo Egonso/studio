@@ -5,6 +5,8 @@ import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { captureException } from '@/lib/observability/error-tracking';
+import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 
 export default function ErrorPage({
   error,
@@ -13,6 +15,8 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const workspaceScope = useWorkspaceScope();
+
   useEffect(() => {
     captureException(error, {
       boundary: 'app',
@@ -32,7 +36,9 @@ export default function ErrorPage({
       <div className="flex gap-3">
         <Button onClick={() => reset()}>Erneut versuchen</Button>
         <Button variant="outline" asChild>
-          <Link href="/my-register">Zum Register</Link>
+          <Link href={buildScopedRegisterHref(workspaceScope)}>
+            Zum Register
+          </Link>
         </Button>
       </div>
     </div>
