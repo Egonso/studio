@@ -1,13 +1,18 @@
 import type { RegisterFirstFeatureFlags } from "./flags";
 import { getOutputProfileByStatus } from "./status-flow";
 import { ensureV1_1Shape } from "./migration";
+import { resolveUseCaseWorkflowDisplay } from "./systems";
+import { createAiToolsRegistryService } from "./tool-registry-service";
 import {
   resolvePrimaryDataCategory,
   type DataCategory,
   type RegisterUseCaseStatus,
   type UseCaseCard,
+  type WorkflowConnectionMode,
 } from "./types";
 import type { ToolType } from "./tool-registry-types";
+
+const aiRegistry = createAiToolsRegistryService();
 
 export type RegisterOutputTier = "RAW" | "REVIEW_HINT" | "REVIEWED" | "PROOF_READY";
 
@@ -57,6 +62,20 @@ export interface UseCasePassV11ToolInfo {
   freeText: string | null;
 }
 
+export interface UseCasePassV11WorkflowSystemInfo {
+  position: number;
+  displayName: string;
+  toolId: string | null;
+  freeText: string | null;
+}
+
+export interface UseCasePassV11WorkflowInfo {
+  systems: UseCasePassV11WorkflowSystemInfo[];
+  connectionMode: WorkflowConnectionMode | null;
+  connectionModeLabel: string | null;
+  summary: string | null;
+}
+
 export interface UseCasePassV11Export {
   schemaVersion: "1.1";
   exportedAt: string;
@@ -74,6 +93,7 @@ export interface UseCasePassV11Export {
   outputProfile: ReturnType<typeof getOutputProfileByStatus>;
   publicHashId: string | null;
   isPublicVisible: boolean;
+  workflow: UseCasePassV11WorkflowInfo | null;
   card: UseCaseCard;
 }
 
@@ -193,6 +213,28 @@ export function createUseCasePassV11Export(
   const responsibleRole = normalizedCard.responsibility.isCurrentlyResponsible
     ? "Erfasser (self)"
     : (normalizedCard.responsibility.responsibleParty ?? "Unbekannt");
+  const workflow = resolveUseCaseWorkflowDisplay(normalizedCard, {
+    resolveToolName: (toolId) =>
+      (toolId === normalizedCard.toolId
+        ? resolvedTool.productName ?? null
+        : null) ??
+      aiRegistry.getById(toolId)?.productName ??
+      null,
+  });
+  const workflowExport =
+    workflow.systemCount > 1 || workflow.connectionModeLabel || workflow.summary
+      ? {
+          systems: workflow.systems.map((system) => ({
+            position: system.position,
+            displayName: system.displayName,
+            toolId: system.toolId ?? null,
+            freeText: system.toolFreeText ?? null,
+          })),
+          connectionMode: workflow.connectionMode,
+          connectionModeLabel: workflow.connectionModeLabel,
+          summary: workflow.summary,
+        }
+      : null;
 
   return {
     schemaVersion: "1.1",
@@ -218,6 +260,7 @@ export function createUseCasePassV11Export(
     outputProfile: getOutputProfileByStatus(normalizedCard.status),
     publicHashId: normalizedCard.publicHashId ?? null,
     isPublicVisible: normalizedCard.isPublicVisible ?? false,
+    workflow: workflowExport,
     card: normalizedCard,
   };
 }

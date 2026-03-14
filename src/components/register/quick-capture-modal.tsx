@@ -11,12 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
 import type {
     CaptureUsageContext,
     DataCategory,
     DecisionInfluence,
     OrgSettings,
+    OrderedUseCaseSystem,
+    UseCaseWorkflow,
 } from "@/lib/register-first/types";
 import { applyOrgDefaults } from "@/lib/register-first/inheritance";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
@@ -54,6 +57,8 @@ interface GuestCaptureEntry {
     ownerRole: string;
     contactPersonName?: string;
     tool: string;
+    systems: OrderedUseCaseSystem[];
+    workflow?: UseCaseWorkflow;
     usageContexts: CaptureUsageContext[];
     dataCategories: DataCategory[];
     decisionInfluence: DecisionInfluence | null;
@@ -63,12 +68,32 @@ interface GuestCaptureEntry {
 function createInitialDraft(
     initialDraft?: (Partial<QuickDraft> & { ownerName?: string })
 ): QuickDraft {
+    const derivedSystems =
+        initialDraft?.systems && initialDraft.systems.length > 0
+            ? [...initialDraft.systems]
+            : initialDraft?.toolId && initialDraft.toolId !== TOOL_PLACEHOLDER_ID
+                ? [
+                    {
+                        entryId: "initial_primary",
+                        position: 1,
+                        toolId: initialDraft.toolId,
+                        toolFreeText:
+                            initialDraft.toolId === "other"
+                                ? initialDraft.toolFreeText
+                                : undefined,
+                    },
+                ]
+                : [];
+
     return {
         purpose: initialDraft?.purpose?.slice(0, 160) ?? "",
         ownerRole: initialDraft?.ownerRole ?? initialDraft?.ownerName ?? "",
         contactPersonName: initialDraft?.contactPersonName ?? "",
         toolId: initialDraft?.toolId ?? TOOL_PLACEHOLDER_ID,
         toolFreeText: initialDraft?.toolFreeText ?? "",
+        systems: derivedSystems,
+        workflowConnectionMode: initialDraft?.workflowConnectionMode ?? null,
+        workflowSummary: initialDraft?.workflowSummary ?? "",
         usageContexts: [...(initialDraft?.usageContexts ?? [])],
         dataCategories: [...(initialDraft?.dataCategories ?? [])],
         decisionInfluence: initialDraft?.decisionInfluence ?? null,
@@ -86,6 +111,7 @@ export function QuickCaptureModal({
     renderInline = false,
     initialDraft,
 }: QuickCaptureModalProps) {
+    const multisystemEnabled = registerFirstFlags.multisystemCapture;
     const isGuestMode = mode === "guest";
     const [draft, setDraft] = useState<QuickDraft>(() => createInitialDraft(initialDraft));
     const [fieldErrors, setFieldErrors] = useState<SharedCaptureFieldErrors>({});
@@ -122,8 +148,12 @@ export function QuickCaptureModal({
 
     useEffect(() => {
         if (!hasFieldErrors) return;
-        setFieldErrors(validateSharedCaptureFields(draft).errors);
-    }, [draft, hasFieldErrors]);
+        setFieldErrors(
+            validateSharedCaptureFields(draft, {
+                multisystemEnabled,
+            }).errors
+        );
+    }, [draft, hasFieldErrors, multisystemEnabled]);
 
     const focusCaptureField = (fieldName: SharedCaptureFieldName | null) => {
         if (!fieldName) return;
@@ -139,7 +169,9 @@ export function QuickCaptureModal({
     };
 
     const handleSave = async () => {
-        const validation = validateSharedCaptureFields(draft);
+        const validation = validateSharedCaptureFields(draft, {
+            multisystemEnabled,
+        });
         if (!validation.isValid) {
             setFieldErrors(validation.errors);
             focusCaptureField(validation.firstInvalidField);
@@ -161,6 +193,8 @@ export function QuickCaptureModal({
                         validation.normalized.toolId === "other"
                             ? validation.normalized.toolFreeText ?? ""
                             : validation.normalized.toolId ?? "",
+                    systems: validation.normalized.orderedSystems,
+                    workflow: validation.normalized.workflow,
                     usageContexts: validation.normalized.usageContexts,
                     dataCategories: validation.normalized.dataCategories ?? [],
                     decisionInfluence: validation.normalized.decisionInfluence ?? null,
@@ -187,6 +221,7 @@ export function QuickCaptureModal({
                 purpose: validation.normalized.purpose,
                 toolId: validation.normalized.toolId,
                 toolFreeText: validation.normalized.toolFreeText,
+                workflow: validation.normalized.workflow,
                 usageContexts: validation.normalized.usageContexts,
                 dataCategories: validation.normalized.dataCategories,
                 decisionInfluence: validation.normalized.decisionInfluence,

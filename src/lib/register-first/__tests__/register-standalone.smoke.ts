@@ -119,10 +119,43 @@ export async function runRegisterStandaloneSmoke() {
   assert.ok(card.globalUseCaseId, "v1.1 card should have a globalUseCaseId");
   console.log("  [4] Create use case from capture ✓");
 
+  // ── 4b. Capture use case with workflow metadata ──
+  const multiSystemCard = await service.createUseCaseFromCapture({
+    purpose: "Standalone: Recherche, Text und Bild kombinieren",
+    usageContexts: ["INTERNAL_ONLY"],
+    isCurrentlyResponsible: true,
+    decisionImpact: "NO",
+    toolId: "perplexity_api",
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "step_2",
+          position: 2,
+          toolId: "gemini_api",
+        },
+        {
+          entryId: "step_3",
+          position: 3,
+          toolFreeText: "Interner Bild-Webhook",
+        },
+      ],
+      connectionMode: "SEMI_AUTOMATED",
+      summary: "Recherche -> Text -> Bild",
+    },
+  });
+  assert.equal(multiSystemCard.cardVersion, "1.1");
+  assert.equal(multiSystemCard.toolId, "perplexity_api");
+  assert.equal(multiSystemCard.workflow?.additionalSystems.length, 2);
+  assert.equal(multiSystemCard.workflow?.connectionMode, "SEMI_AUTOMATED");
+  console.log("  [4b] Create use case with workflow metadata ✓");
+
   // ── 5. List use cases ──
   const cases = await service.listUseCases();
-  assert.equal(cases.length, 1);
-  assert.equal(cases[0].useCaseId, card.useCaseId);
+  assert.equal(cases.length, 2);
+  assert.deepEqual(
+    new Set(cases.map((entry) => entry.useCaseId)),
+    new Set([card.useCaseId, multiSystemCard.useCaseId])
+  );
   console.log("  [5] List use cases ✓");
 
   // ── 6. Status transition: UNREVIEWED → REVIEWED ──

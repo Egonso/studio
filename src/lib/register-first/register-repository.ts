@@ -1,5 +1,6 @@
 import { parseUseCaseCard } from './schema';
 import { ensureV1_1Shape } from './migration';
+import { getUseCaseSystemsSummary, resolveUseCaseSystemEntries } from './systems';
 import { resolvePrimaryDataCategory } from './types';
 import type {
   Register,
@@ -141,10 +142,12 @@ function applyFilters(
   if (filters.searchText && filters.searchText.trim().length > 0) {
     const query = normalizeSearch(filters.searchText);
     result = result.filter((card) => {
+      const systemNames = resolveUseCaseSystemEntries(card).map(
+        (system) => system.displayName,
+      );
       const searchable = [
         card.purpose,
-        card.toolFreeText ?? '',
-        card.toolId ?? '',
+        ...systemNames,
         card.responsibility.responsibleParty ?? '',
         ...(card.labels ?? []).map((label) => `${label.key} ${label.value}`),
         ...card.reviewHints,
@@ -627,7 +630,7 @@ export async function lookupPublicUseCase(
     globalUseCaseId: card.globalUseCaseId ?? '',
     formatVersion: card.formatVersion ?? 'v1.1',
     purpose: card.purpose,
-    toolName: card.toolFreeText ?? card.toolId ?? '',
+    toolName: getUseCaseSystemsSummary(card),
     dataCategory: resolvePrimaryDataCategory(card) ?? 'INTERNAL_CONFIDENTIAL',
     status: card.status,
     createdAt: card.createdAt,

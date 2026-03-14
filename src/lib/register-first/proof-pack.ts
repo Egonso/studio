@@ -1,10 +1,15 @@
 import { ensureV1_1Shape } from "./migration";
+import { resolveUseCaseWorkflowDisplay } from "./systems";
+import { createAiToolsRegistryService } from "./tool-registry-service";
 import {
   resolvePrimaryDataCategory,
   type DataCategory,
   type UseCaseCard,
+  type WorkflowConnectionMode,
 } from "./types";
 import type { ToolType } from "./tool-registry-types";
+
+const aiRegistry = createAiToolsRegistryService();
 
 export interface ProofPackDocument {
   schemaVersion: "1.0";
@@ -36,6 +41,17 @@ export interface ProofPackV11Document {
   };
   dataCategory: DataCategory;
   publicHashId: string | null;
+  workflow: {
+    systems: Array<{
+      position: number;
+      displayName: string;
+      toolId: string | null;
+      freeText: string | null;
+    }>;
+    connectionMode: WorkflowConnectionMode | null;
+    connectionModeLabel: string | null;
+    summary: string | null;
+  } | null;
   verifyLink: {
     url: string;
     isReal: boolean;
@@ -148,6 +164,29 @@ export function createProofPackV11Document(
     throw new Error("Proof Pack requires verify-link metadata.");
   }
 
+  const workflow = resolveUseCaseWorkflowDisplay(normalizedCard, {
+    resolveToolName: (toolId) =>
+      (toolId === normalizedCard.toolId
+        ? resolvedTool.productName ?? null
+        : null) ??
+      aiRegistry.getById(toolId)?.productName ??
+      null,
+  });
+  const workflowDocument =
+    workflow.systemCount > 1 || workflow.connectionModeLabel || workflow.summary
+      ? {
+          systems: workflow.systems.map((system) => ({
+            position: system.position,
+            displayName: system.displayName,
+            toolId: system.toolId ?? null,
+            freeText: system.toolFreeText ?? null,
+          })),
+          connectionMode: workflow.connectionMode,
+          connectionModeLabel: workflow.connectionModeLabel,
+          summary: workflow.summary,
+        }
+      : null;
+
   return {
     schemaVersion: "1.1",
     generatedAt: now.toISOString(),
@@ -165,6 +204,7 @@ export function createProofPackV11Document(
     dataCategory:
       resolvePrimaryDataCategory(normalizedCard) ?? "INTERNAL_CONFIDENTIAL",
     publicHashId: normalizedCard.publicHashId ?? null,
+    workflow: workflowDocument,
     verifyLink: {
       url: normalizedCard.proof.verifyUrl,
       isReal: normalizedCard.proof.verification.isReal,
@@ -211,6 +251,19 @@ export function createProofPackV11PdfBlob(
     `Purpose: ${document.purpose}`,
     `Tool: ${document.tool.productName ?? document.tool.toolId}${document.tool.freeText ? ` (${document.tool.freeText})` : ""}`,
     `Data Category: ${document.dataCategory}`,
+    ...(document.workflow
+      ? [
+          `Systems: ${document.workflow.systems
+            .map((system) => `${system.position}. ${system.displayName}`)
+            .join(" -> ")}`,
+          ...(document.workflow.connectionModeLabel
+            ? [`Connection: ${document.workflow.connectionModeLabel}`]
+            : []),
+          ...(document.workflow.summary
+            ? [`Workflow Summary: ${document.workflow.summary}`]
+            : []),
+        ]
+      : []),
     "Verify Link",
     `URL: ${document.verifyLink.url}`,
     `Real: ${document.verifyLink.isReal ? "yes" : "no"}`,

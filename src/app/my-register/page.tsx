@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown, Trash2 } from 'lucide-react';
@@ -21,12 +22,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
-import { RegisterBoard } from '@/components/register/register-board';
 import { RegisterDeleteDialog } from '@/components/register/register-delete-dialog';
-import { ExternalSubmissionsInbox } from '@/components/register/external-submissions-inbox';
 import { GovernanceHeader } from '@/components/register/governance-header';
-import { QuickCaptureModal } from '@/components/register/quick-capture-modal';
-import { CompanyOnboardingWizard } from '@/components/register/company-onboarding-wizard';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { registerFirstFlags } from '@/lib/register-first/flags';
@@ -53,6 +50,33 @@ import {
   buildScopedUseCaseDetailHref,
 } from '@/lib/navigation/workspace-scope';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
+
+const RegisterBoard = dynamic(
+  () =>
+    import('@/components/register/register-board').then((mod) => mod.RegisterBoard),
+  { ssr: false },
+);
+const ExternalSubmissionsInbox = dynamic(
+  () =>
+    import('@/components/register/external-submissions-inbox').then(
+      (mod) => mod.ExternalSubmissionsInbox,
+    ),
+  { ssr: false },
+);
+const QuickCaptureModal = dynamic(
+  () =>
+    import('@/components/register/quick-capture-modal').then(
+      (mod) => mod.QuickCaptureModal,
+    ),
+  { ssr: false },
+);
+const CompanyOnboardingWizard = dynamic(
+  () =>
+    import('@/components/register/company-onboarding-wizard').then(
+      (mod) => mod.CompanyOnboardingWizard,
+    ),
+  { ssr: false },
+);
 
 type OnboardingState = 'loading' | 'no_register' | 'ready';
 const CREATE_REGISTER_VALUE = '__create_register__';

@@ -1,7 +1,15 @@
+import {
+  normalizeWorkflowConnectionMode,
+  resolveOrderedSystemsFromCard,
+  splitOrderedSystemsForStorage,
+} from "./card-model";
 import type {
   CaptureUsageContext,
   DataCategory,
   DecisionInfluence,
+  OrderedUseCaseSystem,
+  UseCaseWorkflow,
+  WorkflowConnectionMode,
 } from "./types";
 
 export const CAPTURE_TOOL_PLACEHOLDER_ID = "__placeholder__";
@@ -24,6 +32,13 @@ export interface SharedCaptureFieldsInput {
   contactPersonName?: string | null;
   toolId?: string | null;
   toolFreeText?: string | null;
+  systems?: Array<{
+    entryId?: string | null;
+    toolId?: string | null;
+    toolFreeText?: string | null;
+  }> | null;
+  workflowConnectionMode?: WorkflowConnectionMode | string | null;
+  workflowSummary?: string | null;
   usageContexts?: CaptureUsageContext[] | null;
   dataCategories?: DataCategory[] | null;
   decisionInfluence?: DecisionInfluence | null;
@@ -35,9 +50,15 @@ export interface NormalizedSharedCaptureFields {
   contactPersonName?: string;
   toolId?: string;
   toolFreeText?: string;
+  orderedSystems: OrderedUseCaseSystem[];
+  workflow?: UseCaseWorkflow;
   usageContexts: CaptureUsageContext[];
   dataCategories?: DataCategory[];
   decisionInfluence?: DecisionInfluence;
+}
+
+export interface SharedCaptureNormalizationOptions {
+  multisystemEnabled?: boolean;
 }
 
 export interface SharedCaptureValidationResult {
@@ -53,8 +74,37 @@ function normalizeText(value: string | null | undefined): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function normalizeSystemDraftEntry(input: {
+  entryId?: string | null;
+  toolId?: string | null;
+  toolFreeText?: string | null;
+  position: number;
+}): OrderedUseCaseSystem | null {
+  const toolId =
+    input.toolId && input.toolId !== CAPTURE_TOOL_PLACEHOLDER_ID
+      ? input.toolId
+      : undefined;
+  const toolFreeText = normalizeText(input.toolFreeText);
+
+  if (toolId === "other" && !toolFreeText) {
+    return null;
+  }
+
+  if (!toolId && !toolFreeText) {
+    return null;
+  }
+
+  return {
+    entryId: normalizeText(input.entryId) ?? `capture_system_${input.position}`,
+    position: input.position,
+    toolId: toolId ?? (toolFreeText ? "other" : undefined),
+    toolFreeText,
+  };
+}
+
 export function normalizeSharedCaptureFields(
-  input: SharedCaptureFieldsInput
+  input: SharedCaptureFieldsInput,
+  options: SharedCaptureNormalizationOptions = {}
 ): NormalizedSharedCaptureFields {
   const normalizedPurpose = normalizeText(input.purpose) ?? "";
   const normalizedOwnerRole = normalizeText(input.ownerRole) ?? "";
@@ -63,19 +113,56 @@ export function normalizeSharedCaptureFields(
       ? input.toolId
       : undefined;
   const normalizedToolFreeText = normalizeText(input.toolFreeText);
+  const multisystemEnabled = options.multisystemEnabled === true;
+
+  const initialSystems = multisystemEnabled && Array.isArray(input.systems)
+    ? input.systems
+        .map((system, index) =>
+          normalizeSystemDraftEntry({
+            entryId: system?.entryId,
+            toolId: system?.toolId,
+            toolFreeText: system?.toolFreeText,
+            position: index + 1,
+          })
+        )
+        .filter((system): system is OrderedUseCaseSystem => system !== null)
+    : [];
+
+  if (initialSystems.length === 0) {
+    const fallbackPrimarySystem = normalizeSystemDraftEntry({
+      entryId: "primary",
+      toolId: normalizedToolId,
+      toolFreeText: normalizedToolFreeText,
+      position: 1,
+    });
+
+    if (fallbackPrimarySystem) {
+      initialSystems.push(fallbackPrimarySystem);
+    }
+  }
+
+  const canStoreWorkflow = multisystemEnabled && initialSystems.length >= 2;
+  const splitSystems = splitOrderedSystemsForStorage(initialSystems, {
+    workflow: canStoreWorkflow
+      ? {
+          connectionMode: normalizeWorkflowConnectionMode(
+            input.workflowConnectionMode
+          ),
+          summary: normalizeText(input.workflowSummary),
+        }
+      : undefined,
+    createEntryId: () => `capture_system_${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2, 10)}`,
+  });
+  const orderedSystems = resolveOrderedSystemsFromCard(splitSystems);
 
   return {
     purpose: normalizedPurpose,
     ownerRole: normalizedOwnerRole,
     contactPersonName: normalizeText(input.contactPersonName),
-    toolId:
-      normalizedToolId === "other"
-        ? normalizedToolFreeText
-          ? "other"
-          : undefined
-        : normalizedToolId,
-    toolFreeText:
-      normalizedToolId === "other" ? normalizedToolFreeText : undefined,
+    toolId: splitSystems.toolId,
+    toolFreeText: splitSystems.toolFreeText,
+    orderedSystems,
+    workflow: canStoreWorkflow ? splitSystems.workflow : undefined,
     usageContexts:
       input.usageContexts && input.usageContexts.length > 0
         ? [...input.usageContexts]
@@ -89,9 +176,10 @@ export function normalizeSharedCaptureFields(
 }
 
 export function validateSharedCaptureFields(
-  input: SharedCaptureFieldsInput
+  input: SharedCaptureFieldsInput,
+  options: SharedCaptureNormalizationOptions = {}
 ): SharedCaptureValidationResult {
-  const normalized = normalizeSharedCaptureFields(input);
+  const normalized = normalizeSharedCaptureFields(input, options);
   const errors: SharedCaptureFieldErrors = {};
 
   if (normalized.purpose.length < 3) {

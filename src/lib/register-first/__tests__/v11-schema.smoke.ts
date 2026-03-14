@@ -17,6 +17,10 @@ import {
   ensureV1_1Shape,
 } from "../migration";
 import {
+  resolveOrderedSystemsFromCard,
+  splitOrderedSystemsForStorage,
+} from "../card-model";
+import {
   createEmptyCaptureDraft,
   validateCaptureDraft,
   toCaptureInput,
@@ -205,6 +209,37 @@ export async function runV11SchemaSmoke() {
   assert.equal(legacyInput.toolId, undefined);
   assert.equal(legacyInput.dataCategory, undefined);
 
+  // ── 10b. Optional systemPublicInfo remains schema-valid ───────────────
+  const withSystemCompliance = parseUseCaseCard({
+    ...v11Card,
+    systemPublicInfo: [
+      {
+        systemKey: "name:chatgpt",
+        toolId: "chatgpt_openai",
+        displayName: "ChatGPT",
+        vendor: "OpenAI",
+        providerType: "TOOL",
+        publicInfo: {
+          lastCheckedAt: "2026-03-14T09:00:00.000Z",
+          checker: "perplexity",
+          summary: "Vendor documents privacy resources publicly.",
+          flags: {
+            gdprClaim: "yes",
+            aiActClaim: "not_found",
+            trustCenterFound: "yes",
+            privacyPolicyFound: "yes",
+            dpaOrSccMention: "yes",
+          },
+          confidence: "medium",
+          sources: [],
+          disclaimerVersion: "v1",
+        },
+      },
+    ],
+  });
+  assert.equal(withSystemCompliance.systemPublicInfo?.length, 1);
+  assert.equal(withSystemCompliance.systemPublicInfo?.[0]?.displayName, "ChatGPT");
+
   // ── 11. dataCategory default ──────────────────────────────────────────
   const v11NoCategory = createUseCaseCardV11Draft(
     {
@@ -223,6 +258,74 @@ export async function runV11SchemaSmoke() {
     }
   );
   assert.equal(v11NoCategory.dataCategory, "INTERNAL_CONFIDENTIAL"); // default
+
+  // ── 12. workflow support stays canonical and ordered ─────────────────
+  const workflowCapture = parseCaptureInput({
+    purpose: "Mehrere Systeme erfassen",
+    usageContexts: ["INTERNAL_ONLY"],
+    isCurrentlyResponsible: true,
+    decisionImpact: "NO",
+    toolId: "perplexity_api",
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "step_3",
+          position: 9,
+          toolFreeText: "Interner Bild-Webhook",
+        },
+        {
+          entryId: "step_2",
+          position: 4,
+          toolId: "gemini_api",
+        },
+      ],
+      connectionMode: "fully_automated",
+      summary: "  Recherche -> Text -> Bild  ",
+    },
+  });
+  assert.equal(workflowCapture.workflow?.connectionMode, "FULLY_AUTOMATED");
+  assert.equal(workflowCapture.workflow?.summary, "Recherche -> Text -> Bild");
+  assert.deepEqual(workflowCapture.workflow?.additionalSystems, [
+    {
+      entryId: "step_2",
+      position: 2,
+      toolId: "gemini_api",
+      toolFreeText: undefined,
+    },
+    {
+      entryId: "step_3",
+      position: 3,
+      toolId: "other",
+      toolFreeText: "Interner Bild-Webhook",
+    },
+  ]);
+
+  const workflowCard = createUseCaseCardV11Draft(
+    workflowCapture,
+    {
+      useCaseId: "uc_workflow",
+      globalUseCaseId: "EUKI-UC-123499",
+      publicHashId: "workflow1234",
+      now,
+    }
+  );
+  assert.equal(workflowCard.toolId, "perplexity_api");
+  assert.equal(workflowCard.workflow?.connectionMode, "FULLY_AUTOMATED");
+  assert.equal(workflowCard.workflow?.additionalSystems.length, 2);
+
+  const orderedSystems = resolveOrderedSystemsFromCard(workflowCard);
+  assert.deepEqual(orderedSystems.map((entry) => entry.toolId), [
+    "perplexity_api",
+    "gemini_api",
+    "other",
+  ]);
+
+  const splitSystems = splitOrderedSystemsForStorage(orderedSystems, {
+    workflow: workflowCard.workflow,
+  });
+  assert.equal(splitSystems.toolId, "perplexity_api");
+  assert.equal(splitSystems.workflow?.additionalSystems.length, 2);
+  assert.equal(splitSystems.workflow?.additionalSystems[0].position, 2);
 
   console.log("v1.1 schema smoke tests passed.");
 }

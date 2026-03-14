@@ -13,11 +13,6 @@ import { PageStatePanel, PublicIntakeShell } from "@/components/product-shells";
 import { useAuth } from "@/context/auth-context";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 import {
-  resolveOwnedCaptureCodeFallback,
-  submitOwnedCaptureCodeFallback,
-  type OwnerCaptureFallbackInfo,
-} from "@/lib/capture-by-code/client-fallback";
-import {
   QuickCaptureFields,
   TOOL_PLACEHOLDER_ID,
   type QuickCaptureFieldsDraft,
@@ -28,11 +23,19 @@ import {
   type SharedCaptureFieldErrors,
   type SharedCaptureFieldName,
 } from "@/lib/register-first/shared-capture-fields";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 
 type PageState = "loading" | "enter_code" | "invalid" | "form" | "success";
 
 interface CodeInfo {
   label: string;
+  organisationName: string | null;
+}
+
+interface OwnerCaptureFallbackInfo {
+  code: string;
+  registerId: string;
+  label: string | null;
   organisationName: string | null;
 }
 
@@ -44,6 +47,9 @@ const EMPTY_FORM: CaptureFormData = {
   contactPersonName: "",
   toolId: TOOL_PLACEHOLDER_ID,
   toolFreeText: "",
+  systems: [],
+  workflowConnectionMode: null,
+  workflowSummary: "",
   usageContexts: [],
   dataCategories: [],
   decisionInfluence: null,
@@ -60,7 +66,37 @@ function isLocalCaptureDevelopment(): boolean {
   );
 }
 
+async function resolveOwnerCaptureFallback(
+  code: string,
+): Promise<OwnerCaptureFallbackInfo | null> {
+  const { resolveOwnedCaptureCodeFallback } = await import(
+    "@/lib/capture-by-code/client-fallback"
+  );
+  return resolveOwnedCaptureCodeFallback(code);
+}
+
+async function submitOwnerCaptureFallback(input: {
+  code: string;
+  registerId: string;
+  accessCodeLabel?: string | null;
+  purpose: string;
+  toolId?: string;
+  toolFreeText?: string;
+  workflow?: import("@/lib/register-first/types").UseCaseWorkflow;
+  usageContexts: import("@/lib/register-first/types").CaptureUsageContext[];
+  dataCategories?: import("@/lib/register-first/types").DataCategory[];
+  decisionInfluence?: import("@/lib/register-first/types").DecisionInfluence;
+  ownerRole: string;
+  contactPersonName?: string;
+}) {
+  const { submitOwnedCaptureCodeFallback } = await import(
+    "@/lib/capture-by-code/client-fallback"
+  );
+  return submitOwnedCaptureCodeFallback(input);
+}
+
 export default function ErfassenPage() {
+  const multisystemEnabled = registerFirstFlags.multisystemCapture;
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const codeParam = searchParams.get("code");
@@ -82,8 +118,12 @@ export default function ErfassenPage() {
 
   useEffect(() => {
     if (!hasFieldErrors) return;
-    setFieldErrors(validateSharedCaptureFields(form).errors);
-  }, [form, hasFieldErrors]);
+    setFieldErrors(
+      validateSharedCaptureFields(form, {
+        multisystemEnabled,
+      }).errors
+    );
+  }, [form, hasFieldErrors, multisystemEnabled]);
 
   // Validate code from URL param on mount
   useEffect(() => {
@@ -114,7 +154,7 @@ export default function ErfassenPage() {
               "Public capture is unavailable locally because the server has no Firebase Admin credentials. Configure ADC or a service account for no-login capture routes."
             );
           }
-          const fallbackInfo = await resolveOwnedCaptureCodeFallback(c);
+          const fallbackInfo = await resolveOwnerCaptureFallback(c);
           if (fallbackInfo) {
             setCodeInfo({
               label: fallbackInfo.label ?? "Direkter Registerzugang",
@@ -137,7 +177,7 @@ export default function ErfassenPage() {
       setCode(c);
       setPageState("form");
     } catch {
-      const fallbackInfo = await resolveOwnedCaptureCodeFallback(c);
+      const fallbackInfo = await resolveOwnerCaptureFallback(c);
       if (fallbackInfo) {
         setCodeInfo({
           label: fallbackInfo.label ?? "Direkter Registerzugang",
@@ -157,7 +197,9 @@ export default function ErfassenPage() {
   async function handleSubmit() {
     setErrorTitle("Fehler");
     setErrorMsg(null);
-    const validation = validateSharedCaptureFields(form);
+    const validation = validateSharedCaptureFields(form, {
+      multisystemEnabled,
+    });
     if (!validation.isValid) {
       setFieldErrors(validation.errors);
       focusCaptureField(validation.firstInvalidField);
@@ -168,13 +210,14 @@ export default function ErfassenPage() {
     setIsSubmitting(true);
     try {
       if (ownerFallbackInfo) {
-        const card = await submitOwnedCaptureCodeFallback({
+        const card = await submitOwnerCaptureFallback({
           code,
           registerId: ownerFallbackInfo.registerId,
           accessCodeLabel: ownerFallbackInfo.label,
           purpose: validation.normalized.purpose,
           toolId: validation.normalized.toolId,
           toolFreeText: validation.normalized.toolFreeText,
+          workflow: validation.normalized.workflow,
           usageContexts: validation.normalized.usageContexts,
           dataCategories: validation.normalized.dataCategories,
           decisionInfluence: validation.normalized.decisionInfluence,
@@ -194,6 +237,9 @@ export default function ErfassenPage() {
           purpose: validation.normalized.purpose,
           toolId: validation.normalized.toolId,
           toolFreeText: validation.normalized.toolFreeText,
+          systems: form.systems,
+          workflowConnectionMode: form.workflowConnectionMode,
+          workflowSummary: form.workflowSummary,
           usageContexts: validation.normalized.usageContexts,
           dataCategories: validation.normalized.dataCategories,
           decisionInfluence: validation.normalized.decisionInfluence,

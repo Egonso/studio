@@ -210,3 +210,88 @@ test("manual edit labels stay customer-friendly and deduplicated", () => {
     "Entscheidungsrelevanz, Entscheidungseinfluss, KI-Risikoklasse",
   );
 });
+
+test("createManualEditEvent summarizes workflow changes as Ablauf & Systeme", () => {
+  const beforeEdit = createBaseCard({
+    toolId: "other",
+    toolFreeText: "Perplexity API",
+  });
+  const afterEdit = createBaseCard({
+    ...beforeEdit,
+    updatedAt: "2026-03-10T10:30:00.000Z",
+    toolId: "other",
+    toolFreeText: "Perplexity API",
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "step_2",
+          position: 2,
+          toolId: "other",
+          toolFreeText: "Gemini API",
+        },
+      ],
+      connectionMode: "SEMI_AUTOMATED",
+      summary: "Recherche -> Entwurf",
+    },
+  });
+
+  const manualEdit = createManualEditEvent({
+    before: beforeEdit,
+    after: afterEdit,
+    editedAt: "2026-03-10T10:30:00.000Z",
+    editedBy: "user_editor",
+  });
+
+  assert.ok(manualEdit);
+  assert.equal(manualEdit?.summary, "Stammdaten aktualisiert");
+  assert.ok(
+    manualEdit?.changedFields.some((field) => field.startsWith("workflow"))
+  );
+});
+
+test("createManualEditEvent summarizes system compliance updates separately", () => {
+  const beforeEdit = createBaseCard({
+    toolId: "other",
+    toolFreeText: "Perplexity API",
+  });
+  const afterEdit = createBaseCard({
+    ...beforeEdit,
+    updatedAt: "2026-03-10T11:00:00.000Z",
+    systemPublicInfo: [
+      {
+        systemKey: "name:perplexity api",
+        toolId: "other",
+        toolFreeText: "Perplexity API",
+        displayName: "Perplexity API",
+        vendor: "Perplexity",
+        providerType: "API",
+        publicInfo: {
+          lastCheckedAt: "2026-03-10T11:00:00.000Z",
+          checker: "perplexity",
+          summary: "Research saved",
+          flags: {
+            gdprClaim: "yes",
+            aiActClaim: "not_found",
+            trustCenterFound: "yes",
+            privacyPolicyFound: "yes",
+            dpaOrSccMention: "yes",
+          },
+          confidence: "medium",
+          sources: [],
+          disclaimerVersion: "v1",
+        },
+      },
+    ],
+  });
+
+  const manualEdit = createManualEditEvent({
+    before: beforeEdit,
+    after: afterEdit,
+    editedAt: "2026-03-10T11:00:00.000Z",
+    editedBy: "user_editor",
+  });
+
+  assert.ok(manualEdit);
+  assert.equal(manualEdit?.summary, "Compliance-Informationen aktualisiert");
+  assert.ok(manualEdit?.changedFields.includes("systemPublicInfo"));
+});

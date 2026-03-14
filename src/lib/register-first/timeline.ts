@@ -57,8 +57,12 @@ const FIELD_LABELS: Record<string, string> = {
   "responsibility.responsibleParty": "Owner-Rolle",
   "responsibility.contactPersonName": "Kontaktperson",
   organisation: "Organisation",
-  toolId: "Tool",
-  toolFreeText: "Tool-Name",
+  toolId: "System",
+  toolFreeText: "System-Name",
+  workflow: "Ablauf & Systeme",
+  "workflow.additionalSystems": "Ablauf & Systeme",
+  "workflow.connectionMode": "Ablaufart",
+  "workflow.summary": "Ablaufbeschreibung",
   dataCategory: "Datenkategorie",
   dataCategories: "Datenkategorien",
   decisionImpact: "Entscheidungsrelevanz",
@@ -71,6 +75,7 @@ const FIELD_LABELS: Record<string, string> = {
   "governanceAssessment.flex.iso.lifecycleStatus": "Lifecycle-Status",
   isPublicVisible: "Sichtbarkeit",
   publicInfo: "Tool-Recherche",
+  systemPublicInfo: "System-Compliance",
 };
 
 function normalizeOptionalText(value: string | null | undefined): string | null {
@@ -204,12 +209,23 @@ function summarizeManualEdit(changedFields: string[]): string {
   }
 
   if (
+    changedFields.includes("publicInfo") ||
+    changedFields.includes("systemPublicInfo")
+  ) {
+    return "Compliance-Informationen aktualisiert";
+  }
+
+  if (
     changedFields.some((field) =>
       [
         "purpose",
         "usageContexts",
         "toolId",
         "toolFreeText",
+        "workflow",
+        "workflow.additionalSystems",
+        "workflow.connectionMode",
+        "workflow.summary",
         "dataCategory",
         "dataCategories",
         "decisionImpact",

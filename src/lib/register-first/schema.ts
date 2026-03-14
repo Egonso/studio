@@ -19,6 +19,9 @@ import {
   USE_CASE_ORIGIN_SOURCE_VALUES,
   normalizeCaptureUsageContexts,
   normalizeDataCategories,
+  normalizeWorkflowConnectionMode,
+  normalizeUseCaseWorkflow,
+  WORKFLOW_CONNECTION_MODE_VALUES,
 } from "./card-model";
 import {
   createUseCaseOrigin,
@@ -51,6 +54,21 @@ export const captureUsageContextSchema = z.enum(CAPTURE_USAGE_CONTEXT_VALUES);
 export const decisionImpactSchema = z.enum(DECISION_IMPACT_VALUES);
 export const decisionInfluenceSchema = z.enum(DECISION_INFLUENCE_VALUES);
 export const affectedPartySchema = z.enum(AFFECTED_PARTY_VALUES);
+export const workflowConnectionModeSchema = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    const normalized = normalizeWorkflowConnectionMode(value);
+    if (!normalized) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid connectionMode. Expected one of ${WORKFLOW_CONNECTION_MODE_VALUES.join(", ")}`,
+      });
+      return z.NEVER;
+    }
+
+    return normalized;
+  });
 export const externalSubmissionSourceTypeSchema = z.enum(
   externalSubmissionSourceTypeValues
 );
@@ -77,6 +95,40 @@ const approvalWorkflowSchema = z.object({
 // ── Card version schema ─────────────────────────────────────────────────────
 const cardVersionSchema = z.enum(CARD_VERSION_VALUES);
 
+const orderedUseCaseSystemSchema = z
+  .object({
+    entryId: z.string().trim().min(1).max(200),
+    position: z.number().int().min(1).max(1000),
+    toolId: z.string().min(1).max(100).optional(),
+    toolFreeText: z.string().trim().min(1).max(300).optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.toolId && !value.toolFreeText) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Each workflow system needs toolId or toolFreeText",
+        path: ["toolId"],
+      });
+    }
+
+    if (
+      value.toolId === "other" &&
+      (!value.toolFreeText || value.toolFreeText.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "toolFreeText is required when toolId is 'other'",
+        path: ["toolFreeText"],
+      });
+    }
+  });
+
+const useCaseWorkflowSchema = z.object({
+  additionalSystems: z.array(orderedUseCaseSystemSchema).max(20),
+  connectionMode: workflowConnectionModeSchema.optional(),
+  summary: z.string().trim().min(1).max(300).optional(),
+});
+
 // ── Capture Input Schema (extended for v1.1) ────────────────────────────────
 export const captureInputSchema = z
   .object({
@@ -91,6 +143,7 @@ export const captureInputSchema = z
     // v1.1 capture fields (optional for backward compat)
     toolId: z.string().min(1).max(100).optional(),
     toolFreeText: z.string().trim().min(1).max(300).optional(),
+    workflow: useCaseWorkflowSchema.optional(),
     dataCategory: dataCategorySchema.optional(),
     dataCategories: z.array(dataCategorySchema).max(13).optional(),
     // v1.2 capture fields (Register-First: flat metadata)
@@ -202,6 +255,25 @@ export const toolPublicInfoSchema = z.object({
   confidence: confidenceLevelSchema,
   sources: z.array(publicInfoSourceSchema),
   disclaimerVersion: z.string(),
+});
+
+const useCaseSystemProviderTypeSchema = z.enum([
+  "TOOL",
+  "API",
+  "MODEL",
+  "CONNECTOR",
+  "INTERNAL",
+  "OTHER",
+]);
+
+export const useCaseSystemPublicInfoSchema = z.object({
+  systemKey: z.string().trim().min(1).max(400),
+  toolId: z.string().trim().min(1).max(100).optional(),
+  toolFreeText: z.string().trim().min(1).max(300).optional(),
+  displayName: z.string().trim().min(1).max(300),
+  vendor: z.string().trim().min(1).max(200).optional().nullable(),
+  providerType: useCaseSystemProviderTypeSchema.optional(),
+  publicInfo: toolPublicInfoSchema,
 });
 
 export const statusChangeSchema = z.object({
@@ -334,11 +406,13 @@ export const useCaseCardSchema = z
     formatVersion: z.string().max(10).optional(),
     toolId: z.string().min(1).max(100).optional(),
     toolFreeText: z.string().trim().min(1).max(300).optional(),
+    workflow: useCaseWorkflowSchema.optional(),
     dataCategory: dataCategorySchema.optional(),
     dataCategories: z.array(dataCategorySchema).max(13).optional(),
     publicHashId: z.string().min(8).max(24).optional(),
     isPublicVisible: z.boolean().optional(),
     publicInfo: toolPublicInfoSchema.optional().nullable(),
+    systemPublicInfo: z.array(useCaseSystemPublicInfoSchema).max(20).optional(),
     // ── v1.2 fields (Register-First: flat metadata) ─────────────────
     organisation: z.string().trim().max(200).optional().nullable(),
     labels: z.array(z.object({ key: z.string(), value: z.string() })).optional(),
@@ -391,6 +465,7 @@ export function parseCaptureInput(input: unknown): CaptureInput {
   return {
     ...parsed,
     usageContexts: normalizeCaptureUsageContexts(parsed.usageContexts),
+    workflow: normalizeUseCaseWorkflow(parsed.workflow),
     dataCategory: dataCategories[0],
     dataCategories: dataCategories.length > 0 ? dataCategories : undefined,
     affectedParties: parsed.affectedParties ?? [],
@@ -500,6 +575,7 @@ export function createUseCaseCardV11Draft(
     formatVersion: "v1.1",
     toolId: capture.toolId,
     toolFreeText: capture.toolFreeText,
+    workflow: capture.workflow,
     dataCategory: dataCategories[0] ?? "INTERNAL_CONFIDENTIAL",
     dataCategories:
       dataCategories.length > 0 ? dataCategories : ["INTERNAL_CONFIDENTIAL"],

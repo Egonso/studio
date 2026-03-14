@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getUseCaseSystemsSummary } from "@/lib/register-first/systems";
 import { UseCaseCard } from "@/lib/register-first/types";
 import { registerService } from "@/lib/register-first/register-service";
 
@@ -104,7 +105,7 @@ export function UseCaseAssessmentWizard({
                 },
                 body: JSON.stringify({
                     purpose: card.purpose,
-                    systemName: card.toolFreeText || card.toolId,
+                    systemName: getUseCaseSystemsSummary(card),
                     usageContexts: card.usageContexts,
                     dataCategories: card.dataCategories,
                 }),

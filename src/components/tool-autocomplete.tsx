@@ -11,17 +11,23 @@ import toolCatalog from "../data/tool-catalog.json";
 interface ToolAutocompleteProps {
     value: string;
     onChange: (value: string, toolData?: any) => void;
+    onInputChange?: (value: string) => void;
+    onSelect?: (value: string, toolData?: any) => void;
     disabled?: boolean;
     inputClassName?: string;
     inputId?: string;
+    placeholder?: string;
 }
 
 export function ToolAutocomplete({
     value,
     onChange,
+    onInputChange,
+    onSelect,
     disabled,
     inputClassName,
     inputId,
+    placeholder,
 }: ToolAutocompleteProps) {
     const [open, setOpen] = React.useState(false);
     const [inputValue, setInputValue] = React.useState(value);
@@ -56,14 +62,22 @@ export function ToolAutocomplete({
 
     const handleSelect = (tool: any) => {
         setInputValue(tool.name);
-        onChange(tool.name, tool);
+        if (onSelect) {
+            onSelect(tool.name, tool);
+        } else {
+            onChange(tool.name, tool);
+        }
         setOpen(false);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setInputValue(val);
-        onChange(val, undefined); // Clear updated data if typing manually
+        if (onInputChange) {
+            onInputChange(val);
+        } else {
+            onChange(val, undefined); // Clear updated data if typing manually
+        }
         setOpen(true);
     };
 
@@ -72,7 +86,11 @@ export function ToolAutocomplete({
     const handleUseCustomTool = () => {
         if (!customToolValue) return;
         setInputValue(customToolValue);
-        onChange(customToolValue, undefined);
+        if (onSelect) {
+            onSelect(customToolValue, undefined);
+        } else {
+            onChange(customToolValue, undefined);
+        }
         setOpen(false);
     };
 
@@ -85,7 +103,7 @@ export function ToolAutocomplete({
                     onChange={handleInputChange}
                     onFocus={() => setOpen(true)}
                     disabled={disabled}
-                    placeholder="z.B. ChatGPT, Midjourney..."
+                    placeholder={placeholder ?? "z.B. ChatGPT, Midjourney..."}
                     className={cn("pr-10", inputClassName)}
                 />
                 <Button

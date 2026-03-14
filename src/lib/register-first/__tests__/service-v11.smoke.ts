@@ -115,6 +115,7 @@ export async function runServiceV11Smoke() {
   assert.equal(v11Export.tool.productName, "ChatGPT");
   assert.equal(v11Export.tool.toolType, "LLM");
   assert.equal(v11Export.tool.freeText, null);
+  assert.equal(v11Export.workflow, null);
   assert.equal(v11Export.dataCategory, "PERSONAL_DATA");
   assert.equal(v11Export.responsibleRole, "Erfasser (self)");
   assert.ok(v11Export.scope.includes("INTERNAL_ONLY"));
@@ -154,6 +155,48 @@ export async function runServiceV11Smoke() {
   assert.equal(otherExport.tool.freeText, "Eigenentwicklung RAG-Pipeline");
   assert.equal(otherExport.tool.vendor, null);
   assert.equal(otherExport.responsibleRole, "IT-Abteilung");
+
+  const multiSystemCard = await service.createUseCaseFromCapture(
+    {
+      purpose: "Newsletter-Content mit Recherche, Text und Bild erstellen",
+      usageContexts: ["INTERNAL_ONLY"],
+      isCurrentlyResponsible: false,
+      responsibleParty: "Marketing Lead",
+      decisionImpact: "UNSURE",
+      toolId: "other",
+      toolFreeText: "Perplexity API",
+      workflow: {
+        additionalSystems: [
+          {
+            entryId: "step_2",
+            position: 2,
+            toolId: "other",
+            toolFreeText: "Gemini API",
+          },
+          {
+            entryId: "step_3",
+            position: 3,
+            toolId: "other",
+            toolFreeText: "Sora",
+          },
+        ],
+        connectionMode: "SEMI_AUTOMATED",
+        summary: "Recherche -> Text -> Bild",
+      },
+      dataCategory: "INTERNAL",
+    },
+    { projectId: "project_v11" }
+  );
+
+  const multiExport = createUseCasePassV11Export(
+    multiSystemCard,
+    "project_v11",
+    {},
+    exportNow
+  );
+  assert.equal(multiExport.workflow?.systems.length, 3);
+  assert.equal(multiExport.workflow?.connectionModeLabel, "Teilweise automatisiert");
+  assert.equal(multiExport.workflow?.summary, "Recherche -> Text -> Bild");
 
   // ── 6. Status gated output check ─────────────────────────────────────────
   const flags: RegisterFirstFeatureFlags = {
@@ -211,6 +254,7 @@ export async function runServiceV11Smoke() {
   assert.equal(proofV11Doc.tool.toolId, "openai_chatgpt");
   assert.equal(proofV11Doc.tool.vendor, "OpenAI");
   assert.equal(proofV11Doc.dataCategory, "PERSONAL_DATA");
+  assert.equal(proofV11Doc.workflow, null);
   assert.equal(proofV11Doc.verifyLink.scope, "Kundensupport KI-Priorisierung");
   assert.equal(
     getProofPackV11PdfFileName(withProof.globalUseCaseId!),
@@ -225,6 +269,34 @@ export async function runServiceV11Smoke() {
   );
   assert.ok(pdfV11Blob.size > 0, "v1.1 PDF blob should have content");
   assert.equal(pdfV11Blob.type, "application/pdf");
+
+  await service.updateUseCaseStatusManual({
+    projectId: "project_v11",
+    useCaseId: multiSystemCard.useCaseId,
+    nextStatus: "REVIEWED",
+    reason: "Fachlich akzeptiert",
+    actor: "HUMAN",
+  });
+  const multiProofReady = await service.updateUseCaseStatusManual({
+    projectId: "project_v11",
+    useCaseId: multiSystemCard.useCaseId,
+    nextStatus: "PROOF_READY",
+    reason: "Mehrsystemig exportierbar",
+    actor: "HUMAN",
+  });
+  const multiProofCard = await service.updateProofMetaManual({
+    projectId: "project_v11",
+    useCaseId: multiProofReady.useCaseId,
+    verifyUrl: "https://verify.example.com/multi_system",
+    isReal: true,
+    isCurrent: true,
+    scope: "Mehrstufiger Marketing-Workflow",
+    actor: "HUMAN",
+  });
+
+  const multiProofDoc = createProofPackV11Document(multiProofCard, {}, exportNow);
+  assert.equal(multiProofDoc.workflow?.systems.length, 3);
+  assert.equal(multiProofDoc.workflow?.systems[2]?.displayName, "Sora");
 
   console.log("Service v1.1 + Output v1.1 smoke tests passed.");
 }
