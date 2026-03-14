@@ -4,9 +4,9 @@ import './globals.css';
 import { AppClientShell } from '@/components/app-client-shell';
 
 export const metadata: Metadata = {
-  title: 'AI Governance Control',
+  title: 'KI-Register',
   description:
-    'AI Governance Register (Free Entry) und AI Governance Control (Paid Layer).',
+    'Use-case-first KI-Register fuer Dokumentation, Governance und Nachweisfuehrung.',
   icons: {
     icon: [
       { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
