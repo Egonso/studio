@@ -217,7 +217,8 @@ test('external inbox and premium destinations stay discoverable', () => {
   assert.match(inboxSource, /Uebernommen/);
   assert.match(inboxSource, /Ablehnen/);
   assert.match(inboxSource, /Freigeben/);
-  assert.match(controlSource, /Governance-Bericht gehört zur Governance-Stufe/);
+  assert.match(controlSource, /Bericht aktuell halten/);
+  assert.match(controlSource, /Reviews öffnen/);
 
   const premiumNavHrefs = new Set(
     getVisiblePremiumControlNav('pro').map((entry) => entry.href),
