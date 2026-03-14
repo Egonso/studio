@@ -140,6 +140,7 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
           entryId: "s2",
           position: 2,
           toolId: "Gemini API",
+          toolFreeText: undefined,
         },
       ],
       connectionMode: "SEMI_AUTOMATED",
