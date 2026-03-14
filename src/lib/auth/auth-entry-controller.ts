@@ -10,16 +10,13 @@ import {
 import { logError, logInfo, logWarn } from '@/lib/observability/logger';
 import { getCaptureByCodeErrorCopy } from '@/lib/capture-by-code/error-copy';
 import { accessCodeService } from '@/lib/register-first/access-code-service';
-import {
-  registerService,
-  syncRegisterEntitlement,
-  type SubscriptionPlan,
-} from '@/lib/register-first';
+import { syncRegisterEntitlement } from '@/lib/register-first/entitlement-client';
+import { registerService } from '@/lib/register-first/register-service';
 import {
   getActiveRegisterId,
   setActiveRegisterId,
 } from '@/lib/register-first/register-settings-client';
-import type { Register } from '@/lib/register-first/types';
+import type { Register, SubscriptionPlan } from '@/lib/register-first/types';
 
 import { buildAuthPath, type AuthRouteOptions } from './login-routing';
 

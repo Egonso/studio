@@ -12,3 +12,8 @@ This is a NextJS starter in Firebase Studio.
 Please refer to these documents before making changes to the database structure.
 
 To get started, take a look at src/app/page.tsx.
+
+### Local Development
+
+- `npm run dev` starts the default Turbopack dev server on port `9002`.
+- `npm run dev:compat` starts the classic Next.js dev server on port `9002` as a fallback when Turbopack hangs locally.
