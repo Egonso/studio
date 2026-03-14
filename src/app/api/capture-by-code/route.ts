@@ -7,6 +7,7 @@ import { logInfo, logWarn } from '@/lib/observability/logger';
 import { normalizeCaptureByCodeSelections } from '@/lib/capture-by-code/selections';
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 import { validateSharedCaptureFields } from '@/lib/register-first/shared-capture-fields';
+import { getRegisterFirstFeatureFlags } from '@/lib/register-first/flags';
 import {
   buildAccessCodeSubmissionSnapshot,
   buildExternalSubmissionRecord,
@@ -18,6 +19,13 @@ interface CaptureByCodeBody {
   purpose: string;
   toolId?: string;
   toolFreeText?: string;
+  systems?: Array<{
+    entryId?: string;
+    toolId?: string;
+    toolFreeText?: string;
+  }>;
+  workflowConnectionMode?: string | null;
+  workflowSummary?: string | null;
   usageContext?: string;
   usageContexts?: string[];
   dataCategory?: string;
@@ -267,6 +275,7 @@ export async function GET(req: NextRequest) {
 // POST: Create use case via access code (no auth required)
 export async function POST(req: NextRequest) {
   try {
+    const featureFlags = getRegisterFirstFeatureFlags();
     if (!hasFirebaseAdminCredentials()) {
       logWarn('capture_by_code_admin_credentials_missing', {
         route: '/api/capture-by-code',
@@ -284,6 +293,9 @@ export async function POST(req: NextRequest) {
       purpose,
       toolId,
       toolFreeText,
+      systems,
+      workflowConnectionMode,
+      workflowSummary,
       usageContext,
       usageContexts,
       dataCategory,
@@ -311,9 +323,14 @@ export async function POST(req: NextRequest) {
       contactPersonName,
       toolId,
       toolFreeText,
+      systems,
+      workflowConnectionMode,
+      workflowSummary,
       usageContexts: normalizedSelections.usageContexts,
       dataCategories: normalizedSelections.dataCategories,
       decisionInfluence: normalizedSelections.decisionInfluence,
+    }, {
+      multisystemEnabled: featureFlags.multisystemCapture,
     });
 
     if (code) {
@@ -415,6 +432,7 @@ export async function POST(req: NextRequest) {
       purpose: validation.normalized.purpose,
       toolId: validation.normalized.toolId,
       toolFreeText: validation.normalized.toolFreeText,
+      workflow: validation.normalized.workflow,
       usageContexts: validation.normalized.usageContexts,
       dataCategories: validation.normalized.dataCategories ?? [],
       decisionInfluence: validation.normalized.decisionInfluence,

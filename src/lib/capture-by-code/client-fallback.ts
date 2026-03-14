@@ -9,6 +9,7 @@ import type {
   DecisionInfluence,
   ExternalSubmission,
   RegisterAccessCode,
+  UseCaseWorkflow,
   UseCaseCard,
 } from "@/lib/register-first/types";
 import { normalizeCaptureByCodeSelections } from "./selections";
@@ -27,6 +28,7 @@ export interface OwnerCaptureSubmissionInput {
   purpose: string;
   toolId?: string;
   toolFreeText?: string;
+  workflow?: UseCaseWorkflow;
   usageContext?: CaptureUsageContext;
   usageContexts?: CaptureUsageContext[];
   dataCategory?: DataCategory;
@@ -135,6 +137,7 @@ export async function submitOwnedCaptureCode(
     purpose: input.purpose,
     toolId: input.toolId,
     toolFreeText: input.toolFreeText,
+    workflow: input.workflow,
     usageContexts: normalizedSelections.usageContexts,
     dataCategories:
       normalizedSelections.dataCategories ??
@@ -168,6 +171,7 @@ export async function submitOwnedCaptureCode(
       decisionInfluence: snapshot.decisionInfluence || undefined,
       toolId: snapshot.toolId || undefined,
       toolFreeText: snapshot.toolFreeText || undefined,
+      workflow: snapshot.workflow,
       dataCategory: snapshot.dataCategories[0],
       dataCategories: snapshot.dataCategories,
       organisation: snapshot.organisation || undefined,

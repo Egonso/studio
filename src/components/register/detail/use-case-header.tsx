@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   createAiToolsRegistryService,
+  getUseCaseSystemsSummary,
+  getUseCaseWorkflowBadge,
   getUseCaseSource,
   getUseCaseSourceBadges,
   getUseCaseSourceLabel,
@@ -80,10 +82,13 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
   const isProofReady = card.status === "PROOF_READY";
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
-  const toolDisplayName =
-    card.toolId === "other"
-      ? card.toolFreeText ?? "Anderes Tool"
-      : toolEntry?.productName ?? card.toolId ?? "Kein Tool";
+  const toolDisplayName = getUseCaseSystemsSummary(card, {
+    resolveToolName: (toolId) => aiRegistry.getById(toolId)?.productName ?? null,
+    emptyLabel: "Kein System",
+  });
+  const workflowBadge = getUseCaseWorkflowBadge(card, {
+    resolveToolName: (toolId) => aiRegistry.getById(toolId)?.productName ?? null,
+  });
 
   const riskClass =
     card.governanceAssessment?.core?.aiActCategory ??
@@ -164,6 +169,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
       purpose: card.purpose,
       toolId: card.toolId,
       toolFreeText: card.toolFreeText,
+      workflow: card.workflow,
       status: card.status,
       cardVersion: card.cardVersion,
       dataCategory: card.dataCategory,
@@ -187,6 +193,7 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
 
   const subline = [
     toolDisplayName,
+    workflowBadge,
     card.globalUseCaseId ?? "EUKI-ID offen",
     `v${card.cardVersion}`,
     card.isPublicVisible ? "Nachweis sichtbar" : "Nachweis intern",

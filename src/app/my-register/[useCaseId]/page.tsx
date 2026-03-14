@@ -7,6 +7,7 @@ import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
 import { UseCaseMetadataSection } from '@/components/register/detail/use-case-metadata-section';
+import { UseCaseWorkflowSection } from '@/components/register/detail/use-case-workflow-section';
 import { GovernanceLiabilitySection } from '@/components/register/detail/governance-liability-section';
 import { ReviewSection } from '@/components/register/detail/review-section';
 import { AuditTrailSection } from '@/components/register/detail/audit-trail-section';
@@ -296,6 +297,8 @@ export default function UseCaseDetailPage() {
           onSave={handleSaveMetadata}
           focusTarget={activeFocus}
         />
+
+        <UseCaseWorkflowSection card={card} onSave={handleSaveMetadata} />
 
         {registerFirstFlags.controlShell && (
           <div

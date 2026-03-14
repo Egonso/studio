@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { ToolAutocomplete } from "@/components/tool-autocomplete";
+import { UseCaseSystemsComplianceSection } from "@/components/register/detail/use-case-systems-compliance-section";
 import type { ControlFocusTarget } from "@/lib/control/deep-link";
 import type {
   CaptureUsageContext,
@@ -97,18 +97,9 @@ export function UseCaseMetadataSection({
     aiActCategory: card.governanceAssessment?.core?.aiActCategory ?? "",
   }));
   const [isSaving, setIsSaving] = useState(false);
-  const [isCheckingCompliance, setIsCheckingCompliance] = useState(false);
   const [specialOpen, setSpecialOpen] = useState(false);
-  const draftToolEntry =
-    editDraft.toolId && editDraft.toolId !== "other"
-      ? aiRegistry.getById(editDraft.toolId)
-      : null;
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
-  const toolDisplayName =
-    card.toolId === "other"
-      ? card.toolFreeText ?? "Anderes Tool"
-      : toolEntry?.productName ?? card.toolId ?? "Kein Tool";
   const riskClass =
     card.governanceAssessment?.core?.aiActCategory ??
     (toolEntry ? riskLevelLabels[toolEntry.riskLevel] : "Unbekannt");
@@ -124,14 +115,11 @@ export function UseCaseMetadataSection({
   const decisionLabel = decisionInfluence
     ? DECISION_INFLUENCE_LABELS[decisionInfluence]
     : decisionImpactLabels[card.decisionImpact];
-  const gdprLabel = getFlagLabel(card.publicInfo?.flags.gdprClaim, Boolean(toolEntry?.gdprCompliant));
-  const aiActLabel = getFlagLabel(card.publicInfo?.flags.aiActClaim, false);
   const ownerLabel = card.responsibility.isCurrentlyResponsible
     ? "Erfasser:in (selbst)"
     : card.responsibility.responsibleParty || "Nicht zugewiesen";
   const contactPersonLabel =
     card.responsibility.contactPersonName?.trim() || "Nicht hinterlegt";
-  const publicSources = card.publicInfo?.sources ?? [];
   const focusClassName = "border-l-2 border-slate-300 pl-3";
 
   useEffect(() => {
@@ -206,49 +194,6 @@ export function UseCaseMetadataSection({
       });
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const runComplianceCheck = async () => {
-    setIsCheckingCompliance(true);
-    try {
-      const { getFirebaseAuth } = await import("@/lib/firebase");
-      const auth = await getFirebaseAuth();
-      const token = await auth.currentUser?.getIdToken();
-
-      if (!token) throw new Error("Nicht eingeloggt");
-
-      const response = await fetch("/api/tools/public-info-check", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          toolName: toolDisplayName,
-          toolVendor: toolEntry?.vendor || "Unknown / Generic",
-          force: true,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Check failed");
-      if (!data.result) throw new Error("Keine Ergebnisse vom Server empfangen.");
-
-      await onSave({ publicInfo: data.result });
-
-      toast({
-        title: "Smart Hint bereit",
-        description: `Compliance-Daten für ${toolDisplayName} gespeichert.`,
-      });
-    } catch (e: any) {
-      toast({
-        variant: "destructive",
-        title: "Fehler",
-        description: e.message || "Smart Hint konnte nicht aktualisiert werden.",
-      });
-    } finally {
-      setIsCheckingCompliance(false);
     }
   };
 
@@ -428,111 +373,18 @@ export function UseCaseMetadataSection({
               <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
             )}
           </FieldBlock>
-          <FieldBlock label="DSGVO" className="rounded-md border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[15px] font-medium text-slate-900">{gdprLabel}</p>
-          </FieldBlock>
-          <FieldBlock label="AI Act" className="rounded-md border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[15px] font-medium text-slate-900">{aiActLabel}</p>
-          </FieldBlock>
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <h2 className="text-[18px] font-semibold tracking-tight">Eingesetztes KI-System</h2>
-            <p className="text-xs text-muted-foreground">
-              Systemhinweise aktualisieren die Dokumentation, ohne den Stammdatenmodus zu öffnen.
-            </p>
+          <div className="rounded-md border border-dashed border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 md:col-span-2">
+            Systembezogene Compliance-Informationen finden Sie im Abschnitt
+            "Beteiligte Systeme & Compliance".
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={runComplianceCheck}
-            disabled={isCheckingCompliance}
-          >
-            {isCheckingCompliance ? "Prüfung läuft..." : "Compliance-Information prüfen"}
-          </Button>
-        </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          <FieldBlock
-            label="System / Tool"
-            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            {isEditing ? (
-              <div className="space-y-2">
-                <ToolAutocomplete
-                  value={editDraft.toolId === "other" ? editDraft.toolFreeText : editDraft.toolId}
-                  onChange={(value, toolData) => {
-                    if (toolData?.name) {
-                      setEditDraft((prev) => ({
-                        ...prev,
-                        toolId: toolData.name,
-                        toolFreeText: toolData.name,
-                      }));
-                      return;
-                    }
-                    setEditDraft((prev) => ({
-                      ...prev,
-                      toolId: "other",
-                      toolFreeText: value,
-                    }));
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Für nicht gelistete Systeme einfach den Namen eingeben.
-                </p>
-              </div>
-            ) : (
-              <p className="text-[15px] font-medium text-slate-900">{toolDisplayName}</p>
-            )}
-          </FieldBlock>
-          <FieldBlock
-            label="Anbieter"
-            className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-            onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-          >
-            <p className="text-[15px] font-medium text-slate-900">
-              {isEditing
-                ? draftToolEntry?.vendor ?? "Nicht hinterlegt"
-                : toolEntry?.vendor ?? "Nicht hinterlegt"}
-            </p>
-          </FieldBlock>
-        </div>
-
-        <div className="mt-4 rounded-sm border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
-          {card.publicInfo ? (
-            <>
-              <p>{card.publicInfo.summary}</p>
-              {publicSources.length > 0 && (
-                <p className="mt-2 text-xs text-slate-500">
-                  Quellen:{" "}
-                  {publicSources.slice(0, 3).map((source, index) => (
-                    <span key={`${source.url}-${index}`}>
-                      <a
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-700 underline underline-offset-2"
-                      >
-                        {source.title || `Quelle ${index + 1}`}
-                      </a>
-                      {index < Math.min(publicSources.length, 3) - 1 ? ", " : ""}
-                    </span>
-                  ))}
-                </p>
-              )}
-            </>
-          ) : (
-            <p>
-              Smart Hint: Für dieses System liegen derzeit keine dokumentierten
-              Compliance-Informationen vor.
-            </p>
-          )}
         </div>
       </section>
+
+      <UseCaseSystemsComplianceSection
+        card={card}
+        isEditing={isEditing}
+        onSave={onSave}
+      />
 
       <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
         <h2 className="text-[18px] font-semibold tracking-tight">Owner & Organisation</h2>
@@ -681,14 +533,4 @@ function FieldBlock({
       {children}
     </div>
   );
-}
-
-function getFlagLabel(
-  flag: "yes" | "no" | "not_found" | undefined,
-  fallbackHint: boolean
-): string {
-  if (flag === "yes") return "Ja";
-  if (flag === "no") return "Nein";
-  if (fallbackHint) return "Hinweis vorhanden";
-  return "Nicht geprüft";
 }

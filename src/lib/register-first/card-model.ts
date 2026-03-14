@@ -1,3 +1,5 @@
+import type { OrderedUseCaseSystem, UseCaseWorkflow } from "./types";
+
 export const REGISTER_USE_CASE_STATUS_VALUES = [
   "UNREVIEWED",
   "REVIEW_RECOMMENDED",
@@ -226,6 +228,27 @@ export const DECISION_INFLUENCE_OPTIONS: DecisionInfluence[] = [
   "AUTOMATED",
 ];
 
+export const WORKFLOW_CONNECTION_MODE_VALUES = [
+  "MANUAL_SEQUENCE",
+  "SEMI_AUTOMATED",
+  "FULLY_AUTOMATED",
+] as const;
+
+const WORKFLOW_CONNECTION_MODE_ALIAS_MAP: Record<
+  string,
+  (typeof WORKFLOW_CONNECTION_MODE_VALUES)[number]
+> = Object.freeze({
+  manual_sequence: "MANUAL_SEQUENCE",
+  manualsequence: "MANUAL_SEQUENCE",
+  manual: "MANUAL_SEQUENCE",
+  semi_automated: "SEMI_AUTOMATED",
+  semiautomated: "SEMI_AUTOMATED",
+  semi: "SEMI_AUTOMATED",
+  fully_automated: "FULLY_AUTOMATED",
+  fullyautomated: "FULLY_AUTOMATED",
+  full: "FULLY_AUTOMATED",
+});
+
 export const USE_CASE_ORIGIN_SOURCE_VALUES = [
   "manual",
   "access_code",
@@ -257,6 +280,75 @@ function toLookupKey(value: string): string {
 
 function dedupe<T>(values: T[]): T[] {
   return Array.from(new Set(values));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeOptionalText(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeSystemReference(input: {
+  toolId?: unknown;
+  toolFreeText?: unknown;
+}): Pick<OrderedUseCaseSystem, "toolId" | "toolFreeText"> | null {
+  const toolId = normalizeOptionalText(input.toolId);
+  const toolFreeText = normalizeOptionalText(input.toolFreeText);
+
+  if (!toolId && !toolFreeText) {
+    return null;
+  }
+
+  if (toolId === "other" || (!toolId && toolFreeText)) {
+    return {
+      toolId: "other",
+      toolFreeText,
+    };
+  }
+
+  return {
+    toolId,
+    toolFreeText,
+  };
+}
+
+function normalizeOrderedWorkflowSystem(
+  value: unknown,
+  fallbackPosition: number
+): OrderedUseCaseSystem | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const systemReference = normalizeSystemReference(value);
+  if (!systemReference) {
+    return null;
+  }
+
+  const rawPosition =
+    typeof value.position === "number" && Number.isFinite(value.position)
+      ? Math.floor(value.position)
+      : fallbackPosition;
+
+  return {
+    entryId:
+      normalizeOptionalText(value.entryId) ?? `workflow_${fallbackPosition}`,
+    position: rawPosition > 0 ? rawPosition : fallbackPosition,
+    ...systemReference,
+  };
+}
+
+function hasWorkflowMetadata(
+  workflow: Pick<UseCaseWorkflow, "connectionMode" | "summary"> | null | undefined
+): boolean {
+  return Boolean(workflow?.connectionMode || workflow?.summary);
 }
 
 export function normalizeRegisterUseCaseStatus(
@@ -369,4 +461,141 @@ export function normalizeUseCaseOriginSource(
   }
 
   return USE_CASE_ORIGIN_SOURCE_ALIAS_MAP[toLookupKey(value)] ?? null;
+}
+
+export function normalizeWorkflowConnectionMode(
+  value: unknown
+): UseCaseWorkflow["connectionMode"] {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const direct = value.trim().toUpperCase();
+  if (
+    (WORKFLOW_CONNECTION_MODE_VALUES as readonly string[]).includes(direct)
+  ) {
+    return direct as UseCaseWorkflow["connectionMode"];
+  }
+
+  return WORKFLOW_CONNECTION_MODE_ALIAS_MAP[toLookupKey(value)];
+}
+
+export function normalizeUseCaseWorkflow(input: unknown): UseCaseWorkflow | undefined {
+  if (!isRecord(input)) {
+    return undefined;
+  }
+
+  const connectionMode = normalizeWorkflowConnectionMode(input.connectionMode);
+  const summary = normalizeOptionalText(input.summary);
+  const additionalSystems = (Array.isArray(input.additionalSystems)
+    ? input.additionalSystems
+    : [])
+    .map((entry, index) => normalizeOrderedWorkflowSystem(entry, index + 2))
+    .filter((entry): entry is OrderedUseCaseSystem => entry !== null)
+    .sort((left, right) => left.position - right.position)
+    .map((entry, index) => ({
+      ...entry,
+      position: index + 2,
+    }));
+
+  if (additionalSystems.length === 0 && !connectionMode && !summary) {
+    return undefined;
+  }
+
+  return {
+    additionalSystems,
+    ...(connectionMode ? { connectionMode } : {}),
+    ...(summary ? { summary } : {}),
+  };
+}
+
+export function resolveOrderedSystemsFromCard(card: {
+  toolId?: string | null;
+  toolFreeText?: string | null;
+  workflow?: UseCaseWorkflow | null;
+}): OrderedUseCaseSystem[] {
+  const systems: OrderedUseCaseSystem[] = [];
+  const primarySystem = normalizeSystemReference({
+    toolId: card.toolId,
+    toolFreeText: card.toolFreeText,
+  });
+
+  if (primarySystem) {
+    systems.push({
+      entryId: "primary",
+      position: 1,
+      ...primarySystem,
+    });
+  }
+
+  for (const additionalSystem of normalizeUseCaseWorkflow(card.workflow)
+    ?.additionalSystems ?? []) {
+    systems.push(additionalSystem);
+  }
+
+  return systems.map((system, index) => ({
+    ...system,
+    position: index + 1,
+  }));
+}
+
+export interface SplitOrderedSystemsOptions {
+  workflow?: Pick<UseCaseWorkflow, "connectionMode" | "summary"> | null;
+  createEntryId?: () => string;
+}
+
+export function splitOrderedSystemsForStorage(
+  orderedSystems: ReadonlyArray<Partial<OrderedUseCaseSystem>>,
+  options: SplitOrderedSystemsOptions = {}
+): {
+  toolId?: string;
+  toolFreeText?: string;
+  workflow?: UseCaseWorkflow;
+} {
+  const normalizedSystems: Array<{
+    entryId?: string;
+    toolId?: string;
+    toolFreeText?: string;
+  }> = [];
+
+  for (const entry of orderedSystems) {
+    const systemReference = normalizeSystemReference(entry);
+    if (!systemReference) {
+      continue;
+    }
+
+    normalizedSystems.push({
+      entryId: normalizeOptionalText(entry.entryId),
+      ...systemReference,
+    });
+  }
+
+  const [primarySystem, ...additionalSystems] = normalizedSystems;
+  const connectionMode = normalizeWorkflowConnectionMode(
+    options.workflow?.connectionMode
+  );
+  const summary = normalizeOptionalText(options.workflow?.summary);
+  const workflowAdditionalSystems = additionalSystems.map((entry, index) => ({
+    entryId:
+      entry.entryId ?? options.createEntryId?.() ?? `workflow_${index + 2}`,
+    position: index + 2,
+    toolId: entry.toolId,
+    toolFreeText: entry.toolFreeText,
+  }));
+
+  const workflow =
+    workflowAdditionalSystems.length > 0 ||
+    hasWorkflowMetadata({ connectionMode, summary })
+      ? {
+          additionalSystems: workflowAdditionalSystems,
+          ...(connectionMode ? { connectionMode } : {}),
+          ...(summary ? { summary } : {}),
+        }
+      : undefined;
+
+  return {
+    toolId: primarySystem?.toolId,
+    toolFreeText: primarySystem?.toolFreeText,
+    ...(workflow ? { workflow } : {}),
+  };
 }

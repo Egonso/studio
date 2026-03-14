@@ -7,7 +7,10 @@ import { Loader2, ArrowLeft, Printer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
-import { createAiToolsRegistryService } from "@/lib/register-first";
+import {
+    createAiToolsRegistryService,
+    resolveUseCaseWorkflowDisplay,
+} from "@/lib/register-first";
 import type { UseCaseCard, Register } from "@/lib/register-first/types";
 import { buildScopedRegisterHref } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
@@ -105,7 +108,14 @@ export default function UseCasePassPage() {
     }
 
     const toolEntry = useCase.toolId ? aiRegistry.getById(useCase.toolId) : null;
-    const toolName = useCase.toolFreeText || toolEntry?.productName || "Unbekanntes System";
+    const workflow = resolveUseCaseWorkflowDisplay(useCase, {
+        resolveToolName: (toolId) =>
+            (toolId === useCase.toolId ? toolEntry?.productName ?? null : null) ??
+            aiRegistry.getById(toolId)?.productName ??
+            null,
+        emptyLabel: "Kein System",
+    });
+    const toolName = workflow.systems[0]?.displayName || "Unbekanntes System";
 
     const aiActCategory = useCase.governanceAssessment?.core?.aiActCategory || "Unbekannt";
     const dataCat = useCase.dataCategory ? dataCategoryLabels[useCase.dataCategory] : dataCategoryLabels.NONE;
@@ -186,9 +196,42 @@ export default function UseCasePassPage() {
                         </dl>
                     </div>
 
+                    {(workflow.hasMultipleSystems || workflow.connectionModeLabel || workflow.summary) && (
+                    <div>
+                        <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">2. Ablauf & beteiligte Systeme</h3>
+                        <dl className="grid grid-cols-1 gap-4">
+                            <div>
+                                <dt className="text-xs text-slate-500 mb-2">Systemfolge</dt>
+                                <dd className="space-y-2">
+                                    {workflow.systems.map((system) => (
+                                        <div key={system.entryId} className="flex items-center gap-3 rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+                                            <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-xs font-semibold text-slate-700">
+                                                {system.position}
+                                            </span>
+                                            <span>{system.displayName}</span>
+                                        </div>
+                                    ))}
+                                </dd>
+                            </div>
+                            {workflow.connectionModeLabel && (
+                                <div>
+                                    <dt className="text-xs text-slate-500 mb-1">Ablaufart</dt>
+                                    <dd className="text-sm font-medium text-slate-900">{workflow.connectionModeLabel}</dd>
+                                </div>
+                            )}
+                            {workflow.summary && (
+                                <div>
+                                    <dt className="text-xs text-slate-500 mb-1">Kurzbeschreibung</dt>
+                                    <dd className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-md border border-slate-100">{workflow.summary}</dd>
+                                </div>
+                            )}
+                        </dl>
+                    </div>
+                    )}
+
                     {/* Assessment Core */}
                     <div>
-                        <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">2. Regulatorische Basiswerte (AI Act)</h3>
+                        <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">3. Regulatorische Basiswerte (AI Act)</h3>
                         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                             <div>
                                 <dt className="text-xs text-slate-500 mb-1">Risikoklassifizierung</dt>
@@ -203,7 +246,7 @@ export default function UseCasePassPage() {
 
                     {/* Governance Core */}
                     <div>
-                        <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">3. Governance & Lifecycle (ISO 42001)</h3>
+                        <h3 className="text-sm font-semibold tracking-wide text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4">4. Governance & Lifecycle (ISO 42001)</h3>
                         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                             <div>
                                 <dt className="text-xs text-slate-500 mb-1">Owner-Rolle (funktional)</dt>

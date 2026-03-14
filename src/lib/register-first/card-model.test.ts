@@ -2,43 +2,144 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  normalizeCaptureUsageContexts,
-  normalizeCardVersion,
-  normalizeDataCategories,
-  normalizeRegisterUseCaseStatus,
-  normalizeUseCaseOriginSource,
+  normalizeUseCaseWorkflow,
+  resolveOrderedSystemsFromCard,
+  splitOrderedSystemsForStorage,
 } from "./card-model";
 
-test("canonical status and version normalization maps legacy aliases safely", () => {
-  assert.equal(normalizeRegisterUseCaseStatus("draft"), "UNREVIEWED");
-  assert.equal(
-    normalizeRegisterUseCaseStatus("ready_for_proof"),
-    "PROOF_READY"
-  );
-  assert.equal(normalizeCardVersion("1.2"), "1.1");
-  assert.equal(normalizeCardVersion("v1.0"), "1.1");
+test("normalizeUseCaseWorkflow canonicalizes additional systems and metadata", () => {
+  const workflow = normalizeUseCaseWorkflow({
+    additionalSystems: [
+      {
+        entryId: "step_b",
+        position: 4,
+        toolFreeText: "Interne Recherche API",
+      },
+      {
+        entryId: "step_a",
+        position: 2,
+        toolId: "gemini_api",
+      },
+      {
+        entryId: "empty",
+        position: 7,
+      },
+    ],
+    connectionMode: "semi_automated",
+    summary: "  Recherche -> Entwurf  ",
+  });
+
+  assert.deepEqual(workflow, {
+    additionalSystems: [
+      {
+        entryId: "step_a",
+        position: 2,
+        toolId: "gemini_api",
+        toolFreeText: undefined,
+      },
+      {
+        entryId: "step_b",
+        position: 3,
+        toolId: "other",
+        toolFreeText: "Interne Recherche API",
+      },
+    ],
+    connectionMode: "SEMI_AUTOMATED",
+    summary: "Recherche -> Entwurf",
+  });
 });
 
-test("usage contexts and data categories normalize legacy aliases to canonical values", () => {
-  assert.deepEqual(normalizeCaptureUsageContexts(["CUSTOMER_FACING"]), [
-    "CUSTOMERS",
+test("resolveOrderedSystemsFromCard returns one ordered list across primary and workflow systems", () => {
+  const orderedSystems = resolveOrderedSystemsFromCard({
+    toolId: "perplexity_api",
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "step_2",
+          position: 2,
+          toolId: "gemini_api",
+        },
+        {
+          entryId: "step_3",
+          position: 3,
+          toolId: "other",
+          toolFreeText: "Interner Bild-Webhook",
+        },
+      ],
+      connectionMode: "FULLY_AUTOMATED",
+      summary: "Research -> Draft -> Image",
+    },
+  });
+
+  assert.deepEqual(orderedSystems, [
+    {
+      entryId: "primary",
+      position: 1,
+      toolId: "perplexity_api",
+      toolFreeText: undefined,
+    },
+    {
+      entryId: "step_2",
+      position: 2,
+      toolId: "gemini_api",
+      toolFreeText: undefined,
+    },
+    {
+      entryId: "step_3",
+      position: 3,
+      toolId: "other",
+      toolFreeText: "Interner Bild-Webhook",
+    },
   ]);
-  assert.deepEqual(
-    normalizeCaptureUsageContexts(["EMPLOYEE_FACING", "EXTERNAL_PUBLIC"]),
-    ["EMPLOYEES", "PUBLIC"]
-  );
-  assert.deepEqual(normalizeDataCategories(["INTERNAL", "SENSITIVE"]), [
-    "INTERNAL_CONFIDENTIAL",
-    "SPECIAL_PERSONAL",
-  ]);
-  assert.deepEqual(
-    normalizeDataCategories(["NO_PERSONAL_DATA", "PERSONAL"]),
-    ["PERSONAL_DATA"]
-  );
 });
 
-test("origin aliases normalize to canonical source names", () => {
-  assert.equal(normalizeUseCaseOriginSource("manual_import"), "import");
-  assert.equal(normalizeUseCaseOriginSource("supplier-request"), "supplier_request");
-  assert.equal(normalizeUseCaseOriginSource("access-code"), "access_code");
+test("splitOrderedSystemsForStorage mirrors the first system into top-level fields", () => {
+  const storage = splitOrderedSystemsForStorage(
+    [
+      {
+        entryId: "primary_tmp",
+        position: 1,
+        toolId: "perplexity_api",
+      },
+      {
+        position: 2,
+        toolId: "gemini_api",
+      },
+      {
+        entryId: "step_3",
+        position: 3,
+        toolFreeText: "Interne Freigabe-API",
+      },
+    ],
+    {
+      workflow: {
+        connectionMode: "FULLY_AUTOMATED",
+        summary: "Research -> Draft -> Approval",
+      },
+      createEntryId: () => "generated_step",
+    }
+  );
+
+  assert.deepEqual(storage, {
+    toolId: "perplexity_api",
+    toolFreeText: undefined,
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "generated_step",
+          position: 2,
+          toolId: "gemini_api",
+          toolFreeText: undefined,
+        },
+        {
+          entryId: "step_3",
+          position: 3,
+          toolId: "other",
+          toolFreeText: "Interne Freigabe-API",
+        },
+      ],
+      connectionMode: "FULLY_AUTOMATED",
+      summary: "Research -> Draft -> Approval",
+    },
+  });
 });

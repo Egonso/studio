@@ -6,13 +6,16 @@ import {
   normalizeCardVersion,
   normalizeDataCategories,
   normalizeRegisterUseCaseStatus,
+  normalizeUseCaseWorkflow,
   normalizeUseCaseOriginSource,
 } from "./card-model";
 import type {
   DecisionImpact,
   DecisionInfluence,
+  ToolPublicInfo,
   UseCaseCard,
   UseCaseOrigin,
+  UseCaseSystemProviderType,
 } from "./types";
 
 const SOURCE_LABEL_KEY = "source";
@@ -25,6 +28,15 @@ const SYSTEM_CAPTURE_MARKERS = new Set([
   "IMPORT",
   "IMPORTED",
   "ACCESS_CODE",
+]);
+
+const SYSTEM_PROVIDER_TYPES = new Set([
+  "TOOL",
+  "API",
+  "MODEL",
+  "CONNECTOR",
+  "INTERNAL",
+  "OTHER",
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -139,6 +151,55 @@ function mergeLabels(
   }
 
   return Array.from(merged.entries()).map(([key, value]) => ({ key, value }));
+}
+
+function normalizeSystemProviderType(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.trim().toUpperCase();
+  return SYSTEM_PROVIDER_TYPES.has(normalized) ? normalized : undefined;
+}
+
+function normalizeSystemPublicInfo(
+  input: unknown
+): UseCaseCard["systemPublicInfo"] | undefined {
+  if (!Array.isArray(input)) {
+    return undefined;
+  }
+
+  const normalizedEntries = input.flatMap((entry) => {
+    if (!isRecord(entry) || !isRecord(entry.publicInfo)) {
+      return [];
+    }
+
+    const systemKey = normalizeOptionalText(entry.systemKey);
+    const toolId = normalizeOptionalText(entry.toolId) ?? undefined;
+    const toolFreeText = normalizeOptionalText(entry.toolFreeText) ?? undefined;
+    const displayName =
+      normalizeOptionalText(entry.displayName) ?? toolFreeText ?? toolId ?? null;
+
+    if (!systemKey || !displayName) {
+      return [];
+    }
+
+    return [
+      {
+        systemKey,
+        toolId,
+        toolFreeText,
+        displayName,
+        vendor: normalizeOptionalText(entry.vendor),
+        providerType: normalizeSystemProviderType(
+          entry.providerType
+        ) as UseCaseSystemProviderType | undefined,
+        publicInfo: entry.publicInfo as unknown as ToolPublicInfo,
+      },
+    ];
+  });
+
+  return normalizedEntries.length > 0 ? normalizedEntries : undefined;
 }
 
 function inferLegacyOriginSource(input: unknown): UseCaseOrigin["source"] {
@@ -403,6 +464,8 @@ export function normalizeUseCaseCardRecord(input: unknown): unknown {
     input.dataCategory
   );
   const toolFields = normalizeToolFields(input);
+  const workflow = normalizeUseCaseWorkflow(input.workflow);
+  const systemPublicInfo = normalizeSystemPublicInfo(input.systemPublicInfo);
   const externalIntake = normalizeExternalIntakeTrace(
     input.externalIntake,
     inferredSource
@@ -440,6 +503,8 @@ export function normalizeUseCaseCardRecord(input: unknown): unknown {
     proof: input.proof ?? null,
     toolId: toolFields.toolId ?? undefined,
     toolFreeText: toolFields.toolFreeText ?? undefined,
+    workflow,
+    systemPublicInfo,
     dataCategory: dataCategories[0] ?? undefined,
     dataCategories: dataCategories.length > 0 ? dataCategories : undefined,
     origin,

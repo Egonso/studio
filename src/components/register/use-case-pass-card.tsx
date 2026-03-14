@@ -10,9 +10,13 @@ import {
 } from "@/components/ui/card";
 import {
   DATA_CATEGORY_LABELS,
+  createAiToolsRegistryService,
+  resolveUseCaseWorkflowDisplay,
   type UseCaseCard,
 } from "@/lib/register-first";
 import { RegisterStatusBadge } from "./status-badge";
+
+const aiRegistry = createAiToolsRegistryService();
 
 interface UseCasePassCardProps {
   card: UseCaseCard;
@@ -42,9 +46,16 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 
 export function UseCasePassCard({ card, resolvedToolName }: UseCasePassCardProps) {
   const isV11 = card.cardVersion === "1.1";
-  const toolDisplay = card.toolId === "other"
-    ? card.toolFreeText ?? "Anderes Tool"
-    : resolvedToolName ?? card.toolId ?? null;
+  const workflow = resolveUseCaseWorkflowDisplay(card, {
+    resolveToolName: (toolId) =>
+      (toolId === card.toolId ? resolvedToolName : null) ??
+      aiRegistry.getById(toolId)?.productName ??
+      null,
+    emptyLabel: "Kein System",
+  });
+  const systemsDisplay = workflow.systems
+    .map((system) => `${system.position}. ${system.displayName}`)
+    .join(" -> ");
 
   const responsibleDisplay = card.responsibility.isCurrentlyResponsible
     ? "Erfasser (selbst)"
@@ -88,8 +99,21 @@ export function UseCasePassCard({ card, resolvedToolName }: UseCasePassCardProps
       </CardHeader>
 
       <CardContent className="divide-y text-sm">
-        {isV11 && toolDisplay && (
-          <InfoRow label="Tool" value={toolDisplay} />
+        {isV11 && workflow.systems.length > 0 && (
+          <InfoRow
+            label={
+              workflow.hasMultipleSystems
+                ? "Ablauf & Systeme"
+                : "System"
+            }
+            value={systemsDisplay}
+          />
+        )}
+        {isV11 && workflow.connectionModeLabel && (
+          <InfoRow label="Ablaufart" value={workflow.connectionModeLabel} />
+        )}
+        {isV11 && workflow.summary && (
+          <InfoRow label="Kurzbeschreibung" value={workflow.summary} />
         )}
         <InfoRow label="Wirkungsbereich" value={contextDisplay} />
         <InfoRow label="Owner-Rolle" value={responsibleDisplay} />

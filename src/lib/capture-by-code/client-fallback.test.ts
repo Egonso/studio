@@ -92,6 +92,17 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
       accessCodeLabel: "Onboarding",
       purpose: "Copilot für HR",
       toolId: "copilot",
+      workflow: {
+        additionalSystems: [
+          {
+            entryId: "s2",
+            position: 2,
+            toolId: "Gemini API",
+          },
+        ],
+        connectionMode: "SEMI_AUTOMATED",
+        summary: "Copilot -> Gemini API",
+      },
       usageContexts: ["EMPLOYEES", "APPLICANTS"],
       dataCategories: ["PERSONAL_DATA", "SPECIAL_PERSONAL", "HEALTH_DATA"],
       decisionInfluence: "PREPARATION",
@@ -123,6 +134,17 @@ test("submitOwnedCaptureCode creates a use case and increments usage count", asy
     decisionInfluence: "PREPARATION",
     toolId: "copilot",
     toolFreeText: undefined,
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "s2",
+          position: 2,
+          toolId: "Gemini API",
+        },
+      ],
+      connectionMode: "SEMI_AUTOMATED",
+      summary: "Copilot -> Gemini API",
+    },
     dataCategory: "PERSONAL_DATA",
     dataCategories: ["PERSONAL_DATA", "SPECIAL_PERSONAL", "HEALTH_DATA"],
     organisation: undefined,

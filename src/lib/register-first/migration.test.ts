@@ -78,3 +78,58 @@ test("ensureV1_1Shape upgrades legacy cards to canonical export-ready shape", ()
   assert.equal(shaped.origin?.source, "manual");
 });
 
+test("normalizeUseCaseCardRecord keeps workflow data canonical and ordered", () => {
+  const normalized = normalizeUseCaseCardRecord({
+    cardVersion: "1.2",
+    useCaseId: "uc_workflow_legacy",
+    createdAt: "2026-03-10T09:00:00.000Z",
+    updatedAt: "2026-03-10T09:00:00.000Z",
+    purpose: "Themen recherchieren und zusammenfassen",
+    usageContexts: ["INTERNAL_ONLY"],
+    responsibility: {
+      isCurrentlyResponsible: true,
+    },
+    decisionImpact: "NO",
+    status: "draft",
+    reviewHints: [],
+    evidences: [],
+    reviews: [],
+    proof: null,
+    toolId: "perplexity_api",
+    workflow: {
+      additionalSystems: [
+        {
+          entryId: "step_3",
+          position: 8,
+          toolFreeText: "Interner Freigabe-Service",
+        },
+        {
+          entryId: "step_2",
+          position: 3,
+          toolId: "gemini_api",
+        },
+      ],
+      connectionMode: "semi_automated",
+      summary: "  Recherche -> Draft -> Review  ",
+    },
+  }) as Record<string, unknown>;
+
+  assert.deepEqual(normalized.workflow, {
+    additionalSystems: [
+      {
+        entryId: "step_2",
+        position: 2,
+        toolId: "gemini_api",
+        toolFreeText: undefined,
+      },
+      {
+        entryId: "step_3",
+        position: 3,
+        toolId: "other",
+        toolFreeText: "Interner Freigabe-Service",
+      },
+    ],
+    connectionMode: "SEMI_AUTOMATED",
+    summary: "Recherche -> Draft -> Review",
+  });
+});

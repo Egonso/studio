@@ -80,6 +80,7 @@ export interface CaptureInput {
   // v1.1 fields (optional for backward compat with v1.0 capture flows)
   toolId?: string;
   toolFreeText?: string;
+  workflow?: UseCaseWorkflow;
   /** @deprecated Use dataCategories[] instead */
   dataCategory?: DataCategory;
   dataCategories?: DataCategory[];
@@ -103,6 +104,36 @@ export function resolveDecisionInfluence(card: {
 }): DecisionInfluence | undefined {
   return card.decisionInfluence ?? mapLegacyDecisionImpact(card.decisionImpact);
 }
+
+export type WorkflowConnectionMode =
+  | 'MANUAL_SEQUENCE'
+  | 'SEMI_AUTOMATED'
+  | 'FULLY_AUTOMATED';
+
+/**
+ * Generic system reference used for tools, APIs, models, connectors,
+ * and internal services.
+ */
+export interface OrderedUseCaseSystem {
+  entryId: string;
+  position: number;
+  toolId?: string;
+  toolFreeText?: string;
+}
+
+export interface UseCaseWorkflow {
+  additionalSystems: OrderedUseCaseSystem[];
+  connectionMode?: WorkflowConnectionMode;
+  summary?: string;
+}
+
+export type UseCaseSystemProviderType =
+  | 'TOOL'
+  | 'API'
+  | 'MODEL'
+  | 'CONNECTOR'
+  | 'INTERNAL'
+  | 'OTHER';
 
 export function resolvePrimaryDataCategory(card: {
   dataCategories?: DataCategory[];
@@ -255,12 +286,14 @@ export interface UseCaseCard {
   formatVersion?: string;
   toolId?: string;
   toolFreeText?: string;
+  workflow?: UseCaseWorkflow;
   /** @deprecated Use dataCategories[] instead */
   dataCategory?: DataCategory;
   dataCategories?: DataCategory[];
   publicHashId?: string;
   isPublicVisible?: boolean;
   publicInfo?: ToolPublicInfo | null;
+  systemPublicInfo?: UseCaseSystemPublicInfo[];
   // ── v1.2 fields (Register-First: flat metadata & generic tags) ────────
   organisation?: string | null;
   labels?: { key: string; value: string }[];
@@ -371,6 +404,16 @@ export interface ToolPublicInfo {
   confidence: ConfidenceLevel;
   sources: PublicInfoSource[];
   disclaimerVersion: string; // e.g. "v1"
+}
+
+export interface UseCaseSystemPublicInfo {
+  systemKey: string;
+  toolId?: string;
+  toolFreeText?: string;
+  displayName: string;
+  vendor?: string | null;
+  providerType?: UseCaseSystemProviderType;
+  publicInfo: ToolPublicInfo;
 }
 
 export const REGISTER_FIRST_GOVERNANCE_POLICY = Object.freeze({

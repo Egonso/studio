@@ -4,6 +4,8 @@ export interface RegisterFirstFeatureFlags {
   stickyLauncher: boolean;
   proofGate: boolean;
   standaloneMode: boolean;
+  multisystemCapture: boolean;
+  supplierMultisystemCapture: boolean;
   registerDeletion: boolean;
   controlShell: boolean;
   controlKpiHeader: boolean;
@@ -24,6 +26,8 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     stickyLauncher: false,
     proofGate: false,
     standaloneMode: false,
+    multisystemCapture: false,
+    supplierMultisystemCapture: false,
     registerDeletion: false,
     controlShell: true,
     controlKpiHeader: true,
@@ -51,6 +55,14 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
   standaloneMode: [
     "NEXT_PUBLIC_REGISTER_FIRST_STANDALONE",
     "REGISTER_FIRST_STANDALONE",
+  ],
+  multisystemCapture: [
+    "NEXT_PUBLIC_REGISTER_FIRST_MULTISYSTEM_CAPTURE",
+    "REGISTER_FIRST_MULTISYSTEM_CAPTURE",
+  ],
+  supplierMultisystemCapture: [
+    "NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE",
+    "REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE",
   ],
   registerDeletion: [
     "NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION",
@@ -128,6 +140,8 @@ export function getRegisterFirstFeatureFlags(
       stickyLauncher: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER"] ?? env["REGISTER_FIRST_STICKY_LAUNCHER"]) || registerFirstDefaultFlags.stickyLauncher,
       proofGate: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE"] ?? env["REGISTER_FIRST_PROOF_GATE"]) || registerFirstDefaultFlags.proofGate,
       standaloneMode: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STANDALONE"] ?? env["REGISTER_FIRST_STANDALONE"]) || registerFirstDefaultFlags.standaloneMode,
+      multisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.multisystemCapture,
+      supplierMultisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.supplierMultisystemCapture,
       registerDeletion: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION"] ?? env["REGISTER_FIRST_REGISTER_DELETION"]) || registerFirstDefaultFlags.registerDeletion,
       controlShell: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_SHELL_ENABLED"] ?? env["CONTROL_SHELL_ENABLED"]) || registerFirstDefaultFlags.controlShell,
       controlKpiHeader: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED"] ?? env["CONTROL_KPI_HEADER_ENABLED"]) || registerFirstDefaultFlags.controlKpiHeader,
@@ -159,6 +173,12 @@ export function getRegisterFirstFeatureFlags(
     standaloneMode:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_STANDALONE) ||
       registerFirstDefaultFlags.standaloneMode,
+    multisystemCapture:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_MULTISYSTEM_CAPTURE) ||
+      registerFirstDefaultFlags.multisystemCapture,
+    supplierMultisystemCapture:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE) ||
+      registerFirstDefaultFlags.supplierMultisystemCapture,
     registerDeletion:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION) ||
       registerFirstDefaultFlags.registerDeletion,

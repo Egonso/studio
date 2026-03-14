@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  registerUseCaseStatusLabels,
-  type RegisterUseCaseStatus,
-} from "@/lib/register-first";
+import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
 
 interface RegisterStatusBadgeProps {
   status: RegisterUseCaseStatus;

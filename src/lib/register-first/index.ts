@@ -23,6 +23,7 @@ export * from "./supplier-requests";
 export * from "./external-intake";
 export * from "./external-submissions";
 export * from "./register-scope";
+export * from "./systems";
 export {
   type RegisterScope,
   type RegisterRepository,

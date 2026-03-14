@@ -43,32 +43,44 @@ import {
 } from "@/components/ui/select";
 import {
   createProofPackDraftExport,
-  createProofPackPdfBlob,
   createUseCasePassExport,
   createUseCasePassV11Export,
   getProofPackDraftFileName,
-  getProofPackPdfFileName,
   getProofPackPdfState,
-  getNextManualStatuses,
   getStatusGatedOutputState,
   getUseCasePassFileName,
   getUseCasePassV11FileName,
-
-  registerFirstService,
-  registerUseCaseStatusLabels,
-  registerUseCaseStatusOrder,
-  SUPPLIER_REQUEST_FILTER,
   serializePrettyJson,
-  validateVerifyLinkInput,
+} from "@/lib/register-first/output";
+import {
   createStaticToolRegistryService,
   createAiToolsRegistryService,
-  buildVerifyPassAbsoluteUrl,
-  matchesUseCaseSourceFilter,
-  type RegisterFirstServiceErrorCode,
+} from "@/lib/register-first/tool-registry-service";
+import { registerFirstService, type RegisterFirstServiceErrorCode } from "@/lib/register-first/service";
+import {
   type RegisterUseCaseStatus,
-  type UseCaseSourceFilter,
   type UseCaseCard,
-} from "@/lib/register-first";
+} from "@/lib/register-first/types";
+import {
+  getNextManualStatuses,
+  registerUseCaseStatusLabels,
+  registerUseCaseStatusOrder,
+} from "@/lib/register-first/status-flow";
+import { SUPPLIER_REQUEST_FILTER } from "@/lib/register-first/supplier-requests";
+import { buildVerifyPassAbsoluteUrl } from "@/lib/register-first/entry-links";
+import {
+  getUseCaseSystemsSummary,
+  getUseCaseWorkflowBadge,
+} from "@/lib/register-first/systems";
+import {
+  matchesUseCaseSourceFilter,
+  type UseCaseSourceFilter,
+} from "@/lib/register-first/source";
+import {
+  createProofPackPdfBlob,
+  getProofPackPdfFileName,
+} from "@/lib/register-first/proof-pack";
+import { validateVerifyLinkInput } from "@/lib/register-first/verify-link";
 import { RegisterStatusBadge } from "./status-badge";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { parseRegisterScopeFromWorkspaceValue } from "@/lib/register-first/register-scope";
@@ -139,16 +151,11 @@ function formatDate(isoDate: string): string {
 }
 
 function getCardToolDisplayName(card: UseCaseCard): string {
-  if (card.toolId === "other") {
-    return card.toolFreeText ?? "Anderes Tool";
-  }
-
-  if (card.toolId) {
-    const registryEntry = aiToolsRegistry.getById(card.toolId);
-    return registryEntry?.productName ?? card.toolFreeText ?? card.toolId;
-  }
-
-  return card.toolFreeText ?? "Kein Tool";
+  return getUseCaseSystemsSummary(card, {
+    resolveToolName: (toolId) =>
+      aiToolsRegistry.getById(toolId)?.productName ?? null,
+    emptyLabel: "Kein System",
+  });
 }
 
 function createProofMetaDraft(card: UseCaseCard): ProofMetaDraft {
@@ -390,7 +397,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         case "purpose": cmp = a.purpose.localeCompare(b.purpose); break;
         case "owner": cmp = (a.responsibility.responsibleParty ?? "").localeCompare(b.responsibility.responsibleParty ?? ""); break;
         case "status": cmp = registerUseCaseStatusOrder.indexOf(a.status) - registerUseCaseStatusOrder.indexOf(b.status); break;
-        case "tool": cmp = (a.toolFreeText || a.toolId || "").localeCompare(b.toolFreeText || b.toolId || ""); break;
+        case "tool": cmp = getCardToolDisplayName(a).localeCompare(getCardToolDisplayName(b)); break;
         case "createdAt": cmp = a.createdAt.localeCompare(b.createdAt); break;
         case "updatedAt":
         default: cmp = a.updatedAt.localeCompare(b.updatedAt); break;
@@ -820,7 +827,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
               <SelectItem value="purpose">Name</SelectItem>
               <SelectItem value="owner">Owner-Rolle</SelectItem>
               <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="tool">Tool</SelectItem>
+              <SelectItem value="tool">Systeme</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -909,7 +916,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[360px]">System</TableHead>
+                <TableHead className="w-[360px]">Einsatzfall</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Owner-Rolle</TableHead>
                 <TableHead>Risikoklasse</TableHead>
@@ -954,6 +961,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
                 const nextStatuses = getNextManualStatuses(card.status);
                 const toolDisplayName = getCardToolDisplayName(card);
+                const workflowBadge = getUseCaseWorkflowBadge(card, {
+                  resolveToolName: (toolId) =>
+                    aiToolsRegistry.getById(toolId)?.productName ?? null,
+                });
                 const ownerRole =
                   card.responsibility.responsibleParty || "Nicht zugewiesen";
                 const outputState = getStatusGatedOutputState(
@@ -993,8 +1004,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                             )}
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            Tool: {toolDisplayName}
+                            Systeme: {toolDisplayName}
                           </span>
+                          {workflowBadge ? (
+                            <span className="text-xs text-muted-foreground">
+                              {workflowBadge}
+                            </span>
+                          ) : null}
                         </div>
                       </TableCell>
 

@@ -1,4 +1,5 @@
 import { parseUseCaseCard } from "./schema";
+import { resolveUseCaseSystemEntries } from "./systems";
 import type { RegisterUseCaseStatus, UseCaseCard } from "./types";
 
 export interface RegisterUseCaseScope {
@@ -40,8 +41,7 @@ function applyFilters(cards: UseCaseCard[], filters: RegisterUseCaseFilters = {}
     result = result.filter((card) => {
       const searchable = [
         card.purpose,
-        card.toolFreeText ?? "",
-        card.toolId ?? "",
+        ...resolveUseCaseSystemEntries(card).map((system) => system.displayName),
         card.responsibility.responsibleParty ?? "",
         ...(card.labels ?? []).map((label) => `${label.key} ${label.value}`),
         ...card.reviewHints,

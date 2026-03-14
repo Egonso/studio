@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import { ToolAutocomplete } from "@/components/tool-autocomplete";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,11 +14,15 @@ import {
   SHARED_CAPTURE_FIELD_IDS,
   type SharedCaptureFieldErrors,
 } from "@/lib/register-first/shared-capture-fields";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 import { applyDataCategoryLogic, toggleMultiSelect } from "@/lib/register-first/capture-selections";
+import { splitOrderedSystemsForStorage } from "@/lib/register-first/card-model";
 import type {
   CaptureUsageContext,
   DataCategory,
   DecisionInfluence,
+  OrderedUseCaseSystem,
+  WorkflowConnectionMode,
 } from "@/lib/register-first/types";
 import {
   DATA_CATEGORY_LABELS,
@@ -37,6 +42,9 @@ export interface QuickCaptureFieldsDraft {
   contactPersonName: string;
   toolId: string;
   toolFreeText: string;
+  systems: OrderedUseCaseSystem[];
+  workflowConnectionMode: WorkflowConnectionMode | null;
+  workflowSummary: string;
   usageContexts: CaptureUsageContext[];
   dataCategories: DataCategory[];
   decisionInfluence: DecisionInfluence | null;
@@ -58,14 +66,92 @@ export function QuickCaptureFields({
   showDescription = false,
   errors = {},
 }: QuickCaptureFieldsProps) {
+  const multisystemEnabled = registerFirstFlags.multisystemCapture;
   const [section1Open, setSection1Open] = useState(false);
   const [section2Open, setSection2Open] = useState(false);
   const [specialOpen, setSpecialOpen] = useState(false);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
+  const [isAddingSystem, setIsAddingSystem] = useState(false);
+  const [pendingSystemValue, setPendingSystemValue] = useState("");
 
   const section1Count = draft.usageContexts.length + (draft.decisionInfluence ? 1 : 0);
   const mainDataCategoryCount = draft.dataCategories.filter((category) =>
     DATA_CATEGORY_MAIN_OPTIONS.includes(category)
   ).length;
+  const selectedSystems = multisystemEnabled ? draft.systems : [];
+  const workflowCount =
+    (draft.workflowConnectionMode ? 1 : 0) +
+    (draft.workflowSummary.trim().length > 0 ? 1 : 0);
+
+  const syncSystemsPatch = (
+    nextSystems: OrderedUseCaseSystem[]
+  ): Partial<QuickCaptureFieldsDraft> => {
+    const reindexedSystems = nextSystems.map((system, index) => ({
+      ...system,
+      position: index + 1,
+    }));
+    const storage = splitOrderedSystemsForStorage(reindexedSystems, {
+      workflow:
+        reindexedSystems.length >= 2
+          ? {
+              connectionMode: draft.workflowConnectionMode ?? undefined,
+              summary: draft.workflowSummary,
+            }
+          : undefined,
+    });
+
+    return {
+      systems: reindexedSystems,
+      toolId: storage.toolId ?? TOOL_PLACEHOLDER_ID,
+      toolFreeText: storage.toolFreeText ?? "",
+    };
+  };
+
+  const createSystemDisplayLabel = (system: OrderedUseCaseSystem) => {
+    if (system.toolId === "other") {
+      return system.toolFreeText ?? "Eigenes System";
+    }
+
+    return system.toolFreeText ?? system.toolId ?? "System";
+  };
+
+  const addSystem = (value: string, toolData?: { name?: string; category?: string }) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const nextSystems = [
+      ...selectedSystems,
+      {
+        entryId:
+          typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+            ? `capture_${crypto.randomUUID().replace(/-/g, "")}`
+            : `capture_${Date.now().toString(36)}`,
+        position: selectedSystems.length + 1,
+        toolId: toolData?.name ?? "other",
+        toolFreeText: toolData?.name ? undefined : trimmed,
+      },
+    ];
+
+    onChange({
+      ...syncSystemsPatch(nextSystems),
+      purpose:
+        draft.purpose ||
+        (toolData?.name
+          ? toolData.category
+            ? `Einsatz von ${toolData.name} für ${toolData.category}`
+            : `Einsatz von ${toolData.name}`
+          : draft.purpose),
+    });
+    setPendingSystemValue("");
+    setIsAddingSystem(false);
+  };
+
+  const removeSystem = (entryId: string) => {
+    const nextSystems = selectedSystems.filter((system) => system.entryId !== entryId);
+    onChange(syncSystemsPatch(nextSystems));
+  };
 
   return (
     <div className="space-y-4 py-2">
@@ -125,42 +211,216 @@ export function QuickCaptureFields({
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
-          System / Tool <span className="text-muted-foreground">(optional)</span>
-        </Label>
-        <ToolAutocomplete
-          inputId={SHARED_CAPTURE_FIELD_IDS.tool}
-          value={
-            draft.toolId === "other" || draft.toolId === TOOL_PLACEHOLDER_ID
-              ? draft.toolFreeText
-              : draft.toolId
-          }
-          inputClassName="pr-10"
-          onChange={(value, toolData) => {
-            if (toolData) {
-              onChange({
-                toolId: toolData.name,
-                toolFreeText: toolData.name,
-                purpose:
-                  draft.purpose ||
-                  (toolData.category
-                    ? `Einsatz von ${toolData.name} für ${toolData.category}`
-                    : `Einsatz von ${toolData.name}`),
-              });
-              return;
+      {!multisystemEnabled ? (
+        <div className="space-y-1.5">
+          <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
+            System / Tool <span className="text-muted-foreground">(optional)</span>
+          </Label>
+          <ToolAutocomplete
+            inputId={SHARED_CAPTURE_FIELD_IDS.tool}
+            value={
+              draft.toolId === "other" || draft.toolId === TOOL_PLACEHOLDER_ID
+                ? draft.toolFreeText
+                : draft.toolId
             }
+            inputClassName="pr-10"
+            onChange={(value, toolData) => {
+              if (toolData) {
+                onChange({
+                  toolId: toolData.name,
+                  toolFreeText: toolData.name,
+                  purpose:
+                    draft.purpose ||
+                    (toolData.category
+                      ? `Einsatz von ${toolData.name} für ${toolData.category}`
+                      : `Einsatz von ${toolData.name}`),
+                });
+                return;
+              }
 
-            onChange({
-              toolId: "other",
-              toolFreeText: value,
-            });
-          }}
-        />
-        <p className="text-xs text-muted-foreground">
-          Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.
-        </p>
-      </div>
+              onChange({
+                toolId: "other",
+                toolFreeText: value,
+              });
+            }}
+          />
+          <p className="text-xs text-muted-foreground">
+            Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
+            Systeme <span className="text-muted-foreground">(optional)</span>
+          </Label>
+
+          {selectedSystems.length > 0 && (
+            <div className="space-y-2 rounded-md border bg-muted/20 p-2">
+              {selectedSystems.map((system, index) => (
+                <div
+                  key={system.entryId}
+                  className="flex items-center justify-between gap-3 rounded-md bg-background px-2.5 py-2"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {createSystemDisplayLabel(system)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {system.toolId === "other" ? "Eigenes System" : "Katalog-System"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground"
+                    onClick={() => removeSystem(system.entryId)}
+                    aria-label={`${createSystemDisplayLabel(system)} entfernen`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(selectedSystems.length === 0 || isAddingSystem) && (
+            <div className="space-y-2">
+              <ToolAutocomplete
+                inputId={SHARED_CAPTURE_FIELD_IDS.tool}
+                value={pendingSystemValue}
+                placeholder="z. B. ChatGPT, Perplexity API, Gemini API, Sora"
+                onChange={() => {}}
+                onInputChange={setPendingSystemValue}
+                onSelect={addSystem}
+              />
+              {selectedSystems.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground"
+                  onClick={() => {
+                    setPendingSystemValue("");
+                    setIsAddingSystem(false);
+                  }}
+                >
+                  Abbrechen
+                </Button>
+              )}
+            </div>
+          )}
+
+          {selectedSystems.length > 0 && !isAddingSystem && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-fit px-2 text-muted-foreground"
+              onClick={() => setIsAddingSystem(true)}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Weiteres System
+            </Button>
+          )}
+
+          <p className="text-xs text-muted-foreground">
+            Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen.
+          </p>
+
+          {selectedSystems.length >= 2 && (
+            <div className="rounded-md border">
+              <button
+                type="button"
+                onClick={() => setWorkflowOpen((current) => !current)}
+                className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted/50"
+              >
+                <span className="flex items-center gap-2">
+                  {workflowOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                  Zusammenhang <span className="text-muted-foreground">(optional)</span>
+                </span>
+                {workflowCount > 0 && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                    {workflowCount} ergänzt
+                  </span>
+                )}
+              </button>
+
+              {workflowOpen && (
+                <div className="space-y-4 border-t px-3 py-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Wie laufen die Systeme überwiegend zusammen?
+                    </Label>
+                    <div className="space-y-1.5">
+                      {[
+                        {
+                          value: "MANUAL_SEQUENCE" as const,
+                          label: "Manuell nacheinander",
+                        },
+                        {
+                          value: "SEMI_AUTOMATED" as const,
+                          label: "Teilweise automatisiert",
+                        },
+                        {
+                          value: "FULLY_AUTOMATED" as const,
+                          label: "Weitgehend automatisiert",
+                        },
+                      ].map((option) => (
+                        <label
+                          key={option.value}
+                          className="flex cursor-pointer items-center gap-2 text-sm"
+                        >
+                          <input
+                            type="radio"
+                            name="workflowConnectionMode"
+                            checked={draft.workflowConnectionMode === option.value}
+                            onChange={() =>
+                              onChange({ workflowConnectionMode: option.value })
+                            }
+                            className="h-4 w-4 border-border text-primary"
+                          />
+                          {option.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="qc-workflow-summary">
+                      Kurze Ablaufbeschreibung <span className="text-muted-foreground">(optional)</span>
+                    </Label>
+                    <Textarea
+                      id="qc-workflow-summary"
+                      placeholder="z. B. Perplexity API recherchiert Themen, Gemini API schreibt Text, Sora erstellt Bilder"
+                      value={draft.workflowSummary}
+                      onChange={(event) =>
+                        onChange({
+                          workflowSummary: event.target.value.slice(0, 300),
+                        })
+                      }
+                      rows={3}
+                      maxLength={300}
+                    />
+                    <p className="text-right text-[10px] text-muted-foreground">
+                      {draft.workflowSummary.length}/300
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="rounded-md border">
         <button
