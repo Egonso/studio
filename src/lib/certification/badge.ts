@@ -1,8 +1,7 @@
 import { buildCertificateVerifyUrl } from './public';
 import type { BadgeAlignment, PersonCertificateRecord } from './types';
 
-export const CERTIFICATE_BADGE_ASSET_URL =
-  'https://i.postimg.cc/Dwym3LgN/EU-AI-Act-SIEGEL-2160-x-1080-px-Anhanger-25-x-25-Zoll2.webp';
+export const CERTIFICATE_BADGE_ASSET_URL = '';
 
 const alignmentStyles: Record<BadgeAlignment, string> = {
   left: 'left',
@@ -29,20 +28,27 @@ export function buildCertificateBadgeMarkup(
   const safeHolderName = escapeHtml(certificate.holderName);
   const verifyUrl = buildCertificateVerifyUrl(certificate.certificateCode);
   const textAlign = alignmentStyles[alignment] ?? alignmentStyles.center;
+  const normalizedAssetUrl = assetUrl.trim();
+  const sealMarkup = normalizedAssetUrl
+    ? `<img src="${escapeHtml(normalizedAssetUrl)}"
+           alt="KI-Register Gütesiegel"
+           style="width:28px;height:28px;display:block;object-fit:cover;filter:grayscale(1) contrast(1.15);" />`
+    : `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:#fff;font-size:11px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;">KR</span>`;
 
   return `<div style="text-align:${textAlign};">
   <a href="${verifyUrl}"
      target="_blank"
      rel="noopener noreferrer"
      aria-label="Zertifikat von ${safeHolderName} prüfen"
-     style="text-decoration:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-    <div style="display:inline-flex;align-items:center;gap:10px;border:1px solid #1f4d5b;border-radius:14px;padding:10px 14px;background:linear-gradient(135deg,#0f172a,#111827);color:#e5f7fb;box-shadow:0 10px 30px rgba(2,8,23,0.25);">
-      <img src="${escapeHtml(assetUrl)}"
-           alt="KI-Register Zertifikat"
-           style="width:44px;height:44px;flex-shrink:0;border-radius:9999px;" />
-      <div style="display:flex;flex-direction:column;justify-content:center;min-width:0;">
-        <div style="font-weight:600;font-size:14px;line-height:1.2;color:#f8fafc;">KI-Register zertifiziert</div>
-        <div style="font-size:12px;line-height:1.2;color:#7dd3fc;">Code ${escapeHtml(certificate.certificateCode)} verifizieren</div>
+     style="text-decoration:none;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+    <div style="display:inline-flex;align-items:stretch;min-width:0;border:1px solid #111827;background:#ffffff;color:#111827;">
+      <div style="display:flex;align-items:center;justify-content:center;padding:12px;border-right:1px solid #111827;background:#111827;min-width:52px;">
+        ${sealMarkup}
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:4px;padding:11px 14px;min-width:0;text-align:left;">
+        <div style="font-size:11px;line-height:1;text-transform:uppercase;letter-spacing:0.2em;color:#6b7280;">KI-Register</div>
+        <div style="font-size:14px;line-height:1.2;font-weight:600;color:#111827;">Verifiziertes Zertifikat</div>
+        <div style="font-size:11px;line-height:1.2;color:#4b5563;">Code ${escapeHtml(certificate.certificateCode)} prüfen</div>
       </div>
     </div>
   </a>

@@ -5,6 +5,7 @@ export type ExamAttemptStatus =
   | 'failed';
 
 export type CertificateStatus = 'active' | 'expired' | 'revoked';
+export type CertificateDocumentProvider = 'native' | 'documentero';
 
 export type BadgeAlignment = 'left' | 'center' | 'right';
 
@@ -75,7 +76,7 @@ export interface CertificateDocumentRecord {
   certificateId: string;
   generatedAt: string;
   url: string;
-  provider: 'documentero';
+  provider: CertificateDocumentProvider;
   generatedBy: string;
 }
 
@@ -113,7 +114,7 @@ export interface PublicCertificateRecord {
 export interface CertificationSettings {
   settingsId: string;
   defaultValidityMonths: number;
-  documentProvider: 'documentero';
+  documentProvider: CertificateDocumentProvider;
   documentTemplateId: string;
   badgeAssetUrl: string;
 }

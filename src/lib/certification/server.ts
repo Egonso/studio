@@ -16,6 +16,7 @@ import type {
   AdminCertificationOverview,
   CertificateAuditEvent,
   CertificateDocumentRecord,
+  CertificateDocumentProvider,
   CertificateStatus,
   CertificationSettings,
   ExamAttemptRecord,
@@ -30,10 +31,18 @@ const DOCUMENTERO_API_KEY =
   process.env.DOCUMENTERO_API_KEY || 'NGLSAVQ-ATNE2QI-SKBCSCY-ZWAC6CA';
 const DOCUMENTERO_TEMPLATE_ID =
   process.env.DOCUMENTERO_TEMPLATE_ID || 'z1ffZUyuWFQwXBaoo2NL';
+const DEFAULT_DOCUMENT_PROVIDER: CertificateDocumentProvider =
+  process.env.CERTIFICATION_DOCUMENT_PROVIDER === 'documentero' ? 'documentero' : 'native';
+const ENABLE_EXTERNAL_CERTIFICATE_PDFS = process.env.CERTIFICATION_ENABLE_DOCUMENTERO === '1';
 const DEFAULT_VALIDITY_MONTHS = Number.parseInt(
   process.env.CERTIFICATION_DEFAULT_VALIDITY_MONTHS || '12',
   10,
 );
+
+type GeneratedDocument = {
+  url: string;
+  provider: CertificateDocumentProvider;
+};
 
 type CertificationActor = {
   uid: string;
@@ -152,7 +161,7 @@ function buildDefaultSettings(): CertificationSettings {
       Number.isFinite(DEFAULT_VALIDITY_MONTHS) && DEFAULT_VALIDITY_MONTHS > 0
         ? DEFAULT_VALIDITY_MONTHS
         : 12,
-    documentProvider: 'documentero',
+    documentProvider: DEFAULT_DOCUMENT_PROVIDER,
     documentTemplateId: DOCUMENTERO_TEMPLATE_ID,
     badgeAssetUrl: CERTIFICATE_BADGE_ASSET_URL,
   };
@@ -250,6 +259,171 @@ function buildFakePdfDataUri(certificate: PersonCertificateRecord, verifyUrl: st
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
 
   return `data:application/pdf;base64,${Buffer.from(pdf, 'utf8').toString('base64')}`;
+}
+
+function formatCertificateDate(value: string | null | undefined): string {
+  if (!value) {
+    return 'Nicht gesetzt';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+async function buildNativePdfDataUri(
+  certificate: PersonCertificateRecord,
+  verifyUrl: string,
+): Promise<string> {
+  const jspdfModule = await import('jspdf');
+  const JsPdfConstructor = jspdfModule.jsPDF ?? (jspdfModule.default as typeof jspdfModule.jsPDF);
+  const pdf = new JsPdfConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const left = 18;
+  const right = pageWidth - 18;
+  let y = 24;
+  const effectiveStatus = resolveCertificateStatus(certificate);
+  const subtitleLines = pdf.splitTextToSize(
+    'Öffentlich verifizierbarer Kompetenznachweis für die erfolgreiche interne Prüfung im KI-Register.',
+    right - left,
+  );
+  const introLines = pdf.splitTextToSize(
+    'Dieses Dokument bestätigt die nachgewiesene Befähigung zum strukturierten Umgang mit Anforderungen, Dokumentation und Governance rund um den EU AI Act.',
+    right - left,
+  );
+  const moduleLines = pdf.splitTextToSize(certificate.modules.join(' · '), right - left - 16);
+  const verifyLines = pdf.splitTextToSize(verifyUrl, right - left - 16);
+
+  pdf.setFillColor(17, 24, 39);
+  pdf.rect(left, y, 22, 22, 'F');
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.text('KR', left + 11, y + 14, { align: 'center' });
+
+  pdf.setTextColor(17, 24, 39);
+  pdf.setFont('courier', 'bold');
+  pdf.setFontSize(10);
+  pdf.text('KI-REGISTER', left + 28, y + 8);
+  pdf.setFont('courier', 'normal');
+  pdf.setFontSize(9);
+  pdf.text('CERTIFICATE / PUBLIC RECORD', left + 28, y + 15);
+
+  y += 34;
+  pdf.setDrawColor(17, 24, 39);
+  pdf.setLineWidth(0.8);
+  pdf.line(left, y, right, y);
+
+  y += 12;
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(27);
+  pdf.text('Kompetenzzertifikat', left, y);
+
+  y += 9;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text(subtitleLines, left, y);
+
+  y += subtitleLines.length * 5 + 14;
+  pdf.setFont('courier', 'bold');
+  pdf.setFontSize(10);
+  pdf.text('AUSGESTELLT FÜR', left, y);
+
+  y += 12;
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(28);
+  pdf.text(certificate.holderName, left, y);
+
+  if (certificate.company) {
+    y += 9;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(13);
+    pdf.text(certificate.company, left, y);
+  }
+
+  y += 18;
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text(introLines, left, y);
+
+  y += introLines.length * 5 + 10;
+  const fieldTop = y;
+  const fieldHeight = 42;
+  const columnGap = 8;
+  const columnWidth = (right - left - columnGap) / 2;
+
+  pdf.rect(left, fieldTop, columnWidth, fieldHeight);
+  pdf.rect(left + columnWidth + columnGap, fieldTop, columnWidth, fieldHeight);
+
+  pdf.setFont('courier', 'bold');
+  pdf.setFontSize(9);
+  pdf.text('ZERTIFIKATSCODE', left + 6, fieldTop + 9);
+  pdf.text('AUSGESTELLT', left + 6, fieldTop + 25);
+  pdf.text('STATUS', left + columnWidth + columnGap + 6, fieldTop + 9);
+  pdf.text('GÜLTIG BIS', left + columnWidth + columnGap + 6, fieldTop + 25);
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(12);
+  pdf.text(certificate.certificateCode, left + 6, fieldTop + 16);
+  pdf.text(
+    effectiveStatus === 'active'
+      ? 'Aktiv'
+      : effectiveStatus === 'expired'
+        ? 'Abgelaufen'
+        : 'Widerrufen',
+    left + columnWidth + columnGap + 6,
+    fieldTop + 16,
+  );
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text(formatCertificateDate(certificate.issuedAt), left + 6, fieldTop + 32);
+  pdf.text(
+    formatCertificateDate(certificate.validUntil),
+    left + columnWidth + columnGap + 6,
+    fieldTop + 32,
+  );
+
+  y = fieldTop + fieldHeight + 14;
+  pdf.setFont('courier', 'bold');
+  pdf.setFontSize(9);
+  pdf.text('UMFANG', left, y);
+
+  y += 7;
+  pdf.rect(left, y, right - left, 26);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(11);
+  pdf.text(moduleLines, left + 6, y + 9);
+
+  y += 40;
+  pdf.setFont('courier', 'bold');
+  pdf.setFontSize(9);
+  pdf.text('ÖFFENTLICHE VERIFIKATION', left, y);
+
+  y += 7;
+  pdf.rect(left, y, right - left, 28);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  pdf.text(verifyLines, left + 6, y + 9);
+
+  pdf.setDrawColor(17, 24, 39);
+  pdf.line(left, pageHeight - 30, right, pageHeight - 30);
+  pdf.setFont('courier', 'normal');
+  pdf.setFontSize(8);
+  pdf.text('KI-Register · Public Verification Record', left, pageHeight - 22);
+  pdf.text(formatCertificateDate(new Date().toISOString()), right, pageHeight - 22, {
+    align: 'right',
+  });
+
+  return pdf.output('datauristring');
 }
 
 function buildPublicRecord(
@@ -605,7 +779,7 @@ export async function updateCertificationSettings(
   input: Partial<
     Pick<
       CertificationSettings,
-      'defaultValidityMonths' | 'documentTemplateId' | 'badgeAssetUrl'
+      'defaultValidityMonths' | 'documentProvider' | 'documentTemplateId' | 'badgeAssetUrl'
     >
   >,
 ): Promise<CertificationSettings> {
@@ -616,11 +790,13 @@ export async function updateCertificationSettings(
     input.defaultValidityMonths > 0
       ? { defaultValidityMonths: Math.round(input.defaultValidityMonths) }
       : {}),
-    ...(typeof input.documentTemplateId === 'string' &&
-    input.documentTemplateId.trim().length > 0
+    ...(input.documentProvider === 'documentero' || input.documentProvider === 'native'
+      ? { documentProvider: input.documentProvider }
+      : {}),
+    ...(typeof input.documentTemplateId === 'string'
       ? { documentTemplateId: input.documentTemplateId.trim() }
       : {}),
-    ...(typeof input.badgeAssetUrl === 'string' && input.badgeAssetUrl.trim().length > 0
+    ...(typeof input.badgeAssetUrl === 'string'
       ? { badgeAssetUrl: input.badgeAssetUrl.trim() }
       : {}),
   };
@@ -794,53 +970,69 @@ function createCertificateRecord(
 async function generateDocumentUrl(
   certificate: PersonCertificateRecord,
   settings: CertificationSettings,
-): Promise<string | null> {
+): Promise<GeneratedDocument> {
   const verifyUrl = buildCertificateVerifyUrl(certificate.certificateCode);
 
   if (process.env.CERTIFICATION_FAKE_DOCUMENTS === '1') {
-    return buildFakePdfDataUri(certificate, verifyUrl);
+    return {
+      url: buildFakePdfDataUri(certificate, verifyUrl),
+      provider: 'native',
+    };
   }
 
-  if (!DOCUMENTERO_API_KEY || !settings.documentTemplateId) {
-    return null;
-  }
+  if (
+    ENABLE_EXTERNAL_CERTIFICATE_PDFS &&
+    settings.documentProvider === 'documentero' &&
+    DOCUMENTERO_API_KEY &&
+    settings.documentTemplateId
+  ) {
+    const filename = `${
+      certificate.holderName.replace(/[^a-zA-Z0-9]+/g, '_') || 'certificate'
+    }_${certificate.certificateCode}.pdf`;
 
-  const filename = `${certificate.holderName.replace(/[^a-zA-Z0-9]+/g, '_') || 'certificate'}_${certificate.certificateCode}.pdf`;
-
-  const response = await fetch(DOCUMENTERO_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      document: settings.documentTemplateId,
-      apiKey: DOCUMENTERO_API_KEY,
-      format: 'pdf',
-      filename,
-      data: {
-        qrcode: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`,
-        Zert_Nr: certificate.certificateCode,
-        Vorname_Nachname: certificate.holderName,
-        datum: new Date(certificate.issuedAt).toLocaleDateString('de-DE'),
+    const response = await fetch(DOCUMENTERO_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    }),
-  });
+      body: JSON.stringify({
+        document: settings.documentTemplateId,
+        apiKey: DOCUMENTERO_API_KEY,
+        format: 'pdf',
+        filename,
+        data: {
+          qrcode: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`,
+          Zert_Nr: certificate.certificateCode,
+          Vorname_Nachname: certificate.holderName,
+          datum: new Date(certificate.issuedAt).toLocaleDateString('de-DE'),
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    throw new Error(`Documentero request failed with ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Documentero request failed with ${response.status}`);
+    }
+
+    const payload = (await response.json()) as {
+      status?: number;
+      data?: string;
+      message?: string;
+    };
+
+    if (payload.status !== 200 || !payload.data) {
+      throw new Error(payload.message || 'Documentero did not return a PDF URL.');
+    }
+
+    return {
+      url: payload.data,
+      provider: 'documentero',
+    };
   }
 
-  const payload = (await response.json()) as {
-    status?: number;
-    data?: string;
-    message?: string;
+  return {
+    url: await buildNativePdfDataUri(certificate, verifyUrl),
+    provider: 'native',
   };
-
-  if (payload.status !== 200 || !payload.data) {
-    throw new Error(payload.message || 'Documentero did not return a PDF URL.');
-  }
-
-  return payload.data;
 }
 
 export async function getCertificationOverview(): Promise<AdminCertificationOverview> {
@@ -962,23 +1154,21 @@ export async function submitExamAttempt(
   }
 
   try {
-    const documentUrl = await generateDocumentUrl(certificate, settings);
-    if (documentUrl) {
-      certificateDocument = {
-        documentId: randomUUID(),
-        certificateId: certificate.certificateId,
-        generatedAt: new Date().toISOString(),
-        url: documentUrl,
-        provider: 'documentero',
-        generatedBy: actor.email,
-      };
-      await saveCertificateDocument(certificateDocument);
-      certificate = {
-        ...certificate,
-        latestDocumentUrl: certificateDocument.url,
-        latestDocumentGeneratedAt: certificateDocument.generatedAt,
-      };
-    }
+    const document = await generateDocumentUrl(certificate, settings);
+    certificateDocument = {
+      documentId: randomUUID(),
+      certificateId: certificate.certificateId,
+      generatedAt: new Date().toISOString(),
+      url: document.url,
+      provider: document.provider,
+      generatedBy: actor.email,
+    };
+    await saveCertificateDocument(certificateDocument);
+    certificate = {
+      ...certificate,
+      latestDocumentUrl: certificateDocument.url,
+      latestDocumentGeneratedAt: certificateDocument.generatedAt,
+    };
   } catch (error) {
     console.error('Certificate document generation failed:', error);
   }
@@ -1002,17 +1192,14 @@ export async function regenerateCertificateDocument(
   }
 
   const settings = await getSettings();
-  const documentUrl = await generateDocumentUrl(certificate, settings);
-  if (!documentUrl) {
-    throw new Error('Document generation failed.');
-  }
+  const generatedDocument = await generateDocumentUrl(certificate, settings);
 
   const document: CertificateDocumentRecord = {
     documentId: randomUUID(),
     certificateId: certificate.certificateId,
     generatedAt: new Date().toISOString(),
-    url: documentUrl,
-    provider: 'documentero',
+    url: generatedDocument.url,
+    provider: generatedDocument.provider,
     generatedBy: actor.email,
   };
 

@@ -155,6 +155,7 @@ export default function AdminPage() {
 
     const handleSaveCertificationSettings = async (input: {
         defaultValidityMonths?: number | null;
+        documentProvider?: 'native' | 'documentero' | null;
         documentTemplateId?: string | null;
         badgeAssetUrl?: string | null;
     }) => {

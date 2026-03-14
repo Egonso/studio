@@ -34,7 +34,6 @@ export default defineConfig({
     timeout: 180_000,
     env: {
       ...process.env,
-      CERTIFICATION_FAKE_DOCUMENTS: '1',
       NEXT_PUBLIC_APP_ORIGIN: 'https://kiregister.com',
     },
   },

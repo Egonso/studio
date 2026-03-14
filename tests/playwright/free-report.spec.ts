@@ -120,7 +120,7 @@ test.describe.serial('free report mode', () => {
       await page.getByRole('button', { name: 'Bericht' }).click();
 
       await expect(page).toHaveURL('/control');
-      await expect(page.getByRole('heading', { name: 'Bericht' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Bericht', exact: true })).toBeVisible();
       await expect(page.getByText('Free Report GmbH').first()).toBeVisible();
       await expect(page.getByRole('link', { name: 'Register öffnen' }).first()).toBeVisible();
       await expect(page.getByRole('link', { name: 'Governance Settings' }).first()).toBeVisible();

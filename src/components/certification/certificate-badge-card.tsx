@@ -63,7 +63,7 @@ export function CertificateBadgeCard({
         </Tabs>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-xl border border-slate-200 bg-slate-950/95 p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
           <div
             dangerouslySetInnerHTML={{ __html: markup }}
             className="min-h-14"

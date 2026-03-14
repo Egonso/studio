@@ -79,9 +79,10 @@ test.describe.serial('certification flows', () => {
     await page.goto('/verify/KI-REG-1999-0000');
     await expect(page.getByText('Verifizierung fehlgeschlagen').first()).toBeVisible();
     await expect(page.getByText('Zertifikat nicht gefunden oder ungültig.')).toBeVisible();
-    await page.getByRole('button', { name: 'Neuen Zertifikatscode eingeben' }).click();
+    await page.getByRole('link', { name: 'Neuen Zertifikatscode eingeben' }).click();
     await expect(page).toHaveURL('/verify');
-    await expect(page.getByRole('heading', { name: 'Zertifikate direkt im KI-Register prüfen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Zertifikat prüfen' })).toBeVisible();
+    await expect(page.getByText('Zertifikate direkt im KI-Register prüfen')).toBeVisible();
   });
 
   test('supports dev-only admin certificate issue, regeneration and revocation', async ({
@@ -110,7 +111,7 @@ test.describe.serial('certification flows', () => {
     };
 
     expect(issued.certificateCode).toMatch(/^KI-REG-\d{4}-\d+$/);
-    expect(issued.latestDocumentUrl).toContain('data:application/pdf;base64,');
+    expect(issued.latestDocumentUrl).toContain('data:application/pdf');
 
     const regenerateResponse = await request.post('/api/certification/admin/dev/regenerate', {
       headers: adminHeaders,
@@ -122,7 +123,7 @@ test.describe.serial('certification flows', () => {
     const regenerated = (await regenerateResponse.json()) as {
       latestDocumentUrl: string | null;
     };
-    expect(regenerated.latestDocumentUrl).toContain('data:application/pdf;base64,');
+    expect(regenerated.latestDocumentUrl).toContain('data:application/pdf');
 
     const updateResponse = await request.post('/api/certification/admin/dev/update', {
       headers: adminHeaders,

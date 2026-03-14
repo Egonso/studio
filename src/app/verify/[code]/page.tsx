@@ -1,229 +1,292 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
 import {
-    Loader2,
-    CheckCircle2,
-    XCircle,
-    Shield,
-    Award,
-    Calendar,
-    AlertTriangle,
-    ExternalLink,
-} from "lucide-react";
+  ArrowRight,
+  ExternalLink,
+  FileDown,
+  Loader2,
+  ShieldCheck,
+  ShieldX,
+} from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { MarketingShell } from '@/components/product-shells';
+import { ThemeAwareLogo } from '@/components/theme-aware-logo';
+import { Button } from '@/components/ui/button';
 
 interface PublicCertificate {
-    certificateCode: string;
-    certificateId: string;
-    holderName: string;
-    company: string | null;
-    issuedDate: string;
-    validUntil: string | null;
-    status: "active" | "expired" | "revoked";
-    modules: string[];
-    verifyUrl: string;
-    latestDocumentUrl: string | null;
+  certificateCode: string;
+  certificateId: string;
+  holderName: string;
+  company: string | null;
+  issuedDate: string;
+  validUntil: string | null;
+  status: 'active' | 'expired' | 'revoked';
+  modules: string[];
+  verifyUrl: string;
+  latestDocumentUrl: string | null;
+}
+
+function formatDate(value: string | null): string {
+  if (!value) {
+    return 'Nicht gesetzt';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 }
 
 export default function VerificationPage() {
-    const params = useParams();
-    const code = params.code as string;
-    const [loading, setLoading] = useState(true);
-    const [certificate, setCertificate] = useState<PublicCertificate | null>(null);
-    const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const code = params.code as string;
+  const [loading, setLoading] = useState(true);
+  const [certificate, setCertificate] = useState<PublicCertificate | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (!code) return;
+  useEffect(() => {
+    if (!code) {
+      return;
+    }
 
-        const fetchCertificate = async () => {
-            try {
-                const response = await fetch(`/api/certification/public/${encodeURIComponent(code)}`);
-                if (!response.ok) {
-                    throw new Error(response.status === 404 ? "Zertifikat nicht gefunden oder ungültig." : "Fehler bei der Überprüfung.");
-                }
-
-                const payload = await response.json();
-                setCertificate(payload as PublicCertificate);
-            } catch (err) {
-                console.error("Verification error:", err);
-                setError(err instanceof Error ? err.message : "Fehler bei der Überprüfung. Bitte versuchen Sie es später erneut.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        void fetchCertificate();
-    }, [code]);
-
-    const statusMeta = useMemo(() => {
-        switch (certificate?.status) {
-            case "expired":
-                return {
-                    title: "Abgelaufenes Zertifikat",
-                    tone: "amber" as const,
-                    body: "Dieses Zertifikat ist historisch nachvollziehbar, aber nicht mehr aktuell gültig.",
-                };
-            case "revoked":
-                return {
-                    title: "Widerrufenes Zertifikat",
-                    tone: "red" as const,
-                    body: "Dieses Zertifikat wurde widerrufen und darf nicht mehr als aktueller Nachweis verwendet werden.",
-                };
-            default:
-                return {
-                    title: "Gültiges Zertifikat",
-                    tone: "green" as const,
-                    body: "Dieses Zertifikat bestätigt die erfolgreiche Kompetenzprüfung im KI-Register.",
-                };
+    const fetchCertificate = async () => {
+      try {
+        const response = await fetch(`/api/certification/public/${encodeURIComponent(code)}`);
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? 'Zertifikat nicht gefunden oder ungültig.'
+              : 'Fehler bei der Überprüfung.',
+          );
         }
-    }, [certificate?.status]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Verifiziere Zertifikat...</p>
-            </div>
+        const payload = await response.json();
+        setCertificate(payload as PublicCertificate);
+      } catch (fetchError) {
+        console.error('Verification error:', fetchError);
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : 'Fehler bei der Überprüfung. Bitte versuchen Sie es später erneut.',
         );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchCertificate();
+  }, [code]);
+
+  const statusMeta = useMemo(() => {
+    switch (certificate?.status) {
+      case 'expired':
+        return {
+          title: 'Abgelaufenes Zertifikat',
+          label: 'Abgelaufen',
+          body: 'Dieses Zertifikat ist historisch nachvollziehbar, aber nicht mehr aktuell gültig.',
+          tone: 'muted',
+        } as const;
+      case 'revoked':
+        return {
+          title: 'Widerrufenes Zertifikat',
+          label: 'Widerrufen',
+          body: 'Dieses Zertifikat wurde widerrufen und darf nicht mehr als aktueller Nachweis verwendet werden.',
+          tone: 'outlined',
+        } as const;
+      default:
+        return {
+          title: 'Gültiges Zertifikat',
+          label: 'Aktiv',
+          body: 'Dieses Zertifikat bestätigt die erfolgreiche Kompetenzprüfung im KI-Register.',
+          tone: 'solid',
+        } as const;
     }
+  }, [certificate?.status]);
 
-    if (error || !certificate) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-                <Card className="w-full max-w-md border-red-200 shadow-lg">
-                    <CardHeader className="text-center pb-2">
-                        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                            <XCircle className="h-6 w-6 text-red-600" />
-                        </div>
-                        <CardTitle className="text-xl text-red-700">Verifizierung fehlgeschlagen</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                        <p className="text-muted-foreground mb-6">{error || "Ungültiger Code."}</p>
-                        <Button variant="outline" onClick={() => window.location.href = '/verify'}>
-                            Neuen Zertifikatscode eingeben
-                        </Button>
-                    </CardContent>
-                </Card>
+  const statusBadgeClass =
+    statusMeta.tone === 'solid'
+      ? 'bg-slate-950 text-white border-slate-950'
+      : statusMeta.tone === 'muted'
+        ? 'bg-slate-200 text-slate-950 border-slate-300'
+        : 'bg-white text-slate-950 border-slate-950';
+
+  return (
+    <MarketingShell>
+      <main className="mx-auto min-h-screen w-full max-w-5xl px-4 py-8 sm:px-6">
+        <header className="mb-12 flex items-center justify-between gap-4 border-b border-slate-200 pb-5">
+          <Link
+            href="/"
+            className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950"
+          >
+            <ThemeAwareLogo
+              alt="KI-Register"
+              width={32}
+              height={32}
+              className="h-8 w-auto"
+            />
+            <span>KI-Register</span>
+          </Link>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            Öffentliche Verifikation
+          </p>
+        </header>
+
+        {loading ? (
+          <div className="flex min-h-[360px] items-center justify-center border border-slate-200 bg-white px-6 py-12">
+            <div className="flex items-center gap-3 text-sm text-slate-600">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Verifiziere Zertifikat...
             </div>
-        );
-    }
-
-    const isActive = certificate.status === "active";
-    const accentClass =
-        statusMeta.tone === "green"
-            ? "border-green-200 text-green-700 bg-green-50"
-            : statusMeta.tone === "amber"
-                ? "border-amber-200 text-amber-700 bg-amber-50"
-                : "border-red-200 text-red-700 bg-red-50";
-
-    return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-            <div className="mb-8 text-center">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-cyan-600">
-                    KI-Register
-                </h1>
-                <p className="text-sm text-muted-foreground">Certificate Verification</p>
+          </div>
+        ) : error || !certificate ? (
+          <div className="border border-slate-200 bg-white p-8">
+            <div className="flex h-12 w-12 items-center justify-center border border-slate-950 text-slate-950">
+              <ShieldX className="h-5 w-5" />
             </div>
+            <h1 className="mt-6 text-3xl font-semibold tracking-tight text-slate-950">
+              Verifizierung fehlgeschlagen
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
+              {error || 'Ungültiger Code.'}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild className="rounded-none">
+                <Link href="/verify">
+                  Neuen Zertifikatscode eingeben
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <section className="border border-slate-200 bg-white">
+              <div className="border-b border-slate-200 px-6 py-8 sm:px-8">
+                <div className="flex flex-wrap items-start justify-between gap-5">
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Zertifikatsprüfung
+                    </p>
+                    <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+                      {statusMeta.title}
+                    </h1>
+                    <p className="max-w-3xl text-base leading-8 text-slate-600">{statusMeta.body}</p>
+                  </div>
+                  <div className="flex h-12 items-center justify-center border border-slate-950 px-4 text-slate-950">
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em]">
+                      KI-Register
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-            <Card className="w-full max-w-2xl shadow-xl bg-white overflow-hidden relative">
-                <div className={`absolute top-0 left-0 w-full h-1 ${isActive ? "bg-gradient-to-r from-green-500 to-emerald-400" : certificate.status === "expired" ? "bg-gradient-to-r from-amber-500 to-yellow-400" : "bg-gradient-to-r from-red-500 to-rose-400"}`} />
-
-                <CardHeader className="text-center pb-6 border-b border-slate-100">
-                    <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ring-8 ${isActive ? "bg-green-50 ring-green-50/50" : certificate.status === "expired" ? "bg-amber-50 ring-amber-50/50" : "bg-red-50 ring-red-50/50"}`}>
-                        {isActive ? (
-                            <CheckCircle2 className="h-8 w-8 text-green-600" />
-                        ) : certificate.status === "expired" ? (
-                            <AlertTriangle className="h-8 w-8 text-amber-600" />
-                        ) : (
-                            <XCircle className="h-8 w-8 text-red-600" />
-                        )}
-                    </div>
-                    <CardTitle className="text-2xl text-slate-900">{statusMeta.title}</CardTitle>
-                    <div className="flex items-center justify-center gap-2 text-sm font-medium mt-2 text-slate-600">
-                        <Shield className="h-4 w-4" />
-                        <span>{statusMeta.body}</span>
-                    </div>
-                </CardHeader>
-
-                <CardContent className="pt-8 px-8 space-y-6">
-                    <div className="text-center space-y-2">
-                        <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">Zertifiziert für</p>
-                        <h2 className="text-2xl font-bold text-slate-900">{certificate.holderName}</h2>
-                        {certificate.company && (
-                            <p className="text-lg text-slate-600">{certificate.company}</p>
-                        )}
-                    </div>
-
-                    <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium ${accentClass}`}>
-                        <Shield className="h-4 w-4" />
-                        <span>Status: {certificate.status === "active" ? "Aktiv" : certificate.status === "expired" ? "Abgelaufen" : "Widerrufen"}</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 py-6 border-t border-b border-slate-100">
-                        <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Award className="h-3 w-3" /> Zertifikat-Code
-                            </p>
-                            <p className="font-mono font-medium text-slate-800">{certificate.certificateCode}</p>
-                        </div>
-                        <div className="space-y-1 text-right">
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-                                <Calendar className="h-3 w-3" /> Ausgestellt am
-                            </p>
-                            <p className="font-medium text-slate-800">
-                                {new Date(certificate.issuedDate).toLocaleDateString('de-DE')}
-                            </p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Gültig bis</p>
-                            <p className="font-medium text-slate-800">
-                                {certificate.validUntil
-                                    ? new Date(certificate.validUntil).toLocaleDateString('de-DE')
-                                    : 'Nicht gesetzt'}
-                            </p>
-                        </div>
-                        <div className="space-y-1 text-right">
-                            <p className="text-xs text-muted-foreground">Öffentliche URL</p>
-                            <a
-                                href={certificate.verifyUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1 text-sm font-medium text-cyan-700 hover:text-cyan-800"
-                            >
-                                Öffnen
-                                <ExternalLink className="h-3 w-3" />
-                            </a>
-                        </div>
-                        <div className="col-span-2 pt-2">
-                            <p className="text-xs text-muted-foreground mb-2">Bestandene Module</p>
-                            <div className="flex flex-wrap gap-2">
-                                {certificate.modules.map((mod, i) => (
-                                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {mod}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {certificate.latestDocumentUrl ? (
-                        <div className="flex justify-center">
-                            <Button asChild>
-                                <a href={certificate.latestDocumentUrl} target="_blank" rel="noreferrer">
-                                    Zertifikats-PDF öffnen
-                                </a>
-                            </Button>
-                        </div>
+              <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Zertifiziert für
+                    </p>
+                    <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
+                      {certificate.holderName}
+                    </h2>
+                    {certificate.company ? (
+                      <p className="text-base leading-7 text-slate-600">{certificate.company}</p>
                     ) : null}
-                </CardContent>
-                <CardFooter className="bg-slate-50 p-6 text-center text-xs text-muted-foreground">
+                    <span
+                      className={`inline-flex items-center border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${statusBadgeClass}`}
+                    >
+                      {statusMeta.label}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-4 border-y border-slate-200 py-6 sm:grid-cols-2">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Zertifikatscode
+                      </p>
+                      <p className="mt-3 font-mono text-sm text-slate-950">
+                        {certificate.certificateCode}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Ausgestellt
+                      </p>
+                      <p className="mt-3 text-sm text-slate-950">{formatDate(certificate.issuedDate)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Gültig bis
+                      </p>
+                      <p className="mt-3 text-sm text-slate-950">{formatDate(certificate.validUntil)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Öffentliche URL
+                      </p>
+                      <a
+                        href={certificate.verifyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-flex items-center text-sm font-medium text-slate-950 underline-offset-4 hover:underline"
+                      >
+                        Verifikation öffnen
+                        <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Zertifizierungsumfang
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {certificate.modules.map((module) => (
+                        <span
+                          key={module}
+                          className="border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700"
+                        >
+                          {module}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="space-y-3 border border-slate-200 bg-slate-50 p-5">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Dokument
+                  </p>
+                  <p className="text-sm leading-7 text-slate-600">
                     Dieses Zertifikat ist öffentlich über das KI-Register verifizierbar.
-                </CardFooter>
-            </Card>
-        </div>
-    );
+                  </p>
+                  {certificate.latestDocumentUrl ? (
+                    <Button asChild className="w-full rounded-none">
+                      <a href={certificate.latestDocumentUrl} target="_blank" rel="noreferrer">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Zertifikats-PDF öffnen
+                      </a>
+                    </Button>
+                  ) : null}
+                  <Button variant="outline" asChild className="w-full rounded-none">
+                    <Link href="/verify">Anderen Code prüfen</Link>
+                  </Button>
+                </aside>
+              </div>
+            </section>
+          </div>
+        )}
+      </main>
+    </MarketingShell>
+  );
 }

@@ -47,6 +47,7 @@ interface CertificationAdminPanelProps {
   onLoadDetail: (certificateId: string) => Promise<AdminCertificateDetail>;
   onSaveSettings: (input: {
     defaultValidityMonths?: number | null;
+    documentProvider?: 'native' | 'documentero' | null;
     documentTemplateId?: string | null;
     badgeAssetUrl?: string | null;
   }) => Promise<void>;
@@ -144,8 +145,14 @@ export function CertificationAdminPanel({
     company: '',
     validityMonths: String(overview?.settings.defaultValidityMonths ?? 12),
   });
-  const [settingsDraft, setSettingsDraft] = useState({
+  const [settingsDraft, setSettingsDraft] = useState<{
+    defaultValidityMonths: string;
+    documentProvider: 'native' | 'documentero';
+    documentTemplateId: string;
+    badgeAssetUrl: string;
+  }>({
     defaultValidityMonths: String(overview?.settings.defaultValidityMonths ?? 12),
+    documentProvider: overview?.settings.documentProvider ?? 'native',
     documentTemplateId: overview?.settings.documentTemplateId ?? '',
     badgeAssetUrl: overview?.settings.badgeAssetUrl ?? '',
   });
@@ -165,6 +172,7 @@ export function CertificationAdminPanel({
 
     setSettingsDraft({
       defaultValidityMonths: String(overview.settings.defaultValidityMonths ?? 12),
+      documentProvider: overview.settings.documentProvider ?? 'native',
       documentTemplateId: overview.settings.documentTemplateId ?? '',
       badgeAssetUrl: overview.settings.badgeAssetUrl ?? '',
     });
@@ -333,6 +341,7 @@ export function CertificationAdminPanel({
     try {
       await onSaveSettings({
         defaultValidityMonths: Number.parseInt(settingsDraft.defaultValidityMonths, 10),
+        documentProvider: settingsDraft.documentProvider,
         documentTemplateId: settingsDraft.documentTemplateId.trim(),
         badgeAssetUrl: settingsDraft.badgeAssetUrl.trim(),
       });
@@ -464,10 +473,23 @@ export function CertificationAdminPanel({
           <CardHeader>
             <CardTitle>Zertifizierungs-Settings</CardTitle>
             <CardDescription>
-              Standardlaufzeit, Dokumentvorlage und Badge-Asset steuern die operative Ausgabe.
+              Standardlaufzeit, PDF-Provider, Dokumentvorlage und Badge-Asset steuern die operative Ausgabe.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <select
+              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+              value={settingsDraft.documentProvider}
+              onChange={(event) =>
+                setSettingsDraft((current) => ({
+                  ...current,
+                  documentProvider: event.target.value as 'native' | 'documentero',
+                }))
+              }
+            >
+              <option value="native">Native PDF im KI-Register</option>
+              <option value="documentero">Documentero Template (serverseitig freigeben)</option>
+            </select>
             <Input
               type="number"
               min={1}
@@ -488,7 +510,7 @@ export function CertificationAdminPanel({
                   documentTemplateId: event.target.value,
                 }))
               }
-              placeholder="Documentero Template ID"
+              placeholder="Documentero Template ID (optional)"
             />
             <Input
               value={settingsDraft.badgeAssetUrl}
@@ -498,7 +520,7 @@ export function CertificationAdminPanel({
                   badgeAssetUrl: event.target.value,
                 }))
               }
-              placeholder="Badge Asset URL"
+              placeholder="Badge Asset URL (optional)"
             />
             <Button onClick={handleSaveSettings} disabled={settingsSaving}>
               {settingsSaving ? (
@@ -586,7 +608,7 @@ export function CertificationAdminPanel({
                       return (
                         <TableRow
                           key={certificate.certificateId}
-                          className={selected ? 'bg-cyan-50/60' : undefined}
+                          className={selected ? 'bg-slate-100/80' : undefined}
                           onClick={() => void loadCertificateDetail(certificate.certificateId)}
                         >
                           <TableCell>
@@ -825,6 +847,27 @@ export function CertificationAdminPanel({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        void handleBusy(selectedCertificate.certificateId, async () => {
+                          await onRegenerate(selectedCertificate.certificateId);
+                          await refreshAndReloadSelected(selectedCertificate.certificateId);
+                          setBanner({
+                            tone: 'success',
+                            message: 'Das Zertifikats-PDF wurde neu generiert.',
+                          });
+                        })
+                      }
+                      disabled={busyCertificates[selectedCertificate.certificateId]}
+                    >
+                      {busyCertificates[selectedCertificate.certificateId] ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileCog className="mr-2 h-4 w-4" />
+                      )}
+                      PDF neu generieren
+                    </Button>
                     <Button asChild>
                       <a
                         href={selectedCertificate.publicUrl}

@@ -238,6 +238,7 @@ export async function saveCertificationSettings(
   idToken: string,
   input: {
     defaultValidityMonths?: number | null;
+    documentProvider?: 'native' | 'documentero' | null;
     documentTemplateId?: string | null;
     badgeAssetUrl?: string | null;
   },
@@ -248,6 +249,10 @@ export async function saveCertificationSettings(
     defaultValidityMonths:
       typeof input.defaultValidityMonths === 'number'
         ? input.defaultValidityMonths
+        : undefined,
+    documentProvider:
+      input.documentProvider === 'native' || input.documentProvider === 'documentero'
+        ? input.documentProvider
         : undefined,
     documentTemplateId: input.documentTemplateId ?? undefined,
     badgeAssetUrl: input.badgeAssetUrl ?? undefined,
