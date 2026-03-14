@@ -14,6 +14,7 @@ import {
   markSupplierRequestTokenUsed,
   resolveSupplierRequestTokenAccess,
 } from '@/lib/register-first/request-token-admin';
+import { registerFirstFlags } from '@/lib/register-first/flags';
 import { parseSupplierRequestSubmission } from '@/lib/register-first/supplier-requests';
 import type { Register } from '@/lib/register-first/types';
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
@@ -105,9 +106,19 @@ export async function POST(req: Request) {
     const parsedSubmission = parseSupplierRequestSubmission({
       supplierEmail: body?.supplierEmail,
       toolName: body?.toolName,
+      systems: registerFirstFlags.supplierMultisystemCapture
+        ? body?.systems
+        : undefined,
       purpose: body?.purpose,
       dataCategory: body?.dataCategory,
+      dataCategories: body?.dataCategories,
       aiActCategory: body?.aiActCategory,
+      workflowConnectionMode: registerFirstFlags.supplierMultisystemCapture
+        ? body?.workflowConnectionMode
+        : undefined,
+      workflowSummary: registerFirstFlags.supplierMultisystemCapture
+        ? body?.workflowSummary
+        : undefined,
     });
     phase = 'load_register';
     const registerRef = db.doc(
