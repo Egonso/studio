@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
@@ -27,6 +27,7 @@ import {
   getUseCaseSystemSectionMode,
   getUseCaseSystemsSummary,
 } from '@/lib/register-first';
+import { cn } from '@/lib/utils';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
 import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
 import { registerService } from '@/lib/register-first/register-service';
@@ -55,10 +56,12 @@ export default function UseCaseDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showDesktopEditBar, setShowDesktopEditBar] = useState(false);
   const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(
     null,
   );
   const [invalidFocus, setInvalidFocus] = useState<string | null>(null);
+  const heroBoundaryRef = useRef<HTMLDivElement | null>(null);
 
   const useCaseId = params.useCaseId;
   const focusParam = searchParams.get('focus');
@@ -78,11 +81,11 @@ export default function UseCaseDetailPage() {
       : null;
   const detailNextStep = relatedSubmission
     ? relatedSubmission.status === 'submitted'
-      ? 'Prüfen Sie die externe Einreichung und entscheiden Sie über Übernahme, Ablehnung oder Review.'
-      : 'Pflegen Sie Dokumentation, Review und Governance-Details auf Basis der bereits verarbeiteten Herkunft.'
+      ? 'Externe Einreichung prüfen und über Übernahme, Ablehnung oder Review entscheiden.'
+      : 'Dokumentation, Review und Governance-Details auf Basis der vorhandenen Herkunft ergänzen.'
     : card?.origin?.source === 'manual'
-      ? 'Ergänzen Sie Dokumentation, Review und Nachweise für diesen manuell angelegten Use Case.'
-      : 'Prüfen Sie Herkunft, Review und Governance-Details für diesen Use Case.';
+      ? 'Dokumentation, Review und Nachweise ergänzen, damit der Einsatzfall formal prüfbar wird.'
+      : 'Herkunft, Review und Governance-Details prüfen und dokumentieren.';
   const systemSectionMode = useMemo(
     () =>
       card
@@ -172,6 +175,33 @@ export default function UseCaseDetailPage() {
     if (resolvedFocus !== 'owner') return;
     setIsEditing(true);
   }, [editParam, resolvedFocus, useCaseId]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setShowDesktopEditBar(false);
+      return;
+    }
+
+    const boundary = heroBoundaryRef.current;
+    if (!boundary || typeof IntersectionObserver === 'undefined') {
+      setShowDesktopEditBar(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowDesktopEditBar(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        threshold: 0,
+        rootMargin: '-92px 0px 0px 0px',
+      },
+    );
+
+    observer.observe(boundary);
+    return () => observer.disconnect();
+  }, [isEditing, card?.useCaseId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -302,20 +332,29 @@ export default function UseCaseDetailPage() {
       description="Dokumentieren, reviewen und Herkunft nachvollziehen in einer gemeinsamen Detailansicht."
       nextStep={detailNextStep}
       width="5xl"
+      headerMode="hidden"
     >
-      <div className="space-y-10">
+      <div
+        className={cn(
+          'space-y-10',
+          isEditing && 'pb-24 md:pb-0',
+        )}
+      >
         <UseCaseHeader
           card={card}
           isEditing={isEditing}
           onToggleEdit={() => setIsEditing((prev) => !prev)}
+          nextStep={detailNextStep}
           onRefresh={loadUseCase}
         />
+        <div ref={heroBoundaryRef} className="h-px" />
 
         {isEditing ? (
           <UseCaseEditContextBar
             purpose={card.purpose}
             status={card.status}
             systemsSummary={systemsSummary}
+            visible={showDesktopEditBar}
             onCancel={() => setIsEditing(false)}
           />
         ) : null}
@@ -430,41 +469,73 @@ function UseCaseEditContextBar({
   purpose,
   status,
   systemsSummary,
+  visible,
   onCancel,
 }: {
   purpose: string;
   status: RegisterUseCaseStatus;
   systemsSummary: string;
+  visible: boolean;
   onCancel: () => void;
 }) {
   return (
-    <div className="sticky top-3 z-20 rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-              Bearbeitung aktiv
-            </span>
-            <RegisterStatusPill status={status} />
-          </div>
-          <p className="truncate text-sm font-medium text-slate-900">
-            {purpose}
-          </p>
-          <p className="truncate text-xs text-muted-foreground">
-            {systemsSummary}
-          </p>
-        </div>
+    <>
+      <div
+        className={cn(
+          'pointer-events-none fixed inset-x-0 top-16 z-40 hidden transition-all duration-150 md:block',
+          visible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0',
+        )}
+      >
+        <div className="mx-auto max-w-5xl px-4 md:px-8">
+          <div className="pointer-events-auto rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                    Bearbeitung aktiv
+                  </span>
+                  <RegisterStatusPill status={status} />
+                </div>
+                <p className="truncate text-sm font-medium text-slate-900">
+                  {purpose}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {systemsSummary}
+                </p>
+              </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-            Abbrechen
-          </Button>
-          <Button type="submit" size="sm" form="use-case-metadata-form">
-            Speichern
-          </Button>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+                  Abbrechen
+                </Button>
+                <Button type="submit" size="sm" form="use-case-metadata-form">
+                  Speichern
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur supports-[backdrop-filter]:bg-white/90 md:hidden">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+              Bearbeitung aktiv
+            </p>
+            <p className="truncate text-sm font-medium text-slate-900">{purpose}</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+              Abbrechen
+            </Button>
+            <Button type="submit" size="sm" form="use-case-metadata-form">
+              Speichern
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 

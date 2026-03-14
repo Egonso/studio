@@ -159,6 +159,7 @@ interface SignedInAreaFrameProps {
   actions?: React.ReactNode;
   aside?: React.ReactNode;
   width?: '5xl' | '6xl';
+  headerMode?: 'default' | 'hidden';
 }
 
 export function SignedInAreaFrame({
@@ -170,7 +171,10 @@ export function SignedInAreaFrame({
   actions,
   aside,
   width = '6xl',
+  headerMode = 'default',
 }: SignedInAreaFrameProps) {
+  const showHeader = headerMode !== 'hidden';
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader />
@@ -181,35 +185,37 @@ export function SignedInAreaFrame({
             width === '5xl' ? 'max-w-5xl' : 'max-w-6xl',
           )}
         >
-          <div
-            className={cn(
-              'gap-8',
-              aside ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start' : '',
-            )}
-          >
-            <section className="space-y-3 border-b border-slate-200 pb-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {AREA_SECTION_LABELS[area]}
-              </p>
-              <div className="space-y-2">
-                <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-slate-950">
-                  {title}
-                </h1>
-                <p className="max-w-3xl text-sm leading-7 text-slate-600">
-                  {description}
+          {showHeader ? (
+            <div
+              className={cn(
+                'gap-8',
+                aside ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start' : '',
+              )}
+            >
+              <section className="space-y-3 border-b border-slate-200 pb-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {AREA_SECTION_LABELS[area]}
                 </p>
-              </div>
-              {nextStep ? (
-                <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
-                  <span className="font-medium text-slate-950">Nächster Schritt:</span>{' '}
-                  {nextStep}
+                <div className="space-y-2">
+                  <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-slate-950">
+                    {title}
+                  </h1>
+                  <p className="max-w-3xl text-sm leading-7 text-slate-600">
+                    {description}
+                  </p>
                 </div>
-              ) : null}
-              {actions ? <div className="flex flex-wrap gap-2 pt-2">{actions}</div> : null}
-            </section>
+                {nextStep ? (
+                  <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
+                    <span className="font-medium text-slate-950">Nächster Schritt:</span>{' '}
+                    {nextStep}
+                  </div>
+                ) : null}
+                {actions ? <div className="flex flex-wrap gap-2 pt-2">{actions}</div> : null}
+              </section>
 
-            {aside ? <aside className="space-y-4">{aside}</aside> : null}
-          </div>
+              {aside ? <aside className="space-y-4">{aside}</aside> : null}
+            </div>
+          ) : null}
 
           {children}
         </div>

@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Download, FileJson, Pencil, Trash2, X, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  FileJson,
+  MoreHorizontal,
+  Pencil,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +23,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   createAiToolsRegistryService,
   getUseCaseSystemsSummary,
@@ -49,6 +64,7 @@ interface UseCaseHeaderProps {
   card: UseCaseCard;
   isEditing: boolean;
   onToggleEdit: () => void;
+  nextStep: string;
   onDelete?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
 }
@@ -70,7 +86,14 @@ function downloadFile(content: string, filename: string, mimeType: string) {
   URL.revokeObjectURL(url);
 }
 
-export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefresh }: UseCaseHeaderProps) {
+export function UseCaseHeader({
+  card,
+  isEditing,
+  onToggleEdit,
+  nextStep,
+  onDelete,
+  onRefresh,
+}: UseCaseHeaderProps) {
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
   const { toast } = useToast();
@@ -89,6 +112,8 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
   const workflowBadge = getUseCaseWorkflowBadge(card, {
     resolveToolName: (toolId) => aiRegistry.getById(toolId)?.productName ?? null,
   });
+  const systemCount = (card.toolId || card.toolFreeText ? 1 : 0) +
+    (card.workflow?.additionalSystems?.length ?? 0);
 
   const riskClass =
     card.governanceAssessment?.core?.aiActCategory ??
@@ -192,12 +217,10 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
   };
 
   const subline = [
-    toolDisplayName,
-    workflowBadge,
     card.globalUseCaseId ?? "EUKI-ID offen",
     `v${card.cardVersion}`,
-    card.isPublicVisible ? "Nachweis sichtbar" : "Nachweis intern",
-    formatDate(card.updatedAt),
+    provenanceLine,
+    `Aktualisiert ${formatDate(card.updatedAt)}`,
   ].join(" · ");
 
   return (
@@ -234,133 +257,134 @@ export function UseCaseHeader({ card, isEditing, onToggleEdit, onDelete, onRefre
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 flex-1 space-y-2">
-            <h1
-              className={cn(
-                "text-[30px] font-semibold leading-tight tracking-tight",
-                isProofReady && "font-[650]"
-              )}
-            >
-              {card.purpose}
-            </h1>
-            <p
-              className={cn(
-                "text-sm text-muted-foreground",
-                isProofReady && "text-slate-700"
-              )}
-            >
-              {subline}
-            </p>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1 space-y-4">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <h1
+                  className={cn(
+                    "text-[34px] font-semibold leading-tight tracking-tight text-slate-950",
+                    isProofReady && "font-[650]"
+                  )}
+                >
+                  {card.purpose}
+                </h1>
+                <RegisterStatusPill status={card.status} />
+              </div>
+
+              <div className="space-y-1.5 text-[15px] text-slate-600">
+                <p className="font-medium text-slate-700">{toolDisplayName}</p>
+                {workflowBadge ? (
+                  <p className="text-slate-600">{workflowBadge}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
+              <span className="font-medium text-slate-950">Nächster Schritt:</span>{" "}
+              {nextStep}
+            </div>
+
             <div className="flex flex-wrap items-center gap-2">
+              {systemCount > 0 ? (
+                <HeaderSignalPill>{`${systemCount} ${systemCount === 1 ? "System" : "Systeme"}`}</HeaderSignalPill>
+              ) : null}
+              <HeaderSignalPill>{usageScope}</HeaderSignalPill>
+              <HeaderSignalPill>{dataCategoryLabel}</HeaderSignalPill>
               {sourceBadges.map((badge) => (
                 <Badge
                   key={badge.key}
                   variant="outline"
-                  className={badge.className}
+                  className={cn("tracking-[0.06em]", badge.className)}
                 >
                   {badge.label}
                 </Badge>
               ))}
             </div>
-            <p className="text-xs text-slate-600">{provenanceLine}</p>
-            {isProofReady && (
+
+            <p className="text-xs text-slate-500">{subline}</p>
+            {isProofReady ? (
               <p className="text-xs text-emerald-700">
                 Dieser Einsatzfall ist formal geprüft und nachweisfähig dokumentiert.
               </p>
-            )}
+            ) : null}
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-            {card.sealedAt && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 border border-emerald-200 bg-emerald-50 text-emerald-800 rounded-md text-xs font-medium mr-2" title={`Siegel (${card.sealHash})`}>
-                <ShieldCheck className="h-4 w-4" />
-                <span>Gezeichnet von {card.sealedByName || "Officer"}</span>
-              </div>
-            )}
-            {!card.sealedAt && profile?.isOfficer && (
+          {!isEditing ? (
+            <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+              <Button
+                size="sm"
+                onClick={onToggleEdit}
+                title="Stammdaten des Einsatzfalls ändern"
+              >
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                Stammdaten bearbeiten
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleSeal}
-                disabled={isSealing}
-                className="mr-2"
-                title="Dokument formal signieren"
+                onClick={() =>
+                  router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
+                }
+                title="Use-Case-Pass öffnen"
               >
-                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-                {isSealing ? "Signiere..." : "Formal signieren"}
+                Use-Case-Pass öffnen
               </Button>
-            )}
-            <RegisterStatusPill status={card.status} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
-              }
-              title="Use-Case-Pass öffnen"
-            >
-              Use-Case-Pass öffnen
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              title="Use-Case-Pass als PDF exportieren"
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              PDF
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportJSON}
-              title="Use-Case-Pass als JSON exportieren"
-            >
-              <FileJson className="mr-1.5 h-3.5 w-3.5" />
-              JSON
-            </Button>
-            <Button
-              variant={isEditing ? "default" : "outline"}
-              size="sm"
-              onClick={onToggleEdit}
-              title={
-                isEditing
-                  ? "Bearbeitung der Stammdaten beenden"
-                  : "Stammdaten des Einsatzfalls ändern"
-              }
-            >
-              {isEditing ? (
-                <>
-                  <X className="mr-1.5 h-3.5 w-3.5" />
-                  Abbrechen
-                </>
-              ) : (
-                <>
-                  <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                  Stammdaten bearbeiten
-                </>
-              )}
-            </Button>
-            {onDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Loeschen
-              </Button>
-            )}
-          </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" title="Weitere Aktionen">
+                    <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                    Mehr
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onSelect={() => window.print()}>
+                    <Download className="h-4 w-4" />
+                    PDF exportieren
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handleExportJSON}>
+                    <FileJson className="h-4 w-4" />
+                    JSON exportieren
+                  </DropdownMenuItem>
+                  {(!card.sealedAt && profile?.isOfficer) || onDelete ? (
+                    <DropdownMenuSeparator />
+                  ) : null}
+                  {!card.sealedAt && profile?.isOfficer ? (
+                    <DropdownMenuItem
+                      onSelect={() => void handleSeal()}
+                      disabled={isSealing}
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                      {isSealing ? "Formal signieren..." : "Formal signieren"}
+                    </DropdownMenuItem>
+                  ) : null}
+                  {onDelete ? (
+                    <DropdownMenuItem
+                      onSelect={() => setShowDeleteConfirm(true)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Loeschen
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : null}
         </div>
 
-        <div className="grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 lg:grid-cols-3">
+        {card.sealedAt ? (
+          <div className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800" title={`Siegel (${card.sealHash})`}>
+            <ShieldCheck className="h-4 w-4" />
+            <span>Gezeichnet von {card.sealedByName || "Officer"}</span>
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-4">
           <MetaItem label="Owner-Rolle" value={ownerLabel} />
+          <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
           <MetaItem label="Risikoklasse" value={riskClass} />
           <MetaItem label="Wirkungsbereich" value={usageScope} />
-          <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
-          <MetaItem label="Datenkategorien" value={dataCategoryLabel} className="sm:col-span-2" />
         </div>
       </div>
 
@@ -403,6 +427,14 @@ function MetaItem({
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-[15px] font-medium text-slate-900">{value}</p>
     </div>
+  );
+}
+
+function HeaderSignalPill({ children }: { children: string }) {
+  return (
+    <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700">
+      {children}
+    </span>
   );
 }
 
