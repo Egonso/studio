@@ -6,9 +6,10 @@
   "permissions": ["tabs", "windows", "contextMenus", "offscreen"],
   "host_permissions": [
     "https://kiregister.com/*",
+    "https://app.kiregister.com/*",
     "https://www.kiregister.com/*",
-    "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*"
+    "http://localhost/*",
+    "http://127.0.0.1/*"
   ],
   "background": {
     "service_worker": "background.js"

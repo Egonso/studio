@@ -28,7 +28,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev:playwright',
     url: 'http://127.0.0.1:9002',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
