@@ -139,6 +139,7 @@ test.describe.serial('workspace scope flows', () => {
       await loginForm.getByLabel('E-Mail-Adresse').fill(ownerEmail);
       await loginForm.getByLabel('Passwort').fill(password);
       await loginForm.getByRole('button', { name: /^Anmelden$/ }).click();
+      await expect(page).toHaveURL(/\/my-register/);
 
       await page.goto(`/my-register?workspace=${orgId}`);
 

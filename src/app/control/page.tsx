@@ -25,13 +25,16 @@ import {
 import { buildControlActionQueue } from '@/lib/control/action-queue-engine';
 import { buildAcademyProgressSnapshot } from '@/lib/course-progress';
 import {
+  checkCapability,
+  useCapability,
+} from '@/lib/compliance-engine/capability/useCapability';
+import {
   calculateControlOverview,
   CONTROL_MATURITY_THRESHOLDS,
   CONTROL_REVIEW_DUE_WINDOW_DAYS,
 } from '@/lib/control/maturity-calculator';
-import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { getCourseProgress } from '@/lib/data-service';
-import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { registerService } from '@/lib/register-first/register-service';
 import type { OrgSettings, UseCaseCard } from '@/lib/register-first/types';
@@ -47,12 +50,15 @@ export default function ControlPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const {
-    allowed: reviewAllowed,
-    loading: capabilityLoading,
-    plan,
-  } = useCapability('reviewWorkflow');
-  const hasGovernanceMenu = plan !== 'free';
+  const scopedHrefs = useScopedRouteHrefs();
+  const { plan, allowed: canOpenReviews, loading: entitlementLoading } =
+    useCapability('reviewWorkflow');
+  const canOpenExports = checkCapability(plan, 'auditExport');
+  const canOpenAcademy = checkCapability(plan, 'competencyMatrix');
+  const isReportOnlyMode = !entitlementLoading && !canOpenReviews;
+  const frameArea = isReportOnlyMode
+    ? 'signed_in_free_register'
+    : 'paid_governance_control';
 
   const [snapshot, setSnapshot] = useState<ControlSnapshot | null>(null);
   const [academyProgress, setAcademyProgress] = useState(() =>
@@ -97,16 +103,10 @@ export default function ControlPage() {
   }, []);
 
   useEffect(() => {
-    if (
-      !loading &&
-      !capabilityLoading &&
-      user &&
-      registerFirstFlags.controlShell &&
-      reviewAllowed
-    ) {
+    if (!loading && user && registerFirstFlags.controlShell) {
       void loadControlSnapshot();
     }
-  }, [capabilityLoading, loadControlSnapshot, loading, reviewAllowed, user]);
+  }, [loading, user, loadControlSnapshot]);
 
   const overview = useMemo(() => {
     if (!snapshot) return null;
@@ -169,19 +169,31 @@ export default function ControlPage() {
     );
   }, [actionQueue]);
 
-  if (loading || capabilityLoading) {
+  if (loading || entitlementLoading) {
     return (
       <SignedInAreaFrame
-        area="paid_governance_control"
-        title="Governance-Bericht"
-        description="Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise."
-        nextStep="Wir bereiten Ihren Bericht vor."
+        area={frameArea}
+        title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
+        description={
+          isReportOnlyMode
+            ? 'Ihr Bericht wird vorbereitet.'
+            : 'Strukturierte Governance-Ebene für Reviews, Policies, Exporte, Trust Portal und Academy.'
+        }
+        nextStep={
+          isReportOnlyMode
+            ? 'Wir bereiten Ihren aktuellen Bericht vor.'
+            : 'Wir bereiten Ihre Governance-Ansicht vor.'
+        }
       >
         <PageStatePanel
           tone="loading"
-          area="paid_governance_control"
-          title="Bericht wird geladen"
-          description="Reifegrad, Kennzahlen und priorisierte Aufgaben werden vorbereitet."
+          area={frameArea}
+          title={isReportOnlyMode ? 'Bericht wird geladen' : 'Control wird geladen'}
+          description={
+            isReportOnlyMode
+              ? 'Kennzahlen, Prioritäten und Reifegrad werden vorbereitet.'
+              : 'Governance-Kennzahlen, Action Queue und Reifegrad werden vorbereitet.'
+          }
         />
       </SignedInAreaFrame>
     );
@@ -191,70 +203,70 @@ export default function ControlPage() {
 
   return (
     <SignedInAreaFrame
-      area="paid_governance_control"
-      title="Governance-Bericht"
+      area={frameArea}
+      title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
       description={
         snapshot?.organisationName
-          ? hasGovernanceMenu
-            ? `Analyse für ${snapshot.organisationName}. Reifegrad, Prüfungen und Nachweise sind hier zusammengeführt; weitere Governance-Bereiche stehen in der Navigation bereit.`
-            : `Analyse für ${snapshot.organisationName}. Reifegrad, Prüfungen und Nachweise werden direkt aus dem Register abgeleitet.`
-          : hasGovernanceMenu
-            ? 'Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise. Weitere Governance-Bereiche stehen in der Navigation bereit.'
-            : 'Registerbasierte Analyse für Reifegrad, Prüfungen und Nachweise.'
+          ? isReportOnlyMode
+            ? `Der aktuelle Bericht für ${snapshot.organisationName}. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.`
+            : `Governance steuern für ${snapshot.organisationName}. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.`
+          : isReportOnlyMode
+            ? 'Ihr aktueller Bericht. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.'
+            : 'Governance steuern. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.'
       }
       nextStep={
-        !reviewAllowed
-          ? 'Governance Control Center gehört zur bezahlten Governance-Stufe.'
-          : actionQueue.length > 0
-          ? 'Arbeiten Sie zuerst die priorisierten Aufgaben aus dem Bericht ab.'
-          : 'Nutzen Sie den Bericht, um Dokumentations-, Review- und Nachweislücken zu erkennen.'
+        actionQueue.length > 0
+          ? isReportOnlyMode
+            ? 'Arbeiten Sie zuerst die offenen Punkte in Ihrem Register ab.'
+            : 'Arbeiten Sie zuerst die priorisierten Governance-Aufgaben ab.'
+          : isReportOnlyMode
+            ? 'Halten Sie Dokumentation, Verantwortlichkeiten und Governance-Grundlagen aktuell.'
+            : 'Prüfen Sie Policies, Exporte oder Trust Portal als nächsten Governance-Schritt.'
       }
     >
       <div className="space-y-6">
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
-            area="paid_governance_control"
-            title="Governance-Bericht ist noch nicht verfügbar"
-            description="Der Governance-Bericht ist für diesen Workspace noch nicht freigeschaltet."
+            area={frameArea}
+            title={
+              isReportOnlyMode
+                ? 'Bericht ist noch nicht freigeschaltet'
+                : 'Control ist noch nicht freigeschaltet'
+            }
+            description={
+              isReportOnlyMode
+                ? 'Dieser Bericht ist für diesen Workspace noch nicht aktiviert.'
+                : 'Die Governance-Ebene ist für diesen Workspace noch nicht aktiviert.'
+            }
             actions={
               <Button asChild>
-                <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                <Link href={scopedHrefs.register}>Register öffnen</Link>
               </Button>
-            }
-          />
-        ) : !reviewAllowed ? (
-          <PageStatePanel
-            area="paid_governance_control"
-            title="Governance-Bericht gehört zur Governance-Stufe"
-            description="Maturity-Analyse, Action Queue und Organisationssteuerung bleiben für bezahlte Governance-Workspaces reserviert."
-            actions={
-              <>
-                <Button asChild>
-                  <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.governanceUpgrade}>
-                    Upgrade-Optionen
-                  </Link>
-                </Button>
-              </>
             }
           />
         ) : (
           <>
             {focusedUseCaseId && (
               <PageStatePanel
-                area="paid_governance_control"
+                area={frameArea}
                 title="Kontext aus dem Register übernommen"
-                description={`Use Case ${focusedUseCaseId} wurde als Kontext in den Bericht übernommen.`}
+                description={
+                  isReportOnlyMode
+                    ? `Use Case ${focusedUseCaseId} wurde als Kontext in den Bericht übernommen.`
+                    : `Use Case ${focusedUseCaseId} wurde als Kontext in Control geöffnet.`
+                }
               />
             )}
 
             {isDataLoading && !overview && (
               <PageStatePanel
                 tone="loading"
-                area="paid_governance_control"
-                title="Governance-Daten werden geladen"
+                area={frameArea}
+                title={
+                  isReportOnlyMode
+                    ? 'Berichtsdaten werden geladen'
+                    : 'Governance-Daten werden geladen'
+                }
                 description="Kennzahlen, Aufgaben und Reifegrad werden geladen."
               />
             )}
@@ -262,8 +274,12 @@ export default function ControlPage() {
             {dataError && (
               <PageStatePanel
                 tone="error"
-                area="paid_governance_control"
-                title="Bericht konnte nicht geladen werden"
+                area={frameArea}
+                title={
+                  isReportOnlyMode
+                    ? 'Bericht konnte nicht geladen werden'
+                    : 'Control konnte nicht geladen werden'
+                }
                 description={dataError}
               />
             )}
@@ -304,17 +320,22 @@ export default function ControlPage() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Reviews / Action Queue</CardTitle>
+                      <CardTitle>
+                        {isReportOnlyMode
+                          ? 'Prioritäten aus dem Register'
+                          : 'Reviews / Action Queue'}
+                      </CardTitle>
                       <CardDescription>
-                        Priorisierte Governance-Aufgaben und fällige Reviews an
-                        einem Ort.
+                        {isReportOnlyMode
+                          ? 'Was im Bericht als Nächstes Aufmerksamkeit braucht.'
+                          : 'Priorisierte Governance-Aufgaben und fällige Reviews an einem Ort.'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-md border p-3">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Action Queue
+                            {isReportOnlyMode ? 'Prioritäten' : 'Action Queue'}
                           </p>
                           <p className="mt-1 text-2xl font-semibold">
                             {actionQueue.length}
@@ -338,13 +359,21 @@ export default function ControlPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Button asChild>
-                          <Link href={ROUTE_HREFS.controlReviews}>
-                            Reviews öffnen
-                          </Link>
-                        </Button>
+                        {canOpenReviews ? (
+                          <Button asChild>
+                            <Link href={scopedHrefs.controlReviews}>
+                              Reviews öffnen
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button asChild>
+                            <Link href={scopedHrefs.register}>
+                              Register öffnen
+                            </Link>
+                          </Button>
+                        )}
                         <Button asChild variant="outline">
-                          <Link href={ROUTE_HREFS.governanceSettings}>
+                          <Link href={scopedHrefs.governanceSettings}>
                             Governance Settings
                           </Link>
                         </Button>
@@ -354,46 +383,98 @@ export default function ControlPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Academy-Fortschritt</CardTitle>
+                      <CardTitle>
+                        {isReportOnlyMode
+                          ? 'Bericht aktuell halten'
+                          : 'Academy-Fortschritt'}
+                      </CardTitle>
                       <CardDescription>
-                        Kurs- und Zertifizierungsfortschritt direkt aus der
-                        Governance-Ebene.
+                        {isReportOnlyMode
+                          ? 'Der Bericht bleibt belastbar, wenn Dokumentation und Zuständigkeiten laufend gepflegt werden.'
+                          : 'Kurs- und Zertifizierungsfortschritt direkt aus der Governance-Ebene.'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">
-                            Abgeschlossene Lernvideos
-                          </span>
-                          <span className="font-medium">
-                            {academyProgress.completedVideos}/
-                            {academyProgress.totalVideos}
-                          </span>
+                      {isReportOnlyMode ? (
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <div className="rounded-md border p-3">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                              Systeme gesamt
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold">
+                              {overview.kpis.totalSystems}
+                            </p>
+                          </div>
+                          <div className="rounded-md border p-3">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                              Ohne Owner
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold">
+                              {overview.kpis.systemsWithoutOwner}
+                            </p>
+                          </div>
+                          <div className="rounded-md border p-3">
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                              Hochrisiko
+                            </p>
+                            <p className="mt-1 text-2xl font-semibold">
+                              {overview.kpis.highRiskCount}
+                            </p>
+                          </div>
                         </div>
-                        <div className="h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-2 rounded-full bg-slate-900 transition-all"
-                            style={{
-                              width: `${academyProgress.completionPercent}%`,
-                            }}
-                          />
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Abgeschlossene Lernvideos
+                            </span>
+                            <span className="font-medium">
+                              {academyProgress.completedVideos}/
+                              {academyProgress.totalVideos}
+                            </span>
+                          </div>
+                          <div className="h-2 rounded-full bg-slate-100">
+                            <div
+                              className="h-2 rounded-full bg-slate-900 transition-all"
+                              style={{
+                                width: `${academyProgress.completionPercent}%`,
+                              }}
+                            />
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {academyProgress.started
+                              ? `${academyProgress.completionPercent}% abgeschlossen. Kurs und Prüfung bleiben aus Control in einem Klick erreichbar.`
+                              : 'Noch kein Kursstart. Academy ist direkt erreichbar, sobald Ihr Team Governance-Training aufnimmt.'}
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {academyProgress.started
-                            ? `${academyProgress.completionPercent}% abgeschlossen. Kurs und Prüfung bleiben aus Control in einem Klick erreichbar.`
-                            : 'Noch kein Kursstart. Academy ist direkt erreichbar, sobald Ihr Team Governance-Training aufnimmt.'}
-                        </p>
-                      </div>
+                      )}
                       <div className="flex flex-wrap gap-2">
-                        <Button asChild>
-                          <Link href={ROUTE_HREFS.academy}>Academy öffnen</Link>
-                        </Button>
-                        <Button asChild variant="outline">
-                          <Link href={ROUTE_HREFS.controlExports}>
-                            Audit-Exports ansehen
-                          </Link>
-                        </Button>
+                        {canOpenAcademy ? (
+                          <Button asChild>
+                            <Link href={scopedHrefs.academy}>
+                              Academy öffnen
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button asChild>
+                            <Link href={scopedHrefs.register}>
+                              Register öffnen
+                            </Link>
+                          </Button>
+                        )}
+                        {canOpenExports ? (
+                          <Button asChild variant="outline">
+                            <Link href={scopedHrefs.controlExports}>
+                              Audit-Exports ansehen
+                            </Link>
+                          </Button>
+                        ) : (
+                          <Button asChild variant="outline">
+                            <Link href={scopedHrefs.governanceSettings}>
+                              Governance Settings
+                            </Link>
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -404,7 +485,9 @@ export default function ControlPage() {
                 ) : (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Action Queue</CardTitle>
+                      <CardTitle>
+                        {isReportOnlyMode ? 'Prioritäten' : 'Action Queue'}
+                      </CardTitle>
                       <CardDescription>
                         Die priorisierte Maßnahmenliste erscheint hier, sobald
                         dieser Bereich verfügbar ist.

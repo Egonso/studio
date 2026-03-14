@@ -99,7 +99,9 @@ export default function MyRegisterPage() {
     string | null
   >(null);
   const controlNavItems = getVisiblePremiumControlNav(plan);
-  const hasGovernanceMenu = controlNavItems.length > 0;
+  const controlMenuItems = controlNavItems.filter(
+    (item) => item.id !== 'overview',
+  );
 
   useEffect(() => {
     setActiveWorkspaceId(
@@ -390,19 +392,33 @@ export default function MyRegisterPage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                {hasGovernanceMenu ? (
+                {registerFirstFlags.controlShell && activeRegister && (
+                  <Button
+                    variant="outline"
+                    className="h-10 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                    onClick={() =>
+                      router.push(
+                        appendWorkspaceScope(ROUTE_HREFS.control, workspaceScope),
+                      )
+                    }
+                  >
+                    Bericht
+                  </Button>
+                )}
+                {(controlMenuItems.length > 0 ||
+                  (registerFirstFlags.registerDeletion && activeRegister)) && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
                         className="h-10 gap-1.5 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
                       >
-                        Bericht
+                        Optionen
                         <ChevronDown className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-56">
-                      {controlNavItems.map((item) => (
+                      {controlMenuItems.map((item) => (
                         <DropdownMenuItem
                           key={item.id}
                           onClick={() =>
@@ -411,9 +427,7 @@ export default function MyRegisterPage() {
                             )
                           }
                         >
-                          {item.id === 'overview'
-                            ? 'Bericht öffnen'
-                            : item.label}
+                          {item.label}
                         </DropdownMenuItem>
                       ))}
                       {registerFirstFlags.registerDeletion && activeRegister && (
@@ -429,14 +443,6 @@ export default function MyRegisterPage() {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="h-10 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
-                    onClick={() => router.push(ROUTE_HREFS.control)}
-                  >
-                    Bericht
-                  </Button>
                 )}
               </div>
             )}
