@@ -134,6 +134,7 @@ export function UseCaseHeader({
     : card.responsibility.responsibleParty || "Nicht zugewiesen";
   const source = getUseCaseSource(card);
   const sourceBadges = getUseCaseSourceBadges(card);
+  const visibleSourceBadges = sourceBadges.filter((badge) => badge.key !== "MANUELL");
   const submitterIdentity = getUseCaseSubmitterIdentity(card);
   const displaySubmitterIdentity =
     submitterIdentity ?? (source === "manual" ? "Internes Team" : null);
@@ -272,17 +273,18 @@ export function UseCaseHeader({
                 <RegisterStatusPill status={card.status} />
               </div>
 
-              <div className="space-y-1.5 text-[15px] text-slate-600">
-                <p className="font-medium text-slate-700">{toolDisplayName}</p>
-                {workflowBadge ? (
-                  <p className="text-slate-600">{workflowBadge}</p>
-                ) : null}
+              <div className="space-y-2 text-[15px] leading-7">
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-slate-600">
+                  <p className="font-medium text-slate-700">{toolDisplayName}</p>
+                  {workflowBadge ? (
+                    <p className="text-slate-600">{workflowBadge}</p>
+                  ) : null}
+                </div>
+                <p className="text-slate-900">
+                  <span className="font-medium">Nächster Schritt:</span>{" "}
+                  <span className="text-slate-700">{nextStep}</span>
+                </p>
               </div>
-            </div>
-
-            <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
-              <span className="font-medium text-slate-950">Nächster Schritt:</span>{" "}
-              {nextStep}
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -291,7 +293,7 @@ export function UseCaseHeader({
               ) : null}
               <HeaderSignalPill>{usageScope}</HeaderSignalPill>
               <HeaderSignalPill>{dataCategoryLabel}</HeaderSignalPill>
-              {sourceBadges.map((badge) => (
+              {visibleSourceBadges.map((badge) => (
                 <Badge
                   key={badge.key}
                   variant="outline"
@@ -380,11 +382,13 @@ export function UseCaseHeader({
           </div>
         ) : null}
 
-        <div className="grid gap-4 border-t border-slate-200 pt-6 sm:grid-cols-2 xl:grid-cols-4">
-          <MetaItem label="Owner-Rolle" value={ownerLabel} />
-          <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
-          <MetaItem label="Risikoklasse" value={riskClass} />
-          <MetaItem label="Wirkungsbereich" value={usageScope} />
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <MetaItem label="Owner-Rolle" value={ownerLabel} />
+            <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
+            <MetaItem label="Risikoklasse" value={riskClass} />
+            <MetaItem label="Wirkungsbereich" value={usageScope} />
+          </div>
         </div>
       </div>
 
@@ -424,8 +428,10 @@ function MetaItem({
 }) {
   return (
     <div className={cn("space-y-1", className)}>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-[15px] font-medium text-slate-900">{value}</p>
+      <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+        {label}
+      </p>
+      <p className="text-[15px] leading-7 font-medium text-slate-900">{value}</p>
     </div>
   );
 }
