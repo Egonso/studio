@@ -22,6 +22,8 @@ interface UseCaseSystemsComplianceSectionProps {
   card: UseCaseCard;
   isEditing: boolean;
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
+  mode?: "single" | "multi";
+  layout?: "standalone" | "embedded";
 }
 
 type ActiveCheckTarget = "all" | string | null;
@@ -113,10 +115,17 @@ export function UseCaseSystemsComplianceSection({
   card,
   isEditing,
   onSave,
+  mode = "multi",
+  layout = "standalone",
 }: UseCaseSystemsComplianceSectionProps) {
   const { toast } = useToast();
   const [activeCheckTarget, setActiveCheckTarget] =
     useState<ActiveCheckTarget>(null);
+  const isSingleMode = mode === "single";
+  const sectionClassName =
+    layout === "embedded"
+      ? "space-y-5"
+      : "rounded-lg border border-slate-200 bg-white p-5 md:p-6";
 
   const systems = useMemo(
     () =>
@@ -268,15 +277,18 @@ export function UseCaseSystemsComplianceSection({
   };
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+    <section className={sectionClassName}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-[18px] font-semibold tracking-tight">
-            Beteiligte Systeme & Compliance
+            {isSingleMode
+              ? "System & Compliance"
+              : "Beteiligte Systeme & Compliance"}
           </h2>
           <p className="text-xs text-muted-foreground">
-            Ablauf dokumentiert die Reihenfolge. Compliance prueft beteiligte
-            Systeme dedupliziert.
+            {isSingleMode
+              ? "Zeigt den aktuellen Compliance-Stand fuer das dokumentierte System."
+              : "Ablauf dokumentiert die Reihenfolge. Compliance prueft beteiligte Systeme dedupliziert."}
           </p>
         </div>
 
@@ -293,7 +305,9 @@ export function UseCaseSystemsComplianceSection({
               Pruefung laeuft...
             </>
           ) : (
-            "Compliance fuer beteiligte Systeme pruefen"
+            isSingleMode
+              ? "Compliance pruefen"
+              : "Compliance fuer beteiligte Systeme pruefen"
           )}
         </Button>
       </div>
@@ -301,12 +315,15 @@ export function UseCaseSystemsComplianceSection({
       <div className="mt-4 rounded-sm border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
         {isEditing ? (
           <p>
-            Beteiligte Systeme pflegen Sie im Abschnitt "Ablauf & Systeme". Hier
-            sehen und pruefen Sie die deduplizierten Compliance-Informationen.
+            {isSingleMode
+              ? 'Wenn Sie weitere Systeme ergaenzen, erscheint hier automatisch eine deduplizierte Mehrsystem-Sicht.'
+              : 'Beteiligte Systeme pflegen Sie im Abschnitt "Ablauf & Systeme". Hier sehen und pruefen Sie die deduplizierten Compliance-Informationen.'}
           </p>
         ) : (
           <p>
-            Wiederholte Schritte mit demselben System erscheinen hier nur einmal.
+            {isSingleMode
+              ? "Compliance-Informationen beziehen sich auf das aktuell dokumentierte System."
+              : "Wiederholte Schritte mit demselben System erscheinen hier nur einmal."}
           </p>
         )}
       </div>

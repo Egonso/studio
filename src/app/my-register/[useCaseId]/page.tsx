@@ -6,7 +6,9 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
+import { RegisterStatusPill } from '@/components/register/detail/status-pill';
 import { UseCaseMetadataSection } from '@/components/register/detail/use-case-metadata-section';
+import { UseCaseSystemsComplianceSection } from '@/components/register/detail/use-case-systems-compliance-section';
 import { UseCaseWorkflowSection } from '@/components/register/detail/use-case-workflow-section';
 import { GovernanceLiabilitySection } from '@/components/register/detail/governance-liability-section';
 import { ReviewSection } from '@/components/register/detail/review-section';
@@ -20,6 +22,11 @@ import {
 import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { registerFirstFlags } from '@/lib/register-first/flags';
+import {
+  createAiToolsRegistryService,
+  getUseCaseSystemSectionMode,
+  getUseCaseSystemsSummary,
+} from '@/lib/register-first';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
 import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
 import { registerService } from '@/lib/register-first/register-service';
@@ -30,6 +37,8 @@ import type {
   UseCaseCard,
 } from '@/lib/register-first/types';
 import { setActiveWorkspaceId } from '@/lib/workspace-session';
+
+const aiRegistry = createAiToolsRegistryService();
 
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>();
@@ -74,6 +83,27 @@ export default function UseCaseDetailPage() {
     : card?.origin?.source === 'manual'
       ? 'Ergänzen Sie Dokumentation, Review und Nachweise für diesen manuell angelegten Use Case.'
       : 'Prüfen Sie Herkunft, Review und Governance-Details für diesen Use Case.';
+  const systemSectionMode = useMemo(
+    () =>
+      card
+        ? getUseCaseSystemSectionMode(card, {
+            resolveToolName: (toolId) =>
+              aiRegistry.getById(toolId)?.productName ?? null,
+          })
+        : 'single',
+    [card],
+  );
+  const systemsSummary = useMemo(
+    () =>
+      card
+        ? getUseCaseSystemsSummary(card, {
+            resolveToolName: (toolId) =>
+              aiRegistry.getById(toolId)?.productName ?? null,
+            emptyLabel: 'Kein System',
+          })
+        : 'Kein System',
+    [card],
+  );
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -281,6 +311,15 @@ export default function UseCaseDetailPage() {
           onRefresh={loadUseCase}
         />
 
+        {isEditing ? (
+          <UseCaseEditContextBar
+            purpose={card.purpose}
+            status={card.status}
+            systemsSummary={systemsSummary}
+            onCancel={() => setIsEditing(false)}
+          />
+        ) : null}
+
         {invalidFocus && (
           <div className="border-l-2 border-slate-300 pl-3 text-sm text-slate-600">
             <p className="font-medium">Hinweis</p>
@@ -298,7 +337,51 @@ export default function UseCaseDetailPage() {
           focusTarget={activeFocus}
         />
 
-        <UseCaseWorkflowSection card={card} onSave={handleSaveMetadata} />
+        {systemSectionMode === 'multi' ? (
+          <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+            <div className="space-y-1">
+              <h2 className="text-[18px] font-semibold tracking-tight">
+                Systemlandschaft
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Verbindet die Ablauf-Sicht mit der deduplizierten
+                Compliance-Perspektive fuer alle beteiligten Systeme.
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-6">
+              <UseCaseWorkflowSection
+                card={card}
+                onSave={handleSaveMetadata}
+                mode="multi"
+                layout="embedded"
+              />
+              <div className="border-t border-slate-200 pt-6">
+                <UseCaseSystemsComplianceSection
+                  card={card}
+                  isEditing={isEditing}
+                  onSave={handleSaveMetadata}
+                  mode="multi"
+                  layout="embedded"
+                />
+              </div>
+            </div>
+          </section>
+        ) : (
+          <div className="space-y-6">
+            <UseCaseWorkflowSection
+              card={card}
+              onSave={handleSaveMetadata}
+              mode="single"
+            />
+            <UseCaseSystemsComplianceSection
+              card={card}
+              isEditing={isEditing}
+              onSave={handleSaveMetadata}
+              mode="single"
+            />
+          </div>
+        )}
 
         {registerFirstFlags.controlShell && (
           <div
@@ -340,6 +423,48 @@ export default function UseCaseDetailPage() {
         </div>
       </div>
     </SignedInAreaFrame>
+  );
+}
+
+function UseCaseEditContextBar({
+  purpose,
+  status,
+  systemsSummary,
+  onCancel,
+}: {
+  purpose: string;
+  status: RegisterUseCaseStatus;
+  systemsSummary: string;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="sticky top-3 z-20 rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+              Bearbeitung aktiv
+            </span>
+            <RegisterStatusPill status={status} />
+          </div>
+          <p className="truncate text-sm font-medium text-slate-900">
+            {purpose}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {systemsSummary}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+            Abbrechen
+          </Button>
+          <Button type="submit" size="sm" form="use-case-metadata-form">
+            Speichern
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -44,6 +44,8 @@ export interface UseCaseWorkflowDisplay {
   summary: string | null;
 }
 
+export type UseCaseSystemSectionMode = "single" | "multi";
+
 export interface ResolvedComplianceSystemEntry
   extends ResolvedUseCaseSystemEntry {
   systemKey: string;
@@ -224,6 +226,25 @@ export function resolveUseCaseWorkflowDisplay(
       : null,
     summary,
   };
+}
+
+export function hasUseCaseWorkflowMetadata(
+  card: Pick<UseCaseCard, "workflow">
+): boolean {
+  return Boolean(
+    normalizeWorkflowConnectionMode(card.workflow?.connectionMode) ??
+      normalizeOptionalText(card.workflow?.summary)
+  );
+}
+
+export function getUseCaseSystemSectionMode(
+  card: Pick<UseCaseCard, "toolId" | "toolFreeText" | "workflow">,
+  options: ResolveUseCaseSystemOptions = {}
+): UseCaseSystemSectionMode {
+  const workflow = resolveUseCaseWorkflowDisplay(card, options);
+  return workflow.systemCount > 1 || hasUseCaseWorkflowMetadata(card)
+    ? "multi"
+    : "single";
 }
 
 export function resolveUniqueSystemsForCompliance(
