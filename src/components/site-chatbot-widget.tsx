@@ -25,7 +25,7 @@ export function SiteChatbotWidget() {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'model', content: 'Hallo! Ich bin dein AI-Assistent für das EuKIGesetz Studio. Wie kann ich dir helfen?' }
+        { role: 'model', content: 'Hallo. Ich helfe dir bei KI Register, Fragen zur Plattform und beim Einreichen von Ideen, Fehlern oder Support-Anliegen.' }
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -163,7 +163,7 @@ export function SiteChatbotWidget() {
                 className="fixed bottom-4 right-4 h-10 w-10 rounded-full shadow-sm z-50 p-0 bg-muted hover:bg-muted/80 transition-transform hover:scale-105"
             >
                 <MessageCircle className="h-5 w-5 text-muted-foreground" />
-                <span className="sr-only">Chatbot öffnen</span>
+                <span className="sr-only">Assistant öffnen</span>
             </Button>
         );
     }
@@ -175,7 +175,7 @@ export function SiteChatbotWidget() {
                     <div className="bg-primary/10 p-1 rounded-full">
                         <Bot className="h-5 w-5 text-primary" />
                     </div>
-                    <CardTitle className="text-sm font-medium">EuKIGesetz Assistant</CardTitle>
+                    <CardTitle className="text-sm font-medium">KI Register Assistant</CardTitle>
                 </div>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsOpen(false)}>
                     <Minimize2 className="h-4 w-4" />
@@ -187,7 +187,7 @@ export function SiteChatbotWidget() {
                 <div className="px-4 pt-2">
                     <TabsList className="w-full grid grid-cols-2">
                         <TabsTrigger value="chat">Chat</TabsTrigger>
-                        <TabsTrigger value="support">Support & Feedback</TabsTrigger>
+                        <TabsTrigger value="support">Support</TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -293,9 +293,9 @@ export function SiteChatbotWidget() {
                 <TabsContent value="support" className="flex-1 p-4 overflow-y-auto data-[state=inactive]:hidden">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <h3 className="font-medium">Feedback & Support</h3>
+                            <h3 className="font-medium">Feedback, Ideen und Support</h3>
                             <p className="text-xs text-muted-foreground">
-                                Helfen Sie uns, EuKIGesetz Studio zu verbessern. Reichen Sie Feature-Wünsche ein oder melden Sie Fehler.
+                                Reiche hier Ideen ein, melde Fehler oder stelle eine Support-Anfrage. Alles läuft bewusst an einem Ort zusammen.
                             </p>
                         </div>
 
@@ -346,23 +346,6 @@ export function SiteChatbotWidget() {
                                 {isSendingFeedback ? 'Sende...' : 'Absenden'}
                             </Button>
                         )}
-
-                        <div className="mt-6 pt-6 border-t">
-                            <h4 className="font-medium text-sm mb-2">Roadmap & Status</h4>
-                            <p className="text-xs text-muted-foreground mb-2">
-                                Sehen Sie, woran wir gerade arbeiten. (Admin-Center Link coming soon)
-                            </p>
-                            <div className="space-y-2">
-                                <div className="text-xs flex justify-between items-center bg-muted p-2 rounded">
-                                    <span>Gesetz-Viewer Mobile</span>
-                                    <span className="text-green-600 font-bold bg-green-100 dark:bg-green-900 px-1.5 rounded">Live</span>
-                                </div>
-                                <div className="text-xs flex justify-between items-center bg-muted p-2 rounded">
-                                    <span>Deep-Linking Zitate</span>
-                                    <span className="text-blue-600 font-bold bg-blue-100 dark:bg-blue-900 px-1.5 rounded">In Arbeit</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </TabsContent>
             </Tabs>

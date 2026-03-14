@@ -527,12 +527,19 @@ export function showGlobalFooterForPathname(pathname: string): boolean {
 }
 
 export function showSiteChatbotForPathname(pathname: string): boolean {
-  if (pathname === '/' || pathname === '/login') {
+  if (!pathname) {
     return false;
   }
 
-  const area = getProductAreaForPathname(pathname);
-  return area === null || area === 'public_marketing';
+  if (
+    pathname === ROUTE_PATHS.publicCapture ||
+    pathname.startsWith('/request/') ||
+    pathname === '/exam'
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 export interface ProductNavItem {

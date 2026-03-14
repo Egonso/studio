@@ -150,13 +150,17 @@ test('governance settings nav stays active on the unified settings page', () => 
   );
 });
 
-test('global chrome hides footer and chatbot on intake and app shells', () => {
+test('global chrome keeps footer hidden on app shells and shows the support widget everywhere except intake and exam flows', () => {
   assert.equal(showGlobalFooterForPathname('/'), false);
   assert.equal(showGlobalFooterForPathname('/erfassen'), false);
   assert.equal(showGlobalFooterForPathname('/my-register'), false);
   assert.equal(showGlobalFooterForPathname('/gesetz'), true);
 
-  assert.equal(showSiteChatbotForPathname('/'), false);
+  assert.equal(showSiteChatbotForPathname('/'), true);
   assert.equal(showSiteChatbotForPathname('/erfassen'), false);
-  assert.equal(showSiteChatbotForPathname('/control'), false);
+  assert.equal(showSiteChatbotForPathname('/request/token-123'), false);
+  assert.equal(showSiteChatbotForPathname('/exam'), false);
+  assert.equal(showSiteChatbotForPathname('/my-register'), true);
+  assert.equal(showSiteChatbotForPathname('/control'), true);
+  assert.equal(showSiteChatbotForPathname('/settings'), true);
 });
