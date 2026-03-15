@@ -53,6 +53,7 @@ const supplierRequestSystemSchema = z
 
 const supplierRequestSubmissionSchema = z.object({
   supplierEmail: z.string().trim().email().max(320),
+  supplierOrganisation: z.string().trim().min(2).max(200).optional().nullable(),
   toolName: z.string().trim().min(1).max(300),
   systems: z.array(supplierRequestSystemSchema).max(8).optional().nullable(),
   purpose: z.string().trim().min(3).max(500),
@@ -62,17 +63,6 @@ const supplierRequestSubmissionSchema = z.object({
   workflowConnectionMode: z.string().trim().max(80).optional().nullable(),
   workflowSummary: z.string().trim().max(300).optional().nullable(),
   workflow: z.unknown().optional().nullable(),
-}).superRefine((value, ctx) => {
-  if (
-    !Array.isArray(value.dataCategories) &&
-    !value.dataCategory
-  ) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Mindestens eine Datenkategorie ist erforderlich.",
-      path: ["dataCategories"],
-    });
-  }
 });
 
 type UseCaseLabel = NonNullable<UseCaseCard["labels"]>[number];
@@ -80,10 +70,11 @@ type SupplierRequestSystemInput = z.infer<typeof supplierRequestSystemSchema>;
 
 export interface SupplierRequestSubmission extends Record<string, unknown> {
   supplierEmail: string;
+  supplierOrganisation?: string | null;
   toolName: string;
   purpose: string;
-  dataCategory: DataCategory;
-  dataCategories: DataCategory[];
+  dataCategory?: DataCategory;
+  dataCategories?: DataCategory[];
   aiActCategory?: string | null;
   workflow?: UseCaseWorkflow;
 }
@@ -262,10 +253,11 @@ export function parseSupplierRequestSubmission(
 
   return {
     supplierEmail: parsed.supplierEmail,
+    supplierOrganisation: normalizeOptionalText(parsed.supplierOrganisation),
     toolName,
     purpose: parsed.purpose,
     dataCategory: dataCategories[0],
-    dataCategories,
+    dataCategories: dataCategories.length > 0 ? dataCategories : undefined,
     aiActCategory: normalizeOptionalText(parsed.aiActCategory),
     workflow: resolveSupplierWorkflow(
       toolName,
@@ -331,13 +323,13 @@ export function createSupplierRequestUseCase(
     },
     origin: createUseCaseOrigin({
       source: "supplier_request",
-      submittedByName: submission.supplierEmail,
+      submittedByName: submission.supplierOrganisation ?? submission.supplierEmail,
       submittedByEmail: submission.supplierEmail,
       sourceRequestId: null,
       capturedByUserId: null,
     }),
     capturedBy: "SUPPLIER_REQUEST",
-    capturedByName: submission.supplierEmail,
+    capturedByName: submission.supplierOrganisation ?? submission.supplierEmail,
   });
 }
 

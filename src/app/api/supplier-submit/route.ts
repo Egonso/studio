@@ -105,6 +105,7 @@ export async function POST(req: Request) {
     phase = 'parse_submission';
     const parsedSubmission = parseSupplierRequestSubmission({
       supplierEmail: body?.supplierEmail,
+      supplierOrganisation: body?.supplierOrganisation,
       toolName: body?.toolName,
       systems: registerFirstFlags.supplierMultisystemCapture
         ? body?.systems
@@ -146,7 +147,8 @@ export async function POST(req: Request) {
       ownerId: tokenAccess.value.token.ownerId,
       sourceType: 'supplier_request',
       requestTokenId: tokenAccess.value.token.tokenId,
-      submittedByName: parsedSubmission.supplierEmail,
+      submittedByName:
+        parsedSubmission.supplierOrganisation ?? parsedSubmission.supplierEmail,
       submittedByEmail: parsedSubmission.supplierEmail,
       submittedAt: new Date(),
       rawPayloadSnapshot: parsedSubmission,

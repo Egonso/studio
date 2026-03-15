@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   buildAccessCodeSubmissionSnapshot,
   buildExternalSubmissionRecord,
+  getExternalSubmissionActor,
   buildUseCaseFromAccessCodeSubmission,
   buildUseCaseFromSupplierSubmission,
   getExternalSubmissionTitle,
@@ -21,6 +22,7 @@ test("buildExternalSubmissionRecord keeps immutable provenance fields", () => {
     submittedAt: "2026-03-12T10:00:00.000Z",
     rawPayloadSnapshot: {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "SuperAgent AI",
       purpose: "First-level support",
       dataCategory: "PERSONAL_DATA",
@@ -44,6 +46,7 @@ test("buildUseCaseFromSupplierSubmission links back to immutable submission", ()
     submittedAt: "2026-03-12T10:00:00.000Z",
     rawPayloadSnapshot: {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "SuperAgent AI",
       purpose: "First-level support",
       dataCategory: "PERSONAL_DATA",
@@ -66,6 +69,7 @@ test("buildUseCaseFromSupplierSubmission links back to immutable submission", ()
   assert.equal(card.externalIntake?.sourceType, "supplier_request");
   assert.equal(card.origin?.source, "supplier_request");
   assert.equal(card.origin?.submittedByEmail, "vendor@example.com");
+  assert.equal(card.origin?.submittedByName, "Lieferant GmbH");
   assert.equal(card.origin?.sourceRequestId, "extsub_2");
 });
 
@@ -80,6 +84,7 @@ test("buildUseCaseFromSupplierSubmission preserves multisystem supplier snapshot
     submittedAt: "2026-03-12T10:00:00.000Z",
     rawPayloadSnapshot: {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "Perplexity API",
       purpose: "Marketing-Newsletter vorbereiten",
       dataCategory: "PERSONAL_DATA",
@@ -131,6 +136,7 @@ test("buildUseCaseFromSupplierSubmission keeps new supplier dataCategories snaps
     submittedAt: "2026-03-12T10:00:00.000Z",
     rawPayloadSnapshot: {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "Perplexity API",
       purpose: "Marketing-Newsletter vorbereiten",
       dataCategories: ["SPECIAL_PERSONAL"],
@@ -165,6 +171,7 @@ test("getExternalSubmissionTitle fasst Mehrsystem-Einreichungen kompakt zusammen
     submittedAt: "2026-03-12T10:00:00.000Z",
     rawPayloadSnapshot: {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "Perplexity API",
       purpose: "Marketing-Newsletter vorbereiten",
       dataCategory: "PERSONAL_DATA",
@@ -191,6 +198,26 @@ test("getExternalSubmissionTitle fasst Mehrsystem-Einreichungen kompakt zusammen
     getExternalSubmissionTitle(submission),
     "Perplexity API +2: Marketing-Newsletter vorbereiten"
   );
+});
+
+test("getExternalSubmissionActor bevorzugt die Lieferantenorganisation vor der E-Mail", () => {
+  const submission = buildExternalSubmissionRecord({
+    submissionId: "extsub_actor_1",
+    registerId: "reg_123",
+    ownerId: "owner_456",
+    sourceType: "supplier_request",
+    submittedByName: "Lieferant GmbH",
+    submittedByEmail: "vendor@example.com",
+    submittedAt: "2026-03-12T10:00:00.000Z",
+    rawPayloadSnapshot: {
+      supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
+      toolName: "Perplexity API",
+      purpose: "Marketing-Newsletter vorbereiten",
+    },
+  });
+
+  assert.equal(getExternalSubmissionActor(submission), "Lieferant GmbH");
 });
 
 test("buildUseCaseFromAccessCodeSubmission keeps submission and code provenance", () => {

@@ -1758,7 +1758,7 @@ export default function ControlEnterprisePage() {
                                   {getSubmissionHeadline(submission)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {submission.submittedByEmail ?? submission.submittedByName ?? 'Unbekannt'} ·{' '}
+                                  {submission.submittedByName ?? submission.submittedByEmail ?? 'Unbekannt'} ·{' '}
                                   {formatDate(submission.submittedAt)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">

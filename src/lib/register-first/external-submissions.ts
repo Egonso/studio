@@ -319,6 +319,7 @@ export function buildUseCaseFromSupplierSubmission(input: {
       source: 'supplier_request',
       submittedByName:
         input.submission.submittedByName ??
+        snapshot.supplierOrganisation ??
         input.submission.submittedByEmail ??
         snapshot.supplierEmail,
       submittedByEmail:
@@ -398,7 +399,13 @@ export function getExternalSubmissionActor(
     'submittedByName' | 'submittedByEmail' | 'rawPayloadSnapshot'
   >,
 ): string {
+  const supplierOrganisation =
+    typeof submission.rawPayloadSnapshot.supplierOrganisation === 'string'
+      ? normalizeOptionalText(submission.rawPayloadSnapshot.supplierOrganisation)
+      : null;
+
   return (
+    supplierOrganisation ??
     normalizeOptionalText(submission.submittedByName) ??
     normalizeOptionalText(submission.submittedByEmail) ??
     (typeof submission.rawPayloadSnapshot.ownerRole === 'string'

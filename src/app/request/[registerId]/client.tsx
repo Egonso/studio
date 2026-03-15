@@ -1,16 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Plus, ShieldCheck, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  QuickCaptureFields,
+  TOOL_PLACEHOLDER_ID,
+  type QuickCaptureFieldsDraft,
+} from "@/components/register/quick-capture-fields";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -28,30 +27,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { PageStatePanel, PublicIntakeShell } from "@/components/product-shells";
-import { applyDataCategoryLogic } from "@/lib/register-first/capture-selections";
+import { type SharedCaptureFieldErrors } from "@/lib/register-first/shared-capture-fields";
 import { registerFirstFlags } from "@/lib/register-first/flags";
-import {
-  DATA_CATEGORY_LABELS,
-  DATA_CATEGORY_MAIN_OPTIONS,
-  type DataCategory,
-} from "@/lib/register-first/types";
 
-const CONNECTION_MODE_OPTIONS = [
-  {
-    value: "MANUAL_SEQUENCE",
-    label: "Manuell nacheinander",
-  },
-  {
-    value: "SEMI_AUTOMATED",
-    label: "Teilweise automatisiert",
-  },
-  {
-    value: "FULLY_AUTOMATED",
-    label: "Weitgehend automatisiert",
-  },
-] as const;
+const EMPTY_SUPPLIER_CAPTURE_DRAFT: QuickCaptureFieldsDraft = {
+  purpose: "",
+  ownerRole: "Lieferantenangabe",
+  contactPersonName: "",
+  toolId: TOOL_PLACEHOLDER_ID,
+  toolFreeText: "",
+  systems: [],
+  workflowConnectionMode: null,
+  workflowSummary: "",
+  usageContexts: ["INTERNAL_ONLY"],
+  dataCategories: [],
+  decisionInfluence: null,
+};
 
 function formatExpiry(value: string): string {
   const parsed = new Date(value);
@@ -68,6 +60,43 @@ function formatExpiry(value: string): string {
   });
 }
 
+function normalizeOptionalText(value: string | null | undefined): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveSystemLabel(toolId?: string | null, toolFreeText?: string | null): string | null {
+  const normalizedFreeText = normalizeOptionalText(toolFreeText);
+  if (normalizedFreeText) {
+    return normalizedFreeText;
+  }
+
+  const normalizedToolId = normalizeOptionalText(toolId);
+  if (!normalizedToolId || normalizedToolId === TOOL_PLACEHOLDER_ID) {
+    return null;
+  }
+
+  return normalizedToolId;
+}
+
+function resolveDraftSystemNames(
+  draft: QuickCaptureFieldsDraft,
+  multisystemEnabled: boolean
+): string[] {
+  if (multisystemEnabled) {
+    return draft.systems
+      .map((system) => resolveSystemLabel(system.toolId, system.toolFreeText))
+      .filter((value): value is string => Boolean(value));
+  }
+
+  const primarySystem = resolveSystemLabel(draft.toolId, draft.toolFreeText);
+  return primarySystem ? [primarySystem] : [];
+}
+
 export default function SupplierRequestForm({
   requestToken,
   requestTokenId,
@@ -82,67 +111,75 @@ export default function SupplierRequestForm({
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captureErrors, setCaptureErrors] = useState<SharedCaptureFieldErrors>({});
+  const [riskAccordionValue, setRiskAccordionValue] = useState<string | undefined>(undefined);
   const expiresLabel = useMemo(() => formatExpiry(expiresAt), [expiresAt]);
   const supplierMultisystemEnabled =
     registerFirstFlags.supplierMultisystemCapture;
 
   const [formData, setFormData] = useState({
     supplierEmail: "",
-    systems: [""],
-    purpose: "",
-    dataCategories: [] as DataCategory[],
+    supplierOrganisation: "",
     aiActCategory: "",
-    workflowConnectionMode: "",
-    workflowSummary: "",
+    capture: { ...EMPTY_SUPPLIER_CAPTURE_DRAFT },
   });
-  const filledSystems = useMemo(
-    () =>
-      formData.systems
-        .map((entry) => entry.trim())
-        .filter((entry) => entry.length > 0),
-    [formData.systems]
+
+  const patchCapture = (patch: Partial<QuickCaptureFieldsDraft>) => {
+    setFormData((prev) => ({
+      ...prev,
+      capture: {
+        ...prev.capture,
+        ...patch,
+      },
+    }));
+  };
+
+  const resolvedSystems = useMemo(
+    () => resolveDraftSystemNames(formData.capture, supplierMultisystemEnabled),
+    [formData.capture, supplierMultisystemEnabled]
   );
   const canDescribeRelationship =
-    supplierMultisystemEnabled && filledSystems.length >= 2;
-  const hasSelectedDataCategories = formData.dataCategories.length > 0;
+    supplierMultisystemEnabled && resolvedSystems.length >= 2;
 
-  const updateSystem = (index: number, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      systems: prev.systems.map((entry, entryIndex) =>
-        entryIndex === index ? value : entry
-      ),
-    }));
-  };
+  useEffect(() => {
+    if (formData.aiActCategory.trim().length > 0) {
+      setRiskAccordionValue("risk");
+    }
+  }, [formData.aiActCategory]);
 
-  const addSystem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      systems: [...prev.systems, ""],
-    }));
-  };
+  useEffect(() => {
+    if (!captureErrors.purpose) {
+      return;
+    }
 
-  const removeSystem = (index: number) => {
-    setFormData((prev) => {
-      const nextSystems = prev.systems.filter(
-        (_entry, entryIndex) => entryIndex !== index
-      );
-
-      return {
-        ...prev,
-        systems: nextSystems.length > 0 ? nextSystems : [""],
-      };
-    });
-  };
+    if (formData.capture.purpose.trim().length >= 3) {
+      setCaptureErrors((current) => {
+        const nextErrors = { ...current };
+        delete nextErrors.purpose;
+        return nextErrors;
+      });
+    }
+  }, [captureErrors.purpose, formData.capture.purpose]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setError(null);
 
+    const nextCaptureErrors: SharedCaptureFieldErrors = {};
+    if (formData.capture.purpose.trim().length < 3) {
+      nextCaptureErrors.purpose =
+        "Bitte beschreiben Sie den Verwendungszweck mit mindestens 3 Zeichen.";
+    }
+    setCaptureErrors(nextCaptureErrors);
+
     try {
-      if (!hasSelectedDataCategories) {
-        throw new Error("Bitte wählen Sie mindestens eine Datenkategorie aus.");
+      if (resolvedSystems.length === 0) {
+        throw new Error("Bitte erfassen Sie mindestens ein beteiligtes System.");
+      }
+
+      if (Object.keys(nextCaptureErrors).length > 0) {
+        throw new Error("Bitte vervollständigen Sie den Verwendungszweck.");
       }
 
       const response = await fetch("/api/supplier-submit", {
@@ -151,23 +188,32 @@ export default function SupplierRequestForm({
         body: JSON.stringify({
           requestToken,
           supplierEmail: formData.supplierEmail,
-          toolName: formData.systems[0]?.trim() ?? "",
-          purpose: formData.purpose,
-          dataCategory: formData.dataCategories[0],
-          dataCategories: formData.dataCategories,
-          aiActCategory: formData.aiActCategory,
+          supplierOrganisation: formData.supplierOrganisation,
+          toolName: resolvedSystems[0] ?? "",
+          purpose: formData.capture.purpose.trim(),
+          ...(formData.capture.dataCategories.length > 0
+            ? {
+                dataCategory: formData.capture.dataCategories[0],
+                dataCategories: formData.capture.dataCategories,
+              }
+            : {}),
+          ...(formData.aiActCategory.trim().length > 0
+            ? {
+                aiActCategory: formData.aiActCategory,
+              }
+            : {}),
           ...(supplierMultisystemEnabled
             ? {
-                systems: filledSystems,
+                systems: resolvedSystems,
                 workflowConnectionMode:
                   canDescribeRelationship &&
-                  formData.workflowConnectionMode.trim().length > 0
-                    ? formData.workflowConnectionMode
+                  formData.capture.workflowConnectionMode
+                    ? formData.capture.workflowConnectionMode
                     : undefined,
                 workflowSummary:
                   canDescribeRelationship &&
-                  formData.workflowSummary.trim().length > 0
-                    ? formData.workflowSummary.trim()
+                  formData.capture.workflowSummary.trim().length > 0
+                    ? formData.capture.workflowSummary.trim()
                     : undefined,
               }
             : {}),
@@ -197,14 +243,15 @@ export default function SupplierRequestForm({
 
   if (success) {
     return (
-    <PublicIntakeShell
-      title="Lieferantenangaben einreichen"
-      description={`Dieser öffentliche Lieferantenlink gehört zu ${organisationName}. Ihre Angaben werden nur als nachvollziehbare Einreichung entgegengenommen und intern geprüft.`}
+      <PublicIntakeShell
+        title="Lieferantenangaben einreichen"
+        description={`Dieser öffentliche Lieferantenlink gehört zu ${organisationName}. Ihre Angaben werden nur als nachvollziehbare Einreichung entgegengenommen und intern geprüft.`}
         actions={[]}
         meta={
           <p>
-            Sichere Anfrage-ID: <span className="font-medium text-slate-950">{requestTokenId}</span>{" "}
-            · gültig bis {expiresLabel}
+            Sichere Anfrage-ID:{" "}
+            <span className="font-medium text-slate-950">{requestTokenId}</span> ·
+            gültig bis {expiresLabel}
           </p>
         }
         asidePoints={[
@@ -217,7 +264,7 @@ export default function SupplierRequestForm({
           icon={CheckCircle2}
           area="public_external_intake"
           title="Angaben übermittelt"
-          description={`Vielen Dank. Die Angaben wurden als nachvollziehbare externe Einreichung im Register von ${organisationName} gespeichert.`}
+          description={`Vielen Dank. Die Angaben von ${formData.supplierOrganisation} wurden als nachvollziehbare externe Einreichung im Register von ${organisationName} gespeichert.`}
         />
       </PublicIntakeShell>
     );
@@ -226,16 +273,13 @@ export default function SupplierRequestForm({
   return (
     <PublicIntakeShell
       title="Lieferantenangaben einreichen"
-      description={
-        supplierMultisystemEnabled
-          ? `${organisationName} bittet Sie um Basisangaben zu Ihrem KI-Einsatz und beteiligten Systemen, damit die Nutzung intern nachvollziehbar dokumentiert und geprüft werden kann.`
-          : `${organisationName} bittet Sie um Basisangaben zu Ihrem KI-System, damit die Nutzung intern nachvollziehbar dokumentiert und geprüft werden kann.`
-      }
+      description={`${organisationName} bittet Sie um Basisangaben zu Ihrem KI-Einsatz und beteiligten Systemen, damit die Nutzung intern nachvollziehbar dokumentiert und geprüft werden kann.`}
       actions={[]}
       meta={
         <p>
-          Sichere Anfrage-ID: <span className="font-medium text-slate-950">{requestTokenId}</span>{" "}
-          · gültig bis {expiresLabel}
+          Sichere Anfrage-ID:{" "}
+          <span className="font-medium text-slate-950">{requestTokenId}</span> ·
+          gültig bis {expiresLabel}
         </p>
       }
       asidePoints={[
@@ -252,9 +296,7 @@ export default function SupplierRequestForm({
                 <ShieldCheck className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle>
-                  {supplierMultisystemEnabled ? "Einsatz und Systeme" : "Systemangaben"}
-                </CardTitle>
+                <CardTitle>Einsatz und Systeme</CardTitle>
                 <CardDescription>
                   Öffentliche Einreichung für {organisationName}
                 </CardDescription>
@@ -268,218 +310,131 @@ export default function SupplierRequestForm({
               </div>
             ) : null}
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Ihre Arbeits-E-Mail</Label>
-                <Input
-                  required
-                  type="email"
-                  placeholder="name@ihrefirma.de"
-                  value={formData.supplierEmail}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      supplierEmail: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>
-                  {supplierMultisystemEnabled
-                    ? "Systeme"
-                    : "Name des KI-Systems / Produkts"}
-                </Label>
-                {supplierMultisystemEnabled ? (
-                  <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground">
-                      Erfassen Sie beteiligte Tools, APIs oder verbundene Systeme
-                      in der genutzten Reihenfolge.
-                    </p>
-                    <div className="space-y-2">
-                      {formData.systems.map((system, index) => (
-                        <div key={`supplier-system-${index}`} className="flex items-center gap-2">
-                          <Input
-                            required={index === 0}
-                            placeholder={
-                              index === 0
-                                ? "z. B. SuperAgent AI oder Perplexity API"
-                                : "Weiteres System"
-                            }
-                            value={system}
-                            onChange={(event) =>
-                              updateSystem(index, event.target.value)
-                            }
-                          />
-                          {formData.systems.length > 1 ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="shrink-0"
-                              onClick={() => removeSystem(index)}
-                              aria-label={`System ${index + 1} entfernen`}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addSystem}
-                      className="w-full sm:w-auto"
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Weiteres System
-                    </Button>
-
-                    {canDescribeRelationship ? (
-                      <Accordion type="single" collapsible className="rounded-lg border px-4">
-                        <AccordionItem value="workflow" className="border-none">
-                          <AccordionTrigger className="py-3 text-sm hover:no-underline">
-                            Zusammenhang (optional)
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-4 pb-2">
-                            <div className="space-y-2">
-                              <Label>Wie laufen die Systeme überwiegend zusammen?</Label>
-                              <Select
-                                value={formData.workflowConnectionMode}
-                                onValueChange={(value) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    workflowConnectionMode: value,
-                                  }))
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Optional auswählen..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {CONNECTION_MODE_OPTIONS.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Kurze Ablaufbeschreibung (optional)</Label>
-                              <Textarea
-                                rows={3}
-                                maxLength={300}
-                                placeholder="z. B. Perplexity API recherchiert Themen, Gemini API schreibt Text, Sora erstellt Bilder"
-                                value={formData.workflowSummary}
-                                onChange={(event) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    workflowSummary: event.target.value,
-                                  }))
-                                }
-                              />
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    ) : null}
-                  </div>
-                ) : (
-                  <Input
-                    required
-                    placeholder="z.B. SuperAgent AI"
-                    value={formData.systems[0]}
-                    onChange={(event) => updateSystem(0, event.target.value)}
-                  />
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Verwendungszweck beim Kunden</Label>
-                <Textarea
-                  required
-                  rows={3}
-                  placeholder="Kurz beschreiben, wofür das System konkret eingesetzt wird."
-                  value={formData.purpose}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      purpose: event.target.value,
-                    }))
-                  }
-                />
+            <section className="space-y-4 rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-slate-900">
+                  Absender und Einreichung
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Diese Angaben bleiben mit der Einreichung verbunden und werden
+                  intern als Herkunftsinformation genutzt.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Daten & Sensitivität</Label>
-                  <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
-                    <div className="space-y-3">
-                      <p className="text-xs text-muted-foreground">
-                        Mehrfachauswahl möglich. Bitte markieren Sie alle
-                        relevanten Datenkategorien.
-                      </p>
-                      {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
-                        <label
-                          key={option}
-                          className="flex items-start gap-2 text-sm text-slate-800"
-                        >
-                          <Checkbox
-                            checked={formData.dataCategories.includes(option)}
-                            onCheckedChange={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                dataCategories: applyDataCategoryLogic(
-                                  prev.dataCategories,
-                                  option
-                                ),
-                              }))
-                            }
-                          />
-                          <span>{DATA_CATEGORY_LABELS[option]}</span>
-                        </label>
-                      ))}
-                      <p className="text-xs text-muted-foreground">
-                        Besondere personenbezogene Daten schliessen
-                        personenbezogene Daten fachlich mit ein.
-                      </p>
-                    </div>
-                  </div>
+                  <Label htmlFor="supplier-email">Ihre Arbeits-E-Mail</Label>
+                  <Input
+                    id="supplier-email"
+                    required
+                    type="email"
+                    placeholder="name@ihrefirma.de"
+                    value={formData.supplierEmail}
+                    onChange={(event) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        supplierEmail: event.target.value,
+                      }))
+                    }
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Einschätzung der Risikoklasse gemäss EU AI Act</Label>
-                  <Select
+                  <Label htmlFor="supplier-organisation">Ihre Organisation</Label>
+                  <Input
+                    id="supplier-organisation"
                     required
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, aiActCategory: value }))
+                    placeholder="z. B. Lieferant GmbH"
+                    value={formData.supplierOrganisation}
+                    onChange={(event) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        supplierOrganisation: event.target.value,
+                      }))
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Bitte wählen..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Minimales Risiko">
-                        Minimales Risiko
-                      </SelectItem>
-                      <SelectItem value="Geringes Risiko">
-                        Geringes Risiko
-                      </SelectItem>
-                      <SelectItem value="Hochrisiko">
-                        Hochrisiko
-                      </SelectItem>
-                      <SelectItem value="Unbekannt">
-                        Noch unklar / Unbekannt
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
               </div>
-            </div>
+            </section>
+
+            <section className="space-y-2">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-slate-900">
+                  Einsatzbeschreibung
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Erfassen Sie die beteiligten Systeme in der genutzten Reihenfolge.
+                  Optional können Sie zusätzliche Angaben zu Daten und
+                  Risikoeinschätzung ergänzen.
+                </p>
+              </div>
+
+              <QuickCaptureFields
+                draft={formData.capture}
+                onChange={patchCapture}
+                errors={captureErrors}
+                multisystemEnabled={supplierMultisystemEnabled}
+                showOwnerRole={false}
+                showContactPerson={false}
+                showUsageSection={false}
+                autoFillPurposeFromSystem={false}
+                purposeLabel="Verwendungszweck beim Kunden"
+                purposePlaceholder="z. B. Marketingtexte vorbereiten oder Support-Anfragen strukturieren"
+                purposeHelperText="Kurz und konkret beschreiben, wofür der Einsatz beim Kunden gedacht ist."
+                systemLabel={supplierMultisystemEnabled ? "Systeme" : "System"}
+                systemHelperText="Erfassen Sie beteiligte Tools, APIs oder verbundene Systeme in der genutzten Reihenfolge."
+                showSystemOptionalLabel={false}
+              />
+            </section>
+
+            <Accordion
+              type="single"
+              collapsible
+              value={riskAccordionValue}
+              onValueChange={(value) => setRiskAccordionValue(value || undefined)}
+              className="rounded-lg border"
+            >
+              <AccordionItem value="risk" className="border-none">
+                <AccordionTrigger className="px-4 py-3 text-sm hover:no-underline">
+                  Risikoklassen-Einschätzung (optional)
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3 px-4 pb-4">
+                  <div className="space-y-2">
+                    <Label>Einschätzung gemäss EU AI Act</Label>
+                    <Select
+                      value={formData.aiActCategory || "__none__"}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          aiActCategory: value === "__none__" ? "" : value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Optional auswählen..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Noch keine Einschätzung</SelectItem>
+                        <SelectItem value="Minimales Risiko">
+                          Minimales Risiko
+                        </SelectItem>
+                        <SelectItem value="Geringes Risiko">
+                          Geringes Risiko
+                        </SelectItem>
+                        <SelectItem value="Hochrisiko">Hochrisiko</SelectItem>
+                        <SelectItem value="Unbekannt">
+                          Noch unklar / Unbekannt
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Diese Angabe wird als Lieferanten-Einschätzung übernommen und
+                    intern separat geprüft.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
           <CardFooter className="mt-4 border-t bg-white p-6 pb-6">
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
