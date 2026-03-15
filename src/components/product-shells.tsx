@@ -152,6 +152,7 @@ interface SignedInAreaFrameProps {
     ProductAreaId,
     'signed_in_free_register' | 'paid_governance_control'
   >;
+  brandHref?: string;
   title: string;
   description: string;
   children: React.ReactNode;
@@ -164,6 +165,7 @@ interface SignedInAreaFrameProps {
 
 export function SignedInAreaFrame({
   area,
+  brandHref,
   title,
   description,
   children,
@@ -177,7 +179,7 @@ export function SignedInAreaFrame({
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <AppHeader />
+      <AppHeader brandHref={brandHref} />
       <main className="flex-1 px-4 py-4 md:px-8">
         <div
           className={cn(

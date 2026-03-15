@@ -24,13 +24,17 @@ import {
   getProductAreaForPathname,
   getVisiblePremiumControlNav,
   isPremiumControlNavActive,
-  ROUTE_PATHS,
 } from '@/lib/navigation/route-manifest';
+import { resolveAppHeaderBrandHref } from '@/lib/navigation/app-header-brand';
 import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 
-export function AppHeader() {
+interface AppHeaderProps {
+  brandHref?: string;
+}
+
+export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -39,11 +43,13 @@ export function AppHeader() {
   const area = getProductAreaForPathname(pathname);
   const workspaceScope = useWorkspaceScope();
   const scopedHrefs = useScopedRouteHrefs();
-  const brandHref = user
-    ? area === 'paid_governance_control'
-      ? scopedHrefs.control
-      : scopedHrefs.register
-    : ROUTE_PATHS.marketingHome;
+  const resolvedBrandHref = resolveAppHeaderBrandHref({
+    area,
+    isAuthenticated: Boolean(user),
+    scopedRegisterHref: scopedHrefs.register,
+    scopedControlHref: scopedHrefs.control,
+    overrideHref: brandHrefOverride,
+  });
 
   const premiumNavItems = getVisiblePremiumControlNav(plan);
   const showControlNav =
@@ -65,7 +71,11 @@ export function AppHeader() {
     <header className="sticky top-0 z-50 bg-white">
       <div className="mx-auto w-full max-w-6xl px-4 pt-2 md:px-6">
         <div className="flex min-h-14 items-center gap-4 py-1.5">
-          <Link href={brandHref} className="flex min-w-0 items-center gap-2.5" prefetch={false}>
+          <Link
+            href={resolvedBrandHref}
+            className="flex min-w-0 items-center gap-2.5"
+            prefetch={false}
+          >
             <ThemeAwareLogo
               alt="KI-Register"
               width={30}

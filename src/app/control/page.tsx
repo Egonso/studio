@@ -59,6 +59,8 @@ export default function ControlPage() {
   const frameArea = isReportOnlyMode
     ? 'signed_in_free_register'
     : 'paid_governance_control';
+  // Report mode still lives on /control, but the brand should return to the source register.
+  const headerBrandHref = isReportOnlyMode ? scopedHrefs.register : undefined;
 
   const [snapshot, setSnapshot] = useState<ControlSnapshot | null>(null);
   const [academyProgress, setAcademyProgress] = useState(() =>
@@ -173,6 +175,7 @@ export default function ControlPage() {
     return (
       <SignedInAreaFrame
         area={frameArea}
+        brandHref={headerBrandHref}
         title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
         description={
           isReportOnlyMode
@@ -204,6 +207,7 @@ export default function ControlPage() {
   return (
     <SignedInAreaFrame
       area={frameArea}
+      brandHref={headerBrandHref}
       title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
       description={
         snapshot?.organisationName
