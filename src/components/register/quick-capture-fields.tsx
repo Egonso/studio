@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import { ToolAutocomplete } from "@/components/tool-autocomplete";
@@ -57,6 +57,18 @@ interface QuickCaptureFieldsProps {
   autoFocusPurpose?: boolean;
   showDescription?: boolean;
   errors?: SharedCaptureFieldErrors;
+  multisystemEnabled?: boolean;
+  showOwnerRole?: boolean;
+  showContactPerson?: boolean;
+  showUsageSection?: boolean;
+  autoFillPurposeFromSystem?: boolean;
+  purposeLabel?: string;
+  purposePlaceholder?: string;
+  purposeHelperText?: string | null;
+  systemLabel?: string;
+  systemHelperText?: string | null;
+  showSystemOptionalLabel?: boolean;
+  forceOpenDataSection?: boolean;
 }
 
 export function QuickCaptureFields({
@@ -65,12 +77,37 @@ export function QuickCaptureFields({
   autoFocusPurpose = false,
   showDescription = false,
   errors = {},
+  multisystemEnabled: multisystemEnabledOverride,
+  showOwnerRole = true,
+  showContactPerson = true,
+  showUsageSection = true,
+  autoFillPurposeFromSystem = true,
+  purposeLabel = "Use-Case Name",
+  purposePlaceholder = "z. B. Marketing Copy Generator",
+  purposeHelperText = null,
+  systemLabel,
+  systemHelperText,
+  showSystemOptionalLabel = true,
+  forceOpenDataSection = false,
 }: QuickCaptureFieldsProps) {
-  const multisystemEnabled = registerFirstFlags.multisystemCapture;
-  const [section1Open, setSection1Open] = useState(false);
-  const [section2Open, setSection2Open] = useState(false);
-  const [specialOpen, setSpecialOpen] = useState(false);
-  const [workflowOpen, setWorkflowOpen] = useState(false);
+  const multisystemEnabled =
+    multisystemEnabledOverride ?? registerFirstFlags.multisystemCapture;
+  const [section1Open, setSection1Open] = useState(
+    () => draft.usageContexts.length > 0 || Boolean(draft.decisionInfluence)
+  );
+  const [section2Open, setSection2Open] = useState(
+    () => draft.dataCategories.length > 0
+  );
+  const [specialOpen, setSpecialOpen] = useState(() =>
+    DATA_CATEGORY_SPECIAL_OPTIONS.some((option) =>
+      draft.dataCategories.includes(option)
+    )
+  );
+  const [workflowOpen, setWorkflowOpen] = useState(
+    () =>
+      Boolean(draft.workflowConnectionMode) ||
+      draft.workflowSummary.trim().length > 0
+  );
   const [isAddingSystem, setIsAddingSystem] = useState(false);
   const [pendingSystemValue, setPendingSystemValue] = useState("");
 
@@ -82,6 +119,19 @@ export function QuickCaptureFields({
   const workflowCount =
     (draft.workflowConnectionMode ? 1 : 0) +
     (draft.workflowSummary.trim().length > 0 ? 1 : 0);
+  const resolvedSystemLabel =
+    systemLabel ?? (multisystemEnabled ? "Systeme" : "System / Tool");
+  const resolvedSystemHelperText =
+    systemHelperText ??
+    (multisystemEnabled
+      ? "Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen."
+      : "Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.");
+
+  useEffect(() => {
+    if (forceOpenDataSection) {
+      setSection2Open(true);
+    }
+  }, [forceOpenDataSection]);
 
   const syncSystemsPatch = (
     nextSystems: OrderedUseCaseSystem[]
@@ -136,13 +186,17 @@ export function QuickCaptureFields({
 
     onChange({
       ...syncSystemsPatch(nextSystems),
-      purpose:
-        draft.purpose ||
-        (toolData?.name
-          ? toolData.category
-            ? `Einsatz von ${toolData.name} für ${toolData.category}`
-            : `Einsatz von ${toolData.name}`
-          : draft.purpose),
+      ...(autoFillPurposeFromSystem
+        ? {
+            purpose:
+              draft.purpose ||
+              (toolData?.name
+                ? toolData.category
+                  ? `Einsatz von ${toolData.name} für ${toolData.category}`
+                  : `Einsatz von ${toolData.name}`
+                : draft.purpose),
+          }
+        : {}),
     });
     setPendingSystemValue("");
     setIsAddingSystem(false);
@@ -157,11 +211,11 @@ export function QuickCaptureFields({
     <div className="space-y-4 py-2">
       <div className="space-y-1.5">
         <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.purpose}>
-          Use-Case Name <span className="text-destructive">*</span>
+          {purposeLabel} <span className="text-destructive">*</span>
         </Label>
         <Input
           id={SHARED_CAPTURE_FIELD_IDS.purpose}
-          placeholder="z. B. Marketing Copy Generator"
+          placeholder={purposePlaceholder}
           value={draft.purpose}
           onChange={(event) => onChange({ purpose: event.target.value })}
           autoFocus={autoFocusPurpose}
@@ -174,47 +228,57 @@ export function QuickCaptureFields({
             {errors.purpose}
           </p>
         )}
+        {purposeHelperText ? (
+          <p className="text-xs text-muted-foreground">{purposeHelperText}</p>
+        ) : null}
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.ownerRole}>
-          Owner-Rolle (funktional) <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id={SHARED_CAPTURE_FIELD_IDS.ownerRole}
-          placeholder="z. B. Head of Marketing / HR Lead / IT Security"
-          value={draft.ownerRole}
-          onChange={(event) => onChange({ ownerRole: event.target.value })}
-          aria-invalid={Boolean(errors.ownerRole)}
-          aria-describedby={errors.ownerRole ? "qc-owner-error" : undefined}
-          className={errors.ownerRole ? "border-destructive focus-visible:ring-destructive" : undefined}
-        />
-        <p className="text-xs text-muted-foreground">
-          Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.
-        </p>
-        {errors.ownerRole && (
-          <p id="qc-owner-error" className="text-xs text-destructive">
-            {errors.ownerRole}
+      {showOwnerRole ? (
+        <div className="space-y-1.5">
+          <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.ownerRole}>
+            Owner-Rolle (funktional) <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id={SHARED_CAPTURE_FIELD_IDS.ownerRole}
+            placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+            value={draft.ownerRole}
+            onChange={(event) => onChange({ ownerRole: event.target.value })}
+            aria-invalid={Boolean(errors.ownerRole)}
+            aria-describedby={errors.ownerRole ? "qc-owner-error" : undefined}
+            className={errors.ownerRole ? "border-destructive focus-visible:ring-destructive" : undefined}
+          />
+          <p className="text-xs text-muted-foreground">
+            Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.
           </p>
-        )}
-      </div>
+          {errors.ownerRole && (
+            <p id="qc-owner-error" className="text-xs text-destructive">
+              {errors.ownerRole}
+            </p>
+          )}
+        </div>
+      ) : null}
 
-      <div className="space-y-1.5">
-        <Label htmlFor="qc-contact-person">Kontaktperson (optional)</Label>
-        <Input
-          id="qc-contact-person"
-          placeholder="z. B. Max Mustermann"
-          value={draft.contactPersonName}
-          onChange={(event) =>
-            onChange({ contactPersonName: event.target.value })
-          }
-        />
-      </div>
+      {showContactPerson ? (
+        <div className="space-y-1.5">
+          <Label htmlFor="qc-contact-person">Kontaktperson (optional)</Label>
+          <Input
+            id="qc-contact-person"
+            placeholder="z. B. Max Mustermann"
+            value={draft.contactPersonName}
+            onChange={(event) =>
+              onChange({ contactPersonName: event.target.value })
+            }
+          />
+        </div>
+      ) : null}
 
       {!multisystemEnabled ? (
         <div className="space-y-1.5">
           <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
-            System / Tool <span className="text-muted-foreground">(optional)</span>
+            {resolvedSystemLabel}
+            {showSystemOptionalLabel ? (
+              <span className="text-muted-foreground"> (optional)</span>
+            ) : null}
           </Label>
           <ToolAutocomplete
             inputId={SHARED_CAPTURE_FIELD_IDS.tool}
@@ -229,11 +293,15 @@ export function QuickCaptureFields({
                 onChange({
                   toolId: toolData.name,
                   toolFreeText: toolData.name,
-                  purpose:
-                    draft.purpose ||
-                    (toolData.category
-                      ? `Einsatz von ${toolData.name} für ${toolData.category}`
-                      : `Einsatz von ${toolData.name}`),
+                  ...(autoFillPurposeFromSystem
+                    ? {
+                        purpose:
+                          draft.purpose ||
+                          (toolData.category
+                            ? `Einsatz von ${toolData.name} für ${toolData.category}`
+                            : `Einsatz von ${toolData.name}`),
+                      }
+                    : {}),
                 });
                 return;
               }
@@ -244,14 +312,19 @@ export function QuickCaptureFields({
               });
             }}
           />
-          <p className="text-xs text-muted-foreground">
-            Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.
-          </p>
+          {resolvedSystemHelperText ? (
+            <p className="text-xs text-muted-foreground">
+              {resolvedSystemHelperText}
+            </p>
+          ) : null}
         </div>
       ) : (
         <div className="space-y-2">
           <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
-            Systeme <span className="text-muted-foreground">(optional)</span>
+            {resolvedSystemLabel}
+            {showSystemOptionalLabel ? (
+              <span className="text-muted-foreground"> (optional)</span>
+            ) : null}
           </Label>
 
           {selectedSystems.length > 0 && (
@@ -329,9 +402,11 @@ export function QuickCaptureFields({
             </Button>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen.
-          </p>
+          {resolvedSystemHelperText ? (
+            <p className="text-xs text-muted-foreground">
+              {resolvedSystemHelperText}
+            </p>
+          ) : null}
 
           {selectedSystems.length >= 2 && (
             <div className="rounded-md border">
@@ -422,78 +497,80 @@ export function QuickCaptureFields({
         </div>
       )}
 
-      <div className="rounded-md border">
-        <button
-          type="button"
-          onClick={() => setSection1Open((current) => !current)}
-          className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted/50"
-        >
-          <span className="flex items-center gap-2">
-            {section1Open ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-            Wirkung &amp; Betroffene
-          </span>
-          {section1Count > 0 && (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              {section1Count} gewählt
+      {showUsageSection ? (
+        <div className="rounded-md border">
+          <button
+            type="button"
+            onClick={() => setSection1Open((current) => !current)}
+            className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted/50"
+          >
+            <span className="flex items-center gap-2">
+              {section1Open ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              Wirkung &amp; Betroffene
             </span>
+            {section1Count > 0 && (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {section1Count} gewählt
+              </span>
+            )}
+          </button>
+
+          {section1Open && (
+            <div className="space-y-4 border-t px-3 py-3">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  Wirkungsbereich (Mehrfachauswahl)
+                </Label>
+                <div className="space-y-1.5">
+                  {USAGE_CONTEXT_OPTIONS.map((option) => (
+                    <label
+                      key={option}
+                      className="flex cursor-pointer items-center gap-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={draft.usageContexts.includes(option)}
+                        onCheckedChange={() =>
+                          onChange({
+                            usageContexts: toggleMultiSelect(draft.usageContexts, option),
+                          })
+                        }
+                      />
+                      {USAGE_CONTEXT_LABELS[option]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  Einfluss auf Entscheidungen
+                </Label>
+                <div className="space-y-1.5">
+                  {DECISION_INFLUENCE_OPTIONS.map((option) => (
+                    <label
+                      key={option}
+                      className="flex cursor-pointer items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="radio"
+                        name="decisionInfluence"
+                        checked={draft.decisionInfluence === option}
+                        onChange={() => onChange({ decisionInfluence: option })}
+                        className="h-4 w-4 border-border text-primary"
+                      />
+                      {DECISION_INFLUENCE_LABELS[option]}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
-        </button>
-
-        {section1Open && (
-          <div className="space-y-4 border-t px-3 py-3">
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                Wirkungsbereich (Mehrfachauswahl)
-              </Label>
-              <div className="space-y-1.5">
-                {USAGE_CONTEXT_OPTIONS.map((option) => (
-                  <label
-                    key={option}
-                    className="flex cursor-pointer items-center gap-2 text-sm"
-                  >
-                    <Checkbox
-                      checked={draft.usageContexts.includes(option)}
-                      onCheckedChange={() =>
-                        onChange({
-                          usageContexts: toggleMultiSelect(draft.usageContexts, option),
-                        })
-                      }
-                    />
-                    {USAGE_CONTEXT_LABELS[option]}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                Einfluss auf Entscheidungen
-              </Label>
-              <div className="space-y-1.5">
-                {DECISION_INFLUENCE_OPTIONS.map((option) => (
-                  <label
-                    key={option}
-                    className="flex cursor-pointer items-center gap-2 text-sm"
-                  >
-                    <input
-                      type="radio"
-                      name="decisionInfluence"
-                      checked={draft.decisionInfluence === option}
-                      onChange={() => onChange({ decisionInfluence: option })}
-                      className="h-4 w-4 border-border text-primary"
-                    />
-                    {DECISION_INFLUENCE_LABELS[option]}
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <div className="rounded-md border">
         <button

@@ -16,6 +16,7 @@ test("createSupplierRequestUseCase erzeugt eine schema-kompatible Registerkarte"
   const card = createSupplierRequestUseCase(
     {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "SuperAgent AI",
       purpose: "Unterstuetzt den First-Level-Support bei eingehenden Anfragen.",
       dataCategory: "PERSONAL_DATA",
@@ -43,6 +44,7 @@ test("createSupplierRequestUseCase erzeugt eine schema-kompatible Registerkarte"
   assert.equal(card.capturedBy, "SUPPLIER_REQUEST");
   assert.equal(card.origin?.source, "supplier_request");
   assert.equal(card.origin?.submittedByEmail, "vendor@example.com");
+  assert.equal(card.origin?.submittedByName, "Lieferant GmbH");
   assert.ok(isSupplierRequestCard(card));
   assert.equal(getSupplierRequestContact(card), "vendor@example.com");
   assert.ok(card.reviewHints.includes("Lieferantenanfrage eingegangen."));
@@ -64,6 +66,7 @@ test("getSupplierRequestContact nutzt den Registerwert als Fallback", () => {
 test("parseSupplierRequestSubmission normalisiert weitere Systeme und Ablaufmetadaten", () => {
   const submission = parseSupplierRequestSubmission({
     supplierEmail: "vendor@example.com",
+    supplierOrganisation: "Lieferant GmbH",
     toolName: "Perplexity API",
     systems: [
       "Perplexity API",
@@ -100,6 +103,7 @@ test("createSupplierRequestUseCase uebernimmt den Mehrsystem-Ablauf in die Regis
   const card = createSupplierRequestUseCase(
     {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "Perplexity API",
       systems: [
         "Perplexity API",
@@ -127,6 +131,7 @@ test("createSupplierRequestUseCase uebernimmt den Mehrsystem-Ablauf in die Regis
 test("parseSupplierRequestSubmission normalisiert mehrere Datenkategorien rueckwaertskompatibel", () => {
   const submission = parseSupplierRequestSubmission({
     supplierEmail: "vendor@example.com",
+    supplierOrganisation: "Lieferant GmbH",
     toolName: "SuperAgent AI",
     purpose: "Unterstuetzt den Support.",
     dataCategories: ["SPECIAL_PERSONAL"],
@@ -152,6 +157,7 @@ test("createSupplierRequestUseCase uebernimmt mehrere Datenkategorien konsistent
   const card = createSupplierRequestUseCase(
     {
       supplierEmail: "vendor@example.com",
+      supplierOrganisation: "Lieferant GmbH",
       toolName: "Perplexity API",
       purpose: "Marketing-Recherche",
       dataCategories: ["SPECIAL_PERSONAL"],
@@ -168,4 +174,26 @@ test("createSupplierRequestUseCase uebernimmt mehrere Datenkategorien konsistent
     "SPECIAL_PERSONAL",
     "PERSONAL_DATA",
   ]);
+});
+
+test("parseSupplierRequestSubmission erlaubt optionale Datenkategorien fuer schlanke Lieferantenangaben", () => {
+  const submission = parseSupplierRequestSubmission({
+    supplierEmail: "vendor@example.com",
+    supplierOrganisation: "Lieferant GmbH",
+    toolName: "Perplexity API",
+    purpose: "Marketing-Recherche",
+  });
+
+  assert.equal(submission.dataCategory, undefined);
+  assert.equal(submission.dataCategories, undefined);
+});
+
+test("parseSupplierRequestSubmission bleibt rueckwaertskompatibel fuer alte Snapshots ohne Lieferantenorganisation", () => {
+  const submission = parseSupplierRequestSubmission({
+    supplierEmail: "vendor@example.com",
+    toolName: "Perplexity API",
+    purpose: "Marketing-Recherche",
+  });
+
+  assert.equal(submission.supplierOrganisation, null);
 });
