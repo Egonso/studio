@@ -11,7 +11,7 @@ user in control while reducing the most obvious friction.
 
 1. `/capture` reads the Coverage Assist query contract.
 2. The assist step is enabled only when:
-   - `coverageAssistPhase1` is `true`
+   - the pilot rollout gate is fully enabled
    - the assist query is valid
    - the detected `toolId` resolves against the shipped tool catalog
 3. The app shows:
@@ -37,8 +37,9 @@ user in control while reducing the most obvious friction.
 
 ## Analytics
 
-- `assist_opened` when the app-side entry becomes visible
-- `assist_seed_selected` when a seed is chosen
+- `assist_signal_shown` when the extension first shows a quiet signal for a detected tool
+- `assist_entry_shown` when the app-side entry becomes visible
+- `assist_suggestion_selected` when a seed is chosen
 - `assist_dismissed` when seed suggestions are skipped
 - `assist_saved` when a human-confirmed capture is stored
 

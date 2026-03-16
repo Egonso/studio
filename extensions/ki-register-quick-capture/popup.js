@@ -6,17 +6,22 @@ const quickCaptureButton = document.getElementById("quick-capture-button")
 const dismissButton = document.getElementById("dismiss-button")
 const restoreButton = document.getElementById("restore-button")
 const feedback = document.getElementById("feedback")
+let latestState = null
 
 async function sendMessage(message) {
   return chrome.runtime.sendMessage(message)
 }
 
-function setBusy(isBusy) {
-  assistToggle.disabled = isBusy
+function syncControlAvailability(isBusy) {
+  assistToggle.disabled = isBusy || latestState?.rolloutEnabled !== true
   reviewButton.disabled = isBusy
   quickCaptureButton.disabled = isBusy
   dismissButton.disabled = isBusy
   restoreButton.disabled = isBusy
+}
+
+function setBusy(isBusy) {
+  syncControlAvailability(isBusy)
 }
 
 function setFeedback(message) {
@@ -24,11 +29,20 @@ function setFeedback(message) {
 }
 
 function renderState(state) {
-  assistToggle.checked = state.enabled === true
+  latestState = state
+  assistToggle.checked = state.rolloutEnabled === true && state.enabled === true
 
   reviewButton.hidden = true
   dismissButton.hidden = true
   restoreButton.hidden = true
+  syncControlAvailability(false)
+
+  if (!state.rolloutEnabled) {
+    statusTitle.textContent = "Coverage Assist ist noch nicht freigeschaltet"
+    statusBody.textContent =
+      "Die Funktion bleibt deaktiviert, bis der Pilot im Register aktiviert ist. Quick Capture funktioniert weiterhin ganz normal."
+    return
+  }
 
   if (!state.enabled) {
     statusTitle.textContent = "Coverage Assist ist auf diesem Geraet aus"

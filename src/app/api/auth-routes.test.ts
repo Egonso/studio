@@ -35,6 +35,7 @@ const workspaceSignOffItemRoute = readSource("src/app/api/workspaces/[orgId]/gov
 const workspaceExternalSubmissionsRoute = readSource("src/app/api/workspaces/[orgId]/external-submissions/route.ts");
 const workspaceExternalSubmissionItemRoute = readSource("src/app/api/workspaces/[orgId]/external-submissions/[submissionId]/route.ts");
 const workspaceRegisterLinkRoute = readSource("src/app/api/workspaces/[orgId]/registers/link/route.ts");
+const coverageAssistConfigRoute = readSource("src/app/api/coverage-assist/config/route.ts");
 
 test("invite creation route requires workspace-admin authorization", () => {
   assert.match(inviteRoute, /requireWorkspaceAdmin\(/);
@@ -97,4 +98,10 @@ test("billing and workspace register routes use scope-aware register lookup hint
     workspaceRegisterLinkRoute,
     /findRegisterLocationById\(payload\.registerId, \{[\s\S]*ownerId: authorization\.user\.uid,[\s\S]*workspaceId: orgId,/,
   );
+});
+
+test("coverage assist config route exposes only public rollout flags", () => {
+  assert.match(coverageAssistConfigRoute, /getPublicCoverageAssistConfig\(/);
+  assert.doesNotMatch(coverageAssistConfigRoute, /requireUser\(/);
+  assert.doesNotMatch(coverageAssistConfigRoute, /authorization/);
 });

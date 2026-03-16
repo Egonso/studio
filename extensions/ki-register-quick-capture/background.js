@@ -1,5 +1,6 @@
 const DEFAULT_BASE_URL = "https://kiregister.com"
 const QUICK_CAPTURE_PATH = "/capture"
+const COVERAGE_ASSIST_CONFIG_PATH = "/api/coverage-assist/config"
 const MENU_ID = "ki-register-open-quick-capture"
 const OFFSCREEN_DOCUMENT_PATH = "theme-detector.html"
 const COVERAGE_ASSIST_DETECTION_PATH = "coverage-assist-detection.json"
@@ -27,8 +28,15 @@ const STORAGE_KEYS = {
   coverageAssistEnabled: "coverageAssistEnabled",
   dismissedToolIds: "coverageAssistDismissedToolIds",
   coverageAssistEvents: "coverageAssistEvents",
+  lastSignalSignature: "coverageAssistLastSignalSignature",
 }
 const COVERAGE_ASSIST_ANALYTICS_MAX_EVENTS = 100
+const DEFAULT_COVERAGE_ASSIST_REMOTE_CONFIG = Object.freeze({
+  coverageAssistPhase1: false,
+  coverageAssistExtension: false,
+  coverageAssistSeedLibrary: false,
+  rolloutEnabled: false,
+})
 const COVERAGE_ASSIST_QUERY_KEYS = {
   assist: "assist",
   assistSource: "assistSource",
@@ -39,6 +47,7 @@ const COVERAGE_ASSIST_QUERY_KEYS = {
 }
 let creatingOffscreenDocument = null
 let coverageAssistDetectionEntriesPromise = null
+const coverageAssistRemoteConfigPromises = new Map()
 
 function isPreferredHost(hostname) {
   if (!hostname) return false
@@ -90,6 +99,46 @@ function parseHttpUrl(value) {
   } catch {
     return null
   }
+}
+
+function buildCoverageAssistConfigUrl(baseUrl) {
+  return new URL(COVERAGE_ASSIST_CONFIG_PATH, `${baseUrl}/`).toString()
+}
+
+function normalizeCoverageAssistRemoteConfig(input) {
+  if (!input || typeof input !== "object") {
+    return DEFAULT_COVERAGE_ASSIST_REMOTE_CONFIG
+  }
+
+  return {
+    coverageAssistPhase1: input.coverageAssistPhase1 === true,
+    coverageAssistExtension: input.coverageAssistExtension === true,
+    coverageAssistSeedLibrary: input.coverageAssistSeedLibrary === true,
+    rolloutEnabled: input.rolloutEnabled === true,
+  }
+}
+
+async function loadCoverageAssistRemoteConfig(baseUrl = DEFAULT_BASE_URL) {
+  const resolvedBaseUrl =
+    typeof baseUrl === "string" && baseUrl.trim().length > 0
+      ? baseUrl
+      : DEFAULT_BASE_URL
+
+  if (!coverageAssistRemoteConfigPromises.has(resolvedBaseUrl)) {
+    const request = fetch(buildCoverageAssistConfigUrl(resolvedBaseUrl))
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Coverage Assist config is unavailable.")
+        }
+
+        return normalizeCoverageAssistRemoteConfig(await response.json())
+      })
+      .catch(() => DEFAULT_COVERAGE_ASSIST_REMOTE_CONFIG)
+
+    coverageAssistRemoteConfigPromises.set(resolvedBaseUrl, request)
+  }
+
+  return coverageAssistRemoteConfigPromises.get(resolvedBaseUrl)
 }
 
 function isCoverageAssistDetectionEntry(entry) {
@@ -167,6 +216,7 @@ function findCoverageAssistMatchForUrl(sourceUrl, detectionEntries = []) {
 }
 
 function deriveCoverageAssistSignalState({
+  rolloutEnabled = false,
   assistEnabled,
   activeTabUrl,
   dismissedToolIds = [],
@@ -174,8 +224,20 @@ function deriveCoverageAssistSignalState({
 } = {}) {
   const activeTabSupported = Boolean(parseHttpUrl(activeTabUrl))
 
+  if (!rolloutEnabled) {
+    return {
+      rolloutEnabled: false,
+      assistEnabled: Boolean(assistEnabled),
+      activeTabSupported,
+      detection: null,
+      dismissed: false,
+      quietSignal: false,
+    }
+  }
+
   if (!assistEnabled) {
     return {
+      rolloutEnabled: true,
       assistEnabled: false,
       activeTabSupported,
       detection: null,
@@ -187,6 +249,7 @@ function deriveCoverageAssistSignalState({
   const detection = findCoverageAssistMatchForUrl(activeTabUrl, detectionEntries)
   if (!detection) {
     return {
+      rolloutEnabled: true,
       assistEnabled: true,
       activeTabSupported,
       detection: null,
@@ -200,6 +263,7 @@ function deriveCoverageAssistSignalState({
   )
 
   return {
+    rolloutEnabled: true,
     assistEnabled: true,
     activeTabSupported,
     detection,
@@ -231,12 +295,15 @@ async function getCoverageAssistPreferences() {
 
 async function setCoverageAssistEnabled(enabled) {
   if (!chrome.storage?.local?.set) return
+  const remoteConfig = await loadCoverageAssistRemoteConfig(await resolveBaseUrl())
   const preferences = await getCoverageAssistPreferences()
+  const nextEnabled = remoteConfig.rolloutEnabled === true && enabled === true
+
   await chrome.storage.local.set({
-    [STORAGE_KEYS.coverageAssistEnabled]: Boolean(enabled),
+    [STORAGE_KEYS.coverageAssistEnabled]: nextEnabled,
   })
 
-  if (preferences.enabled === true && enabled !== true) {
+  if (preferences.enabled === true && nextEnabled !== true) {
     await trackCoverageAssistLocalEvent("assist_disabled", {
       source: COVERAGE_ASSIST_SOURCE,
       location: "extension_popup",
@@ -276,6 +343,40 @@ async function trackCoverageAssistLocalEvent(name, payload = {}) {
   })
 
   return event
+}
+
+async function trackCoverageAssistSignalShownLocal(signalState) {
+  if (
+    !signalState?.quietSignal ||
+    !signalState?.detection ||
+    !chrome.storage?.local?.get ||
+    !chrome.storage?.local?.set
+  ) {
+    return null
+  }
+
+  const signature = [
+    COVERAGE_ASSIST_SOURCE,
+    signalState.detection.toolId,
+    signalState.detection.matchedHost ?? "",
+  ].join(":")
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.lastSignalSignature]: null,
+  })
+
+  if (stored[STORAGE_KEYS.lastSignalSignature] === signature) {
+    return null
+  }
+
+  await chrome.storage.local.set({
+    [STORAGE_KEYS.lastSignalSignature]: signature,
+  })
+
+  return trackCoverageAssistLocalEvent("assist_signal_shown", {
+    source: COVERAGE_ASSIST_SOURCE,
+    tool_id: signalState.detection.toolId,
+    matched_host: signalState.detection.matchedHost ?? null,
+  })
 }
 
 async function dismissCoverageAssistTool(toolId) {
@@ -535,17 +636,25 @@ async function setQuietSignalState(signalState, scheme = "light") {
   } catch {
     // Ignore presentation failures and keep the extension usable.
   }
+
+  if (hasSignal) {
+    await trackCoverageAssistSignalShownLocal(signalState)
+  }
 }
 
 async function resolveCoverageAssistStateForActiveTab(activeTabUrlOverride = null) {
+  const baseUrl = await resolveBaseUrl()
+  const remoteConfig = await loadCoverageAssistRemoteConfig(baseUrl)
   const preferences = await getCoverageAssistPreferences()
   const activeTabUrl =
     activeTabUrlOverride ?? (await getActiveTab())?.url ?? null
-  const detectionEntries = preferences.enabled
+  const detectionEntries =
+    preferences.enabled && remoteConfig.rolloutEnabled === true
     ? await loadCoverageAssistDetectionEntries()
     : []
 
   return deriveCoverageAssistSignalState({
+    rolloutEnabled: remoteConfig.rolloutEnabled === true,
     assistEnabled: preferences.enabled,
     activeTabUrl,
     dismissedToolIds: preferences.dismissedToolIds,
@@ -560,6 +669,7 @@ async function resolveCoverageAssistPopupState() {
   )
 
   return {
+    rolloutEnabled: signalState.rolloutEnabled,
     enabled: signalState.assistEnabled,
     activeTabSupported: signalState.activeTabSupported,
     detection: signalState.detection,

@@ -22,6 +22,7 @@ import {
 import {
   createCoverageAssistContextFromQuery,
 } from "@/lib/coverage-assist/query-contract";
+import { isCoverageAssistPilotEnabled } from "@/lib/coverage-assist/feature-gate";
 import { resolveCoverageAssistEntryState } from "@/lib/coverage-assist/capture-entry";
 import type {
   CaptureAssistContext,
@@ -69,6 +70,7 @@ export default function StandaloneCapturePage() {
   const [isCreatingRegister, setIsCreatingRegister] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [syncedEntitlement, setSyncedEntitlement] = useState(false);
+  const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
   const defaultInitialDraft = useMemo(
     () => ({
       purpose: prefill.slice(0, 160),
@@ -79,10 +81,11 @@ export default function StandaloneCapturePage() {
   const assistEntryState = useMemo(
     () =>
       resolveCoverageAssistEntryState(searchParams, {
-        phase1Enabled: registerFirstFlags.coverageAssistPhase1,
-        seedLibraryEnabled: registerFirstFlags.coverageAssistSeedLibrary,
+        phase1Enabled: coverageAssistPilotEnabled,
+        seedLibraryEnabled:
+          coverageAssistPilotEnabled && registerFirstFlags.coverageAssistSeedLibrary,
       }),
-    [searchParams]
+    [coverageAssistPilotEnabled, searchParams]
   );
   const [captureOpen, setCaptureOpen] = useState(() => assistEntryState === null);
   const [assistDraft, setAssistDraft] = useState<CaptureInitialDraft | null>(null);
