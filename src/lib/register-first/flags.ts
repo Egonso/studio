@@ -17,6 +17,9 @@ export interface RegisterFirstFeatureFlags {
   controlOrgExportCenter: boolean;
   controlUpgradeTriggers: boolean;
   controlAnalytics: boolean;
+  coverageAssistPhase1: boolean;
+  coverageAssistExtension: boolean;
+  coverageAssistSeedLibrary: boolean;
 }
 
 export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
@@ -39,6 +42,9 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     controlOrgExportCenter: false,
     controlUpgradeTriggers: false,
     controlAnalytics: false,
+    coverageAssistPhase1: false,
+    coverageAssistExtension: false,
+    coverageAssistSeedLibrary: false,
   });
 
 export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
@@ -108,6 +114,18 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
     "NEXT_PUBLIC_CONTROL_ANALYTICS_ENABLED",
     "CONTROL_ANALYTICS_ENABLED",
   ],
+  coverageAssistPhase1: [
+    "NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1",
+    "COVERAGE_ASSIST_PHASE1",
+  ],
+  coverageAssistExtension: [
+    "NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION",
+    "COVERAGE_ASSIST_EXTENSION",
+  ],
+  coverageAssistSeedLibrary: [
+    "NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY",
+    "COVERAGE_ASSIST_SEED_LIBRARY",
+  ],
 });
 
 function parseBooleanFlag(value: string | undefined): boolean {
@@ -153,6 +171,9 @@ export function getRegisterFirstFeatureFlags(
       controlOrgExportCenter: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_ORG_EXPORT_CENTER_ENABLED"] ?? env["CONTROL_ORG_EXPORT_CENTER_ENABLED"]) || registerFirstDefaultFlags.controlOrgExportCenter,
       controlUpgradeTriggers: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_UPGRADE_TRIGGERS_ENABLED"] ?? env["CONTROL_UPGRADE_TRIGGERS_ENABLED"]) || registerFirstDefaultFlags.controlUpgradeTriggers,
       controlAnalytics: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_ANALYTICS_ENABLED"] ?? env["CONTROL_ANALYTICS_ENABLED"]) || registerFirstDefaultFlags.controlAnalytics,
+      coverageAssistPhase1: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1"] ?? env["COVERAGE_ASSIST_PHASE1"]) || registerFirstDefaultFlags.coverageAssistPhase1,
+      coverageAssistExtension: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION"] ?? env["COVERAGE_ASSIST_EXTENSION"]) || registerFirstDefaultFlags.coverageAssistExtension,
+      coverageAssistSeedLibrary: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY"] ?? env["COVERAGE_ASSIST_SEED_LIBRARY"]) || registerFirstDefaultFlags.coverageAssistSeedLibrary,
     };
   }
 
@@ -212,6 +233,15 @@ export function getRegisterFirstFeatureFlags(
     controlAnalytics:
       parseBooleanFlag(process.env.NEXT_PUBLIC_CONTROL_ANALYTICS_ENABLED) ||
       registerFirstDefaultFlags.controlAnalytics,
+    coverageAssistPhase1:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1) ||
+      registerFirstDefaultFlags.coverageAssistPhase1,
+    coverageAssistExtension:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION) ||
+      registerFirstDefaultFlags.coverageAssistExtension,
+    coverageAssistSeedLibrary:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY) ||
+      registerFirstDefaultFlags.coverageAssistSeedLibrary,
   };
 }
 

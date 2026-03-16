@@ -15,6 +15,7 @@ const chromeSteps = [
   "Download ki-register-quick-capture-chrome.zip entpacken.",
   "Entpackte Erweiterung laden klicken und den entpackten Ordner auswählen.",
   "Extension anheften und über das Icon Quick Capture im Mini-Fenster öffnen.",
+  "Coverage Assist ist optional: lokaler Host-Match kann im Plugin pro Gerät aktiviert oder deaktiviert werden.",
   "Keine Domain-Einstellung nötig: die Extension nutzt standardmäßig kiregister.com.",
 ];
 
@@ -113,10 +114,42 @@ export default function DownloadsPage() {
           </div>
         </section>
 
+        <section className="mt-6 grid gap-4 lg:grid-cols-3">
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Coverage Assist
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Das Chrome Plugin kann optional bekannte KI-Hosts lokal auf dem aktuellen Tab
+              erkennen und den Einstieg in Quick Capture vorbereiten.
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Vertrauensgrenze
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Es gibt keine automatische Speicherung. Der eigentliche Einsatzfall wird erst im
+              Register von Ihnen bestaetigt oder angepasst.
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Lokal und abschaltbar
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Coverage Assist arbeitet mit lokalem Host-Match, speichert keine Browser-History
+              und kann im Plugin jederzeit wieder deaktiviert werden.
+            </p>
+          </article>
+        </section>
+
         <main className="mt-8 grid gap-6 lg:grid-cols-2">
           <SectionCard
             title="Chrome Plugin"
-            subtitle="Quick Capture direkt aus der Browser-Toolbar, inklusive Shortcut und Kontextmenü."
+            subtitle="Quick Capture direkt aus der Browser-Toolbar, inklusive Shortcut, Kontextmenü und optionalem Coverage Assist."
             downloadHref="/downloads/ki-register-quick-capture-chrome.zip"
             downloadLabel="Chrome Plugin herunterladen"
             steps={chromeSteps}
@@ -141,7 +174,16 @@ export default function DownloadsPage() {
               Ohne Login kannst du als Gast fortfahren; diese Einträge werden lokal im Browser gespeichert.
             </li>
             <li>
+              Coverage Assist prüft im Plugin nur den aktuellen Host und bleibt standardmäßig aus, bis du ihn auf diesem Gerät aktivierst.
+            </li>
+            <li>
+              Auch mit Coverage Assist wird nichts automatisch angelegt; die Bestaetigung passiert immer erst im Register.
+            </li>
+            <li>
               Logo/Icon wechseln automatisch zwischen Light- und Dark-Variante je nach Browser-Theme.
+            </li>
+            <li>
+              Coverage Assist kann im Plugin pro Gerät jederzeit wieder deaktiviert oder für einzelne Tools lokal ausgeblendet werden.
             </li>
             <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.

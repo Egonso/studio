@@ -42,6 +42,7 @@ import { getRegisterDisplayName } from './register-helpers';
 import { getEntitlementAccessPlan } from './entitlement';
 import { resolvePrimaryDataCategory } from './types';
 import { getActiveWorkspaceId } from '@/lib/workspace-session';
+import type { CaptureAssistContext } from '@/lib/coverage-assist/types';
 import type {
   ExternalIntakeTrace,
   GovernanceDecisionActor,
@@ -97,6 +98,7 @@ export interface CreateUseCaseOptions {
   useCaseId?: string;
   scopeContext?: RegisterScopeContext | null;
   origin?: UseCaseOrigin | null;
+  assistContext?: CaptureAssistContext | null;
   capturedBy?: string;
   capturedByName?: string;
   capturedViaCode?: boolean;
@@ -1208,6 +1210,7 @@ export function createRegisterService(
                 null,
               capturedByUserId: options.capturedBy ?? scope.actorUserId,
             }),
+          assistContext: options.assistContext ?? null,
           capturedBy: options.capturedBy ?? scope.actorUserId,
           capturedByName: options.capturedByName,
           capturedViaCode: options.capturedViaCode,

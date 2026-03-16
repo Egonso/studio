@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import type { CaptureAssistContext } from "@/lib/coverage-assist/types";
 import {
   assertManualGovernanceDecision,
   createUseCaseCardDraft,
@@ -77,6 +78,34 @@ export async function runFoundationSmoke() {
   assert.equal(card.status, "UNREVIEWED");
   assert.equal(card.cardVersion, "1.1");
 
+  const assistContext: CaptureAssistContext = {
+    assist: "coverage",
+    source: "chrome_extension",
+    detectedToolId: "chatgpt_openai",
+    matchedHost: "chat.openai.com",
+    matchedPath: "/",
+    selectionMode: "seed_suggestion",
+    seedSuggestionId: "chatgpt_openai_text_drafting",
+    seedSuggestionLabel: "Texte entwerfen",
+    libraryVersion: "seed_v0_1",
+    confidence: "high",
+  };
+
+  const assistedCard = createUseCaseCardDraft(
+    {
+      purpose: "Routine-E-Mails vorbereiten",
+      usageContexts: ["INTERNAL_ONLY"],
+      isCurrentlyResponsible: true,
+      decisionInfluence: "ASSISTANCE",
+    },
+    {
+      useCaseId: "uc_coverage_assist",
+      now: new Date("2026-02-07T12:05:00.000Z"),
+      assistContext,
+    }
+  );
+  assert.deepEqual(assistedCard.assistContext, assistContext);
+
   assert.doesNotThrow(() => assertManualGovernanceDecision("HUMAN"));
   assert.throws(() => assertManualGovernanceDecision("AUTOMATION"));
 
@@ -88,11 +117,17 @@ export async function runFoundationSmoke() {
     NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY: "1",
     NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER: "on",
     NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE: "yes",
+    NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1: "true",
+    NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION: "true",
+    NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY: "true",
   });
   assert.equal(envFlags.enabled, true);
   assert.equal(envFlags.hybridEntry, true);
   assert.equal(envFlags.stickyLauncher, true);
   assert.equal(envFlags.proofGate, true);
+  assert.equal(envFlags.coverageAssistPhase1, true);
+  assert.equal(envFlags.coverageAssistExtension, true);
+  assert.equal(envFlags.coverageAssistSeedLibrary, true);
   assert.equal(isHybridEntryEnabled(envFlags), true);
   assert.equal(isHybridEntryEnabled(registerFirstDefaultFlags), false);
   assert.equal(buildRegisterHref("project_123"), "/my-register?projectId=project_123");

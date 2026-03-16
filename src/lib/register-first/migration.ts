@@ -1,4 +1,5 @@
 import { generateGlobalUseCaseId, generatePublicHashId } from "./id-generation";
+import { parseCaptureAssistContext } from "@/lib/coverage-assist/types";
 import {
   CANONICAL_CARD_VERSION,
   normalizeCaptureUsageContext,
@@ -434,6 +435,14 @@ function normalizeToolFields(input: Record<string, unknown>) {
   };
 }
 
+function normalizeAssistContext(input: unknown) {
+  try {
+    return parseCaptureAssistContext(input);
+  } catch {
+    return null;
+  }
+}
+
 function shouldNormalizeSupplierLegacyContext(
   input: Record<string, unknown>,
   inferredSource: UseCaseOrigin["source"]
@@ -471,6 +480,7 @@ export function normalizeUseCaseCardRecord(input: unknown): unknown {
     inferredSource
   );
   const origin = deriveUseCaseOrigin(input);
+  const assistContext = normalizeAssistContext(input.assistContext);
   const supplierEmail =
     origin.submittedByEmail ??
     (looksLikeEmail(responsibility.responsibleParty ?? null)
@@ -508,6 +518,7 @@ export function normalizeUseCaseCardRecord(input: unknown): unknown {
     dataCategory: dataCategories[0] ?? undefined,
     dataCategories: dataCategories.length > 0 ? dataCategories : undefined,
     origin,
+    assistContext,
     labels:
       inferredSource === "supplier_request"
         ? mergeLabels(input.labels, [

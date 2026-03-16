@@ -1,6 +1,6 @@
 # KI-Register Quick Capture (Chrome Extension)
 
-Diese Extension oeffnet die Quick-Capture-Maske des Studios direkt aus der Chrome-Toolbar.
+Diese Extension oeffnet Quick Capture direkt aus der Chrome-Toolbar und kann optional Coverage Assist lokal auf diesem Geraet aktivieren.
 
 ## Ordner
 
@@ -16,7 +16,7 @@ Diese Extension oeffnet die Quick-Capture-Maske des Studios direkt aus der Chrom
 ## Nutzung
 
 - Klick auf das Toolbar-Icon:
-  - Quick Capture wird direkt im kompakten Fenster geoeffnet (520x900)
+  - Popup mit Quick Capture, Coverage Assist Toggle und Status fuer den aktuellen Tab
 - Shortcut:
   - `Cmd+Shift+Y` (macOS)
   - `Ctrl+Shift+Y` (Windows/Linux)

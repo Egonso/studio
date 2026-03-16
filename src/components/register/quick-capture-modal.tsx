@@ -13,6 +13,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
+import {
+    trackCoverageAssistSaved,
+} from "@/lib/analytics/coverage-assist-events";
+import type { CaptureAssistContext } from "@/lib/coverage-assist/types";
 import type {
     CaptureUsageContext,
     DataCategory,
@@ -44,6 +48,7 @@ interface QuickCaptureModalProps {
     mode?: "register" | "guest";
     renderInline?: boolean;
     initialDraft?: Partial<QuickDraft>;
+    assistContext?: CaptureAssistContext | null;
 }
 
 interface QuickDraft extends QuickCaptureFieldsDraft {
@@ -63,6 +68,7 @@ interface GuestCaptureEntry {
     dataCategories: DataCategory[];
     decisionInfluence: DecisionInfluence | null;
     description: string;
+    assistContext?: CaptureAssistContext | null;
 }
 
 function createInitialDraft(
@@ -110,6 +116,7 @@ export function QuickCaptureModal({
     mode = "register",
     renderInline = false,
     initialDraft,
+    assistContext = null,
 }: QuickCaptureModalProps) {
     const multisystemEnabled = registerFirstFlags.multisystemCapture;
     const isGuestMode = mode === "guest";
@@ -199,6 +206,7 @@ export function QuickCaptureModal({
                     dataCategories: validation.normalized.dataCategories ?? [],
                     decisionInfluence: validation.normalized.decisionInfluence ?? null,
                     description: draft.description.trim(),
+                    assistContext,
                 };
 
                 const key = "kiregister_guest_captures";
@@ -210,6 +218,19 @@ export function QuickCaptureModal({
                     title: "Lokal gespeichert",
                     description: "Gast-Eintrag wurde lokal im Browser gespeichert.",
                 });
+
+                if (assistContext?.assist === "coverage" && assistContext.source) {
+                    trackCoverageAssistSaved({
+                        source: assistContext.source,
+                        toolId:
+                            assistContext.detectedToolId ??
+                            validation.normalized.toolId ??
+                            "",
+                        selectionMode: assistContext.selectionMode ?? null,
+                        seedSuggestionId: assistContext.seedSuggestionId ?? null,
+                        libraryVersion: assistContext.libraryVersion ?? null,
+                    });
+                }
 
                 setDraft(createInitialDraft(initialDraft));
                 onCaptured?.();
@@ -229,6 +250,8 @@ export function QuickCaptureModal({
                 responsibleParty: validation.normalized.ownerRole,
                 contactPersonName: validation.normalized.contactPersonName,
                 decisionImpact: "UNSURE",
+            }, {
+                assistContext,
             });
 
             // Apply org defaults + provenance if inheritance is active
@@ -263,6 +286,16 @@ export function QuickCaptureModal({
                     ? `„${card.purpose}" – Organisations-Vorgaben übernommen`
                     : `„${card.purpose}" – Status: Formale Prüfung ausstehend`,
             });
+
+            if (assistContext?.assist === "coverage" && assistContext.source) {
+                trackCoverageAssistSaved({
+                    source: assistContext.source,
+                    toolId: assistContext.detectedToolId ?? card.toolId ?? "",
+                    selectionMode: assistContext.selectionMode ?? null,
+                    seedSuggestionId: assistContext.seedSuggestionId ?? null,
+                    libraryVersion: assistContext.libraryVersion ?? null,
+                });
+            }
 
             setDraft(createInitialDraft(initialDraft));
             onCaptured?.(card.useCaseId);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { SignedInAreaFrame, PageStatePanel } from "@/components/product-shells";
@@ -12,7 +12,23 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { invalidateEntitlementCache } from "@/lib/compliance-engine/capability/useCapability";
 import { useAuth } from "@/context/auth-context";
 import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
+import { CoverageAssistEntry } from "@/components/coverage-assist/coverage-assist-entry";
+import {
+  trackCoverageAssistCustomPurposeUsed,
+  trackCoverageAssistDismissed,
+  trackCoverageAssistEntryShown,
+  trackCoverageAssistSuggestionSelected,
+} from "@/lib/analytics/coverage-assist-events";
+import {
+  createCoverageAssistContextFromQuery,
+} from "@/lib/coverage-assist/query-contract";
+import { resolveCoverageAssistEntryState } from "@/lib/coverage-assist/capture-entry";
+import type {
+  CaptureAssistContext,
+  CoverageAssistSeedSuggestion,
+} from "@/lib/coverage-assist/types";
 import { syncRegisterEntitlement } from "@/lib/register-first/entitlement-client";
+import { registerFirstFlags } from "@/lib/register-first/flags";
 import {
   buildScopedRegisterHref,
   buildScopedUseCaseDetailHref,
@@ -24,6 +40,12 @@ import {
 } from "@/lib/register-first/register-service";
 
 type OnboardingState = "loading" | "no_register" | "ready";
+type CaptureInitialDraft = Partial<{
+  purpose: string;
+  description: string;
+  toolId: string;
+  toolFreeText: string;
+}>;
 
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -41,24 +63,62 @@ export default function StandaloneCapturePage() {
   const prefill = (searchParams.get("prefill") ?? "").trim();
   const originUrl = (searchParams.get("originUrl") ?? "").trim();
   const checkoutSessionId = searchParams.get("checkout_session_id");
-  const [captureOpen, setCaptureOpen] = useState(true);
   const [guestMode, setGuestMode] = useState(false);
-
   const [onboardingState, setOnboardingState] = useState<OnboardingState>("loading");
   const [registerName, setRegisterName] = useState("Mein Register");
   const [isCreatingRegister, setIsCreatingRegister] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [syncedEntitlement, setSyncedEntitlement] = useState(false);
-  const initialDraft = useMemo(
+  const defaultInitialDraft = useMemo(
     () => ({
       purpose: prefill.slice(0, 160),
       description: originUrl ? `Quelle: ${originUrl}`.slice(0, 160) : "",
     }),
     [originUrl, prefill]
   );
+  const assistEntryState = useMemo(
+    () =>
+      resolveCoverageAssistEntryState(searchParams, {
+        phase1Enabled: registerFirstFlags.coverageAssistPhase1,
+        seedLibraryEnabled: registerFirstFlags.coverageAssistSeedLibrary,
+      }),
+    [searchParams]
+  );
+  const [captureOpen, setCaptureOpen] = useState(() => assistEntryState === null);
+  const [assistDraft, setAssistDraft] = useState<CaptureInitialDraft | null>(null);
+  const [assistContext, setAssistContext] = useState<CaptureAssistContext | null>(null);
+  const assistOpenedSignatureRef = useRef<string | null>(null);
+  const initialDraft = assistDraft ?? defaultInitialDraft;
+  const shouldShowAssistEntry = assistEntryState !== null && assistDraft === null;
+  const isCaptureSurfaceReady = onboardingState === "ready" && (Boolean(user) || guestMode);
 
   // Check if user has a register on mount
   const [hasChecked, setHasChecked] = useState(false);
+
+  useEffect(() => {
+    if (!assistEntryState || !shouldShowAssistEntry || !isCaptureSurfaceReady) {
+      assistOpenedSignatureRef.current = null;
+      return;
+    }
+
+    const signature = [
+      assistEntryState.query.assistSource,
+      assistEntryState.toolId,
+      assistEntryState.matchedHost ?? "",
+    ].join(":");
+
+    if (assistOpenedSignatureRef.current === signature) {
+      return;
+    }
+
+    assistOpenedSignatureRef.current = signature;
+    trackCoverageAssistEntryShown({
+      source: assistEntryState.query.assistSource,
+      toolId: assistEntryState.toolId,
+      matchedHost: assistEntryState.matchedHost,
+      suggestionCount: assistEntryState.suggestions.length,
+    });
+  }, [assistEntryState, isCaptureSurfaceReady, shouldShowAssistEntry]);
 
   useEffect(() => {
     if (authLoading || hasChecked || !user) return;
@@ -141,6 +201,95 @@ export default function StandaloneCapturePage() {
     if (!nextOpen) {
       closeCapture();
     }
+  };
+
+  const buildAssistContext = (
+    selectionMode: CaptureAssistContext["selectionMode"],
+    seedSuggestion?: CoverageAssistSeedSuggestion | null
+  ): CaptureAssistContext | null => {
+    if (!assistEntryState) {
+      return null;
+    }
+
+    return createCoverageAssistContextFromQuery(assistEntryState.query, {
+      confidence: seedSuggestion ? "high" : "medium",
+      selectionMode: selectionMode ?? null,
+      seedSuggestionId: seedSuggestion?.suggestionId ?? null,
+      seedSuggestionLabel: seedSuggestion?.label ?? null,
+      libraryVersion: seedSuggestion?.libraryVersion ?? null,
+    });
+  };
+
+  const openAssistCapture = (
+    nextDraft: CaptureInitialDraft,
+    nextAssistContext: CaptureAssistContext | null
+  ) => {
+    setAssistDraft(nextDraft);
+    setAssistContext(nextAssistContext);
+    setCaptureOpen(true);
+  };
+
+  const handleAssistSuggestionSelected = (
+    suggestion: CoverageAssistSeedSuggestion
+  ) => {
+    if (!assistEntryState) {
+      return;
+    }
+
+    trackCoverageAssistSuggestionSelected({
+      source: assistEntryState.query.assistSource,
+      toolId: assistEntryState.toolId,
+      seedSuggestionId: suggestion.suggestionId,
+      libraryVersion: suggestion.libraryVersion,
+    });
+
+    openAssistCapture(
+      {
+        toolId: assistEntryState.toolId,
+        purpose: suggestion.purposeDraft,
+      },
+      buildAssistContext("seed_suggestion", suggestion)
+    );
+  };
+
+  const handleAssistCustomPurpose = (purpose: string) => {
+    if (!assistEntryState) {
+      return;
+    }
+
+    trackCoverageAssistCustomPurposeUsed({
+      source: assistEntryState.query.assistSource,
+      toolId: assistEntryState.toolId,
+    });
+
+    openAssistCapture(
+      {
+        toolId: assistEntryState.toolId,
+        purpose: purpose.trim().slice(0, 160),
+      },
+      buildAssistContext("custom_purpose")
+    );
+  };
+
+  const handleAssistContinueWithoutSuggestion = () => {
+    if (!assistEntryState) {
+      return;
+    }
+
+    if (assistEntryState.suggestions.length > 0) {
+      trackCoverageAssistDismissed({
+        source: assistEntryState.query.assistSource,
+        toolId: assistEntryState.toolId,
+        matchedHost: assistEntryState.matchedHost,
+      });
+    }
+
+    openAssistCapture(
+      {
+        toolId: assistEntryState.toolId,
+      },
+      buildAssistContext("tool_only")
+    );
   };
 
   const handleCaptured = (useCaseId?: string) => {
@@ -275,9 +424,24 @@ export default function StandaloneCapturePage() {
       area="signed_in_free_register"
       title="Quick Capture"
       description="Erfassen Sie einen neuen KI-Einsatzfall in wenigen Feldern und führen Sie ihn danach im Register weiter."
-      nextStep="Dokumentieren Sie zuerst Zweck, Tool und Nutzungskontext."
+      nextStep={
+        shouldShowAssistEntry
+          ? "Klären Sie zuerst den Zweck, bevor der Einsatzfall ins Quick Capture übernommen wird."
+          : "Dokumentieren Sie zuerst Zweck, Tool und Nutzungskontext."
+      }
       width="5xl"
     >
+      {shouldShowAssistEntry && assistEntryState ? (
+        <CoverageAssistEntry
+          toolName={assistEntryState.toolName}
+          matchedHost={assistEntryState.matchedHost}
+          suggestions={assistEntryState.suggestions}
+          onSelectSuggestion={handleAssistSuggestionSelected}
+          onSubmitCustomPurpose={handleAssistCustomPurpose}
+          onContinueWithoutSuggestion={handleAssistContinueWithoutSuggestion}
+        />
+      ) : null}
+
       <QuickCaptureModal
         open={captureOpen}
         onOpenChange={handleModalChange}
@@ -285,6 +449,7 @@ export default function StandaloneCapturePage() {
         mode={user ? "register" : "guest"}
         renderInline
         initialDraft={initialDraft}
+        assistContext={assistContext}
       />
     </SignedInAreaFrame>
   );

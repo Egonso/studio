@@ -1,0 +1,66 @@
+[
+  {
+    "toolId": "chatgpt_openai",
+    "toolName": "ChatGPT (OpenAI)",
+    "vendor": "OpenAI",
+    "hosts": ["chatgpt.com", "chat.openai.com"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "claude_anthropic",
+    "toolName": "Claude (Anthropic)",
+    "vendor": "Anthropic",
+    "hosts": ["claude.ai"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "google_gemini",
+    "toolName": "Google Gemini",
+    "vendor": "Google",
+    "hosts": ["gemini.google.com"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "microsoft_copilot",
+    "toolName": "Microsoft Copilot",
+    "vendor": "Microsoft",
+    "hosts": ["copilot.microsoft.com"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "perplexity",
+    "toolName": "Perplexity",
+    "vendor": "Perplexity AI",
+    "hosts": ["perplexity.ai"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "midjourney",
+    "toolName": "Midjourney",
+    "vendor": "Midjourney, Inc.",
+    "hosts": ["midjourney.com"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "jasper_ai",
+    "toolName": "Jasper.ai",
+    "vendor": "Jasper AI, Inc.",
+    "hosts": ["app.jasper.ai", "jasper.ai"],
+    "confidence": "high",
+    "isEnabled": true
+  },
+  {
+    "toolId": "runway",
+    "toolName": "Runway",
+    "vendor": "Runway AI, Inc.",
+    "hosts": ["app.runwayml.com"],
+    "confidence": "high",
+    "isEnabled": true
+  }
+]

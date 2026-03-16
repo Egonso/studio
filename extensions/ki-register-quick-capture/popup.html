@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KI-Register Quick Capture</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="popup-header">
+        <p class="eyebrow">KI-Register</p>
+        <h1>Quick Capture</h1>
+        <p class="subtle">
+          Coverage Assist bleibt lokal auf diesem Geraet und vergleicht nur den
+          aktuellen Host mit einer kleinen Tool-Liste.
+        </p>
+      </header>
+
+      <section class="panel">
+        <label class="toggle-row" for="assist-toggle">
+          <span>
+            <strong>Coverage Assist aktivieren</strong>
+            <span class="subtle block">
+              Nur lokaler Host-Match, keine History, keine Seitenanalyse.
+            </span>
+          </span>
+          <input id="assist-toggle" type="checkbox" />
+        </label>
+      </section>
+
+      <section class="panel">
+        <p class="panel-label">Aktueller Tab</p>
+        <h2 id="status-title">Status wird geladen</h2>
+        <p id="status-body" class="subtle">
+          Wir pruefen, ob auf diesem Tab Coverage Assist verfuegbar ist.
+        </p>
+      </section>
+
+      <section class="actions">
+        <button id="review-button" class="button button-primary" type="button" hidden>
+          Im Register pruefen
+        </button>
+        <button id="quick-capture-button" class="button button-secondary" type="button">
+          Quick Capture oeffnen
+        </button>
+      </section>
+
+      <section class="actions actions-inline">
+        <button id="dismiss-button" class="button button-ghost" type="button" hidden>
+          Fuer dieses Tool lokal ausblenden
+        </button>
+        <button id="restore-button" class="button button-ghost" type="button" hidden>
+          Fuer dieses Tool wieder anzeigen
+        </button>
+      </section>
+
+      <p id="feedback" class="feedback" aria-live="polite"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

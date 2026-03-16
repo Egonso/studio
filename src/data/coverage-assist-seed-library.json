@@ -1,0 +1,722 @@
+[
+  {
+    "suggestionId": "chatgpt_openai_email_drafting",
+    "toolId": "chatgpt_openai",
+    "label": "E-Mails entwerfen",
+    "purposeDraft": "E-Mails und Antworten mit KI vorformulieren",
+    "descriptionHint": "Beispiel: interne Abstimmungen oder erste Kundenantworten.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "chatgpt_openai_content_summary",
+    "toolId": "chatgpt_openai",
+    "label": "Inhalte zusammenfassen",
+    "purposeDraft": "Laengere Inhalte und Notizen in kurze Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: Meeting-Notizen, Memos oder Dokumente verdichten.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "chatgpt_openai_idea_structuring",
+    "toolId": "chatgpt_openai",
+    "label": "Ideen strukturieren",
+    "purposeDraft": "Erste Ideen, Optionen oder Ansatze mit KI strukturieren",
+    "descriptionHint": "Beispiel: Brainstorming, Themenlisten oder erste Gliederungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "chatgpt_openai_briefing_prep",
+    "toolId": "chatgpt_openai",
+    "label": "Briefings vorbereiten",
+    "purposeDraft": "Kurze Briefings und Sprechpunkte fuer Termine vorbereiten",
+    "descriptionHint": "Beispiel: Gespraechsleitfaeden, interne Briefings oder Vorabnotizen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "microsoft_copilot_meeting_recap",
+    "toolId": "microsoft_copilot",
+    "label": "Meeting-Recaps vorbereiten",
+    "purposeDraft": "Besprechungen in kurze Recaps und offene Punkte ueberfuehren",
+    "descriptionHint": "Beispiel: Zusammenfassungen fuer Teams oder Projektupdates.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "microsoft_copilot_document_rewrite",
+    "toolId": "microsoft_copilot",
+    "label": "Dokumente umformulieren",
+    "purposeDraft": "Bestehende Dokumente sprachlich ueberarbeiten und vereinfachen",
+    "descriptionHint": "Beispiel: Memos, Protokolle oder interne Dokumente glätten.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "microsoft_copilot_status_updates",
+    "toolId": "microsoft_copilot",
+    "label": "Statusupdates entwerfen",
+    "purposeDraft": "Statusupdates fuer Teams oder Projekte schneller vorbereiten",
+    "descriptionHint": "Beispiel: Wochenupdates, Projektstatus oder Nachfassnotizen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "microsoft_copilot_inbox_replies",
+    "toolId": "microsoft_copilot",
+    "label": "E-Mail-Antworten vorbereiten",
+    "purposeDraft": "E-Mail-Antworten und Nachfassnachrichten vorformulieren",
+    "descriptionHint": "Beispiel: interne Rueckfragen oder erste Kundenmails.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "google_gemini_research_outline",
+    "toolId": "google_gemini",
+    "label": "Recherche strukturieren",
+    "purposeDraft": "Fachliche Recherche in Themen, Fragen und naechste Schritte strukturieren",
+    "descriptionHint": "Beispiel: Themenrecherche oder erste Problemabgrenzung.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "google_gemini_slide_outline",
+    "toolId": "google_gemini",
+    "label": "Praesentationen vorbereiten",
+    "purposeDraft": "Inhalte fuer Praesentationen und Folien logisch vorstrukturieren",
+    "descriptionHint": "Beispiel: Agenden, Kernbotschaften oder Storyline-Entwuerfe.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "google_gemini_document_digest",
+    "toolId": "google_gemini",
+    "label": "Dokumente verdichten",
+    "purposeDraft": "Laengere Dokumente auf die wichtigsten Punkte herunterbrechen",
+    "descriptionHint": "Beispiel: Richtlinien, Reports oder interne Unterlagen zusammenfassen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "google_gemini_workshop_agenda",
+    "toolId": "google_gemini",
+    "label": "Workshop-Agenda skizzieren",
+    "purposeDraft": "Ablauf und Schwerpunkte fuer Workshops oder Termine vorbereiten",
+    "descriptionHint": "Beispiel: Agenda, Leitfragen oder Moderationsnotizen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "claude_anthropic_document_review",
+    "toolId": "claude_anthropic",
+    "label": "Dokumente gegenlesen",
+    "purposeDraft": "Dokumente sprachlich und strukturell gegenlesen lassen",
+    "descriptionHint": "Beispiel: Berichte, Richtlinien oder interne Texte vorpruefen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "claude_anthropic_policy_draft",
+    "toolId": "claude_anthropic",
+    "label": "Richtlinien entwerfen",
+    "purposeDraft": "Erste Fassungen fuer Richtlinien oder Prozessbeschreibungen vorbereiten",
+    "descriptionHint": "Beispiel: SOPs, Leitlinien oder Arbeitsanweisungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "claude_anthropic_long_text_structure",
+    "toolId": "claude_anthropic",
+    "label": "Lange Texte strukturieren",
+    "purposeDraft": "Umfangreiche Texte in Abschnitte, Kernaussagen und To-dos zerlegen",
+    "descriptionHint": "Beispiel: Berichte, Konzepte oder umfangreiche Entwuerfe.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "claude_anthropic_review_questions",
+    "toolId": "claude_anthropic",
+    "label": "Review-Fragen vorbereiten",
+    "purposeDraft": "Prueffragen und Diskussionspunkte fuer Reviews vorbereiten",
+    "descriptionHint": "Beispiel: Dokumentreviews, Freigaben oder Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "perplexity_market_briefing",
+    "toolId": "perplexity",
+    "label": "Marktueberblick erstellen",
+    "purposeDraft": "Aktuelle Entwicklungen zu einem Thema als kompakten Ueberblick sammeln",
+    "descriptionHint": "Beispiel: Markttrends, Themenupdates oder Ausgangslage fuer Entscheidungen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "perplexity_source_scan",
+    "toolId": "perplexity",
+    "label": "Quellen vorsortieren",
+    "purposeDraft": "Quellen schnell sammeln und nach Relevanz vorsortieren",
+    "descriptionHint": "Beispiel: erste Referenzen fuer Briefings oder Recherchen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "perplexity_topic_research",
+    "toolId": "perplexity",
+    "label": "Fachthemen recherchieren",
+    "purposeDraft": "Zu Fachthemen schnell einen ersten Rechercheeinstieg aufbauen",
+    "descriptionHint": "Beispiel: neue Begriffe, Trends oder Markthintergruende verstehen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "perplexity_competitor_briefing",
+    "toolId": "perplexity",
+    "label": "Wettbewerbsbriefings vorbereiten",
+    "purposeDraft": "Oeffentliche Informationen zu Wettbewerbern in kurze Briefings ueberfuehren",
+    "descriptionHint": "Beispiel: Marktbeobachtung oder Vorbereitung fuer interne Termine.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "github_copilot_code_scaffolding",
+    "toolId": "github_copilot",
+    "label": "Codebausteine vorschlagen",
+    "purposeDraft": "Erste Codebausteine und Routineimplementierungen schneller anlegen",
+    "descriptionHint": "Beispiel: Helper, Komponenten oder Standardlogik vorbereiten.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "github_copilot_test_draft",
+    "toolId": "github_copilot",
+    "label": "Tests entwerfen",
+    "purposeDraft": "Testfaelle und erste Testgerueste fuer bestehenden Code vorbereiten",
+    "descriptionHint": "Beispiel: Unit-Tests, Edge Cases oder Smoke-Tests.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "github_copilot_refactor_start",
+    "toolId": "github_copilot",
+    "label": "Refactoring vorbereiten",
+    "purposeDraft": "Refactoring-Ansatze und erste Umbauschritte schneller skizzieren",
+    "descriptionHint": "Beispiel: Dateigrenzen, Umbenennungen oder Strukturverbesserungen.",
+    "likelyContexts": ["INTERNAL_ONLY"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "github_copilot_code_explanation",
+    "toolId": "github_copilot",
+    "label": "Code erklaeren",
+    "purposeDraft": "Bestehenden Code fuer Verstaendnis und Uebergaben erklaeren lassen",
+    "descriptionHint": "Beispiel: unbekannte Module, Legacy-Code oder Onboarding.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "notion_ai_notes_cleanup",
+    "toolId": "notion_ai",
+    "label": "Meeting-Notizen ueberarbeiten",
+    "purposeDraft": "Rohnotizen in klarere Meeting- oder Arbeitsnotizen ueberfuehren",
+    "descriptionHint": "Beispiel: Besprechungen, Workshops oder Projektnotizen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "notion_ai_wiki_draft",
+    "toolId": "notion_ai",
+    "label": "Wiki-Eintraege entwerfen",
+    "purposeDraft": "Interne Wissenseintraege und Dokumentation schneller entwerfen",
+    "descriptionHint": "Beispiel: Arbeitsanleitungen, Teamwissen oder Prozessseiten.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "notion_ai_project_summary",
+    "toolId": "notion_ai",
+    "label": "Projektzusammenfassungen schreiben",
+    "purposeDraft": "Projektstaende in kurze, lesbare Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: Projektupdates, Wochenrueckblicke oder Handovers.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "notion_ai_task_digest",
+    "toolId": "notion_ai",
+    "label": "Aufgabenlisten verdichten",
+    "purposeDraft": "Lange Aufgabenlisten in Prioritaeten und kurze Uebersichten verdichten",
+    "descriptionHint": "Beispiel: Sprintlisten, Team-Backlogs oder To-do-Sammlungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "grammarly_text_revision",
+    "toolId": "grammarly",
+    "label": "Texte ueberarbeiten",
+    "purposeDraft": "Bestehende Texte sprachlich ueberarbeiten und glatter formulieren",
+    "descriptionHint": "Beispiel: interne Mails, Notizen oder kurze Dokumente.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "grammarly_tone_adjustment",
+    "toolId": "grammarly",
+    "label": "Tonalitaet anpassen",
+    "purposeDraft": "Texte kuerzer, freundlicher oder formeller umformulieren",
+    "descriptionHint": "Beispiel: Kundenmails, Teamnachrichten oder kurze Statements.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "grammarly_concise_rewrite",
+    "toolId": "grammarly",
+    "label": "Antworten verkuerzen",
+    "purposeDraft": "Bestehende Antworten auf den Punkt bringen und straffen",
+    "descriptionHint": "Beispiel: E-Mails, Kommentare oder Freigabetexte.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "grammarly_copy_polish",
+    "toolId": "grammarly",
+    "label": "Texte glätten",
+    "purposeDraft": "Kurze Texte fuer Freigaben oder Veroeffentlichungen sprachlich glätten",
+    "descriptionHint": "Beispiel: Statusmeldungen, Snippets oder kurze Webtexte.",
+    "likelyContexts": ["INTERNAL_ONLY", "PUBLIC"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "canva_magic_studio_social_visuals",
+    "toolId": "canva_magic_studio",
+    "label": "Social-Visuals vorbereiten",
+    "purposeDraft": "Schnelle Visuals fuer Social Posts und Kampagnen vorbereiten",
+    "descriptionHint": "Beispiel: Social-Grafiken, Kacheln oder Promotion-Visuals.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "canva_magic_studio_slide_visuals",
+    "toolId": "canva_magic_studio",
+    "label": "Praesentationsgrafiken erstellen",
+    "purposeDraft": "Visuals fuer Praesentationen und Pitches schneller vorbereiten",
+    "descriptionHint": "Beispiel: Titelfolien, Diagrammideen oder Key Visuals.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "canva_magic_studio_campaign_concepts",
+    "toolId": "canva_magic_studio",
+    "label": "Kampagnenideen visualisieren",
+    "purposeDraft": "Erste visuelle Richtungen fuer Kampagnen oder Inhalte ausarbeiten",
+    "descriptionHint": "Beispiel: Stilrichtungen, Key Visuals oder Kampagnenideen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "canva_magic_studio_layout_variants",
+    "toolId": "canva_magic_studio",
+    "label": "Layoutvarianten testen",
+    "purposeDraft": "Mehrere Layout- oder Formatvarianten fuer Inhalte schnell ausprobieren",
+    "descriptionHint": "Beispiel: Social-Formate, One-Pager oder Teaser-Grafiken.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "adobe_firefly_image_variants",
+    "toolId": "adobe_firefly",
+    "label": "Bildvarianten erzeugen",
+    "purposeDraft": "Mehrere Bildvarianten fuer einen Inhalt oder ein Motiv vorbereiten",
+    "descriptionHint": "Beispiel: Varianten fuer Kampagnen, Posts oder Visualtests.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "adobe_firefly_background_concepts",
+    "toolId": "adobe_firefly",
+    "label": "Hintergruende entwerfen",
+    "purposeDraft": "Hintergruende und Szenerien fuer Visuals oder Produkte vorbereiten",
+    "descriptionHint": "Beispiel: Kampagnenvisuals, Mockups oder Produktumfelder.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "adobe_firefly_style_tests",
+    "toolId": "adobe_firefly",
+    "label": "Stilrichtungen testen",
+    "purposeDraft": "Unterschiedliche visuelle Stilrichtungen fuer Inhalte vergleichen",
+    "descriptionHint": "Beispiel: Farben, Stile oder Look-and-feel-Varianten.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "adobe_firefly_visual_ideas",
+    "toolId": "adobe_firefly",
+    "label": "Visualideen vorbereiten",
+    "purposeDraft": "Fruehe Visualideen fuer Inhalte oder Kampagnen schnell ausarbeiten",
+    "descriptionHint": "Beispiel: erste Bildideen fuer Seiten, Posts oder Kampagnen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "midjourney_moodboards",
+    "toolId": "midjourney",
+    "label": "Moodboards erstellen",
+    "purposeDraft": "Visuelle Stimmungsbilder fuer Ideen oder Kampagnen vorbereiten",
+    "descriptionHint": "Beispiel: Stilrichtungen, Farbwelten oder visuelle Referenzen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "midjourney_campaign_motifs",
+    "toolId": "midjourney",
+    "label": "Kampagnenmotive skizzieren",
+    "purposeDraft": "Erste Motive fuer Kampagnen oder Content-Serien entwerfen",
+    "descriptionHint": "Beispiel: Motivideen, Variationen oder visuelle Leitideen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "midjourney_presentation_concepts",
+    "toolId": "midjourney",
+    "label": "Konzeptbilder fuer Praesentationen",
+    "purposeDraft": "Konzeptbilder fuer Pitches, Workshops oder Vortraege vorbereiten",
+    "descriptionHint": "Beispiel: Titelbilder, visuelle Einstiege oder Storytelling-Elemente.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "midjourney_visual_idea_pool",
+    "toolId": "midjourney",
+    "label": "Visualideen sammeln",
+    "purposeDraft": "Mehrere visuelle Richtungen fuer einen Inhalt schnell vergleichen",
+    "descriptionHint": "Beispiel: Varianten fuer ein Motiv oder einen Themenauftritt.",
+    "likelyContexts": ["INTERNAL_ONLY", "PUBLIC"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "jasper_ai_marketing_copy",
+    "toolId": "jasper_ai",
+    "label": "Marketingtexte entwerfen",
+    "purposeDraft": "Marketing- und Kampagnentexte mit KI vorformulieren",
+    "descriptionHint": "Beispiel: Headlines, Einleitungen oder kurze Kampagnentexte.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "jasper_ai_ad_variants",
+    "toolId": "jasper_ai",
+    "label": "Anzeigenvarianten schreiben",
+    "purposeDraft": "Mehrere Varianten fuer Anzeigen oder kurze Werbetexte vorbereiten",
+    "descriptionHint": "Beispiel: CTA-Varianten, Anzeigen-Snippets oder Claims.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "jasper_ai_landing_sections",
+    "toolId": "jasper_ai",
+    "label": "Landingpage-Abschnitte formulieren",
+    "purposeDraft": "Einzelne Landingpage-Abschnitte oder Webtexte entwerfen",
+    "descriptionHint": "Beispiel: Nutzenargumente, FAQ-Snippets oder Abschnittstexte.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "jasper_ai_social_posts",
+    "toolId": "jasper_ai",
+    "label": "Social-Posts vorbereiten",
+    "purposeDraft": "Social-Posts und Varianten fuer verschiedene Kanaele vorbereiten",
+    "descriptionHint": "Beispiel: LinkedIn-Posts, Teaser oder Redaktionsideen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "deepl_message_translation",
+    "toolId": "deepl",
+    "label": "Nachrichten uebersetzen",
+    "purposeDraft": "Kurze Nachrichten und E-Mails zwischen Sprachen uebersetzen",
+    "descriptionHint": "Beispiel: interne Mails oder einfache Rueckfragen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "deepl_customer_localization",
+    "toolId": "deepl",
+    "label": "Kundenkommunikation lokalisieren",
+    "purposeDraft": "Bestehende Kundenkommunikation in eine weitere Sprache uebertragen",
+    "descriptionHint": "Beispiel: E-Mails, kurze Hinweise oder Antwortbausteine.",
+    "likelyContexts": ["CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "deepl_document_alignment",
+    "toolId": "deepl",
+    "label": "Dokumente angleichen",
+    "purposeDraft": "Kurze Dokumente fuer mehrsprachige Teams sprachlich angleichen",
+    "descriptionHint": "Beispiel: Arbeitsnotizen, One-Pager oder kurze Handouts.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "deepl_inbound_understanding",
+    "toolId": "deepl",
+    "label": "Fremdsprachige Eingaben verstehen",
+    "purposeDraft": "Fremdsprachige Eingaben oder Nachrichten schneller verstehen",
+    "descriptionHint": "Beispiel: eingehende Anfragen, Kommentare oder kurze Dokumente.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "otter_ai_meeting_transcript",
+    "toolId": "otter_ai",
+    "label": "Meetings transkribieren",
+    "purposeDraft": "Besprechungen als Transkript fuer spaetere Nachbereitung erfassen",
+    "descriptionHint": "Beispiel: Teamcalls, Interviews oder Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "otter_ai_meeting_summary",
+    "toolId": "otter_ai",
+    "label": "Besprechungen zusammenfassen",
+    "purposeDraft": "Laengere Gespraeche in kurze Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: Recaps fuer Meetings oder interne Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "otter_ai_action_items",
+    "toolId": "otter_ai",
+    "label": "Aufgaben aus Gespraechen sammeln",
+    "purposeDraft": "Offene Punkte und Aufgaben aus Gespraechen herausziehen",
+    "descriptionHint": "Beispiel: Follow-ups, Naechste Schritte oder To-dos.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "otter_ai_interview_notes",
+    "toolId": "otter_ai",
+    "label": "Interviewnotizen strukturieren",
+    "purposeDraft": "Interview- oder Gespraechsnotizen klarer und durchsuchbar aufbereiten",
+    "descriptionHint": "Beispiel: Interviews, Nutzerfeedback oder interne Gespraeche.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "zoom_ai_companion_meeting_summary",
+    "toolId": "zoom_ai_companion",
+    "label": "Meetings zusammenfassen",
+    "purposeDraft": "Zoom-Meetings in kurze Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: Teamtermine, Kundenmeetings oder Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "zoom_ai_companion_next_steps",
+    "toolId": "zoom_ai_companion",
+    "label": "Naechste Schritte festhalten",
+    "purposeDraft": "Naechste Schritte und Follow-ups aus Meetings sammeln",
+    "descriptionHint": "Beispiel: Aufgaben, To-dos oder Verantwortlichkeiten aus Calls.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "zoom_ai_companion_discussion_recap",
+    "toolId": "zoom_ai_companion",
+    "label": "Gespraeche nachbereiten",
+    "purposeDraft": "Inhalte und Entscheidungen aus Gespraechen fuer Teams nachbereiten",
+    "descriptionHint": "Beispiel: Abstimmungen, Projektgespraeche oder Kundentermine.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "zoom_ai_companion_followup_questions",
+    "toolId": "zoom_ai_companion",
+    "label": "Folgefragen sammeln",
+    "purposeDraft": "Offene Fragen fuer naechste Gesprache oder Nachfasspunkte sammeln",
+    "descriptionHint": "Beispiel: Rueckfragen, Vorbereitung auf Folgetermine oder Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "fireflies_ai_call_notes",
+    "toolId": "fireflies_ai",
+    "label": "Call-Notizen erstellen",
+    "purposeDraft": "Telefonate oder Videocalls in strukturierte Notizen ueberfuehren",
+    "descriptionHint": "Beispiel: Kundenanrufe, Teamcalls oder interne Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "fireflies_ai_action_items",
+    "toolId": "fireflies_ai",
+    "label": "Action Items sammeln",
+    "purposeDraft": "Offene Aufgaben und Entscheidungen aus Calls sammeln",
+    "descriptionHint": "Beispiel: Follow-ups, Aufgabenlisten oder Verantwortlichkeiten.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "fireflies_ai_call_search",
+    "toolId": "fireflies_ai",
+    "label": "Gespraeche durchsuchen",
+    "purposeDraft": "Fruehere Gespraeche nach Themen, Aussagen oder Entscheidungen durchsuchen",
+    "descriptionHint": "Beispiel: schnelle Rueckfragen zu frueheren Calls oder Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "fireflies_ai_handover_summary",
+    "toolId": "fireflies_ai",
+    "label": "Handover-Zusammenfassungen vorbereiten",
+    "purposeDraft": "Wichtige Gespraechsinhalte fuer Uebergaben an andere Teams zusammenfassen",
+    "descriptionHint": "Beispiel: Sales zu Delivery, Support zu Account oder internes Handover.",
+    "likelyContexts": ["INTERNAL_ONLY", "EMPLOYEES"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "descript_transcript_cleanup",
+    "toolId": "descript",
+    "label": "Transkripte ueberarbeiten",
+    "purposeDraft": "Transkripte sprachlich glätten und fuer die Weiterverwendung vorbereiten",
+    "descriptionHint": "Beispiel: Interviews, Videos oder interne Aufzeichnungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "PUBLIC"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "descript_subtitle_draft",
+    "toolId": "descript",
+    "label": "Untertitel vorbereiten",
+    "purposeDraft": "Untertitel und einfache Textfassungen fuer Audio oder Video vorbereiten",
+    "descriptionHint": "Beispiel: Social-Clips, Videos oder kurze Aufzeichnungen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "descript_clip_script",
+    "toolId": "descript",
+    "label": "Clipskripte kuerzen",
+    "purposeDraft": "Skripte oder Sprechertexte fuer kuerzere Clips anpassen",
+    "descriptionHint": "Beispiel: Social-Clips, Teaser oder kurze Videoformate.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "descript_episode_summary",
+    "toolId": "descript",
+    "label": "Episodenzusammenfassungen schreiben",
+    "purposeDraft": "Audio- oder Videoformate in kurze Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: Podcastfolgen, Webinare oder Videoaufzeichnungen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "runway_storyboard_draft",
+    "toolId": "runway",
+    "label": "Storyboards skizzieren",
+    "purposeDraft": "Erste Storyboards und Bildfolgen fuer Videoideen vorbereiten",
+    "descriptionHint": "Beispiel: Kampagnenvideos, Erklaerstuecke oder Teaser.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "runway_motion_concepts",
+    "toolId": "runway",
+    "label": "Motion-Ideen visualisieren",
+    "purposeDraft": "Einfache Motion- oder Bewegtbildideen vorvisualisieren",
+    "descriptionHint": "Beispiel: Uebergaenge, Einstiege oder kurze Animationen.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "runway_visual_variants",
+    "toolId": "runway",
+    "label": "Bild- und Video-Varianten testen",
+    "purposeDraft": "Mehrere Varianten eines visuellen Konzepts schnell vergleichen",
+    "descriptionHint": "Beispiel: Teaser, Snippets oder Formatvarianten.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "runway_teaser_ideas",
+    "toolId": "runway",
+    "label": "Teaser-Ideen vorbereiten",
+    "purposeDraft": "Kurze Teaser-Ideen fuer Kampagnen oder Inhalte vorbereiten",
+    "descriptionHint": "Beispiel: Social-Teaser, Produktankuendigungen oder Eventhinweise.",
+    "likelyContexts": ["PUBLIC", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "hubspot_ai_contact_summary",
+    "toolId": "hubspot_ai",
+    "label": "Kontaktzusammenfassungen erstellen",
+    "purposeDraft": "Kontaktnotizen und Verlauf in kurze Zusammenfassungen ueberfuehren",
+    "descriptionHint": "Beispiel: CRM-Zusammenfassungen oder Uebergaben im Team.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "hubspot_ai_sales_email",
+    "toolId": "hubspot_ai",
+    "label": "Vertriebs-E-Mails entwerfen",
+    "purposeDraft": "Vertriebs- oder Nachfassmails schneller vorformulieren",
+    "descriptionHint": "Beispiel: Follow-ups, Einladungen oder Terminbestaetigungen.",
+    "likelyContexts": ["CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "hubspot_ai_ticket_summary",
+    "toolId": "hubspot_ai",
+    "label": "Ticketverlaeufe verdichten",
+    "purposeDraft": "Laengere Service- oder CRM-Verlaeufe in kurze Uebersichten verdichten",
+    "descriptionHint": "Beispiel: Supportverlaeufe, Kontaktverlauf oder Nachbearbeitung.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "hubspot_ai_campaign_ideas",
+    "toolId": "hubspot_ai",
+    "label": "Kampagnenideen vorbereiten",
+    "purposeDraft": "Erste Kampagnenideen oder kurze Outreach-Ansatze vorbereiten",
+    "descriptionHint": "Beispiel: Outreach-Serien, Themenideen oder Segmentansprachen.",
+    "likelyContexts": ["CUSTOMERS", "PUBLIC"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "salesforce_einstein_opportunity_updates",
+    "toolId": "salesforce_einstein",
+    "label": "Opportunity-Updates vorbereiten",
+    "purposeDraft": "CRM-Opportunities in kurze Statusupdates und Notizen ueberfuehren",
+    "descriptionHint": "Beispiel: Pipeline-Updates oder interne Sales-Abstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "salesforce_einstein_account_summary",
+    "toolId": "salesforce_einstein",
+    "label": "Account-Zusammenfassungen erstellen",
+    "purposeDraft": "Wichtige Account-Informationen als kurze Uebersicht aufbereiten",
+    "descriptionHint": "Beispiel: Kundentermine, Handover oder interne Briefings.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "salesforce_einstein_pipeline_notes",
+    "toolId": "salesforce_einstein",
+    "label": "Pipeline-Notizen strukturieren",
+    "purposeDraft": "Vertriebsnotizen und naechste Schritte in CRM-konforme Notizen ueberfuehren",
+    "descriptionHint": "Beispiel: Deal-Notizen, Follow-ups oder Teamabstimmungen.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  },
+  {
+    "suggestionId": "salesforce_einstein_case_recap",
+    "toolId": "salesforce_einstein",
+    "label": "Fall-Recaps formulieren",
+    "purposeDraft": "Kundenfaelle oder Vorgangsverlaeufe in kurze Recaps ueberfuehren",
+    "descriptionHint": "Beispiel: Servicefaelle, Abstimmungen oder Uebergaben.",
+    "likelyContexts": ["INTERNAL_ONLY", "CUSTOMERS"],
+    "libraryVersion": "seed_v0_1"
+  }
+]

@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  captureAssistContextSchema,
+  type CaptureAssistContext,
+} from "@/lib/coverage-assist/types";
 import type {
   CaptureInput,
   ExternalSubmission,
@@ -436,6 +440,7 @@ export const useCaseCardSchema = z
     statusHistory: z.array(statusChangeSchema).optional(),
     manualEdits: z.array(manualEditEventSchema).default([]),
     origin: useCaseOriginSchema.optional().nullable(),
+    assistContext: captureAssistContextSchema.optional().nullable(),
     capturedBy: z.string().optional(),
     capturedByName: z.string().optional(),
     capturedViaCode: z.boolean().optional(),
@@ -500,6 +505,7 @@ interface CreateUseCaseCardDraftParams {
   now?: Date;
   status?: RegisterUseCaseStatus;
   origin?: UseCaseOrigin | null;
+  assistContext?: CaptureAssistContext | null;
   globalUseCaseId?: string;
   publicHashId?: string;
 }
@@ -517,6 +523,7 @@ export function createUseCaseCardDraft(
     now: currentTime,
     status: params.status,
     origin: params.origin ?? createUseCaseOrigin({ source: "manual" }),
+    assistContext: params.assistContext ?? null,
   });
 }
 
@@ -528,6 +535,7 @@ interface CreateUseCaseCardV11DraftParams {
   now?: Date;
   status?: RegisterUseCaseStatus;
   origin?: UseCaseOrigin | null;
+  assistContext?: CaptureAssistContext | null;
 }
 
 export function createUseCaseCardV11Draft(
@@ -570,6 +578,7 @@ export function createUseCaseCardV11Draft(
     reviews: [],
     proof: null,
     origin: params.origin ?? createUseCaseOrigin({ source: "manual" }),
+    assistContext: params.assistContext ?? null,
     // v1.1 fields
     globalUseCaseId: params.globalUseCaseId,
     formatVersion: "v1.1",

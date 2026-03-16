@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import type { CaptureAssistContext } from '@/lib/coverage-assist/types';
 import {
   createInMemoryPublicIndexRepo,
   createInMemoryRegisterAccessCodeRepo,
@@ -183,4 +184,70 @@ test('workspace scope resolves registers across owners and records the acting me
 
   assert.equal(updated.reviews[0]?.reviewedBy, 'reviewer_user');
   assert.equal(updated.statusHistory?.[0]?.changedBy, 'reviewer_user');
+});
+
+test('workspace capture persists coverage assist context without changing human origin', async () => {
+  const activeRegisterByScope = new Map<string, string | null>();
+  const defaultRegisterByScope = new Map<string, string | null>();
+  const linkedRegisters: Array<{ orgId: string; registerId: string }> = [];
+  const registerRepo = createInMemoryRegisterRepository();
+  const useCaseRepo = createInMemoryRegisterUseCaseRepo();
+  const publicIndexRepo = createInMemoryPublicIndexRepo();
+  const accessCodeRepo = createInMemoryRegisterAccessCodeRepo();
+
+  const ownerService = createScopeAwareService({
+    userId: 'owner_alpha',
+    activeRegisterByScope,
+    defaultRegisterByScope,
+    linkedRegisters,
+    registerRepo,
+    useCaseRepo,
+    publicIndexRepo,
+    accessCodeRepo,
+  });
+  const reviewerService = createScopeAwareService({
+    userId: 'reviewer_user',
+    activeRegisterByScope,
+    defaultRegisterByScope,
+    linkedRegisters,
+    registerRepo,
+    useCaseRepo,
+    publicIndexRepo,
+    accessCodeRepo,
+  });
+
+  const register = await ownerService.createRegister('Coverage Register', null, {
+    scopeContext: WORKSPACE_SCOPE,
+  });
+
+  const assistContext: CaptureAssistContext = {
+    assist: 'coverage',
+    source: 'chrome_extension',
+    detectedToolId: 'chatgpt_openai',
+    matchedHost: 'chat.openai.com',
+    matchedPath: '/',
+    selectionMode: 'seed_suggestion',
+    seedSuggestionId: 'chatgpt_openai_email_drafting',
+    seedSuggestionLabel: 'E-Mails entwerfen',
+    libraryVersion: 'seed_v0_1',
+    confidence: 'high',
+  };
+
+  const captured = await reviewerService.createUseCaseFromCapture(
+    {
+      purpose: 'Routine-E-Mails mit KI vorformulieren',
+      usageContexts: ['INTERNAL_ONLY'],
+      isCurrentlyResponsible: true,
+      decisionImpact: 'NO',
+      toolId: 'chatgpt_openai',
+    },
+    {
+      registerId: register.registerId,
+      scopeContext: WORKSPACE_SCOPE,
+      assistContext,
+    },
+  );
+
+  assert.deepEqual(captured.assistContext, assistContext);
+  assert.equal(captured.origin?.source, 'manual');
 });

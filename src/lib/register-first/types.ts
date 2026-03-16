@@ -1,6 +1,7 @@
 import type {
   ApprovalWorkflow,
 } from '@/lib/enterprise/workspace';
+import type { CaptureAssistContext } from "@/lib/coverage-assist/types";
 
 export const CAPTURE_STEP_3_LABEL =
   'Bist du aktuell dafür verantwortlich?' as const;
@@ -373,6 +374,11 @@ export interface UseCaseCard {
   statusHistory?: StatusChange[];
   manualEdits?: ManualEditEvent[];
   origin?: UseCaseOrigin | null;
+  /**
+   * Additive provenance for assistive prefill only.
+   * The canonical origin remains human-confirmed.
+   */
+  assistContext?: CaptureAssistContext | null;
   capturedBy?: string;
   capturedByName?: string;
   capturedViaCode?: boolean;
