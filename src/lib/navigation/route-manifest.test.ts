@@ -153,7 +153,12 @@ test('governance settings nav stays active on the unified settings page', () => 
 test('global chrome keeps footer hidden on app shells and shows the support widget everywhere except intake and exam flows', () => {
   assert.equal(showGlobalFooterForPathname('/'), false);
   assert.equal(showGlobalFooterForPathname('/erfassen'), false);
-  assert.equal(showGlobalFooterForPathname('/my-register'), false);
+  assert.equal(showGlobalFooterForPathname('/capture'), false);
+  assert.equal(showGlobalFooterForPathname('/my-register'), true);
+  assert.equal(showGlobalFooterForPathname('/control'), true);
+  assert.equal(showGlobalFooterForPathname('/settings'), true);
+  assert.equal(showGlobalFooterForPathname('/pass/demo-use-case'), false);
+  assert.equal(showGlobalFooterForPathname('/exam'), false);
   assert.equal(showGlobalFooterForPathname('/gesetz'), true);
 
   assert.equal(showSiteChatbotForPathname('/'), true);

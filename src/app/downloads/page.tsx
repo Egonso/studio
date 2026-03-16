@@ -86,7 +86,11 @@ export default function DownloadsPage() {
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7fafc_0%,#ffffff_45%,#ffffff_100%)]">
       <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="flex items-center gap-3 rounded-md transition-opacity hover:opacity-80"
+            aria-label="Zur Hauptseite von KI-Register"
+          >
             <Image
               src="/register-logo.png"
               alt="KI-Register"
@@ -100,7 +104,7 @@ export default function DownloadsPage() {
               </p>
               <h1 className="text-2xl font-bold text-slate-900">Downloads</h1>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-3">
             <Link
