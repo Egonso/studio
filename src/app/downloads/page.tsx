@@ -38,12 +38,12 @@ const macSteps = [
 ];
 
 const agentKitSteps = [
-  "Download ki-register-agent-kit.zip herunterladen und entpacken.",
-  "Beim ersten Start werden einmalig Grundinfos abgefragt: wer dokumentiert, wo die Dateien liegen sollen und welche Defaults gelten.",
-  "Danach kann das Kit neue KI-Anwendungen, Prozesse oder Workflows direkt waehrend der Arbeit miterfassen.",
+  "Ein technisches Team oder ein Agent richtet das Agent Kit einmalig im Projekt oder Workspace ein.",
+  "Beim ersten Start werden Grundinfos abgefragt: wer dokumentiert, wo Dateien liegen und welche Defaults gelten.",
+  "Danach kann der Agent neue KI-Anwendungen, Prozesse oder Workflows direkt waehrend der Arbeit miterfassen.",
   "Wenn Informationen fehlen, fuehrt das Kit durch ein kurzes Interview und fragt die wichtigsten Punkte systematisch ab.",
-  "Vor jedem neuen Eintrag zeigt es noch einmal eine kurze Zusammenfassung und bittet um Bestaetigung.",
-  "Das Ergebnis ist immer eine lesbare Dokumentation fuer Menschen plus eine strukturierte JSON-Datei fuer Audits und Agenten.",
+  "Vor jedem neuen Eintrag zeigt es eine Zusammenfassung und bittet um ausdrueckliche Bestaetigung.",
+  "Das Ergebnis ist eine lesbare Dokumentation fuer Menschen plus eine strukturierte JSON-Datei fuer Agenten, Audits und eine spaetere Uebernahme ins KI-Register.",
 ];
 
 const agentKitExamples: Array<{
@@ -289,38 +289,44 @@ export default function DownloadsPage() {
               leichter in Codex, OpenClaw, Antigravity und aehnliche Agent-Umgebungen eingebunden
               werden kann.
             </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Wichtig: Stand heute erzeugt das Agent Kit die Unterlagen zuerst ausserhalb der
+              Website. Das Zielbild ist, dass ein bestaetigter Fall anschliessend sauber im
+              KI-Register sichtbar wird, damit Teamleads ihn dort direkt sehen koennen.
+            </p>
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
             <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Fuer nicht-technische Teams
+                Fuer Teamleads
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Sie muessen das Tool nicht selbst bedienen. Ein Teammitglied oder Agent fuehrt Sie
-                durch ein kurzes Interview und sammelt Zweck, Owner, Systeme, Risiken und
-                Kontrollen in normaler Sprache ein.
+                Teamleads sollen am Ende nicht mit Dateien arbeiten muessen, sondern den
+                bestaetigten Anwendungsfall im KI-Register sehen. Das Paket selbst braucht in der
+                Regel nur das technische Team, nicht die spaetere Review-Person.
               </p>
             </article>
 
             <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Was am Ende entsteht
+                Stand heute
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Pro Anwendungsfall entstehen eine lesbare Dokumentation fuer Menschen und eine
-                strukturierte JSON-Datei fuer Agenten, Audits und spaetere Weiterverarbeitung.
+                Heute erzeugt das Agent Kit zuerst standardisierte Unterlagen ausserhalb der
+                Website: eine lesbare Dokumentation fuer Menschen und eine strukturierte
+                JSON-Datei fuer Agenten, Audits und Weiterverarbeitung.
               </p>
             </article>
 
             <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Fuer viele Agenten
+                Wer das Paket braucht
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Das Paket ist absichtlich agent-neutral. Es kann mit Codex, OpenClaw, Antigravity
-                und anderen agentischen Systemen genutzt werden, solange diese lokal Dateien lesen
-                und schreiben duerfen.
+                Das Paket ist fuer technische Teams und Agent-Owner gedacht, die diese Erfassung
+                automatisieren wollen. Es bleibt absichtlich agent-neutral und funktioniert mit
+                Codex, OpenClaw, Antigravity und aehnlichen Systemen.
               </p>
             </article>
           </div>
@@ -351,6 +357,11 @@ export default function DownloadsPage() {
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
               Sie muessen keine Spezialbefehle kennen. Kopieren Sie einfach einen passenden Prompt,
               schicken Sie ihn an Ihren Agenten und passen Sie nur noch den konkreten Use Case an.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Wenn Sie nur das Ergebnis im KI-Register sehen wollen, brauchen Sie diese Prompts
+              nicht selbst. Sie sind fuer das technische Team oder die Person gedacht, die den
+              Agenten einrichtet.
             </p>
             <div className="mt-4">
               <a
@@ -388,34 +399,35 @@ export default function DownloadsPage() {
         <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Agent Kit Download
+              Fuer Technische Teams
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Erst verstehen, dann herunterladen.
+              Nicht jede Person braucht das ganze Paket.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Das Agent Kit ist kein normales Endnutzer-Tool, sondern ein Paket fuer Teams und
-              Agenten-Workflows. Wenn Sie es testen oder an ein technisches Team weitergeben
-              moechten, finden Sie hier den Download und das zugehoerige GitHub-Repository.
+              Wenn Sie Teamlead oder Fachbereich sind, ist fuer Sie spaeter der sichtbare Eintrag
+              im KI-Register entscheidend. Den Download brauchen vor allem technische Teams oder
+              Agent-Owner, die das Agent Kit in einen Workflow, ein Repository oder einen Agenten
+              einbauen wollen.
             </p>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
             <a
-              href="/downloads/ki-register-agent-kit.zip"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
-            >
-              <Download className="h-4 w-4" />
-              Agent Kit herunterladen
-            </a>
-            <a
               href={agentKitGithubHref}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
             >
               <ArrowUpRight className="h-4 w-4" />
               GitHub-Quelle
+            </a>
+            <a
+              href="/downloads/ki-register-agent-kit.zip"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4" />
+              ZIP herunterladen
             </a>
           </div>
         </section>
