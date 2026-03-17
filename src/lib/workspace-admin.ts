@@ -7,6 +7,7 @@ import {
   type EnterpriseWorkspaceSettingsUpdate,
   type EnterpriseWorkspaceSettings,
   type ManagedWorkspaceRole,
+  type WorkspaceRole,
   type WorkspaceMemberRecord,
   type WorkspaceProvisioningSource,
   type WorkspaceRecord,
@@ -28,6 +29,12 @@ function workspaceRef(orgId: string) {
 
 function memberRef(orgId: string, userId: string) {
   return workspaceRef(orgId).collection('members').doc(userId);
+}
+
+export interface UserWorkspaceSummary {
+  orgId: string;
+  name: string;
+  role: WorkspaceRole;
 }
 
 export async function ensureWorkspaceRecord(input: {
@@ -104,6 +111,79 @@ export async function listWorkspaceMembers(
   return snapshot.docs
     .map((doc) => normalizeWorkspaceMember(doc.data() as WorkspaceMemberRecord))
     .sort((left, right) => left.email.localeCompare(right.email));
+}
+
+export async function listUserWorkspaces(
+  userId: string,
+): Promise<UserWorkspaceSummary[]> {
+  const [ownedWorkspacesSnapshot, memberSnapshot] = await Promise.all([
+    db.collection('workspaces').where('ownerUserId', '==', userId).get(),
+    db.collectionGroup('members').where('userId', '==', userId).get(),
+  ]);
+
+  const byOrgId = new Map<string, UserWorkspaceSummary>();
+
+  for (const workspaceDoc of ownedWorkspacesSnapshot.docs) {
+    const workspace = workspaceDoc.data() as WorkspaceRecord;
+    byOrgId.set(workspaceDoc.id, {
+      orgId: workspaceDoc.id,
+      name: workspace.name?.trim() || workspaceDoc.id,
+      role: 'OWNER',
+    });
+  }
+
+  const missingWorkspaceIds = new Set<string>();
+
+  for (const memberDoc of memberSnapshot.docs) {
+    const workspaceDoc = memberDoc.ref.parent.parent;
+    if (!workspaceDoc) {
+      continue;
+    }
+
+    const orgId = workspaceDoc.id;
+    const member = normalizeWorkspaceMember(
+      memberDoc.data() as WorkspaceMemberRecord,
+    );
+    if (member.status !== 'active') {
+      continue;
+    }
+    const existing = byOrgId.get(orgId);
+
+    if (!existing) {
+      missingWorkspaceIds.add(orgId);
+    }
+
+    byOrgId.set(orgId, {
+      orgId,
+      name: existing?.name ?? orgId,
+      role: existing?.role === 'OWNER' ? 'OWNER' : member.role,
+    });
+  }
+
+  if (missingWorkspaceIds.size > 0) {
+    const workspaces = await Promise.all(
+      Array.from(missingWorkspaceIds).map(async (orgId) => ({
+        orgId,
+        workspace: await getWorkspaceRecord(orgId),
+      })),
+    );
+
+    for (const entry of workspaces) {
+      const existing = byOrgId.get(entry.orgId);
+      if (!existing) {
+        continue;
+      }
+
+      byOrgId.set(entry.orgId, {
+        ...existing,
+        name: entry.workspace?.name?.trim() || existing.name,
+      });
+    }
+  }
+
+  return Array.from(byOrgId.values()).sort((left, right) =>
+    left.name.localeCompare(right.name, 'de'),
+  );
 }
 
 export async function upsertWorkspaceMemberRecord(input: {
