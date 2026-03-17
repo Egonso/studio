@@ -3,9 +3,9 @@
 ## Before a public GitHub release
 
 - [ ] Confirm the chosen license is still correct
-- [ ] Add the real repository, homepage, and issues URLs to `package.json`
+- [ ] Confirm the repository, homepage, and issues URLs in `package.json` are still correct
 - [ ] Check `README.md` screenshots and links
-- [ ] Run `npm test` inside `agent-kit/`
+- [ ] Run `npm test` at the repository root
 - [ ] Review `CHANGELOG.md`
 - [ ] Verify `skills/studio-use-case-documenter/SKILL.md` and `agents/openai.yaml` still match
 - [ ] Confirm no internal or customer-specific examples remain

@@ -46,6 +46,10 @@ This repository turns those ideas into a practical operating standard:
 ## Quick start
 
 ```bash
+# 0. Get the repository
+git clone https://github.com/Egonso/ki-register-agent-kit.git
+cd ki-register-agent-kit
+
 # 1. Store your defaults once
 node ./bin/studio-agent.mjs onboard
 
@@ -151,7 +155,7 @@ This package is intentionally shaped so it can be:
 For marketplace or public GitHub publication, the minimum clean package is:
 
 ```text
-agent-kit/
+ki-register-agent-kit/
   README.md
   assets/
   bin/
@@ -162,7 +166,7 @@ agent-kit/
   package.json
 ```
 
-Before the first public release, fill in the real repository URLs in `package.json` once the GitHub repository actually exists.
+This standalone repository uses `https://github.com/Egonso/ki-register-agent-kit`.
 
 ## Open-source health
 

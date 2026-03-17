@@ -12,9 +12,7 @@ export const metadata: Metadata = {
 };
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
-const agentKitGithubHref =
-  "https://github.com/Egonso/studio/tree/codex/agent-kit-public/agent-kit";
-const agentKitPullRequestHref = "https://github.com/Egonso/studio/pull/25";
+const agentKitGithubHref = "https://github.com/Egonso/ki-register-agent-kit";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -46,6 +44,34 @@ const agentKitSteps = [
   "Wenn Informationen fehlen, fuehrt das Kit durch ein kurzes Interview und fragt die wichtigsten Punkte systematisch ab.",
   "Vor jedem neuen Eintrag zeigt es noch einmal eine kurze Zusammenfassung und bittet um Bestaetigung.",
   "Das Ergebnis ist immer eine lesbare Dokumentation fuer Menschen plus eine strukturierte JSON-Datei fuer Audits und Agenten.",
+];
+
+const agentKitExamples: Array<{
+  title: string;
+  setup: string;
+  prompt: string;
+}> = [
+  {
+    title: "Codex App oder Claude Code",
+    setup:
+      "Laden Sie das GitHub-Repo oder die ZIP in Ihr Projekt und oeffnen Sie den Ordner in Codex App oder Claude Code. Danach reicht ein normaler Prompt.",
+    prompt:
+      "Nutze das Repository ki-register-agent-kit in diesem Workspace. Falls noch kein Onboarding vorhanden ist, fuehre mich zuerst durch die Grundeinrichtung. Dokumentiere dann diese neue KI-Anwendung, stelle Rueckfragen bei fehlenden Informationen und frage mich vor dem Schreiben nach einer klaren Bestaetigung.",
+  },
+  {
+    title: "OpenClaw oder andere Skill-Agenten",
+    setup:
+      "Installieren oder referenzieren Sie das Skill aus dem Agent-Kit-Repo. Danach kann der Agent die Dokumentation waehrend der eigentlichen Arbeit miterfassen.",
+    prompt:
+      "Nutze das Skill studio-use-case-documenter. Wenn noch kein Profil vorhanden ist, onboarde mich zuerst. Erfasse diesen neuen Workflow, interviewe mich zu Zweck, Owner, Daten, Risiken und Kontrollen und zeige mir die geplante Dokumentation vor dem Schreiben.",
+  },
+  {
+    title: "Antigravity oder andere Agenten",
+    setup:
+      "Wenn Ihr Agent keine Skills kennt, reicht meist schon das CLI aus dem Repo. Wichtig ist nur, dass der Agent lokal Dateien lesen und anlegen darf.",
+    prompt:
+      "Nutze das CLI aus dem Repository ki-register-agent-kit fuer diesen neuen Anwendungsfall. Frage mich Schritt fuer Schritt nach den fehlenden Informationen, fasse alles kurz zusammen und lege die Dokumentation erst an, wenn ich die finale Zusammenfassung bestaetigt habe.",
+  },
 ];
 
 function SectionCard({
@@ -190,7 +216,7 @@ export default function DownloadsPage() {
           </section>
         ) : null}
 
-        <main className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <main className="mt-8 grid gap-6 lg:grid-cols-2">
           <SectionCard
             title="Chrome Plugin"
             subtitle="Quick Capture direkt aus der Browser-Toolbar, inklusive Shortcut, Kontextmenü und optionalem Coverage Assist."
@@ -206,95 +232,7 @@ export default function DownloadsPage() {
             downloadLabel="Mac App herunterladen"
             steps={macSteps}
           />
-
-          <SectionCard
-            title="Agent Kit"
-            subtitle="Ein Dokumentationspaket fuer Teams, die neue KI-Anwendungen, Prozesse und Workflows sauber festhalten wollen. Es fuehrt durch Fragen, legt verstaendliche Doku an und funktioniert mit vielen KI-Agenten."
-            downloadHref="/downloads/ki-register-agent-kit.zip"
-            downloadLabel="Agent Kit herunterladen"
-            steps={agentKitSteps}
-            secondaryActions={[
-              { href: agentKitGithubHref, label: "Quellpaket auf GitHub" },
-              { href: agentKitPullRequestHref, label: "Aktuellen PR ansehen" },
-            ]}
-          />
         </main>
-
-        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Agent Kit einfach erklaert
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              Das Agent Kit ist fuer Menschen und fuer Agenten gedacht.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Es ist keine klassische Endnutzer-App, sondern ein kleines Standardpaket fuer Teams,
-              die neue KI-Anwendungen nicht nur bauen oder einsetzen, sondern gleichzeitig sauber
-              dokumentieren wollen. Ein Entwickler oder KI-Agent kann es starten, das Kit fragt die
-              wichtigen Punkte systematisch ab und erzeugt daraus eine nachvollziehbare Dokumentation.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Fuer Fachbereiche
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Wenn Sie keine technische Person sind, muessen Sie das Tool nicht selbst bedienen.
-                Ein Teammitglied oder Agent fuehrt Sie durch ein kurzes Interview und erfasst Zweck,
-                Owner, Systeme, Risiken und Kontrollen in einer klaren Struktur.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Was am Ende entsteht
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Pro Anwendungsfall entsteht eine lesbare Dokumentation fuer Menschen und eine
-                strukturierte JSON-Datei fuer Agenten, Audits und spaetere Weiterverarbeitung. So
-                bleibt die Dokumentation sowohl intern als auch regulatorisch anschlussfaehig.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Fuer technische Teams
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Technische Teams koennen das Paket direkt herunterladen, im Repository pruefen und
-                in bestehende Agent-Workflows integrieren. Auf GitHub sind sowohl das Quellpaket
-                als auch der aktuelle Umsetzungsstand als Pull Request einsehbar.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <a
-                  href={agentKitGithubHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                  GitHub-Quelle oeffnen
-                </a>
-                <a
-                  href={agentKitPullRequestHref}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                  Aktuellen PR oeffnen
-                </a>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-500">
-                Die GitHub-Quelle zeigt das Paket selbst. Der Pull Request zeigt, was konkret fuer
-                die Website und den Download-Bereich umgesetzt wurde.
-              </p>
-            </article>
-          </div>
-        </section>
 
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900">Nutzung</h2>
@@ -327,18 +265,159 @@ export default function DownloadsPage() {
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
             </li>
             <li>
-              Das Agent Kit ist fuer neue Anwendungen, Prozesse und Workflows gedacht, die direkt waehrend agentischer Arbeit dokumentiert werden sollen.
-            </li>
-            <li>
-              Auch fuer nicht-technische Teams ist das Kit nutzbar, weil die eigentliche Erfassung als gefuehrter Fragenprozess angelegt ist.
-            </li>
-            <li>
-              Ueber das einmalige Onboarding speichert das CLI deine Defaults, fragt aber vor jeder Anlage oder Ueberschreibung noch einmal nach.
-            </li>
-            <li>
-              Der Skill und das Manifest-Format sind absichtlich agent-neutral gehalten, damit mehrere Systeme dieselben Workflow-Ordner lesen und erweitern koennen.
+              Das Agent Kit wird weiter unten separat erklaert, weil es kein klassischer Endnutzer-Download, sondern ein Team- und Agentenpaket ist.
             </li>
           </ul>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Agent Kit einfach erklaert
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Das Agent Kit hilft Teams, neue KI-Anwendungen direkt waehrend der Arbeit zu dokumentieren.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Statt spaeter manuell ein Formular auszufuellen, geben Sie einem Agenten einen klaren
+              Auftrag. Das Kit fuehrt durch Fragen, interviewt bei fehlenden Informationen, zeigt
+              vor dem Schreiben eine Zusammenfassung und legt die Dokumentation erst nach Ihrer
+              Bestaetigung an.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Das Agent Kit hat dafuer jetzt ein eigenes oeffentliches GitHub-Repository, damit es
+              leichter in Codex, OpenClaw, Antigravity und aehnliche Agent-Umgebungen eingebunden
+              werden kann.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Fuer nicht-technische Teams
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Sie muessen das Tool nicht selbst bedienen. Ein Teammitglied oder Agent fuehrt Sie
+                durch ein kurzes Interview und sammelt Zweck, Owner, Systeme, Risiken und
+                Kontrollen in normaler Sprache ein.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Was am Ende entsteht
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Pro Anwendungsfall entstehen eine lesbare Dokumentation fuer Menschen und eine
+                strukturierte JSON-Datei fuer Agenten, Audits und spaetere Weiterverarbeitung.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Fuer viele Agenten
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Das Paket ist absichtlich agent-neutral. Es kann mit Codex, OpenClaw, Antigravity
+                und anderen agentischen Systemen genutzt werden, solange diese lokal Dateien lesen
+                und schreiben duerfen.
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              So laeuft es ab
+            </p>
+            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+              {agentKitSteps.map((step) => (
+                <li key={step} className="flex items-start gap-2">
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-slate-500" />
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Beispiele fuer Agenten
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Diese Prompts koennen Sie Ihrem Agenten direkt schicken.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Sie muessen keine Spezialbefehle kennen. Kopieren Sie einfach einen passenden Prompt,
+              schicken Sie ihn an Ihren Agenten und passen Sie nur noch den konkreten Use Case an.
+            </p>
+            <div className="mt-4">
+              <a
+                href={agentKitGithubHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                GitHub-Repo oeffnen
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            {agentKitExamples.map((example) => (
+              <article key={example.title} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  {example.title}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-700">{example.setup}</p>
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                    Beispiel-Prompt
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-slate-800">
+                    {example.prompt}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Agent Kit Download
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Erst verstehen, dann herunterladen.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Das Agent Kit ist kein normales Endnutzer-Tool, sondern ein Paket fuer Teams und
+              Agenten-Workflows. Wenn Sie es testen oder an ein technisches Team weitergeben
+              moechten, finden Sie hier den Download und das zugehoerige GitHub-Repository.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href="/downloads/ki-register-agent-kit.zip"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" />
+              Agent Kit herunterladen
+            </a>
+            <a
+              href={agentKitGithubHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              GitHub-Quelle
+            </a>
+          </div>
         </section>
 
         <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">

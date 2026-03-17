@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Standalone toolkit for documenting AI applications, processes, and workflows.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Egonso/ki-register-agent-kit.git"
+  },
+  "homepage": "https://github.com/Egonso/ki-register-agent-kit",
+  "bugs": {
+    "url": "https://github.com/Egonso/ki-register-agent-kit/issues"
+  },
   "keywords": [
     "ai-governance",
     "eu-ai-act",

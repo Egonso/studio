@@ -5,7 +5,7 @@
 
 ## Validation
 
-- [ ] `npm test` in `agent-kit/`
+- [ ] `npm test` at the repository root
 - [ ] relevant CLI flow tested locally
 - [ ] docs/examples updated if behavior changed
 

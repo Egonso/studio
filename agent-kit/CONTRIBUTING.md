@@ -13,7 +13,7 @@ Thanks for helping improve the KI-Register Agent Kit.
 
 ## Before opening a pull request
 
-1. Run `npm test` inside `agent-kit/`.
+1. Run `npm test` at the repository root.
 2. If you change the CLI, verify the onboarding, capture, and validate flows.
 3. If you change the skill text, keep `SKILL.md` and `agents/openai.yaml` aligned.
 4. If you change the public README or marketplace copy, keep the examples realistic and compliance-safe.
