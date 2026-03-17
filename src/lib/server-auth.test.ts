@@ -18,8 +18,10 @@ test("server auth exports canonical auth helpers", () => {
 
 test("server auth enforces revocation, verified email, and session age", () => {
   assert.match(serverAuthSource, /verifyIdToken\(idToken, true\)/);
+  assert.match(serverAuthSource, /verifyIdToken\(idToken, false\)/);
   assert.match(serverAuthSource, /decoded\.email_verified === true/);
   assert.match(serverAuthSource, /isFirebaseAuthProjectPermissionError/);
+  assert.match(serverAuthSource, /Firebase token revocation check skipped due to project permission limits/);
   assert.match(serverAuthSource, /decoded\.auth_time/);
   assert.match(serverAuthSource, /Session expired\. Please sign in again\./);
 });

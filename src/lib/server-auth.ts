@@ -85,7 +85,22 @@ export async function verifyFirebaseToken(
   }
 
   const auth = getAdminAuth();
-  const decoded = await auth.verifyIdToken(idToken, true);
+  let decoded: DecodedIdToken;
+
+  try {
+    decoded = await auth.verifyIdToken(idToken, true);
+  } catch (error) {
+    if (!isFirebaseAuthProjectPermissionError(error)) {
+      throw error;
+    }
+
+    console.warn(
+      'Firebase token revocation check skipped due to project permission limits:',
+      error,
+    );
+    decoded = await auth.verifyIdToken(idToken, false);
+  }
+
   let email = decoded.email?.toLowerCase();
   let emailVerified = decoded.email_verified === true;
 
