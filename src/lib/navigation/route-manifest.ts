@@ -518,23 +518,10 @@ export function isSignedInProductArea(
 }
 
 export function showGlobalFooterForPathname(pathname: string): boolean {
-  if (
-    pathname === ROUTE_PATHS.marketingHome ||
-    pathname === ROUTE_PATHS.publicCapture ||
-    pathname === ROUTE_PATHS.capture ||
-    pathname === '/exam' ||
-    pathname.startsWith('/request/') ||
-    pathname.startsWith('/pass/')
-  ) {
+  if (!pathname) {
     return false;
   }
-
-  const area = getProductAreaForPathname(pathname);
-  return (
-    area === null ||
-    area === 'signed_in_free_register' ||
-    area === 'paid_governance_control'
-  );
+  return true;
 }
 
 export function showSiteChatbotForPathname(pathname: string): boolean {

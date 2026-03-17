@@ -1378,48 +1378,6 @@ export default function AuthEntryPage() {
           </p>
         </section>
 
-        <footer className="border-t border-slate-200 py-6">
-          <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <p>KI-Register ist ein offener Dokumentationsstandard.</p>
-              <p>Alle Nutzerdaten im KI-Register bleiben in der EU.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <Link
-                href="/downloads"
-                className="hover:text-slate-950 transition-colors"
-              >
-                Downloads
-              </Link>
-              <a
-                href={WHITEPAPER_HREF}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-slate-950 transition-colors"
-              >
-                Whitepaper
-              </a>
-              <Link
-                href="/impressum"
-                className="hover:text-slate-950 transition-colors"
-              >
-                Impressum
-              </Link>
-              <Link
-                href="/datenschutz"
-                className="hover:text-slate-950 transition-colors"
-              >
-                Datenschutz
-              </Link>
-              <Link
-                href="/agb"
-                className="hover:text-slate-950 transition-colors"
-              >
-                AGB
-              </Link>
-            </div>
-          </div>
-        </footer>
       </main>
     </MarketingShell>
   );
