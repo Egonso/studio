@@ -48,6 +48,16 @@ const agentKitSteps = [
   "Mit einem Agent-Kit-API-Key kann das bestaetigte manifest.json danach direkt in das KI-Register eingereicht werden, sodass Teamleads den Fall dort sehen.",
 ];
 
+const agentKitInstallSteps = [
+  "GitHub-Repo oeffnen oder ki-register-agent-kit.zip herunterladen und lokal entpacken.",
+  "Den Ordner im Projekt oder Workspace ablegen, in dem Ihr Agent arbeiten darf.",
+  "Einmalig onboarden: node ./bin/studio-agent.mjs onboard",
+  "Waehrend der Arbeit dokumentieren: node ./bin/studio-agent.mjs capture",
+  "Fuer gefuehrte Rueckfragen: node ./bin/studio-agent.mjs interview",
+  "Fuer direkte Einreichung einen API-Key in /settings/agent-kit erstellen und danach submit verwenden.",
+  "Die Ausgabe landet als README.md und manifest.json und kann nach Bestaetigung direkt ins KI-Register uebertragen werden.",
+];
+
 const agentKitExamples: Array<{
   title: string;
   setup: string;
@@ -433,56 +443,6 @@ export default function DownloadsPage() {
         <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Fuer Technische Teams
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Nicht jede Person braucht das ganze Paket.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Wenn Sie Teamlead oder Fachbereich sind, ist fuer Sie spaeter der sichtbare Eintrag
-              im KI-Register entscheidend. Den Download brauchen vor allem technische Teams oder
-              Agent-Owner, die das Agent Kit in einen Workflow, ein Repository oder einen Agenten
-              einbauen wollen.
-            </p>
-          </div>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <a
-              href={agentKitGithubHref}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              GitHub-Quelle
-            </a>
-            <a
-              href={agentKitDocsHref}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              API-Doku lesen
-            </a>
-            <a
-              href={agentKitSettingsHref}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              API-Key erstellen
-            </a>
-            <a
-              href="/downloads/ki-register-agent-kit.zip"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4" />
-              ZIP herunterladen
-            </a>
-          </div>
-        </section>
-
-        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Open Source & Marketplace Ready
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
@@ -525,6 +485,107 @@ export default function DownloadsPage() {
                 damit ein Marketplace-Eintrag nicht noch separat zusammengesucht werden muss.
               </p>
             </article>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Download Fuer Technische Teams
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Das Paket kommt bewusst erst nach der Erklaerung.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Wenn Sie Teamlead oder Fachbereich sind, brauchen Sie in der Regel keinen Download.
+              Fuer Sie ist entscheidend, dass der bestaetigte Fall spaeter direkt im KI-Register
+              erscheint. Das Paket ist fuer technische Teams oder Agent-Owner gedacht, die den
+              Workflow in Codex, Claude Code, OpenClaw, Antigravity oder aehnliche Agenten
+              einbauen.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Deshalb stehen hier zuerst Erklaerung, Beispiele und API-Doku. Erst darunter kommen
+              GitHub, API-Key und das eigentliche ZIP.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                GitHub
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Die sauberste Quelle fuer technische Teams. Dort liegen CLI, Skill, Beispiele,
+                API-Doku und Release-Kontext an einem Ort.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                API-Key
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Den API-Key erstellt die eingeloggte Person im KI-Register. Damit kann der Agent
+                das bestaetigte Manifest direkt an Ihr Register senden.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                ZIP
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Das ZIP ist nur fuer Teams, die schnell lokal starten wollen. Inhaltlich ist es
+                dasselbe Paket wie im oeffentlichen Repository.
+              </p>
+            </article>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href={agentKitGithubHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              GitHub-Quelle
+            </a>
+            <a
+              href={agentKitDocsHref}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              API-Doku lesen
+            </a>
+            <a
+              href={agentKitSettingsHref}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              API-Key erstellen
+            </a>
+            <a
+              href="/downloads/ki-register-agent-kit.zip"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4" />
+              ZIP herunterladen
+            </a>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-slate-300 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Installation
+            </p>
+            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+              {agentKitInstallSteps.map((step) => (
+                <li key={step} className="flex items-start gap-2">
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-slate-500" />
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
       </div>
