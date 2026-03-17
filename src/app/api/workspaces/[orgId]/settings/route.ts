@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import type {
   EnterpriseWorkspaceSettings,
@@ -16,6 +17,7 @@ import {
   requireWorkspaceAdmin,
   requireWorkspaceMember,
 } from '@/lib/server-auth';
+import { safeEmailSchema, safeHttpsUrlSchema } from '@/lib/security/request-security';
 
 interface RouteContext {
   params: Promise<{ orgId: string }>;
@@ -48,6 +50,24 @@ function parseBoolean(value: unknown): boolean | undefined {
     throw new Error('INVALID_BOOLEAN');
   }
   return value;
+}
+
+function parseOptionalEmail(value: unknown): string | null | undefined {
+  const normalized = normalizeOptionalText(value);
+  if (normalized === undefined || normalized === null) {
+    return normalized;
+  }
+
+  return safeEmailSchema.parse(normalized);
+}
+
+function parseOptionalHttpsUrl(value: unknown, label: string): string | null | undefined {
+  const normalized = normalizeOptionalText(value);
+  if (normalized === undefined || normalized === null) {
+    return normalized;
+  }
+
+  return safeHttpsUrlSchema(label).parse(normalized);
 }
 
 function parsePositiveInteger(value: unknown): number | undefined {
@@ -131,7 +151,7 @@ function parseHooks(
       throw new Error('INVALID_HOOK_EVENT');
     }
 
-    const url = normalizeOptionalText(entry.url);
+    const url = parseOptionalHttpsUrl(entry.url, 'Webhook-URL');
     if (!url) {
       throw new Error('INVALID_HOOK_URL');
     }
@@ -176,7 +196,7 @@ function parseSubprocessors(
       name,
       region,
       purpose,
-      url: normalizeOptionalText(entry.url) ?? null,
+      url: parseOptionalHttpsUrl(entry.url, 'Subprocessor-URL') ?? null,
     };
   });
 }
@@ -219,11 +239,11 @@ function coerceSettingsUpdates(
       ...(normalizeOptionalText(payload.identityProvider.entityId) !== undefined
         ? { entityId: normalizeOptionalText(payload.identityProvider.entityId) ?? null }
         : {}),
-      ...(normalizeOptionalText(payload.identityProvider.metadataUrl) !== undefined
-        ? { metadataUrl: normalizeOptionalText(payload.identityProvider.metadataUrl) ?? null }
+      ...(parseOptionalHttpsUrl(payload.identityProvider.metadataUrl, 'Metadata-URL') !== undefined
+        ? { metadataUrl: parseOptionalHttpsUrl(payload.identityProvider.metadataUrl, 'Metadata-URL') ?? null }
         : {}),
-      ...(normalizeOptionalText(payload.identityProvider.ssoUrl) !== undefined
-        ? { ssoUrl: normalizeOptionalText(payload.identityProvider.ssoUrl) ?? null }
+      ...(parseOptionalHttpsUrl(payload.identityProvider.ssoUrl, 'SSO-URL') !== undefined
+        ? { ssoUrl: parseOptionalHttpsUrl(payload.identityProvider.ssoUrl, 'SSO-URL') ?? null }
         : {}),
       ...(normalizeOptionalText(payload.identityProvider.issuer) !== undefined
         ? { issuer: normalizeOptionalText(payload.identityProvider.issuer) ?? null }
@@ -264,8 +284,8 @@ function coerceSettingsUpdates(
         ? { enabled: parseBoolean(payload.scim.enabled) }
         : {}),
       ...(status !== undefined ? { status } : {}),
-      ...(normalizeOptionalText(payload.scim.baseUrl) !== undefined
-        ? { baseUrl: normalizeOptionalText(payload.scim.baseUrl) ?? null }
+      ...(parseOptionalHttpsUrl(payload.scim.baseUrl, 'SCIM-URL') !== undefined
+        ? { baseUrl: parseOptionalHttpsUrl(payload.scim.baseUrl, 'SCIM-URL') ?? null }
         : {}),
       ...(normalizeOptionalText(payload.scim.tokenLabel) !== undefined
         ? { tokenLabel: normalizeOptionalText(payload.scim.tokenLabel) ?? null }
@@ -380,17 +400,22 @@ function coerceSettingsUpdates(
 
   if (isRecord(payload.procurement)) {
     updates.procurement = {
-      ...(normalizeOptionalText(payload.procurement.dpaUrl) !== undefined
-        ? { dpaUrl: normalizeOptionalText(payload.procurement.dpaUrl) ?? null }
+      ...(parseOptionalHttpsUrl(payload.procurement.dpaUrl, 'DPA-URL') !== undefined
+        ? { dpaUrl: parseOptionalHttpsUrl(payload.procurement.dpaUrl, 'DPA-URL') ?? null }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.sccUrl) !== undefined
-        ? { sccUrl: normalizeOptionalText(payload.procurement.sccUrl) ?? null }
+      ...(parseOptionalHttpsUrl(payload.procurement.sccUrl, 'SCC-URL') !== undefined
+        ? { sccUrl: parseOptionalHttpsUrl(payload.procurement.sccUrl, 'SCC-URL') ?? null }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.subprocessorDirectoryUrl) !==
-      undefined
+      ...(parseOptionalHttpsUrl(
+        payload.procurement.subprocessorDirectoryUrl,
+        'Unterauftragsverarbeiter-URL',
+      ) !== undefined
         ? {
             subprocessorDirectoryUrl:
-              normalizeOptionalText(payload.procurement.subprocessorDirectoryUrl) ??
+              parseOptionalHttpsUrl(
+                payload.procurement.subprocessorDirectoryUrl,
+                'Unterauftragsverarbeiter-URL',
+              ) ??
               null,
           }
         : {}),
@@ -407,31 +432,34 @@ function coerceSettingsUpdates(
               null,
           }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.securityContactEmail) !== undefined
+      ...(parseOptionalEmail(payload.procurement.securityContactEmail) !== undefined
         ? {
             securityContactEmail:
-              normalizeOptionalText(payload.procurement.securityContactEmail) ??
+              parseOptionalEmail(payload.procurement.securityContactEmail) ??
               null,
           }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.securityContactUrl) !== undefined
+      ...(parseOptionalHttpsUrl(payload.procurement.securityContactUrl, 'Security-URL') !== undefined
         ? {
             securityContactUrl:
-              normalizeOptionalText(payload.procurement.securityContactUrl) ??
+              parseOptionalHttpsUrl(payload.procurement.securityContactUrl, 'Security-URL') ??
               null,
           }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.incidentReportingUrl) !== undefined
+      ...(parseOptionalHttpsUrl(payload.procurement.incidentReportingUrl, 'Incident-Reporting-URL') !== undefined
         ? {
             incidentReportingUrl:
-              normalizeOptionalText(payload.procurement.incidentReportingUrl) ??
+              parseOptionalHttpsUrl(
+                payload.procurement.incidentReportingUrl,
+                'Incident-Reporting-URL',
+              ) ??
               null,
           }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.incidentReportingEmail) !== undefined
+      ...(parseOptionalEmail(payload.procurement.incidentReportingEmail) !== undefined
         ? {
             incidentReportingEmail:
-              normalizeOptionalText(payload.procurement.incidentReportingEmail) ??
+              parseOptionalEmail(payload.procurement.incidentReportingEmail) ??
               null,
           }
         : {}),
@@ -441,11 +469,16 @@ function coerceSettingsUpdates(
               normalizeOptionalText(payload.procurement.retentionSummary) ?? null,
           }
         : {}),
-      ...(normalizeOptionalText(payload.procurement.documentationPortalUrl) !==
-      undefined
+      ...(parseOptionalHttpsUrl(
+        payload.procurement.documentationPortalUrl,
+        'Dokumentations-Portal-URL',
+      ) !== undefined
         ? {
             documentationPortalUrl:
-              normalizeOptionalText(payload.procurement.documentationPortalUrl) ??
+              parseOptionalHttpsUrl(
+                payload.procurement.documentationPortalUrl,
+                'Dokumentations-Portal-URL',
+              ) ??
               null,
           }
         : {}),
@@ -458,6 +491,13 @@ function coerceSettingsUpdates(
 function handleWorkspaceRouteError(error: unknown) {
   if (error instanceof ServerAuthError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
+  }
+
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: error.issues[0]?.message ?? 'Organisationseinstellungen konnten nicht verarbeitet werden.' },
+      { status: 400 },
+    );
   }
 
   if (error instanceof Error && error.message.startsWith('INVALID_')) {

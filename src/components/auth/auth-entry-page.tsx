@@ -500,6 +500,16 @@ export default function AuthEntryPage() {
         password: loginPassword,
       });
 
+      if (result.requiresEmailVerification) {
+        toast({
+          title: 'E-Mail-Verifizierung erforderlich',
+          description:
+            'Wir haben Ihnen einen Verifizierungslink gesendet. Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich danach erneut an.',
+        });
+        setLoginPassword('');
+        return;
+      }
+
       const destination = await resolveAuthenticatedDestination({
         context: authContext,
         email: loginEmail,
@@ -572,6 +582,16 @@ export default function AuthEntryPage() {
         email: createEmail,
         password: createPassword,
       });
+
+      if (result.requiresEmailVerification) {
+        toast({
+          title: 'Bitte E-Mail bestätigen',
+          description:
+            'Ihr Konto wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie Ihr Register einrichten.',
+        });
+        setCreatePassword('');
+        return;
+      }
 
       toast({
         title: 'Konto angelegt',
@@ -724,7 +744,7 @@ export default function AuthEntryPage() {
     setBusyAction('join_signup');
 
     try {
-      await authenticateWithEmailPassword({
+      const result = await authenticateWithEmailPassword({
         action: 'signup',
         context: {
           ...authContext,
@@ -736,6 +756,16 @@ export default function AuthEntryPage() {
         email: joinEmail,
         password: joinPassword,
       });
+
+      if (result.requiresEmailVerification) {
+        toast({
+          title: 'Bitte E-Mail bestätigen',
+          description:
+            'Ihr Zugang wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie der Organisation beitreten.',
+        });
+        setJoinPassword('');
+        return;
+      }
 
       toast({
         title: 'Zugang angelegt',

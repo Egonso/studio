@@ -1,9 +1,10 @@
 'use server';
 
 import { db, auth } from '@/lib/firebase-admin';
+import { requireUser } from '@/lib/server-auth';
 
-export async function verifyOfficerKey(userId: string, key: string) {
-    if (!userId) {
+export async function verifyOfficerKey(idToken: string, key: string) {
+    if (!idToken) {
         return { success: false, message: 'Nicht autorisiert' };
     }
 
@@ -12,7 +13,8 @@ export async function verifyOfficerKey(userId: string, key: string) {
     }
 
     try {
-        const userRecord = await auth.getUser(userId);
+        const actor = await requireUser(idToken);
+        const userRecord = await auth.getUser(actor.uid);
         const userEmail = userRecord.email?.toLowerCase();
 
         if (!userEmail) {
@@ -41,7 +43,7 @@ export async function verifyOfficerKey(userId: string, key: string) {
         }
 
         // Successfully verified
-        const docRef = db.collection('users').doc(userId);
+        const docRef = db.collection('users').doc(actor.uid);
         await docRef.set({
             isOfficer: true,
             licenseKey: key,

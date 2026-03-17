@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import {
   buildBillingCancelUrl,
@@ -29,14 +30,23 @@ import {
   requireUser,
   requireWorkspaceMember,
 } from '@/lib/server-auth';
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+  safeIdentifierSchema,
+} from '@/lib/security/request-security';
 import { listWorkspaceMembers } from '@/lib/workspace-admin';
 
-interface CheckoutRequestBody {
-  targetPlan?: string | null;
-  registerId?: string | null;
-  workspaceId?: string | null;
-  billingInterval?: string | null;
-}
+const CheckoutRequestSchema = z
+  .object({
+    targetPlan: z.enum(['pro', 'enterprise']).optional(),
+    registerId: safeIdentifierSchema.optional(),
+    workspaceId: safeIdentifierSchema.optional(),
+    billingInterval: z.enum(['month', 'year']).optional(),
+  })
+  .strict();
+
+type CheckoutRequestBody = z.infer<typeof CheckoutRequestSchema>;
 
 function resolveTargetPlan(input: string | null | undefined): StripeBillingPlan {
   return input === 'enterprise' ? 'enterprise' : 'pro';
@@ -228,6 +238,13 @@ function handleBillingRouteError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
 
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: error.issues[0]?.message ?? 'Ungültige Billing-Anfrage.' },
+      { status: 400 },
+    );
+  }
+
   logError('billing_checkout_failed', {
     errorMessage: error instanceof Error ? error.message : 'unknown',
   });
@@ -245,9 +262,36 @@ export async function POST(request: NextRequest) {
   try {
     const decoded = await requireUser(request.headers.get('authorization'));
     const authorizationHeader = request.headers.get('authorization');
-    const body = (await request.json().catch(() => ({}))) as CheckoutRequestBody;
+    const body: CheckoutRequestBody = CheckoutRequestSchema.parse(
+      await request.json().catch(() => ({})),
+    );
     const targetPlan = resolveTargetPlan(body.targetPlan);
     const billingInterval = resolveBillingInterval(body.billingInterval);
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      namespace: 'billing-checkout',
+      key: buildRateLimitKey(
+        request,
+        decoded.uid,
+        body.workspaceId ?? body.registerId ?? targetPlan,
+      ),
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+      logContext: {
+        actorUserId: decoded.uid,
+        requestedPlan: targetPlan,
+      },
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Checkout-Anfragen in kurzer Zeit. Bitte versuchen Sie es in wenigen Minuten erneut.',
+        },
+        { status: 429 },
+      );
+    }
+
     const config = resolveStripeBillingConfiguration();
 
     if (!config.secretKey) {

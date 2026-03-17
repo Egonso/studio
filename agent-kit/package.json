@@ -1,0 +1,51 @@
+{
+  "name": "ki-register-agent-kit",
+  "version": "0.1.0",
+  "description": "Standalone toolkit for documenting AI applications, processes, and workflows.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Egonso/ki-register-agent-kit.git"
+  },
+  "homepage": "https://github.com/Egonso/ki-register-agent-kit",
+  "bugs": {
+    "url": "https://github.com/Egonso/ki-register-agent-kit/issues"
+  },
+  "keywords": [
+    "ai-governance",
+    "eu-ai-act",
+    "ai-compliance",
+    "agent-skill",
+    "documentation",
+    "codex",
+    "claude-code",
+    "openclaw"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "studio-agent": "./bin/studio-agent.mjs"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "bin/",
+    "assets/",
+    "examples/",
+    "marketplaces/",
+    "docs/",
+    "schemas/",
+    "skills/",
+    "scripts/"
+  ],
+  "scripts": {
+    "test": "node ./scripts/smoke-test.mjs"
+  }
+}

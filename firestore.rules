@@ -2,7 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() {
-      return request.auth != null;
+      return request.auth != null &&
+        request.auth.token.email_verified == true;
     }
 
     function isOwner(userId) {
@@ -77,6 +78,18 @@ service cloud.firestore {
           (
             hasWorkspaceMembership(orgId) &&
             ["ADMIN", "OWNER"].hasAny([workspaceRole(orgId)])
+          )
+        );
+    }
+
+    function canEditOrg(orgId) {
+      return isSignedIn() &&
+        (
+          isOwner(orgId) ||
+          isWorkspaceOwner(orgId) ||
+          (
+            hasWorkspaceMembership(orgId) &&
+            ["ADMIN", "OWNER", "MEMBER"].hasAny([workspaceRole(orgId)])
           )
         );
     }
@@ -166,7 +179,7 @@ service cloud.firestore {
       return isOwner(userId) ||
         (
           hasRegisterDoc(userId, registerId) &&
-          canAccessOrg(registerWorkspaceId(userId, registerDoc(userId, registerId).data))
+          canEditOrg(registerWorkspaceId(userId, registerDoc(userId, registerId).data))
         );
     }
 
@@ -184,7 +197,7 @@ service cloud.firestore {
         (
           (
             data.keys().hasAny(['orgId']) &&
-            canAccessOrg(data.orgId)
+            canEditOrg(data.orgId)
           ) ||
           (
             data.keys().hasAny(['projectId']) &&
@@ -226,6 +239,13 @@ service cloud.firestore {
     function hasAiSystemOrgAccess(systemId) {
       return exists(/databases/$(database)/documents/aiSystems/$(systemId)) &&
         canAccessOrg(
+          get(/databases/$(database)/documents/aiSystems/$(systemId)).data.orgId
+        );
+    }
+
+    function hasAiSystemOrgEditAccess(systemId) {
+      return exists(/databases/$(database)/documents/aiSystems/$(systemId)) &&
+        canEditOrg(
           get(/databases/$(database)/documents/aiSystems/$(systemId)).data.orgId
         );
     }
@@ -342,20 +362,21 @@ service cloud.firestore {
 
     match /aiSystems/{systemId} {
       allow read: if canAccessOrg(resource.data.orgId);
-      allow create: if canAccessOrg(request.resource.data.orgId);
-      allow update: if canAccessOrg(resource.data.orgId) &&
+      allow create: if canEditOrg(request.resource.data.orgId);
+      allow update: if canEditOrg(resource.data.orgId) &&
         request.resource.data.orgId == resource.data.orgId;
-      allow delete: if canAccessOrg(resource.data.orgId);
+      allow delete: if canEditOrg(resource.data.orgId);
 
       match /assessments/{assessmentId} {
-        allow read, write: if hasAiSystemOrgAccess(systemId);
+        allow read: if hasAiSystemOrgAccess(systemId);
+        allow write: if hasAiSystemOrgEditAccess(systemId);
       }
     }
 
     match /isoAIMS/{aimsId} {
       allow read: if canAccessOrg(resource.data.orgId);
-      allow create: if canAccessOrg(request.resource.data.orgId);
-      allow update: if canAccessOrg(resource.data.orgId) &&
+      allow create: if canEditOrg(request.resource.data.orgId);
+      allow update: if canEditOrg(resource.data.orgId) &&
         request.resource.data.orgId == resource.data.orgId;
       allow delete: if canManageOrg(resource.data.orgId);
     }

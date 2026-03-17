@@ -12,6 +12,10 @@ import {
 import { buildCustomerEntitlementRecord } from '@/lib/billing/stripe-entitlements';
 import { logError, logInfo } from '@/lib/observability/logger';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+} from '@/lib/security/request-security';
 
 function handlePortalRouteError(error: unknown) {
   if (error instanceof ServerAuthError) {
@@ -72,6 +76,26 @@ async function resolveStripeCustomerId(email: string): Promise<string | null> {
 export async function POST(request: NextRequest) {
   try {
     const decoded = await requireUser(request.headers.get('authorization'));
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      namespace: 'billing-portal',
+      key: buildRateLimitKey(request, decoded.uid, decoded.email),
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+      logContext: {
+        actorUserId: decoded.uid,
+      },
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Billing-Portal-Anfragen in kurzer Zeit. Bitte versuchen Sie es später erneut.',
+        },
+        { status: 429 },
+      );
+    }
+
     const config = resolveStripeBillingConfiguration();
 
     if (!config.secretKey) {

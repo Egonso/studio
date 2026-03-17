@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Settings, Shield } from 'lucide-react';
 
@@ -76,6 +77,20 @@ export default function SettingsPage() {
             Oberfläche. Das Zahnrad im Header öffnet den Konto-Bereich, das
             Zahnrad im Register direkt den Governance-Bereich.
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/settings/agent-kit"
+              className="inline-flex items-center rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              Agent Kit API Keys
+            </Link>
+            <Link
+              href="/developers/agent-kit"
+              className="inline-flex items-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              Öffentliche API-Doku
+            </Link>
+          </div>
         </div>
 
         <Tabs value={activeSection} onValueChange={handleSectionChange}>

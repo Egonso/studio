@@ -52,6 +52,7 @@ test.describe.serial('workspace scope flows', () => {
         email: ownerEmail,
         password,
         displayName: 'Playwright Workspace Owner',
+        emailVerified: true,
       });
       ownerUid = owner.uid;
 

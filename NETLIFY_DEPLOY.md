@@ -20,7 +20,7 @@ Die Build-Einstellungen sollten automatisch erkannt werden:
 2. Klicken Sie auf **"Add a variable"**
 3. Fügen Sie folgende Variable hinzu:
    - **Key:** `GEMINI_API_KEY`
-   - **Value:** `AIzaSyBmxtV54HizcIK-Rgrx2xtlafEZ9d02Nsw`
+   - **Value:** Wert aus Ihrem Secret Manager / Passwortsafe
 4. Klicken Sie auf **"Save"**
 
 ## Schritt 4: Deployment starten
@@ -35,7 +35,7 @@ Falls Sie bereits bei Netlify eingeloggt sind, können Sie auch folgende Befehle
 
 ```bash
 # Umgebungsvariable setzen (nachdem die Site erstellt wurde)
-netlify env:set GEMINI_API_KEY "AIzaSyBmxtV54HizcIK-Rgrx2xtlafEZ9d02Nsw"
+netlify env:set GEMINI_API_KEY "<secret-from-password-manager>"
 
 # Deployen
 netlify deploy --prod
@@ -46,7 +46,6 @@ netlify deploy --prod
 - Die `.env.local` Datei wird nicht ins Repository committed (siehe `.gitignore`)
 - Die Umgebungsvariable muss in Netlify gesetzt werden, damit sie während des Builds verfügbar ist
 - Genkit verwendet standardmäßig die `GEMINI_API_KEY` Umgebungsvariable für die Google AI Authentifizierung
-
 
 
 

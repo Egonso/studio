@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { TeamShareStep } from "@/components/onboarding/team-share-step";
+import { authenticateWithEmailPassword } from "@/lib/auth/auth-entry-controller";
 import { registerService } from "@/lib/register-first/register-service";
 import { accessCodeService } from "@/lib/register-first/access-code-service";
 import { setActiveRegisterId } from "@/lib/register-first/register-settings-client";
@@ -86,7 +87,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
   /* ---------- skip step 1 if already logged in ---------- */
   useEffect(() => {
-    if (user && adminStep === 1) {
+    if (user && user.emailVerified && adminStep === 1) {
       if (!name && user.displayName) setName(user.displayName);
       if (!email && user.email) setEmail(user.email);
       setAdminStep(2);
@@ -135,18 +136,26 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
     setIsSubmitting(true);
     try {
-      const { getFirebaseAuth } = await import("@/lib/firebase");
-      const auth = await getFirebaseAuth();
-      const { createUserWithEmailAndPassword, updateProfile } = await import(
-        "firebase/auth"
-      );
+      const result = await authenticateWithEmailPassword({
+        action: "signup",
+        context: {
+          mode: "signup",
+          intent: "create_register",
+        },
+        displayName: name.trim(),
+        email,
+        password,
+      });
 
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        email.toLowerCase(),
-        password
-      );
-      await updateProfile(credential.user, { displayName: name.trim() });
+      if (result.requiresEmailVerification) {
+        toast({
+          title: "Bitte E-Mail bestätigen",
+          description:
+            "Ihr Konto wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie mit Schritt 2 fortfahren.",
+        });
+        setPassword("");
+        return;
+      }
 
       setAdminStep(2);
     } catch (error: any) {
@@ -349,20 +358,27 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
     setIsSubmitting(true);
     try {
-      const { getFirebaseAuth } = await import("@/lib/firebase");
-      const auth = await getFirebaseAuth();
-      const { createUserWithEmailAndPassword, updateProfile } = await import(
-        "firebase/auth"
-      );
-
-      const credential = await createUserWithEmailAndPassword(
-        auth,
-        memberEmail.toLowerCase(),
-        memberPassword
-      );
-      await updateProfile(credential.user, {
+      const result = await authenticateWithEmailPassword({
+        action: "signup",
+        context: {
+          mode: "signup",
+          intent: "join_register",
+          code: validatedCode,
+        },
         displayName: memberName.trim(),
+        email: memberEmail,
+        password: memberPassword,
       });
+
+      if (result.requiresEmailVerification) {
+        toast({
+          title: "Bitte E-Mail bestätigen",
+          description:
+            "Ihr Zugang wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie dem Register beitreten.",
+        });
+        setMemberPassword("");
+        return;
+      }
 
       router.push(
         `/erfassen?code=${encodeURIComponent(validatedCode)}`

@@ -28,6 +28,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { buildPublicAppUrl } from '@/lib/app-url';
 
 const emailSchema = z.object({
   newEmail: z.string().email({
@@ -129,7 +130,15 @@ export function AccountSettingsSection() {
   const handleOfficerSubmit = async (data: OfficerFormData) => {
     setIsOfficerLoading(true);
     try {
-      const res = await verifyOfficerKey(user.uid, data.licenseKey);
+      const { getFirebaseAuth } = await import('@/lib/firebase');
+      const auth = await getFirebaseAuth();
+      const idToken = await auth.currentUser?.getIdToken();
+
+      if (!idToken) {
+        throw new Error('NOT_AUTHENTICATED');
+      }
+
+      const res = await verifyOfficerKey(idToken, data.licenseKey);
       if (res.success) {
         toast({
           title: 'Erfolgreich',
@@ -158,7 +167,11 @@ export function AccountSettingsSection() {
     try {
       const { getFirebaseAuth } = await import('@/lib/firebase');
       const auth = await getFirebaseAuth();
-      const { reauthenticateWithCredential, EmailAuthProvider, updateEmail } =
+      const {
+        reauthenticateWithCredential,
+        EmailAuthProvider,
+        verifyBeforeUpdateEmail,
+      } =
         await import('firebase/auth');
 
       const credential = EmailAuthProvider.credential(
@@ -166,11 +179,14 @@ export function AccountSettingsSection() {
         data.currentPasswordForEmail,
       );
       await reauthenticateWithCredential(auth.currentUser!, credential);
-      await updateEmail(auth.currentUser!, data.newEmail);
+      await verifyBeforeUpdateEmail(auth.currentUser!, data.newEmail, {
+        url: buildPublicAppUrl('/settings?section=account'),
+      });
 
       toast({
-        title: 'E-Mail aktualisiert',
-        description: `Ihre E-Mail-Adresse wurde auf ${data.newEmail} geändert.`,
+        title: 'Bestätigung gesendet',
+        description:
+          'Bitte bestätigen Sie zuerst die neue E-Mail-Adresse über den Link in Ihrem Postfach.',
       });
       emailForm.reset();
     } catch (error: any) {
@@ -184,7 +200,7 @@ export function AccountSettingsSection() {
           ? 'Falsches Passwort. Bitte versuchen Sie es erneut.'
           : error.code === 'auth/email-already-in-use'
             ? 'Diese E-Mail-Adresse wird bereits verwendet.'
-            : 'E-Mail konnte nicht geändert werden. Bitte versuchen Sie es erneut.',
+            : 'E-Mail konnte nicht zur Verifizierung vorgemerkt werden. Bitte versuchen Sie es erneut.',
       });
     } finally {
       setIsEmailLoading(false);

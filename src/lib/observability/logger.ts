@@ -17,14 +17,39 @@ export interface LogEntry {
   context?: LogContext;
 }
 
-function sanitizeContextValue(value: unknown): StructuredValue | undefined {
+const SENSITIVE_KEY_PATTERN =
+  /authorization|cookie|secret|token|password|api[_-]?key|private[_-]?key/i;
+
+function sanitizeStringValue(value: string): string {
+  if (/^bearer\s+/i.test(value)) {
+    return '[REDACTED]';
+  }
+
+  if (value.length > 80 && /[A-Za-z0-9_-]{24,}/.test(value)) {
+    return '[REDACTED]';
+  }
+
+  return value;
+}
+
+function sanitizeContextValue(
+  value: unknown,
+  key?: string,
+): StructuredValue | undefined {
+  if (key && SENSITIVE_KEY_PATTERN.test(key)) {
+    return '[REDACTED]';
+  }
+
   if (
     value === null ||
-    typeof value === 'string' ||
     typeof value === 'number' ||
     typeof value === 'boolean'
   ) {
     return value;
+  }
+
+  if (typeof value === 'string') {
+    return sanitizeStringValue(value);
   }
 
   if (Array.isArray(value)) {
@@ -34,6 +59,8 @@ function sanitizeContextValue(value: unknown): StructuredValue | undefined {
         typeof entry === 'string' ||
         typeof entry === 'number' ||
         typeof entry === 'boolean',
+    ).map((entry) =>
+      typeof entry === 'string' ? sanitizeStringValue(entry) : entry,
     );
   }
 
@@ -41,7 +68,7 @@ function sanitizeContextValue(value: unknown): StructuredValue | undefined {
     const normalized = Object.fromEntries(
       Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
         key,
-        sanitizeContextValue(entry),
+        sanitizeContextValue(entry, key),
       ]),
     ) as Record<string, Primitive | Primitive[] | undefined>;
     return normalized;
@@ -60,7 +87,7 @@ function toLogEntry(
       ? Object.fromEntries(
           Object.entries(context).map(([key, value]) => [
             key,
-            sanitizeContextValue(value),
+            sanitizeContextValue(value, key),
           ]),
         )
       : undefined;

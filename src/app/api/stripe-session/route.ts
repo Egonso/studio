@@ -10,6 +10,7 @@ import {
   resolveStripeSecretKey,
   STRIPE_API_VERSION,
 } from '@/lib/billing/stripe-server';
+import { buildRateLimitKey, enforceRequestRateLimit } from '@/lib/security/request-security';
 
 /**
  * API Route to retrieve customer email from a Stripe Checkout Session.
@@ -36,6 +37,20 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
             { error: 'Invalid session_id parameter' },
             { status: 400 }
+        );
+    }
+
+    const rateLimit = await enforceRequestRateLimit({
+        request,
+        namespace: 'stripe-session',
+        key: buildRateLimitKey(request, sessionId),
+        limit: 12,
+        windowMs: 60 * 60 * 1000,
+    });
+    if (!rateLimit.ok) {
+        return NextResponse.json(
+            { error: 'Too many lookup attempts. Please try again later.' },
+            { status: 429 }
         );
     }
 

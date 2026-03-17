@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from 'zod';
 
 import { generateSectionImprovement } from "@/lib/policy-engine/ai-assistant";
 import { db } from "@/lib/firebase-admin";
+import { logError } from '@/lib/observability/logger';
 import { resolveRegisterPlan } from "@/lib/register-first/entitlement";
 import type { Register } from "@/lib/register-first/types";
 import {
@@ -9,10 +11,28 @@ import {
   requireRegisterOwner,
   requireUser,
 } from "@/lib/server-auth";
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+  safeIdentifierSchema,
+  safePlainTextSchema,
+} from '@/lib/security/request-security';
 
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const RESET_INTERVAL = 24 * 60 * 60 * 1000;
 const PRO_LIMIT = 5;
+
+const PolicyImproveSchema = z.object({
+  section: z.object({
+    sectionId: safeIdentifierSchema,
+    title: safePlainTextSchema('Titel', { max: 200 }),
+    content: safePlainTextSchema('Inhalt', { max: 12000 }),
+    order: z.number().int().min(0).max(1000),
+    isConditional: z.boolean(),
+    conditionLabel: safePlainTextSchema('Bedingung', { max: 240 }).optional(),
+  }),
+  orgName: safePlainTextSchema('Organisationsname', { max: 160 }).optional(),
+  industry: safePlainTextSchema('Branche', { max: 160 }).optional(),
+  registerId: safeIdentifierSchema.optional(),
+});
 
 async function resolveRegisterForUser(
   userId: string,
@@ -40,11 +60,8 @@ export async function POST(req: NextRequest) {
   try {
     const authorizationHeader = req.headers.get("authorization");
     const decoded = await requireUser(authorizationHeader);
-    const { section, orgName, industry, registerId } = await req.json();
-
-    if (!section || !section.title || !section.content) {
-      return NextResponse.json({ error: "Invalid section data" }, { status: 400 });
-    }
+    const { section, orgName, industry, registerId } =
+      PolicyImproveSchema.parse(await req.json());
 
     const activeRegister = registerId
       ? (await requireRegisterOwner(authorizationHeader, registerId)).register
@@ -63,23 +80,29 @@ export async function POST(req: NextRequest) {
     }
 
     if (plan === "pro") {
-      const key = `${decoded.uid}:${activeRegister.registerId}:policy-improve`;
-      const now = Date.now();
-      const usage = rateLimitMap.get(key) || { count: 0, lastReset: now };
+      const rateLimit = await enforceRequestRateLimit({
+        request: req,
+        namespace: 'policy-improve',
+        key: buildRateLimitKey(
+          req,
+          decoded.uid,
+          activeRegister.registerId,
+          'policy-improve',
+        ),
+        limit: PRO_LIMIT,
+        windowMs: 24 * 60 * 60 * 1000,
+        logContext: {
+          actorUserId: decoded.uid,
+          registerId: activeRegister.registerId,
+        },
+      });
 
-      if (now - usage.lastReset > RESET_INTERVAL) {
-        usage.count = 0;
-        usage.lastReset = now;
-      }
-
-      if (usage.count >= PRO_LIMIT) {
+      if (!rateLimit.ok) {
         return NextResponse.json(
           { error: "Tageslimit für KI-Verbesserungen erreicht (5/Tag)." },
           { status: 429 }
         );
       }
-
-      rateLimitMap.set(key, { ...usage, count: usage.count + 1 });
     }
 
     const improvedText = await generateSectionImprovement(section, { orgName, industry });
@@ -92,8 +115,16 @@ export async function POST(req: NextRequest) {
     if (error instanceof ServerAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? 'Ungültige Eingabe.' },
+        { status: 400 },
+      );
+    }
 
-    console.error("Policy Improve API Error:", error);
+    logError('policy_improve_failed', {
+      errorMessage: error instanceof Error ? error.message : 'unknown_error',
+    });
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }

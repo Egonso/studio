@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+
+import { logError } from '@/lib/observability/logger';
 import { ToolPublicInfo, FlagStatus } from '@/lib/types';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
+import {
+    buildRateLimitKey,
+    enforceRequestRateLimit,
+    safePlainTextSchema,
+} from '@/lib/security/request-security';
 
-// Rate Limiting: Simple in-memory map (Note: resets on serverless cold start)
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS = 10;
-const rateLimitMap = new Map<string, { count: number; firstRequest: number }>();
+const PublicInfoCheckSchema = z.object({
+    toolName: safePlainTextSchema('Tool-Name', { max: 160 }),
+    toolVendor: safePlainTextSchema('Anbieter', { max: 160 }).optional(),
+    force: z.boolean().optional().default(false),
+});
 
 /**
  * Helper to ensure strictly typed FlagStatus
@@ -19,38 +28,28 @@ function parseFlag(value: string | undefined): FlagStatus {
 
 export async function POST(req: NextRequest) {
     try {
-        await requireUser(req.headers.get("authorization"));
-        const body = await req.json();
-        const { toolName, toolVendor, force } = body;
+        const actor = await requireUser(req.headers.get("authorization"));
+        const { toolName, toolVendor } = PublicInfoCheckSchema.parse(await req.json());
 
-        if (!toolName) {
-            return NextResponse.json({ error: 'Invalid request: toolName required' }, { status: 400 });
-        }
-
-        // Rate Limiting (using IP)
-        const ip = req.headers.get('x-forwarded-for') || 'anonymous';
-        const now = Date.now();
-        const rateData = rateLimitMap.get(ip) || { count: 0, firstRequest: now };
-
-        if (now - rateData.firstRequest > RATE_LIMIT_WINDOW) {
-            rateData.count = 0;
-            rateData.firstRequest = now;
-        }
-
-        if (rateData.count >= MAX_REQUESTS && !force) {
+        const rateLimit = await enforceRequestRateLimit({
+            request: req,
+            namespace: 'public-info-check',
+            key: buildRateLimitKey(req, actor.uid, toolName),
+            limit: 10,
+            windowMs: 60 * 60 * 1000,
+            logContext: {
+                actorUserId: actor.uid,
+            },
+        });
+        if (!rateLimit.ok) {
             return NextResponse.json({ error: 'Rate limit exceeded. Please try again later.' }, { status: 429 });
         }
-
-        rateLimitMap.set(ip, { ...rateData, count: rateData.count + 1 });
 
         // Perplexity API Call
         const apiKey = process.env.PERPLEXITY_API_KEY;
         if (!apiKey) {
-            console.error('PERPLEXITY_API_KEY missing');
             return NextResponse.json({ error: 'Configuration Error: Perplexity API Key missing.' }, { status: 500 });
         }
-
-        console.log(`Checking Perplexity for: ${toolName} (${toolVendor})`);
 
         const prompt = `
 Act as a strict compliance researcher specialized in the EU AI Act and GDPR.
@@ -156,7 +155,12 @@ Respond ONLY with a valid JSON object matching this structure (no markdown forma
         if (error instanceof ServerAuthError) {
             return NextResponse.json({ error: error.message }, { status: error.status });
         }
-        console.error('API Route Error:', error);
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: error.issues[0]?.message ?? 'Ungültige Eingabe.' }, { status: 400 });
+        }
+        logError('public_info_check_failed', {
+            errorMessage: error instanceof Error ? error.message : 'unknown_error',
+        });
         return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
     }
 }

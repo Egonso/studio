@@ -4,14 +4,55 @@ import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-const firebaseConfig = {
-  projectId: 'ai-act-compass-m6o05',
-  appId: '1:516664005385:web:8a51acd112bc94dc4d39d8',
-  storageBucket: 'ai-act-compass-m6o05.firebasestorage.app',
-  apiKey: 'AIzaSyBH2zJUhiLEK3fPjTb-KltdYjEQGcT--yo',
-  authDomain: 'ai-act-compass-m6o05.firebaseapp.com',
-  messagingSenderId: '516664005385',
-};
+const FIREBASE_CLIENT_ENV = {
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID?.trim(),
+  NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID?.trim(),
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET?.trim(),
+  NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.trim(),
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim(),
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID?.trim(),
+} as const;
+
+function getRequiredClientEnv(
+  key: keyof typeof FIREBASE_CLIENT_ENV,
+  value: string | undefined
+): string {
+  if (!value) {
+    throw new Error(`Missing required Firebase client environment variable: ${key}`);
+  }
+  return value;
+}
+
+function resolveFirebaseConfig() {
+  return {
+    projectId: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    ),
+    appId: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_APP_ID',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_APP_ID
+    ),
+    storageBucket: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    ),
+    apiKey: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_API_KEY',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_API_KEY
+    ),
+    authDomain: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    ),
+    messagingSenderId: getRequiredClientEnv(
+      'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+      FIREBASE_CLIENT_ENV.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    ),
+  };
+}
 
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
@@ -39,7 +80,7 @@ async function initializeFirebase() {
     }
 
     const resolvedApp =
-      getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      getApps().length === 0 ? initializeApp(resolveFirebaseConfig()) : getApp();
     const resolvedAuth = getAuth(resolvedApp);
     const resolvedDb = getFirestore(resolvedApp);
 

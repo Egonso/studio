@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { getBadgePreviewData } from '@/lib/certification/server';
+import { buildRateLimitKey, enforceRequestRateLimit } from '@/lib/security/request-security';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -10,6 +11,20 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { error: 'Certificate code is required.' },
       { status: 400 },
+    );
+  }
+
+  const rateLimit = await enforceRequestRateLimit({
+    request,
+    namespace: 'certification-badge',
+    key: buildRateLimitKey(request, code),
+    limit: 60,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { error: 'Zu viele Abfragen in kurzer Zeit.' },
+      { status: 429 },
     );
   }
 

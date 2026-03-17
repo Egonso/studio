@@ -27,9 +27,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const auth = await getFirebaseAuth();
 
         const { onAuthStateChanged } = await import('firebase/auth');
-        unsubscribe = onAuthStateChanged(auth, (user) => {
-          setUser(user);
-          setLoading(false);
+        unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+          void (async () => {
+            if (nextUser && nextUser.emailVerified !== true) {
+              const { signOut } = await import('firebase/auth');
+              await signOut(auth).catch(() => undefined);
+              setUser(null);
+              setLoading(false);
+              return;
+            }
+
+            setUser(nextUser);
+            setLoading(false);
+          })();
         });
       } catch (error) {
         console.error('Failed to initialize Firebase Auth:', error);

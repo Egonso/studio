@@ -2,10 +2,14 @@
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "studio-agent": "./agent-kit/bin/studio-agent.mjs"
+  },
   "scripts": {
     "dev": "next dev --turbopack -p 9002",
     "dev:playwright": "node ./node_modules/next/dist/bin/next dev -p 9002",
     "dev:compat": "next dev -p 9002",
+    "studio:agent": "node ./agent-kit/bin/studio-agent.mjs",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "node ./scripts/run-build.mjs",
@@ -66,6 +70,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.54.2",
     "recharts": "^2.15.1",
+    "server-only": "^0.0.1",
     "stripe": "^17.6.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
@@ -80,6 +85,7 @@
     "eslint-config-next": "^15.3.8",
     "firebase-tools": "^15.1.0",
     "genkit-cli": "^1.14.1",
+    "netlify-cli": "^24.3.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

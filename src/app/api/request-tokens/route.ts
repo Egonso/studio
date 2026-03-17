@@ -1,17 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import { db, hasFirebaseAdminCredentials } from '@/lib/firebase-admin';
 import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo } from '@/lib/observability/logger';
 import { ServerAuthError, requireRegisterOwner } from '@/lib/server-auth';
 import { issueSupplierRequestToken } from '@/lib/register-first/request-tokens';
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+  safeIdentifierSchema,
+} from '@/lib/security/request-security';
 
-function normalizeRegisterId(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  if (!trimmed || trimmed.includes('/')) return null;
-  return trimmed;
-}
+const RequestTokenBodySchema = z
+  .object({
+    registerId: safeIdentifierSchema,
+  })
+  .strict();
+
+const RequestTokenQuerySchema = z.object({
+  registerId: safeIdentifierSchema,
+});
 
 async function revokeActiveTokensForRegister(input: {
   ownerId: string;
@@ -62,20 +71,35 @@ export async function POST(req: NextRequest) {
     }
 
     const authorizationHeader = req.headers.get('authorization');
-    const body = await req.json().catch(() => ({}));
-    const registerId = normalizeRegisterId(body?.registerId);
-
-    if (!registerId) {
-      return NextResponse.json(
-        { error: 'registerId is required.' },
-        { status: 400 },
-      );
-    }
+    const body = RequestTokenBodySchema.parse(
+      await req.json().catch(() => ({})),
+    );
+    const registerId = body.registerId;
 
     const { user, register } = await requireRegisterOwner(
       authorizationHeader,
       registerId,
     );
+    const rateLimit = await enforceRequestRateLimit({
+      request: req,
+      namespace: 'supplier-request-token:create',
+      key: buildRateLimitKey(req, user.uid, registerId),
+      limit: 6,
+      windowMs: 15 * 60 * 1000,
+      logContext: {
+        actorUserId: user.uid,
+        registerId,
+      },
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Link-Erstellungen in kurzer Zeit. Bitte versuchen Sie es später erneut.',
+        },
+        { status: 429 },
+      );
+    }
 
     await revokeActiveTokensForRegister({
       ownerId: user.uid,
@@ -116,6 +140,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? 'Ungültige Eingabe.' },
+        { status: 400 },
+      );
+    }
+
     captureException(error, {
       boundary: 'app',
       component: 'request-token-post-route',
@@ -141,21 +172,34 @@ export async function DELETE(req: NextRequest) {
     }
 
     const authorizationHeader = req.headers.get('authorization');
-    const registerId = normalizeRegisterId(
-      req.nextUrl.searchParams.get('registerId'),
-    );
-
-    if (!registerId) {
-      return NextResponse.json(
-        { error: 'registerId is required.' },
-        { status: 400 },
-      );
-    }
+    const { registerId } = RequestTokenQuerySchema.parse({
+      registerId: req.nextUrl.searchParams.get('registerId') ?? undefined,
+    });
 
     const { user, register } = await requireRegisterOwner(
       authorizationHeader,
       registerId,
     );
+    const rateLimit = await enforceRequestRateLimit({
+      request: req,
+      namespace: 'supplier-request-token:revoke',
+      key: buildRateLimitKey(req, user.uid, registerId),
+      limit: 6,
+      windowMs: 15 * 60 * 1000,
+      logContext: {
+        actorUserId: user.uid,
+        registerId,
+      },
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Widerrufe in kurzer Zeit. Bitte versuchen Sie es später erneut.',
+        },
+        { status: 429 },
+      );
+    }
 
     const revokedCount = await revokeActiveTokensForRegister({
       ownerId: user.uid,
@@ -180,6 +224,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json(
         { error: error.message },
         { status: error.status },
+      );
+    }
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? 'Ungültige Eingabe.' },
+        { status: 400 },
       );
     }
 

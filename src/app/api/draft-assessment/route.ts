@@ -1,18 +1,48 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+
+import { logError } from '@/lib/observability/logger';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
+import {
+    buildRateLimitKey,
+    enforceRequestRateLimit,
+    safePlainTextSchema,
+} from '@/lib/security/request-security';
+
+const DraftAssessmentSchema = z.object({
+    systemName: safePlainTextSchema('Systemname', { max: 160 }).optional(),
+    vendor: safePlainTextSchema('Hersteller', { max: 160 }).optional(),
+    purpose: safePlainTextSchema('Einsatzzweck', { max: 4000 }).optional(),
+    usageContexts: z.array(safePlainTextSchema('Nutzungskontext', { max: 160 })).max(25).optional().default([]),
+    dataCategories: z.array(safePlainTextSchema('Datenkategorie', { max: 160 })).max(25).optional().default([]),
+});
 
 export async function POST(req: Request) {
     try {
-        await requireUser(req.headers.get("authorization"));
-        const { systemName, vendor, purpose, usageContexts, dataCategories } = await req.json();
+        const actor = await requireUser(req.headers.get("authorization"));
+        const { systemName, vendor, purpose, usageContexts, dataCategories } =
+          DraftAssessmentSchema.parse(await req.json());
 
         if (!systemName && !purpose) {
             return NextResponse.json({ error: 'System name or purpose is required' }, { status: 400 });
         }
 
+        const rateLimit = await enforceRequestRateLimit({
+            request: req,
+            namespace: 'draft-assessment',
+            key: buildRateLimitKey(req, actor.uid, systemName ?? purpose ?? 'unknown'),
+            limit: 20,
+            windowMs: 60 * 60 * 1000,
+            logContext: {
+                actorUserId: actor.uid,
+            },
+        });
+        if (!rateLimit.ok) {
+            return NextResponse.json({ error: 'Zu viele Draft-Anfragen in kurzer Zeit.' }, { status: 429 });
+        }
+
         const apiKey = process.env.PERPLEXITY_API_KEY;
         if (!apiKey) {
-            console.error("Perplexity API Key missing");
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
         }
 
@@ -78,7 +108,12 @@ Verwende einen sachlichen, gutachtlichen Stil. Keine Floskeln, keine Einleitung 
         if (error instanceof ServerAuthError) {
             return NextResponse.json({ error: error.message }, { status: error.status });
         }
-        console.error('Error drafting assessment:', error);
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: error.issues[0]?.message ?? 'Ungültige Eingabe.' }, { status: 400 });
+        }
+        logError('draft_assessment_failed', {
+            errorMessage: error instanceof Error ? error.message : 'unknown_error',
+        });
         return NextResponse.json({ error: 'Failed to generate draft' }, { status: 500 });
     }
 }

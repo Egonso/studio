@@ -1,18 +1,39 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+
+import { logError } from '@/lib/observability/logger';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+  safePlainTextSchema,
+} from '@/lib/security/request-security';
+
+const CheckToolComplianceSchema = z.object({
+    toolName: safePlainTextSchema('Tool-Name', { max: 160 }),
+});
 
 export async function POST(req: Request) {
     try {
-        await requireUser(req.headers.get("authorization"));
-        const { toolName } = await req.json();
+        const actor = await requireUser(req.headers.get("authorization"));
+        const { toolName } = CheckToolComplianceSchema.parse(await req.json());
 
-        if (!toolName) {
-            return NextResponse.json({ error: 'Tool name is required' }, { status: 400 });
+        const rateLimit = await enforceRequestRateLimit({
+            request: req,
+            namespace: 'check-tool-compliance',
+            key: buildRateLimitKey(req, actor.uid, toolName),
+            limit: 20,
+            windowMs: 60 * 60 * 1000,
+            logContext: {
+                actorUserId: actor.uid,
+            },
+        });
+        if (!rateLimit.ok) {
+            return NextResponse.json({ error: 'Zu viele Abfragen in kurzer Zeit.' }, { status: 429 });
         }
 
         const apiKey = process.env.PERPLEXITY_API_KEY;
         if (!apiKey) {
-            console.error("Perplexity API Key missing");
             return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
         }
 
@@ -84,7 +105,12 @@ Antworte bitte im reinen JSON-Format (ohne Markdown Code-Blöcke) mit folgender 
         if (error instanceof ServerAuthError) {
             return NextResponse.json({ error: error.message }, { status: error.status });
         }
-        console.error('Error checking compliance:', error);
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: error.issues[0]?.message ?? 'Ungültige Eingabe.' }, { status: 400 });
+        }
+        logError('check_tool_compliance_failed', {
+            errorMessage: error instanceof Error ? error.message : 'unknown_error',
+        });
         return NextResponse.json({ error: 'Failed to verify compliance' }, { status: 500 });
     }
 }

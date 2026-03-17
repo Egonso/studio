@@ -18,6 +18,10 @@ export function useScopedRouteHrefs() {
         workspaceScope,
       ),
       settings: appendWorkspaceScope(ROUTE_HREFS.settings, workspaceScope),
+      settingsAgentKit: appendWorkspaceScope(
+        ROUTE_HREFS.settingsAgentKit,
+        workspaceScope,
+      ),
       control: appendWorkspaceScope(ROUTE_HREFS.control, workspaceScope),
       controlReviews: appendWorkspaceScope(
         ROUTE_HREFS.controlReviews,

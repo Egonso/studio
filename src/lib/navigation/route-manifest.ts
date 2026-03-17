@@ -15,6 +15,7 @@ export const ROUTE_PATHS = {
   publicCapture: '/erfassen',
   supplierRequestPattern: '/request/[requestToken]',
   settings: '/settings',
+  settingsAgentKit: '/settings/agent-kit',
   governanceSettings: '/settings/governance',
   control: '/control',
   controlWelcome: '/control/welcome',
@@ -26,6 +27,7 @@ export const ROUTE_PATHS = {
   academy: '/academy',
   law: '/gesetz',
   downloads: '/downloads',
+  developersAgentKit: '/developers/agent-kit',
   verifyPattern: '/verify/[code]',
   verifyPassPattern: '/verify/pass/[hashId]',
   publicTrustPattern: '/trust/[projectId]',
@@ -36,6 +38,7 @@ export const ROUTE_HREFS = {
   useCases: `${ROUTE_PATHS.register}?section=use-cases`,
   externalInbox: `${ROUTE_PATHS.register}?filter=${EXTERNAL_INBOX_FILTER}`,
   settings: ROUTE_PATHS.settings,
+  settingsAgentKit: ROUTE_PATHS.settingsAgentKit,
   governanceSettings: `${ROUTE_PATHS.settings}?section=governance`,
   governanceUpgrade: `${ROUTE_PATHS.settings}?section=governance#upgrade-panel`,
   control: ROUTE_PATHS.control,
@@ -46,6 +49,7 @@ export const ROUTE_HREFS = {
   controlTrust: ROUTE_PATHS.controlTrust,
   controlEnterprise: ROUTE_PATHS.controlEnterprise,
   academy: ROUTE_PATHS.academy,
+  developersAgentKit: ROUTE_PATHS.developersAgentKit,
 } as const;
 
 export type ProductAreaId =
@@ -181,6 +185,12 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
     href: ROUTE_PATHS.settings,
     label: 'Settings',
     description: 'User and governance settings.',
+  },
+  {
+    segment: 'signed_in_free_register',
+    href: ROUTE_PATHS.settingsAgentKit,
+    label: 'Agent Kit Settings',
+    description: 'Signed-in setup for Agent Kit API keys and direct submissions.',
   },
   {
     segment: 'paid_governance_control',

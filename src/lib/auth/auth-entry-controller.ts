@@ -1,6 +1,6 @@
 import type { Auth, UserCredential } from 'firebase/auth';
 
-import { getPublicAppOrigin } from '@/lib/app-url';
+import { buildPublicAppUrl, getPublicAppOrigin } from '@/lib/app-url';
 import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import {
@@ -31,6 +31,7 @@ export interface AuthenticatedActionResult {
   credential: UserCredential;
   syncedPlan: SubscriptionPlan | null;
   syncNeedsRegister: boolean;
+  requiresEmailVerification: boolean;
 }
 
 export interface JoinCodeValidationSuccess {
@@ -67,6 +68,47 @@ function normalizeEmail(email: string): string {
 
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
+}
+
+async function guardAuthAttempt(
+  action: 'login' | 'signup' | 'password_reset',
+  email: string,
+): Promise<void> {
+  const response = await fetch('/api/auth/attempts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      action,
+      email: normalizeEmail(email),
+    }),
+  });
+
+  if (response.ok) {
+    return;
+  }
+
+  const error = new Error(
+    action === 'password_reset'
+      ? 'Zu viele Passwort-Reset-Anfragen in kurzer Zeit.'
+      : 'Zu viele Anmeldeversuche in kurzer Zeit.',
+  ) as Error & { code?: string };
+
+  if (response.status === 429) {
+    error.code = 'auth/too-many-requests';
+  } else {
+    error.code = 'auth/network-request-failed';
+  }
+
+  throw error;
+}
+
+async function sendVerificationEmail(user: UserCredential['user']): Promise<void> {
+  const { sendEmailVerification } = await import('firebase/auth');
+  await sendEmailVerification(user, {
+    url: buildPublicAppUrl('/login'),
+  });
 }
 
 function encodeCapturePath(code: string): string {
@@ -224,6 +266,10 @@ export function getAuthErrorDescription(
     return 'Authentifizierung ist gerade nicht verfügbar. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.';
   }
 
+  if (errorCode === 'auth/too-many-requests') {
+    return 'Zu viele Versuche in kurzer Zeit. Bitte warten Sie kurz und versuchen Sie es erneut.';
+  }
+
   return action === 'signup'
     ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
     : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
@@ -235,9 +281,15 @@ export async function loadAuthClient(): Promise<Auth> {
 }
 
 export async function sendPasswordReset(email: string): Promise<void> {
+  await guardAuthAttempt('password_reset', email);
   const auth = await loadAuthClient();
   const { sendPasswordResetEmail } = await import('firebase/auth');
-  await sendPasswordResetEmail(auth, normalizeEmail(email));
+  await sendPasswordResetEmail(auth, normalizeEmail(email), {
+    url: buildPublicAppUrl('/login'),
+  });
+  logInfo('auth_password_reset_requested', {
+    email: normalizeEmail(email),
+  });
 }
 
 export async function validateJoinCode(
@@ -310,12 +362,17 @@ export async function authenticateWithEmailPassword(input: {
   const email = normalizeEmail(input.email);
   const auth = await loadAuthClient();
   const {
+    browserSessionPersistence,
     createUserWithEmailAndPassword,
+    setPersistence,
     signInWithEmailAndPassword,
     updateProfile,
   } = await import('firebase/auth');
 
   try {
+    await guardAuthAttempt(input.action, email);
+    await setPersistence(auth, browserSessionPersistence);
+
     const credential =
       input.action === 'login'
         ? await signInWithEmailAndPassword(auth, email, input.password)
@@ -325,6 +382,35 @@ export async function authenticateWithEmailPassword(input: {
       await updateProfile(credential.user, {
         displayName: input.displayName.trim(),
       });
+    }
+
+    if (credential.user.emailVerified !== true) {
+      try {
+        await sendVerificationEmail(credential.user);
+      } catch (verificationError) {
+        logWarn('auth_entry_verification_email_failed', {
+          action: input.action,
+          email,
+          errorCode: getErrorCode(verificationError),
+        });
+      }
+
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth).catch(() => undefined);
+
+      logInfo('auth_entry_verification_required', {
+        action: input.action,
+        email,
+        intent: input.context.intent,
+        mode: input.context.mode,
+      });
+
+      return {
+        credential,
+        syncedPlan: null,
+        syncNeedsRegister: false,
+        requiresEmailVerification: true,
+      };
     }
 
     await acceptWorkspaceInvites(auth, email, input.context.workspaceInvite);
@@ -359,6 +445,7 @@ export async function authenticateWithEmailPassword(input: {
       credential,
       syncedPlan: syncResult?.plan ?? null,
       syncNeedsRegister: syncResult?.needsRegister ?? false,
+      requiresEmailVerification: false,
     };
   } catch (error) {
     logError('auth_entry_authenticate_failed', {

@@ -1,8 +1,6 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { getFullProject } from '@/lib/data-service';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -140,57 +138,42 @@ export function AimsExportDialog({ trigger }: { trigger?: React.ReactNode }) {
         if (!exportData) return;
         setIsGeneratingDoc(true);
 
-        const apiKey = process.env.NEXT_PUBLIC_DOCUMENTERO_API_KEY;
-
-        if (!apiKey) {
-            toast({
-                title: "Fehler: API-Schlüssel fehlt",
-                description: "Der Documentero API-Schlüssel ist nicht in den Umgebungsvariablen konfiguriert.",
-                variant: "destructive",
-            });
-            setIsGeneratingDoc(false);
-            return;
-        }
-
-        const payload = {
-            document: 'jyhIyFKzOaQps7aWLoyX',
-            format: format,
-            data: {
-                ...exportData,
-                'aimsProgress.step1_complete': exportData.aimsProgress?.step1_complete ?? false,
-                'aimsProgress.step2_complete': exportData.aimsProgress?.step2_complete ?? false,
-                'aimsProgress.step3_complete': exportData.aimsProgress?.step3_complete ?? false,
-                'aimsProgress.step4_complete': exportData.aimsProgress?.step4_complete ?? false,
-                'aimsProgress.step5_complete': exportData.aimsProgress?.step5_complete ?? false,
-                'aimsProgress.step6_complete': exportData.aimsProgress?.step6_complete ?? false,
-                'aimsProgress.updatedAt': exportData.aimsProgress?.updatedAt ? new Date((exportData.aimsProgress.updatedAt as any).seconds * 1000).toLocaleString('de-DE') : '',
-                generatedAt: new Date(exportData.generatedAt).toLocaleString('de-DE'),
-            },
-        };
-
         try {
-            const response = await axios.post('https://app.documentero.com/api', payload, {
-                headers: {
-                    'Authorization': `apiKey ${apiKey}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const { getFirebaseAuth } = await import('@/lib/firebase');
+            const auth = await getFirebaseAuth();
+            const token = await auth.currentUser?.getIdToken();
 
-            if (response.data && response.data.status === 200 && response.data.data) {
-                window.open(response.data.data, '_blank');
-                toast({
-                    title: "Dokument wird heruntergeladen",
-                    description: `Ihr ${format.toUpperCase()}-Dokument wurde erfolgreich generiert und wird in einem neuen Tab geöffnet.`,
-                });
-            } else {
-                throw new Error(response.data.message || 'Unbekannter Fehler bei der Dokumentenerstellung.');
+            if (!token) {
+                throw new Error('Nicht authentifiziert');
             }
 
+            const response = await fetch('/api/aims/export-document', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    format,
+                    exportData,
+                }),
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok || typeof payload.url !== 'string') {
+                throw new Error(payload.error || 'Unbekannter Fehler bei der Dokumentenerstellung.');
+            }
+
+            window.open(payload.url, '_blank', 'noopener,noreferrer');
+            toast({
+                title: "Dokument wird heruntergeladen",
+                description: `Ihr ${format.toUpperCase()}-Dokument wurde erfolgreich generiert und wird in einem neuen Tab geöffnet.`,
+            });
         } catch (error: any) {
-            console.error("Documentero API call failed:", error);
             toast({
                 title: `Fehler beim ${format.toUpperCase()}-Export`,
-                description: error.response?.data?.message || error.message || "Die Dokumentenerstellung ist fehlgeschlagen.",
+                description: error.message || "Die Dokumentenerstellung ist fehlgeschlagen.",
                 variant: "destructive",
             });
         } finally {

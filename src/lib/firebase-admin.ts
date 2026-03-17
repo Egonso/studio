@@ -1,3 +1,5 @@
+import '@/lib/server-only-guard';
+
 import { readFileSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 
@@ -18,7 +20,6 @@ const PROJECT_ID_KEYS = [
   'FIREBASE_PROJECT_ID',
   'GCLOUD_PROJECT',
   'GCP_PROJECT',
-  'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
 ] as const;
 
 const SERVICE_ACCOUNT_JSON_KEYS = [

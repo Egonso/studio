@@ -1,6 +1,37 @@
 import type { NextConfig } from 'next';
 import { LEGACY_ROUTE_REDIRECTS } from './src/lib/navigation/route-manifest';
 
+const SECURITY_HEADERS = [
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=()',
+  },
+  {
+    key: 'Cross-Origin-Opener-Policy',
+    value: 'same-origin',
+  },
+  {
+    key: 'Cross-Origin-Resource-Policy',
+    value: 'same-site',
+  },
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'off',
+  },
+] as const;
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -24,10 +55,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_DOCUMENTERO_API_KEY:
-      process.env.NEXT_PUBLIC_DOCUMENTERO_API_KEY,
-  },
   typescript: {
     tsconfigPath: 'tsconfig.next.json',
   },
@@ -46,6 +73,14 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return LEGACY_ROUTE_REDIRECTS;
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: SECURITY_HEADERS.map((header) => ({ ...header })),
+      },
+    ];
   },
 };
 

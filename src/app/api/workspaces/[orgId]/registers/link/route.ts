@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { findRegisterLocationById } from '@/lib/register-first/register-admin';
-import { ServerAuthError, requireWorkspaceMember } from '@/lib/server-auth';
+import { ServerAuthError, requireWorkspaceAdmin } from '@/lib/server-auth';
+import { safeIdentifierSchema } from '@/lib/security/request-security';
 import { ensureRegisterLinkedToWorkspace } from '@/lib/workspace-admin';
 
 const LinkWorkspaceRegisterSchema = z.object({
-  registerId: z.string().trim().min(1),
+  registerId: safeIdentifierSchema,
 });
 
 interface RouteContext {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const { orgId } = await context.params;
 
   try {
-    const authorization = await requireWorkspaceMember(
+    const authorization = await requireWorkspaceAdmin(
       req.headers.get('authorization'),
       orgId,
     );

@@ -14,6 +14,8 @@
 /coverage
 /output/playwright/
 /playwright-report/
+/.playwright-cli/
+/.tmp/
 
 # next.js
 /.next/
@@ -52,3 +54,12 @@ firestore-debug.log
 # macOS menubar app local build outputs
 apps/ki-register-menubar-mac/.build/
 apps/ki-register-menubar-mac/dist/
+
+# local-only private working documents
+/private-docs/*
+!/private-docs/.gitignore
+!/private-docs/README.md
+*.private.*
+
+# local onboarding for the agent workflow toolkit
+/.studio-agent/*

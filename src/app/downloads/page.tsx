@@ -1,17 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Download, ShieldCheck } from "lucide-react";
 import { isCoverageAssistPilotEnabled } from "@/lib/coverage-assist/feature-gate";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 
 export const metadata: Metadata = {
   title: "Downloads | KI-Register",
   description:
-    "Chrome Plugin und macOS Menüleisten-App für KI-Register herunterladen.",
+    "Chrome Plugin, macOS Menueleisten-App und Agent Kit fuer KI-Register herunterladen.",
 };
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
+const agentKitGithubHref = "https://github.com/Egonso/ki-register-agent-kit";
+const agentKitDocsHref = "/developers/agent-kit";
+const agentKitSettingsHref = "/settings/agent-kit";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -36,6 +39,13 @@ const macSteps = [
   "Nach dem Start erscheint das Icon oben in der Menüleiste neben WLAN/Batterie.",
 ];
 
+const agentKitInstallSteps = [
+  "GitHub-Repo oeffnen oder ki-register-agent-kit.zip herunterladen und lokal entpacken.",
+  "Einmalig onboarden: node ./bin/studio-agent.mjs onboard",
+  "Waehrend der Arbeit dokumentieren: node ./bin/studio-agent.mjs capture oder interview",
+  "API-Key im Login-Bereich erstellen und danach direkt ins KI-Register einreichen.",
+];
+
 function SectionCard({
   title,
   subtitle,
@@ -54,7 +64,7 @@ function SectionCard({
       <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">{subtitle}</p>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5">
         <a
           href={downloadHref}
           className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
@@ -200,15 +210,104 @@ export default function DownloadsPage() {
             <li>
               Logo/Icon wechseln automatisch zwischen Light- und Dark-Variante je nach Browser-Theme.
             </li>
-            {coverageAssistPilotEnabled ? (
-              <li>
-                Coverage Assist kann im Plugin pro Gerät jederzeit wieder deaktiviert oder für einzelne Tools lokal ausgeblendet werden.
-              </li>
-            ) : null}
             <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
             </li>
+            <li>
+              Das Agent Kit wird weiter unten separat erklaert, weil es kein klassischer Endnutzer-Download, sondern ein Team- und Agentenpaket ist.
+            </li>
           </ul>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Agent Kit
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Kurze Übersicht
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Das Agent Kit ist für technische Teams, die neue KI-Anwendungen direkt während der
+              Arbeit dokumentieren wollen. Der Agent fragt fehlende Informationen nach, zeigt vor
+              dem Schreiben eine Zusammenfassung und reicht den bestätigten Fall danach direkt im
+              KI-Register ein.
+            </p>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Beispiele: Codex dokumentiert beim Bauen eines internen Support-Agenten mit,
+              OpenClaw erfasst einen Recruiting-Workflow und Claude Code bereitet vor dem Go-Live
+              die Register-Einreichung vor. Teamleads brauchen das Paket meist nicht selbst.
+            </p>
+            <a
+              href={agentKitDocsHref}
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              Volle Erklärung
+            </a>
+          </div>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Download Fuer Technische Teams
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Download und Links
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              GitHub ist die sauberste Quelle. Das ZIP ist für Teams, die schnell lokal starten
+              wollen. Den API-Key erstellt die eingeloggte Person im KI-Register.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a
+              href={agentKitGithubHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              GitHub-Quelle
+            </a>
+            <a
+              href={agentKitDocsHref}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              API-Doku lesen
+            </a>
+            <a
+              href={agentKitSettingsHref}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              API-Key erstellen
+            </a>
+            <a
+              href="/downloads/ki-register-agent-kit.zip"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4" />
+              ZIP herunterladen
+            </a>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-slate-300 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Installation
+            </p>
+            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+              {agentKitInstallSteps.map((step) => (
+                <li key={step} className="flex items-start gap-2">
+                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-slate-500" />
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </section>
       </div>
     </div>

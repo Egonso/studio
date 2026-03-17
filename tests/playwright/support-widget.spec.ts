@@ -64,6 +64,7 @@ test.describe.serial('support widget visibility', () => {
         email,
         password,
         displayName: 'Playwright Support Widget',
+        emailVerified: true,
       });
       userUid = user.uid;
 

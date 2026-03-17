@@ -19,6 +19,10 @@ test("firestore rules no longer allow placeholder org access", () => {
   );
 });
 
+test("firestore rules require verified email for signed-in access", () => {
+  assert.match(rules, /function isSignedIn\(\)\s*\{\s*return request\.auth != null &&[\s\S]*request\.auth\.token\.email_verified == true;/);
+});
+
 test("firestore rules expose workspace collections through real membership checks", () => {
   assert.match(rules, /match \/workspaces\/\{orgId\} \{/);
   assert.match(rules, /match \/members\/\{memberId\} \{/);
@@ -43,11 +47,14 @@ test("firestore rules block client entitlement escalation and legacy global proj
   assert.match(rules, /hasOnlyFreeEntitlement\(request\.resource\.data\)/);
   assert.match(rules, /affectedKeys\(\)\s*\.hasAny\(\['plan', 'entitlement'\]\)/);
   assert.match(rules, /function canReadRegister\(userId, data\)/);
+  assert.match(rules, /function canEditOrg\(orgId\)/);
+  assert.match(rules, /function canWriteRegisterContents\(userId, registerId\)[\s\S]*canEditOrg/);
   assert.match(rules, /function canReviewRegisterContents\(userId, registerId\)/);
   assert.match(rules, /match \/projects\/\{projectId\} \{[\s\S]*allow read, write: if false;/);
 });
 
 test("firestore rules resolve org access through parent aiSystems", () => {
   assert.match(rules, /function hasAiSystemOrgAccess\(systemId\)/);
+  assert.match(rules, /function hasAiSystemOrgEditAccess\(systemId\)/);
   assert.match(rules, /exists\(\/databases\/\$\(database\)\/documents\/aiSystems\/\$\(systemId\)\)/);
 });

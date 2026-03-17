@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, LogOut, Settings, UserCircle } from 'lucide-react';
+import { BookOpen, Bot, LogOut, Settings, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/auth-context';
 import { clearActiveProjectId } from '@/lib/data-service';
@@ -96,7 +96,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                     <UserCircle className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel className="truncate text-xs font-normal text-muted-foreground">
                     {user.email}
                   </DropdownMenuLabel>
@@ -108,6 +108,16 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                     >
                       <Settings className="h-4 w-4" />
                       Einstellungen
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={scopedHrefs.settingsAgentKit}
+                      className="flex cursor-pointer items-center gap-2"
+                      prefetch={false}
+                    >
+                      <Bot className="h-4 w-4" />
+                      Agent Kit & API
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

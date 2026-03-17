@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { z } from 'zod';
 
 import {
   getCheckoutEligibility,
@@ -19,6 +20,25 @@ import { getEntitlementAccessPlan } from '@/lib/register-first/entitlement';
 import { materializeWorkspaceAccessWriteModel } from '@/lib/server-access';
 import { ServerAuthError, requireUser } from '@/lib/server-auth';
 import { logWarn } from '@/lib/observability/logger';
+import {
+  buildRateLimitKey,
+  enforceRequestRateLimit,
+  safeIdentifierSchema,
+} from '@/lib/security/request-security';
+
+const EntitlementSyncSchema = z
+  .object({
+    registerId: safeIdentifierSchema.optional(),
+    sessionId: z
+      .string()
+      .trim()
+      .regex(
+        /^cs_(test|live)_[A-Za-z0-9]+$/,
+        'Checkout-Session ist ungültig.',
+      )
+      .optional(),
+  })
+  .strict();
 
 function normalizeEmail(value: string | null | undefined): string | null {
   const normalized = value?.trim().toLowerCase();
@@ -259,19 +279,34 @@ export async function POST(request: NextRequest) {
     }
 
     const decoded = await requireUser(request.headers.get('authorization'));
-    const body = (await request.json().catch(() => ({}))) as {
-      registerId?: string | null;
-      sessionId?: string | null;
-    };
-
-    const registerId =
-      typeof body.registerId === 'string' && body.registerId.trim().length > 0
-        ? body.registerId.trim()
-        : null;
-    const sessionId =
-      typeof body.sessionId === 'string' && body.sessionId.trim().length > 0
-        ? body.sessionId.trim()
-        : null;
+    const body = EntitlementSyncSchema.parse(
+      await request.json().catch(() => ({})),
+    );
+    const registerId = body.registerId ?? null;
+    const sessionId = body.sessionId ?? null;
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      namespace: 'entitlement-sync',
+      key: buildRateLimitKey(
+        request,
+        decoded.uid,
+        registerId ?? sessionId ?? 'sync',
+      ),
+      limit: 20,
+      windowMs: 15 * 60 * 1000,
+      logContext: {
+        actorUserId: decoded.uid,
+      },
+    });
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        {
+          error:
+            'Zu viele Entitlement-Synchronisierungen in kurzer Zeit. Bitte versuchen Sie es später erneut.',
+        },
+        { status: 429 },
+      );
+    }
 
     const freeFallback = (workspaceAccessSynced = false) =>
       NextResponse.json({
@@ -365,7 +400,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error('Entitlement sync failed', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? 'Ungültige Eingabe.' },
+        { status: 400 },
+      );
+    }
+
+    logWarn('entitlement_sync_failed', {
+      errorMessage: error instanceof Error ? error.message : 'unknown_error',
+    });
     return NextResponse.json(
       { error: 'Entitlement sync failed.' },
       { status: 500 },

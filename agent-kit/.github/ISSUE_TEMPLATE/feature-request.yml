@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement for the kit, schema, skill, or marketplace packaging.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What is missing or painful today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should the kit do differently?
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Why would this matter for compliance, documentation quality, or agent portability?

@@ -16,6 +16,13 @@ test("server auth exports canonical auth helpers", () => {
   assert.match(serverAuthSource, /export async function requireRegisterOwner\(/);
 });
 
+test("server auth enforces revocation, verified email, and session age", () => {
+  assert.match(serverAuthSource, /verifyIdToken\(idToken, true\)/);
+  assert.match(serverAuthSource, /userRecord\.emailVerified !== true/);
+  assert.match(serverAuthSource, /decoded\.auth_time/);
+  assert.match(serverAuthSource, /Session expired\. Please sign in again\./);
+});
+
 test("admin allowlist contains only the two canonical admin emails", () => {
   assert.deepEqual(ADMIN_EMAILS, [
     "mo.feich@gmail.com",

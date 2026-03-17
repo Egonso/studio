@@ -45,6 +45,7 @@ test.describe.serial('free report mode', () => {
         email,
         password,
         displayName: 'Playwright Free Report',
+        emailVerified: true,
       });
       userUid = user.uid;
 

@@ -1,3 +1,5 @@
+import '@/lib/server-only-guard';
+
 import type { DecodedIdToken } from "firebase-admin/auth";
 
 import { isAdminEmail } from "@/lib/admin-config";
@@ -21,6 +23,19 @@ export class ServerAuthError extends Error {
     this.name = "ServerAuthError";
     this.status = status;
   }
+}
+
+const DEFAULT_SESSION_MAX_AGE_HOURS = 12;
+
+function resolveSessionMaxAgeMs(): number {
+  const raw = process.env.AUTH_SESSION_MAX_AGE_HOURS?.trim();
+  const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_SESSION_MAX_AGE_HOURS;
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_SESSION_MAX_AGE_HOURS * 60 * 60 * 1000;
+  }
+
+  return parsed * 60 * 60 * 1000;
 }
 
 function requireResourceId(
@@ -54,10 +69,29 @@ export async function verifyFirebaseToken(
     throw new ServerAuthError("Authentication required.", 401);
   }
 
-  const decoded = await getAdminAuth().verifyIdToken(idToken);
-  const email = decoded.email?.toLowerCase();
+  const auth = getAdminAuth();
+  const decoded = await auth.verifyIdToken(idToken, true);
+  const userRecord = await auth.getUser(decoded.uid);
+  const email = userRecord.email?.toLowerCase() ?? decoded.email?.toLowerCase();
   if (!email) {
     throw new ServerAuthError("Authenticated user must have an email.", 403);
+  }
+
+  if (userRecord.emailVerified !== true) {
+    throw new ServerAuthError(
+      'Please verify your email address before continuing.',
+      403,
+    );
+  }
+
+  const authTimeMs =
+    typeof decoded.auth_time === 'number' ? decoded.auth_time * 1000 : null;
+  if (!authTimeMs) {
+    throw new ServerAuthError('Session metadata is missing. Please sign in again.', 401);
+  }
+
+  if (Date.now() - authTimeMs > resolveSessionMaxAgeMs()) {
+    throw new ServerAuthError('Session expired. Please sign in again.', 401);
   }
 
   return {
