@@ -23,6 +23,7 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile, type WorkspaceMembership } from '@/hooks/use-user-profile';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
+import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
 interface AgentKitApiKeyRow {
@@ -49,6 +50,10 @@ interface WorkspaceAgentKitKeysResponse {
   keys: AgentKitApiKeyRow[];
   registers: AgentKitRegisterOption[];
   submitEndpoint: string;
+  workspace?: {
+    orgId: string;
+    name: string;
+  } | null;
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -88,11 +93,13 @@ export default function AgentKitSettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const scopedHrefs = useScopedRouteHrefs();
+  const workspaceScope = useWorkspaceScope();
 
   const [workspaceId, setWorkspaceIdState] = useState<string | null>(null);
   const [keys, setKeys] = useState<AgentKitApiKeyRow[]>([]);
   const [registers, setRegisters] = useState<AgentKitRegisterOption[]>([]);
   const [submitEndpoint, setSubmitEndpoint] = useState('/api/agent-kit/submit');
+  const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
@@ -112,11 +119,57 @@ export default function AgentKitSettingsPage() {
     }
 
     const currentWorkspaceId = getActiveWorkspaceId();
-    const fallbackWorkspaceId = profile.workspaces?.[0]?.orgId ?? null;
-    setWorkspaceIdState(currentWorkspaceId ?? fallbackWorkspaceId);
-  }, [profile]);
+    const fallbackWorkspaceId =
+      workspaceScope ??
+      currentWorkspaceId ??
+      profile.workspaces?.[0]?.orgId ??
+      profile.workspaceOrgIds?.[0] ??
+      null;
+    setWorkspaceIdState(fallbackWorkspaceId);
+  }, [profile, workspaceScope]);
 
-  const workspaces = useMemo(() => profile?.workspaces ?? [], [profile?.workspaces]);
+  const workspaces = useMemo(() => {
+    const knownMemberships = profile?.workspaces ?? [];
+    const fallbackIds = profile?.workspaceOrgIds ?? [];
+    const options = new Map<string, WorkspaceMembership>();
+
+    for (const workspace of knownMemberships) {
+      if (!workspace?.orgId) {
+        continue;
+      }
+      options.set(workspace.orgId, workspace);
+    }
+
+    for (const orgId of fallbackIds) {
+      if (!orgId || options.has(orgId)) {
+        continue;
+      }
+      options.set(orgId, {
+        orgId,
+        orgName:
+          orgId === workspaceId && resolvedWorkspaceName
+            ? resolvedWorkspaceName
+            : orgId,
+        role: profile?.workspaceRolesByOrg?.[orgId] ?? 'MEMBER',
+      });
+    }
+
+    if (workspaceId && !options.has(workspaceId)) {
+      options.set(workspaceId, {
+        orgId: workspaceId,
+        orgName: resolvedWorkspaceName ?? workspaceId,
+        role: profile?.workspaceRolesByOrg?.[workspaceId] ?? 'MEMBER',
+      });
+    }
+
+    return Array.from(options.values());
+  }, [
+    profile?.workspaceOrgIds,
+    profile?.workspaceRolesByOrg,
+    profile?.workspaces,
+    resolvedWorkspaceName,
+    workspaceId,
+  ]);
 
   const authFetch = useCallback(
     async (input: string, init?: RequestInit) => {
@@ -159,6 +212,7 @@ export default function AgentKitSettingsPage() {
       setKeys(payload.keys);
       setRegisters(payload.registers);
       setSubmitEndpoint(payload.submitEndpoint);
+      setResolvedWorkspaceName(payload.workspace?.name ?? payload.workspace?.orgId ?? null);
       setSelectedRegisterId((current) =>
         current && payload.registers.some((entry) => entry.registerId === current)
           ? current
@@ -361,9 +415,9 @@ export default function AgentKitSettingsPage() {
         <div className="grid gap-4 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
-              <CardDescription>Aktiver Workspace</CardDescription>
+                <CardDescription>Aktiver Workspace</CardDescription>
               <CardTitle className="text-2xl">
-                {selectedWorkspace?.orgName ?? 'Nicht gewählt'}
+                {selectedWorkspace?.orgName ?? resolvedWorkspaceName ?? 'Nicht gewählt'}
               </CardTitle>
             </CardHeader>
             <CardContent>

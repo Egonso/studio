@@ -7,6 +7,7 @@ import {
   listAgentKitApiKeysForUser,
 } from '@/lib/agent-kit/api-keys';
 import { listWorkspaceRegisters } from '@/lib/register-first/register-admin';
+import { getWorkspaceRecord } from '@/lib/workspace-admin';
 import {
   ServerAuthError,
   requireWorkspaceMember,
@@ -47,16 +48,26 @@ export async function GET(req: NextRequest, context: RouteContext) {
       req.headers.get('authorization'),
       orgId,
     );
-    const [keys, registers] = await Promise.all([
+    const [keys, registers, workspace] = await Promise.all([
       authorization.role === 'OWNER' || authorization.role === 'ADMIN'
         ? listAgentKitApiKeys(orgId)
         : listAgentKitApiKeysForUser(orgId, authorization.user.uid),
       listWorkspaceRegisters(orgId),
+      getWorkspaceRecord(orgId),
     ]);
 
     return NextResponse.json({
       keys,
       actorRole: authorization.role,
+      workspace: workspace
+        ? {
+            orgId: workspace.orgId,
+            name: workspace.name,
+          }
+        : {
+            orgId,
+            name: orgId,
+          },
       registers: registers.map((location) => ({
         registerId: location.registerId,
         name:
