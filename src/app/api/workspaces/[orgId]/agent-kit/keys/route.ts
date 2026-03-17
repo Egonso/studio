@@ -14,6 +14,7 @@ import {
 import { getWorkspaceRecord } from '@/lib/workspace-admin';
 import {
   ServerAuthError,
+  requireUser,
   requireWorkspaceMember,
 } from '@/lib/server-auth';
 
@@ -44,15 +45,36 @@ function handleError(error: unknown) {
   );
 }
 
+async function authorizeAgentKitScope(
+  authorizationHeader: string | null,
+  orgId: string,
+) {
+  const user = await requireUser(authorizationHeader);
+  if (isPersonalAgentKitScope(orgId, user.uid)) {
+    return {
+      user,
+      role: 'OWNER' as const,
+      isPersonalScope: true,
+    };
+  }
+
+  const authorization = await requireWorkspaceMember(authorizationHeader, orgId);
+  return {
+    user: authorization.user,
+    role: authorization.role,
+    isPersonalScope: false,
+  };
+}
+
 export async function GET(req: NextRequest, context: RouteContext) {
   const { orgId } = await context.params;
 
   try {
-    const authorization = await requireWorkspaceMember(
+    const authorization = await authorizeAgentKitScope(
       req.headers.get('authorization'),
       orgId,
     );
-    const isPersonalScope = isPersonalAgentKitScope(orgId, authorization.user.uid);
+    const { isPersonalScope } = authorization;
     const [keys, registers, workspace] = await Promise.all([
       authorization.role === 'OWNER' || authorization.role === 'ADMIN'
         ? listAgentKitApiKeys(orgId)
@@ -99,7 +121,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const { orgId } = await context.params;
 
   try {
-    const authorization = await requireWorkspaceMember(
+    const authorization = await authorizeAgentKitScope(
       req.headers.get('authorization'),
       orgId,
     );

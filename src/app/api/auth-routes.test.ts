@@ -101,7 +101,9 @@ test("workspace enterprise routes enforce member, admin, and reviewer auth on th
   assert.match(workspaceExternalSubmissionsRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceExternalSubmissionItemRoute, /requireWorkspaceReviewer\(/);
   assert.match(workspaceRegisterLinkRoute, /requireWorkspaceAdmin\(/);
+  assert.match(workspaceAgentKitKeysRoute, /requireUser\(/);
   assert.match(workspaceAgentKitKeysRoute, /requireWorkspaceMember\(/);
+  assert.match(workspaceAgentKitKeyItemRoute, /requireUser\(/);
   assert.match(workspaceAgentKitKeyItemRoute, /requireWorkspaceMember\(/);
 });
 

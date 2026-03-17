@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import {
   getAgentKitApiKeyRecord,
+  isPersonalAgentKitScope,
   revokeAgentKitApiKey,
 } from '@/lib/agent-kit/api-keys';
 import {
   ServerAuthError,
+  requireUser,
   requireWorkspaceMember,
 } from '@/lib/server-auth';
 
@@ -25,11 +27,30 @@ function handleError(error: unknown) {
   );
 }
 
+async function authorizeAgentKitScope(
+  authorizationHeader: string | null,
+  orgId: string,
+) {
+  const user = await requireUser(authorizationHeader);
+  if (isPersonalAgentKitScope(orgId, user.uid)) {
+    return {
+      user,
+      role: 'OWNER' as const,
+    };
+  }
+
+  const authorization = await requireWorkspaceMember(authorizationHeader, orgId);
+  return {
+    user: authorization.user,
+    role: authorization.role,
+  };
+}
+
 export async function DELETE(req: NextRequest, context: RouteContext) {
   const { orgId, keyId } = await context.params;
 
   try {
-    const authorization = await requireWorkspaceMember(
+    const authorization = await authorizeAgentKitScope(
       req.headers.get('authorization'),
       orgId,
     );
