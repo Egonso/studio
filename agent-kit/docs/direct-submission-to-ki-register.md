@@ -2,20 +2,18 @@
 
 This guide is for the technical person who sets up the handoff once so the rest of the team can simply review the result inside KI-Register.
 
-![Direct submission flow](../assets/direct-submit-flow.svg)
-
 ## Who needs what
 
 - Team leads and reviewers need the final use case on the KI-Register website.
 - Technical teams or agent owners need the Agent Kit repository, CLI, and API key setup.
 - Coding agents such as Codex, Claude Code, OpenClaw, Antigravity, or shell-based agents only need three things:
   - the repository or ZIP
-  - a workspace-scoped register id
+  - a target register id in a personal or workspace scope
   - a personal Agent Kit API key
 
 ## What happens end to end
 
-1. A workspace member creates a personal Agent Kit API key in the KI-Register workspace control area.
+1. A user creates a personal Agent Kit API key in the KI-Register control area.
 2. The agent documents the new AI application, process, or workflow with `capture` or `interview`.
 3. A human confirms the generated `manifest.json`.
 4. The CLI submits that confirmed manifest to KI-Register.
@@ -23,11 +21,9 @@ This guide is for the technical person who sets up the handoff once so the rest 
 
 The important part is that the team lead does not need to read local files or understand the CLI.
 
-## Workspace setup
+## Scope setup
 
-Create the API key in the workspace control area and choose the target register first.
-
-![Workspace Agent Kit keys](../assets/workspace-api-keys.svg)
+Create the API key in the signed-in control area and choose the target register first.
 
 After the key is created, keep these values ready:
 
