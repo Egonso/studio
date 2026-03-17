@@ -291,7 +291,7 @@ export function buildRegisterUseCaseFromManifest(input: {
 
 export function buildSubmittedUseCaseUrls(input: {
   useCaseId: string;
-  workspaceId: string;
+  workspaceId?: string | null;
 }) {
   const detailPath = buildScopedUseCaseDetailHref(
     input.useCaseId,

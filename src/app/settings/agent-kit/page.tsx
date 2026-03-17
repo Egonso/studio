@@ -497,9 +497,9 @@ export default function AgentKitSettingsPage() {
                 </SelectContent>
               </Select>
               {workspaces.length === 0 ? (
-                <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Falls hier nichts erscheint, gibt es meist nur persoenliche Register.
-                  Agent-Kit-Keys werden pro Workspace angelegt.
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Falls hier nichts erscheint, gibt es weder einen Workspace noch ein
+                  persoenliches Register in diesem Account.
                 </p>
               ) : null}
             </CardContent>

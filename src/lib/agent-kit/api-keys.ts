@@ -90,6 +90,13 @@ function keyCollection(orgId: string) {
   return db.collection('workspaces').doc(orgId).collection('agentKitKeys');
 }
 
+export function isPersonalAgentKitScope(
+  orgId: string,
+  userId: string,
+): boolean {
+  return orgId.trim() === userId.trim();
+}
+
 function hashAgentKitApiKeySecret(secret: string): string {
   return createHash('sha256').update(secret, 'utf8').digest('hex');
 }
@@ -250,6 +257,10 @@ async function hasActiveWorkspaceAccess(
   orgId: string,
   userId: string,
 ): Promise<boolean> {
+  if (isPersonalAgentKitScope(orgId, userId)) {
+    return true;
+  }
+
   const workspace = await getWorkspaceRecord(orgId);
   if (workspace?.ownerUserId === userId) {
     return true;

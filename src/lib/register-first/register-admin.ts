@@ -78,6 +78,32 @@ export async function getServerRegister(
   return snapshot.exists ? (snapshot.data() as Register) : null;
 }
 
+export async function listPersonalRegisters(
+  ownerId: string,
+): Promise<ServerRegisterLocation[]> {
+  const normalizedOwnerId = normalizeOptionalText(ownerId);
+  if (!normalizedOwnerId) {
+    return [];
+  }
+
+  const snapshot = await db.collection(`users/${normalizedOwnerId}/registers`).get();
+
+  return snapshot.docs
+    .map((document) => {
+      const register = document.data() as Register;
+      if (register.isDeleted === true) {
+        return null;
+      }
+
+      return {
+        ownerId: normalizedOwnerId,
+        registerId: String(register.registerId ?? document.id),
+        register,
+      } satisfies ServerRegisterLocation;
+    })
+    .filter((entry): entry is ServerRegisterLocation => entry !== null);
+}
+
 async function findRegisterLocationByOwnerCandidates(
   registerId: string,
   ownerIds: string[],

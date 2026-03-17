@@ -124,7 +124,8 @@ test("coverage assist config route exposes only public rollout flags", () => {
 
 test("agent kit submit route authenticates with API keys and scopes register lookup to the workspace", () => {
   assert.match(agentKitSubmitRoute, /authenticateAgentKitApiKey\(/);
+  assert.match(agentKitSubmitRoute, /isPersonalAgentKitScope\(/);
   assert.match(agentKitSubmitRoute, /findRegisterLocationById\(payload\.registerId, \{/);
-  assert.match(agentKitSubmitRoute, /workspaceId: authentication\.record\.orgId/);
+  assert.match(agentKitSubmitRoute, /workspaceId: personalScope \? undefined : authentication\.record\.orgId/);
   assert.match(agentKitSubmitRoute, /sanitizeFirestorePayload\(useCase\)/);
 });
