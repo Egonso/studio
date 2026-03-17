@@ -123,15 +123,22 @@ export default function AgentKitSettingsPage() {
       return;
     }
 
-    const currentWorkspaceId = getActiveWorkspaceId();
-    const fallbackWorkspaceId =
-      workspaceScope ??
-      currentWorkspaceId ??
-      profile.workspaces?.[0]?.orgId ??
-      profile.workspaceOrgIds?.[0] ??
-      null;
-    setWorkspaceIdState(fallbackWorkspaceId);
-  }, [profile, workspaceScope]);
+    setWorkspaceIdState((current) => {
+      if (current) {
+        return current;
+      }
+
+      const currentWorkspaceId = getActiveWorkspaceId();
+      return (
+        workspaceScope ??
+        currentWorkspaceId ??
+        profile.workspaces?.[0]?.orgId ??
+        profile.workspaceOrgIds?.[0] ??
+        user?.uid ??
+        null
+      );
+    });
+  }, [profile, user?.uid, workspaceScope]);
 
   const legacyWorkspaces = useMemo(() => {
     const knownMemberships = profile?.workspaces ?? [];
@@ -189,8 +196,32 @@ export default function AgentKitSettingsPage() {
       }
     }
 
+    if (options.size === 0 && user?.uid) {
+      options.set(user.uid, {
+        orgId: user.uid,
+        orgName: 'Mein Register',
+        role: 'ADMIN',
+      });
+    }
+
     return Array.from(options.values());
-  }, [legacyWorkspaces, workspaceOptions]);
+  }, [legacyWorkspaces, user?.uid, workspaceOptions]);
+
+  useEffect(() => {
+    if (workspaceId || workspaces.length === 0) {
+      return;
+    }
+
+    const preferredWorkspaceId =
+      workspaceScope ??
+      getActiveWorkspaceId() ??
+      workspaces[0]?.orgId ??
+      null;
+
+    if (preferredWorkspaceId) {
+      setWorkspaceIdState(preferredWorkspaceId);
+    }
+  }, [workspaceId, workspaceScope, workspaces]);
 
   const authFetch = useCallback(
     async (input: string, init?: RequestInit) => {
