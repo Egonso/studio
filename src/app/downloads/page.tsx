@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Download, ShieldCheck } from "lucide-react";
 import { isCoverageAssistPilotEnabled } from "@/lib/coverage-assist/feature-gate";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 
@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
+const agentKitGithubHref =
+  "https://github.com/Egonso/studio/tree/codex/agent-kit-public/agent-kit";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -38,11 +40,11 @@ const macSteps = [
 
 const agentKitSteps = [
   "Download ki-register-agent-kit.zip herunterladen und entpacken.",
-  "Einmal onboarden: node ./bin/studio-agent.mjs onboard",
-  "Fuer Low-Friction-Doku waehrend der Arbeit: node ./bin/studio-agent.mjs capture",
-  "Fuer eine volle Rueckfrage-Strecke: node ./bin/studio-agent.mjs interview",
-  "Die Ausgabe landet standardmaessig in docs/agent-workflows/<slug>/ als README.md und manifest.json.",
-  "Jede Anlage wird vor dem Schreiben noch einmal bestaetigt, sofern du das beim Onboarding nicht deaktivierst.",
+  "Beim ersten Start werden einmalig Grundinfos abgefragt: wer dokumentiert, wo die Dateien liegen sollen und welche Defaults gelten.",
+  "Danach kann das Kit neue KI-Anwendungen, Prozesse oder Workflows direkt waehrend der Arbeit miterfassen.",
+  "Wenn Informationen fehlen, fuehrt das Kit durch ein kurzes Interview und fragt die wichtigsten Punkte systematisch ab.",
+  "Vor jedem neuen Eintrag zeigt es noch einmal eine kurze Zusammenfassung und bittet um Bestaetigung.",
+  "Das Ergebnis ist immer eine lesbare Dokumentation fuer Menschen plus eine strukturierte JSON-Datei fuer Audits und Agenten.",
 ];
 
 function SectionCard({
@@ -51,12 +53,16 @@ function SectionCard({
   downloadHref,
   downloadLabel,
   steps,
+  secondaryHref,
+  secondaryLabel,
 }: {
   title: string;
   subtitle: string;
   downloadHref: string;
   downloadLabel: string;
   steps: string[];
+  secondaryHref?: string;
+  secondaryLabel?: string;
 }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
@@ -71,6 +77,18 @@ function SectionCard({
           <Download className="h-4 w-4" />
           {downloadLabel}
         </a>
+
+        {secondaryHref ? (
+          <a
+            href={secondaryHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            {secondaryLabel ?? "Mehr erfahren"}
+          </a>
+        ) : null}
       </div>
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -188,12 +206,77 @@ export default function DownloadsPage() {
 
           <SectionCard
             title="Agent Kit"
-            subtitle="Standalone Node CLI, Skill und Slash-Command-Vorlage fuer Codex, Claude Code, OpenClaw, SkillsMP oder Antigravity."
+            subtitle="Ein Dokumentationspaket fuer Teams, die neue KI-Anwendungen, Prozesse und Workflows sauber festhalten wollen. Es fuehrt durch Fragen, legt verstaendliche Doku an und funktioniert mit vielen KI-Agenten."
             downloadHref="/downloads/ki-register-agent-kit.zip"
             downloadLabel="Agent Kit herunterladen"
             steps={agentKitSteps}
+            secondaryHref={agentKitGithubHref}
+            secondaryLabel="Auf GitHub ansehen"
           />
         </main>
+
+        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Agent Kit einfach erklaert
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Das Agent Kit ist fuer Menschen und fuer Agenten gedacht.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Es ist keine klassische Endnutzer-App, sondern ein kleines Standardpaket fuer Teams,
+              die neue KI-Anwendungen nicht nur bauen oder einsetzen, sondern gleichzeitig sauber
+              dokumentieren wollen. Ein Entwickler oder KI-Agent kann es starten, das Kit fragt die
+              wichtigen Punkte systematisch ab und erzeugt daraus eine nachvollziehbare Dokumentation.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Fuer Fachbereiche
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Wenn Sie keine technische Person sind, muessen Sie das Tool nicht selbst bedienen.
+                Ein Teammitglied oder Agent fuehrt Sie durch ein kurzes Interview und erfasst Zweck,
+                Owner, Systeme, Risiken und Kontrollen in einer klaren Struktur.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Was am Ende entsteht
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Pro Anwendungsfall entsteht eine lesbare Dokumentation fuer Menschen und eine
+                strukturierte JSON-Datei fuer Agenten, Audits und spaetere Weiterverarbeitung. So
+                bleibt die Dokumentation sowohl intern als auch regulatorisch anschlussfaehig.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
+                Fuer technische Teams
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Technische Teams koennen das Paket direkt herunterladen, im Repository pruefen und
+                in bestehende Agent-Workflows integrieren. Der aktuelle Quellstand ist bereits auf
+                GitHub einsehbar.
+              </p>
+              <div className="mt-4">
+                <a
+                  href={agentKitGithubHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  GitHub-Quelle oeffnen
+                </a>
+              </div>
+            </article>
+          </div>
+        </section>
 
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
           <h2 className="text-lg font-semibold text-slate-900">Nutzung</h2>
@@ -227,6 +310,9 @@ export default function DownloadsPage() {
             </li>
             <li>
               Das Agent Kit ist fuer neue Anwendungen, Prozesse und Workflows gedacht, die direkt waehrend agentischer Arbeit dokumentiert werden sollen.
+            </li>
+            <li>
+              Auch fuer nicht-technische Teams ist das Kit nutzbar, weil die eigentliche Erfassung als gefuehrter Fragenprozess angelegt ist.
             </li>
             <li>
               Ueber das einmalige Onboarding speichert das CLI deine Defaults, fragt aber vor jeder Anlage oder Ueberschreibung noch einmal nach.
