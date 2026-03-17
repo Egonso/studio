@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail, Bot } from "lucide-react";
 import {
     getAdminStats,
     getCertificationCertificateDetail,
@@ -293,6 +294,35 @@ export default function AdminPage() {
                         Verwaltung von Zertifizierung, Feedback, Features und Nutzern für das KI-Register.
                     </p>
                 </div>
+
+                <Card className="border-slate-200 bg-white">
+                    <CardHeader className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                            <div className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-900">
+                                <Bot className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <CardTitle>Agent Kit Admin</CardTitle>
+                                <CardDescription className="mt-1 max-w-2xl">
+                                    API-Keys, direkte Einreichung ins KI-Register und die öffentliche Integrationsdokumentation
+                                    sind jetzt als eigener Admin-Einstieg gebündelt.
+                                </CardDescription>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            <Button asChild className="bg-slate-950 text-white hover:bg-slate-800">
+                                <Link href={scopedHrefs.settingsAgentKit}>
+                                    Agent Kit öffnen
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link href="/developers/agent-kit" prefetch={false}>
+                                    API-Doku ansehen
+                                </Link>
+                            </Button>
+                        </div>
+                    </CardHeader>
+                </Card>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
