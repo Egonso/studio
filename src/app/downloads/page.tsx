@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
 const agentKitGithubHref = "https://github.com/Egonso/ki-register-agent-kit";
-const agentKitDocsHref = "https://github.com/Egonso/ki-register-agent-kit#direct-submission-to-ki-register";
+const agentKitDocsHref = "/developers/agent-kit";
+const agentKitSettingsHref = "/settings/agent-kit";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -307,12 +308,17 @@ export default function DownloadsPage() {
               </a>
               <a
                 href={agentKitDocsHref}
-                target="_blank"
-                rel="noreferrer"
                 className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
               >
                 <ArrowUpRight className="h-4 w-4" />
-                Setup-Anleitung
+                API-Doku auf kiregister.com
+              </a>
+              <a
+                href={agentKitSettingsHref}
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                API-Key im Login-Bereich
               </a>
             </div>
           </div>
@@ -394,6 +400,13 @@ export default function DownloadsPage() {
                 <ArrowUpRight className="h-4 w-4" />
                 GitHub-Repo oeffnen
               </a>
+              <a
+                href={agentKitDocsHref}
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Website-API-Doku
+              </a>
             </div>
           </div>
 
@@ -445,12 +458,17 @@ export default function DownloadsPage() {
             </a>
             <a
               href={agentKitDocsHref}
-              target="_blank"
-              rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
             >
               <ArrowUpRight className="h-4 w-4" />
-              Anleitung lesen
+              API-Doku lesen
+            </a>
+            <a
+              href={agentKitSettingsHref}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              API-Key erstellen
             </a>
             <a
               href="/downloads/ki-register-agent-kit.zip"
