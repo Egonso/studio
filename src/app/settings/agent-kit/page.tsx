@@ -223,6 +223,10 @@ export default function AgentKitSettingsPage() {
     }
   }, [workspaceId, workspaceScope, workspaces]);
 
+  useEffect(() => {
+    setActiveWorkspaceId(workspaceId);
+  }, [workspaceId]);
+
   const authFetch = useCallback(
     async (input: string, init?: RequestInit) => {
       const token = await user?.getIdToken();
@@ -508,7 +512,7 @@ export default function AgentKitSettingsPage() {
             <CardHeader className="pb-3">
                 <CardDescription>Aktiver Workspace</CardDescription>
               <CardTitle className="text-2xl">
-                {selectedWorkspace?.orgName ?? resolvedWorkspaceName ?? 'Nicht gewählt'}
+                {selectedWorkspace?.orgName ?? resolvedWorkspaceName ?? workspaces[0]?.orgName ?? 'Nicht gewählt'}
               </CardTitle>
             </CardHeader>
             <CardContent>
