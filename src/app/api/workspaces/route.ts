@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { listPersonalRegisters } from '@/lib/register-first/register-admin';
 import { listUserWorkspaces } from '@/lib/workspace-admin';
 import { requireUser, ServerAuthError } from '@/lib/server-auth';
 
@@ -18,14 +19,33 @@ function handleError(error: unknown) {
 export async function GET(req: NextRequest) {
   try {
     const user = await requireUser(req.headers.get('authorization'));
-    const workspaces = await listUserWorkspaces(user.uid);
+    const [workspaces, personalRegisters] = await Promise.all([
+      listUserWorkspaces(user.uid),
+      listPersonalRegisters(user.uid),
+    ]);
+
+    const scopeOptions =
+      personalRegisters.length > 0
+        ? [
+            {
+              orgId: user.uid,
+              orgName: 'Mein Register',
+              role: 'OWNER' as const,
+            },
+            ...workspaces.map((workspace) => ({
+              orgId: workspace.orgId,
+              orgName: workspace.name,
+              role: workspace.role,
+            })),
+          ]
+        : workspaces.map((workspace) => ({
+            orgId: workspace.orgId,
+            orgName: workspace.name,
+            role: workspace.role,
+          }));
 
     return NextResponse.json({
-      workspaces: workspaces.map((workspace) => ({
-        orgId: workspace.orgId,
-        orgName: workspace.name,
-        role: workspace.role,
-      })),
+      workspaces: scopeOptions,
     });
   } catch (error) {
     return handleError(error);

@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import {
   authenticateAgentKitApiKey,
+  isPersonalAgentKitScope,
   touchAgentKitApiKeyUsage,
 } from '@/lib/agent-kit/api-keys';
 import {
@@ -76,13 +77,27 @@ export async function POST(req: NextRequest) {
 
     const payload = submissionSchema.parse(await req.json());
     const manifest = parseStudioUseCaseManifest(payload.manifest);
+    const personalScope = isPersonalAgentKitScope(
+      authentication.record.orgId,
+      authentication.record.createdByUserId,
+    );
     const location = await findRegisterLocationById(payload.registerId, {
-      workspaceId: authentication.record.orgId,
+      ownerId: personalScope ? authentication.record.createdByUserId : undefined,
+      workspaceId: personalScope ? undefined : authentication.record.orgId,
     });
 
-    if (!location || location.register.workspaceId !== authentication.record.orgId) {
+    if (
+      !location ||
+      (personalScope
+        ? location.ownerId !== authentication.record.createdByUserId
+        : location.register.workspaceId !== authentication.record.orgId)
+    ) {
       return NextResponse.json(
-        { error: 'Register fuer diesen Workspace nicht gefunden.' },
+        {
+          error: personalScope
+            ? 'Register fuer diesen persoenlichen Bereich nicht gefunden.'
+            : 'Register fuer diesen Workspace nicht gefunden.',
+        },
         { status: 404 },
       );
     }
@@ -106,7 +121,7 @@ export async function POST(req: NextRequest) {
 
     const urls = buildSubmittedUseCaseUrls({
       useCaseId: useCase.useCaseId,
-      workspaceId: authentication.record.orgId,
+      workspaceId: personalScope ? null : authentication.record.orgId,
     });
 
     return NextResponse.json(
