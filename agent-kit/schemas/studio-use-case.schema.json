@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kiregister.com/schemas/studio-use-case.schema.json",
+  "title": "Studio Use Case Manifest",
+  "type": "object",
+  "required": [
+    "documentationType",
+    "title",
+    "purpose",
+    "ownerRole",
+    "usageContexts",
+    "systems"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "documentationType": {
+      "type": "string",
+      "enum": [
+        "application",
+        "process",
+        "workflow"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "summary": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 3
+    },
+    "ownerRole": {
+      "type": "string",
+      "minLength": 2
+    },
+    "contactPersonName": {
+      "type": "string"
+    },
+    "isCurrentlyResponsible": {
+      "type": "boolean"
+    },
+    "responsibleParty": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "usageContexts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "INTERNAL_ONLY",
+          "EMPLOYEES",
+          "CUSTOMERS",
+          "APPLICANTS",
+          "PUBLIC"
+        ]
+      }
+    },
+    "decisionInfluence": {
+      "type": "string",
+      "enum": [
+        "ASSISTANCE",
+        "PREPARATION",
+        "AUTOMATED"
+      ]
+    },
+    "dataCategories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "NO_PERSONAL_DATA",
+          "PERSONAL_DATA",
+          "SPECIAL_PERSONAL",
+          "INTERNAL_CONFIDENTIAL",
+          "PUBLIC_DATA",
+          "HEALTH_DATA",
+          "BIOMETRIC_DATA",
+          "POLITICAL_RELIGIOUS",
+          "OTHER_SENSITIVE"
+        ]
+      }
+    },
+    "systems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "position",
+          "name"
+        ],
+        "properties": {
+          "position": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "providerType": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "connectionMode": {
+          "type": "string",
+          "enum": [
+            "MANUAL_SEQUENCE",
+            "SEMI_AUTOMATED",
+            "FULLY_AUTOMATED"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "triggers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humansInLoop": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "controls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capturedBy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "team": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

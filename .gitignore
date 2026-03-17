@@ -52,3 +52,6 @@ firestore-debug.log
 # macOS menubar app local build outputs
 apps/ki-register-menubar-mac/.build/
 apps/ki-register-menubar-mac/dist/
+
+/.tmp/
+/.studio-agent/*

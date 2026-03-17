@@ -1,0 +1,64 @@
+{
+  "documentationType": "workflow",
+  "title": "HR copilot for candidate screening",
+  "summary": "Recruiting drafts interview notes and shortlist rationales with AI support before a human decides.",
+  "purpose": "HR prepares interview summaries and shortlist recommendations for open roles.",
+  "ownerRole": "Head of People",
+  "contactPersonName": "Mara Muster",
+  "isCurrentlyResponsible": true,
+  "usageContexts": [
+    "APPLICANTS",
+    "EMPLOYEES"
+  ],
+  "decisionInfluence": "PREPARATION",
+  "dataCategories": [
+    "PERSONAL_DATA",
+    "SPECIAL_PERSONAL"
+  ],
+  "systems": [
+    {
+      "position": 1,
+      "name": "Greenhouse",
+      "providerType": "TOOL"
+    },
+    {
+      "position": 2,
+      "name": "Claude",
+      "providerType": "MODEL"
+    }
+  ],
+  "workflow": {
+    "connectionMode": "SEMI_AUTOMATED",
+    "summary": "Candidate notes are exported from ATS, summarised with AI, and then reviewed by a recruiter."
+  },
+  "triggers": [
+    "Candidate reaches interview stage",
+    "Recruiter requests a summary for hiring review"
+  ],
+  "steps": [
+    "Recruiter exports structured notes from ATS",
+    "AI drafts candidate summary and open questions",
+    "Recruiter edits the summary and decides whether to escalate"
+  ],
+  "humansInLoop": [
+    "Recruiter approves every shortlist recommendation",
+    "Hiring lead signs off before a candidate is rejected"
+  ],
+  "risks": [
+    "Bias amplification in candidate summaries",
+    "Sensitive personal data copied into prompts"
+  ],
+  "controls": [
+    "Prompt excludes protected attributes unless legally required",
+    "Recruiter training and quarterly audit of sample cases"
+  ],
+  "artifacts": [
+    "Prompt template",
+    "Hiring review checklist"
+  ],
+  "tags": [
+    "hr",
+    "recruiting",
+    "human-review"
+  ]
+}

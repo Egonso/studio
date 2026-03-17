@@ -8,7 +8,7 @@ import { registerFirstFlags } from "@/lib/register-first/flags";
 export const metadata: Metadata = {
   title: "Downloads | KI-Register",
   description:
-    "Chrome Plugin und macOS Menüleisten-App für KI-Register herunterladen.",
+    "Chrome Plugin, macOS Menueleisten-App und Agent Kit fuer KI-Register herunterladen.",
 };
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
@@ -34,6 +34,15 @@ const macSteps = [
   "Falls macOS blockiert: Systemeinstellungen -> Datenschutz & Sicherheit -> Trotzdem öffnen.",
   "Falls weiterhin blockiert: xattr -dr com.apple.quarantine /Applications/KI-Register-MenuBar.app",
   "Nach dem Start erscheint das Icon oben in der Menüleiste neben WLAN/Batterie.",
+];
+
+const agentKitSteps = [
+  "Download ki-register-agent-kit.zip herunterladen und entpacken.",
+  "Einmal onboarden: node ./bin/studio-agent.mjs onboard",
+  "Fuer Low-Friction-Doku waehrend der Arbeit: node ./bin/studio-agent.mjs capture",
+  "Fuer eine volle Rueckfrage-Strecke: node ./bin/studio-agent.mjs interview",
+  "Die Ausgabe landet standardmaessig in docs/agent-workflows/<slug>/ als README.md und manifest.json.",
+  "Jede Anlage wird vor dem Schreiben noch einmal bestaetigt, sofern du das beim Onboarding nicht deaktivierst.",
 ];
 
 function SectionCard({
@@ -160,7 +169,7 @@ export default function DownloadsPage() {
           </section>
         ) : null}
 
-        <main className="mt-8 grid gap-6 lg:grid-cols-2">
+        <main className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           <SectionCard
             title="Chrome Plugin"
             subtitle="Quick Capture direkt aus der Browser-Toolbar, inklusive Shortcut, Kontextmenü und optionalem Coverage Assist."
@@ -175,6 +184,14 @@ export default function DownloadsPage() {
             downloadHref="/downloads/ki-register-menubar-macos.zip"
             downloadLabel="Mac App herunterladen"
             steps={macSteps}
+          />
+
+          <SectionCard
+            title="Agent Kit"
+            subtitle="Standalone Node CLI, Skill und Slash-Command-Vorlage fuer Codex, Claude Code, OpenClaw, SkillsMP oder Antigravity."
+            downloadHref="/downloads/ki-register-agent-kit.zip"
+            downloadLabel="Agent Kit herunterladen"
+            steps={agentKitSteps}
           />
         </main>
 
@@ -208,7 +225,64 @@ export default function DownloadsPage() {
             <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
             </li>
+            <li>
+              Das Agent Kit ist fuer neue Anwendungen, Prozesse und Workflows gedacht, die direkt waehrend agentischer Arbeit dokumentiert werden sollen.
+            </li>
+            <li>
+              Ueber das einmalige Onboarding speichert das CLI deine Defaults, fragt aber vor jeder Anlage oder Ueberschreibung noch einmal nach.
+            </li>
+            <li>
+              Der Skill und das Manifest-Format sind absichtlich agent-neutral gehalten, damit mehrere Systeme dieselben Workflow-Ordner lesen und erweitern koennen.
+            </li>
           </ul>
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Open Source & Marketplace Ready
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+              Das Agent Kit ist nicht nur ein Download, sondern ein veroeffentlichbares Standardpaket.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              Die aktuelle Version bringt Public-Repo-Hygiene, Marketplace-Collateral und
+              agent-neutrale Manifest-Ausgaben schon mit. Dadurch kann das Paket spaeter sauber auf
+              GitHub, in ClawHub oder in SkillsMP-aehnlichen Verzeichnissen veroeffentlicht werden.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                GitHub Ready
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Enthält README-Grafiken, Lizenz, Contribution- und Security-Dateien, Issue-Templates,
+                Pull-Request-Template und eine kleine GitHub-Action fuer Smoke-Tests.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                OpenClaw / ClawHub
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Die Skill-Struktur bleibt bewusst nah an einem portablen `SKILL.md`-Bundle mit
+                Agent-Metadaten, damit der Upload in skillbasierte Agent-Systeme moeglich bleibt.
+              </p>
+            </article>
+
+            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
+              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+                SkillsMP kompatibel
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                Listing-Text, Publish-Checkliste und Slash-Command-Vorlage liegen direkt im Paket,
+                damit ein Marketplace-Eintrag nicht noch separat zusammengesucht werden muss.
+              </p>
+            </article>
+          </div>
         </section>
       </div>
     </div>

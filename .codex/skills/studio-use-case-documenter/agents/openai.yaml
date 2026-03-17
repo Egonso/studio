@@ -1,0 +1,7 @@
+interface:
+  display_name: "Studio Use-Case Docs"
+  short_description: "Capture AI workflows during coding work"
+  default_prompt: "Use $studio-use-case-documenter to onboard once, capture workflow docs during implementation, and confirm each write with the studio-agent CLI."
+
+policy:
+  allow_implicit_invocation: true
