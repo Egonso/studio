@@ -30,6 +30,7 @@ const registerExternalSubmissionItemRoute = readSource(
 );
 const workspaceMembersRoute = readSource("src/app/api/workspaces/[orgId]/members/route.ts");
 const workspaceMemberItemRoute = readSource("src/app/api/workspaces/[orgId]/members/[memberId]/route.ts");
+const workspaceListRoute = readSource("src/app/api/workspaces/route.ts");
 const workspaceSettingsRoute = readSource("src/app/api/workspaces/[orgId]/settings/route.ts");
 const workspaceRegistersRoute = readSource("src/app/api/workspaces/[orgId]/registers/route.ts");
 const workspaceAuditExportRoute = readSource("src/app/api/workspaces/[orgId]/audit-export/route.ts");
@@ -86,6 +87,7 @@ test("register-owned external submission routes require server-side register own
 });
 
 test("workspace enterprise routes enforce member, admin, and reviewer auth on the server", () => {
+  assert.match(workspaceListRoute, /requireUser\(/);
   assert.match(workspaceMembersRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceMemberItemRoute, /requireWorkspaceAdmin\(/);
   assert.match(workspaceSettingsRoute, /requireWorkspaceMember\(/);

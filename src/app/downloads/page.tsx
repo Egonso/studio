@@ -170,6 +170,17 @@ export default function DownloadsPage() {
           </section>
         ) : null}
 
+        <section className="mt-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+              Kurze Übersicht
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-slate-900">
+              Downloads fuer Quick Capture
+            </h2>
+          </div>
+        </section>
+
         <main className="mt-8 grid gap-6 lg:grid-cols-2">
           <SectionCard
             title="Chrome Plugin"
@@ -189,63 +200,39 @@ export default function DownloadsPage() {
         </main>
 
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Nutzung</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+            Agent Kit
+          </p>
+          <h2 className="mt-2 text-lg font-semibold text-slate-900">Nutzung</h2>
+          <p className="mt-3 text-sm leading-relaxed text-slate-700">
+            Ab hier geht es um eine kurze Einfuehrung ins Agent Kit. Das ist kein normaler
+            Endnutzer-Download, sondern ein Paket fuer Teams, die KI-Anwendungen waehrend der
+            Arbeit dokumentieren und danach direkt ins KI-Register einreichen wollen.
+          </p>
           <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
             <li>
-              Beim ersten Öffnen prüft Quick Capture deinen Login. Angemeldet speichert direkt im Register.
+              Ein technisches Team richtet das Agent Kit einmalig im Projekt oder Workspace ein.
             </li>
             <li>
-              Ohne Login kannst du als Gast fortfahren; diese Einträge werden lokal im Browser gespeichert.
-            </li>
-            {coverageAssistPilotEnabled ? (
-              <>
-                <li>
-                  Coverage Assist prüft im Plugin nur den aktuellen Host und bleibt standardmäßig aus, bis du ihn auf diesem Gerät aktivierst.
-                </li>
-                <li>
-                  Auch mit Coverage Assist wird nichts automatisch angelegt; die Bestaetigung passiert immer erst im Register.
-                </li>
-              </>
-            ) : null}
-            <li>
-              Logo/Icon wechseln automatisch zwischen Light- und Dark-Variante je nach Browser-Theme.
+              Danach kann ein Agent waehrend der eigentlichen Arbeit fehlende Angaben nachfragen, die Dokumentation zusammenfassen und erst nach Bestaetigung schreiben.
             </li>
             <li>
-              Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
+              Beispiele: Codex dokumentiert beim Bauen eines internen Support-Agenten mit, OpenClaw erfasst einen Recruiting-Workflow und Claude Code bereitet vor dem Go-Live die Register-Einreichung vor.
             </li>
             <li>
-              Das Agent Kit wird weiter unten separat erklaert, weil es kein klassischer Endnutzer-Download, sondern ein Team- und Agentenpaket ist.
+              Teamleads muessen spaeter meist nicht mit Dateien arbeiten, sondern sehen den bestaetigten Fall direkt im KI-Register.
+            </li>
+            <li>
+              Die volle technische Erklaerung liegt in der API-Doku. GitHub, API-Key und ZIP kommen direkt darunter.
             </li>
           </ul>
-        </section>
-
-        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Agent Kit
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              Kurze Übersicht
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Das Agent Kit ist für technische Teams, die neue KI-Anwendungen direkt während der
-              Arbeit dokumentieren wollen. Der Agent fragt fehlende Informationen nach, zeigt vor
-              dem Schreiben eine Zusammenfassung und reicht den bestätigten Fall danach direkt im
-              KI-Register ein.
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Beispiele: Codex dokumentiert beim Bauen eines internen Support-Agenten mit,
-              OpenClaw erfasst einen Recruiting-Workflow und Claude Code bereitet vor dem Go-Live
-              die Register-Einreichung vor. Teamleads brauchen das Paket meist nicht selbst.
-            </p>
-            <a
-              href={agentKitDocsHref}
-              className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              Volle Erklärung
-            </a>
-          </div>
+          <a
+            href={agentKitDocsHref}
+            className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            Volle Erklärung
+          </a>
         </section>
 
         <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">

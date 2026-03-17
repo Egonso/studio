@@ -56,6 +56,10 @@ interface WorkspaceAgentKitKeysResponse {
   } | null;
 }
 
+interface WorkspaceListResponse {
+  workspaces: WorkspaceMembership[];
+}
+
 function formatDate(value: string | null | undefined): string {
   if (!value) {
     return 'unbekannt';
@@ -96,6 +100,7 @@ export default function AgentKitSettingsPage() {
   const workspaceScope = useWorkspaceScope();
 
   const [workspaceId, setWorkspaceIdState] = useState<string | null>(null);
+  const [workspaceOptions, setWorkspaceOptions] = useState<WorkspaceMembership[]>([]);
   const [keys, setKeys] = useState<AgentKitApiKeyRow[]>([]);
   const [registers, setRegisters] = useState<AgentKitRegisterOption[]>([]);
   const [submitEndpoint, setSubmitEndpoint] = useState('/api/agent-kit/submit');
@@ -128,7 +133,7 @@ export default function AgentKitSettingsPage() {
     setWorkspaceIdState(fallbackWorkspaceId);
   }, [profile, workspaceScope]);
 
-  const workspaces = useMemo(() => {
+  const legacyWorkspaces = useMemo(() => {
     const knownMemberships = profile?.workspaces ?? [];
     const fallbackIds = profile?.workspaceOrgIds ?? [];
     const options = new Map<string, WorkspaceMembership>();
@@ -170,6 +175,22 @@ export default function AgentKitSettingsPage() {
     resolvedWorkspaceName,
     workspaceId,
   ]);
+
+  const workspaces = useMemo(() => {
+    const options = new Map<string, WorkspaceMembership>();
+
+    for (const workspace of workspaceOptions) {
+      options.set(workspace.orgId, workspace);
+    }
+
+    for (const workspace of legacyWorkspaces) {
+      if (!options.has(workspace.orgId)) {
+        options.set(workspace.orgId, workspace);
+      }
+    }
+
+    return Array.from(options.values());
+  }, [legacyWorkspaces, workspaceOptions]);
 
   const authFetch = useCallback(
     async (input: string, init?: RequestInit) => {
@@ -229,6 +250,45 @@ export default function AgentKitSettingsPage() {
       setIsLoadingData(false);
     }
   }, [authFetch, workspaceId]);
+
+  const loadWorkspaces = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      const response = await authFetch('/api/workspaces');
+      const payload = (await response.json()) as WorkspaceListResponse;
+      setWorkspaceOptions(payload.workspaces);
+      setWorkspaceIdState((current) => {
+        const scopedWorkspaceId = workspaceScope ?? getActiveWorkspaceId();
+
+        if (
+          scopedWorkspaceId &&
+          payload.workspaces.some((workspace) => workspace.orgId === scopedWorkspaceId)
+        ) {
+          return scopedWorkspaceId;
+        }
+
+        if (
+          current &&
+          payload.workspaces.some((workspace) => workspace.orgId === current)
+        ) {
+          return current;
+        }
+
+        return payload.workspaces[0]?.orgId ?? current ?? null;
+      });
+    } catch (loadError) {
+      console.error('Failed to load accessible workspaces', loadError);
+    }
+  }, [authFetch, user, workspaceScope]);
+
+  useEffect(() => {
+    if (!loading && !profileLoading && user) {
+      void loadWorkspaces();
+    }
+  }, [loadWorkspaces, loading, profileLoading, user]);
 
   useEffect(() => {
     if (!loading && !profileLoading && user && workspaceId) {
@@ -436,6 +496,12 @@ export default function AgentKitSettingsPage() {
                   ))}
                 </SelectContent>
               </Select>
+              {workspaces.length === 0 ? (
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Falls hier nichts erscheint, gibt es meist nur persoenliche Register.
+                  Agent-Kit-Keys werden pro Workspace angelegt.
+                </p>
+              ) : null}
             </CardContent>
           </Card>
 
