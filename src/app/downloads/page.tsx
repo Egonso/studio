@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
 const agentKitGithubHref =
   "https://github.com/Egonso/studio/tree/codex/agent-kit-public/agent-kit";
+const agentKitPullRequestHref = "https://github.com/Egonso/studio/pull/25";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -53,16 +54,17 @@ function SectionCard({
   downloadHref,
   downloadLabel,
   steps,
-  secondaryHref,
-  secondaryLabel,
+  secondaryActions,
 }: {
   title: string;
   subtitle: string;
   downloadHref: string;
   downloadLabel: string;
   steps: string[];
-  secondaryHref?: string;
-  secondaryLabel?: string;
+  secondaryActions?: Array<{
+    href: string;
+    label: string;
+  }>;
 }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
@@ -78,17 +80,18 @@ function SectionCard({
           {downloadLabel}
         </a>
 
-        {secondaryHref ? (
+        {secondaryActions?.map((action) => (
           <a
-            href={secondaryHref}
+            key={action.href}
+            href={action.href}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
             <ArrowUpRight className="h-4 w-4" />
-            {secondaryLabel ?? "Mehr erfahren"}
+            {action.label}
           </a>
-        ) : null}
+        ))}
       </div>
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -210,8 +213,10 @@ export default function DownloadsPage() {
             downloadHref="/downloads/ki-register-agent-kit.zip"
             downloadLabel="Agent Kit herunterladen"
             steps={agentKitSteps}
-            secondaryHref={agentKitGithubHref}
-            secondaryLabel="Auf GitHub ansehen"
+            secondaryActions={[
+              { href: agentKitGithubHref, label: "Quellpaket auf GitHub" },
+              { href: agentKitPullRequestHref, label: "Aktuellen PR ansehen" },
+            ]}
           />
         </main>
 
@@ -260,10 +265,10 @@ export default function DownloadsPage() {
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
                 Technische Teams koennen das Paket direkt herunterladen, im Repository pruefen und
-                in bestehende Agent-Workflows integrieren. Der aktuelle Quellstand ist bereits auf
-                GitHub einsehbar.
+                in bestehende Agent-Workflows integrieren. Auf GitHub sind sowohl das Quellpaket
+                als auch der aktuelle Umsetzungsstand als Pull Request einsehbar.
               </p>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-wrap gap-3">
                 <a
                   href={agentKitGithubHref}
                   target="_blank"
@@ -273,7 +278,20 @@ export default function DownloadsPage() {
                   <ArrowUpRight className="h-4 w-4" />
                   GitHub-Quelle oeffnen
                 </a>
+                <a
+                  href={agentKitPullRequestHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  Aktuellen PR oeffnen
+                </a>
               </div>
+              <p className="mt-3 text-xs leading-relaxed text-slate-500">
+                Die GitHub-Quelle zeigt das Paket selbst. Der Pull Request zeigt, was konkret fuer
+                die Website und den Download-Bereich umgesetzt wurde.
+              </p>
             </article>
           </div>
         </section>
