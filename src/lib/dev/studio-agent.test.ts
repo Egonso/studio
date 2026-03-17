@@ -7,10 +7,15 @@ import test from "node:test";
 
 const cliPath = resolve(process.cwd(), "agent-kit/bin/studio-agent.mjs");
 
-function runCli(args: string[], cwd = process.cwd()) {
+function runCli(
+  args: string[],
+  cwd = process.cwd(),
+  env: NodeJS.ProcessEnv = process.env,
+) {
   return execFileSync("node", [cliPath, ...args], {
     cwd,
     encoding: "utf8",
+    env,
   });
 }
 
@@ -121,4 +126,58 @@ test("studio-agent validate accepts generated manifests", () => {
 
   assert.equal(result.ok, true);
   assert.equal(result.errors.length, 0);
+});
+
+test("studio-agent submit requires an API key before attempting delivery", () => {
+  const workspace = mkdtempSync(join(tmpdir(), "studio-agent-submit-"));
+  const manifestDir = join(workspace, "docs", "customer-support-assistant");
+  const manifestPath = join(manifestDir, "manifest.json");
+
+  mkdirSync(manifestDir, { recursive: true });
+  writeFileSync(
+    manifestPath,
+    JSON.stringify(
+      {
+        documentationType: "application",
+        title: "Customer support assistant",
+        purpose: "Draft support answers for human review.",
+        ownerRole: "Support Lead",
+        usageContexts: ["CUSTOMERS"],
+        decisionInfluence: "PREPARATION",
+        dataCategories: ["PERSONAL_DATA"],
+        systems: [
+          {
+            position: 1,
+            name: "Zendesk",
+            providerType: "TOOL",
+          },
+          {
+            position: 2,
+            name: "Claude",
+            providerType: "MODEL",
+          },
+        ],
+        controls: ["Human approval remains mandatory"],
+      },
+      null,
+      2,
+    ),
+  );
+
+  assert.throws(
+    () =>
+      runCli(
+      [
+        "submit",
+        manifestPath,
+        "--register-id",
+        "reg_demo",
+        "--endpoint",
+        "http://127.0.0.1:9/api/agent-kit/submit",
+      ],
+      workspace,
+      { ...process.env, KI_REGISTER_API_KEY: "" },
+    ),
+    /Missing Agent-Kit API key/,
+  );
 });

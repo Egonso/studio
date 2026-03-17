@@ -1,3 +1,3 @@
 f84196de8b05a3ea5b87bf64c230b3d25a6d911e3dfd641a2d5db7ac052e9fd0  ki-register-quick-capture-chrome.zip
 b9e6a0ef0d37c72da62b18f35cf91edf025004047f5f1f97e72f3a79c0704d36  ki-register-menubar-macos.zip
-e5ff0b9012cf48c66f8fef86e06b24af05dd8c820fc5d03006c5f748e623dc6f  ki-register-agent-kit.zip
+4de9058faed5931a65ccc30969413a0a60c8a2127589f8399e4decbb2e3fc388  ki-register-agent-kit.zip

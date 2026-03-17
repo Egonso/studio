@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { createInterface } from "node:readline/promises";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
 import {
   existsSync,
   mkdirSync,
@@ -44,6 +46,7 @@ const CONNECTION_MODE_VALUES = [
 ];
 
 const DEFAULT_OUT_DIR = path.join("docs", "agent-workflows");
+const DEFAULT_SUBMIT_ENDPOINT = "https://kiregister.com/api/agent-kit/submit";
 const CONFIG_DIR_NAME = ".studio-agent";
 const CONFIG_FILE_NAME = "config.json";
 
@@ -110,6 +113,7 @@ function printHelp() {
     "  interview               Guided interview for a detailed new workflow",
     "  create                  Create docs from --input JSON or direct flags",
     "  validate <manifest>     Validate an existing manifest.json",
+    "  submit <manifest>       Submit a manifest.json directly to KI-Register",
     "  list                    List generated workflow folders",
     "  template                Print a starter manifest template",
     "  help                    Show this help text",
@@ -119,12 +123,16 @@ function printHelp() {
     "  studio-agent capture --title \"Marketing assistant\" --systems \"HubSpot, Claude\"",
     "  studio-agent create --input ./examples/sample-use-case.json --out-dir ./docs/agent-workflows",
     "  studio-agent validate ./docs/agent-workflows/marketing-assistant/manifest.json",
+    "  studio-agent submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
     "",
     "Common flags:",
     "  --out-dir <path>        Target folder for generated workflow docs",
     "  --json                  Emit machine-readable JSON output",
     "  --force                 Overwrite an existing slug folder",
     "  --yes                   Skip the final confirmation prompt",
+    "  --register-id <id>      Target KI-Register register id for submit",
+    "  --endpoint <url>        Agent Kit submit API endpoint",
+    "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
   ];
 
   process.stdout.write(`${lines.join("\n")}\n`);
@@ -326,6 +334,11 @@ function normalizeConfig(config) {
           ? true
           : Boolean(raw.defaults.confirmBeforeWrite),
     },
+    submission: {
+      endpoint:
+        normalizeText(raw.submission?.endpoint) ?? DEFAULT_SUBMIT_ENDPOINT,
+      registerId: normalizeText(raw.submission?.registerId),
+    },
   };
 }
 
@@ -400,6 +413,40 @@ function buildTemplate() {
     ],
     tags: ["support", "customer-service", "human-review"],
   };
+}
+
+function resolveManifestPath(manifestTarget) {
+  const resolvedTarget = path.resolve(process.cwd(), manifestTarget);
+
+  if (
+    existsSync(resolvedTarget) &&
+    statSync(resolvedTarget).isDirectory()
+  ) {
+    return path.join(resolvedTarget, "manifest.json");
+  }
+
+  return resolvedTarget;
+}
+
+function resolveSubmitEndpoint(flags, config) {
+  return (
+    normalizeText(flags.endpoint) ??
+    normalizeText(process.env.KI_REGISTER_SUBMIT_ENDPOINT) ??
+    normalizeText(config?.submission?.endpoint) ??
+    DEFAULT_SUBMIT_ENDPOINT
+  );
+}
+
+function resolveRegisterId(flags, config) {
+  return (
+    normalizeText(flags["register-id"]) ??
+    normalizeText(process.env.KI_REGISTER_REGISTER_ID) ??
+    normalizeText(config?.submission?.registerId)
+  );
+}
+
+function resolveApiKey(flags) {
+  return normalizeText(flags["api-key"]) ?? normalizeText(process.env.KI_REGISTER_API_KEY);
 }
 
 function normalizeSystemEntries(value) {
@@ -972,6 +1019,107 @@ function collectWorkflowEntries(outDir) {
     .sort((left, right) => left.slug.localeCompare(right.slug));
 }
 
+async function resolveSubmitDefaults(flags, config) {
+  const endpoint = resolveSubmitEndpoint(flags, config);
+  let registerId = resolveRegisterId(flags, config);
+
+  if (!registerId && process.stdin.isTTY && process.stdout.isTTY) {
+    const { rl, ask } = await createPromptSession();
+    try {
+      registerId = normalizeText(
+        await ask("Default KI-Register register id", {
+          defaultValue: config?.submission?.registerId,
+        }),
+      );
+    } finally {
+      rl.close();
+    }
+  }
+
+  if (!registerId) {
+    throw new Error(
+      "Missing register id. Use --register-id, set KI_REGISTER_REGISTER_ID, or save it in onboard.",
+    );
+  }
+
+  const apiKey = resolveApiKey(flags);
+  if (!apiKey) {
+    throw new Error(
+      "Missing Agent-Kit API key. Use --api-key or set KI_REGISTER_API_KEY.",
+    );
+  }
+
+  return {
+    endpoint,
+    registerId,
+    apiKey,
+  };
+}
+
+async function postSubmitRequest({ endpoint, apiKey, registerId, manifest }) {
+  const endpointUrl = new URL(endpoint);
+  const requestBody = JSON.stringify({
+    registerId,
+    manifest,
+  });
+
+  return new Promise((resolve, reject) => {
+    const transport = endpointUrl.protocol === "https:" ? httpsRequest : httpRequest;
+    const request = transport(
+      endpointUrl,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "content-length": Buffer.byteLength(requestBody),
+          authorization: `Bearer ${apiKey}`,
+          connection: "close",
+        },
+      },
+      (response) => {
+        response.setEncoding("utf8");
+        let rawBody = "";
+
+        response.on("data", (chunk) => {
+          rawBody += chunk;
+        });
+        response.on("end", () => {
+          const statusCode = response.statusCode ?? 500;
+          let payload;
+
+          try {
+            payload = rawBody ? JSON.parse(rawBody) : {};
+          } catch {
+            payload = { error: rawBody || "Unknown response" };
+          }
+
+          if (statusCode >= 400) {
+            const message =
+              payload &&
+              typeof payload === "object" &&
+              typeof payload.error === "string"
+                ? payload.error
+                : `Submit failed with ${statusCode}`;
+            reject(new Error(message));
+            return;
+          }
+
+          resolve(payload);
+        });
+      },
+    );
+
+    request.setTimeout(15000, () => {
+      request.destroy(new Error("Submit request timed out"));
+    });
+    request.on("error", (error) => {
+      reject(error);
+    });
+    request.write(requestBody);
+    request.end();
+  });
+}
+
 async function runOnboard(flags) {
   const existingConfig = loadConfig() ?? normalizeConfig({});
   const { rl, ask } = await createPromptSession();
@@ -1033,6 +1181,11 @@ async function runOnboard(flags) {
           existingConfig.defaults.confirmBeforeWrite === false ? "no" : "yes",
       },
     );
+    const submitEndpoint = await ask("KI-Register submit API endpoint", {
+      defaultValue:
+        existingConfig.submission?.endpoint ?? DEFAULT_SUBMIT_ENDPOINT,
+    });
+    const defaultRegisterId = await ask("Default KI-Register register id");
 
     const config = normalizeConfig({
       profile: {
@@ -1053,6 +1206,10 @@ async function runOnboard(flags) {
         decisionInfluence,
         connectionMode,
         confirmBeforeWrite: toBoolean(confirmBeforeWrite, true),
+      },
+      submission: {
+        endpoint: submitEndpoint,
+        registerId: defaultRegisterId,
       },
     });
 
@@ -1343,6 +1500,52 @@ function runValidate(flags, positionals) {
   }
 }
 
+async function runSubmit(flags, positionals) {
+  const config = loadConfig();
+  const manifestTarget = positionals[1] ?? flags.input;
+  if (!manifestTarget) {
+    throw new Error("submit requires a manifest path or workflow folder");
+  }
+
+  const manifestPath = resolveManifestPath(manifestTarget);
+  if (!existsSync(manifestPath)) {
+    throw new Error(`Manifest not found: ${manifestPath}`);
+  }
+
+  const manifest = normalizeManifest(readJsonFile(manifestPath), {
+    config,
+  });
+  const validation = validateManifest(manifest);
+  if (!validation.isValid) {
+    throw new Error(validation.errors.join("; "));
+  }
+
+  const submission = await resolveSubmitDefaults(flags, config);
+  const result = await postSubmitRequest({
+    endpoint: submission.endpoint,
+    apiKey: submission.apiKey,
+    registerId: submission.registerId,
+    manifest,
+  });
+
+  emitResult(
+    {
+      ok: true,
+      command: "submit",
+      manifestPath,
+      endpoint: submission.endpoint,
+      registerId: submission.registerId,
+      response: result,
+      warnings: validation.warnings,
+      message:
+        typeof result?.detailUrl === "string"
+          ? `Submitted ${manifest.title} to ${result.detailUrl}`
+          : `Submitted ${manifest.title} to KI-Register`,
+    },
+    Boolean(flags.json),
+  );
+}
+
 function runList(flags) {
   const config = loadConfig();
   const outputDirectory = resolveOutputDirectory(
@@ -1428,6 +1631,11 @@ async function main() {
 
   if (command === "validate") {
     runValidate(flags, positionals);
+    return;
+  }
+
+  if (command === "submit") {
+    await runSubmit(flags, positionals);
     return;
   }
 

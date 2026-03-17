@@ -22,54 +22,63 @@
 
   <line x1="84" y1="300" x2="1116" y2="300" stroke="#111111" stroke-width="2"/>
 
-  <rect x="84" y="344" width="308" height="204" rx="24" fill="#F3F3EF" stroke="#111111" stroke-width="1.5"/>
+  <rect x="84" y="344" width="308" height="216" rx="24" fill="#F3F3EF" stroke="#111111" stroke-width="1.5"/>
   <text x="112" y="388" fill="#6B7280" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">
     1 CAPTURE
   </text>
-  <text x="112" y="432" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
-    Agent records the
+  <text x="112" y="430" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    Agent records
   </text>
-  <text x="112" y="468" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
-    new use case during work
+  <text x="112" y="462" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    the new use case
   </text>
-  <text x="112" y="510" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    Interview missing facts, keep
+  <text x="112" y="494" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    during work
   </text>
-  <text x="112" y="536" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    context next to the workflow.
+  <text x="112" y="530" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    Interview missing facts and keep
+  </text>
+  <text x="112" y="554" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    context close to the workflow.
   </text>
 
-  <rect x="446" y="344" width="308" height="204" rx="24" fill="#F3F3EF" stroke="#111111" stroke-width="1.5"/>
+  <rect x="446" y="344" width="308" height="216" rx="24" fill="#F3F3EF" stroke="#111111" stroke-width="1.5"/>
   <text x="474" y="388" fill="#6B7280" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">
     2 CONFIRM
   </text>
-  <text x="474" y="432" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
-    Human review stays
+  <text x="474" y="430" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    Human review
   </text>
-  <text x="474" y="468" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
-    explicit by default
+  <text x="474" y="462" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    stays explicit
   </text>
-  <text x="474" y="510" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    Show a summary first and
+  <text x="474" y="494" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    by default
   </text>
-  <text x="474" y="536" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    write only after approval.
+  <text x="474" y="530" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    Show a summary first and write
+  </text>
+  <text x="474" y="554" fill="#525252" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    only after approval.
   </text>
 
-  <rect x="808" y="344" width="308" height="204" rx="24" fill="#111111"/>
+  <rect x="808" y="344" width="308" height="216" rx="24" fill="#111111"/>
   <text x="836" y="388" fill="#D4D4D4" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">
     3 HANDOFF
   </text>
-  <text x="836" y="432" fill="#FAFAF7" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
+  <text x="836" y="430" fill="#FAFAF7" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
     README.md plus
   </text>
-  <text x="836" y="468" fill="#FAFAF7" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">
-    manifest.json ready
+  <text x="836" y="462" fill="#FAFAF7" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    manifest.json
   </text>
-  <text x="836" y="510" fill="#D4D4D4" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    Reviewable for humans and
+  <text x="836" y="494" fill="#FAFAF7" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">
+    ready for handoff
   </text>
-  <text x="836" y="536" fill="#D4D4D4" font-family="Arial, Helvetica, sans-serif" font-size="18">
-    prepared for KI-Register intake.
+  <text x="836" y="530" fill="#D4D4D4" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    Reviewable for humans and ready
+  </text>
+  <text x="836" y="554" fill="#D4D4D4" font-family="Arial, Helvetica, sans-serif" font-size="16">
+    for KI-Register intake.
   </text>
 </svg>

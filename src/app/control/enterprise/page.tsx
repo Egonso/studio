@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  Copy,
   Download,
+  KeyRound,
   Plus,
   RefreshCw,
   Send,
@@ -82,6 +84,32 @@ interface WorkspaceExternalSubmissionRow extends ExternalSubmission {
   organisationName?: string | null;
 }
 
+interface AgentKitApiKeyRow {
+  keyId: string;
+  orgId: string;
+  label: string;
+  keyPreview: string;
+  createdAt: string;
+  createdByUserId: string;
+  createdByEmail?: string | null;
+  lastUsedAt?: string | null;
+  lastSubmittedUseCaseId?: string | null;
+  revokedAt?: string | null;
+}
+
+interface AgentKitRegisterOption {
+  registerId: string;
+  name: string;
+  ownerId: string;
+}
+
+interface WorkspaceAgentKitKeysResponse {
+  actorRole: WorkspaceRole;
+  keys: AgentKitApiKeyRow[];
+  registers: AgentKitRegisterOption[];
+  submitEndpoint: string;
+}
+
 function formatDate(value: string | null | undefined): string {
   if (!value) {
     return 'unbekannt';
@@ -104,6 +132,18 @@ function formatDate(value: string | null | undefined): string {
 function normalizeOptionalText(value: string): string | null {
   const normalized = value.trim();
   return normalized ? normalized : null;
+}
+
+function resolveAbsoluteUrl(value: string): string {
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  if (typeof window !== 'undefined') {
+    return new URL(value, window.location.origin).toString();
+  }
+
+  return value;
 }
 
 function createHookDraft(eventType: WorkspaceWebhookConfig['eventType']): WorkspaceWebhookConfig {
@@ -175,6 +215,12 @@ export default function ControlEnterprisePage() {
   const [settingsDraft, setSettingsDraft] = useState<EnterpriseWorkspaceSettings | null>(null);
   const [signOffs, setSignOffs] = useState<GovernanceSignOffRecord[]>([]);
   const [submissions, setSubmissions] = useState<WorkspaceExternalSubmissionRow[]>([]);
+  const [agentKitKeys, setAgentKitKeys] = useState<AgentKitApiKeyRow[]>([]);
+  const [agentKitRegisters, setAgentKitRegisters] = useState<AgentKitRegisterOption[]>([]);
+  const [agentKitSubmitEndpoint, setAgentKitSubmitEndpoint] = useState('/api/agent-kit/submit');
+  const [agentKitLabel, setAgentKitLabel] = useState('');
+  const [agentKitSelectedRegisterId, setAgentKitSelectedRegisterId] = useState<string | null>(null);
+  const [latestAgentKitApiKey, setLatestAgentKitApiKey] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -240,12 +286,19 @@ export default function ControlEnterprisePage() {
     setIsLoadingData(true);
     setError(null);
     try {
-      const [membersResponse, settingsResponse, signOffResponse, submissionResponse] =
+      const [
+        membersResponse,
+        settingsResponse,
+        signOffResponse,
+        submissionResponse,
+        agentKitResponse,
+      ] =
         await Promise.all([
           authFetch(`/api/workspaces/${workspaceId}/members`),
           authFetch(`/api/workspaces/${workspaceId}/settings`),
           authFetch(`/api/workspaces/${workspaceId}/governance-signoffs`),
           authFetch(`/api/workspaces/${workspaceId}/external-submissions`),
+          authFetch(`/api/workspaces/${workspaceId}/agent-kit/keys`),
         ]);
 
       const membersPayload =
@@ -258,6 +311,8 @@ export default function ControlEnterprisePage() {
       const submissionPayload = (await submissionResponse.json()) as {
         submissions: WorkspaceExternalSubmissionRow[];
       };
+      const agentKitPayload =
+        (await agentKitResponse.json()) as WorkspaceAgentKitKeysResponse;
 
       setWorkspaceName(membersPayload.workspace.name);
       setActorRole(membersPayload.actorRole);
@@ -266,6 +321,14 @@ export default function ControlEnterprisePage() {
       setSettingsDraft(settingsPayload.settings);
       setSignOffs(signOffPayload.signOffs);
       setSubmissions(submissionPayload.submissions);
+      setAgentKitKeys(agentKitPayload.keys);
+      setAgentKitRegisters(agentKitPayload.registers);
+      setAgentKitSubmitEndpoint(agentKitPayload.submitEndpoint);
+      setAgentKitSelectedRegisterId((current) =>
+        current && agentKitPayload.registers.some((entry) => entry.registerId === current)
+          ? current
+          : (agentKitPayload.registers[0]?.registerId ?? null),
+      );
     } catch (loadError) {
       console.error('Failed to load enterprise workspace data', loadError);
       setError(
@@ -311,6 +374,35 @@ export default function ControlEnterprisePage() {
     actorRole === 'ADMIN' ||
     actorRole === 'REVIEWER' ||
     actorRole === 'EXTERNAL_OFFICER';
+  const selectedAgentKitRegister = useMemo(
+    () =>
+      agentKitRegisters.find(
+        (register) => register.registerId === agentKitSelectedRegisterId,
+      ) ?? null,
+    [agentKitRegisters, agentKitSelectedRegisterId],
+  );
+  const absoluteAgentKitSubmitEndpoint = useMemo(
+    () => resolveAbsoluteUrl(agentKitSubmitEndpoint),
+    [agentKitSubmitEndpoint],
+  );
+  const agentKitCommandSnippet = useMemo(() => {
+    if (!selectedAgentKitRegister) {
+      return null;
+    }
+
+    return [
+      'export KI_REGISTER_API_KEY="<your-agent-kit-api-key>"',
+      `export KI_REGISTER_REGISTER_ID="${selectedAgentKitRegister.registerId}"`,
+      `node ./agent-kit/bin/studio-agent.mjs submit ./docs/agent-workflows/<slug>/manifest.json --endpoint "${absoluteAgentKitSubmitEndpoint}"`,
+    ].join('\n');
+  }, [absoluteAgentKitSubmitEndpoint, selectedAgentKitRegister]);
+  const agentKitPromptSnippet = useMemo(() => {
+    if (!selectedAgentKitRegister) {
+      return null;
+    }
+
+    return `Use the local ki-register-agent-kit CLI in this repository. If no onboarding exists yet, run onboarding first. Document this AI workflow, ask me about missing facts, show me the summary before writing, and after my confirmation submit the manifest to KI-Register register ${selectedAgentKitRegister.registerId}.`;
+  }, [selectedAgentKitRegister]);
 
   const updateSettingsDraft = (
     updater: (current: EnterpriseWorkspaceSettings) => EnterpriseWorkspaceSettings,
@@ -381,6 +473,98 @@ export default function ControlEnterprisePage() {
         title: 'Einladung fehlgeschlagen',
         description:
           inviteError instanceof Error ? inviteError.message : 'Bitte erneut versuchen.',
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const copyToClipboard = async (value: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast({
+        title: `${label} kopiert`,
+        description: 'Sie koennen den Inhalt jetzt direkt weiterverwenden.',
+      });
+    } catch (copyError) {
+      console.error(`Failed to copy ${label}`, copyError);
+      toast({
+        variant: 'destructive',
+        title: 'Kopieren fehlgeschlagen',
+        description: 'Bitte den Text manuell markieren und kopieren.',
+      });
+    }
+  };
+
+  const createAgentKitKey = async () => {
+    if (!workspaceId || !agentKitLabel.trim()) {
+      return;
+    }
+
+    setBusyAction('create_agent_kit_key');
+    try {
+      const response = await authFetch(`/api/workspaces/${workspaceId}/agent-kit/keys`, {
+        method: 'POST',
+        body: JSON.stringify({
+          label: agentKitLabel.trim(),
+        }),
+      });
+      const payload = (await response.json()) as {
+        apiKey: string;
+        key: AgentKitApiKeyRow;
+      };
+
+      setLatestAgentKitApiKey(payload.apiKey);
+      setAgentKitLabel('');
+      await loadWorkspaceData();
+      toast({
+        title: 'Agent-Kit-API-Key erstellt',
+        description:
+          'Kopieren Sie den Key jetzt einmalig. Danach wird nur noch die Vorschau angezeigt.',
+      });
+    } catch (agentKitError) {
+      console.error('Failed to create Agent Kit API key', agentKitError);
+      toast({
+        variant: 'destructive',
+        title: 'API-Key konnte nicht erstellt werden',
+        description:
+          agentKitError instanceof Error
+            ? agentKitError.message
+            : 'Bitte erneut versuchen.',
+      });
+    } finally {
+      setBusyAction(null);
+    }
+  };
+
+  const revokeAgentKitKey = async (keyId: string) => {
+    if (!workspaceId) {
+      return;
+    }
+
+    setBusyAction(`revoke_agent_kit_${keyId}`);
+    try {
+      await authFetch(`/api/workspaces/${workspaceId}/agent-kit/keys/${keyId}`, {
+        method: 'DELETE',
+      });
+      if (latestAgentKitApiKey?.includes(`.${keyId}.`)) {
+        setLatestAgentKitApiKey(null);
+      }
+      await loadWorkspaceData();
+      toast({
+        title: 'Agent-Kit-API-Key widerrufen',
+        description:
+          'Neue Einreichungen mit diesem Key werden sofort blockiert.',
+      });
+    } catch (agentKitError) {
+      console.error('Failed to revoke Agent Kit API key', agentKitError);
+      toast({
+        variant: 'destructive',
+        title: 'API-Key konnte nicht widerrufen werden',
+        description:
+          agentKitError instanceof Error
+            ? agentKitError.message
+            : 'Bitte erneut versuchen.',
       });
     } finally {
       setBusyAction(null);
@@ -729,6 +913,233 @@ export default function ControlEnterprisePage() {
                     </CardHeader>
                   </Card>
                 </div>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <KeyRound className="h-5 w-5" />
+                          Agent Kit API Keys
+                        </CardTitle>
+                        <CardDescription>
+                          Lassen Sie Codex, Claude Code, OpenClaw oder andere Agenten bestaetigte
+                          Dokumentationen direkt in das KI-Register dieses Workspaces einreichen.
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline">
+                        {agentKitRegisters.length} Register verknuepft
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid gap-4 lg:grid-cols-3">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-sm font-medium text-slate-900">1. API-Key erzeugen</div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          Jede Person kann ihren eigenen Key anlegen. Owner und Admins sehen alle
+                          Keys im Workspace und koennen sie bei Bedarf widerrufen.
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-sm font-medium text-slate-900">2. Dem Agenten geben</div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          Der Key kommt als Umgebungsvariable in den Agent-Workflow. Das
+                          `manifest.json` wird danach ueber das CLI direkt eingereicht.
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-sm font-medium text-slate-900">3. Teamlead sieht das Ergebnis</div>
+                        <p className="mt-2 text-sm text-slate-600">
+                          Nach der erfolgreichen Einreichung entsteht ein echter Use Case im
+                          KI-Register. Teamleads sehen ihn dort, statt mit Dateien arbeiten zu
+                          muessen.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 xl:grid-cols-[1.2fr_260px_auto]">
+                      <Input
+                        value={agentKitLabel}
+                        onChange={(event) => setAgentKitLabel(event.target.value)}
+                        placeholder="Zum Beispiel: Codex auf MacBook Pro"
+                      />
+                      <Select
+                        value={agentKitSelectedRegisterId ?? undefined}
+                        onValueChange={(value) => setAgentKitSelectedRegisterId(value)}
+                        disabled={agentKitRegisters.length === 0}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ziel-Register waehlen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agentKitRegisters.map((register) => (
+                            <SelectItem key={register.registerId} value={register.registerId}>
+                              {register.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={() => void createAgentKitKey()}
+                        disabled={
+                          busyAction === 'create_agent_kit_key' ||
+                          !agentKitLabel.trim() ||
+                          agentKitRegisters.length === 0
+                        }
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        API-Key erstellen
+                      </Button>
+                    </div>
+
+                    {agentKitRegisters.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                        Verknuepfen Sie zuerst mindestens ein Register mit diesem Workspace. Erst
+                        dann kann das Agent Kit direkte Einreichungen fuer Teamleads sichtbar
+                        machen.
+                      </div>
+                    ) : null}
+
+                    {latestAgentKitApiKey ? (
+                      <div className="rounded-2xl border border-slate-900 bg-slate-950 p-5 text-white">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium">Neuer API-Key</div>
+                            <p className="mt-1 text-sm text-slate-300">
+                              Dieser komplette Key wird nur jetzt angezeigt. Danach bleibt in der
+                              Liste nur noch die Vorschau sichtbar.
+                            </p>
+                          </div>
+                          <Button
+                            variant="secondary"
+                            onClick={() => void copyToClipboard(latestAgentKitApiKey, 'API-Key')}
+                          >
+                            <Copy className="mr-2 h-4 w-4" />
+                            Key kopieren
+                          </Button>
+                        </div>
+                        <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-4 font-mono text-sm">
+                          {latestAgentKitApiKey}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    <div className="grid gap-4 xl:grid-cols-2">
+                      <div className="rounded-xl border border-slate-200 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">Beispielbefehl fuer das technische Team</div>
+                            <div className="mt-1 text-sm text-slate-600">
+                              Dieser Befehl reicht eine bestaetigte Manifest-Datei direkt in das
+                              gewaehlte Register ein.
+                            </div>
+                          </div>
+                          {agentKitCommandSnippet ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void copyToClipboard(agentKitCommandSnippet, 'Befehl')}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Kopieren
+                            </Button>
+                          ) : null}
+                        </div>
+                        <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-slate-100">
+                          <code>{agentKitCommandSnippet ?? 'Verknuepfen Sie zuerst ein Register.'}</code>
+                        </pre>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-sm font-medium text-slate-900">Beispiel-Prompt fuer einen Agenten</div>
+                            <div className="mt-1 text-sm text-slate-600">
+                              So versteht auch ein nicht perfekt vorbereiteter Agent, was er tun
+                              soll.
+                            </div>
+                          </div>
+                          {agentKitPromptSnippet ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => void copyToClipboard(agentKitPromptSnippet, 'Prompt')}
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Kopieren
+                            </Button>
+                          ) : null}
+                        </div>
+                        <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+                          {agentKitPromptSnippet ?? 'Verknuepfen Sie zuerst ein Register.'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Label</TableHead>
+                          <TableHead>Erstellt von</TableHead>
+                          <TableHead>Erstellt am</TableHead>
+                          <TableHead>Zuletzt genutzt</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Aktion</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {agentKitKeys.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                              Noch kein Agent-Kit-API-Key fuer diesen Workspace angelegt.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          agentKitKeys.map((key) => (
+                            <TableRow key={key.keyId}>
+                              <TableCell>
+                                <div className="font-medium">{key.label}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {key.keyPreview}
+                                </div>
+                              </TableCell>
+                              <TableCell>{key.createdByEmail ?? key.createdByUserId}</TableCell>
+                              <TableCell>{formatDate(key.createdAt)}</TableCell>
+                              <TableCell>{formatDate(key.lastUsedAt)}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    key.revokedAt
+                                      ? 'border-rose-200 bg-rose-50 text-rose-800'
+                                      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                                  }
+                                >
+                                  {key.revokedAt ? 'widerrufen' : 'aktiv'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void revokeAgentKitKey(key.keyId)}
+                                  disabled={
+                                    Boolean(key.revokedAt) ||
+                                    busyAction === `revoke_agent_kit_${key.keyId}`
+                                  }
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Widerrufen
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
 
                 <Card>
                   <CardHeader>

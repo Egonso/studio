@@ -10,6 +10,7 @@ Documentation-first tooling for AI applications, processes and workflows that ne
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
+  <a href="#direct-submission-to-ki-register">Direct submit</a> ·
   <a href="#why-this-format">Why this format</a> ·
   <a href="#operating-model">Operating model</a> ·
   <a href="#compliance-mapping">Compliance mapping</a> ·
@@ -70,6 +71,42 @@ docs/agent-workflows/<slug>/
   README.md
   manifest.json
 ```
+
+## Direct submission to KI-Register
+
+Once the team has created a workspace-scoped Agent Kit API key, the CLI can submit a confirmed `manifest.json` directly into KI-Register so the team lead sees a real use case on the website.
+
+<p align="center">
+  <img src="./assets/direct-submit-flow.svg" alt="Direct submission flow from agent workflow to KI-Register" width="100%" />
+</p>
+
+### One-time workspace setup
+
+Use the workspace control area to create a personal API key and choose the target register.
+
+<p align="center">
+  <img src="./assets/workspace-api-keys.svg" alt="Workspace API key panel" width="100%" />
+</p>
+
+### Submit command
+
+```bash
+export KI_REGISTER_API_KEY="akv1.<workspaceId>.<keyId>.<secret>"
+export KI_REGISTER_REGISTER_ID="reg_123"
+
+node ./bin/studio-agent.mjs submit \
+  ./docs/agent-workflows/<slug>/manifest.json \
+  --endpoint "https://kiregister.com/api/agent-kit/submit"
+```
+
+### What this means for non-technical teams
+
+- The technical team sets up the key and agent workflow once.
+- The agent still documents first and asks for human confirmation before submission.
+- The team lead does not need the CLI or the ZIP once the handoff is configured.
+- The review surface is the KI-Register website, not a local folder.
+
+For the step-by-step version with prompts and setup notes, see [`docs/direct-submission-to-ki-register.md`](./docs/direct-submission-to-ki-register.md).
 
 ## Operating model
 

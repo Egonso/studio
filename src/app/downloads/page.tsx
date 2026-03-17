@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 
 const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
 const agentKitGithubHref = "https://github.com/Egonso/ki-register-agent-kit";
+const agentKitDocsHref = "https://github.com/Egonso/ki-register-agent-kit#direct-submission-to-ki-register";
 
 const chromeSteps = [
   "Chrome öffnen und chrome://extensions aufrufen.",
@@ -43,7 +44,7 @@ const agentKitSteps = [
   "Danach kann der Agent neue KI-Anwendungen, Prozesse oder Workflows direkt waehrend der Arbeit miterfassen.",
   "Wenn Informationen fehlen, fuehrt das Kit durch ein kurzes Interview und fragt die wichtigsten Punkte systematisch ab.",
   "Vor jedem neuen Eintrag zeigt es eine Zusammenfassung und bittet um ausdrueckliche Bestaetigung.",
-  "Das Ergebnis ist eine lesbare Dokumentation fuer Menschen plus eine strukturierte JSON-Datei fuer Agenten, Audits und eine spaetere Uebernahme ins KI-Register.",
+  "Mit einem Agent-Kit-API-Key kann das bestaetigte manifest.json danach direkt in das KI-Register eingereicht werden, sodass Teamleads den Fall dort sehen.",
 ];
 
 const agentKitExamples: Array<{
@@ -56,21 +57,21 @@ const agentKitExamples: Array<{
     setup:
       "Laden Sie das GitHub-Repo oder die ZIP in Ihr Projekt und oeffnen Sie den Ordner in Codex App oder Claude Code. Danach reicht ein normaler Prompt.",
     prompt:
-      "Nutze das Repository ki-register-agent-kit in diesem Workspace. Falls noch kein Onboarding vorhanden ist, fuehre mich zuerst durch die Grundeinrichtung. Dokumentiere dann diese neue KI-Anwendung, stelle Rueckfragen bei fehlenden Informationen und frage mich vor dem Schreiben nach einer klaren Bestaetigung.",
+      "Nutze das Repository ki-register-agent-kit in diesem Workspace. Falls noch kein Onboarding vorhanden ist, fuehre mich zuerst durch die Grundeinrichtung. Dokumentiere dann diese neue KI-Anwendung, stelle Rueckfragen bei fehlenden Informationen, frage mich vor dem Schreiben nach einer klaren Bestaetigung und reiche das bestaetigte manifest danach mit dem vorhandenen Agent-Kit-API-Key im KI-Register ein.",
   },
   {
     title: "OpenClaw oder andere Skill-Agenten",
     setup:
       "Installieren oder referenzieren Sie das Skill aus dem Agent-Kit-Repo. Danach kann der Agent die Dokumentation waehrend der eigentlichen Arbeit miterfassen.",
     prompt:
-      "Nutze das Skill studio-use-case-documenter. Wenn noch kein Profil vorhanden ist, onboarde mich zuerst. Erfasse diesen neuen Workflow, interviewe mich zu Zweck, Owner, Daten, Risiken und Kontrollen und zeige mir die geplante Dokumentation vor dem Schreiben.",
+      "Nutze das Skill studio-use-case-documenter. Wenn noch kein Profil vorhanden ist, onboarde mich zuerst. Erfasse diesen neuen Workflow, interviewe mich zu Zweck, Owner, Daten, Risiken und Kontrollen, zeige mir die geplante Dokumentation vor dem Schreiben und sende die bestaetigte Manifest-Datei danach in unser KI-Register.",
   },
   {
     title: "Antigravity oder andere Agenten",
     setup:
       "Wenn Ihr Agent keine Skills kennt, reicht meist schon das CLI aus dem Repo. Wichtig ist nur, dass der Agent lokal Dateien lesen und anlegen darf.",
     prompt:
-      "Nutze das CLI aus dem Repository ki-register-agent-kit fuer diesen neuen Anwendungsfall. Frage mich Schritt fuer Schritt nach den fehlenden Informationen, fasse alles kurz zusammen und lege die Dokumentation erst an, wenn ich die finale Zusammenfassung bestaetigt habe.",
+      "Nutze das CLI aus dem Repository ki-register-agent-kit fuer diesen neuen Anwendungsfall. Frage mich Schritt fuer Schritt nach den fehlenden Informationen, fasse alles kurz zusammen, lege die Dokumentation erst an, wenn ich die finale Zusammenfassung bestaetigt habe, und uebermittle die finale Manifest-Datei anschliessend mit unserem API-Key an das KI-Register.",
   },
 ];
 
@@ -290,10 +291,30 @@ export default function DownloadsPage() {
               werden kann.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Wichtig: Stand heute erzeugt das Agent Kit die Unterlagen zuerst ausserhalb der
-              Website. Das Zielbild ist, dass ein bestaetigter Fall anschliessend sauber im
-              KI-Register sichtbar wird, damit Teamleads ihn dort direkt sehen koennen.
+              Neu ist: Mit einem Agent-Kit-API-Key kann das bestaetigte Ergebnis danach direkt im
+              KI-Register eingereicht werden. Teamleads muessen also nicht mit Dateien arbeiten,
+              sondern sehen den neuen Fall direkt auf der Plattform.
             </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a
+                href={agentKitGithubHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                GitHub-Repo
+              </a>
+              <a
+                href={agentKitDocsHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Setup-Anleitung
+              </a>
+            </div>
           </div>
 
           <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -302,20 +323,20 @@ export default function DownloadsPage() {
                 Fuer Teamleads
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Teamleads sollen am Ende nicht mit Dateien arbeiten muessen, sondern den
-                bestaetigten Anwendungsfall im KI-Register sehen. Das Paket selbst braucht in der
-                Regel nur das technische Team, nicht die spaetere Review-Person.
+                Teamleads sollen am Ende nicht mit Dateien arbeiten muessen, sondern den neuen
+                bestaetigten Anwendungsfall direkt im KI-Register sehen. Das Paket selbst braucht
+                in der Regel nur das technische Team, nicht die spaetere Review-Person.
               </p>
             </article>
 
             <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Stand heute
+                Was technisch passiert
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Heute erzeugt das Agent Kit zuerst standardisierte Unterlagen ausserhalb der
-                Website: eine lesbare Dokumentation fuer Menschen und eine strukturierte
-                JSON-Datei fuer Agenten, Audits und Weiterverarbeitung.
+                Der Agent erzeugt zuerst eine lesbare Dokumentation und eine strukturierte
+                JSON-Datei. Nach Ihrer Bestaetigung kann genau diese Manifest-Datei mit API-Key
+                direkt ins KI-Register gesendet werden.
               </p>
             </article>
 
@@ -421,6 +442,15 @@ export default function DownloadsPage() {
             >
               <ArrowUpRight className="h-4 w-4" />
               GitHub-Quelle
+            </a>
+            <a
+              href={agentKitDocsHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              Anleitung lesen
             </a>
             <a
               href="/downloads/ki-register-agent-kit.zip"
