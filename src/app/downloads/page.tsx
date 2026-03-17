@@ -39,69 +39,11 @@ const macSteps = [
   "Nach dem Start erscheint das Icon oben in der Menüleiste neben WLAN/Batterie.",
 ];
 
-const agentKitSteps = [
-  "Ein technisches Team oder ein Agent richtet das Agent Kit einmalig im Projekt oder Workspace ein.",
-  "Beim ersten Start werden Grundinfos abgefragt: wer dokumentiert, wo Dateien liegen und welche Defaults gelten.",
-  "Danach kann der Agent neue KI-Anwendungen, Prozesse oder Workflows direkt waehrend der Arbeit miterfassen.",
-  "Wenn Informationen fehlen, fuehrt das Kit durch ein kurzes Interview und fragt die wichtigsten Punkte systematisch ab.",
-  "Vor jedem neuen Eintrag zeigt es eine Zusammenfassung und bittet um ausdrueckliche Bestaetigung.",
-  "Mit einem Agent-Kit-API-Key kann das bestaetigte manifest.json danach direkt in das KI-Register eingereicht werden, sodass Teamleads den Fall dort sehen.",
-];
-
 const agentKitInstallSteps = [
   "GitHub-Repo oeffnen oder ki-register-agent-kit.zip herunterladen und lokal entpacken.",
-  "Den Ordner im Projekt oder Workspace ablegen, in dem Ihr Agent arbeiten darf.",
   "Einmalig onboarden: node ./bin/studio-agent.mjs onboard",
-  "Waehrend der Arbeit dokumentieren: node ./bin/studio-agent.mjs capture",
-  "Fuer gefuehrte Rueckfragen: node ./bin/studio-agent.mjs interview",
-  "Fuer direkte Einreichung einen API-Key in /settings/agent-kit erstellen und danach submit verwenden.",
-  "Die Ausgabe landet als README.md und manifest.json und kann nach Bestaetigung direkt ins KI-Register uebertragen werden.",
-];
-
-const agentKitExamples: Array<{
-  title: string;
-  setup: string;
-  prompt: string;
-}> = [
-  {
-    title: "Codex App oder Claude Code",
-    setup:
-      "Laden Sie das GitHub-Repo oder die ZIP in Ihr Projekt und oeffnen Sie den Ordner in Codex App oder Claude Code. Danach reicht ein normaler Prompt.",
-    prompt:
-      "Nutze das Repository ki-register-agent-kit in diesem Workspace. Falls noch kein Onboarding vorhanden ist, fuehre mich zuerst durch die Grundeinrichtung. Dokumentiere dann diese neue KI-Anwendung, stelle Rueckfragen bei fehlenden Informationen, frage mich vor dem Schreiben nach einer klaren Bestaetigung und reiche das bestaetigte manifest danach mit dem vorhandenen Agent-Kit-API-Key im KI-Register ein.",
-  },
-  {
-    title: "OpenClaw oder andere Skill-Agenten",
-    setup:
-      "Installieren oder referenzieren Sie das Skill aus dem Agent-Kit-Repo. Danach kann der Agent die Dokumentation waehrend der eigentlichen Arbeit miterfassen.",
-    prompt:
-      "Nutze das Skill studio-use-case-documenter. Wenn noch kein Profil vorhanden ist, onboarde mich zuerst. Erfasse diesen neuen Workflow, interviewe mich zu Zweck, Owner, Daten, Risiken und Kontrollen, zeige mir die geplante Dokumentation vor dem Schreiben und sende die bestaetigte Manifest-Datei danach in unser KI-Register.",
-  },
-  {
-    title: "Antigravity oder andere Agenten",
-    setup:
-      "Wenn Ihr Agent keine Skills kennt, reicht meist schon das CLI aus dem Repo. Wichtig ist nur, dass der Agent lokal Dateien lesen und anlegen darf.",
-    prompt:
-      "Nutze das CLI aus dem Repository ki-register-agent-kit fuer diesen neuen Anwendungsfall. Frage mich Schritt fuer Schritt nach den fehlenden Informationen, fasse alles kurz zusammen, lege die Dokumentation erst an, wenn ich die finale Zusammenfassung bestaetigt habe, und uebermittle die finale Manifest-Datei anschliessend mit unserem API-Key an das KI-Register.",
-  },
-];
-
-const agentKitUsageExamples = [
-  {
-    title: "Beispiel 1: Codex dokumentiert beim Coden mit",
-    body:
-      "Ihr Team baut gerade einen internen Support-Agenten. Sie sagen Codex einfach, dass die neue Anwendung parallel dokumentiert werden soll. Waerend der Implementierung fragt Codex die fehlenden Angaben ab, zeigt die Zusammenfassung und reicht den bestaetigten Fall danach direkt im KI-Register ein.",
-  },
-  {
-    title: "Beispiel 2: OpenClaw erfasst einen neuen Workflow",
-    body:
-      "Ein Team fuehrt einen Recruiting-Workflow mit KI-Unterstuetzung ein. OpenClaw nutzt das Skill, interviewt zu Zweck, Daten, Ownern und Risiken und legt erst nach menschlicher Freigabe die Dokumentation an. Danach wird der Fall mit API-Key an das Register uebergeben.",
-  },
-  {
-    title: "Beispiel 3: Claude Code sammelt Infos vor dem Go-Live",
-    body:
-      "Vor einem Rollout soll ein technischer Lead noch schnell sauber dokumentieren. Claude Code nutzt das CLI aus dem Repo, fragt fehlende Fakten Schritt fuer Schritt nach und erzeugt daraus README plus Manifest. Nach Ihrer Bestaetigung landet der Eintrag direkt sichtbar im KI-Register.",
-  },
+  "Waehrend der Arbeit dokumentieren: node ./bin/studio-agent.mjs capture oder interview",
+  "API-Key im Login-Bereich erstellen und danach direkt ins KI-Register einreichen.",
 ];
 
 function SectionCard({
@@ -110,24 +52,19 @@ function SectionCard({
   downloadHref,
   downloadLabel,
   steps,
-  secondaryActions,
 }: {
   title: string;
   subtitle: string;
   downloadHref: string;
   downloadLabel: string;
   steps: string[];
-  secondaryActions?: Array<{
-    href: string;
-    label: string;
-  }>;
 }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
       <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">{subtitle}</p>
 
-      <div className="mt-5 flex flex-wrap items-center gap-3">
+      <div className="mt-5">
         <a
           href={downloadHref}
           className="inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
@@ -135,19 +72,6 @@ function SectionCard({
           <Download className="h-4 w-4" />
           {downloadLabel}
         </a>
-
-        {secondaryActions?.map((action) => (
-          <a
-            key={action.href}
-            href={action.href}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            <ArrowUpRight className="h-4 w-4" />
-            {action.label}
-          </a>
-        ))}
       </div>
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -286,11 +210,6 @@ export default function DownloadsPage() {
             <li>
               Logo/Icon wechseln automatisch zwischen Light- und Dark-Variante je nach Browser-Theme.
             </li>
-            {coverageAssistPilotEnabled ? (
-              <li>
-                Coverage Assist kann im Plugin pro Gerät jederzeit wieder deaktiviert oder für einzelne Tools lokal ausgeblendet werden.
-              </li>
-            ) : null}
             <li>
               Empfohlen: Links nur über diese Download-Seite verteilen, damit alle die aktuelle Version nutzen.
             </li>
@@ -303,117 +222,29 @@ export default function DownloadsPage() {
         <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Agent Kit einfach erklaert
+              Agent Kit
             </p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              Das Agent Kit hilft Teams, neue KI-Anwendungen direkt waehrend der Arbeit zu dokumentieren.
+              Kurze Übersicht
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Statt spaeter manuell ein Formular auszufuellen, geben Sie einem Agenten einen klaren
-              Auftrag. Das Kit fuehrt durch Fragen, interviewt bei fehlenden Informationen, zeigt
-              vor dem Schreiben eine Zusammenfassung und legt die Dokumentation erst nach Ihrer
-              Bestaetigung an.
+              Das Agent Kit ist für technische Teams, die neue KI-Anwendungen direkt während der
+              Arbeit dokumentieren wollen. Der Agent fragt fehlende Informationen nach, zeigt vor
+              dem Schreiben eine Zusammenfassung und reicht den bestätigten Fall danach direkt im
+              KI-Register ein.
             </p>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Das Agent Kit hat dafuer jetzt ein eigenes oeffentliches GitHub-Repository, damit es
-              leichter in Codex, OpenClaw, Antigravity und aehnliche Agent-Umgebungen eingebunden
-              werden kann.
+              Beispiele: Codex dokumentiert beim Bauen eines internen Support-Agenten mit,
+              OpenClaw erfasst einen Recruiting-Workflow und Claude Code bereitet vor dem Go-Live
+              die Register-Einreichung vor. Teamleads brauchen das Paket meist nicht selbst.
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Neu ist: Mit einem Agent-Kit-API-Key kann das bestaetigte Ergebnis danach direkt im
-              KI-Register eingereicht werden. Teamleads muessen also nicht mit Dateien arbeiten,
-              sondern sehen den neuen Fall direkt auf der Plattform.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <a
-                href={agentKitGithubHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                GitHub-Repo
-              </a>
-              <a
-                href={agentKitDocsHref}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                API-Doku auf kiregister.com
-              </a>
-              <a
-                href={agentKitSettingsHref}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                API-Key im Login-Bereich
-              </a>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Fuer Teamleads
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Teamleads sollen am Ende nicht mit Dateien arbeiten muessen, sondern den neuen
-                bestaetigten Anwendungsfall direkt im KI-Register sehen. Das Paket selbst braucht
-                in der Regel nur das technische Team, nicht die spaetere Review-Person.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Was technisch passiert
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Der Agent erzeugt zuerst eine lesbare Dokumentation und eine strukturierte
-                JSON-Datei. Nach Ihrer Bestaetigung kann genau diese Manifest-Datei mit API-Key
-                direkt ins KI-Register gesendet werden.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                Wer das Paket braucht
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Das Paket ist fuer technische Teams und Agent-Owner gedacht, die diese Erfassung
-                automatisieren wollen. Es bleibt absichtlich agent-neutral und funktioniert mit
-                Codex, OpenClaw, Antigravity und aehnlichen Systemen.
-              </p>
-            </article>
-          </div>
-
-          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              So laeuft es ab
-            </p>
-            <ol className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
-              {agentKitSteps.map((step) => (
-                <li key={step} className="flex items-start gap-2">
-                  <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-slate-500" />
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            {agentKitUsageExamples.map((example) => (
-              <article
-                key={example.title}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-5"
-              >
-                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  {example.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                  {example.body}
-                </p>
-              </article>
-            ))}
+            <a
+              href={agentKitDocsHref}
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <ArrowUpRight className="h-4 w-4" />
+              Volle Erklärung
+            </a>
           </div>
         </section>
 
@@ -423,51 +254,12 @@ export default function DownloadsPage() {
               Download Fuer Technische Teams
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Das Paket kommt bewusst erst nach der Erklaerung.
+              Download und Links
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Wenn Sie Teamlead oder Fachbereich sind, brauchen Sie in der Regel keinen Download.
-              Fuer Sie ist entscheidend, dass der bestaetigte Fall spaeter direkt im KI-Register
-              erscheint. Das Paket ist fuer technische Teams oder Agent-Owner gedacht, die den
-              Workflow in Codex, Claude Code, OpenClaw, Antigravity oder aehnliche Agenten
-              einbauen.
+              GitHub ist die sauberste Quelle. Das ZIP ist für Teams, die schnell lokal starten
+              wollen. Den API-Key erstellt die eingeloggte Person im KI-Register.
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Deshalb stehen hier zuerst Erklaerung, Beispiele und API-Doku. Erst darunter kommen
-              GitHub, API-Key und das eigentliche ZIP.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                GitHub
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Die sauberste Quelle fuer technische Teams. Dort liegen CLI, Skill, Beispiele,
-                API-Doku und Release-Kontext an einem Ort.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                API-Key
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Den API-Key erstellt die eingeloggte Person im KI-Register. Damit kann der Agent
-                das bestaetigte Manifest direkt an Ihr Register senden.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                ZIP
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Das ZIP ist nur fuer Teams, die schnell lokal starten wollen. Inhaltlich ist es
-                dasselbe Paket wie im oeffentlichen Repository.
-              </p>
-            </article>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -515,111 +307,6 @@ export default function DownloadsPage() {
                 </li>
               ))}
             </ol>
-          </div>
-        </section>
-
-        <section className="mt-8 rounded-xl border border-slate-200 bg-white p-6">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-              Beispiele fuer Agenten
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-900">
-              Diese Prompts koennen Sie Ihrem Agenten direkt schicken.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Sie muessen keine Spezialbefehle kennen. Kopieren Sie einfach einen passenden Prompt,
-              schicken Sie ihn an Ihren Agenten und passen Sie nur noch den konkreten Use Case an.
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Wenn Sie nur das Ergebnis im KI-Register sehen wollen, brauchen Sie diese Prompts
-              nicht selbst. Sie sind fuer das technische Team oder die Person gedacht, die den
-              Agenten einrichtet.
-            </p>
-            <div className="mt-4">
-              <a
-                href={agentKitGithubHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                GitHub-Repo oeffnen
-              </a>
-              <a
-                href={agentKitDocsHref}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                Website-API-Doku
-              </a>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            {agentKitExamples.map((example) => (
-              <article key={example.title} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  {example.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-700">{example.setup}</p>
-                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
-                    Beispiel-Prompt
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-800">
-                    {example.prompt}
-                  </p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Open Source & Marketplace Ready
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-950">
-              Das Agent Kit ist nicht nur ein Download, sondern ein veroeffentlichbares Standardpaket.
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700">
-              Die aktuelle Version bringt Public-Repo-Hygiene, Marketplace-Collateral und
-              agent-neutrale Manifest-Ausgaben schon mit. Dadurch kann das Paket spaeter sauber auf
-              GitHub, in ClawHub oder in SkillsMP-aehnlichen Verzeichnissen veroeffentlicht werden.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-3">
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                GitHub Ready
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Enthält README-Grafiken, Lizenz, Contribution- und Security-Dateien, Issue-Templates,
-                Pull-Request-Template und eine kleine GitHub-Action fuer Smoke-Tests.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                OpenClaw / ClawHub
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Die Skill-Struktur bleibt bewusst nah an einem portablen `SKILL.md`-Bundle mit
-                Agent-Metadaten, damit der Upload in skillbasierte Agent-Systeme moeglich bleibt.
-              </p>
-            </article>
-
-            <article className="rounded-xl border border-slate-300 bg-slate-50 p-5">
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
-                SkillsMP kompatibel
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
-                Listing-Text, Publish-Checkliste und Slash-Command-Vorlage liegen direkt im Paket,
-                damit ein Marketplace-Eintrag nicht noch separat zusammengesucht werden muss.
-              </p>
-            </article>
           </div>
         </section>
       </div>
