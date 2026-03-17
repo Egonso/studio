@@ -61,6 +61,21 @@ function normalizeBearerToken(value: string | null | undefined): string | null {
   return trimmed;
 }
 
+function isFirebaseAuthProjectPermissionError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+      ? error
+      : '';
+
+  return (
+    message.includes('serviceusage.services.use') ||
+    message.includes('identitytoolkit.googleapis.com') ||
+    message.includes('USER_PROJECT_DENIED')
+  );
+}
+
 export async function verifyFirebaseToken(
   token: string | null | undefined
 ): Promise<DecodedIdToken & { email: string }> {
@@ -71,13 +86,29 @@ export async function verifyFirebaseToken(
 
   const auth = getAdminAuth();
   const decoded = await auth.verifyIdToken(idToken, true);
-  const userRecord = await auth.getUser(decoded.uid);
-  const email = userRecord.email?.toLowerCase() ?? decoded.email?.toLowerCase();
+  let email = decoded.email?.toLowerCase();
+  let emailVerified = decoded.email_verified === true;
+
+  try {
+    const userRecord = await auth.getUser(decoded.uid);
+    email = userRecord.email?.toLowerCase() ?? email;
+    emailVerified = userRecord.emailVerified === true || emailVerified;
+  } catch (error) {
+    if (!isFirebaseAuthProjectPermissionError(error)) {
+      throw error;
+    }
+
+    console.warn(
+      'Firebase Auth user lookup skipped due to project permission limits:',
+      error,
+    );
+  }
+
   if (!email) {
     throw new ServerAuthError("Authenticated user must have an email.", 403);
   }
 
-  if (userRecord.emailVerified !== true) {
+  if (!emailVerified) {
     throw new ServerAuthError(
       'Please verify your email address before continuing.',
       403,
