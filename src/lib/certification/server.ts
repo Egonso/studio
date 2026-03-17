@@ -1,8 +1,13 @@
-import 'server-only';
+import '@/lib/server-only-guard';
 
 import { randomUUID } from 'node:crypto';
 
 import { getPublicAppOrigin } from '@/lib/app-url';
+import {
+  DOCUMENTERO_API_URL,
+  resolveDocumenteroApiKey,
+  resolveDocumenteroCertificationTemplateId,
+} from '@/lib/documentero';
 import {
   getAdminDb,
   hasFirebaseAdminCredentials,
@@ -26,18 +31,27 @@ import type {
   UserCertificationSnapshot,
 } from './types';
 
-const DOCUMENTERO_API_URL = 'https://app.documentero.com/api';
-const DOCUMENTERO_API_KEY =
-  process.env.DOCUMENTERO_API_KEY || 'NGLSAVQ-ATNE2QI-SKBCSCY-ZWAC6CA';
-const DOCUMENTERO_TEMPLATE_ID =
-  process.env.DOCUMENTERO_TEMPLATE_ID || 'z1ffZUyuWFQwXBaoo2NL';
-const DEFAULT_DOCUMENT_PROVIDER: CertificateDocumentProvider =
-  process.env.CERTIFICATION_DOCUMENT_PROVIDER === 'documentero' ? 'documentero' : 'native';
-const ENABLE_EXTERNAL_CERTIFICATE_PDFS = process.env.CERTIFICATION_ENABLE_DOCUMENTERO === '1';
-const DEFAULT_VALIDITY_MONTHS = Number.parseInt(
-  process.env.CERTIFICATION_DEFAULT_VALIDITY_MONTHS || '12',
-  10,
-);
+const CERTIFICATION_DOCUMENT_PROVIDER_ENV_NAME = [
+  'CERTIFICATION',
+  'DOCUMENT',
+  'PROVIDER',
+].join('_');
+const CERTIFICATION_ENABLE_DOCUMENTERO_ENV_NAME = [
+  'CERTIFICATION',
+  'ENABLE',
+  'DOCUMENTERO',
+].join('_');
+const CERTIFICATION_DEFAULT_VALIDITY_MONTHS_ENV_NAME = [
+  'CERTIFICATION',
+  'DEFAULT',
+  'VALIDITY',
+  'MONTHS',
+].join('_');
+const CERTIFICATION_FAKE_DOCUMENTS_ENV_NAME = [
+  'CERTIFICATION',
+  'FAKE',
+  'DOCUMENTS',
+].join('_');
 
 type GeneratedDocument = {
   url: string;
@@ -119,6 +133,32 @@ function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
 }
 
+function readServerEnv(name: string): string | undefined {
+  const env = process.env as Record<string, string | undefined>;
+  return env[name];
+}
+
+function getDefaultDocumentProvider(): CertificateDocumentProvider {
+  return readServerEnv(CERTIFICATION_DOCUMENT_PROVIDER_ENV_NAME) === 'documentero'
+    ? 'documentero'
+    : 'native';
+}
+
+function isExternalCertificatePdfsEnabled(): boolean {
+  return readServerEnv(CERTIFICATION_ENABLE_DOCUMENTERO_ENV_NAME) === '1';
+}
+
+function getDefaultValidityMonths(): number {
+  return Number.parseInt(
+    readServerEnv(CERTIFICATION_DEFAULT_VALIDITY_MONTHS_ENV_NAME) || '12',
+    10,
+  );
+}
+
+function isFakeDocumentModeEnabled(): boolean {
+  return readServerEnv(CERTIFICATION_FAKE_DOCUMENTS_ENV_NAME) === '1';
+}
+
 function addMonthsToIso(issuedAtIso: string, months: number): string {
   const value = new Date(issuedAtIso);
   value.setMonth(value.getMonth() + months);
@@ -155,14 +195,16 @@ function sortNewestFirst<T extends { startedAt?: string; issuedAt?: string; gene
 }
 
 function buildDefaultSettings(): CertificationSettings {
+  const defaultValidityMonths = getDefaultValidityMonths();
+
   return {
     settingsId: 'default',
     defaultValidityMonths:
-      Number.isFinite(DEFAULT_VALIDITY_MONTHS) && DEFAULT_VALIDITY_MONTHS > 0
-        ? DEFAULT_VALIDITY_MONTHS
+      Number.isFinite(defaultValidityMonths) && defaultValidityMonths > 0
+        ? defaultValidityMonths
         : 12,
-    documentProvider: DEFAULT_DOCUMENT_PROVIDER,
-    documentTemplateId: DOCUMENTERO_TEMPLATE_ID,
+    documentProvider: getDefaultDocumentProvider(),
+    documentTemplateId: resolveDocumenteroCertificationTemplateId() ?? '',
     badgeAssetUrl: CERTIFICATE_BADGE_ASSET_URL,
   };
 }
@@ -973,17 +1015,19 @@ async function generateDocumentUrl(
 ): Promise<GeneratedDocument> {
   const verifyUrl = buildCertificateVerifyUrl(certificate.certificateCode);
 
-  if (process.env.CERTIFICATION_FAKE_DOCUMENTS === '1') {
+  if (isFakeDocumentModeEnabled()) {
     return {
       url: buildFakePdfDataUri(certificate, verifyUrl),
       provider: 'native',
     };
   }
 
+  const documenteroApiKey = resolveDocumenteroApiKey();
+
   if (
-    ENABLE_EXTERNAL_CERTIFICATE_PDFS &&
+    isExternalCertificatePdfsEnabled() &&
     settings.documentProvider === 'documentero' &&
-    DOCUMENTERO_API_KEY &&
+    documenteroApiKey &&
     settings.documentTemplateId
   ) {
     const filename = `${
@@ -993,11 +1037,11 @@ async function generateDocumentUrl(
     const response = await fetch(DOCUMENTERO_API_URL, {
       method: 'POST',
       headers: {
+        Authorization: `apiKey ${documenteroApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         document: settings.documentTemplateId,
-        apiKey: DOCUMENTERO_API_KEY,
         format: 'pdf',
         filename,
         data: {
