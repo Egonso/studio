@@ -27,6 +27,10 @@ export class ServerAuthError extends Error {
 
 const DEFAULT_SESSION_MAX_AGE_HOURS = 12;
 
+interface SessionValidationOptions {
+  enforceSessionAge?: boolean;
+}
+
 function resolveSessionMaxAgeMs(): number {
   const raw = process.env.AUTH_SESSION_MAX_AGE_HOURS?.trim();
   const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_SESSION_MAX_AGE_HOURS;
@@ -77,7 +81,8 @@ function isFirebaseAuthProjectPermissionError(error: unknown): boolean {
 }
 
 export async function verifyFirebaseToken(
-  token: string | null | undefined
+  token: string | null | undefined,
+  options: SessionValidationOptions = {},
 ): Promise<DecodedIdToken & { email: string }> {
   const idToken = normalizeBearerToken(token);
   if (!idToken) {
@@ -130,14 +135,16 @@ export async function verifyFirebaseToken(
     );
   }
 
-  const authTimeMs =
-    typeof decoded.auth_time === 'number' ? decoded.auth_time * 1000 : null;
-  if (!authTimeMs) {
-    throw new ServerAuthError('Session metadata is missing. Please sign in again.', 401);
-  }
+  if (options.enforceSessionAge !== false) {
+    const authTimeMs =
+      typeof decoded.auth_time === 'number' ? decoded.auth_time * 1000 : null;
+    if (!authTimeMs) {
+      throw new ServerAuthError('Session metadata is missing. Please sign in again.', 401);
+    }
 
-  if (Date.now() - authTimeMs > resolveSessionMaxAgeMs()) {
-    throw new ServerAuthError('Session expired. Please sign in again.', 401);
+    if (Date.now() - authTimeMs > resolveSessionMaxAgeMs()) {
+      throw new ServerAuthError('Session expired. Please sign in again.', 401);
+    }
   }
 
   return {
@@ -217,9 +224,10 @@ async function getWorkspaceRoleFromWorkspaceDoc(
 }
 
 export async function requireUser(
-  token: string | null | undefined
+  token: string | null | undefined,
+  options: SessionValidationOptions = {},
 ): Promise<AuthenticatedRequestUser> {
-  return verifyFirebaseToken(token);
+  return verifyFirebaseToken(token, options);
 }
 
 export async function requireAdmin(
@@ -231,10 +239,11 @@ export async function requireAdmin(
 export async function requireWorkspaceMember(
   token: string | null | undefined,
   orgId: string,
-  allowedRoles?: ResolvedWorkspaceRole[]
+  allowedRoles?: ResolvedWorkspaceRole[],
+  options: SessionValidationOptions = {},
 ): Promise<WorkspaceAuthorizationResult> {
   const normalizedOrgId = requireResourceId(orgId, "orgId");
-  const user = await requireUser(token);
+  const user = await requireUser(token, options);
   const profile = await getUserProfile(user.uid);
   const access = buildWorkspaceAccessState(user.uid, profile);
   const workspaceDocRole = await getWorkspaceRoleFromWorkspaceDoc(

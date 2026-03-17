@@ -17,7 +17,9 @@ function handleError(error: unknown) {
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await requireUser(req.headers.get('authorization'));
+    const user = await requireUser(req.headers.get('authorization'), {
+      enforceSessionAge: false,
+    });
     const workspacesResult = await Promise.resolve(listUserWorkspaces(user.uid))
       .then((workspaces) => ({ ok: true as const, workspaces }))
       .catch((error) => {

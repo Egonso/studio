@@ -49,7 +49,10 @@ async function authorizeAgentKitScope(
   authorizationHeader: string | null,
   orgId: string,
 ) {
-  const user = await requireUser(authorizationHeader);
+  const authOptions = {
+    enforceSessionAge: false,
+  } as const;
+  const user = await requireUser(authorizationHeader, authOptions);
   if (isPersonalAgentKitScope(orgId, user.uid)) {
     return {
       user,
@@ -58,7 +61,12 @@ async function authorizeAgentKitScope(
     };
   }
 
-  const authorization = await requireWorkspaceMember(authorizationHeader, orgId);
+  const authorization = await requireWorkspaceMember(
+    authorizationHeader,
+    orgId,
+    undefined,
+    authOptions,
+  );
   return {
     user: authorization.user,
     role: authorization.role,
