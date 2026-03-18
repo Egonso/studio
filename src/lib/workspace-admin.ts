@@ -37,6 +37,33 @@ export interface UserWorkspaceSummary {
   role: WorkspaceRole;
 }
 
+function applyResolvedWorkspaceRecords(
+  summaries: Map<string, UserWorkspaceSummary>,
+  records: Array<{
+    orgId: string;
+    workspace: WorkspaceRecord | null;
+  }>,
+): Map<string, UserWorkspaceSummary> {
+  for (const entry of records) {
+    const existing = summaries.get(entry.orgId);
+    if (!existing) {
+      continue;
+    }
+
+    if (!entry.workspace) {
+      summaries.delete(entry.orgId);
+      continue;
+    }
+
+    summaries.set(entry.orgId, {
+      ...existing,
+      name: entry.workspace.name?.trim() || existing.name,
+    });
+  }
+
+  return summaries;
+}
+
 export async function ensureWorkspaceRecord(input: {
   orgId: string;
   name: string;
@@ -168,17 +195,7 @@ export async function listUserWorkspaces(
       })),
     );
 
-    for (const entry of workspaces) {
-      const existing = byOrgId.get(entry.orgId);
-      if (!existing) {
-        continue;
-      }
-
-      byOrgId.set(entry.orgId, {
-        ...existing,
-        name: entry.workspace?.name?.trim() || existing.name,
-      });
-    }
+    applyResolvedWorkspaceRecords(byOrgId, workspaces);
   }
 
   return Array.from(byOrgId.values()).sort((left, right) =>

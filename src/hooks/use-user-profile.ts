@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { doc, onSnapshot } from 'firebase/firestore';
+import type { WorkspaceRole } from '@/lib/enterprise/workspace';
 import type { RegisterEntitlement } from '@/lib/register-first/types';
 
 export interface WorkspaceMembership {
   orgId: string;
   orgName: string;
-  role: 'EXTERNAL_OFFICER' | 'ADMIN' | 'REVIEWER' | 'MEMBER';
+  role: WorkspaceRole;
 }
 
 export interface UserProfile {

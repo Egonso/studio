@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { buildAgentKitScopeOptions } from '@/lib/agent-kit/scope-options';
 import { listUserWorkspaces } from '@/lib/workspace-admin';
 import { requireUser, ServerAuthError } from '@/lib/server-auth';
 
@@ -20,27 +21,15 @@ export async function GET(req: NextRequest) {
     const user = await requireUser(req.headers.get('authorization'), {
       enforceSessionAge: false,
     });
-    const workspacesResult = await Promise.resolve(listUserWorkspaces(user.uid))
-      .then((workspaces) => ({ ok: true as const, workspaces }))
+    const workspaces = await Promise.resolve(listUserWorkspaces(user.uid))
       .catch((error) => {
         console.error('Workspace list route workspace lookup failed:', error);
-        return { ok: false as const, workspaces: [] };
+        return [];
       });
-
-    const scopeOptions = [
-      {
-        orgId: user.uid,
-        orgName: 'Mein Register',
-        role: 'OWNER' as const,
-      },
-      ...workspacesResult.workspaces
-        .filter((workspace) => workspace.orgId !== user.uid)
-        .map((workspace) => ({
-          orgId: workspace.orgId,
-          orgName: workspace.name,
-          role: workspace.role,
-        })),
-    ];
+    const scopeOptions = buildAgentKitScopeOptions({
+      userId: user.uid,
+      workspaces,
+    });
 
     return NextResponse.json({
       workspaces: scopeOptions,

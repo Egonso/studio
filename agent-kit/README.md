@@ -74,30 +74,40 @@ docs/agent-workflows/<slug>/
 
 ## Direct submission to KI-Register
 
-Once the team has created a personal Agent Kit API key for either `Mein Register` or a workspace scope, the CLI can submit a confirmed `manifest.json` directly into KI-Register so the team lead sees a real use case on the website.
+Once the team has created a scoped Agent Kit API key for either `Mein Register` or a workspace scope, the CLI can submit a confirmed `manifest.json` directly into KI-Register so the team lead sees a real use case on the website.
+
+<p align="center">
+  <img src="./assets/direct-submit-flow.svg" alt="Direct submission flow from agent workflow to KI-Register" width="100%" />
+</p>
 
 Direct path:
 
 1. Choose the target scope: personal register or workspace.
-2. Create one personal API key for that scope.
+2. Create one scoped Agent Kit API key for that scope.
 3. Confirm the generated `manifest.json`.
 4. Submit it to KI-Register with `studio-agent submit`.
 5. Review the real use case card on the website.
 
 ### One-time workspace setup
 
-Use the signed-in control area to create a personal API key and choose the target register.
+Use the signed-in control area to create a scoped API key and choose the target register.
+
+<p align="center">
+  <img src="./assets/workspace-api-keys.svg" alt="Workspace API key panel" width="100%" />
+</p>
 
 ### Submit command
 
 ```bash
-export KI_REGISTER_API_KEY="akv1.<workspaceId>.<keyId>.<secret>"
+export KI_REGISTER_API_KEY="akv1.<scopeId>.<keyId>.<secret>"
 export KI_REGISTER_REGISTER_ID="reg_123"
 
 node ./bin/studio-agent.mjs submit \
   ./docs/agent-workflows/<slug>/manifest.json \
   --endpoint "https://kiregister.com/api/agent-kit/submit"
 ```
+
+`scopeId` is the selected target scope: your own user id for `Mein Register` or the workspace id for a workspace scope.
 
 ### What this means for non-technical teams
 

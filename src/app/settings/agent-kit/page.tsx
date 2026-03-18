@@ -21,9 +21,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
-import { useUserProfile, type WorkspaceMembership } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
+import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
 interface AgentKitApiKeyRow {
@@ -57,7 +59,7 @@ interface WorkspaceAgentKitKeysResponse {
 }
 
 interface WorkspaceListResponse {
-  workspaces: WorkspaceMembership[];
+  workspaces: AgentKitScopeOption[];
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -100,11 +102,12 @@ export default function AgentKitSettingsPage() {
   const workspaceScope = useWorkspaceScope();
 
   const [workspaceId, setWorkspaceIdState] = useState<string | null>(null);
-  const [workspaceOptions, setWorkspaceOptions] = useState<WorkspaceMembership[]>([]);
+  const [workspaceOptions, setWorkspaceOptions] = useState<AgentKitScopeOption[]>([]);
   const [keys, setKeys] = useState<AgentKitApiKeyRow[]>([]);
   const [registers, setRegisters] = useState<AgentKitRegisterOption[]>([]);
   const [submitEndpoint, setSubmitEndpoint] = useState('/api/agent-kit/submit');
   const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
+  const [workspaceOptionsError, setWorkspaceOptionsError] = useState<string | null>(null);
   const [label, setLabel] = useState('');
   const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
@@ -134,7 +137,6 @@ export default function AgentKitSettingsPage() {
         currentWorkspaceId ??
         profile.workspaces?.[0]?.orgId ??
         profile.workspaceOrgIds?.[0] ??
-        user?.uid ??
         null
       );
     });
@@ -143,13 +145,18 @@ export default function AgentKitSettingsPage() {
   const legacyWorkspaces = useMemo(() => {
     const knownMemberships = profile?.workspaces ?? [];
     const fallbackIds = profile?.workspaceOrgIds ?? [];
-    const options = new Map<string, WorkspaceMembership>();
+    const options = new Map<string, AgentKitScopeOption>();
 
     for (const workspace of knownMemberships) {
       if (!workspace?.orgId) {
         continue;
       }
-      options.set(workspace.orgId, workspace);
+      options.set(workspace.orgId, {
+        orgId: workspace.orgId,
+        orgName: workspace.orgName,
+        role: workspace.role,
+        scopeType: workspace.orgId === user?.uid ? 'personal' : 'workspace',
+      });
     }
 
     for (const orgId of fallbackIds) {
@@ -163,6 +170,7 @@ export default function AgentKitSettingsPage() {
             ? resolvedWorkspaceName
             : orgId,
         role: profile?.workspaceRolesByOrg?.[orgId] ?? 'MEMBER',
+        scopeType: orgId === user?.uid ? 'personal' : 'workspace',
       });
     }
 
@@ -171,6 +179,7 @@ export default function AgentKitSettingsPage() {
         orgId: workspaceId,
         orgName: resolvedWorkspaceName ?? workspaceId,
         role: profile?.workspaceRolesByOrg?.[workspaceId] ?? 'MEMBER',
+        scopeType: workspaceId === user?.uid ? 'personal' : 'workspace',
       });
     }
 
@@ -180,11 +189,12 @@ export default function AgentKitSettingsPage() {
     profile?.workspaceRolesByOrg,
     profile?.workspaces,
     resolvedWorkspaceName,
+    user?.uid,
     workspaceId,
   ]);
 
   const workspaces = useMemo(() => {
-    const options = new Map<string, WorkspaceMembership>();
+    const options = new Map<string, AgentKitScopeOption>();
 
     for (const workspace of workspaceOptions) {
       options.set(workspace.orgId, workspace);
@@ -196,16 +206,8 @@ export default function AgentKitSettingsPage() {
       }
     }
 
-    if (options.size === 0 && user?.uid) {
-      options.set(user.uid, {
-        orgId: user.uid,
-        orgName: 'Mein Register',
-        role: 'ADMIN',
-      });
-    }
-
     return Array.from(options.values());
-  }, [legacyWorkspaces, user?.uid, workspaceOptions]);
+  }, [legacyWorkspaces, workspaceOptions]);
 
   useEffect(() => {
     if (workspaceId || workspaces.length === 0) {
@@ -224,8 +226,10 @@ export default function AgentKitSettingsPage() {
   }, [workspaceId, workspaceScope, workspaces]);
 
   useEffect(() => {
-    setActiveWorkspaceId(workspaceId);
-  }, [workspaceId]);
+    const persistedWorkspaceId =
+      workspaceId && workspaceId !== user?.uid ? workspaceId : null;
+    setActiveWorkspaceId(persistedWorkspaceId);
+  }, [user?.uid, workspaceId]);
 
   const authFetch = useCallback(
     async (input: string, init?: RequestInit) => {
@@ -257,6 +261,9 @@ export default function AgentKitSettingsPage() {
 
   const loadData = useCallback(async () => {
     if (!workspaceId) {
+      setKeys([]);
+      setRegisters([]);
+      setResolvedWorkspaceName(null);
       return;
     }
 
@@ -291,6 +298,7 @@ export default function AgentKitSettingsPage() {
       return;
     }
 
+    setWorkspaceOptionsError(null);
     try {
       const response = await authFetch('/api/workspaces');
       const payload = (await response.json()) as WorkspaceListResponse;
@@ -316,6 +324,11 @@ export default function AgentKitSettingsPage() {
       });
     } catch (loadError) {
       console.error('Failed to load accessible workspaces', loadError);
+      setWorkspaceOptionsError(
+        loadError instanceof Error
+          ? loadError.message
+          : 'Bereiche konnten nicht geladen werden.',
+      );
     }
   }, [authFetch, user, workspaceScope]);
 
@@ -343,6 +356,16 @@ export default function AgentKitSettingsPage() {
     () => resolveAbsoluteUrl(submitEndpoint),
     [submitEndpoint],
   );
+  const selectedScopeRegisterHref = useMemo(
+    () =>
+      buildScopedRegisterHref(
+        selectedWorkspace?.scopeType === 'personal'
+          ? null
+          : (selectedWorkspace?.orgId ?? null),
+        { onboarding: true },
+      ),
+    [selectedWorkspace],
+  );
   const commandSnippet = useMemo(() => {
     if (!selectedRegister) {
       return null;
@@ -364,7 +387,6 @@ export default function AgentKitSettingsPage() {
 
   const handleWorkspaceChange = (nextWorkspaceId: string) => {
     setWorkspaceIdState(nextWorkspaceId);
-    setActiveWorkspaceId(nextWorkspaceId);
     setLatestApiKey(null);
   };
 
@@ -478,8 +500,8 @@ export default function AgentKitSettingsPage() {
     <SignedInAreaFrame
       area="signed_in_free_register"
       title="Agent Kit API Keys"
-      description="Der klare Ort für persönliche Agent-Kit-API-Keys, Ziel-Register und copy-paste-fertige Einreichungsbefehle."
-      nextStep="Erstellen Sie zuerst einen persönlichen Key und geben Sie ihn nur an den technischen Agent-Workflow weiter."
+      description="Der klare Ort fuer scoped Agent-Kit-API-Keys, Ziel-Register und copy-paste-fertige Einreichungsbefehle."
+      nextStep="Erstellen Sie zuerst einen scoped Key und geben Sie ihn nur an den technischen Agent-Workflow weiter."
       width="6xl"
       actions={
         <>
@@ -510,7 +532,7 @@ export default function AgentKitSettingsPage() {
         <div className="grid gap-4 lg:grid-cols-3">
           <Card>
             <CardHeader className="pb-3">
-                <CardDescription>Aktiver Workspace</CardDescription>
+              <CardDescription>Aktiver Bereich</CardDescription>
               <CardTitle className="text-2xl">
                 {selectedWorkspace?.orgName ?? resolvedWorkspaceName ?? workspaces[0]?.orgName ?? 'Nicht gewählt'}
               </CardTitle>
@@ -521,18 +543,30 @@ export default function AgentKitSettingsPage() {
                 onValueChange={handleWorkspaceChange}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Workspace wählen" />
+                  <SelectValue placeholder="Bereich waehlen" />
                 </SelectTrigger>
                 <SelectContent>
-                  {workspaces.map((workspace: WorkspaceMembership) => (
+                  {workspaces.map((workspace) => (
                     <SelectItem key={workspace.orgId} value={workspace.orgId}>
                       {workspace.orgName}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {workspaceOptionsError ? (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  <p>{workspaceOptionsError}</p>
+                  <Button
+                    variant="outline"
+                    className="mt-3"
+                    onClick={() => void loadWorkspaces()}
+                  >
+                    Bereiche erneut laden
+                  </Button>
+                </div>
+              ) : null}
               {workspaces.length === 0 ? (
-              <p className="mt-3 text-sm leading-6 text-slate-600">
+                <p className="mt-3 text-sm leading-6 text-slate-600">
                   Falls hier nichts erscheint, gibt es weder einen Workspace noch ein
                   persoenliches Register in diesem Account.
                 </p>
@@ -549,6 +583,18 @@ export default function AgentKitSettingsPage() {
               <p className="text-sm leading-6 text-slate-600">
                 Nur verknüpfte Register können direkte Agent-Kit-Einreichungen aufnehmen.
               </p>
+              {workspaceId && registers.length === 0 ? (
+                <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                  <p>
+                    {selectedWorkspace?.scopeType === 'personal'
+                      ? 'Fuer Mein Register gibt es noch kein Register. Legen Sie zuerst ein Register an, dann erscheint es hier als Ziel fuer Ihren API-Key.'
+                      : 'Fuer diesen Workspace gibt es noch kein verknuepftes Register. Oeffnen Sie zuerst den passenden Bereich und richten Sie dort ein Register ein oder verknuepfen Sie es.'}
+                  </p>
+                  <Button asChild variant="outline" className="mt-3">
+                    <Link href={selectedScopeRegisterHref}>Register oeffnen</Link>
+                  </Button>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
 
@@ -569,10 +615,10 @@ export default function AgentKitSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <KeyRound className="h-5 w-5" />
-              Persönlichen API-Key erstellen
+              Scoped API-Key erstellen
             </CardTitle>
             <CardDescription>
-              Technische Teams richten das einmal ein. Teamleads brauchen später nur den sichtbaren Fall im KI-Register.
+              Technische Teams richten das einmal ein. Teamleads brauchen spaeter nur den sichtbaren Fall im KI-Register.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -42,7 +42,7 @@ const responseExample = `{
 
 const curlExample = `curl -X POST "${endpoint}" \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer akv1.<workspaceId>.<keyId>.<secret>" \\
+  -H "Authorization: Bearer akv1.<scopeId>.<keyId>.<secret>" \\
   -d '{
     "registerId": "reg_123",
     "manifest": {
@@ -161,8 +161,8 @@ export default function DevelopersAgentKitPage() {
                   1 Scope
                 </p>
                 <p className="mt-2 text-sm leading-7 text-slate-700">
-                  Choose either a personal register or a real workspace scope and create one
-                  personal API key for that scope.
+                  Choose either `Mein Register` or a workspace scope and create one scoped
+                  Agent Kit API key for that target.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 p-4">
@@ -203,9 +203,9 @@ export default function DevelopersAgentKitPage() {
               Authentication
             </p>
             <p className="mt-3 text-sm leading-7 text-slate-700">
-              Each user creates a personal Agent Kit API key for either a personal register
-              or a workspace scope. The key is then passed as a bearer token or `x-api-key`
-              header for submissions.
+              Each user creates one scoped Agent Kit API key for `Mein Register` or for a
+              workspace. The key is then passed as a bearer token or `x-api-key` header for
+              submissions.
             </p>
           </article>
 
@@ -268,16 +268,16 @@ export default function DevelopersAgentKitPage() {
               Create the key while signed in
             </h3>
             <p className="mt-3 text-sm leading-7 text-slate-700">
-              There is a dedicated signed-in screen for this now. Choose the active personal
-              or workspace scope, select the target register, create your key, and copy the
-              exact command block for your agent or CI setup.
+              There is a dedicated signed-in screen for this now. Choose the active scope,
+              select the target register, create your scoped key, and copy the exact command
+              block for your agent or CI setup.
             </p>
             <div className="mt-5 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-sm font-medium text-slate-900">What you configure once</p>
               <ul className="space-y-2 text-sm leading-7 text-slate-700">
-                <li>Choose `Mein Register` or a workspace.</li>
+                <li>Choose `Mein Register` or a workspace scope.</li>
                 <li>Select the linked target register.</li>
-                <li>Create one personal API key.</li>
+                <li>Create one scoped Agent Kit API key.</li>
                 <li>Copy the ready-to-use submit command for your agent.</li>
               </ul>
             </div>

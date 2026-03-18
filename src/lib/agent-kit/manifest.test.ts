@@ -122,3 +122,13 @@ test('buildSubmittedUseCaseUrls builds a scoped KI-Register detail URL', () => {
   assert.match(urls.detailPath, /ws_demo/);
   assert.match(urls.detailUrl, /^https?:\/\//);
 });
+
+test('buildSubmittedUseCaseUrls omits the workspace query for personal scope', () => {
+  const urls = buildSubmittedUseCaseUrls({
+    useCaseId: 'uc_agent_kit_personal',
+    workspaceId: null,
+  });
+
+  assert.equal(urls.detailPath, '/my-register/uc_agent_kit_personal');
+  assert.match(urls.detailUrl, /\/my-register\/uc_agent_kit_personal$/);
+});

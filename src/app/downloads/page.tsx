@@ -233,6 +233,13 @@ export default function DownloadsPage() {
             <ArrowUpRight className="h-4 w-4" />
             Volle Erklärung
           </a>
+          <a
+            href={agentKitSettingsHref}
+            className="mt-4 ml-3 inline-flex items-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+          >
+            <ArrowUpRight className="h-4 w-4" />
+            API-Key einrichten
+          </a>
         </section>
 
         <section className="mt-8 rounded-2xl border border-slate-900 bg-white p-6 text-slate-950 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
