@@ -1,4 +1,5 @@
 import { EngineContext, ActionItem } from '../types';
+import { parseStoredAiActCategory } from '@/lib/register-first/risk-taxonomy';
 
 /**
  * Calculates the Transparency Index (0-100)
@@ -23,7 +24,11 @@ export function evaluateTransparency(context: EngineContext): { index: number; a
     }
 
     // 2. Uncategorized / Unknown Uses Cases in the Registry reduce Transparency
-    const unclassifiedCount = context.useCases.filter(uc => !uc.governanceAssessment?.core?.aiActCategory || uc.governanceAssessment.core.aiActCategory === 'Unbekannt').length;
+    const unclassifiedCount = context.useCases.filter(
+        (uc) =>
+            parseStoredAiActCategory(uc.governanceAssessment?.core?.aiActCategory) ===
+            'UNASSESSED',
+    ).length;
     if (unclassifiedCount > 0) {
         const penalty = Math.min(50, unclassifiedCount * 10);
         transparencyScore -= penalty;

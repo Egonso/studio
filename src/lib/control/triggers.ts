@@ -1,5 +1,9 @@
 import { calculateReviewDeadline } from "@/lib/compliance-engine/reminders/review-deadline";
 import { calculateControlOverview } from "@/lib/control/maturity-calculator";
+import {
+  isHighRiskClass,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
 import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
 
 export const CONTROL_UPGRADE_MESSAGE =
@@ -35,8 +39,9 @@ function hasOversight(useCase: UseCaseCard): boolean {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  return category.includes("hochrisiko") || category.includes("high risk");
+  return isHighRiskClass(
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory)
+  );
 }
 
 function isExternalFacing(useCase: UseCaseCard): boolean {

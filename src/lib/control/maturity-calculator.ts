@@ -4,6 +4,10 @@ import {
   buildUseCaseFocusLink,
 } from '@/lib/control/deep-link';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import {
+  isHighRiskClass,
+  parseStoredAiActCategory,
+} from '@/lib/register-first/risk-taxonomy';
 
 export const CONTROL_REVIEW_DUE_WINDOW_DAYS = 30;
 
@@ -146,9 +150,9 @@ function isDocumented(useCase: UseCaseCard): boolean {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category =
-    useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? '';
-  return category.includes('hochrisiko') || category.includes('high risk');
+  return isHighRiskClass(
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory),
+  );
 }
 
 function getReviewWindow(

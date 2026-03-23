@@ -43,7 +43,7 @@ export function runTriggersSmoke() {
     ...createBaseUseCase(`uc_trigger_${index + 1}`),
     governanceAssessment: {
       core: {
-        aiActCategory: index === 0 ? "Hochrisiko" : "Minimales Risiko",
+        aiActCategory: index === 0 ? "Hohes Risiko" : "Minimales Risiko",
       },
       flex: {
         iso: {

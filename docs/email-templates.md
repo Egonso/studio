@@ -34,7 +34,7 @@ ein neuer Einsatzfall wurde gerade von {OWNER_NAME} über den Zugangs-Code "{ACC
 **Tool:** {TOOL_NAME}
 **Zweck:** {PURPOSE}
 
-Bitte prüfe diesen Eintrag zeitnah im Dashboard und führe den automatisierten Compliance-Check durch, um die Risikoklasse zu bewerten:
+Bitte pruefe diesen Eintrag zeitnah im Dashboard und dokumentiere die Risikoklasse ueber die kurze menschliche Pruefung auf der Detailseite:
 {USE_CASE_DASHBOARD_LINK}
 
 Viele Grüße,

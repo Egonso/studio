@@ -15,12 +15,26 @@ const DraftAssessmentSchema = z.object({
     purpose: safePlainTextSchema('Einsatzzweck', { max: 4000 }).optional(),
     usageContexts: z.array(safePlainTextSchema('Nutzungskontext', { max: 160 })).max(25).optional().default([]),
     dataCategories: z.array(safePlainTextSchema('Datenkategorie', { max: 160 })).max(25).optional().default([]),
+    selectedRiskClass: safePlainTextSchema('Menschliche Einstufung', { max: 160 }).optional(),
+    suggestedRiskClass: safePlainTextSchema('Vorgeschlagene Einstufung', { max: 160 }).optional(),
+    reasons: z.array(safePlainTextSchema('Begruendung', { max: 300 })).max(10).optional().default([]),
+    openQuestions: z.array(safePlainTextSchema('Offene Frage', { max: 300 })).max(10).optional().default([]),
 });
 
 export async function POST(req: Request) {
     try {
         const actor = await requireUser(req.headers.get("authorization"));
-        const { systemName, vendor, purpose, usageContexts, dataCategories } =
+        const {
+            systemName,
+            vendor,
+            purpose,
+            usageContexts,
+            dataCategories,
+            selectedRiskClass,
+            suggestedRiskClass,
+            reasons,
+            openQuestions,
+        } =
           DraftAssessmentSchema.parse(await req.json());
 
         if (!systemName && !purpose) {
@@ -52,18 +66,27 @@ export async function POST(req: Request) {
             purpose ? `Einsatzzweck: ${purpose}` : "",
             usageContexts?.length ? `Nutzungskontexte: ${usageContexts.join(', ')}` : "",
             dataCategories?.length ? `Datenkategorien: ${dataCategories.join(', ')}` : "",
+            selectedRiskClass ? `Menschlich gewaehlte Einstufung: ${selectedRiskClass}` : "",
+            suggestedRiskClass ? `Assist-Vorschlag: ${suggestedRiskClass}` : "",
+            reasons?.length ? `Begruendende Signale: ${reasons.join('; ')}` : "",
+            openQuestions?.length ? `Offene Fragen: ${openQuestions.join('; ')}` : "",
         ].filter(Boolean).join('\n');
 
-        const prompt = `Erstelle einen objektiven juristischen Bewertungs-Draft (Pre-Audit) für folgendes KI-System im Kontext des EU AI Acts:
+        const prompt = `Erstelle eine kurze, editierbare Begruendungshilfe fuer eine menschliche Risikoeinschaetzung im Kontext des EU AI Acts.
         
 ${contextInfo}
 
-Schreibe maximal 3 kurze, prägnante Absätze auf Deutsch, die objektiv das System bewerten. 
-- Absatz 1: Kurze Zusammenfassung der Kernfunktion und des Einsatzzwecks.
-- Absatz 2: Ersteinschätzung zur Risikoklasse nach EU AI Act (z.B. vermutlich Minimales Risiko, potenziell Hochrisiko nach Anhang III, etc.) mit kurzer Begründung.
-- Absatz 3: Wichtige erste Handlungsempfehlungen für die Governance (z. B. "Human in the Loop sicherstellen", "Auf Transparenz achten").
+Wichtige Grenze:
+- Das ist nur ein Entwurf fuer eine Begruendung.
+- Triff keine finale rechtliche oder governance-seitige Entscheidung.
+- Wenn der Kontext offen ist, formuliere mit Vorbehalt und benenne die Unsicherheit.
 
-Verwende einen sachlichen, gutachtlichen Stil. Keine Floskeln, keine Einleitung wie "Gewiss, hier ist...". Der Text soll direkt in ein offizielles Assessment-Dokument eingefügt und editiert werden können.`;
+Schreibe maximal 3 kurze, praegnante Absaetze auf Deutsch:
+- Absatz 1: knappe sachliche Zusammenfassung von Funktion und Einsatzzweck.
+- Absatz 2: editierbare Begruendung, welche Einordnung derzeit naheliegt oder diskutiert wird, mit klarer Vorbehaltsformulierung.
+- Absatz 3: kurzer Governance-Hinweis oder eine offene Prueffrage.
+
+Verwende einen sachlichen, gutachtlichen Stil. Keine Floskeln. Keine Einleitung wie "Gerne" oder "Hier ist". Der Text soll direkt in ein offizielles Assessment-Dokument eingefuegt und weiterbearbeitet werden koennen.`;
 
         const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
@@ -76,7 +99,7 @@ Verwende einen sachlichen, gutachtlichen Stil. Keine Floskeln, keine Einleitung 
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are an objective legal AI compliance assistant specialized in the EU AI Act. You provide concise, professional pre-audit assessments.'
+                        content: 'You are an objective legal AI compliance assistant specialized in the EU AI Act. You provide concise, professional reasoning drafts for human reviewers. You do not make final governance decisions.'
                     },
                     {
                         role: 'user',

@@ -12,12 +12,19 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import {
+    getDisplayedRiskClassLabel,
+    isHighRiskClass,
+    parseStoredAiActCategory,
+} from '@/lib/register-first/risk-taxonomy';
 import type { UseCaseCard } from '@/lib/register-first/types';
 import { resolveDecisionInfluence, DECISION_INFLUENCE_LABELS } from '@/lib/register-first/types';
 
 /** Check if a use case qualifies as high-risk */
 function isHighRisk(uc: UseCaseCard): boolean {
-    const isHochrisiko = uc.governanceAssessment?.core?.aiActCategory === 'Hochrisiko';
+    const isHochrisiko = isHighRiskClass(
+        parseStoredAiActCategory(uc.governanceAssessment?.core?.aiActCategory)
+    );
     const isAutomated = resolveDecisionInfluence(uc) === 'AUTOMATED';
     return isHochrisiko || isAutomated;
 }
@@ -46,7 +53,10 @@ export const highRiskSection: SectionDefinition = {
         ];
 
         for (const uc of affected) {
-            const cat = uc.governanceAssessment?.core?.aiActCategory || '–';
+            const cat = getDisplayedRiskClassLabel({
+                aiActCategory: uc.governanceAssessment?.core?.aiActCategory,
+                short: true,
+            });
             const influence = resolveDecisionInfluence(uc);
             const influenceLabel = influence ? DECISION_INFLUENCE_LABELS[influence] : '–';
             lines.push(

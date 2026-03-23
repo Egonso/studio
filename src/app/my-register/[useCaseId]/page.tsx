@@ -7,6 +7,8 @@ import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
 import { RegisterStatusPill } from '@/components/register/detail/status-pill';
+import { UseCaseAssessmentWizard } from '@/components/register/detail/use-case-assessment-wizard';
+import type { RiskReviewLaunchContext } from '@/components/register/detail/use-case-assessment-wizard-model';
 import { UseCaseMetadataSection } from '@/components/register/detail/use-case-metadata-section';
 import { UseCaseSystemsComplianceSection } from '@/components/register/detail/use-case-systems-compliance-section';
 import { UseCaseWorkflowSection } from '@/components/register/detail/use-case-workflow-section';
@@ -56,6 +58,9 @@ export default function UseCaseDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isRiskReviewOpen, setIsRiskReviewOpen] = useState(false);
+  const [riskReviewContext, setRiskReviewContext] =
+    useState<RiskReviewLaunchContext | null>(null);
   const [showDesktopEditBar, setShowDesktopEditBar] = useState(false);
   const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(
     null,
@@ -374,6 +379,23 @@ export default function UseCaseDetailPage() {
           isEditing={isEditing}
           onSave={handleSaveMetadata}
           focusTarget={activeFocus}
+          onOpenRiskReview={(context) => {
+            setRiskReviewContext(context);
+            setIsRiskReviewOpen(true);
+          }}
+        />
+
+        <UseCaseAssessmentWizard
+          card={card}
+          open={isRiskReviewOpen}
+          onOpenChange={(open) => {
+            setIsRiskReviewOpen(open);
+            if (!open) {
+              setRiskReviewContext(null);
+            }
+          }}
+          onComplete={loadUseCase}
+          launchContext={riskReviewContext}
         />
 
         {systemSectionMode === 'multi' ? (

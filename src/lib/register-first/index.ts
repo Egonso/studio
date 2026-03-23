@@ -13,6 +13,8 @@ export * from "./output";
 export * from "./proof-pack";
 export * from "./verify-link";
 export * from "./tool-registry-types";
+export * from "./risk-taxonomy";
+export * from "./risk-suggestion-engine";
 export * from "./tool-registry-service";
 export * from "./id-generation";
 export * from "./migration";

@@ -1,6 +1,10 @@
 import { calculateReviewDeadline } from "@/lib/compliance-engine/reminders/review-deadline";
 import { buildUseCaseFocusLink } from "@/lib/control/deep-link";
 import { calculateControlOverview } from "@/lib/control/maturity-calculator";
+import {
+  isHighRiskClass,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
 import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
 import type {
   OrgSettings,
@@ -103,8 +107,9 @@ function hasDocumentationLevel(useCase: UseCaseCard): boolean {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  return category.includes("hochrisiko") || category.includes("high risk");
+  return isHighRiskClass(
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory)
+  );
 }
 
 function pickDeepLink(

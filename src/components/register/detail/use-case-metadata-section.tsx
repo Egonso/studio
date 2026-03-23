@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RiskClassAssist } from "@/components/register/detail/risk-class-assist";
 import { useToast } from "@/hooks/use-toast";
 import type { ControlFocusTarget } from "@/lib/control/deep-link";
 import type {
@@ -24,13 +27,32 @@ import {
   USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first/types";
 import {
+  getRiskClassShortLabel,
+  registerFirstFlags,
   createAiToolsRegistryService,
-  riskLevelLabels,
+  getDisplayedRiskClassLabel,
+  getRiskClassEditorValue,
+  normalizeStoredAiActCategory,
 } from "@/lib/register-first";
 import {
   applyDataCategoryLogic,
   toggleMultiSelect,
 } from "@/lib/register-first/capture-selections";
+import {
+  applyRiskManualSelection,
+  buildRiskSuggestionForEditDraft,
+  CUSTOM_RISK_SELECTION,
+  getRiskAssistCurrentDisplayLabel,
+  getRiskManualOptionDescription,
+  getRiskManualOptionLabel,
+  getRiskManualSelectionValue,
+  hasCustomRiskSelection,
+  RISK_CLASS_MANUAL_OPTIONS,
+} from "./risk-class-assist-model";
+import {
+  buildRiskReviewLaunchContext,
+  type RiskReviewLaunchContext,
+} from "./use-case-assessment-wizard-model";
 import { cn } from "@/lib/utils";
 
 const aiRegistry = createAiToolsRegistryService();
@@ -54,6 +76,7 @@ interface UseCaseMetadataSectionProps {
   isEditing: boolean;
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
   focusTarget?: ControlFocusTarget | null;
+  onOpenRiskReview?: (context: RiskReviewLaunchContext) => void;
 }
 
 interface UseCaseEditDraft {
@@ -74,10 +97,12 @@ export function UseCaseMetadataSection({
   isEditing,
   onSave,
   focusTarget = null,
+  onOpenRiskReview,
 }: UseCaseMetadataSectionProps) {
   const router = useRouter();
   const { toast } = useToast();
   const readOnlyHintAtRef = useRef(0);
+  const riskSelectionRef = useRef<HTMLDivElement | null>(null);
 
   const [editDraft, setEditDraft] = useState<UseCaseEditDraft>(() => ({
     purpose: card.purpose,
@@ -91,15 +116,24 @@ export function UseCaseMetadataSection({
       : (["INTERNAL_ONLY"] as CaptureUsageContext[]),
     dataCategories: resolveDataCategories(card),
     decisionInfluence: resolveDecisionInfluence(card) ?? null,
-    aiActCategory: card.governanceAssessment?.core?.aiActCategory ?? "",
+    aiActCategory: getRiskClassEditorValue(
+      card.governanceAssessment?.core?.aiActCategory
+    ),
   }));
   const [isSaving, setIsSaving] = useState(false);
   const [specialOpen, setSpecialOpen] = useState(false);
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
-  const riskClass =
-    card.governanceAssessment?.core?.aiActCategory ??
-    (toolEntry ? riskLevelLabels[toolEntry.riskLevel] : "Unbekannt");
+  const draftToolEntry =
+    editDraft.toolId && editDraft.toolId !== "other"
+      ? aiRegistry.getById(editDraft.toolId)
+      : null;
+  const riskAssistEnabled = registerFirstFlags.riskAssistDetail;
+  const riskClass = getDisplayedRiskClassLabel({
+    aiActCategory: card.governanceAssessment?.core?.aiActCategory,
+    toolRiskLevel: toolEntry?.riskLevel ?? null,
+    short: true,
+  });
   const usageScope = card.usageContexts.length
     ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
     : "Nicht angegeben";
@@ -118,6 +152,22 @@ export function UseCaseMetadataSection({
   const contactPersonLabel =
     card.responsibility.contactPersonName?.trim() || "Nicht hinterlegt";
   const focusClassName = "border-l-2 border-slate-300 pl-3";
+  const riskSuggestion = useMemo(
+    () =>
+      buildRiskSuggestionForEditDraft(editDraft, draftToolEntry?.riskLevel ?? null),
+    [draftToolEntry?.riskLevel, editDraft],
+  );
+  const manualRiskSelectionValue = getRiskManualSelectionValue(
+    editDraft.aiActCategory,
+  );
+  const hasCustomRiskValue = hasCustomRiskSelection(editDraft.aiActCategory);
+  const currentRiskDisplayLabel = getRiskAssistCurrentDisplayLabel(
+    editDraft.aiActCategory,
+  );
+  const currentRiskClassForAssist =
+    manualRiskSelectionValue !== CUSTOM_RISK_SELECTION
+      ? manualRiskSelectionValue
+      : null;
 
   useEffect(() => {
     setEditDraft({
@@ -132,7 +182,9 @@ export function UseCaseMetadataSection({
         : (["INTERNAL_ONLY"] as CaptureUsageContext[]),
       dataCategories: resolveDataCategories(card),
       decisionInfluence: resolveDecisionInfluence(card) ?? null,
-      aiActCategory: card.governanceAssessment?.core?.aiActCategory ?? "",
+      aiActCategory: getRiskClassEditorValue(
+        card.governanceAssessment?.core?.aiActCategory
+      ),
     });
   }, [card]);
 
@@ -146,6 +198,43 @@ export function UseCaseMetadataSection({
         'Zum Ändern zuerst "Stammdaten bearbeiten" klicken.',
     });
   }, [toast]);
+
+  const focusManualSelection = useCallback(() => {
+    riskSelectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, []);
+
+  const handleAdoptRiskSuggestion = useCallback(() => {
+    setEditDraft((prev) => ({
+      ...prev,
+      aiActCategory: applyRiskManualSelection(riskSuggestion.suggestedRiskClass),
+    }));
+    focusManualSelection();
+  }, [focusManualSelection, riskSuggestion.suggestedRiskClass]);
+
+  const handleSelectManualRiskClass = useCallback(
+    (nextValue: string) => {
+      if (!RISK_CLASS_MANUAL_OPTIONS.includes(nextValue as (typeof RISK_CLASS_MANUAL_OPTIONS)[number])) {
+        return;
+      }
+
+      setEditDraft((prev) => ({
+        ...prev,
+        aiActCategory: applyRiskManualSelection(
+          nextValue as (typeof RISK_CLASS_MANUAL_OPTIONS)[number],
+        ),
+      }));
+    },
+    [],
+  );
+
+  const handleOpenRiskReview = useCallback(() => {
+    onOpenRiskReview?.(
+      buildRiskReviewLaunchContext(editDraft, draftToolEntry?.riskLevel ?? null),
+    );
+  }, [draftToolEntry?.riskLevel, editDraft, onOpenRiskReview]);
 
   const handleSave = async () => {
     if (isSaving) {
@@ -162,6 +251,9 @@ export function UseCaseMetadataSection({
       const normalizedResponsibleParty = editDraft.responsibleParty.trim();
       const normalizedContactPersonName = editDraft.contactPersonName.trim();
       const normalizedOrganisation = editDraft.organisation.trim();
+      const normalizedAiActCategory = normalizeStoredAiActCategory(
+        editDraft.aiActCategory
+      );
 
       await onSave({
         purpose: editDraft.purpose.trim(),
@@ -185,7 +277,7 @@ export function UseCaseMetadataSection({
           ...card.governanceAssessment,
           core: {
             ...card.governanceAssessment?.core,
-            aiActCategory: editDraft.aiActCategory.trim() || null,
+            aiActCategory: normalizedAiActCategory,
           },
           flex: {
             ...card.governanceAssessment?.flex,
@@ -291,7 +383,7 @@ export function UseCaseMetadataSection({
               className="rounded-md border border-slate-200 bg-white px-4 py-3"
               onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
             >
-              {isEditing ? (
+              {isEditing && !riskAssistEnabled ? (
                 <Input
                   value={editDraft.aiActCategory}
                   onChange={(event) =>
@@ -300,8 +392,91 @@ export function UseCaseMetadataSection({
                       aiActCategory: event.target.value,
                     }))
                   }
-                  placeholder="z. B. Transparenz-Risiko"
+                  placeholder="z. B. Begrenztes Risiko oder Hochrisiko"
                 />
+              ) : isEditing ? (
+                <div className="space-y-4">
+                  <RiskClassAssist
+                    currentRiskClass={currentRiskClassForAssist}
+                    currentDisplayLabel={currentRiskDisplayLabel}
+                    isHumanConfirmed={Boolean(currentRiskDisplayLabel)}
+                    suggestion={riskSuggestion}
+                    onAdoptSuggestion={handleAdoptRiskSuggestion}
+                    onStartManualSelection={focusManualSelection}
+                    onOpenReview={handleOpenRiskReview}
+                  />
+
+                  {hasCustomRiskValue && (
+                    <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                      <p className="font-medium text-slate-900">Bestehende Freitext-Einstufung</p>
+                      <p className="mt-1">
+                        Aktuell ist "{editDraft.aiActCategory.trim()}" hinterlegt.
+                        Eine neue Auswahl ersetzt diesen Wert durch eine kanonische Klasse.
+                      </p>
+                    </div>
+                  )}
+
+                  <div
+                    ref={riskSelectionRef}
+                    className="rounded-md border border-slate-200 bg-white px-4 py-4"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-slate-800">
+                        Finale sichtbare Einstufung
+                      </p>
+                      <p className="text-sm text-slate-600">
+                        Nur Vorschlag. Die finale Einstufung bleibt eine menschliche Entscheidung.
+                      </p>
+                    </div>
+
+                    <RadioGroup
+                      value={
+                        manualRiskSelectionValue === CUSTOM_RISK_SELECTION
+                          ? ""
+                          : manualRiskSelectionValue
+                      }
+                      onValueChange={handleSelectManualRiskClass}
+                      className="mt-4 gap-2"
+                    >
+                      {RISK_CLASS_MANUAL_OPTIONS.map((option) => {
+                        const isSelected = manualRiskSelectionValue === option;
+                        return (
+                          <Label
+                            key={option}
+                            htmlFor={`risk-class-${option}`}
+                            className={cn(
+                              "flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 px-3 py-3 transition-colors",
+                              isSelected && "border-slate-900 bg-slate-50",
+                            )}
+                          >
+                            <RadioGroupItem
+                              id={`risk-class-${option}`}
+                              value={option}
+                              className="mt-0.5"
+                            />
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-slate-900">
+                                {option === "UNASSESSED"
+                                  ? getRiskClassShortLabel(option)
+                                  : getRiskManualOptionLabel(option)}
+                              </p>
+                              <p className="text-sm text-slate-600">
+                                {getRiskManualOptionDescription(option)}
+                              </p>
+                            </div>
+                          </Label>
+                        );
+                      })}
+                    </RadioGroup>
+
+                    <p className="mt-4 text-xs text-slate-500">
+                      Gespeichert wird weiter im bestehenden Feld
+                      {" "}
+                      <code>governanceAssessment.core.aiActCategory</code>
+                      , aber normalisiert auf die kanonische Darstellung.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <p className="text-[15px] font-medium text-slate-900">{riskClass}</p>
               )}

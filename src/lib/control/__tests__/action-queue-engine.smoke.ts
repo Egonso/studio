@@ -38,7 +38,7 @@ export function runActionQueueEngineSmoke() {
     },
     governanceAssessment: {
       core: {
-        aiActCategory: "Hochrisiko",
+        aiActCategory: "Hohes Risiko",
         oversightDefined: false,
         reviewCycleDefined: false,
       },

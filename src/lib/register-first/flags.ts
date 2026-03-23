@@ -7,6 +7,7 @@ export interface RegisterFirstFeatureFlags {
   multisystemCapture: boolean;
   supplierMultisystemCapture: boolean;
   registerDeletion: boolean;
+  riskAssistDetail: boolean;
   controlShell: boolean;
   controlKpiHeader: boolean;
   controlMaturityModel: boolean;
@@ -32,6 +33,7 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     multisystemCapture: true,
     supplierMultisystemCapture: true,
     registerDeletion: false,
+    riskAssistDetail: false,
     controlShell: true,
     controlKpiHeader: true,
     controlMaturityModel: true,
@@ -73,6 +75,10 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
   registerDeletion: [
     "NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION",
     "REGISTER_FIRST_REGISTER_DELETION",
+  ],
+  riskAssistDetail: [
+    "NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL",
+    "REGISTER_FIRST_RISK_ASSIST_DETAIL",
   ],
   controlShell: [
     "NEXT_PUBLIC_CONTROL_SHELL_ENABLED",
@@ -161,6 +167,7 @@ export function getRegisterFirstFeatureFlags(
       multisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.multisystemCapture,
       supplierMultisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.supplierMultisystemCapture,
       registerDeletion: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION"] ?? env["REGISTER_FIRST_REGISTER_DELETION"]) || registerFirstDefaultFlags.registerDeletion,
+      riskAssistDetail: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL"] ?? env["REGISTER_FIRST_RISK_ASSIST_DETAIL"]) || registerFirstDefaultFlags.riskAssistDetail,
       controlShell: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_SHELL_ENABLED"] ?? env["CONTROL_SHELL_ENABLED"]) || registerFirstDefaultFlags.controlShell,
       controlKpiHeader: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_KPI_HEADER_ENABLED"] ?? env["CONTROL_KPI_HEADER_ENABLED"]) || registerFirstDefaultFlags.controlKpiHeader,
       controlMaturityModel: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_MATURITY_MODEL_ENABLED"] ?? env["CONTROL_MATURITY_MODEL_ENABLED"]) || registerFirstDefaultFlags.controlMaturityModel,
@@ -203,6 +210,9 @@ export function getRegisterFirstFeatureFlags(
     registerDeletion:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION) ||
       registerFirstDefaultFlags.registerDeletion,
+    riskAssistDetail:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL) ||
+      registerFirstDefaultFlags.riskAssistDetail,
     controlShell:
       parseBooleanFlag(process.env.NEXT_PUBLIC_CONTROL_SHELL_ENABLED) ||
       registerFirstDefaultFlags.controlShell,

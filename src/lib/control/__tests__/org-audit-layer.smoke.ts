@@ -58,7 +58,7 @@ export function runOrgAuditLayerSmoke() {
       },
       governanceAssessment: {
         core: {
-          aiActCategory: "Hochrisiko",
+          aiActCategory: "Hohes Risiko",
           oversightDefined: true,
           reviewCycleDefined: true,
           documentationLevelDefined: true,
@@ -106,7 +106,7 @@ export function runOrgAuditLayerSmoke() {
       status: "REVIEW_RECOMMENDED",
       governanceAssessment: {
         core: {
-          aiActCategory: "Hochrisiko",
+          aiActCategory: "Hohes Risiko",
         },
         flex: {
           iso: {
