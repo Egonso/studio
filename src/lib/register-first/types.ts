@@ -325,7 +325,8 @@ export interface UseCaseCard {
       trainingRequired?: boolean;
       policyLinks?: string[];
       incidentProcessDefined?: boolean;
-      customAssessmentText?: string | null; // Used for AI Pre-Audit drafts
+      customAssessmentText?: string | null; // Assessment note, optionally AI-assisted
+      customAssessmentSource?: 'AI_DRAFT' | 'MANUAL' | null;
 
       // Sprint 18: Strict ISO-Micro Schema (Registers-First)
       iso?: {

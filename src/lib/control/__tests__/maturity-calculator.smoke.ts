@@ -51,10 +51,10 @@ function createPartialMaturitySet(now: Date): UseCaseCard[] {
   ).toISOString();
 
   const controlledHighRisk: UseCaseCard = {
-    ...createBaseUseCase('uc_controlled'),
-    governanceAssessment: {
+      ...createBaseUseCase('uc_controlled'),
+      governanceAssessment: {
       core: {
-        aiActCategory: 'Hochrisiko',
+        aiActCategory: 'Hohes Risiko',
         oversightDefined: true,
         reviewCycleDefined: true,
         documentationLevelDefined: true,
@@ -133,7 +133,7 @@ function createAuditReadySet(now: Date): UseCaseCard[] {
       ...createBaseUseCase(id),
       governanceAssessment: {
         core: {
-          aiActCategory: index === 0 ? 'Hochrisiko' : 'Minimales Risiko',
+          aiActCategory: index === 0 ? 'Hohes Risiko' : 'Minimales Risiko',
           oversightDefined: true,
           reviewCycleDefined: true,
           documentationLevelDefined: true,

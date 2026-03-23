@@ -30,7 +30,7 @@ graph TD
 
 | Unterfunktion | Beschreibung |
 |---------------|--------------|
-| **Risikoklassen-Assessment** | Interaktiver Wizard zur Bestimmung der Risikoklasse (Verboten / Hochrisiko / Begrenzt / Minimal) |
+| **Risikoklassen-Einstufungshilfe** | Sichtbarer Vorschlag mit Gruenden, offenen Fragen und menschlicher Bestaetigung direkt im Use-Case-Detail |
 | **Compliance-Status Dashboard** | Echtzeit-Übersicht: Compliant / At Risk / Non-Compliant |
 | **KI-gestützte Checklisten** | Automatisch generierte Aufgabenlisten pro Anforderung |
 | **Task-Bearbeitung** | Deep-Dive in einzelne Aufgaben mit Kontexthilfe |
@@ -138,8 +138,8 @@ journey
       Erstes Projekt anlegen: 4: Nutzer
       Branche & Systemtyp wählen: 4: Nutzer
     section Assessment
-      Risikoklassen-Wizard durchlaufen: 3: Nutzer
-      Compliance-Status erhalten: 5: Nutzer, System
+      Kurze Pruefung zur Einstufung durchfuehren: 3: Nutzer
+      Einordnung dokumentieren: 5: Nutzer, System
     section Governance aufbauen
       ISO 42001 Wizard starten: 3: Nutzer
       Policies erstellen: 3: Nutzer
@@ -160,7 +160,7 @@ journey
 | Phase | Aktion | Ergebnis |
 |-------|--------|----------|
 | **1. Start** | Nutzer registriert sich und erstellt ein Projekt | Projektkontext etabliert |
-| **2. Assessment** | Beantwortet Fragen zu KI-System (Wizard) | Risikoklasse bestimmt (z.B. "Hochrisiko") |
+| **2. Assessment** | Prueft Signale, bestaetigt oder aendert die Einordnung | Menschlich dokumentierte Risikoklasse liegt vor |
 | **3. Dashboard** | Sieht Compliance-Status im Dashboard | Überblick: 3 Compliant, 2 At Risk, 1 Non-Compliant |
 | **4. AI Management** | Startet ISO 42001 Wizard | Scope, Policies, Risiken dokumentiert |
 | **5. Portfolio** | Erfasst alle KI-Projekte | Priorisierung via Value-Risk-Matrix |

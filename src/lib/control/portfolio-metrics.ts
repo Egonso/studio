@@ -1,4 +1,8 @@
 import { buildUseCaseFocusLink } from "@/lib/control/deep-link";
+import {
+  getRiskClassShortLabel,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 
 export type PortfolioRiskBucketKey =
@@ -120,11 +124,11 @@ const STATUS_LABELS: Record<RegisterUseCaseStatus, string> = {
 };
 
 const RISK_BUCKETS: Array<{ key: PortfolioRiskBucketKey; label: string }> = [
-  { key: "PROHIBITED", label: "Verboten" },
-  { key: "HIGH", label: "Hochrisiko" },
-  { key: "LIMITED", label: "Transparenzpflichten" },
-  { key: "MINIMAL", label: "Minimales Risiko" },
-  { key: "UNASSESSED", label: "Nicht eingestuft" },
+  { key: "PROHIBITED", label: getRiskClassShortLabel("PROHIBITED") },
+  { key: "HIGH", label: getRiskClassShortLabel("HIGH") },
+  { key: "LIMITED", label: getRiskClassShortLabel("LIMITED") },
+  { key: "MINIMAL", label: getRiskClassShortLabel("MINIMAL") },
+  { key: "UNASSESSED", label: getRiskClassShortLabel("UNASSESSED") },
 ];
 
 function parseTimestamp(value: string): number {
@@ -180,12 +184,20 @@ function isReviewOverdue(useCase: UseCaseCard, now: Date): boolean {
 }
 
 function riskBucketForUseCase(useCase: UseCaseCard): PortfolioRiskBucketKey {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  if (category.includes("verbot")) return "PROHIBITED";
-  if (category.includes("hochrisiko") || category.includes("high risk")) return "HIGH";
-  if (category.includes("transparenz") || category.includes("limited")) return "LIMITED";
-  if (category.includes("minimal")) return "MINIMAL";
-  return "UNASSESSED";
+  switch (
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory)
+  ) {
+    case "PROHIBITED":
+      return "PROHIBITED";
+    case "HIGH":
+      return "HIGH";
+    case "LIMITED":
+      return "LIMITED";
+    case "MINIMAL":
+      return "MINIMAL";
+    default:
+      return "UNASSESSED";
+  }
 }
 
 function isConcentrationRisk(bucket: PortfolioRiskBucketKey): boolean {
@@ -478,4 +490,3 @@ export function buildPortfolioMetrics(
     riskConcentrationIndex,
   };
 }
-

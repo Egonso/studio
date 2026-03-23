@@ -36,7 +36,7 @@ export function runPortfolioMetricsSmoke() {
       responsibility: { isCurrentlyResponsible: false, responsibleParty: "Alice" },
       status: "UNREVIEWED",
       governanceAssessment: {
-        core: { aiActCategory: "Hochrisiko" },
+        core: { aiActCategory: "Hohes Risiko" },
         flex: {
           iso: {
             reviewCycle: "quarterly",
@@ -74,7 +74,7 @@ export function runPortfolioMetricsSmoke() {
       responsibility: { isCurrentlyResponsible: false, responsibleParty: "Bob" },
       status: "REVIEW_RECOMMENDED",
       governanceAssessment: {
-        core: { aiActCategory: "Transparenzpflichten" },
+        core: { aiActCategory: "Begrenztes Risiko" },
         flex: {
           iso: {
             reviewCycle: "semiannual",
@@ -121,7 +121,9 @@ export function runPortfolioMetricsSmoke() {
   const limitedBucket = metrics.riskDistribution.find((entry) => entry.key === "LIMITED");
   const minimalBucket = metrics.riskDistribution.find((entry) => entry.key === "MINIMAL");
   assert.equal(highRiskBucket?.count, 2);
+  assert.equal(highRiskBucket?.label, "Hochrisiko");
   assert.equal(limitedBucket?.count, 1);
+  assert.equal(limitedBucket?.label, "Begrenztes Risiko");
   assert.equal(minimalBucket?.count, 1);
 
   const hrDepartment = metrics.departmentAnalysis.find((entry) => entry.department === "HR");
@@ -167,4 +169,3 @@ if (isDirectRun) {
     process.exit(1);
   }
 }
-

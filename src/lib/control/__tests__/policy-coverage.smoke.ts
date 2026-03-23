@@ -95,7 +95,7 @@ export function runPolicyCoverageSmoke() {
       ...createBaseUseCase("uc_policy_1"),
       governanceAssessment: {
         core: {
-          aiActCategory: "Hochrisiko",
+          aiActCategory: "Hohes Risiko",
         },
         flex: {
           policyLinks: ["pol_a"],

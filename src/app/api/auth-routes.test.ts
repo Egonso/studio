@@ -66,6 +66,17 @@ test("internal compliance helper routes require authenticated users", () => {
   assert.match(aimsExportRoute, /await requireUser\(request\.headers\.get\('authorization'\)\)/);
 });
 
+test("draft assessment route stays a reasoning aid instead of a final governance decision", () => {
+  assert.match(draftAssessmentRoute, /selectedRiskClass/);
+  assert.match(draftAssessmentRoute, /suggestedRiskClass/);
+  assert.match(draftAssessmentRoute, /reasons/);
+  assert.match(draftAssessmentRoute, /openQuestions/);
+  assert.match(
+    draftAssessmentRoute,
+    /Triff keine finale rechtliche oder governance-seitige Entscheidung/,
+  );
+});
+
 test("checkout return route validates session ids and only exposes completed sessions", () => {
   assert.match(stripeSessionRoute, /isValidStripeCheckoutSessionId/);
   assert.match(stripeSessionRoute, /getCheckoutEligibility\(/);

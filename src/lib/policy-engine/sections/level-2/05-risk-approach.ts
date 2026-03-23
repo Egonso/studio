@@ -10,16 +10,18 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import {
+    getRiskClassDisplayLabel,
+    parseStoredAiActCategory,
+} from '@/lib/register-first/risk-taxonomy';
 import type { UseCaseCard } from '@/lib/register-first/types';
 
 /** Count AI Act categories from registered use cases */
 function countAiActCategories(useCases: UseCaseCard[]): Record<string, number> {
     const counts: Record<string, number> = {};
     for (const uc of useCases) {
-        const cat = uc.governanceAssessment?.core?.aiActCategory;
-        if (cat) {
-            counts[cat] = (counts[cat] || 0) + 1;
-        }
+        const cat = parseStoredAiActCategory(uc.governanceAssessment?.core?.aiActCategory);
+        counts[cat] = (counts[cat] || 0) + 1;
     }
     return counts;
 }
@@ -36,12 +38,12 @@ export const riskApproachSection: SectionDefinition = {
         const orgName = context.orgSettings.organisationName || '[Firmenname]';
         const counts = countAiActCategories(context.useCases);
 
-        const hochrisiko = counts['Hochrisiko'] || 0;
-        const transparenz = counts['Transparenzpflichten'] || 0;
-        const minimal = counts['Minimalrisiko'] || 0;
-        const verboten = counts['Verbotene Praktiken'] || 0;
+        const hochrisiko = counts['HIGH'] || 0;
+        const transparenz = counts['LIMITED'] || 0;
+        const minimal = counts['MINIMAL'] || 0;
+        const verboten = counts['PROHIBITED'] || 0;
         const total = context.useCases.length;
-        const unbewertet = total - Object.values(counts).reduce((a, b) => a + b, 0);
+        const unbewertet = counts['UNASSESSED'] || 0;
 
         const lines: string[] = [
             `${orgName} verfolgt einen risikobasierten Ansatz bei der Einführung und dem ` +
@@ -57,11 +59,11 @@ export const riskApproachSection: SectionDefinition = {
         if (total > 0) {
             lines.push(`| Risikokategorie | Anzahl |`);
             lines.push(`|-----------------|--------|`);
-            if (verboten > 0) lines.push(`| Verbotene Praktiken | ${verboten} |`);
-            if (hochrisiko > 0) lines.push(`| Hochrisiko-Systeme | ${hochrisiko} |`);
-            if (transparenz > 0) lines.push(`| Systeme mit Transparenzpflichten | ${transparenz} |`);
-            if (minimal > 0) lines.push(`| Minimalrisiko-Systeme | ${minimal} |`);
-            if (unbewertet > 0) lines.push(`| Noch nicht bewertet | ${unbewertet} |`);
+            if (verboten > 0) lines.push(`| ${getRiskClassDisplayLabel('PROHIBITED')} | ${verboten} |`);
+            if (hochrisiko > 0) lines.push(`| ${getRiskClassDisplayLabel('HIGH')} | ${hochrisiko} |`);
+            if (transparenz > 0) lines.push(`| ${getRiskClassDisplayLabel('LIMITED')} | ${transparenz} |`);
+            if (minimal > 0) lines.push(`| ${getRiskClassDisplayLabel('MINIMAL')} | ${minimal} |`);
+            if (unbewertet > 0) lines.push(`| ${getRiskClassDisplayLabel('UNASSESSED')} | ${unbewertet} |`);
             lines.push(``);
         } else {
             lines.push(
@@ -74,13 +76,13 @@ export const riskApproachSection: SectionDefinition = {
         if (hochrisiko > 0) {
             lines.push(
                 `**Hinweis:** Ihr Register enthält ${hochrisiko} Hochrisiko-System${hochrisiko > 1 ? 'e' : ''}` +
-                `${transparenz > 0 ? ` und ${transparenz} System${transparenz > 1 ? 'e' : ''} mit Transparenzpflichten` : ''}. ` +
+                `${transparenz > 0 ? ` und ${transparenz} System${transparenz > 1 ? 'e' : ''} mit begrenztem Risiko (Transparenzpflichten)` : ''}. ` +
                 `Für diese gelten erweiterte Anforderungen gemäß Kapitel III des AI Act.`,
             );
         } else if (transparenz > 0) {
             lines.push(
                 `**Hinweis:** Ihr Register enthält ${transparenz} System${transparenz > 1 ? 'e' : ''} ` +
-                `mit Transparenzpflichten gemäß Art. 50 AI Act.`,
+                `mit begrenztem Risiko (Transparenzpflichten) gemäß Art. 50 AI Act.`,
             );
         }
 

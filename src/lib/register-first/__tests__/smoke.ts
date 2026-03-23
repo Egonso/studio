@@ -117,6 +117,7 @@ export async function runFoundationSmoke() {
     NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY: "1",
     NEXT_PUBLIC_REGISTER_FIRST_STICKY_LAUNCHER: "on",
     NEXT_PUBLIC_REGISTER_FIRST_PROOF_GATE: "yes",
+    NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL: "true",
     NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1: "true",
     NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION: "true",
     NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY: "true",
@@ -125,6 +126,7 @@ export async function runFoundationSmoke() {
   assert.equal(envFlags.hybridEntry, true);
   assert.equal(envFlags.stickyLauncher, true);
   assert.equal(envFlags.proofGate, true);
+  assert.equal(envFlags.riskAssistDetail, true);
   assert.equal(envFlags.coverageAssistPhase1, true);
   assert.equal(envFlags.coverageAssistExtension, true);
   assert.equal(envFlags.coverageAssistSeedLibrary, true);

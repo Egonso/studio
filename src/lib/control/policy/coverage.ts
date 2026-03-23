@@ -1,6 +1,10 @@
 import { buildUseCaseFocusLink } from "@/lib/control/deep-link";
 import { assemblePolicy, assemblePolicyMarkdown } from "@/lib/policy-engine/assembler";
 import {
+  isHighRiskClass,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
+import {
   POLICY_LEVEL_LABELS,
   POLICY_STATUS_LABELS,
   type PolicyDocument,
@@ -81,8 +85,9 @@ function isExternalFacing(useCase: UseCaseCard): boolean {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  return category.includes("hochrisiko") || category.includes("high risk");
+  return isHighRiskClass(
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory)
+  );
 }
 
 export function buildControlPolicyCoverage(

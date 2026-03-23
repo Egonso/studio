@@ -1,5 +1,9 @@
 import type { UseCaseCard } from "@/lib/register-first/types";
 import {
+  isHighRiskClass,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
+import {
   buildUseCaseDetailLink,
   buildUseCaseFocusLink,
   type ControlFocusTarget,
@@ -41,8 +45,9 @@ function formatUseCaseLabel(useCase: UseCaseCard): string {
 }
 
 function isHighRisk(useCase: UseCaseCard): boolean {
-  const category = useCase.governanceAssessment?.core?.aiActCategory?.toLowerCase() ?? "";
-  return category.includes("hochrisiko") || category.includes("high risk");
+  return isHighRiskClass(
+    parseStoredAiActCategory(useCase.governanceAssessment?.core?.aiActCategory)
+  );
 }
 
 function hasOwner(useCase: UseCaseCard): boolean {

@@ -9,11 +9,18 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import {
+    getDisplayedRiskClassLabel,
+    isLimitedRiskClass,
+    parseStoredAiActCategory,
+} from '@/lib/register-first/risk-taxonomy';
 import type { UseCaseCard } from '@/lib/register-first/types';
 
 /** Check if a use case has transparency obligations */
 function hasTransparencyObligation(uc: UseCaseCard): boolean {
-    return uc.governanceAssessment?.core?.aiActCategory === 'Transparenzpflichten';
+    return isLimitedRiskClass(
+        parseStoredAiActCategory(uc.governanceAssessment?.core?.aiActCategory)
+    );
 }
 
 export const transparencySection: SectionDefinition = {
@@ -39,7 +46,11 @@ export const transparencySection: SectionDefinition = {
         ];
 
         for (const uc of affected) {
-            lines.push(`- **${uc.purpose}**`);
+            const category = getDisplayedRiskClassLabel({
+                aiActCategory: uc.governanceAssessment?.core?.aiActCategory,
+                short: true,
+            });
+            lines.push(`- **${uc.purpose}** – Kategorie: ${category}`);
         }
         lines.push(``);
 

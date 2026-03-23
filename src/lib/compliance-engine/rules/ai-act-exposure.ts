@@ -1,4 +1,9 @@
 import { EngineContext, ActionItem } from '../types';
+import {
+    isHighRiskClass,
+    isProhibitedRiskClass,
+    parseStoredAiActCategory,
+} from '@/lib/register-first/risk-taxonomy';
 
 /**
  * Calculates the Regulatory Exposure Index (0-100)
@@ -13,10 +18,11 @@ export function evaluateRegulatoryExposure(context: EngineContext): { index: num
 
     context.useCases.forEach(useCase => {
         const aiActClass = useCase.governanceAssessment?.core?.aiActCategory || '';
+        const canonicalRiskClass = parseStoredAiActCategory(aiActClass);
         const systemName = useCase.toolFreeText || useCase.toolId || useCase.purpose;
 
         // 1. Unmitigated High-Risk Systems
-        if (aiActClass.includes('Hochrisiko') || aiActClass.includes('High')) {
+        if (isHighRiskClass(canonicalRiskClass)) {
             const hasAssessment = useCase.governanceAssessment?.core?.assessedAt;
             if (!hasAssessment) {
                 exposureScore += 40; // High penalty
@@ -50,7 +56,7 @@ export function evaluateRegulatoryExposure(context: EngineContext): { index: num
         }
 
         // 2. Prohibited AI Systems
-        if (aiActClass.includes('Verboten') || aiActClass.includes('Unacceptable')) {
+        if (isProhibitedRiskClass(canonicalRiskClass)) {
             exposureScore += 100; // Immediate full risk
             actions.push({
                 id: `prohibited_${useCase.useCaseId}`,

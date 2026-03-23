@@ -32,13 +32,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   createAiToolsRegistryService,
+  getDisplayedRiskClassLabel,
   getUseCaseSystemsSummary,
   getUseCaseWorkflowBadge,
   getUseCaseSource,
   getUseCaseSourceBadges,
   getUseCaseSourceLabel,
   getUseCaseSubmitterIdentity,
-  riskLevelLabels,
 } from "@/lib/register-first";
 import { RegisterStatusPill } from "@/components/register/detail/status-pill";
 import type { UseCaseCard } from "@/lib/register-first/types";
@@ -115,9 +115,11 @@ export function UseCaseHeader({
   const systemCount = (card.toolId || card.toolFreeText ? 1 : 0) +
     (card.workflow?.additionalSystems?.length ?? 0);
 
-  const riskClass =
-    card.governanceAssessment?.core?.aiActCategory ??
-    (toolEntry ? riskLevelLabels[toolEntry.riskLevel] : "Unbekannt");
+  const riskClass = getDisplayedRiskClassLabel({
+    aiActCategory: card.governanceAssessment?.core?.aiActCategory,
+    toolRiskLevel: toolEntry?.riskLevel ?? null,
+    short: true,
+  });
   const usageScope = card.usageContexts.length
     ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
     : "Nicht angegeben";
