@@ -12,19 +12,17 @@ export async function syncRegisterEntitlement(options: {
   registerId?: string | null;
   sessionId?: string | null;
 } = {}): Promise<EntitlementSyncResult | null> {
-  const { getFirebaseAuth } = await import("@/lib/firebase");
-  const auth = await getFirebaseAuth();
-  const token = await auth.currentUser?.getIdToken();
+  const { fetchWithFirebaseAuth, getFirebaseIdToken } = await import("@/lib/firebase");
+  const token = await getFirebaseIdToken();
 
   if (!token) {
     return null;
   }
 
-  const response = await fetch("/api/entitlements/sync", {
+  const response = await fetchWithFirebaseAuth("/api/entitlements/sync", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       registerId: options.registerId ?? undefined,

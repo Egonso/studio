@@ -167,21 +167,14 @@ export function UseCaseSystemsComplianceSection({
     const failures: Array<{ systemName: string; reason: string }> = [];
 
     try {
-      const { getFirebaseAuth } = await import("@/lib/firebase");
-      const auth = await getFirebaseAuth();
-      const token = await auth.currentUser?.getIdToken();
-
-      if (!token) {
-        throw new Error("Nicht eingeloggt");
-      }
+      const { fetchWithFirebaseAuth } = await import("@/lib/firebase");
 
       for (const system of targetSystems) {
         try {
-          const response = await fetch("/api/tools/public-info-check", {
+          const response = await fetchWithFirebaseAuth("/api/tools/public-info-check", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               toolName: system.displayName,
@@ -244,13 +237,18 @@ export function UseCaseSystemsComplianceSection({
       }
 
       if (failures.length > 0) {
+        const requiresRelogin = failures.some((failure) =>
+          /auth|unauthori|eingeloggt/i.test(failure.reason)
+        );
         toast({
           variant: "destructive",
           title: "Compliance-Pruefung fehlgeschlagen",
-          description: failures
-            .slice(0, 2)
-            .map((failure) => `${failure.systemName}: ${failure.reason}`)
-            .join(" | "),
+          description: requiresRelogin
+            ? "Ihre Sitzung konnte nicht bestaetigt werden. Bitte laden Sie die Seite neu und melden Sie sich gegebenenfalls erneut an."
+            : failures
+                .slice(0, 2)
+                .map((failure) => `${failure.systemName}: ${failure.reason}`)
+                .join(" | "),
         });
         return;
       }
