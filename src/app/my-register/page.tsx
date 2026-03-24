@@ -156,8 +156,8 @@ export default function MyRegisterPage() {
         if (regs.length > 0) {
           const selectedRegister =
             (await registerService
-              .setActiveRegister(regs[0].registerId, scopeContext)
-              .catch(() => regs[0])) ?? regs[0];
+              .getActiveRegister(scopeContext)
+              .catch(() => null)) ?? regs[0];
           setRegisters(regs);
           setActiveRegister(
             regs.find(

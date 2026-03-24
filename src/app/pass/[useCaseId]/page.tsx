@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2, ArrowLeft, Printer, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
+import { parseRegisterScopeFromWorkspaceValue } from "@/lib/register-first/register-scope";
 import {
     createAiToolsRegistryService,
     resolveUseCaseWorkflowDisplay,
@@ -39,6 +40,10 @@ export default function UseCasePassPage() {
     const params = useParams();
     const workspaceScope = useWorkspaceScope();
     const useCaseId = params.useCaseId as string;
+    const scopeContext = useMemo(
+        () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
+        [workspaceScope],
+    );
 
     const [useCase, setUseCase] = useState<UseCaseCard | null>(null);
     const [register, setRegister] = useState<Register | null>(null);
@@ -53,13 +58,17 @@ export default function UseCasePassPage() {
 
         async function fetchData() {
             try {
-                const regs = await registerService.listRegisters();
+                const regs = await registerService.listRegisters(scopeContext);
                 let foundUc: UseCaseCard | null = null;
                 let foundReg: Register | null = null;
 
                 for (const reg of regs) {
                     try {
-                        const ucs = await registerService.listUseCases(reg.registerId);
+                        const ucs = await registerService.listUseCases(
+                            reg.registerId,
+                            {},
+                            scopeContext,
+                        );
                         const uc = ucs.find((u) => u.useCaseId === useCaseId);
                         if (uc) {
                             foundUc = uc;
@@ -72,6 +81,9 @@ export default function UseCasePassPage() {
                 }
 
                 if (foundUc && foundReg) {
+                    await registerService
+                        .setActiveRegister(foundReg.registerId, scopeContext)
+                        .catch(() => null);
                     setUseCase(foundUc);
                     setRegister(foundReg);
                 }
@@ -83,7 +95,7 @@ export default function UseCasePassPage() {
         }
 
         void fetchData();
-    }, [user, authLoading, useCaseId, router]);
+    }, [user, authLoading, useCaseId, router, scopeContext]);
 
     if (authLoading || loading) {
         return (

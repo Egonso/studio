@@ -197,6 +197,9 @@ export interface RegisterService {
   getFirstRegister(
     scopeContext?: RegisterScopeContext | null,
   ): Promise<Register | null>;
+  getActiveRegister(
+    scopeContext?: RegisterScopeContext | null,
+  ): Promise<Register | null>;
   setActiveRegister(
     registerId: string,
     scopeContext?: RegisterScopeContext | null,
@@ -963,6 +966,20 @@ export function createRegisterService(
         return locations[0]?.register ?? null;
       } catch (error) {
         throw mapServiceError(error);
+      }
+    },
+
+    async getActiveRegister(scopeContext) {
+      try {
+        const scope = await resolveScope(undefined, scopeContext);
+        return await requireRegister(scope.ownerId, scope.registerId);
+      } catch (error) {
+        const mappedError = mapServiceError(error);
+        if (mappedError.code === 'REGISTER_NOT_FOUND') {
+          return null;
+        }
+
+        throw mappedError;
       }
     },
 
