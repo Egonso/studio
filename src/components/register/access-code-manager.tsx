@@ -215,7 +215,7 @@ export function AccessCodeManager({ registerId }: AccessCodeManagerProps) {
                 variant="ghost"
                 size="sm"
                 className={`h-8 w-8 p-0 ${
-                  copiedCode === c.code ? "text-emerald-600 hover:text-emerald-700" : ""
+                  copiedCode === c.code ? "text-gray-600 hover:text-gray-700" : ""
                 }`}
                 onClick={() => copyLink(c.code)}
                 title="Einladungslink kopieren"

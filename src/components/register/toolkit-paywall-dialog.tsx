@@ -61,7 +61,7 @@ export function ToolkitPaywallDialog({
                     <ul className="space-y-2">
                         {PRO_FEATURES.map((feature) => (
                             <li key={feature} className="flex items-center gap-2 text-sm text-slate-700">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                                <CheckCircle2 className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                                 {feature}
                             </li>
                         ))}

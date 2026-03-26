@@ -216,12 +216,12 @@ export function TrustPortalConfigDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <Alert className="bg-indigo-50 border-indigo-100 dark:bg-indigo-950/20 dark:border-indigo-900">
-              <Info className="h-4 w-4 text-indigo-600" />
-              <AlertTitle className="text-indigo-900 dark:text-indigo-100">
+            <Alert className="bg-gray-50 border-gray-100 dark:bg-gray-950/20 dark:border-gray-900">
+              <Info className="h-4 w-4 text-gray-600" />
+              <AlertTitle className="text-gray-900 dark:text-gray-100">
                 Live-Daten
               </AlertTitle>
-              <AlertDescription className="text-indigo-800 dark:text-indigo-200 text-sm">
+              <AlertDescription className="text-gray-800 dark:text-gray-200 text-sm">
                 Im Gegensatz zu früheren Versionen zeigt das Portal jetzt
                 Live-Daten aus Ihrem KI-Register an. Textinhalte (Governance-
                 Erklärung, Kontaktdaten etc.) werden als Snapshot gespeichert.
@@ -256,7 +256,7 @@ export function TrustPortalConfigDialog({
             <Button
               onClick={() => handleSave(true)}
               disabled={!publishConfirmation || loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
             >
               {loading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -279,7 +279,7 @@ export function TrustPortalConfigDialog({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-indigo-600" />
+            <Globe className="h-5 w-5 text-gray-600" />
             AI Trust Portal konfigurieren
           </DialogTitle>
           <DialogDescription>
@@ -292,16 +292,16 @@ export function TrustPortalConfigDialog({
         <div className="grid gap-6 py-4">
           {/* Public Link & Embed (Visible only if published) */}
           {currentConfig?.isPublished && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col gap-3">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-green-900 flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                   <Globe className="h-4 w-4" />
                   Portal ist online
                 </span>
                 <Button
                   variant="link"
                   size="sm"
-                  className="h-auto p-0 text-green-700"
+                  className="h-auto p-0 text-gray-700"
                   onClick={() => window.open(publicUrl, "_blank")}
                 >
                   Öffnen <Globe className="ml-1 h-3 w-3" />
@@ -322,7 +322,7 @@ export function TrustPortalConfigDialog({
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="pt-4 border-t border-green-200 mt-2">
+              <div className="pt-4 border-t border-gray-200 mt-2">
                 <BadgeSnippet
                   projectId={projectId}
                   level={(userStatus?.examPassed && userStatus?.hasCertificate) ? "Basis" : "Ungeprüft"}
@@ -332,12 +332,12 @@ export function TrustPortalConfigDialog({
           )}
 
           {/* Info: Live data notice */}
-          <Alert className="bg-blue-50 border-blue-100">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-900">
+          <Alert className="bg-gray-50 border-gray-100">
+            <Info className="h-4 w-4 text-gray-600" />
+            <AlertTitle className="text-gray-900">
               Live-Daten aus dem Register
             </AlertTitle>
-            <AlertDescription className="text-blue-800 text-sm">
+            <AlertDescription className="text-gray-800 text-sm">
               KI-Systeme, KPIs und der Trust Score werden automatisch aus Ihren
               öffentlich sichtbaren Use Cases berechnet. Hier bearbeiten Sie nur
               die Texte und Kontaktdaten.
@@ -370,7 +370,7 @@ export function TrustPortalConfigDialog({
             >
               <div
                 className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "standard"
-                  ? "border-indigo-500 bg-indigo-50/50"
+                  ? "border-gray-500 bg-gray-50/50"
                   : ""
                   }`}
               >
@@ -388,7 +388,7 @@ export function TrustPortalConfigDialog({
               </div>
               <div
                 className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "human"
-                  ? "border-indigo-500 bg-indigo-50/50"
+                  ? "border-gray-500 bg-gray-50/50"
                   : ""
                   }`}
               >
@@ -406,7 +406,7 @@ export function TrustPortalConfigDialog({
               </div>
               <div
                 className={`border rounded-md p-3 cursor-pointer hover:bg-slate-50 ${config.tonePreset === "conservative"
-                  ? "border-indigo-500 bg-indigo-50/50"
+                  ? "border-gray-500 bg-gray-50/50"
                   : ""
                   }`}
               >
@@ -598,7 +598,7 @@ export function TrustPortalConfigDialog({
                 <Button
                   onClick={() => handleSave(true)}
                   disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
                 >
                   {loading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

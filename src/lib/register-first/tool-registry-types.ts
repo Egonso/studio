@@ -100,7 +100,7 @@ export const riskLevelLabels: Record<EuAiActRiskLevel, string> = {
 };
 
 export const riskLevelColors: Record<EuAiActRiskLevel, string> = {
-  minimal: "bg-green-100 text-green-800",
+  minimal: "bg-gray-100 text-gray-800",
   limited: "bg-yellow-100 text-yellow-800",
   high: "bg-orange-100 text-orange-800",
   unacceptable: "bg-red-100 text-red-800",

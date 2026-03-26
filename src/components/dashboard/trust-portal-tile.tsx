@@ -74,20 +74,20 @@ export function TrustPortalTile({
 
   return (
     <section className="mb-8">
-      <Card className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/20 dark:to-background border-indigo-200 dark:border-indigo-800 shadow-sm overflow-hidden relative">
+      <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-950/20 dark:to-background border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden relative">
         <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-          <Shield className="w-32 h-32 text-indigo-600" />
+          <Shield className="w-32 h-32 text-gray-600" />
         </div>
 
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
+                <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
                   Trust Portal
                 </span>
                 {config?.isPublished && (
-                  <span className="bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
+                  <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
                     <Globe className="w-3 h-3" /> Online
                   </span>
                 )}
@@ -97,11 +97,11 @@ export function TrustPortalTile({
                   compact
                 />
               </div>
-              <CardTitle className="text-2xl text-indigo-950 dark:text-indigo-100 flex items-center gap-2">
-                <Shield className="w-6 h-6 text-indigo-600" />
+              <CardTitle className="text-2xl text-gray-950 dark:text-gray-100 flex items-center gap-2">
+                <Shield className="w-6 h-6 text-gray-600" />
                 AI Trust & Accountability Portal
               </CardTitle>
-              <CardDescription className="text-indigo-900/70 dark:text-indigo-300/70 max-w-2xl">
+              <CardDescription className="text-gray-900/70 dark:text-gray-300/70 max-w-2xl">
                 Live-Transparenz basierend auf Ihrem KI-Register.{" "}
                 {liveSystemCount > 0 && (
                   <span className="font-medium">
@@ -113,14 +113,14 @@ export function TrustPortalTile({
             </div>
 
             <div className="text-right hidden sm:block z-10">
-              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                 Trust Readiness
               </span>
               <div className="flex items-end justify-end gap-1">
                 {scoreLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
                 ) : (
-                  <span className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-4xl font-extrabold text-gray-600 dark:text-gray-400">
                     {displayScore}%
                   </span>
                 )}
@@ -137,7 +137,7 @@ export function TrustPortalTile({
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <Button
               size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200 dark:shadow-none"
+              className="bg-gray-600 hover:bg-gray-700 text-white shadow-md shadow-gray-200 dark:shadow-none"
               onClick={() => setDialogOpen(true)}
             >
               <Globe className="mr-2 h-4 w-4" />
@@ -146,7 +146,7 @@ export function TrustPortalTile({
             <Button
               variant="outline"
               size="lg"
-              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+              className="border-gray-200 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-900/50"
               disabled={!config?.isPublished}
               onClick={() => window.open(`/trust/${projectId}`, "_blank")}
               title={
@@ -162,9 +162,9 @@ export function TrustPortalTile({
         </CardContent>
 
         {/* Progress Bar */}
-        <div className="absolute bottom-0 left-0 h-1 bg-indigo-100 w-full dark:bg-indigo-900/30">
+        <div className="absolute bottom-0 left-0 h-1 bg-gray-100 w-full dark:bg-gray-900/30">
           <div
-            className="h-full bg-indigo-500 transition-all duration-1000 ease-out"
+            className="h-full bg-gray-500 transition-all duration-1000 ease-out"
             style={{ width: `${displayScore}%` }}
           />
         </div>

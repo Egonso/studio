@@ -92,7 +92,7 @@ function statusPillClass(
   switch (status) {
     case 'active':
     case 'passed':
-      return 'bg-emerald-100 text-emerald-700';
+      return 'bg-gray-100 text-gray-700';
     case 'expired':
       return 'bg-amber-100 text-amber-700';
     case 'revoked':
@@ -373,7 +373,7 @@ export function CertificationAdminPanel({
         <div
           className={`rounded-xl border px-4 py-3 text-sm ${
             banner.tone === 'success'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              ? 'border-gray-200 bg-gray-50 text-gray-800'
               : 'border-red-200 bg-red-50 text-red-700'
           }`}
         >
@@ -398,9 +398,9 @@ export function CertificationAdminPanel({
               <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Prüfungsversuche</p>
               <p className="mt-2 text-2xl font-semibold text-slate-950">{attempts.length}</p>
             </div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs uppercase tracking-[0.14em] text-emerald-700">Aktiv</p>
-              <p className="mt-2 text-2xl font-semibold text-emerald-900">{certificateCounts.active}</p>
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <p className="text-xs uppercase tracking-[0.14em] text-gray-700">Aktiv</p>
+              <p className="mt-2 text-2xl font-semibold text-gray-900">{certificateCounts.active}</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
               <p className="text-xs uppercase tracking-[0.14em] text-amber-700">Abgelaufen</p>

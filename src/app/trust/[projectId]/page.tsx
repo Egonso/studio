@@ -136,12 +136,12 @@ export default function PublicTrustPortalPage() {
     : "";
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-gray-100 selection:text-gray-900">
       {/* Header / Branding */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-1.5 rounded-lg">
+            <div className="bg-gray-600 p-1.5 rounded-lg">
               <Shield className="h-5 w-5 text-white" />
             </div>
             <span className="font-semibold text-slate-900 tracking-tight">
@@ -155,7 +155,7 @@ export default function PublicTrustPortalPage() {
               standardVersion="EUKI-GOV-1.0"
               compact
             />
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
               <ShieldCheck className="h-3 w-3" />
               Verifiziert
             </span>
@@ -166,12 +166,12 @@ export default function PublicTrustPortalPage() {
       <main className="max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-16 space-y-16">
         {/* 1. Hero / Intro */}
         <section className="space-y-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-medium mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 text-gray-700 text-sm font-medium mb-2">
             <Globe className="h-3.5 w-3.5" />
             Transparenz-Bericht
           </div>
           {organizationName && (
-            <div className="text-lg font-semibold text-indigo-600 mb-1">
+            <div className="text-lg font-semibold text-gray-600 mb-1">
               {organizationName}
             </div>
           )}
@@ -202,7 +202,7 @@ export default function PublicTrustPortalPage() {
                 <Scale className="h-32 w-32" />
               </div>
               <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-900">
-                <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                <ShieldCheck className="h-5 w-5 text-gray-600" />
                 Unser Ansatz (Governance)
               </h2>
               <div className="prose prose-lg text-slate-700 leading-relaxed whitespace-pre-line">
@@ -213,7 +213,7 @@ export default function PublicTrustPortalPage() {
             {/* Live AI Systems (from publicUseCases) */}
             <section>
               <h2 className="text-xl font-bold flex items-center gap-2 mb-6 text-slate-900 border-b pb-4">
-                <Building2 className="h-5 w-5 text-indigo-600" />
+                <Building2 className="h-5 w-5 text-gray-600" />
                 Eingesetzte KI-Systeme
               </h2>
               {liveAggregation ? (
@@ -223,7 +223,7 @@ export default function PublicTrustPortalPage() {
                   {portalData.aiSystems?.map((system, idx) => (
                     <div
                       key={idx}
-                      className="bg-white p-6 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-sm transition-all"
+                      className="bg-white p-6 rounded-xl border border-slate-200 hover:border-gray-200 hover:shadow-sm transition-all"
                     >
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                         <div>
@@ -249,7 +249,7 @@ export default function PublicTrustPortalPage() {
             {responsibilityText && (
               <section>
                 <h2 className="text-xl font-bold flex items-center gap-2 mb-4 text-slate-900 border-b pb-4">
-                  <Award className="h-5 w-5 text-indigo-600" />
+                  <Award className="h-5 w-5 text-gray-600" />
                   Kompetenz & Verantwortung
                 </h2>
                 <p className="text-lg text-slate-700 leading-relaxed whitespace-pre-line">
@@ -282,7 +282,7 @@ export default function PublicTrustPortalPage() {
                 </p>
                 <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-green-400 transition-all duration-1000"
+                    className="h-full bg-gray-400 transition-all duration-1000"
                     style={{ width: `${displayTrustScore}%` }}
                   />
                 </div>
@@ -311,7 +311,7 @@ export default function PublicTrustPortalPage() {
             {/* Contact */}
             {contactText && (
               <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-                <Mail className="h-8 w-8 text-indigo-600 mx-auto mb-3" />
+                <Mail className="h-8 w-8 text-gray-600 mx-auto mb-3" />
                 <h3 className="font-bold text-slate-900 mb-2">
                   Fragen zur KI?
                 </h3>
@@ -329,7 +329,7 @@ export default function PublicTrustPortalPage() {
 
             <div className="text-center pt-8 space-y-2">
               <div className="inline-flex items-center gap-2 text-xs text-slate-500">
-                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                <ShieldCheck className="h-3.5 w-3.5 text-gray-600" />
                 <span className="font-medium">
                   Verifiziert durch AI Governance Control
                 </span>
@@ -339,7 +339,7 @@ export default function PublicTrustPortalPage() {
                   href="https://kiregister.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-indigo-600 transition-colors"
+                  className="hover:text-gray-600 transition-colors"
                 >
                   Mehr Infos unter kiregister.com
                 </a>

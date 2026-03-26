@@ -428,7 +428,7 @@ export default function AdminPage() {
                                                         {item.userEmail || item.userId || 'Anonym'}
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Badge variant="outline" className={item.status === 'resolved' ? 'bg-green-100 text-green-700' : ''}>
+                                                        <Badge variant="outline" className={item.status === 'resolved' ? 'bg-gray-100 text-gray-700' : ''}>
                                                             {item.status}
                                                         </Badge>
                                                     </TableCell>
@@ -438,7 +438,7 @@ export default function AdminPage() {
                                                     <TableCell className="text-right">
                                                         {item.status !== 'resolved' && (
                                                             <Button size="sm" variant="ghost" onClick={() => handleResolveFeedback(item.id)}>
-                                                                <CheckCircle2 className="h-4 w-4 mr-1 text-green-600" />
+                                                                <CheckCircle2 className="h-4 w-4 mr-1 text-gray-600" />
                                                                 Resolve
                                                             </Button>
                                                         )}
@@ -598,7 +598,7 @@ export default function AdminPage() {
                                                     <div className="flex flex-wrap gap-2">
                                                         <Badge variant="outline">{entry.count} gesamt</Badge>
                                                         <Badge variant="secondary">{entry.open} offen</Badge>
-                                                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                                                        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
                                                             {entry.resolved} erledigt
                                                         </Badge>
                                                     </div>

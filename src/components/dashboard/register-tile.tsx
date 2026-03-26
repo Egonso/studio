@@ -83,7 +83,7 @@ export function RegisterTile({
                                     variant="outline"
                                     className={`h-8 text-xs ${
                                         isSupplierLinkCopied
-                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                            ? "border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-100"
                                             : "text-muted-foreground"
                                     }`}
                                     disabled={utilitiesDisabled}
@@ -101,7 +101,7 @@ export function RegisterTile({
                                     variant="outline"
                                     className={`h-8 text-xs ${
                                         isCaptureLinkCopied
-                                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                            ? "border-gray-500 bg-gray-50 text-gray-700 hover:bg-gray-100"
                                             : "text-muted-foreground"
                                     }`}
                                     disabled={utilitiesDisabled}

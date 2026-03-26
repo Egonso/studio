@@ -119,20 +119,20 @@ export default function VerifyPassPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">
       <div className="mb-8 text-center">
-        <h1 className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-2xl font-bold text-transparent">
+        <h1 className="text-2xl font-bold text-gray-900">
           EUKI Use-Case Pass
         </h1>
         <p className="text-sm text-muted-foreground">Verify &amp; Trust Portal</p>
       </div>
 
       <div className="w-full max-w-md">
-        <Card className="mb-4 border-green-200 shadow-xl">
+        <Card className="mb-4 border-gray-200 shadow-xl">
           <CardHeader className="border-b border-slate-100 pb-4 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-50 ring-8 ring-green-50/50">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 ring-8 ring-gray-50/50">
+              <CheckCircle2 className="h-6 w-6 text-gray-600" />
             </div>
-            <CardTitle className="text-lg text-green-700">Verifizierter Use-Case Pass</CardTitle>
-            <div className="mt-1 flex items-center justify-center gap-1 text-xs font-medium text-green-600/80">
+            <CardTitle className="text-lg text-gray-700">Verifizierter Use-Case Pass</CardTitle>
+            <div className="mt-1 flex items-center justify-center gap-1 text-xs font-medium text-gray-600/80">
               <Shield className="h-3 w-3" />
               <span>Oeffentlich einsehbar</span>
             </div>
@@ -148,8 +148,8 @@ export default function VerifyPassPage() {
                 Governance-Nachweis
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className={`rounded-lg p-2.5 text-center ${entry.status === 'PROOF_READY' ? 'bg-emerald-50 text-emerald-700' :
-                    entry.status === 'REVIEWED' ? 'bg-blue-50 text-blue-700' :
+                <div className={`rounded-lg p-2.5 text-center ${entry.status === 'PROOF_READY' ? 'bg-gray-50 text-gray-700' :
+                    entry.status === 'REVIEWED' ? 'bg-gray-100 text-gray-700' :
                       entry.status === 'REVIEW_RECOMMENDED' ? 'bg-slate-100 text-slate-700' :
                         'bg-gray-50 text-gray-600'
                   }`}>
@@ -163,7 +163,7 @@ export default function VerifyPassPage() {
                 </div>
                 <div className={`rounded-lg p-2.5 text-center ${entry.dataCategory === 'SENSITIVE' ? 'bg-slate-100 text-slate-700' :
                     entry.dataCategory === 'PERSONAL' ? 'bg-slate-100 text-slate-700' :
-                      'bg-green-50 text-green-700'
+                      'bg-gray-50 text-gray-700'
                   }`}>
                   <div className="font-semibold text-sm">
                     {dataCategoryLabels[entry.dataCategory ?? ''] ?? 'Standard'}
@@ -172,7 +172,7 @@ export default function VerifyPassPage() {
                 </div>
               </div>
               {entry.verification?.isReal && entry.verification?.isCurrent && (
-                <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700">
                   <CheckCircle2 className="h-3 w-3" />
                   Verifizierter realer Einsatz (aktuell)
                 </div>

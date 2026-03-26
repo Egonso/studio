@@ -1426,9 +1426,9 @@ export function DesignCanvas() {
                     ) : (
                       <Alert
                         variant="default"
-                        className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50"
+                        className="bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800/50"
                       >
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
                         <AlertTitle>
                           Keine offensichtlichen Anti-Pattern gefunden
                         </AlertTitle>

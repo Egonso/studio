@@ -482,19 +482,19 @@ export default function TaskPage() {
                     }
                     className={
                       analysisResult.isFulfilled
-                        ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800/50'
+                        ? 'bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800/50'
                         : ''
                     }
                   >
                     {analysisResult.isFulfilled ? (
-                      <ShieldCheck className="h-4 w-4 text-green-700 dark:text-green-400" />
+                      <ShieldCheck className="h-4 w-4 text-gray-700 dark:text-gray-400" />
                     ) : (
                       <ShieldX className="h-4 w-4" />
                     )}
                     <AlertTitle
                       className={
                         analysisResult.isFulfilled
-                          ? 'text-green-800 dark:text-green-300'
+                          ? 'text-gray-800 dark:text-gray-300'
                           : ''
                       }
                     >
@@ -506,7 +506,7 @@ export default function TaskPage() {
                     <AlertDescription
                       className={
                         analysisResult.isFulfilled
-                          ? 'text-green-700 dark:text-green-400'
+                          ? 'text-gray-700 dark:text-gray-400'
                           : ''
                       }
                     >
@@ -530,7 +530,7 @@ export default function TaskPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <h4 className="font-semibold mb-2 flex items-center gap-2">
-                        <ThumbsUp className="h-5 w-5 text-green-600" /> Stärken
+                        <ThumbsUp className="h-5 w-5 text-gray-600" /> Stärken
                       </h4>
                       <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                         {analysisResult.strengths.map((item, index) => (

@@ -82,7 +82,7 @@ export function DiagnosticBoard({
                         title="Transparency"
                         value={indices.transparency}
                         description="Externe & Interne Sichtbarkeit"
-                        icon={<Eye className="h-4 w-4 text-blue-500" />}
+                        icon={<Eye className="h-4 w-4 text-gray-500" />}
                     />
                 </div>
 
@@ -95,8 +95,8 @@ export function DiagnosticBoard({
                         {primaryAction ? (
                             <PrimaryActionCard action={primaryAction} workspaceId={workspaceId} />
                         ) : (
-                            <div className="bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-300 p-6 rounded-xl border border-green-200 dark:border-green-800/30 flex items-center gap-4">
-                                <ShieldCheck className="h-8 w-8 text-green-500" />
+                            <div className="bg-gray-50 dark:bg-gray-950/20 text-gray-800 dark:text-gray-300 p-6 rounded-xl border border-gray-200 dark:border-gray-800/30 flex items-center gap-4">
+                                <ShieldCheck className="h-8 w-8 text-gray-500" />
                                 <div>
                                     <h3 className="text-lg font-bold">Alles im grünen Bereich</h3>
                                     <p className="text-sm opacity-90">Ihre Organisation hat derzeit keine kritischen Compliance-Lücken.</p>
@@ -128,8 +128,8 @@ function IndexMetric({ title, value, description, icon, inverse = false }: { tit
     // Inverse means 0 is good, 100 is bad (like Exposure)
     const normalizedProgress = inverse ? (100 - value) : value;
     const colorClass = inverse
-        ? (value > 50 ? 'bg-red-500' : value > 0 ? 'bg-amber-500' : 'bg-emerald-500')
-        : (value > 80 ? 'bg-emerald-500' : value > 40 ? 'bg-amber-500' : 'bg-red-500');
+        ? (value > 50 ? 'bg-red-500' : value > 0 ? 'bg-amber-500' : 'bg-gray-500')
+        : (value > 80 ? 'bg-gray-500' : value > 40 ? 'bg-amber-500' : 'bg-red-500');
 
     return (
         <div className="p-6 space-y-4">
@@ -155,7 +155,7 @@ function PrimaryActionCard({ action, workspaceId }: { action: ActionItem, worksp
     const severityBorder = {
         critical: 'bg-red-500',
         high: 'bg-orange-500',
-        medium: 'bg-blue-500',
+        medium: 'bg-gray-500',
         low: 'bg-slate-400'
     }[action.severity];
 

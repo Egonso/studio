@@ -126,7 +126,7 @@ export function GovernanceLiabilitySection({
 
     const section1StatusIcon = useMemo(() => {
         if (section1Passed === section1Total) {
-            return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+            return <CheckCircle2 className="w-4 h-4 text-gray-600" />;
         }
         return <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />;
     }, [section1Passed, section1Total]);
@@ -297,13 +297,13 @@ export function GovernanceLiabilitySection({
                     <ul className="space-y-2 text-muted-foreground text-xs">
                         <li className="flex items-center gap-2">
                             {hasRiskClass
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                 : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             Risiko klassifiziert
                         </li>
                         <li className="flex items-center gap-2">
                             {hasOwner
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                 : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             Verantwortliche:r definiert
                         </li>
@@ -311,7 +311,7 @@ export function GovernanceLiabilitySection({
                         {/* Aufsichtsmodell – clickable if red */}
                         <li className="flex items-center gap-2">
                             {hasOversight
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                 : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             {!hasOversight && editingField !== "oversight" ? (
                                 <button
@@ -351,7 +351,7 @@ export function GovernanceLiabilitySection({
                         {/* Review-Zyklen – clickable if red */}
                         <li className="flex items-center gap-2">
                             {hasReviewCycle
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                 : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
                             {!hasReviewCycle && editingField !== "reviewCycle" ? (
                                 <button
@@ -395,7 +395,7 @@ export function GovernanceLiabilitySection({
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
                         <span>2. Prüfhistorie</span>
                         {isPruefhistorie
-                            ? <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            ? <CheckCircle2 className="w-4 h-4 text-gray-600" />
                             : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
                     </h4>
 
@@ -405,7 +405,7 @@ export function GovernanceLiabilitySection({
                             <ul className="space-y-2 text-muted-foreground text-xs">
                                 <li className="flex items-center gap-2">
                                     {hasReminders
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                         : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
                                     <span>Fristüberwachung</span>
                                 </li>
@@ -417,7 +417,7 @@ export function GovernanceLiabilitySection({
                                 )}
                                 <li className="flex items-center gap-2">
                                     {hasHistory
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                         : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
                                     <span>
                                         Review-Historie
@@ -436,7 +436,7 @@ export function GovernanceLiabilitySection({
                                 </li>
                                 <li className="flex items-center gap-2">
                                     {canGenerateReport
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                         : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
                                     <span>Governance-Report</span>
                                     {canGenerateReport && (
@@ -487,7 +487,7 @@ export function GovernanceLiabilitySection({
                     <h4 className="font-semibold mb-3 flex items-center justify-between">
                         <span>3. Audit- &amp; Nachweisexport</span>
                         {isExternBelegbar
-                            ? <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            ? <CheckCircle2 className="w-4 h-4 text-gray-600" />
                             : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
                     </h4>
 
@@ -497,13 +497,13 @@ export function GovernanceLiabilitySection({
                             <ul className="space-y-2 text-muted-foreground text-xs">
                                 <li className="flex items-center gap-2">
                                     {hasAuditDossier
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                         : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
                                     ISO 42001 Audit-Dossier
                                 </li>
                                 <li className="flex items-center gap-2">
                                     {hasTrustPortal
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
+                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
                                         : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
                                     <span>Governance-Nachweis (Trust Portal)</span>
                                 </li>
@@ -598,7 +598,7 @@ function DeadlineDisplay({
     }
     if (status === "on_track" && nextReviewAt) {
         return (
-            <span className="text-green-600">
+            <span className="text-gray-600">
                 Nächste Prüfung: {formatDateDE(nextReviewAt)}
             </span>
         );

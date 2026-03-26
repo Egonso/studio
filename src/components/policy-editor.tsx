@@ -470,11 +470,11 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
 
   return (
     <div className="space-y-6">
-      <Alert className="bg-blue-50 border-blue-200">
-        <Info className="h-4 w-4 text-blue-800" />
+      <Alert className="bg-gray-50 border-gray-200">
+        <Info className="h-4 w-4 text-gray-800" />
         <div className="ml-2">
-          <AlertTitle className="text-blue-900 font-semibold">Zentrale Verwaltung</AlertTitle>
-          <AlertDescription className="text-blue-800">
+          <AlertTitle className="text-gray-900 font-semibold">Zentrale Verwaltung</AlertTitle>
+          <AlertDescription className="text-gray-800">
             Diese Richtlinie bezieht sich auf das zuvor angelegte KI-Organisation.
             Die Tools werden nun zentral im "Tools & Systeme" Tab verwaltet und hier automatisch synchronisiert.
           </AlertDescription>
@@ -547,7 +547,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
                         readOnly
                         value={placeholders[p] || ''}
                         placeholder="Zum Unterschreiben klicken..."
-                        className="mt-1 cursor-pointer font-['Brush_Script_MT',_cursive] text-xl text-blue-800"
+                        className="mt-1 cursor-pointer font-['Brush_Script_MT',_cursive] text-xl text-gray-800"
                         onClick={() => openSignatureModal(p)}
                       />
                       <Button variant="outline" className="mt-1" onClick={() => openSignatureModal(p)}>
@@ -591,7 +591,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
 
                 <div className="p-4 bg-secondary/30 rounded-lg border border-dashed border-gray-300 text-center">
                   <Label className="text-xs text-muted-foreground mb-2 block">Vorschau</Label>
-                  <p className="text-3xl font-['Brush_Script_MT',_cursive] text-blue-800 min-h-[40px]">
+                  <p className="text-3xl font-['Brush_Script_MT',_cursive] text-gray-800 min-h-[40px]">
                     {signatureName || 'Ihre Unterschrift'}
                   </p>
                 </div>
@@ -648,13 +648,13 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
                   {projectTools.map((tool) => (
                     <div key={tool.id} className="flex items-center justify-between p-2 border rounded bg-slate-50">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        <BadgeCheck className={tool.review.status === 'approved_internal' ? "h-4 w-4 text-green-600" : "h-4 w-4 text-gray-400"} />
+                        <BadgeCheck className={tool.review.status === 'approved_internal' ? "h-4 w-4 text-gray-600" : "h-4 w-4 text-gray-400"} />
                         <span className="font-medium text-sm truncate">{tool.name}</span>
                         {tool.vendor && <span className="text-xs text-muted-foreground hidden sm:inline">({tool.vendor})</span>}
                       </div>
                       <div className="flex gap-1">
                         {tool.publicInfo ? (
-                          <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded border border-blue-200">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded border border-gray-200">
                             Info da
                           </span>
                         ) : (
@@ -711,7 +711,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
                             Pro-Plan erforderlich
                           </Button>
                         ) : (
-                          <Button onClick={onSave} disabled={isSaving} className="ml-auto bg-green-600 hover:bg-green-700 text-white">
+                          <Button onClick={onSave} disabled={isSaving} className="ml-auto bg-gray-900 hover:bg-gray-800 text-white">
                             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <PlusCircle className="mr-2 h-4 w-4" />}
                             Speichern & Fertigstellen
                           </Button>

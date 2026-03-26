@@ -175,7 +175,7 @@ export default function UseCasePassPage() {
                     </div>
                     <div className="text-right">
                         <Image src="/register-logo.png" alt="AI Governance Register" width={120} height={40} className="h-10 w-auto ml-auto mb-3" />
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-50 text-gray-700 border border-gray-200 rounded-full text-xs font-medium">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             <span>Dokumentiert & Registriert</span>
                         </div>

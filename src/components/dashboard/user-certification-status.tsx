@@ -49,24 +49,24 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
     // --- State 3: Trusted Personenzertifikat (Final Stage) ---
     if (isTrusted && status.certificate) {
         return (
-            <Card className="border-green-200 bg-green-50/30 shadow-sm mb-8 relative overflow-hidden transition-all duration-500 ease-in-out">
-                <div className="absolute top-0 left-0 w-1 h-full bg-green-600" />
+            <Card className="border-gray-200 bg-gray-50/30 shadow-sm mb-8 relative overflow-hidden transition-all duration-500 ease-in-out">
+                <div className="absolute top-0 left-0 w-1 h-full bg-gray-900" />
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-green-800">
+                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-800">
                             <ShieldCheck className="h-5 w-5" />
                             Trusted Personenzertifikat
                         </CardTitle>
-                        <Badge className="bg-green-600 hover:bg-green-700 border-none px-3 py-1 text-white">Verifiziert & Öffentlich</Badge>
+                        <Badge className="bg-gray-900 hover:bg-gray-800 border-none px-3 py-1 text-white">Verifiziert & Öffentlich</Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
-                            <p className="text-sm text-green-800 mb-4">
+                            <p className="text-sm text-gray-800 mb-4">
                                 Ihr Zertifikat ist weltweit gültig und öffentlich verifizierbar. Es signalisiert höchste Kompetenz im Umgang mit dem EU AI Act.
                             </p>
-                            <div className="bg-white/60 p-3 rounded-lg border border-green-100 space-y-1 text-sm">
+                            <div className="bg-white/60 p-3 rounded-lg border border-gray-100 space-y-1 text-sm">
                                 <p><span className="font-semibold">Inhaber:</span> {status.certificate.holderName}</p>
                                 <p><span className="font-semibold">Code:</span> <span className="font-mono">{status.certificate.code}</span></p>
                                 <p><span className="font-semibold">Gültig bis:</span> {status.certificate.validUntil}</p>
@@ -74,7 +74,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                             </div>
                         </div>
                         <div className="flex flex-col gap-3 justify-center">
-                            <Button variant="outline" className="w-full bg-white border-green-200 text-green-800 hover:bg-green-50" onClick={() => {
+                            <Button variant="outline" className="w-full bg-white border-gray-200 text-gray-800 hover:bg-gray-50" onClick={() => {
                                 navigator.clipboard.writeText(status.certificate!.verifyUrl);
                                 alert("Link kopiert!");
                             }}>
@@ -82,14 +82,14 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 Verifizierungs-Link teilen
                             </Button>
                             {status.certificate.latestDocumentUrl ? (
-                                <Button variant="outline" className="w-full bg-white border-green-200 text-green-800 hover:bg-green-50" asChild>
+                                <Button variant="outline" className="w-full bg-white border-gray-200 text-gray-800 hover:bg-gray-50" asChild>
                                     <a href={status.certificate.latestDocumentUrl} target="_blank" rel="noreferrer">
                                         <Download className="mr-2 h-4 w-4" />
                                         Zertifikat öffnen
                                     </a>
                                 </Button>
                             ) : null}
-                            <Button variant="ghost" className="w-full text-green-700 hover:text-green-900 hover:bg-green-50/50" asChild>
+                            <Button variant="ghost" className="w-full text-gray-700 hover:text-gray-900 hover:bg-gray-50/50" asChild>
                                 <a href={status.certificate.verifyUrl} target="_blank" rel="noreferrer">
                                     Öffentliches Profil ansehen <ExternalLink className="ml-2 h-3 w-3" />
                                 </a>
@@ -110,37 +110,37 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
     // --- State 2: Personenzertifikat (Exam Passed) ---
     if (passed && status.certificate) {
         return (
-            <Card className="border-blue-200 bg-blue-50/30 shadow-sm mb-8 relative overflow-hidden transition-all duration-500 ease-in-out">
-                <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+            <Card className="border-gray-200 bg-gray-50/30 shadow-sm mb-8 relative overflow-hidden transition-all duration-500 ease-in-out">
+                <div className="absolute top-0 left-0 w-1 h-full bg-gray-900" />
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-blue-900">
+                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900">
                             <Award className="h-5 w-5" />
                             Personenzertifikat
                         </CardTitle>
-                        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-3 py-1">Bestanden</Badge>
+                        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none px-3 py-1">Bestanden</Badge>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div className="space-y-4">
-                            <p className="text-sm text-blue-800">
+                            <p className="text-sm text-gray-800">
                                 Herzlichen Glückwunsch! Sie haben die Prüfung erfolgreich bestanden.
                             </p>
-                            <div className="bg-white/60 p-3 rounded-lg border border-blue-100 space-y-1 text-sm text-slate-700">
-                                <p><span className="font-semibold text-blue-900">Zertifikat:</span> {certificateStatusLabel}</p>
-                                <p><span className="font-semibold text-blue-900">Code:</span> {status.certificate.code}</p>
+                            <div className="bg-white/60 p-3 rounded-lg border border-gray-100 space-y-1 text-sm text-slate-700">
+                                <p><span className="font-semibold text-gray-900">Zertifikat:</span> {certificateStatusLabel}</p>
+                                <p><span className="font-semibold text-gray-900">Code:</span> {status.certificate.code}</p>
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
-                            <h4 className="font-semibold text-sm mb-2 text-blue-900">Nächster Schritt: Sichtbarkeit</h4>
+                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                            <h4 className="font-semibold text-sm mb-2 text-gray-900">Nächster Schritt: Sichtbarkeit</h4>
                             <p className="text-xs text-muted-foreground mb-4">
                                 {isCertificateActive
                                     ? 'Veröffentlichen Sie Ihr Zertifikat im AI Trust Portal, um Ihren Expertenstatus für Kunden und Partner sichtbar zu machen.'
                                     : 'Badge und öffentliche Aktivierung bleiben nur für aktuell gültige Zertifikate verfügbar.'}
                             </p>
-                            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsPublished(true)} disabled={!isCertificateActive}>
+                            <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" onClick={() => setIsPublished(true)} disabled={!isCertificateActive}>
                                 <ShieldCheck className="mr-2 h-4 w-4" />
                                 Zertifikat veröffentlichen & aktivieren
                             </Button>
@@ -183,7 +183,7 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 <span>Bitte starten Sie zuerst den Videokurs, um die Prüfung freizuschalten.</span>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded border border-blue-100">
+                            <div className="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
                                 <CheckCircle2 className="h-3 w-3" />
                                 <span>Kurs gestartet. Prüfungsfreigabe aktiv.</span>
                             </div>

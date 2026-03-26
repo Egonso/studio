@@ -227,7 +227,7 @@ export function SiteChatbotWidget() {
                                                                                 e.preventDefault();
                                                                                 router.push(`/gesetz#art_${num}`);
                                                                             }}
-                                                                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                            className="text-gray-600 dark:text-gray-400 hover:underline font-medium"
                                                                         >
                                                                             {part.replace('[[', '').replace(']]', '')}
                                                                         </a>
@@ -242,7 +242,7 @@ export function SiteChatbotWidget() {
                                                                                 e.preventDefault();
                                                                                 router.push(`/gesetz#rct_${num}`);
                                                                             }}
-                                                                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                                                            className="text-gray-600 dark:text-gray-400 hover:underline font-medium"
                                                                         >
                                                                             {part.replace('[[', '').replace(']]', '')}
                                                                         </a>
@@ -334,7 +334,7 @@ export function SiteChatbotWidget() {
                         ) : null}
 
                         {feedbackSent ? (
-                            <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-md text-sm text-center font-medium">
+                            <div className="bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 p-3 rounded-md text-sm text-center font-medium">
                                 Danke! Wir haben deine Nachricht erhalten.
                             </div>
                         ) : (

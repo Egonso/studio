@@ -273,13 +273,13 @@ export default function ControlWelcomePage() {
         </>
       }
     >
-      <Card className="border-emerald-200 bg-emerald-50/70">
+      <Card className="border-gray-200 bg-gray-50/70">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-emerald-950">
+          <CardTitle className="text-lg text-gray-950">
             Freischaltung erfolgreich
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm text-emerald-900">
+        <CardContent className="space-y-3 text-sm text-gray-900">
           <p>
             Sie behalten das Free Register und erhalten zusätzlich die komplette
             Governance-Ebene für Reviews, Policies, Exports, Trust Portal und

@@ -180,7 +180,7 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
                     // Determine Status Color
                     let statusColor = "bg-slate-100 text-slate-700 border-slate-200";
                     if (card.status === "REVIEW_RECOMMENDED") statusColor = "bg-yellow-50 text-yellow-700 border-yellow-200";
-                    if (card.status === "PROOF_READY") statusColor = "bg-green-50 text-green-700 border-green-200";
+                    if (card.status === "PROOF_READY") statusColor = "bg-gray-50 text-gray-700 border-gray-200";
 
                     // Determine Name & Vendor
                     const title = card.toolFreeText || card.toolId || card.purpose;
@@ -223,13 +223,13 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
                                         {info ? (
                                             <div className="space-y-3">
                                                 <div className="flex gap-2 text-sm">
-                                                    <Badge variant="outline" className={info.flags.gdprClaim === 'yes' ? 'bg-green-50 text-green-700 border-green-200' : 'text-muted-foreground'}>
+                                                    <Badge variant="outline" className={info.flags.gdprClaim === 'yes' ? 'bg-gray-50 text-gray-700 border-gray-200' : 'text-muted-foreground'}>
                                                         DSGVO {info.flags.gdprClaim === 'yes' ? '✅' : '❓'}
                                                     </Badge>
-                                                    <Badge variant="outline" className={info.flags.aiActClaim === 'yes' ? 'bg-green-50 text-green-700 border-green-200' : 'text-muted-foreground'}>
+                                                    <Badge variant="outline" className={info.flags.aiActClaim === 'yes' ? 'bg-gray-50 text-gray-700 border-gray-200' : 'text-muted-foreground'}>
                                                         AI Act {info.flags.aiActClaim === 'yes' ? '✅' : '❓'}
                                                     </Badge>
-                                                    <Badge variant="outline" className={info.flags.privacyPolicyFound === 'yes' ? 'bg-green-50 text-green-700 border-green-200' : 'text-muted-foreground'}>
+                                                    <Badge variant="outline" className={info.flags.privacyPolicyFound === 'yes' ? 'bg-gray-50 text-gray-700 border-gray-200' : 'text-muted-foreground'}>
                                                         Privacy Policy {info.flags.privacyPolicyFound === 'yes' ? '✅' : '❌'}
                                                     </Badge>
                                                 </div>
@@ -241,7 +241,7 @@ export function RegisterToolsManager({ registerId: propRegisterId }: RegisterToo
                                                 {info.sources && info.sources.length > 0 && (
                                                     <div className="flex gap-2 mt-2">
                                                         {info.sources.slice(0, 3).map((s, i) => (
-                                                            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                                            <a key={i} href={s.url} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-600 hover:underline flex items-center gap-1">
                                                                 <ExternalLink className="w-3 h-3" /> Source {i + 1}
                                                             </a>
                                                         ))}

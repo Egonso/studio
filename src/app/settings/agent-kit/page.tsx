@@ -774,7 +774,7 @@ export default function AgentKitSettingsPage() {
                           className={
                             key.revokedAt
                               ? 'border-rose-200 bg-rose-50 text-rose-800'
-                              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                              : 'border-gray-200 bg-gray-50 text-gray-800'
                           }
                         >
                           {key.revokedAt ? 'widerrufen' : 'aktiv'}

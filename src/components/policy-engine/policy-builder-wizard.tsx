@@ -327,13 +327,13 @@ export function PolicyBuilderWizard({
                                 <div
                                     key={field.label}
                                     className={`flex items-center justify-between rounded-md border p-3 text-sm ${field.filled
-                                        ? "bg-green-50 border-green-200 dark:bg-green-900/10 dark:border-green-800"
+                                        ? "bg-gray-50 border-gray-200 dark:bg-gray-900/10 dark:border-gray-800"
                                         : "bg-amber-50 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800"
                                         }`}
                                 >
                                     <span className="font-medium">{field.label}</span>
                                     {field.filled ? (
-                                        <span className="flex items-center gap-1 text-green-700 dark:text-green-400">
+                                        <span className="flex items-center gap-1 text-gray-700 dark:text-gray-400">
                                             <Check className="h-3.5 w-3.5" />
                                             {field.value}
                                         </span>

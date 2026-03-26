@@ -161,7 +161,7 @@ function createHookDraft(eventType: WorkspaceWebhookConfig['eventType']): Worksp
 function getSubmissionStatusBadgeClass(status: ExternalSubmission['status']) {
   switch (status) {
     case 'approved':
-      return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      return 'bg-gray-50 text-gray-800 border-gray-200';
     case 'rejected':
       return 'bg-rose-50 text-rose-800 border-rose-200';
     case 'merged':
@@ -174,7 +174,7 @@ function getSubmissionStatusBadgeClass(status: ExternalSubmission['status']) {
 function getSignOffStatusBadgeClass(status: GovernanceSignOffRecord['status']) {
   switch (status) {
     case 'approved':
-      return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      return 'bg-gray-50 text-gray-800 border-gray-200';
     case 'rejected':
       return 'bg-rose-50 text-rose-800 border-rose-200';
     default:
@@ -1113,7 +1113,7 @@ export default function ControlEnterprisePage() {
                                   className={
                                     key.revokedAt
                                       ? 'border-rose-200 bg-rose-50 text-rose-800'
-                                      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                                      : 'border-gray-200 bg-gray-50 text-gray-800'
                                   }
                                 >
                                   {key.revokedAt ? 'widerrufen' : 'aktiv'}

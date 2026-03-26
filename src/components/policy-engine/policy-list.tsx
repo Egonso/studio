@@ -112,7 +112,7 @@ export function PolicyListView({
                                 </Badge>
                                 <Badge
                                     variant={statusVariant(policy.status)}
-                                    className={`text-[10px] py-0 h-4 font-normal ${policy.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                                    className={`text-[10px] py-0 h-4 font-normal ${policy.status === 'approved' ? 'bg-gray-100 text-gray-700 border-gray-200' :
                                             policy.status === 'review' ? 'bg-amber-100 text-amber-700 border-amber-200' :
                                                 ''
                                         }`}

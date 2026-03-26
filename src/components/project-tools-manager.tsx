@@ -139,7 +139,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
         const isYes = status === 'yes';
         return (
             <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                {isYes ? <ShieldCheck className="h-4 w-4 text-green-600" /> : <div className="h-4 w-4 rounded-full border-2 border-gray-300" />}
+                {isYes ? <ShieldCheck className="h-4 w-4 text-gray-600" /> : <div className="h-4 w-4 rounded-full border-2 border-gray-300" />}
                 <span className={isYes ? "text-xs font-medium" : "text-xs text-muted-foreground"}>{label}</span>
             </div>
         );
@@ -160,7 +160,7 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
             </CardHeader>
             <CardContent className="px-0 space-y-4">
                 {isAdding && (
-                    <div className="bg-secondary/20 p-4 rounded-lg flex flex-col sm:flex-row gap-4 items-end mb-4 border border-blue-200">
+                    <div className="bg-secondary/20 p-4 rounded-lg flex flex-col sm:flex-row gap-4 items-end mb-4 border border-gray-200">
                         <div className="flex-1 space-y-2 w-full">
                             <Label>Name des Tools</Label>
                             <ToolAutocomplete
@@ -258,10 +258,10 @@ export function ProjectToolsManager({ projectId }: ProjectToolsManagerProps) {
 
                                         <div className="p-4 space-y-4">
                                             {/* Disclaimer */}
-                                            <Alert className="bg-blue-50/50 border-blue-100 py-2">
-                                                <ShieldAlert className="h-3 w-3 text-blue-600" />
-                                                <AlertTitle className="text-xs font-semibold text-blue-800 ml-2">Automatische Recherche</AlertTitle>
-                                                <AlertDescription className="text-xs text-blue-700 ml-2 mt-0.5" style={{ lineHeight: '1.4' }}>
+                                            <Alert className="bg-gray-50/50 border-gray-100 py-2">
+                                                <ShieldAlert className="h-3 w-3 text-gray-600" />
+                                                <AlertTitle className="text-xs font-semibold text-gray-800 ml-2">Automatische Recherche</AlertTitle>
+                                                <AlertDescription className="text-xs text-gray-700 ml-2 mt-0.5" style={{ lineHeight: '1.4' }}>
                                                     Die folgenden Informationen wurden automatisch aus öffentlich zugänglichen Quellen zusammengetragen. Es handelt sich um <strong>Anbieteraussagen</strong>, nicht um eine rechtliche Prüfung. Bitte verifizieren Sie die Angaben.
                                                 </AlertDescription>
                                             </Alert>

@@ -22,9 +22,9 @@ const levelLabels: Record<number, string> = {
 };
 
 const levelColors: Record<number, { bg: string; text: string; border: string }> = {
-  1: { bg: "bg-blue-50", text: "text-blue-800", border: "border-blue-200" },
-  2: { bg: "bg-indigo-50", text: "text-indigo-800", border: "border-indigo-200" },
-  3: { bg: "bg-green-50", text: "text-green-800", border: "border-green-200" },
+  1: { bg: "bg-gray-50", text: "text-gray-800", border: "border-gray-200" },
+  2: { bg: "bg-gray-50", text: "text-gray-800", border: "border-gray-200" },
+  3: { bg: "bg-gray-50", text: "text-gray-800", border: "border-gray-200" },
 };
 
 export function EukiBadge({

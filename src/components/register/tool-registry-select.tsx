@@ -129,7 +129,7 @@ export function ToolRegistrySelect({ value, onChange, disabled }: ToolRegistrySe
         <div className="mt-1.5 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-1.5 text-xs">
           <RiskBadge entry={selectedEntry} />
           {selectedEntry.gdprCompliant && (
-            <Badge variant="outline" className="shrink-0 bg-blue-50 text-[10px] font-normal text-blue-700">
+            <Badge variant="outline" className="shrink-0 bg-gray-50 text-[10px] font-normal text-gray-700">
               DSGVO
             </Badge>
           )}
@@ -179,7 +179,7 @@ export function ToolRegistrySelect({ value, onChange, disabled }: ToolRegistrySe
                   {entry.gdprCompliant && (
                     <Badge
                       variant="outline"
-                      className="shrink-0 bg-blue-50 text-[10px] font-normal text-blue-700"
+                      className="shrink-0 bg-gray-50 text-[10px] font-normal text-gray-700"
                     >
                       DSGVO
                     </Badge>

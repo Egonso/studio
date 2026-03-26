@@ -35,14 +35,14 @@ const statusConfig: Record<
   },
   REVIEWED: {
     label: "Geprüft",
-    color: "text-blue-700",
-    bgColor: "bg-blue-100",
+    color: "text-gray-700",
+    bgColor: "bg-gray-100",
     icon: Eye,
   },
   PROOF_READY: {
     label: "Nachweisfähig",
-    color: "text-green-700",
-    bgColor: "bg-green-100",
+    color: "text-gray-700",
+    bgColor: "bg-gray-100",
     icon: CheckCircle2,
   },
 };
@@ -67,7 +67,7 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
         return (
           <div
             key={system.publicHashId}
-            className="bg-white rounded-xl border border-slate-200 p-5 hover:border-indigo-200 hover:shadow-sm transition-all"
+            className="bg-white rounded-xl border border-slate-200 p-5 hover:border-gray-200 hover:shadow-sm transition-all"
           >
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -76,7 +76,7 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
                     {system.toolName}
                   </h3>
                   {system.isVerified && (
-                    <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-gray-600 shrink-0" />
                   )}
                 </div>
                 <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 mt-1">
@@ -88,7 +88,7 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-xs text-indigo-700 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
+                    className="text-xs text-gray-700 border-gray-200 bg-gray-50/50 hover:bg-gray-100 hover:text-gray-800 transition-colors"
                     onClick={() =>
                       router.push(
                         buildLoginPath({

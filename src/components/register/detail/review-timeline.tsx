@@ -30,8 +30,8 @@ const STATUS_BADGE_STYLES: Record<
     Exclude<RegisterUseCaseStatus, "UNREVIEWED">,
     string
 > = {
-    REVIEWED: "bg-blue-100 text-blue-800 border-blue-200",
-    PROOF_READY: "bg-green-100 text-green-800 border-green-200",
+    REVIEWED: "bg-gray-100 text-gray-800 border-gray-200",
+    PROOF_READY: "bg-gray-100 text-gray-800 border-gray-200",
     REVIEW_RECOMMENDED: "bg-slate-100 text-slate-700 border-slate-200",
 };
 

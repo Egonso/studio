@@ -416,13 +416,13 @@ export function CertificationExamClient() {
 
     return (
       <div className="space-y-6">
-        <Card className={passed ? 'border-emerald-200' : 'border-red-200'}>
+        <Card className={passed ? 'border-gray-200' : 'border-red-200'}>
           <CardContent className="space-y-6 p-6">
             <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <div
                   className={`rounded-full p-3 ${
-                    passed ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                    passed ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'
                   }`}
                 >
                   {passed ? (
@@ -462,7 +462,7 @@ export function CertificationExamClient() {
                     </div>
                     <span
                       className={`text-sm font-semibold ${
-                        section.passed ? 'text-emerald-700' : 'text-red-700'
+                        section.passed ? 'text-gray-700' : 'text-red-700'
                       }`}
                     >
                       {section.score.toFixed(2)}%
@@ -624,7 +624,7 @@ export function CertificationExamClient() {
             <div
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ${
                 sectionReview.passed
-                  ? 'bg-emerald-100 text-emerald-700'
+                  ? 'bg-gray-100 text-gray-700'
                   : 'bg-red-100 text-red-700'
               }`}
             >
@@ -713,7 +713,7 @@ export function CertificationExamClient() {
                   htmlFor={`${currentQuestion.id}-${optionIndex}`}
                   className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition ${
                     showExplanation && isCorrect
-                      ? 'border-emerald-300 bg-emerald-50'
+                      ? 'border-gray-300 bg-gray-50'
                       : showExplanation && isSelected
                         ? 'border-red-300 bg-red-50'
                         : 'border-slate-200 hover:border-slate-300'

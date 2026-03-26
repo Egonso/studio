@@ -257,14 +257,14 @@ export function PageStatePanel({
 
   const iconClassName =
     tone === 'success'
-      ? 'text-emerald-700'
+      ? 'text-gray-700'
       : tone === 'error'
         ? 'text-slate-700'
         : 'text-slate-500';
 
   const panelClassName =
     tone === 'success'
-      ? 'border-emerald-200'
+      ? 'border-gray-200'
       : tone === 'error'
         ? 'border-slate-300'
         : 'border-slate-200';

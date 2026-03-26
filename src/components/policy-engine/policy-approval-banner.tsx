@@ -109,15 +109,15 @@ export function PolicyApprovalBanner({
 
             case "approved":
                 return (
-                    <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900 flex items-center justify-between">
+                    <Alert className="bg-gray-50 border-gray-200 dark:bg-gray-950/20 dark:border-gray-900 flex items-center justify-between">
                         <div className="flex items-start gap-3">
-                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                            <CheckCircle className="h-5 w-5 text-gray-600 mt-0.5" />
                             <div>
-                                <AlertTitle className="text-sm font-semibold text-green-900 dark:text-green-100 flex items-center gap-2">
+                                <AlertTitle className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                                     Status: {POLICY_STATUS_LABELS[status]}
-                                    <Badge variant="outline" className="border-green-300 text-green-700 font-normal text-[10px]">Operativ Gültig</Badge>
+                                    <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal text-[10px]">Operativ Gültig</Badge>
                                 </AlertTitle>
-                                <AlertDescription className="text-xs text-green-800/80 dark:text-green-200/70">
+                                <AlertDescription className="text-xs text-gray-800/80 dark:text-gray-200/70">
                                     Diese Richtlinie ist genehmigt und dient als Grundlage für die KI-Governance in Ihrer Organisation.
                                 </AlertDescription>
                             </div>
@@ -125,7 +125,7 @@ export function PolicyApprovalBanner({
                         <Button
                             variant="outline"
                             size="sm"
-                            className="ml-4 outline-green-200 hover:bg-green-100 text-green-900"
+                            className="ml-4 outline-gray-200 hover:bg-gray-100 text-gray-900"
                             onClick={() => handleAction("draft")}
                             disabled={isUpdating}
                         >

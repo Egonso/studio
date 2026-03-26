@@ -54,7 +54,7 @@ export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
                     className="absolute right-1 top-1 h-8 w-8 hover:bg-slate-200 text-slate-500"
                     onClick={handleCopy}
                 >
-                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                    {copied ? <Check className="h-4 w-4 text-gray-600" /> : <Copy className="h-4 w-4" />}
                 </Button>
             </div>
             <p className="text-xs text-slate-400">
