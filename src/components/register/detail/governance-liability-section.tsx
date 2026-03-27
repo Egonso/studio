@@ -70,6 +70,10 @@ interface RequirementItem {
   onAction?: (() => void) | null;
 }
 
+type GovernanceIsoSettings = NonNullable<
+  NonNullable<NonNullable<UseCaseCard["governanceAssessment"]>["flex"]>["iso"]
+>;
+
 function compactRequirements(
   items: Array<RequirementItem | null>,
 ): RequirementItem[] {
@@ -519,7 +523,8 @@ export function GovernanceLiabilitySection({
       setIsSavingField(field);
 
       try {
-        const currentIso = card.governanceAssessment?.flex?.iso || {};
+        const currentIso: Partial<GovernanceIsoSettings> =
+          card.governanceAssessment?.flex?.iso ?? {};
         const updatedIso = {
           ...currentIso,
           oversightModel:
