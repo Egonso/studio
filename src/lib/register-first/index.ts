@@ -26,6 +26,7 @@ export * from "./external-intake";
 export * from "./external-submissions";
 export * from "./register-scope";
 export * from "./systems";
+export * from "./use-case-readiness";
 export {
   type RegisterScope,
   type RegisterRepository,

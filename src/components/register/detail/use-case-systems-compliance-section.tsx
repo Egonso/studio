@@ -10,6 +10,7 @@ import {
   createUseCaseSystemPublicInfoEntry,
   mergeUseCaseSystemPublicInfoEntries,
   resolveUniqueSystemsForCompliance,
+  type ResolvedComplianceSystemEntry,
 } from "@/lib/register-first";
 import type {
   ToolPublicInfo,
@@ -111,6 +112,134 @@ function getStatusLabel(input: {
   return input.lastCheckedAt ? `Geprueft am ${input.lastCheckedAt}` : "Dokumentiert";
 }
 
+function getKnownSignals(publicInfo: ToolPublicInfo): string[] {
+  const signals: string[] = [];
+
+  if (publicInfo.flags.gdprClaim === "yes") {
+    signals.push("DSGVO-Hinweis");
+  }
+  if (publicInfo.flags.aiActClaim === "yes") {
+    signals.push("AI-Act-Hinweis");
+  }
+  if (publicInfo.flags.trustCenterFound === "yes") {
+    signals.push("Trust Center");
+  }
+  if (publicInfo.flags.privacyPolicyFound === "yes") {
+    signals.push("Datenschutzerklaerung");
+  }
+  if (publicInfo.flags.dpaOrSccMention === "yes") {
+    signals.push("AVV / SCC");
+  }
+
+  return signals;
+}
+
+function buildSystemNarrative(
+  system: ResolvedComplianceSystemEntry,
+  lastCheckedAt: string | null,
+): {
+  status: string;
+  documented: string;
+  missing: string;
+  nextStep: string;
+  actionLabel: string | null;
+} {
+  if (system.requiresManualDocumentation && !system.publicInfo) {
+    const vendorText = system.vendor
+      ? `Anbieter ist als ${system.vendor} hinterlegt.`
+      : "Ein Anbieter ist noch nicht gesondert hinterlegt.";
+
+    return {
+      status: "Manuelle Dokumentation erforderlich",
+      documented: `${vendorText} Das System selbst ist identifiziert, aber nicht automatisiert recherchierbar.`,
+      missing:
+        "Es fehlen belastbare Angaben zu Betrieb, Datenschutz, Vertragsgrundlagen oder externen Nachweisen.",
+      nextStep:
+        "Anbieter-, Nutzungs- und Compliance-Informationen manuell in den Nachweisen oder Begleitdokumenten ergaenzen.",
+      actionLabel: null,
+    };
+  }
+
+  if (!system.publicInfo) {
+    const vendorText = system.vendor
+      ? `Anbieter ${system.vendor} ist hinterlegt.`
+      : "Bisher ist nur das System selbst dokumentiert.";
+
+    return {
+      status: "Noch kein dokumentierter Compliance-Stand",
+      documented: vendorText,
+      missing:
+        "Es fehlt ein dokumentierter oeffentlicher Nachweisstand zu Datenschutz, AI Act oder Trust-Center-Informationen.",
+      nextStep:
+        "Jetzt System pruefen, um vorhandene oeffentliche Nachweise zu recherchieren und zu speichern.",
+      actionLabel: "Jetzt pruefen",
+    };
+  }
+
+  const signals = getKnownSignals(system.publicInfo);
+  const summary =
+    system.publicInfo.summary?.trim() ||
+    `Es liegen ${signals.length > 0 ? signals.length : "einige"} dokumentierte Nachweisindikatoren vor.`;
+  const sourceCount = system.publicInfo.sources.length;
+
+  return {
+    status: lastCheckedAt
+      ? `Dokumentiert, zuletzt geprueft am ${lastCheckedAt}`
+      : "Dokumentiert",
+    documented:
+      sourceCount > 0
+        ? `${summary} ${sourceCount} Quelle${sourceCount === 1 ? "" : "n"} verknuepft.`
+        : summary,
+    missing:
+      sourceCount === 0
+        ? "Es ist noch keine Quelle am Eintrag verlinkt."
+        : signals.length >= 2
+          ? "Aktuell ist keine akute Nachweisluecke sichtbar."
+          : "Der dokumentierte Nachweis ist noch schmal und sollte bei relevanten Aenderungen erneut geprueft werden.",
+    nextStep:
+      sourceCount === 0
+        ? "Bei Bedarf erneut pruefen und Quellenlage fuer den Nachweis verbreitern."
+        : "Bei Veraenderungen des Systems oder neuer Nutzungslage erneut pruefen.",
+    actionLabel: "Erneut pruefen",
+  };
+}
+
+function getSectionIntro(input: {
+  isSingleMode: boolean;
+  systems: ResolvedComplianceSystemEntry[];
+  isEditing: boolean;
+}): string {
+  if (input.systems.length === 0) {
+    return "Noch kein System dokumentiert.";
+  }
+
+  if (input.isEditing) {
+    return input.isSingleMode
+      ? "Wenn weitere Systeme hinzukommen, entsteht hier automatisch eine deduplizierte Mehrsystem-Sicht."
+      : 'Beteiligte Systeme pflegen Sie im Abschnitt "Ablauf & Systeme". Hier erscheint der deduplizierte Nachweisstand pro System.';
+  }
+
+  const documentedCount = input.systems.filter((system) => Boolean(system.publicInfo))
+    .length;
+  const manualCount = input.systems.filter(
+    (system) => system.requiresManualDocumentation && !system.publicInfo,
+  ).length;
+
+  if (input.isSingleMode) {
+    return documentedCount > 0
+      ? "Der aktuelle Nachweisstand fuer das dokumentierte System ist hinterlegt."
+      : manualCount > 0
+        ? "Dieses System benoetigt voraussichtlich eine manuelle Nachweisfuehrung."
+        : "Fuer dieses System liegt noch kein dokumentierter Compliance-Stand vor.";
+  }
+
+  if (manualCount > 0) {
+    return `${documentedCount} von ${input.systems.length} beteiligten Systemen haben recherchierte Nachweise. ${manualCount} System${manualCount === 1 ? "" : "e"} muessen manuell dokumentiert werden.`;
+  }
+
+  return `${documentedCount} von ${input.systems.length} beteiligten Systemen haben recherchierte Nachweise. Wiederholte Systeme erscheinen hier nur einmal.`;
+}
+
 export function UseCaseSystemsComplianceSection({
   card,
   isEditing,
@@ -142,6 +271,11 @@ export function UseCaseSystemsComplianceSection({
   const researchableSystems = systems.filter(
     (system) => !system.requiresManualDocumentation
   );
+  const sectionIntro = getSectionIntro({
+    isSingleMode,
+    systems,
+    isEditing,
+  });
 
   const runComplianceCheck = async (targetSystemKeys?: string[]) => {
     const targetSystems = systems.filter((system) =>
@@ -280,13 +414,13 @@ export function UseCaseSystemsComplianceSection({
         <div className="space-y-1">
           <h2 className="text-[18px] font-semibold tracking-tight">
             {isSingleMode
-              ? "System & Compliance"
-              : "Beteiligte Systeme & Compliance"}
+              ? "Systemnachweis"
+              : "Systemnachweise"}
           </h2>
           <p className="text-xs text-muted-foreground">
             {isSingleMode
-              ? "Zeigt den aktuellen Compliance-Stand fuer das dokumentierte System."
-              : "Ablauf dokumentiert die Reihenfolge. Compliance prueft beteiligte Systeme dedupliziert."}
+              ? "Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+              : "Ablauf dokumentiert die Reihenfolge. Hier erscheint der deduplizierte Nachweisstand pro beteiligten System."}
           </p>
         </div>
 
@@ -304,26 +438,14 @@ export function UseCaseSystemsComplianceSection({
             </>
           ) : (
             isSingleMode
-              ? "Compliance pruefen"
-              : "Compliance fuer beteiligte Systeme pruefen"
+              ? "System pruefen"
+              : "Recherche fuer Systeme starten"
           )}
         </Button>
       </div>
 
       <div className="mt-4 rounded-sm border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
-        {isEditing ? (
-          <p>
-            {isSingleMode
-              ? 'Wenn Sie weitere Systeme ergaenzen, erscheint hier automatisch eine deduplizierte Mehrsystem-Sicht.'
-              : 'Beteiligte Systeme pflegen Sie im Abschnitt "Ablauf & Systeme". Hier sehen und pruefen Sie die deduplizierten Compliance-Informationen.'}
-          </p>
-        ) : (
-          <p>
-            {isSingleMode
-              ? "Compliance-Informationen beziehen sich auf das aktuell dokumentierte System."
-              : "Wiederholte Schritte mit demselben System erscheinen hier nur einmal."}
-          </p>
-        )}
+        <p>{sectionIntro}</p>
       </div>
 
       {systems.length > 0 ? (
@@ -337,6 +459,7 @@ export function UseCaseSystemsComplianceSection({
               lastCheckedAt,
             });
             const isCheckingThisSystem = activeCheckTarget === system.systemKey;
+            const narrative = buildSystemNarrative(system, lastCheckedAt);
 
             return (
               <div
@@ -382,64 +505,69 @@ export function UseCaseSystemsComplianceSection({
                           Pruefung...
                         </>
                       ) : (
-                        "Pruefen"
+                        narrative.actionLabel ?? "Pruefen"
                       )}
                     </Button>
                   )}
                 </div>
 
-                {publicInfo ? (
-                  <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-white px-4 py-3">
-                    <p className="text-sm text-slate-700">
-                      {publicInfo.summary || "Keine Zusammenfassung verfuegbar."}
-                    </p>
+                <div className="mt-3 space-y-3 rounded-md border border-slate-200 bg-white px-4 py-3">
+                  <ComplianceNarrativeRow
+                    label="Status"
+                    value={narrative.status}
+                  />
+                  <ComplianceNarrativeRow
+                    label="Dokumentiert"
+                    value={narrative.documented}
+                  />
+                  <ComplianceNarrativeRow
+                    label="Es fehlt"
+                    value={narrative.missing}
+                  />
+                  <ComplianceNarrativeRow
+                    label="Naechster Schritt"
+                    value={narrative.nextStep}
+                  />
 
-                    <div className="grid gap-2 text-xs text-slate-600 md:grid-cols-2">
-                      <p>DSGVO: {formatFlagLabel(publicInfo.flags.gdprClaim)}</p>
-                      <p>AI Act: {formatFlagLabel(publicInfo.flags.aiActClaim)}</p>
-                      <p>
-                        Trust Center:{" "}
-                        {formatFlagLabel(publicInfo.flags.trustCenterFound)}
-                      </p>
-                      <p>
-                        AVV / SCC: {formatFlagLabel(publicInfo.flags.dpaOrSccMention)}
-                      </p>
-                    </div>
+                  {publicInfo ? (
+                    <>
+                      <div className="grid gap-2 border-t border-slate-200 pt-3 text-xs text-slate-600 md:grid-cols-2">
+                        <p>DSGVO: {formatFlagLabel(publicInfo.flags.gdprClaim)}</p>
+                        <p>AI Act: {formatFlagLabel(publicInfo.flags.aiActClaim)}</p>
+                        <p>
+                          Trust Center:{" "}
+                          {formatFlagLabel(publicInfo.flags.trustCenterFound)}
+                        </p>
+                        <p>
+                          AVV / SCC: {formatFlagLabel(publicInfo.flags.dpaOrSccMention)}
+                        </p>
+                      </div>
 
-                    {publicInfo.sources.length > 0 ? (
-                      <p className="text-xs text-slate-500">
-                        Quellen:{" "}
-                        {publicInfo.sources
-                          .slice(0, 3)
-                          .map((source, index) => (
-                            <span key={`${system.systemKey}-${source.url}-${index}`}>
-                              <a
-                                href={source.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-slate-700 underline underline-offset-2"
-                              >
-                                {source.title || `Quelle ${index + 1}`}
-                              </a>
-                              {index < Math.min(publicInfo.sources.length, 3) - 1
-                                ? ", "
-                                : ""}
-                            </span>
-                          ))}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : system.requiresManualDocumentation ? (
-                  <div className="mt-3 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                    Internes oder kundenspezifisches System. Bitte Anbieter- und
-                    Compliance-Informationen manuell dokumentieren.
-                  </div>
-                ) : (
-                  <div className="mt-3 rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
-                    Fuer dieses beteiligte System liegen derzeit keine dokumentierten
-                    Compliance-Informationen vor.
-                  </div>
-                )}
+                      {publicInfo.sources.length > 0 ? (
+                        <p className="border-t border-slate-200 pt-3 text-xs text-slate-500">
+                          Quellen:{" "}
+                          {publicInfo.sources
+                            .slice(0, 3)
+                            .map((source, index) => (
+                              <span key={`${system.systemKey}-${source.url}-${index}`}>
+                                <a
+                                  href={source.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-slate-700 underline underline-offset-2"
+                                >
+                                  {source.title || `Quelle ${index + 1}`}
+                                </a>
+                                {index < Math.min(publicInfo.sources.length, 3) - 1
+                                  ? ", "
+                                  : ""}
+                              </span>
+                            ))}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : null}
+                </div>
               </div>
             );
           })}
@@ -450,5 +578,22 @@ export function UseCaseSystemsComplianceSection({
         </div>
       )}
     </section>
+  );
+}
+
+function ComplianceNarrativeRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="grid gap-1 md:grid-cols-[140px_minmax(0,1fr)] md:gap-3">
+      <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+        {label}
+      </p>
+      <p className="text-sm leading-6 text-slate-700">{value}</p>
+    </div>
   );
 }

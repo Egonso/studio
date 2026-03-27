@@ -3,609 +3,1080 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-    AlertCircle,
-    Check,
-    CheckCircle2,
-    Clock,
-    Download,
-    ExternalLink,
-    Pencil,
-    ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import {
-    resolvePrimaryDataCategory,
-    type UseCaseCard,
-    type OrgSettings,
+  resolvePrimaryDataCategory,
+  type OrgSettings,
+  type UseCaseCard,
 } from "@/lib/register-first/types";
 import { useToast } from "@/hooks/use-toast";
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 import { getFeatureUpgradeHref } from "@/lib/compliance-engine/capability/upgrade-paths";
 import { registerService } from "@/lib/register-first/register-service";
 import { ReviewDialog } from "./review-dialog";
-
-// ── Backend Services ────────────────────────────────────────────────────────
-import { isPubliclyVerifiable, getVerifyUrl } from "@/lib/register-first/trust-portal-service";
-import { activatePublicVisibility } from "@/lib/register-first/trust-portal-service";
-import { calculateReviewDeadline, getDeadlineStatusLabel } from "@/lib/compliance-engine/reminders/review-deadline";
-import { generateGovernanceReport, governanceReportToCSV } from "@/lib/compliance-engine/audit/governance-report";
+import {
+  activatePublicVisibility,
+  getVerifyUrl,
+  isPubliclyVerifiable,
+} from "@/lib/register-first/trust-portal-service";
+import {
+  calculateReviewDeadline,
+  getDeadlineStatusLabel,
+} from "@/lib/compliance-engine/reminders/review-deadline";
+import {
+  generateGovernanceReport,
+  governanceReportToCSV,
+} from "@/lib/compliance-engine/audit/governance-report";
 import { isDossierGeneratable } from "@/lib/compliance-engine/audit/dossier-builder";
 
-// ── Types ───────────────────────────────────────────────────────────────────
-
 interface GovernanceLiabilitySectionProps {
-    card: UseCaseCard;
-    /** All use cases in the register (for report/dossier generation) */
-    useCases?: UseCaseCard[];
-    /** Organisation settings (for report/dossier context) */
-    orgSettings?: OrgSettings | null;
-    /** Callback after card is updated (e.g. trust portal activation) */
-    onCardUpdate?: (card: UseCaseCard) => void;
-    focusField?: "oversight" | "reviewCycle" | "history" | null;
-    autoOpenField?: "oversight" | "reviewCycle" | null;
+  card: UseCaseCard;
+  useCases?: UseCaseCard[];
+  orgSettings?: OrgSettings | null;
+  onCardUpdate?: (card: UseCaseCard) => void;
+  focusField?: "oversight" | "reviewCycle" | "history" | null;
+  autoOpenField?: "oversight" | "reviewCycle" | null;
 }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+type EditableField = "oversight" | "reviewCycle";
+type OversightValue = "HITL" | "HOTL" | "HUMAN_REVIEW" | "NO_HUMAN" | "unknown";
+type ReviewCycleValue =
+  | "annual"
+  | "semiannual"
+  | "quarterly"
+  | "monthly"
+  | "ad_hoc"
+  | "unknown";
+
+interface DecisionOption<TValue extends string> {
+  value: TValue;
+  title: string;
+  description: string;
+}
+
+interface RequirementItem {
+  key: string;
+  label: string;
+  detail?: string | null;
+  actionLabel?: string | null;
+  onAction?: (() => void) | null;
+}
+
+const OVERSIGHT_OPTIONS: DecisionOption<Exclude<OversightValue, "unknown">>[] = [
+  {
+    value: "HITL",
+    title: "Human-in-the-Loop",
+    description: "Ein Mensch bestaetigt jeden kritischen Schritt vor der finalen Nutzung.",
+  },
+  {
+    value: "HOTL",
+    title: "Human-on-the-Loop",
+    description: "Die Nutzung wird laufend ueberwacht und bei Bedarf menschlich korrigiert.",
+  },
+  {
+    value: "HUMAN_REVIEW",
+    title: "Menschliche Ueberpruefung",
+    description: "Ergebnisse werden gezielt vor oder nach Freigabe kontrolliert.",
+  },
+  {
+    value: "NO_HUMAN",
+    title: "Kein menschlicher Eingriff",
+    description: "Es gibt keine laufende menschliche Pruefung im operativen Ablauf.",
+  },
+];
+
+const REVIEW_CYCLE_OPTIONS: DecisionOption<
+  Exclude<ReviewCycleValue, "unknown" | "ad_hoc">
+>[] = [
+  {
+    value: "monthly",
+    title: "Monatlich",
+    description: "Geeignet fuer haeufig genutzte oder eng ueberwachte Einsatzfaelle.",
+  },
+  {
+    value: "quarterly",
+    title: "Quartalsweise",
+    description: "Geeignet fuer regelmaessige Nutzung mit ueblichem Governance-Bedarf.",
+  },
+  {
+    value: "semiannual",
+    title: "Halbjaehrlich",
+    description: "Geeignet fuer stabile Einsatzfaelle mit geringer Veraenderungsdynamik.",
+  },
+  {
+    value: "annual",
+    title: "Jaehrlich",
+    description: "Geeignet fuer selten veraenderte oder klar abgegrenzte Nutzungsszenarien.",
+  },
+];
 
 function formatDateDE(isoDate: string): string {
-    try {
-        const d = new Date(isoDate);
-        if (isNaN(d.getTime())) return "–";
-        const day = String(d.getDate()).padStart(2, "0");
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const year = d.getFullYear();
-        return `${day}.${month}.${year}`;
-    } catch {
-        return "–";
-    }
+  try {
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return "–";
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  } catch {
+    return "–";
+  }
 }
 
-/**
- * Trigger a file download in the browser.
- */
 function downloadBlob(content: string, filename: string, mimeType: string) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
+function normalizeOversightValue(value: string | null | undefined): OversightValue {
+  if (
+    value === "HITL" ||
+    value === "HOTL" ||
+    value === "HUMAN_REVIEW" ||
+    value === "NO_HUMAN"
+  ) {
+    return value;
+  }
+  return "unknown";
+}
+
+function normalizeReviewCycleValue(value: string | null | undefined): ReviewCycleValue {
+  if (
+    value === "annual" ||
+    value === "semiannual" ||
+    value === "quarterly" ||
+    value === "monthly" ||
+    value === "ad_hoc"
+  ) {
+    return value;
+  }
+  return "unknown";
+}
+
+function getOversightLabel(value: OversightValue | null | undefined): string | null {
+  const normalized = normalizeOversightValue(value);
+  if (normalized === "unknown") {
+    return null;
+  }
+
+  const match = OVERSIGHT_OPTIONS.find((option) => option.value === normalized);
+  return match?.title ?? normalized;
+}
+
+function getReviewCycleLabel(value: ReviewCycleValue | null | undefined): string | null {
+  const normalized = normalizeReviewCycleValue(value);
+  if (normalized === "unknown") {
+    return null;
+  }
+
+  if (normalized === "ad_hoc") {
+    return "Anlassbezogen";
+  }
+
+  const match = REVIEW_CYCLE_OPTIONS.find((option) => option.value === normalized);
+  return match?.title ?? normalized;
+}
+
+function getEffectiveReviewCycleDetail(
+  reviewCycle: ReviewCycleValue | null | undefined,
+  orgSettings: OrgSettings | null | undefined,
+): { label: string; source: "use_case" | "org" } | null {
+  const directLabel = getReviewCycleLabel(reviewCycle);
+  if (directLabel) {
+    return {
+      label: directLabel,
+      source: "use_case",
+    };
+  }
+
+  if (orgSettings?.reviewStandard === "risk-based") {
+    return {
+      label: "Risikobasiert (Organisationstandard)",
+      source: "org",
+    };
+  }
+
+  const inheritedLabel = getReviewCycleLabel(
+    orgSettings?.reviewStandard ?? "unknown",
+  );
+
+  if (!inheritedLabel) {
+    return null;
+  }
+
+  return {
+    label: `${inheritedLabel} (Organisationstandard)`,
+    source: "org",
+  };
+}
+
+function getNextOpenDecisionField(input: {
+  currentField: EditableField;
+  oversightValue: OversightValue;
+  reviewCycleValue: ReviewCycleValue;
+  orgSettings?: OrgSettings | null;
+}): EditableField | null {
+  const hasOversight = normalizeOversightValue(input.oversightValue) !== "unknown";
+  const hasReviewCycle =
+    normalizeReviewCycleValue(input.reviewCycleValue) !== "unknown" ||
+    Boolean(input.orgSettings?.reviewStandard);
+
+  if (input.currentField === "oversight" && !hasReviewCycle) {
+    return "reviewCycle";
+  }
+
+  if (input.currentField === "reviewCycle" && !hasOversight) {
+    return "oversight";
+  }
+
+  return null;
+}
+
+function focusDecisionField(field: EditableField) {
+  if (typeof window === "undefined") return;
+
+  window.requestAnimationFrame(() => {
+    document
+      .getElementById(`governance-decision-${field}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
 
 export function GovernanceLiabilitySection({
-    card,
-    useCases = [],
-    orgSettings,
-    onCardUpdate,
-    focusField = null,
-    autoOpenField = null,
+  card,
+  useCases = [],
+  orgSettings,
+  onCardUpdate,
+  focusField = null,
+  autoOpenField = null,
 }: GovernanceLiabilitySectionProps) {
-    const router = useRouter();
-    const { toast } = useToast();
-    const [isActivatingPortal, setIsActivatingPortal] = useState(false);
-    const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isActivatingPortal, setIsActivatingPortal] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [editingField, setEditingField] = useState<EditableField | null>(null);
+  const [draftValues, setDraftValues] = useState<{
+    oversight: OversightValue;
+    reviewCycle: ReviewCycleValue;
+  }>({
+    oversight: "unknown",
+    reviewCycle: "unknown",
+  });
+  const [isSavingField, setIsSavingField] = useState<EditableField | null>(null);
+  const [autoOpenApplied, setAutoOpenApplied] = useState(false);
 
-    // ── Inline-Edit state for Section 1 ─────────────────────────────────
-    const [editingField, setEditingField] = useState<"oversight" | "reviewCycle" | null>(null);
-    const [editValue, setEditValue] = useState("");
-    const [isSavingInline, setIsSavingInline] = useState(false);
-    const [autoOpenApplied, setAutoOpenApplied] = useState(false);
+  const reviewCap = useCapability("reviewWorkflow");
+  const trustCap = useCapability("trustPortal");
+  const iso = card.governanceAssessment?.flex?.iso;
 
-    // ── Capability checks ───────────────────────────────────────────────
-    const reviewCap = useCapability("reviewWorkflow");
-    const trustCap = useCapability("trustPortal");
+  const hasRiskClass =
+    Boolean(card.governanceAssessment?.core?.aiActCategory) ||
+    Boolean(resolvePrimaryDataCategory(card));
+  const hasOwner =
+    Boolean(card.responsibility?.responsibleParty) ||
+    card.responsibility?.isCurrentlyResponsible === true;
+  const hasOversight = normalizeOversightValue(iso?.oversightModel) !== "unknown";
+  const reviewCycleDetail = getEffectiveReviewCycleDetail(
+    normalizeReviewCycleValue(iso?.reviewCycle),
+    orgSettings,
+  );
+  const hasReviewCycle = Boolean(reviewCycleDetail);
 
-    // ── Section 1: Stammdokumentation ───────────────────────────────────
-    const iso = card.governanceAssessment?.flex?.iso;
+  const section1Checks = [hasRiskClass, hasOwner, hasOversight, hasReviewCycle];
+  const section1Passed = section1Checks.filter(Boolean).length;
+  const section1Total = section1Checks.length;
 
-    const hasRiskClass = !!card.governanceAssessment?.core?.aiActCategory
-        || !!resolvePrimaryDataCategory(card);
-    const hasOwner = !!card.responsibility?.responsibleParty
-        || card.responsibility?.isCurrentlyResponsible === true;
-    // OrgSettings fallback: If per-card ISO data is missing, check org-wide reviewStandard
-    const hasOversight = (!!iso?.oversightModel && iso.oversightModel !== "unknown");
-    const hasReviewCycle = (!!iso?.reviewCycle && iso.reviewCycle !== "unknown")
-        || !!orgSettings?.reviewStandard;
+  const hasHistory = card.reviews != null && card.reviews.length > 0;
+  const deadline = useMemo(() => calculateReviewDeadline(card), [card]);
+  const hasReminders = deadline.status !== "no_deadline";
+  const hasReviewTrail = hasHistory && hasReminders;
+  const canGenerateReport = hasHistory && orgSettings != null;
 
-    const section1Checks = [hasRiskClass, hasOwner, hasOversight, hasReviewCycle];
-    const section1Passed = section1Checks.filter(Boolean).length;
-    const section1Total = section1Checks.length;
+  const isExternal =
+    card.usageContexts?.includes("CUSTOMER_FACING") ||
+    card.usageContexts?.includes("EXTERNAL_PUBLIC") ||
+    card.usageContexts?.includes("CUSTOMERS") ||
+    card.usageContexts?.includes("PUBLIC");
 
-    const section1StatusIcon = useMemo(() => {
-        if (section1Passed === section1Total) {
-            return <CheckCircle2 className="w-4 h-4 text-gray-600" />;
+  const hasTrustPortal = isPubliclyVerifiable(card);
+  const hasAuditDossier =
+    orgSettings != null ? isDossierGeneratable(useCases, orgSettings) : false;
+  const isExternBelegbar = hasTrustPortal || hasAuditDossier;
+  const needsEnterpriseHint = isExternal && !hasTrustPortal;
+  const verifyUrl = getVerifyUrl(card);
+  const documentedOversightLabel = getOversightLabel(
+    normalizeOversightValue(iso?.oversightModel),
+  );
+
+  const openEditor = useCallback((field: EditableField) => {
+    setEditingField(field);
+    focusDecisionField(field);
+  }, []);
+
+  const completedRequirements: RequirementItem[] = [
+    hasRiskClass
+      ? {
+          key: "risk",
+          label: "Risikoklasse dokumentiert",
         }
-        return <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />;
-    }, [section1Passed, section1Total]);
-
-    // ── Section 2: Prüfhistorie ─────────────────────────────────────────
-    const hasHistory = card.reviews != null && card.reviews.length > 0;
-    const deadline = useMemo(() => calculateReviewDeadline(card), [card]);
-    const hasReminders = deadline.status !== "no_deadline";
-    const isPruefhistorie = hasHistory && hasReminders;
-
-    // Report generation check
-    const canGenerateReport = hasHistory && orgSettings != null;
-
-    // Context-sensitive triggers
-    const isExternal = card.usageContexts?.includes("CUSTOMER_FACING")
-        || card.usageContexts?.includes("EXTERNAL_PUBLIC")
-        || card.usageContexts?.includes("CUSTOMERS")
-        || card.usageContexts?.includes("PUBLIC");
-
-    // ── Section 3: Extern belegbar ──────────────────────────────────────
-    const hasTrustPortal = isPubliclyVerifiable(card);
-    const hasAuditDossier = orgSettings != null
-        ? isDossierGeneratable(useCases, orgSettings)
-        : false;
-    const isExternBelegbar = hasTrustPortal || hasAuditDossier;
-    const needsEnterpriseHint = isExternal && !hasTrustPortal;
-    const verifyUrl = getVerifyUrl(card);
-
-    // ── Button Handlers ─────────────────────────────────────────────────
-
-    const handleActivateReviewWorkflow = useCallback(() => {
-        if (!reviewCap.allowed) {
-            router.push(getFeatureUpgradeHref("reviewWorkflow"));
-            return;
+      : null,
+    hasOwner
+      ? {
+          key: "owner",
+          label: "Verantwortliche Rolle dokumentiert",
         }
-        setReviewDialogOpen(true);
-    }, [reviewCap.allowed, router]);
-
-    const handleActivateTrustPortal = useCallback(async () => {
-        if (!trustCap.allowed) {
-            router.push(getFeatureUpgradeHref("trustPortal"));
-            return;
+      : null,
+    hasOversight
+      ? {
+          key: "oversight",
+          label: "Aufsichtsmodell dokumentiert",
+          detail: documentedOversightLabel,
+          actionLabel: "Aendern",
+          onAction: () => openEditor("oversight"),
         }
-
-        setIsActivatingPortal(true);
-        try {
-            const result = await activatePublicVisibility(card.useCaseId);
-            onCardUpdate?.(result.card);
-            toast({
-                title: "Trust Portal aktiviert",
-                description: `Öffentlicher Governance-Nachweis ist jetzt unter ${result.verifyUrl} erreichbar.`,
-            });
-        } catch (err) {
-            toast({
-                variant: "destructive",
-                title: "Fehler",
-                description: "Trust Portal konnte nicht aktiviert werden.",
-            });
-            console.error("Trust Portal activation failed:", err);
-        } finally {
-            setIsActivatingPortal(false);
+      : null,
+    hasReviewCycle
+      ? {
+          key: "reviewCycle",
+          label: "Review-Zyklus dokumentiert",
+          detail: reviewCycleDetail?.label ?? null,
+          actionLabel:
+            reviewCycleDetail?.source === "org" ? "Override festlegen" : "Aendern",
+          onAction: () => openEditor("reviewCycle"),
         }
-    }, [card.useCaseId, onCardUpdate, router, toast, trustCap.allowed]);
+      : null,
+  ].filter((item): item is RequirementItem => item !== null);
 
-    const handleDownloadReport = useCallback(() => {
-        if (!orgSettings) return;
-        try {
-            const report = generateGovernanceReport(
-                useCases.length > 0 ? useCases : [card],
-                orgSettings,
-            );
-            const csv = governanceReportToCSV(report);
-            const dateStr = new Date().toISOString().slice(0, 10);
-            downloadBlob(
-                csv,
-                `governance-report-${dateStr}.csv`,
-                "text/csv;charset=utf-8",
-            );
-            toast({
-                title: "Report heruntergeladen",
-                description: "Governance-Stichtagsreport als CSV gespeichert.",
-            });
-        } catch (err) {
-            toast({
-                variant: "destructive",
-                title: "Fehler",
-                description: "Report konnte nicht generiert werden.",
-            });
-            console.error("Report generation failed:", err);
+  const missingRequirements: RequirementItem[] = [
+    !hasRiskClass
+      ? {
+          key: "risk",
+          label: "Risikoklasse dokumentieren",
+          detail: "Im Bereich Stammdaten ergaenzen.",
         }
-    }, [card, useCases, orgSettings, toast]);
+      : null,
+    !hasOwner
+      ? {
+          key: "owner",
+          label: "Verantwortliche Rolle dokumentieren",
+          detail: "Im Bereich Stammdaten ergaenzen.",
+        }
+      : null,
+    !hasOversight
+      ? {
+          key: "oversight",
+          label: "Aufsichtsmodell festlegen",
+          detail: "Wird in diesem Abschnitt als formale Entscheidung dokumentiert.",
+        }
+      : null,
+    !hasReviewCycle
+      ? {
+          key: "reviewCycle",
+          label: "Review-Zyklus festlegen",
+          detail: "Wird in diesem Abschnitt als formale Entscheidung dokumentiert.",
+        }
+      : null,
+  ].filter((item): item is RequirementItem => item !== null);
 
-    // ── Inline-Edit Handler ──────────────────────────────────────────────
+  const showOversightDecision = !hasOversight || editingField === "oversight";
+  const showReviewCycleDecision = !hasReviewCycle || editingField === "reviewCycle";
 
-    const handleInlineEdit = useCallback((field: "oversight" | "reviewCycle") => {
-        const currentVal = field === "oversight"
-            ? (iso?.oversightModel ?? "unknown")
-            : (iso?.reviewCycle ?? "unknown");
-        setEditValue(currentVal);
-        setEditingField(field);
-    }, [iso]);
+  const handleActivateReviewWorkflow = useCallback(() => {
+    if (!reviewCap.allowed) {
+      router.push(getFeatureUpgradeHref("reviewWorkflow"));
+      return;
+    }
+    setReviewDialogOpen(true);
+  }, [reviewCap.allowed, router]);
 
-    useEffect(() => {
-        setAutoOpenApplied(false);
-    }, [card.useCaseId, autoOpenField]);
+  const handleActivateTrustPortal = useCallback(async () => {
+    if (!trustCap.allowed) {
+      router.push(getFeatureUpgradeHref("trustPortal"));
+      return;
+    }
 
-    useEffect(() => {
-        if (!autoOpenField || autoOpenApplied) return;
-        handleInlineEdit(autoOpenField);
-        setAutoOpenApplied(true);
-    }, [autoOpenApplied, autoOpenField, handleInlineEdit]);
+    setIsActivatingPortal(true);
+    try {
+      const result = await activatePublicVisibility(card.useCaseId);
+      onCardUpdate?.(result.card);
+      toast({
+        title: "Trust Portal aktiviert",
+        description: `Oeffentlicher Governance-Nachweis ist jetzt unter ${result.verifyUrl} erreichbar.`,
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Trust Portal konnte nicht aktiviert werden.",
+      });
+      console.error("Trust Portal activation failed:", err);
+    } finally {
+      setIsActivatingPortal(false);
+    }
+  }, [card.useCaseId, onCardUpdate, router, toast, trustCap.allowed]);
 
-    const handleInlineSave = useCallback(async () => {
-        if (!editingField || !editValue) return;
-        setIsSavingInline(true);
-        try {
-            const currentIso = card.governanceAssessment?.flex?.iso || {};
-            const updatedIso = {
+  const handleDownloadReport = useCallback(() => {
+    if (!orgSettings) return;
+    try {
+      const report = generateGovernanceReport(
+        useCases.length > 0 ? useCases : [card],
+        orgSettings,
+      );
+      const csv = governanceReportToCSV(report);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      downloadBlob(
+        csv,
+        `governance-report-${dateStr}.csv`,
+        "text/csv;charset=utf-8",
+      );
+      toast({
+        title: "Report heruntergeladen",
+        description: "Governance-Stichtagsreport als CSV gespeichert.",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Fehler",
+        description: "Report konnte nicht generiert werden.",
+      });
+      console.error("Report generation failed:", err);
+    }
+  }, [card, useCases, orgSettings, toast]);
+
+  useEffect(() => {
+    setDraftValues({
+      oversight: normalizeOversightValue(iso?.oversightModel),
+      reviewCycle: normalizeReviewCycleValue(iso?.reviewCycle),
+    });
+  }, [card.useCaseId, iso?.oversightModel, iso?.reviewCycle]);
+
+  useEffect(() => {
+    setAutoOpenApplied(false);
+  }, [card.useCaseId, autoOpenField]);
+
+  useEffect(() => {
+    if (!autoOpenField || autoOpenApplied) return;
+    setEditingField(autoOpenField);
+    focusDecisionField(autoOpenField);
+    setAutoOpenApplied(true);
+  }, [autoOpenApplied, autoOpenField]);
+
+  const handleSelectValue = useCallback(
+    (field: EditableField, value: OversightValue | ReviewCycleValue) => {
+      setEditingField(field);
+      setDraftValues((current) => ({
+        ...current,
+        [field]: value,
+      }));
+    },
+    [],
+  );
+
+  const handleCloseEditor = useCallback(
+    (field: EditableField) => {
+      setDraftValues((current) => ({
+        ...current,
+        oversight:
+          field === "oversight"
+            ? normalizeOversightValue(iso?.oversightModel)
+            : current.oversight,
+        reviewCycle:
+          field === "reviewCycle"
+            ? normalizeReviewCycleValue(iso?.reviewCycle)
+            : current.reviewCycle,
+      }));
+      setEditingField((current) => (current === field ? null : current));
+    },
+    [iso?.oversightModel, iso?.reviewCycle],
+  );
+
+  const handleSaveField = useCallback(
+    async (field: EditableField) => {
+      const nextValue = draftValues[field];
+      if (!nextValue || nextValue === "unknown") return;
+
+      setIsSavingField(field);
+
+      try {
+        const currentIso = card.governanceAssessment?.flex?.iso || {};
+        const updatedIso = {
+          ...currentIso,
+          oversightModel:
+            field === "oversight"
+              ? normalizeOversightValue(nextValue)
+              : normalizeOversightValue(currentIso.oversightModel),
+          reviewCycle:
+            field === "reviewCycle"
+              ? normalizeReviewCycleValue(nextValue)
+              : normalizeReviewCycleValue(currentIso.reviewCycle),
+        };
+        const updatedCard: UseCaseCard = {
+          ...card,
+          governanceAssessment: {
+            ...card.governanceAssessment,
+            core: card.governanceAssessment?.core || {},
+            flex: {
+              ...card.governanceAssessment?.flex,
+              iso: {
                 ...currentIso,
-                ...(editingField === "oversight" ? { oversightModel: editValue } : {}),
-                ...(editingField === "reviewCycle" ? { reviewCycle: editValue } : {}),
-            };
-            const updatedCard: UseCaseCard = {
-                ...card,
-                governanceAssessment: {
-                    ...card.governanceAssessment,
-                    core: card.governanceAssessment?.core || {},
-                    flex: {
-                        ...card.governanceAssessment?.flex,
-                        iso: updatedIso as any,
-                    },
-                },
-            };
-            await registerService.updateUseCase(card.useCaseId, updatedCard);
-            onCardUpdate?.(updatedCard);
-            toast({ title: "Gespeichert", description: editingField === "oversight" ? "Aufsichtsmodell aktualisiert." : "Review-Zyklus aktualisiert." });
-        } catch {
-            toast({ variant: "destructive", title: "Fehler", description: "Änderung konnte nicht gespeichert werden." });
-        } finally {
-            setIsSavingInline(false);
-            setEditingField(null);
+                ...updatedIso,
+                documentationLevel:
+                  currentIso.documentationLevel ?? "unknown",
+                lifecycleStatus: currentIso.lifecycleStatus ?? "unknown",
+              },
+            },
+          },
+        };
+
+        await registerService.updateUseCase(card.useCaseId, updatedCard);
+        onCardUpdate?.(updatedCard);
+
+        const nextField = getNextOpenDecisionField({
+          currentField: field,
+          oversightValue: updatedIso.oversightModel,
+          reviewCycleValue: updatedIso.reviewCycle,
+          orgSettings,
+        });
+
+        if (nextField) {
+          setEditingField(nextField);
+          focusDecisionField(nextField);
+        } else {
+          setEditingField(null);
         }
-    }, [editingField, editValue, card, onCardUpdate, toast]);
 
-    // ── Render ──────────────────────────────────────────────────────────
+        toast({
+          title: "Gespeichert",
+          description: nextField
+            ? "Nachweis aktualisiert. Der naechste offene Entscheidungspunkt wurde geoeffnet."
+            : "Nachweis aktualisiert.",
+        });
+      } catch {
+        toast({
+          variant: "destructive",
+          title: "Fehler",
+          description: "Aenderung konnte nicht gespeichert werden.",
+        });
+      } finally {
+        setIsSavingField(null);
+      }
+    },
+    [card, draftValues, onCardUpdate, orgSettings, toast],
+  );
 
-    return (
-        <Card className="border-slate-300">
-            <CardHeader className="bg-slate-50 border-b pb-4">
-                <CardTitle className="text-base uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5" />
-                    Governance-Nachweis
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 text-sm">
+  return (
+    <Card className="border-slate-300">
+      <CardHeader className="border-b border-slate-200 bg-white pb-4">
+        <div className="space-y-2">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
+            <ShieldCheck className="h-4 w-4 text-slate-500" />
+            Prueffaehigkeit
+          </CardTitle>
+          <p className="text-sm leading-6 text-slate-600">
+            Dokumentiert Grundnachweise, Review-Bezug und formale Nachweiswege fuer
+            diesen Einsatzfall.
+          </p>
+        </div>
+      </CardHeader>
 
-                {/* ── Section 1: Stammdokumentation ──────────────────── */}
-                <div className={`p-4 border-b ${focusField === "oversight" || focusField === "reviewCycle" ? "border-l-2 border-slate-300 pl-3" : ""}`}>
-                    <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span>1. Stammdokumentation</span>
-                        <span className="flex items-center gap-1.5">
-                            <span className="text-xs font-normal text-muted-foreground">
-                                {section1Passed} von {section1Total}
-                            </span>
-                            {section1StatusIcon}
-                        </span>
-                    </h4>
-                    <ul className="space-y-2 text-muted-foreground text-xs">
-                        <li className="flex items-center gap-2">
-                            {hasRiskClass
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
-                            Risiko klassifiziert
-                        </li>
-                        <li className="flex items-center gap-2">
-                            {hasOwner
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
-                            Verantwortliche:r definiert
-                        </li>
+      <CardContent className="p-0 text-sm">
+        <section
+          className={cn(
+            "border-b border-slate-200 p-5 md:p-6",
+            (focusField === "oversight" || focusField === "reviewCycle") &&
+              "border-l-2 border-slate-300 pl-4 md:pl-5",
+          )}
+        >
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-slate-900">Grundnachweise</h3>
+              <p className="text-sm leading-6 text-slate-600">
+                Vier formale Angaben bilden die Grundlage fuer einen nachweisfaehigen
+                Einsatzfall.
+              </p>
+            </div>
+            <p className="text-xs text-slate-500">
+              {section1Passed} von {section1Total} dokumentiert
+            </p>
+          </div>
 
-                        {/* Aufsichtsmodell – clickable if red */}
-                        <li className="flex items-center gap-2">
-                            {hasOversight
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
-                            {!hasOversight && editingField !== "oversight" ? (
-                                <button
-                                    onClick={() => handleInlineEdit("oversight")}
-                                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
-                                >
-                                    Aufsichtsmodell festlegen
-                                    <Pencil className="w-2.5 h-2.5" />
-                                </button>
-                            ) : (
-                                <span>Aufsichtsmodell festgelegt</span>
-                            )}
-                        </li>
-                        {editingField === "oversight" && (
-                            <li className="ml-5 rounded-md border border-slate-200 bg-slate-50 p-2">
-                                <label className="mb-1 block text-[11px] font-medium text-slate-700">Aufsichtsmodell wählen:</label>
-                                <Select value={editValue} onValueChange={setEditValue}>
-                                    <SelectTrigger className="h-8 text-xs">
-                                        <SelectValue placeholder="Modell wählen" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="HITL">Human-in-the-Loop (HITL)</SelectItem>
-                                        <SelectItem value="HOTL">Human-on-the-Loop (HOTL)</SelectItem>
-                                        <SelectItem value="HUMAN_REVIEW">Menschliche Überprüfung</SelectItem>
-                                        <SelectItem value="NO_HUMAN">Kein menschl. Eingriff</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex gap-2 mt-2">
-                                    <Button size="sm" className="h-7 text-xs" onClick={() => void handleInlineSave()} disabled={isSavingInline || editValue === "unknown"}>
-                                        <Check className="w-3 h-3 mr-1" />{isSavingInline ? "…" : "Speichern"}
-                                    </Button>
-                                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingField(null)}>Abbrechen</Button>
-                                </div>
-                            </li>
-                        )}
-
-                        {/* Review-Zyklen – clickable if red */}
-                        <li className="flex items-center gap-2">
-                            {hasReviewCycle
-                                ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                : <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />}
-                            {!hasReviewCycle && editingField !== "reviewCycle" ? (
-                                <button
-                                    onClick={() => handleInlineEdit("reviewCycle")}
-                                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:underline cursor-pointer"
-                                >
-                                    Review-Zyklus festlegen
-                                    <Pencil className="w-2.5 h-2.5" />
-                                </button>
-                            ) : (
-                                <span>Review-Zyklen definiert</span>
-                            )}
-                        </li>
-                        {editingField === "reviewCycle" && (
-                            <li className="ml-5 rounded-md border border-slate-200 bg-slate-50 p-2">
-                                <label className="mb-1 block text-[11px] font-medium text-slate-700">Review-Zyklus wählen:</label>
-                                <Select value={editValue} onValueChange={setEditValue}>
-                                    <SelectTrigger className="h-8 text-xs">
-                                        <SelectValue placeholder="Zyklus wählen" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="monthly">Monatlich</SelectItem>
-                                        <SelectItem value="quarterly">Quartalsweise</SelectItem>
-                                        <SelectItem value="semiannual">Halbjährlich</SelectItem>
-                                        <SelectItem value="annual">Jährlich</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex gap-2 mt-2">
-                                    <Button size="sm" className="h-7 text-xs" onClick={() => void handleInlineSave()} disabled={isSavingInline || editValue === "unknown"}>
-                                        <Check className="w-3 h-3 mr-1" />{isSavingInline ? "…" : "Speichern"}
-                                    </Button>
-                                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingField(null)}>Abbrechen</Button>
-                                </div>
-                            </li>
-                        )}
-                    </ul>
-                </div>
-
-                {/* ── Section 2: Prüfhistorie (Pro) ─────────────────── */}
-                <div className={`p-4 border-b ${focusField === "history" ? "border-l-2 border-slate-300 pl-3" : ""}`}>
-                    <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span>2. Prüfhistorie</span>
-                        {isPruefhistorie
-                            ? <CheckCircle2 className="w-4 h-4 text-gray-600" />
-                            : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
-                    </h4>
-
-                    {reviewCap.allowed ? (
-                        /* ── Pro/Enterprise: Show real data ─────────────── */
-                        <>
-                            <ul className="space-y-2 text-muted-foreground text-xs">
-                                <li className="flex items-center gap-2">
-                                    {hasReminders
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                                    <span>Fristüberwachung</span>
-                                </li>
-                                {hasReminders && (
-                                    <li className="ml-5 flex items-center gap-1.5">
-                                        <Clock className="w-3 h-3 shrink-0" />
-                                        <DeadlineDisplay status={deadline.status} daysRemaining={deadline.daysRemaining} nextReviewAt={deadline.nextReviewAt} />
-                                    </li>
-                                )}
-                                <li className="flex items-center gap-2">
-                                    {hasHistory
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                                    <span>
-                                        Review-Historie
-                                        {hasHistory && (
-                                            <span className="text-muted-foreground ml-1">
-                                                ({card.reviews.length} {card.reviews.length === 1 ? "Review" : "Reviews"})
-                                            </span>
-                                        )}
-                                    </span>
-                                    <button
-                                        onClick={handleActivateReviewWorkflow}
-                                        className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-950 hover:underline"
-                                    >
-                                        + Review
-                                    </button>
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    {canGenerateReport
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                                    <span>Governance-Report</span>
-                                    {canGenerateReport && (
-                                        <button
-                                            onClick={handleDownloadReport}
-                                            className="ml-auto inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-950 hover:underline"
-                                        >
-                                            <Download className="w-3 h-3" /> CSV
-                                        </button>
-                                    )}
-                                </li>
-                            </ul>
-                        </>
-                    ) : (
-                        /* ── Locked: Neutral activation card ──────────── */
-                        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-                            <ul className="space-y-2 text-xs text-muted-foreground mb-4">
-                                <li className="flex items-center gap-2">
-                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
-                                    Fristüberwachung
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
-                                    Review-Historie
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
-                                    Governance-Report
-                                </li>
-                            </ul>
-                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                                Unveränderbare Prüfdokumentation mit automatischer Fristüberwachung.
-                            </p>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full text-xs"
-                                onClick={handleActivateReviewWorkflow}
-                            >
-                                Dokumentation erweitern
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                {/* ── Section 3: Extern belegbar (Enterprise) ─────────── */}
-                <div className="p-4">
-                    <h4 className="font-semibold mb-3 flex items-center justify-between">
-                        <span>3. Audit- &amp; Nachweisexport</span>
-                        {isExternBelegbar
-                            ? <CheckCircle2 className="w-4 h-4 text-gray-600" />
-                            : <span className="inline-block w-4 h-4 rounded-full border-2 border-slate-300" />}
-                    </h4>
-
-                    {trustCap.allowed ? (
-                        /* ── Enterprise: Show real data ─────────────────── */
-                        <>
-                            <ul className="space-y-2 text-muted-foreground text-xs">
-                                <li className="flex items-center gap-2">
-                                    {hasAuditDossier
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                                    ISO 42001 Audit-Dossier
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    {hasTrustPortal
-                                        ? <CheckCircle2 className="w-3 h-3 shrink-0 text-gray-600" />
-                                        : <AlertCircle className="w-3 h-3 shrink-0 text-slate-400" />}
-                                    <span>Governance-Nachweis (Trust Portal)</span>
-                                </li>
-                                {hasTrustPortal && verifyUrl && (
-                                    <li className="ml-5 flex items-center gap-1.5">
-                                        <ExternalLink className="w-3 h-3 shrink-0 text-slate-600" />
-                                        <a href={verifyUrl} target="_blank" rel="noopener noreferrer" className="truncate text-slate-600 hover:text-slate-950 hover:underline">
-                                            {verifyUrl}
-                                        </a>
-                                    </li>
-                                )}
-                            </ul>
-                            {needsEnterpriseHint && !hasTrustPortal && (
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="w-full mt-3 text-xs"
-                                    onClick={() => void handleActivateTrustPortal()}
-                                    disabled={isActivatingPortal}
-                                >
-                                    {isActivatingPortal ? "Wird aktiviert…" : "Trust Portal aktivieren"}
-                                </Button>
-                            )}
-                        </>
-                    ) : (
-                        /* ── Locked: Neutral activation card ─────── */
-                        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
-                            <ul className="space-y-2 text-xs text-muted-foreground mb-4">
-                                <li className="flex items-center gap-2">
-                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
-                                    ISO 42001 Audit-Dossier
-                                </li>
-                                <li className="flex items-center gap-2">
-                                    <span className="inline-block w-3 h-3 shrink-0 rounded-full border border-slate-300" />
-                                    Governance-Nachweis (Trust Portal)
-                                </li>
-                            </ul>
-                            <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                                Prüffähige Nachweise für ISO-Auditoren und externe Stakeholder.
-                            </p>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="w-full text-xs"
-                                onClick={() => void handleActivateTrustPortal()}
-                            >
-                                Audit-Export aktivieren
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-            </CardContent>
-
-            {/* Review Dialog (GN-E) */}
-            <ReviewDialog
-                card={card}
-                open={reviewDialogOpen}
-                onOpenChange={setReviewDialogOpen}
-                onReviewAdded={(updatedCard) => {
-                    onCardUpdate?.(updatedCard);
-                }}
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <RequirementGroupCard
+              title="Bereits dokumentiert"
+              emptyText="Noch keine Grundnachweise dokumentiert."
+              items={completedRequirements}
             />
-        </Card>
-    );
+            <RequirementGroupCard
+              title="Noch offen"
+              emptyText="Alle Grundnachweise sind dokumentiert."
+              items={missingRequirements}
+              tone="open"
+            />
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {showOversightDecision ? (
+              <DecisionPanel
+                id="governance-decision-oversight"
+                title="Aufsichtsmodell festlegen"
+                description="Wie wird dieser Einsatzfall menschlich begleitet oder kontrolliert?"
+                helperText={
+                  hasOversight && documentedOversightLabel
+                    ? `Aktuell dokumentiert: ${documentedOversightLabel}`
+                    : "Noch kein Aufsichtsmodell dokumentiert."
+                }
+                options={OVERSIGHT_OPTIONS}
+                selectedValue={draftValues.oversight}
+                isSaving={isSavingField === "oversight"}
+                submitLabel={!hasReviewCycle ? "Speichern und weiter" : "Speichern"}
+                onSelect={(value) => handleSelectValue("oversight", value)}
+                onSave={() => void handleSaveField("oversight")}
+                onCancel={
+                  hasOversight ? () => handleCloseEditor("oversight") : undefined
+                }
+                active={editingField === "oversight" || (!hasOversight && !editingField)}
+              />
+            ) : null}
+
+            {showReviewCycleDecision ? (
+              <DecisionPanel
+                id="governance-decision-reviewCycle"
+                title="Review-Zyklus festlegen"
+                description="In welchem Rhythmus wird dieser Einsatzfall erneut geprueft?"
+                helperText={
+                  reviewCycleDetail
+                    ? `Aktuell dokumentiert: ${reviewCycleDetail.label}`
+                    : "Noch kein Review-Zyklus dokumentiert."
+                }
+                options={REVIEW_CYCLE_OPTIONS}
+                selectedValue={draftValues.reviewCycle}
+                isSaving={isSavingField === "reviewCycle"}
+                submitLabel={!hasOversight ? "Speichern und weiter" : "Speichern"}
+                onSelect={(value) => handleSelectValue("reviewCycle", value)}
+                onSave={() => void handleSaveField("reviewCycle")}
+                onCancel={
+                  hasReviewCycle ? () => handleCloseEditor("reviewCycle") : undefined
+                }
+                active={
+                  editingField === "reviewCycle" ||
+                  (!hasReviewCycle && hasOversight && editingField === null)
+                }
+              />
+            ) : null}
+          </div>
+        </section>
+
+        <section
+          className={cn(
+            "border-b border-slate-200 p-5 md:p-6",
+            focusField === "history" && "border-l-2 border-slate-300 pl-4 md:pl-5",
+          )}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-slate-900">Review-Verlauf</h3>
+              <p className="text-sm leading-6 text-slate-600">
+                Formale Review-Dokumentation, Fristen und Verlauf bleiben ein eigener
+                Workflow.
+              </p>
+            </div>
+            {hasReviewTrail ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
+            ) : (
+              <span className="mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" />
+            )}
+          </div>
+
+          {reviewCap.allowed ? (
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              <li className="flex items-start gap-3">
+                {hasReminders ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                ) : (
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                )}
+                <div className="space-y-1">
+                  <p className="font-medium text-slate-900">Fristueberwachung</p>
+                  <p className="text-sm text-slate-600">
+                    <DeadlineDisplay
+                      status={deadline.status}
+                      daysRemaining={deadline.daysRemaining}
+                      nextReviewAt={deadline.nextReviewAt}
+                    />
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex items-start gap-3">
+                {hasHistory ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                ) : (
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                )}
+                <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="font-medium text-slate-900">Review-Historie</p>
+                    <p className="text-sm text-slate-600">
+                      {hasHistory
+                        ? `${card.reviews.length} ${
+                            card.reviews.length === 1 ? "Review" : "Reviews"
+                          } dokumentiert`
+                        : "Noch kein Review dokumentiert."}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0"
+                    onClick={handleActivateReviewWorkflow}
+                  >
+                    Review erfassen
+                  </Button>
+                </div>
+              </li>
+
+              <li className="flex items-start gap-3">
+                {canGenerateReport ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                ) : (
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                )}
+                <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="font-medium text-slate-900">Governance-Report</p>
+                    <p className="text-sm text-slate-600">
+                      CSV-Stichtagsreport fuer dokumentierte Review-Historie.
+                    </p>
+                  </div>
+                  {canGenerateReport ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0"
+                      onClick={handleDownloadReport}
+                    >
+                      <Download className="mr-1.5 h-3.5 w-3.5" />
+                      CSV
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            </ul>
+          ) : (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>Fristueberwachung</li>
+                <li>Review-Historie</li>
+                <li>Governance-Report</li>
+              </ul>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Unveraenderbare Pruefdokumentation mit Fristen und nachvollziehbarer
+                Historie.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4"
+                onClick={handleActivateReviewWorkflow}
+              >
+                Dokumentation erweitern
+              </Button>
+            </div>
+          )}
+        </section>
+
+        <section className="p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-slate-900">Nachweisexport</h3>
+              <p className="text-sm leading-6 text-slate-600">
+                Externe Nachweise und Audit-Dokumente bleiben sichtbar, aber
+                nachrangig gegenueber dem Einsatzfall selbst.
+              </p>
+            </div>
+            {isExternBelegbar ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
+            ) : (
+              <span className="mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" />
+            )}
+          </div>
+
+          {trustCap.allowed ? (
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              <li className="flex items-start gap-3">
+                {hasAuditDossier ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                ) : (
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                )}
+                <div className="space-y-1">
+                  <p className="font-medium text-slate-900">ISO 42001 Audit-Dossier</p>
+                  <p className="text-sm text-slate-600">
+                    Organisationsweiter Nachweis fuer Audit- und Governance-Zwecke.
+                  </p>
+                </div>
+              </li>
+
+              <li className="flex items-start gap-3">
+                {hasTrustPortal ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                ) : (
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                )}
+                <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="font-medium text-slate-900">Governance-Nachweis</p>
+                    <p className="text-sm text-slate-600">
+                      Oeffentlich verifizierbarer Nachweis fuer diesen Einsatzfall.
+                    </p>
+                    {hasTrustPortal && verifyUrl ? (
+                      <a
+                        href={verifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        {verifyUrl}
+                      </a>
+                    ) : null}
+                  </div>
+                  {needsEnterpriseHint && !hasTrustPortal ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="shrink-0"
+                      onClick={() => void handleActivateTrustPortal()}
+                      disabled={isActivatingPortal}
+                    >
+                      {isActivatingPortal ? "Wird aktiviert..." : "Trust Portal aktivieren"}
+                    </Button>
+                  ) : null}
+                </div>
+              </li>
+            </ul>
+          ) : (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li>ISO 42001 Audit-Dossier</li>
+                <li>Governance-Nachweis</li>
+              </ul>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Prueffaehige Nachweise fuer Audits und externe Stakeholder.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void handleActivateTrustPortal()}
+              >
+                Audit-Export aktivieren
+              </Button>
+            </div>
+          )}
+        </section>
+      </CardContent>
+
+      <ReviewDialog
+        card={card}
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        onReviewAdded={(updatedCard) => {
+          onCardUpdate?.(updatedCard);
+        }}
+      />
+    </Card>
+  );
 }
 
-// ── Sub-Component: Deadline Display ─────────────────────────────────────────
+function RequirementGroupCard({
+  title,
+  items,
+  emptyText,
+  tone = "default",
+}: {
+  title: string;
+  items: RequirementItem[];
+  emptyText: string;
+  tone?: "default" | "open";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-lg border p-4",
+        tone === "open"
+          ? "border-slate-300 bg-slate-50/60"
+          : "border-slate-200 bg-white",
+      )}
+    >
+      <h4 className="text-sm font-medium text-slate-900">{title}</h4>
+      {items.length === 0 ? (
+        <p className="mt-3 text-sm leading-6 text-slate-500">{emptyText}</p>
+      ) : (
+        <ul className="mt-3 space-y-3">
+          {items.map((item) => (
+            <li key={item.key} className="flex items-start gap-3">
+              {tone === "open" ? (
+                <span className="mt-[5px] inline-block h-4 w-4 shrink-0 rounded-full border border-slate-300" />
+              ) : (
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+              )}
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="font-medium text-slate-900">{item.label}</p>
+                {item.detail ? (
+                  <p className="text-sm leading-6 text-slate-600">{item.detail}</p>
+                ) : null}
+                {item.actionLabel && item.onAction ? (
+                  <button
+                    type="button"
+                    onClick={item.onAction}
+                    className="text-sm text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
+                  >
+                    {item.actionLabel}
+                  </button>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function DecisionPanel<TValue extends string>({
+  id,
+  title,
+  description,
+  helperText,
+  options,
+  selectedValue,
+  isSaving,
+  submitLabel,
+  onSelect,
+  onSave,
+  onCancel,
+  active,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  helperText: string;
+  options: DecisionOption<TValue>[];
+  selectedValue: string;
+  isSaving: boolean;
+  submitLabel: string;
+  onSelect: (value: TValue) => void;
+  onSave: () => void;
+  onCancel?: () => void;
+  active?: boolean;
+}) {
+  return (
+    <div
+      id={id}
+      className={cn(
+        "rounded-xl border border-slate-200 bg-white p-4 md:p-5",
+        active && "border-slate-300 shadow-[0_1px_0_rgba(15,23,42,0.04)]",
+      )}
+    >
+      <div className="space-y-1">
+        <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+        <p className="text-sm leading-6 text-slate-600">{description}</p>
+        <p className="text-xs text-slate-500">{helperText}</p>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {options.map((option) => {
+          const isSelected = selectedValue === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onSelect(option.value)}
+              className={cn(
+                "rounded-lg border px-4 py-3 text-left transition-colors",
+                isSelected
+                  ? "border-slate-900 bg-slate-50 text-slate-950"
+                  : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950",
+              )}
+            >
+              <p className="text-sm font-medium">{option.title}</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                {option.description}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          onClick={onSave}
+          disabled={isSaving || selectedValue === "unknown"}
+        >
+          {isSaving ? "Speichert..." : submitLabel}
+        </Button>
+        {onCancel ? (
+          <Button size="sm" variant="outline" onClick={onCancel}>
+            Abbrechen
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 function DeadlineDisplay({
-    status,
-    daysRemaining,
-    nextReviewAt,
+  status,
+  daysRemaining,
+  nextReviewAt,
 }: {
-    status: string;
-    daysRemaining: number | null;
-    nextReviewAt: string | null;
+  status: string;
+  daysRemaining: number | null;
+  nextReviewAt: string | null;
 }) {
-    if (status === "overdue" && daysRemaining !== null) {
-        return (
-            <span className="text-red-600 font-medium">
-                Überfällig seit {Math.abs(daysRemaining)} {Math.abs(daysRemaining) === 1 ? "Tag" : "Tagen"}
-            </span>
-        );
-    }
-    if (status === "due_soon" && daysRemaining !== null) {
-        return (
-            <span className="font-medium text-slate-700">
-                Fällig in {daysRemaining} {daysRemaining === 1 ? "Tag" : "Tagen"}
-            </span>
-        );
-    }
-    if (status === "on_track" && nextReviewAt) {
-        return (
-            <span className="text-gray-600">
-                Nächste Prüfung: {formatDateDE(nextReviewAt)}
-            </span>
-        );
-    }
+  if (status === "overdue" && daysRemaining !== null) {
     return (
-        <span className="text-muted-foreground">
-            {getDeadlineStatusLabel(status as "overdue" | "due_soon" | "on_track" | "no_deadline")}
-        </span>
+      <span>
+        Ueberfaellig seit {Math.abs(daysRemaining)}{" "}
+        {Math.abs(daysRemaining) === 1 ? "Tag" : "Tagen"}
+      </span>
     );
+  }
+
+  if (status === "due_soon" && daysRemaining !== null) {
+    return (
+      <span>
+        Faellig in {daysRemaining} {daysRemaining === 1 ? "Tag" : "Tagen"}
+      </span>
+    );
+  }
+
+  if (status === "on_track" && nextReviewAt) {
+    return <span>Naechste Pruefung: {formatDateDE(nextReviewAt)}</span>;
+  }
+
+  return (
+    <span>
+      {getDeadlineStatusLabel(
+        status as "overdue" | "due_soon" | "on_track" | "no_deadline",
+      )}
+    </span>
+  );
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   buildUseCaseTimeline,
   USE_CASE_BADGE_META,
@@ -65,21 +67,26 @@ export function AuditTrailSection({
   submission = null,
 }: AuditTrailSectionProps) {
   const timeline = buildUseCaseTimeline({ card, submission });
+  const [showAll, setShowAll] = useState(false);
+  const visibleTimeline = showAll ? timeline : timeline.slice(0, 3);
+  const hasHiddenEvents = timeline.length > 3;
+
+  useEffect(() => {
+    setShowAll(false);
+  }, [card.useCaseId]);
 
   return (
     <section className="border-t border-slate-200 pt-8">
       <div className="flex flex-col gap-1">
-        <h2 className="text-[18px] font-semibold tracking-tight">
-          Timeline & Audit-Trail
-        </h2>
+        <h2 className="text-[18px] font-semibold tracking-tight">Verlauf</h2>
         <p className="text-sm text-muted-foreground">
-          Neueste Ereignisse oben. Herkunft, Änderungen, Reviews und Freigaben
-          werden zusammengeführt.
+          Neueste Dokumentationsereignisse zuerst. Herkunft, Aenderungen, Reviews
+          und Freigaben werden zusammengefuehrt.
         </p>
       </div>
 
       <div className="mt-6 space-y-4">
-        {timeline.map((event) => {
+        {visibleTimeline.map((event) => {
           const tone = toneClasses(event);
           const showSourceBadges =
             event.kind === "origin" || event.kind === "external_submission";
@@ -138,6 +145,19 @@ export function AuditTrailSection({
           );
         })}
       </div>
+
+      {hasHiddenEvents ? (
+        <div className="mt-5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAll((current) => !current)}
+          >
+            {showAll ? "Weniger anzeigen" : `Alle ${timeline.length} Eintraege anzeigen`}
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -64,7 +64,6 @@ interface UseCaseHeaderProps {
   card: UseCaseCard;
   isEditing: boolean;
   onToggleEdit: () => void;
-  nextStep: string;
   onDelete?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
 }
@@ -90,7 +89,6 @@ export function UseCaseHeader({
   card,
   isEditing,
   onToggleEdit,
-  nextStep,
   onDelete,
   onRefresh,
 }: UseCaseHeaderProps) {
@@ -282,10 +280,6 @@ export function UseCaseHeader({
                     <p className="text-slate-600">{workflowBadge}</p>
                   ) : null}
                 </div>
-                <p className="text-slate-900">
-                  <span className="font-medium">Nächster Schritt:</span>{" "}
-                  <span className="text-slate-700">{nextStep}</span>
-                </p>
               </div>
             </div>
 
@@ -317,6 +311,7 @@ export function UseCaseHeader({
           {!isEditing ? (
             <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
               <Button
+                variant="outline"
                 size="sm"
                 onClick={onToggleEdit}
                 title="Stammdaten des Einsatzfalls ändern"

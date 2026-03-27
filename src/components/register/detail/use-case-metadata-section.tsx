@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -122,6 +129,7 @@ export function UseCaseMetadataSection({
   }));
   const [isSaving, setIsSaving] = useState(false);
   const [specialOpen, setSpecialOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
   const draftToolEntry =
@@ -151,6 +159,7 @@ export function UseCaseMetadataSection({
     : card.responsibility.responsibleParty || "Nicht zugewiesen";
   const contactPersonLabel =
     card.responsibility.contactPersonName?.trim() || "Nicht hinterlegt";
+  const organisationLabel = card.organisation?.trim() || "Nicht hinterlegt";
   const focusClassName = "border-l-2 border-slate-300 pl-3";
   const riskSuggestion = useMemo(
     () =>
@@ -187,6 +196,16 @@ export function UseCaseMetadataSection({
       ),
     });
   }, [card]);
+
+  useEffect(() => {
+    setIsExpanded(isEditing || Boolean(focusTarget));
+  }, [card.useCaseId, focusTarget, isEditing]);
+
+  useEffect(() => {
+    if (isEditing || focusTarget) {
+      setIsExpanded(true);
+    }
+  }, [focusTarget, isEditing]);
 
   const showReadOnlyHint = useCallback(() => {
     const now = Date.now();
@@ -289,26 +308,85 @@ export function UseCaseMetadataSection({
     }
   };
 
-  return (
-    <div className="space-y-8">
-      {!isEditing && (
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          <p className="font-medium text-slate-700">Stammdaten sind schreibgeschützt.</p>
-          <p>Zum Ändern zuerst "Stammdaten bearbeiten" wählen.</p>
-        </div>
-      )}
+  const metadataOpen = isEditing || isExpanded;
 
-      <form
-        id="use-case-metadata-form"
-        className="space-y-8"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void handleSave();
-        }}
-      >
-        <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
-          <h2 className="text-[18px] font-semibold tracking-tight">Kontext & Risiko</h2>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+  return (
+    <Collapsible
+      open={metadataOpen}
+      onOpenChange={(open) => {
+        if (!isEditing) {
+          setIsExpanded(open);
+        }
+      }}
+      className="rounded-lg border border-slate-200 bg-white"
+    >
+      <div className="p-5 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-[18px] font-semibold tracking-tight">
+              Details & Stammdaten
+            </h2>
+            <p className="text-sm leading-6 text-slate-600">
+              Kontext, Risikokontext und organisatorische Angaben bleiben
+              dokumentiert, sind aber standardmaessig nachrangig gegenueber
+              Prueffaehigkeit und Review.
+            </p>
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" disabled={isEditing}>
+              {metadataOpen ? (
+                <>
+                  Details ausblenden
+                  <ChevronUp className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Details anzeigen
+                  <ChevronDown className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <MetadataSummaryItem label="Zweck" value={card.purpose} />
+          <MetadataSummaryItem label="Datenkategorien" value={dataCategoryLabel} />
+          <MetadataSummaryItem
+            label="Kontaktperson (optional)"
+            value={contactPersonLabel}
+          />
+          <MetadataSummaryItem
+            label="Organisation (optional)"
+            value={organisationLabel}
+          />
+        </div>
+      </div>
+
+      <CollapsibleContent className="border-t border-slate-200">
+        <div className="space-y-8 p-5 md:p-6">
+          {!isEditing && (
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              <p className="font-medium text-slate-700">
+                Stammdaten sind schreibgeschuetzt.
+              </p>
+              <p>Zum Aendern zuerst "Stammdaten bearbeiten" waehlen.</p>
+            </div>
+          )}
+
+          <form
+            id="use-case-metadata-form"
+            className="space-y-8"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleSave();
+            }}
+          >
+            <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
+              <h2 className="text-[18px] font-semibold tracking-tight">
+                Kontext & Risiko
+              </h2>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
             <FieldBlock
               label="Zweck"
               className="rounded-md border border-slate-200 bg-white px-4 py-3"
@@ -540,107 +618,137 @@ export function UseCaseMetadataSection({
                 <p className="text-[15px] font-medium text-slate-900">{dataCategoryLabel}</p>
               )}
             </FieldBlock>
-          </div>
-        </section>
+              </div>
+            </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-          <h2 className="text-[18px] font-semibold tracking-tight">Owner & Organisation</h2>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            <div
-              id="usecase-focus-owner"
-              className={cn(focusTarget === "owner" && focusClassName)}
-            >
-              <FieldBlock
-                label="Owner-Rolle (funktional)"
-                className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-                onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-              >
-                {isEditing ? (
-                  <Input
-                    value={editDraft.responsibleParty}
-                    onChange={(event) =>
-                      setEditDraft((prev) => ({
-                        ...prev,
-                        responsibleParty: event.target.value,
-                      }))
-                    }
-                    placeholder="z. B. Head of Marketing / HR Lead / IT Security"
-                  />
-                ) : (
-                  <p className="text-[15px] font-medium text-slate-900">{ownerLabel}</p>
+            <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+              <h2 className="text-[18px] font-semibold tracking-tight">
+                Owner & Organisation
+              </h2>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <div
+                  id="usecase-focus-owner"
+                  className={cn(focusTarget === "owner" && focusClassName)}
+                >
+                  <FieldBlock
+                    label="Owner-Rolle (funktional)"
+                    className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+                    onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+                  >
+                    {isEditing ? (
+                      <Input
+                        value={editDraft.responsibleParty}
+                        onChange={(event) =>
+                          setEditDraft((prev) => ({
+                            ...prev,
+                            responsibleParty: event.target.value,
+                          }))
+                        }
+                        placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                      />
+                    ) : (
+                      <p className="text-[15px] font-medium text-slate-900">
+                        {ownerLabel}
+                      </p>
+                    )}
+                  </FieldBlock>
+                </div>
+                <FieldBlock
+                  label="Kontaktperson (optional)"
+                  className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+                  onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+                >
+                  {isEditing ? (
+                    <Input
+                      value={editDraft.contactPersonName}
+                      onChange={(event) =>
+                        setEditDraft((prev) => ({
+                          ...prev,
+                          contactPersonName: event.target.value,
+                        }))
+                      }
+                      placeholder="z. B. Max Mustermann"
+                    />
+                  ) : (
+                    <p className="text-[15px] font-medium text-slate-900">
+                      {contactPersonLabel}
+                    </p>
+                  )}
+                </FieldBlock>
+              </div>
+
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <FieldBlock
+                  label="Organisation (optional)"
+                  className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
+                  onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
+                >
+                  {isEditing ? (
+                    <Input
+                      value={editDraft.organisation}
+                      onChange={(event) =>
+                        setEditDraft((prev) => ({
+                          ...prev,
+                          organisation: event.target.value,
+                        }))
+                      }
+                      placeholder="z. B. KI-Register GmbH"
+                    />
+                  ) : (
+                    <p className="text-[15px] font-medium text-slate-900">
+                      {organisationLabel}
+                    </p>
+                  )}
+                </FieldBlock>
+              </div>
+
+              <div
+                id="usecase-focus-oversight"
+                className={cn(
+                  "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
+                  (focusTarget === "oversight" || focusTarget === "policy") &&
+                    focusClassName,
                 )}
-              </FieldBlock>
-            </div>
-            <FieldBlock
-              label="Kontaktperson (optional)"
-              className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-            >
-              {isEditing ? (
-                <Input
-                  value={editDraft.contactPersonName}
-                  onChange={(event) =>
-                    setEditDraft((prev) => ({
-                      ...prev,
-                      contactPersonName: event.target.value,
-                    }))
-                  }
-                  placeholder="z. B. Max Mustermann"
-                />
-              ) : (
-                <p className="text-[15px] font-medium text-slate-900">{contactPersonLabel}</p>
-              )}
-            </FieldBlock>
-          </div>
-
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <FieldBlock
-              label="Organisation"
-              className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3"
-              onReadOnlyInteract={!isEditing ? showReadOnlyHint : undefined}
-            >
-              {isEditing ? (
-                <Input
-                  value={editDraft.organisation}
-                  onChange={(event) =>
-                    setEditDraft((prev) => ({
-                      ...prev,
-                      organisation: event.target.value,
-                    }))
-                  }
-                  placeholder="z. B. KI-Register GmbH"
-                />
-              ) : (
-                <p className="text-[15px] font-medium text-slate-900">
-                  {card.organisation?.trim() || "Nicht hinterlegt"}
+              >
+                <div id="usecase-focus-policy" className="h-px w-px" />
+                <p className="font-medium text-slate-600">
+                  Organisation KI-gerecht steuern
                 </p>
-              )}
-            </FieldBlock>
-          </div>
+                <p>
+                  Zustaendigkeiten, Pruefmodelle und Policies werden in der
+                  Organisationssteuerung verwaltet.
+                </p>
+                <button
+                  type="button"
+                  className="underline underline-offset-2"
+                  onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
+                >
+                  Im AI Governance Control anzeigen
+                </button>
+              </div>
+            </section>
+          </form>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
-          <div
-            id="usecase-focus-oversight"
-            className={cn(
-              "mt-6 rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 space-y-1 text-xs text-muted-foreground",
-              (focusTarget === "oversight" || focusTarget === "policy") && focusClassName
-            )}
-          >
-            <div id="usecase-focus-policy" className="h-px w-px" />
-            <p className="font-medium text-slate-600">Organisation KI-gerecht steuern</p>
-            <p>
-              Zuständigkeiten, Prüfmodelle und Policies werden in der
-              Organisationssteuerung verwaltet.
-            </p>
-            <button
-              type="button"
-              className="underline underline-offset-2"
-              onClick={() => router.push(`/control?useCaseId=${card.useCaseId}`)}
-            >
-              Im AI Governance Control anzeigen
-            </button>
-          </div>
-        </section>
-      </form>
+function MetadataSummaryItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-slate-50/50 px-4 py-3">
+      <p className="text-[11px] uppercase tracking-[0.08em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-medium leading-6 text-slate-900">
+        {value}
+      </p>
     </div>
   );
 }

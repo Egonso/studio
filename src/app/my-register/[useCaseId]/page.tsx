@@ -15,6 +15,7 @@ import { UseCaseWorkflowSection } from '@/components/register/detail/use-case-wo
 import { GovernanceLiabilitySection } from '@/components/register/detail/governance-liability-section';
 import { ReviewSection } from '@/components/register/detail/review-section';
 import { AuditTrailSection } from '@/components/register/detail/audit-trail-section';
+import { ProofReadinessSummary } from '@/components/register/detail/proof-readiness-summary';
 import { Button } from '@/components/ui/button';
 import {
   isGovernanceRepairField,
@@ -26,6 +27,7 @@ import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import {
   createAiToolsRegistryService,
+  computeUseCaseReadiness,
   getUseCaseSystemSectionMode,
   getUseCaseSystemsSummary,
 } from '@/lib/register-first';
@@ -112,6 +114,10 @@ export default function UseCaseDetailPage() {
         : 'Kein System',
     [card],
   );
+  const readiness = useMemo(
+    () => (card ? computeUseCaseReadiness(card, orgSettings) : null),
+    [card, orgSettings],
+  );
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -177,7 +183,7 @@ export default function UseCaseDetailPage() {
 
   useEffect(() => {
     if (editParam !== '1') return;
-    if (resolvedFocus !== 'owner') return;
+    if (resolvedFocus !== 'owner' && resolvedFocus !== 'metadata') return;
     setIsEditing(true);
   }, [editParam, resolvedFocus, useCaseId]);
 
@@ -349,10 +355,17 @@ export default function UseCaseDetailPage() {
           card={card}
           isEditing={isEditing}
           onToggleEdit={() => setIsEditing((prev) => !prev)}
-          nextStep={detailNextStep}
           onRefresh={loadUseCase}
         />
         <div ref={heroBoundaryRef} className="h-px" />
+
+        {readiness ? (
+          <ProofReadinessSummary
+            readiness={readiness}
+            useCaseId={card.useCaseId}
+            workspaceScope={workspaceScope}
+          />
+        ) : null}
 
         {isEditing ? (
           <UseCaseEditContextBar
@@ -374,29 +387,27 @@ export default function UseCaseDetailPage() {
           </div>
         )}
 
-        <UseCaseMetadataSection
-          card={card}
-          isEditing={isEditing}
-          onSave={handleSaveMetadata}
-          focusTarget={activeFocus}
-          onOpenRiskReview={(context) => {
-            setRiskReviewContext(context);
-            setIsRiskReviewOpen(true);
-          }}
-        />
-
-        <UseCaseAssessmentWizard
-          card={card}
-          open={isRiskReviewOpen}
-          onOpenChange={(open) => {
-            setIsRiskReviewOpen(open);
-            if (!open) {
-              setRiskReviewContext(null);
+        {registerFirstFlags.controlShell && (
+          <div
+            id="usecase-focus-governance"
+            className={
+              activeFocus === 'governance' ? focusHighlightClassName : undefined
             }
-          }}
-          onComplete={loadUseCase}
-          launchContext={riskReviewContext}
-        />
+          >
+            <GovernanceLiabilitySection
+              card={card}
+              useCases={allUseCases.length > 0 ? allUseCases : [card]}
+              orgSettings={orgSettings}
+              focusField={activeFocus === 'governance' ? governanceField : null}
+              autoOpenField={
+                activeFocus === 'governance' ? governanceAutoOpenField : null
+              }
+              onCardUpdate={() => {
+                void loadUseCase();
+              }}
+            />
+          </div>
+        )}
 
         {systemSectionMode === 'multi' ? (
           <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
@@ -444,36 +455,52 @@ export default function UseCaseDetailPage() {
           </div>
         )}
 
-        {registerFirstFlags.controlShell && (
-          <div
-            id="usecase-focus-governance"
-            className={
-              activeFocus === 'governance' ? focusHighlightClassName : undefined
-            }
-          >
-            <GovernanceLiabilitySection
-              card={card}
-              useCases={allUseCases.length > 0 ? allUseCases : [card]}
-              orgSettings={orgSettings}
-              focusField={activeFocus === 'governance' ? governanceField : null}
-              autoOpenField={
-                activeFocus === 'governance' ? governanceAutoOpenField : null
-              }
-              onCardUpdate={() => {
-                void loadUseCase();
-              }}
-            />
-          </div>
-        )}
-
         <div
           id="usecase-focus-review"
           className={
             activeFocus === 'review' ? focusHighlightClassName : undefined
           }
         >
-          <ReviewSection card={card} onStatusChange={handleStatusChange} />
+          {readiness ? (
+            <ReviewSection
+              card={card}
+              readiness={readiness}
+              useCaseId={card.useCaseId}
+              workspaceScope={workspaceScope}
+              onStatusChange={handleStatusChange}
+            />
+          ) : null}
         </div>
+        <div
+          id="usecase-focus-metadata"
+          className={
+            activeFocus === 'metadata' ? focusHighlightClassName : undefined
+          }
+        >
+          <UseCaseMetadataSection
+            card={card}
+            isEditing={isEditing}
+            onSave={handleSaveMetadata}
+            focusTarget={activeFocus}
+            onOpenRiskReview={(context) => {
+              setRiskReviewContext(context);
+              setIsRiskReviewOpen(true);
+            }}
+          />
+        </div>
+
+        <UseCaseAssessmentWizard
+          card={card}
+          open={isRiskReviewOpen}
+          onOpenChange={(open) => {
+            setIsRiskReviewOpen(open);
+            if (!open) {
+              setRiskReviewContext(null);
+            }
+          }}
+          onComplete={loadUseCase}
+          launchContext={riskReviewContext}
+        />
         <div
           id="usecase-focus-audit"
           className={
@@ -579,6 +606,7 @@ function resolveGovernanceField(
 }
 
 function getFocusTargetId(focus: ControlFocusTarget): string {
+  if (focus === 'metadata') return 'usecase-focus-metadata';
   if (focus === 'owner') return 'usecase-focus-owner';
   if (focus === 'governance') return 'usecase-focus-governance';
   if (focus === 'oversight') return 'usecase-focus-oversight';

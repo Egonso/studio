@@ -13,6 +13,7 @@ import {
   getNextManualStatuses,
   getOutputProfileByStatus,
 } from "../status-flow";
+import { computeUseCaseReadiness } from "../use-case-readiness";
 import {
   buildCaptureHref,
   buildRegisterHref,
@@ -147,6 +148,46 @@ export async function runFoundationSmoke() {
   assert.deepEqual(getNextManualStatuses("PROOF_READY"), ["REVIEWED"]);
   assert.equal(getOutputProfileByStatus("UNREVIEWED").artifactName, "Raw Register Card");
   assert.equal(getOutputProfileByStatus("PROOF_READY").requiresManualDecision, true);
+
+  const incompleteReadiness = computeUseCaseReadiness(card, null);
+  assert.equal(incompleteReadiness.phase, "incomplete");
+  assert.deepEqual(
+    incompleteReadiness.missingItems.map((item) => item.key),
+    ["oversight", "reviewCycle"],
+  );
+
+  const readyForReviewCard = {
+    ...card,
+    responsibility: {
+      ...card.responsibility,
+      responsibleParty: "GF",
+    },
+    governanceAssessment: {
+      core: {
+        aiActCategory: "LIMITED_RISK",
+      },
+      flex: {
+        iso: {
+          reviewCycle: "quarterly",
+          oversightModel: "HITL",
+          documentationLevel: "standard",
+          lifecycleStatus: "active",
+        },
+      },
+    },
+  } as const;
+  const reviewPendingReadiness = computeUseCaseReadiness(readyForReviewCard, null);
+  assert.equal(reviewPendingReadiness.phase, "review_pending");
+  assert.equal(reviewPendingReadiness.missingItems.length, 0);
+
+  const proofReadyReadiness = computeUseCaseReadiness(
+    {
+      ...readyForReviewCard,
+      status: "PROOF_READY",
+    },
+    null,
+  );
+  assert.equal(proofReadyReadiness.phase, "proof_ready");
 
   const rawOutputState = getStatusGatedOutputState("UNREVIEWED", envFlags);
   assert.equal(rawOutputState.tier, "RAW");
