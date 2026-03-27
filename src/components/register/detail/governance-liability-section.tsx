@@ -70,6 +70,12 @@ interface RequirementItem {
   onAction?: (() => void) | null;
 }
 
+function compactRequirements(
+  items: Array<RequirementItem | null>,
+): RequirementItem[] {
+  return items.filter((item): item is RequirementItem => item !== null);
+}
+
 const OVERSIGHT_OPTIONS: DecisionOption<Exclude<OversightValue, "unknown">>[] = [
   {
     value: "HITL",
@@ -328,7 +334,7 @@ export function GovernanceLiabilitySection({
     focusDecisionField(field);
   }, []);
 
-  const completedRequirements: RequirementItem[] = [
+  const completedRequirements = compactRequirements([
     hasRiskClass
       ? {
           key: "risk",
@@ -360,9 +366,9 @@ export function GovernanceLiabilitySection({
           onAction: () => openEditor("reviewCycle"),
         }
       : null,
-  ].filter((item): item is RequirementItem => item !== null);
+  ]);
 
-  const missingRequirements: RequirementItem[] = [
+  const missingRequirements = compactRequirements([
     !hasRiskClass
       ? {
           key: "risk",
@@ -391,7 +397,7 @@ export function GovernanceLiabilitySection({
           detail: "Wird in diesem Abschnitt als formale Entscheidung dokumentiert.",
         }
       : null,
-  ].filter((item): item is RequirementItem => item !== null);
+  ]);
 
   const showOversightDecision = !hasOversight || editingField === "oversight";
   const showReviewCycleDecision = !hasReviewCycle || editingField === "reviewCycle";
