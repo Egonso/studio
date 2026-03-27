@@ -16,10 +16,10 @@ These files are designed to stay portable across Codex, Claude Code, OpenClaw, A
 
 ## Preferred workflow
 
-1. Run `node ./agent-kit/bin/studio-agent.mjs onboard` once per workspace to store your profile, owner-role defaults, output path, and confirmation preference.
-2. During coding or other agent work, run `node ./agent-kit/bin/studio-agent.mjs capture` to create documentation with the saved defaults.
-3. If the context is incomplete or needs stakeholder input, switch to `node ./agent-kit/bin/studio-agent.mjs interview`.
-4. Validate every generated or edited manifest with `node ./agent-kit/bin/studio-agent.mjs validate <manifest>`.
+1. From the KI-Register studio repo root, prefer `studio-agent onboard`; if the CLI is not installed on `PATH`, fall back to `node ./agent-kit/bin/studio-agent.mjs onboard`.
+2. During coding or other agent work, run `studio-agent capture` or `node ./agent-kit/bin/studio-agent.mjs capture` to create documentation with the saved defaults.
+3. If the context is incomplete or needs stakeholder input, switch to `studio-agent interview` or `node ./agent-kit/bin/studio-agent.mjs interview`.
+4. Validate every generated or edited manifest with `studio-agent validate <manifest>` or `node ./agent-kit/bin/studio-agent.mjs validate <manifest>`.
 
 ## Behavior expectations
 
@@ -52,3 +52,4 @@ Capture at least:
 - The canonical machine format is `manifest.json`.
 - If an agent system has no skill loader, hand it this `SKILL.md` plus the schema and sample manifest from the agent kit.
 - Agents that support custom slash commands can map a shortcut to `studio-agent capture`.
+- Outside the KI-Register studio repo, omit the repo-specific rules above and rely on the agent kit schema plus sample manifest.
