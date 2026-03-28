@@ -153,11 +153,9 @@ function buildSystemNarrative(
 
     return {
       status: "Manuelle Dokumentation erforderlich",
-      documented: `${vendorText} Das System selbst ist identifiziert, aber nicht automatisiert recherchierbar.`,
-      missing:
-        "Es fehlen belastbare Angaben zu Betrieb, Datenschutz, Vertragsgrundlagen oder externen Nachweisen.",
-      nextStep:
-        "Anbieter-, Nutzungs- und Compliance-Informationen manuell in den Nachweisen oder Begleitdokumenten ergaenzen.",
+      documented: `${vendorText} System ist identifiziert.`,
+      missing: "Es fehlen Angaben zu Betrieb, Datenschutz oder Vertragsgrundlagen.",
+      nextStep: "Jetzt Angaben manuell in den Nachweisen ergaenzen.",
       actionLabel: null,
     };
   }
@@ -170,11 +168,9 @@ function buildSystemNarrative(
     return {
       status: "Noch kein dokumentierter Compliance-Stand",
       documented: vendorText,
-      missing:
-        "Es fehlt ein dokumentierter oeffentlicher Nachweisstand zu Datenschutz, AI Act oder Trust-Center-Informationen.",
-      nextStep:
-        "Jetzt System pruefen, um vorhandene oeffentliche Nachweise zu recherchieren und zu speichern.",
-      actionLabel: "Jetzt pruefen",
+      missing: "Es fehlt ein dokumentierter Nachweisstand.",
+      nextStep: "Jetzt System pruefen und Nachweise speichern.",
+      actionLabel: "Jetzt System pruefen",
     };
   }
 
@@ -194,15 +190,15 @@ function buildSystemNarrative(
         : summary,
     missing:
       sourceCount === 0
-        ? "Es ist noch keine Quelle am Eintrag verlinkt."
+        ? "Es ist noch keine Quelle verlinkt."
         : signals.length >= 2
-          ? "Aktuell ist keine akute Nachweisluecke sichtbar."
-          : "Der dokumentierte Nachweis ist noch schmal und sollte bei relevanten Aenderungen erneut geprueft werden.",
+          ? "Keine akute Nachweisluecke sichtbar."
+          : "Der Nachweis ist noch schmal.",
     nextStep:
       sourceCount === 0
-        ? "Bei Bedarf erneut pruefen und Quellenlage fuer den Nachweis verbreitern."
-        : "Bei Veraenderungen des Systems oder neuer Nutzungslage erneut pruefen.",
-    actionLabel: "Erneut pruefen",
+        ? "Jetzt erneut pruefen oder Quellen ergaenzen."
+        : "Bei Veraenderungen erneut pruefen.",
+    actionLabel: "Jetzt erneut pruefen",
   };
 }
 
@@ -217,8 +213,8 @@ function getSectionIntro(input: {
 
   if (input.isEditing) {
     return input.isSingleMode
-      ? "Wenn weitere Systeme hinzukommen, entsteht hier automatisch eine deduplizierte Mehrsystem-Sicht."
-      : 'Beteiligte Systeme pflegen Sie im Abschnitt "Ablauf & Systeme". Hier erscheint der deduplizierte Nachweisstand pro System.';
+      ? "Weitere Systeme koennen spaeter ergaenzt werden."
+      : 'Beteiligte Systeme werden im Abschnitt "Ablauf & Systeme" gepflegt.';
   }
 
   const documentedCount = input.systems.filter((system) => Boolean(system.publicInfo))
@@ -229,17 +225,17 @@ function getSectionIntro(input: {
 
   if (input.isSingleMode) {
     return documentedCount > 0
-      ? "Der aktuelle Nachweisstand fuer das dokumentierte System ist hinterlegt."
+      ? "Nachweisstand fuer das dokumentierte System ist hinterlegt."
       : manualCount > 0
-        ? "Dieses System benoetigt voraussichtlich eine manuelle Nachweisfuehrung."
-        : "Fuer dieses System liegt noch kein dokumentierter Compliance-Stand vor.";
+        ? "Dieses System benoetigt manuelle Nachweise."
+        : "Fuer dieses System liegt noch kein Nachweisstand vor.";
   }
 
   if (manualCount > 0) {
-    return `${documentedCount} von ${input.systems.length} beteiligten Systemen haben recherchierte Nachweise. ${manualCount} System${manualCount === 1 ? "" : "e"} muessen manuell dokumentiert werden.`;
+    return `${documentedCount} von ${input.systems.length} Systemen haben recherchierte Nachweise. ${manualCount} System${manualCount === 1 ? "" : "e"} bleiben manuell.`;
   }
 
-  return `${documentedCount} von ${input.systems.length} beteiligten Systemen haben recherchierte Nachweise. Wiederholte Systeme erscheinen hier nur einmal.`;
+  return `${documentedCount} von ${input.systems.length} Systemen haben recherchierte Nachweise.`;
 }
 
 export function UseCaseSystemsComplianceSection({
@@ -423,8 +419,8 @@ export function UseCaseSystemsComplianceSection({
           <p className="text-xs text-muted-foreground">
             {descriptionOverride ??
               (isSingleMode
-                ? "Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
-                : "Ablauf dokumentiert die Reihenfolge. Hier erscheint der deduplizierte Nachweisstand pro beteiligten System.")}
+                ? "Status und Nachweise fuer das aktuelle System."
+                : "Status und Nachweise pro beteiligtem System.")}
           </p>
         </div>
 
@@ -442,8 +438,8 @@ export function UseCaseSystemsComplianceSection({
             </>
           ) : (
             isSingleMode
-              ? "System pruefen"
-              : "Recherche fuer Systeme starten"
+              ? "Jetzt System pruefen"
+              : "Jetzt Systeme pruefen"
           )}
         </Button>
       </div>

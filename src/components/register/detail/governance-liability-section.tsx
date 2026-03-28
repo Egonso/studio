@@ -257,6 +257,31 @@ function getNextOpenDecisionField(input: {
   return null;
 }
 
+function getDecisionTitle(field: EditableField): string {
+  return field === "oversight"
+    ? "Aufsichtsmodell festlegen"
+    : "Review-Zyklus festlegen";
+}
+
+function getUpcomingDecisionHint(input: {
+  activeField: EditableField | null;
+  nextField: EditableField | null;
+}): string | null {
+  if (!input.nextField) {
+    return null;
+  }
+
+  if (input.activeField === "oversight" && input.nextField === "reviewCycle") {
+    return "Wird aktiv, sobald das Aufsichtsmodell dokumentiert ist.";
+  }
+
+  if (input.activeField === "reviewCycle" && input.nextField === "oversight") {
+    return "Wird aktiv, sobald der Review-Zyklus dokumentiert ist.";
+  }
+
+  return "Dieser Entscheidungspunkt folgt als naechstes.";
+}
+
 function focusDecisionField(field: EditableField) {
   if (typeof window === "undefined") return;
 
@@ -377,38 +402,63 @@ export function GovernanceLiabilitySection({
       ? {
           key: "risk",
           label: "Risikoklasse dokumentieren",
-          detail: "Im Bereich Stammdaten ergaenzen.",
+          detail: "In Stammdaten.",
         }
       : null,
     !hasOwner
       ? {
           key: "owner",
           label: "Verantwortliche Rolle dokumentieren",
-          detail: "Im Bereich Stammdaten ergaenzen.",
+          detail: "In Stammdaten.",
         }
       : null,
     !hasOversight
       ? {
           key: "oversight",
           label: "Aufsichtsmodell festlegen",
-          detail: "Wird in diesem Abschnitt als formale Entscheidung dokumentiert.",
+          detail: null,
         }
       : null,
     !hasReviewCycle
       ? {
           key: "reviewCycle",
           label: "Review-Zyklus festlegen",
-          detail: "Wird in diesem Abschnitt als formale Entscheidung dokumentiert.",
+          detail: null,
         }
       : null,
   ]);
 
   const showOversightDecision = !hasOversight || editingField === "oversight";
   const showReviewCycleDecision = !hasReviewCycle || editingField === "reviewCycle";
+  const activeDecisionField: EditableField | null =
+    editingField ??
+    (!hasOversight ? "oversight" : !hasReviewCycle ? "reviewCycle" : null);
+  const nextDecisionField = activeDecisionField
+    ? getNextOpenDecisionField({
+        currentField: activeDecisionField,
+        oversightValue:
+          activeDecisionField === "oversight"
+            ? draftValues.oversight
+            : normalizeOversightValue(iso?.oversightModel),
+        reviewCycleValue:
+          activeDecisionField === "reviewCycle"
+            ? draftValues.reviewCycle
+            : normalizeReviewCycleValue(iso?.reviewCycle),
+        orgSettings,
+      })
+    : null;
+  const upcomingDecisionHint = getUpcomingDecisionHint({
+    activeField: activeDecisionField,
+    nextField: nextDecisionField,
+  });
   const groundProofsNextHint =
-    missingRequirements.length > 0
-      ? "Offene Grundnachweise dokumentieren."
-      : "Weiter zu 2. Systemnachweis.";
+    activeDecisionField === "oversight"
+      ? "Jetzt Aufsichtsmodell dokumentieren."
+      : activeDecisionField === "reviewCycle"
+        ? "Jetzt Review-Zyklus dokumentieren."
+        : missingRequirements.length > 0
+          ? "Offene Grundnachweise dokumentieren."
+          : "Weiter zu 2. Systemnachweis.";
 
   const handleActivateReviewWorkflow = useCallback(() => {
     if (!reviewCap.allowed) {
@@ -602,9 +652,8 @@ export function GovernanceLiabilitySection({
             <ShieldCheck className="h-4 w-4 text-slate-500" />
             1. Grundnachweise
           </CardTitle>
-          <p className="text-sm leading-6 text-slate-600">
-            Erster Baustein des Nachweisstatus. Dokumentiert die formalen
-            Grundnachweise fuer diesen Einsatzfall.
+          <p className="text-sm text-slate-600">
+            Risikoklasse, Rolle, Aufsicht und Review-Zyklus.
           </p>
         </div>
       </CardHeader>
@@ -619,13 +668,9 @@ export function GovernanceLiabilitySection({
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">
-                Dokumentationsstand
-              </h3>
-              <p className="text-sm leading-6 text-slate-600">
-                Risikoklasse, verantwortliche Rolle, Aufsichtsmodell und
-                Review-Zyklus bilden die Grundlage fuer einen nachweisfaehigen
-                Einsatzfall.
+              <h3 className="text-sm font-semibold text-slate-900">Stand</h3>
+              <p className="text-sm text-slate-600">
+                Vier Grundangaben fuer den Nachweis.
               </p>
             </div>
             <p className="text-xs text-slate-500">
@@ -657,7 +702,7 @@ export function GovernanceLiabilitySection({
           </div>
 
           <div className="mt-5 space-y-4">
-            {showOversightDecision ? (
+            {activeDecisionField === "oversight" && showOversightDecision ? (
               <DecisionPanel
                 id="governance-decision-oversight"
                 title="Aufsichtsmodell festlegen"
@@ -676,11 +721,11 @@ export function GovernanceLiabilitySection({
                 onCancel={
                   hasOversight ? () => handleCloseEditor("oversight") : undefined
                 }
-                active={editingField === "oversight" || (!hasOversight && !editingField)}
+                active
               />
             ) : null}
 
-            {showReviewCycleDecision ? (
+            {activeDecisionField === "reviewCycle" && showReviewCycleDecision ? (
               <DecisionPanel
                 id="governance-decision-reviewCycle"
                 title="Review-Zyklus festlegen"
@@ -699,10 +744,14 @@ export function GovernanceLiabilitySection({
                 onCancel={
                   hasReviewCycle ? () => handleCloseEditor("reviewCycle") : undefined
                 }
-                active={
-                  editingField === "reviewCycle" ||
-                  (!hasReviewCycle && hasOversight && editingField === null)
-                }
+                active
+              />
+            ) : null}
+
+            {nextDecisionField && upcomingDecisionHint ? (
+              <UpcomingDecisionCard
+                title={getDecisionTitle(nextDecisionField)}
+                hint={upcomingDecisionHint}
               />
             ) : null}
           </div>
@@ -717,10 +766,7 @@ export function GovernanceLiabilitySection({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-slate-900">Review-Verlauf</h3>
-              <p className="text-sm leading-6 text-slate-600">
-                Formale Review-Dokumentation, Fristen und Verlauf bleiben ein eigener
-                Workflow.
-              </p>
+              <p className="text-sm text-slate-600">Reviews, Fristen und Verlauf.</p>
             </div>
             {hasReviewTrail ? (
               <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
@@ -772,7 +818,7 @@ export function GovernanceLiabilitySection({
                     className="shrink-0"
                     onClick={handleActivateReviewWorkflow}
                   >
-                    Review erfassen
+                    Jetzt Review dokumentieren
                   </Button>
                 </div>
               </li>
@@ -786,9 +832,7 @@ export function GovernanceLiabilitySection({
                 <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
                   <div className="space-y-1">
                     <p className="font-medium text-slate-900">Governance-Report</p>
-                    <p className="text-sm text-slate-600">
-                      CSV-Stichtagsreport fuer dokumentierte Review-Historie.
-                    </p>
+                    <p className="text-sm text-slate-600">CSV fuer dokumentierte Reviews.</p>
                   </div>
                   {canGenerateReport ? (
                     <Button
@@ -811,17 +855,14 @@ export function GovernanceLiabilitySection({
                 <li>Review-Historie</li>
                 <li>Governance-Report</li>
               </ul>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Unveraenderbare Pruefdokumentation mit Fristen und nachvollziehbarer
-                Historie.
-              </p>
+              <p className="mt-3 text-sm text-slate-600">Reviews, Fristen und Verlauf.</p>
               <Button
                 size="sm"
                 variant="outline"
                 className="mt-4"
                 onClick={handleActivateReviewWorkflow}
               >
-                Dokumentation erweitern
+                Jetzt Review dokumentieren
               </Button>
             </div>
           )}
@@ -831,10 +872,7 @@ export function GovernanceLiabilitySection({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <h3 className="text-sm font-semibold text-slate-900">Nachweisexport</h3>
-              <p className="text-sm leading-6 text-slate-600">
-                Externe Nachweise und Audit-Dokumente bleiben sichtbar, aber
-                nachrangig gegenueber dem Einsatzfall selbst.
-              </p>
+              <p className="text-sm text-slate-600">Externe Nachweise und Audit-Dokumente.</p>
             </div>
             {isExternBelegbar ? (
               <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
@@ -853,9 +891,7 @@ export function GovernanceLiabilitySection({
                 )}
                 <div className="space-y-1">
                   <p className="font-medium text-slate-900">ISO 42001 Audit-Dossier</p>
-                  <p className="text-sm text-slate-600">
-                    Organisationsweiter Nachweis fuer Audit- und Governance-Zwecke.
-                  </p>
+                  <p className="text-sm text-slate-600">Organisationsweiter Audit-Nachweis.</p>
                 </div>
               </li>
 
@@ -868,9 +904,7 @@ export function GovernanceLiabilitySection({
                 <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
                   <div className="space-y-1">
                     <p className="font-medium text-slate-900">Governance-Nachweis</p>
-                    <p className="text-sm text-slate-600">
-                      Oeffentlich verifizierbarer Nachweis fuer diesen Einsatzfall.
-                    </p>
+                    <p className="text-sm text-slate-600">Oeffentlich verifizierbarer Nachweis.</p>
                     {hasTrustPortal && verifyUrl ? (
                       <a
                         href={verifyUrl}
@@ -903,8 +937,8 @@ export function GovernanceLiabilitySection({
                 <li>ISO 42001 Audit-Dossier</li>
                 <li>Governance-Nachweis</li>
               </ul>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Prueffaehige Nachweise fuer Audits und externe Stakeholder.
+              <p className="mt-3 text-sm text-slate-600">
+                Audit-Dossier und Governance-Nachweis.
               </p>
               <Button
                 size="sm"
@@ -912,7 +946,7 @@ export function GovernanceLiabilitySection({
                 className="mt-4"
                 onClick={() => void handleActivateTrustPortal()}
               >
-                Audit-Export aktivieren
+                Jetzt Nachweise aktivieren
               </Button>
             </div>
           )}
@@ -1064,6 +1098,26 @@ function DecisionPanel<TValue extends string>({
             Abbrechen
           </Button>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function UpcomingDecisionCard({
+  title,
+  hint,
+}: {
+  title: string;
+  hint: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 md:p-5">
+      <div className="space-y-1">
+        <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+          Danach
+        </p>
+        <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+        <p className="text-sm text-slate-600">{hint}</p>
       </div>
     </div>
   );

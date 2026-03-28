@@ -51,33 +51,27 @@ function getReviewContext(
   if (readiness.phase === "proof_ready") {
     return {
       title: "Nachweisstatus: erreicht",
-      description:
-        "Dieser Einsatzfall ist formal nachweisfaehig dokumentiert. Pass, Verlauf und Review-Dokumentation bleiben nachvollziehbar.",
+      description: "Dieser Einsatzfall ist formal nachweisfaehig dokumentiert.",
     };
   }
 
   if (readiness.phase === "review_pending") {
     return {
       title: "Formale Pruefung jetzt dokumentierbar",
-      description:
-        card.status === "REVIEWED"
-          ? "Grundnachweise und Systemnachweis sind dokumentiert. Dieser letzte Baustein kann jetzt formal abgeschlossen werden."
-          : "Grundnachweise und Systemnachweis sind dokumentiert. Die formale Pruefung kann jetzt dokumentiert werden.",
+      description: "Grundnachweise und Systemnachweis sind dokumentiert.",
     };
   }
 
   if (readiness.nextStep?.key === "systemEvidence") {
     return {
       title: "Formale Pruefung noch nicht abschliessbar",
-      description:
-        "Der Systemnachweis ist noch nicht vollstaendig dokumentiert. Erst danach kann der letzte Baustein formal abgeschlossen werden.",
+      description: "Der Systemnachweis ist noch nicht vollstaendig dokumentiert.",
     };
   }
 
   return {
     title: "Formale Pruefung noch nicht abschliessbar",
-    description:
-      "Es fehlen noch Grundnachweise. Erst danach kann der letzte Baustein formal abgeschlossen werden.",
+    description: "Es fehlen noch Grundnachweise.",
   };
 }
 
@@ -184,11 +178,7 @@ export function ReviewSection({
           <h2 className="text-[18px] font-semibold tracking-tight">
             3. Formale Pruefung
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Letzter Baustein zur Nachweisfaehigkeit. Formale
-            Statusdokumentation bleibt getrennt von der Bearbeitung der
-            Stammdaten.
-          </p>
+          <p className="text-sm text-muted-foreground">Letzter Baustein zur Nachweisfaehigkeit.</p>
         </div>
 
         <div className="mt-6 space-y-5">
@@ -336,8 +326,7 @@ export function ReviewSection({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Der Status ist formal abgeschlossen. Eine Neubewertung bleibt
-              optional verfuegbar.
+              Neubewertung bleibt optional verfuegbar.
             </p>
           )}
 

@@ -326,22 +326,18 @@ export function UseCaseMetadataSection({
             <h2 className="text-[18px] font-semibold tracking-tight">
               Details & Stammdaten
             </h2>
-            <p className="text-sm leading-6 text-slate-600">
-              Kontext, Risikokontext und organisatorische Angaben bleiben
-              dokumentiert, sind aber standardmaessig nachrangig gegenueber
-              Prueffaehigkeit und Review.
-            </p>
+            <p className="text-sm text-slate-600">Nachrangige Stammdaten zum Einsatzfall.</p>
           </div>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" disabled={isEditing}>
+            <Button variant="outline" size="sm" className="text-xs" disabled={isEditing}>
               {metadataOpen ? (
                 <>
-                  Details ausblenden
+                  Stammdaten ausblenden
                   <ChevronUp className="h-4 w-4" />
                 </>
               ) : (
                 <>
-                  Details anzeigen
+                  Stammdaten anzeigen
                   <ChevronDown className="h-4 w-4" />
                 </>
               )}
@@ -366,11 +362,9 @@ export function UseCaseMetadataSection({
       <CollapsibleContent className="border-t border-slate-200">
         <div className="space-y-8 p-5 md:p-6">
           {!isEditing && (
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              <p className="font-medium text-slate-700">
-                Stammdaten sind schreibgeschuetzt.
-              </p>
-              <p>Zum Aendern zuerst "Stammdaten bearbeiten" waehlen.</p>
+            <div className="rounded-md border border-slate-200 bg-slate-50/70 px-4 py-3 text-xs text-slate-600">
+              Stammdaten sind schreibgeschuetzt. Zum Aendern zuerst
+              "Stammdaten bearbeiten" waehlen.
             </div>
           )}
 

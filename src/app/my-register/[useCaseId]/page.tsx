@@ -120,6 +120,30 @@ export default function UseCaseDetailPage() {
     [card, orgSettings],
   );
   const systemsStageHint = readiness ? getSystemsStageHint(readiness) : null;
+  const [showGovernanceSection, setShowGovernanceSection] = useState(false);
+  const [showSystemsSection, setShowSystemsSection] = useState(false);
+  const [showReviewSection, setShowReviewSection] = useState(false);
+  const governancePresentation = readiness
+    ? resolveStepPresentation(readiness, 'groundProofs')
+    : 'active';
+  const systemsPresentation = readiness
+    ? resolveStepPresentation(readiness, 'systemEvidence')
+    : 'upcoming';
+  const reviewPresentation = readiness
+    ? resolveStepPresentation(readiness, 'formalReview')
+    : 'upcoming';
+  const isGovernanceExpanded =
+    governancePresentation === 'active' ||
+    activeFocus === 'governance' ||
+    showGovernanceSection;
+  const isSystemsExpanded =
+    systemsPresentation === 'active' ||
+    activeFocus === 'systems' ||
+    showSystemsSection;
+  const isReviewExpanded =
+    reviewPresentation === 'active' ||
+    activeFocus === 'review' ||
+    showReviewSection;
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -396,18 +420,28 @@ export default function UseCaseDetailPage() {
               activeFocus === 'governance' ? focusHighlightClassName : undefined
             }
           >
-            <GovernanceLiabilitySection
-              card={card}
-              useCases={allUseCases.length > 0 ? allUseCases : [card]}
-              orgSettings={orgSettings}
-              focusField={activeFocus === 'governance' ? governanceField : null}
-              autoOpenField={
-                activeFocus === 'governance' ? governanceAutoOpenField : null
-              }
-              onCardUpdate={() => {
-                void loadUseCase();
-              }}
-            />
+            {readiness && !isGovernanceExpanded ? (
+              <CompactStepShell
+                title="1. Grundnachweise"
+                description="Erster Baustein des Nachweisstatus."
+                statusLabel={getStepPresentationLabel(governancePresentation)}
+                hint={getGovernanceCompactHint(readiness)}
+                onOpen={() => setShowGovernanceSection(true)}
+              />
+            ) : (
+              <GovernanceLiabilitySection
+                card={card}
+                useCases={allUseCases.length > 0 ? allUseCases : [card]}
+                orgSettings={orgSettings}
+                focusField={activeFocus === 'governance' ? governanceField : null}
+                autoOpenField={
+                  activeFocus === 'governance' ? governanceAutoOpenField : null
+                }
+                onCardUpdate={() => {
+                  void loadUseCase();
+                }}
+              />
+            )}
           </div>
         )}
 
@@ -417,77 +451,87 @@ export default function UseCaseDetailPage() {
             activeFocus === 'systems' ? focusHighlightClassName : undefined
           }
         >
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h2 className="text-[18px] font-semibold tracking-tight">
-                2. Systemnachweis
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Zweiter Baustein des Nachweisstatus. Dokumentiert beteiligte
-                Systeme und ihren Nachweisstand.
-              </p>
-              {systemsStageHint ? (
-                <div className="space-y-1">
-                  <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                    Als Naechstes
-                  </p>
-                  <p className="text-sm leading-6 text-slate-600">
-                    {systemsStageHint}
-                  </p>
-                </div>
-              ) : null}
-            </div>
+          {readiness && !isSystemsExpanded ? (
+            <CompactStepShell
+              title="2. Systemnachweis"
+              description="Zweiter Baustein des Nachweisstatus."
+              statusLabel={getStepPresentationLabel(systemsPresentation)}
+              hint={getSystemsCompactHint(readiness)}
+              onOpen={() => setShowSystemsSection(true)}
+            />
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h2 className="text-[18px] font-semibold tracking-tight">
+                  2. Systemnachweis
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Zweiter Baustein des Nachweisstatus. Dokumentiert beteiligte
+                  Systeme und ihren Nachweisstand.
+                </p>
+                {systemsStageHint ? (
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+                      Als Naechstes
+                    </p>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {systemsStageHint}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
 
-            {systemSectionMode === 'multi' ? (
-              <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-                <div className="space-y-1">
-                  <h3 className="text-[18px] font-semibold tracking-tight">
-                    Systemlandschaft
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Verbindet die Ablauf-Sicht mit der deduplizierten
-                    Compliance-Perspektive fuer alle beteiligten Systeme.
-                  </p>
-                </div>
+              {systemSectionMode === 'multi' ? (
+                <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+                  <div className="space-y-1">
+                    <h3 className="text-[18px] font-semibold tracking-tight">
+                      Systemlandschaft
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Verbindet die Ablauf-Sicht mit der deduplizierten
+                      Compliance-Perspektive fuer alle beteiligten Systeme.
+                    </p>
+                  </div>
 
-                <div className="mt-6 space-y-6">
-                  <UseCaseWorkflowSection
-                    card={card}
-                    onSave={handleSaveMetadata}
-                    mode="multi"
-                    layout="embedded"
-                  />
-                  <div className="border-t border-slate-200 pt-6">
-                    <UseCaseSystemsComplianceSection
+                  <div className="mt-6 space-y-6">
+                    <UseCaseWorkflowSection
                       card={card}
-                      isEditing={isEditing}
                       onSave={handleSaveMetadata}
                       mode="multi"
                       layout="embedded"
-                      headingOverride="Nachweisstand je System"
-                      descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
                     />
+                    <div className="border-t border-slate-200 pt-6">
+                      <UseCaseSystemsComplianceSection
+                        card={card}
+                        isEditing={isEditing}
+                        onSave={handleSaveMetadata}
+                        mode="multi"
+                        layout="embedded"
+                        headingOverride="Nachweisstand je System"
+                        descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
+                      />
+                    </div>
                   </div>
+                </section>
+              ) : (
+                <div className="space-y-6">
+                  <UseCaseWorkflowSection
+                    card={card}
+                    onSave={handleSaveMetadata}
+                    mode="single"
+                  />
+                  <UseCaseSystemsComplianceSection
+                    card={card}
+                    isEditing={isEditing}
+                    onSave={handleSaveMetadata}
+                    mode="single"
+                    headingOverride="Nachweisstand je System"
+                    descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+                  />
                 </div>
-              </section>
-            ) : (
-              <div className="space-y-6">
-                <UseCaseWorkflowSection
-                  card={card}
-                  onSave={handleSaveMetadata}
-                  mode="single"
-                />
-                <UseCaseSystemsComplianceSection
-                  card={card}
-                  isEditing={isEditing}
-                  onSave={handleSaveMetadata}
-                  mode="single"
-                  headingOverride="Nachweisstand je System"
-                  descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
-                />
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div
@@ -497,13 +541,23 @@ export default function UseCaseDetailPage() {
           }
         >
           {readiness ? (
-            <ReviewSection
-              card={card}
-              readiness={readiness}
-              useCaseId={card.useCaseId}
-              workspaceScope={workspaceScope}
-              onStatusChange={handleStatusChange}
-            />
+            !isReviewExpanded ? (
+              <CompactStepShell
+                title="3. Formale Pruefung"
+                description="Letzter Baustein zur Nachweisfaehigkeit."
+                statusLabel={getStepPresentationLabel(reviewPresentation)}
+                hint={getReviewCompactHint(readiness)}
+                onOpen={() => setShowReviewSection(true)}
+              />
+            ) : (
+              <ReviewSection
+                card={card}
+                readiness={readiness}
+                useCaseId={card.useCaseId}
+                workspaceScope={workspaceScope}
+                onStatusChange={handleStatusChange}
+              />
+            )
           ) : null}
         </div>
         <div
@@ -674,4 +728,110 @@ function getSystemsStageHint(readiness: UseCaseReadinessResult): string {
   }
 
   return 'Weiter zu 3. Formale Pruefung.';
+}
+
+type StepPresentation = 'active' | 'completed' | 'upcoming';
+
+function resolveStepPresentation(
+  readiness: UseCaseReadinessResult,
+  stepKey: UseCaseReadinessResult['steps'][number]['key'],
+): StepPresentation {
+  const step = readiness.steps.find((candidate) => candidate.key === stepKey);
+  if (!step) {
+    return 'upcoming';
+  }
+
+  if (step.complete) {
+    return 'completed';
+  }
+
+  if (readiness.nextStep?.key === step.key) {
+    return 'active';
+  }
+
+  return 'upcoming';
+}
+
+function getStepPresentationLabel(presentation: StepPresentation): string {
+  if (presentation === 'completed') return 'dokumentiert';
+  if (presentation === 'active') return 'aktiv';
+  return 'spaeter';
+}
+
+function getGovernanceCompactHint(readiness: UseCaseReadinessResult): string {
+  if (readiness.phase === 'proof_ready') {
+    return 'Grundnachweise sind dokumentiert. Dieser Baustein bleibt bei Bedarf einsehbar.';
+  }
+
+  if (readiness.nextStep?.key === 'systemEvidence') {
+    return 'Grundnachweise sind dokumentiert. Weiter zu 2. Systemnachweis.';
+  }
+
+  return 'Grundnachweise sind dokumentiert. Der Abschnitt bleibt bei Bedarf einsehbar.';
+}
+
+function getSystemsCompactHint(readiness: UseCaseReadinessResult): string {
+  if (readiness.nextStep?.key === 'groundProofs') {
+    return 'Wird aktiv, sobald 1. Grundnachweise dokumentiert sind.';
+  }
+
+  if (readiness.phase === 'proof_ready') {
+    return 'Systemnachweis ist dokumentiert. Die formale Pruefung ist bereits abgeschlossen.';
+  }
+
+  return 'Systemnachweis ist dokumentiert. Weiter zu 3. Formale Pruefung.';
+}
+
+function getReviewCompactHint(readiness: UseCaseReadinessResult): string {
+  if (readiness.phase === 'proof_ready') {
+    return 'Formale Pruefung ist dokumentiert. Der Status kann bei Bedarf neu bewertet werden.';
+  }
+
+  if (readiness.nextStep?.key === 'groundProofs') {
+    return 'Wird aktiv, sobald 1. Grundnachweise und 2. Systemnachweis dokumentiert sind.';
+  }
+
+  if (readiness.nextStep?.key === 'systemEvidence') {
+    return 'Wird aktiv, sobald 2. Systemnachweis dokumentiert ist.';
+  }
+
+  return 'Dieser Schritt ist jetzt aktiv und kann formal dokumentiert werden.';
+}
+
+function CompactStepShell({
+  title,
+  description,
+  statusLabel,
+  hint,
+  onOpen,
+}: {
+  title: string;
+  description: string;
+  statusLabel: string;
+  hint: string;
+  onOpen: () => void;
+}) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-2.5 w-2.5 rounded-full border border-slate-300 bg-white" />
+            <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm leading-6 text-slate-600">{hint}</p>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+          <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+            {statusLabel}
+          </p>
+          <Button size="sm" variant="outline" onClick={onOpen}>
+            Abschnitt anzeigen
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -78,11 +78,8 @@ export function AuditTrailSection({
   return (
     <section className="border-t border-slate-200 pt-8">
       <div className="flex flex-col gap-1">
-        <h2 className="text-[18px] font-semibold tracking-tight">Verlauf</h2>
-        <p className="text-sm text-muted-foreground">
-          Neueste Dokumentationsereignisse zuerst. Herkunft, Aenderungen, Reviews
-          und Freigaben werden zusammengefuehrt.
-        </p>
+        <h2 className="text-[16px] font-semibold tracking-tight text-slate-800">Verlauf</h2>
+        <p className="text-sm text-muted-foreground">Neueste Ereignisse zuerst.</p>
       </div>
 
       <div className="mt-6 space-y-4">
@@ -154,7 +151,7 @@ export function AuditTrailSection({
             size="sm"
             onClick={() => setShowAll((current) => !current)}
           >
-            {showAll ? "Weniger anzeigen" : `Alle ${timeline.length} Eintraege anzeigen`}
+            {showAll ? "Weniger" : `Alle ${timeline.length} Eintraege`}
           </Button>
         </div>
       ) : null}
