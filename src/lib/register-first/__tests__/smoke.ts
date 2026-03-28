@@ -155,12 +155,37 @@ export async function runFoundationSmoke() {
     incompleteReadiness.missingItems.map((item) => item.key),
     ["oversight", "reviewCycle"],
   );
+  assert.equal(incompleteReadiness.completedStepCount, 0);
+  assert.equal(incompleteReadiness.nextStep?.key, "groundProofs");
 
   const readyForReviewCard = {
     ...card,
+    toolId: "chatgpt_openai",
     responsibility: {
       ...card.responsibility,
       responsibleParty: "GF",
+    },
+    publicInfo: {
+      lastCheckedAt: "2026-02-07T12:10:00.000Z",
+      checker: "manual",
+      summary: "Datenschutz- und Anbieterhinweise dokumentiert.",
+      flags: {
+        gdprClaim: "yes",
+        aiActClaim: "not_found",
+        trustCenterFound: "yes",
+        privacyPolicyFound: "yes",
+        dpaOrSccMention: "not_found",
+      },
+      confidence: "medium",
+      sources: [
+        {
+          title: "Privacy Policy",
+          url: "https://example.com/privacy",
+          type: "privacy",
+          accessedAt: "2026-02-07T12:10:00.000Z",
+        },
+      ],
+      disclaimerVersion: "v1",
     },
     governanceAssessment: {
       core: {
@@ -179,6 +204,8 @@ export async function runFoundationSmoke() {
   const reviewPendingReadiness = computeUseCaseReadiness(readyForReviewCard, null);
   assert.equal(reviewPendingReadiness.phase, "review_pending");
   assert.equal(reviewPendingReadiness.missingItems.length, 0);
+  assert.equal(reviewPendingReadiness.completedStepCount, 2);
+  assert.equal(reviewPendingReadiness.nextStep?.key, "formalReview");
 
   const proofReadyReadiness = computeUseCaseReadiness(
     {
@@ -188,6 +215,8 @@ export async function runFoundationSmoke() {
     null,
   );
   assert.equal(proofReadyReadiness.phase, "proof_ready");
+  assert.equal(proofReadyReadiness.completedStepCount, 3);
+  assert.equal(proofReadyReadiness.nextStep, null);
 
   const rawOutputState = getStatusGatedOutputState("UNREVIEWED", envFlags);
   assert.equal(rawOutputState.tier, "RAW");

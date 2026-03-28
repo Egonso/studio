@@ -8,6 +8,7 @@ import {
   type RegisterUseCaseStatus,
   type UseCaseCard,
 } from "./types";
+import { resolveUniqueSystemsForCompliance } from "./systems";
 
 export type UseCaseReadinessPhase =
   | "incomplete"
@@ -26,11 +27,27 @@ export interface UseCaseReadinessItem {
   target: UseCaseReadinessTarget;
 }
 
+export type UseCaseReadinessStepKey =
+  | "groundProofs"
+  | "systemEvidence"
+  | "formalReview";
+
+export interface UseCaseReadinessStep {
+  key: UseCaseReadinessStepKey;
+  label: string;
+  detail: string;
+  complete: boolean;
+  target: UseCaseReadinessTarget;
+}
+
 export interface UseCaseReadinessResult {
   phase: UseCaseReadinessPhase;
   missingItems: UseCaseReadinessItem[];
   completedItems: UseCaseReadinessItem[];
   nextItem: UseCaseReadinessItem | null;
+  steps: UseCaseReadinessStep[];
+  completedStepCount: number;
+  nextStep: UseCaseReadinessStep | null;
   canMarkProofReady: boolean;
   nextStatusActionAvailable: boolean;
 }
@@ -95,18 +112,74 @@ export function computeUseCaseReadiness(
 
   const missingItems = items.filter((item) => !item.complete);
   const completedItems = items.filter((item) => item.complete);
-  const canMarkProofReady = missingItems.length === 0;
-  const phase: UseCaseReadinessPhase = !canMarkProofReady
-    ? "incomplete"
-    : isProofReady(card.status)
-      ? "proof_ready"
-      : "review_pending";
+  const groundProofsComplete = missingItems.length === 0;
+  const uniqueSystems = resolveUniqueSystemsForCompliance(card, {
+    emptyLabel: "Kein System",
+  });
+  const hasDocumentedSystem = uniqueSystems.some(
+    (system) => Boolean(system.toolId) || Boolean(system.toolFreeText),
+  );
+  const systemsReadyCount = uniqueSystems.filter(
+    (system) => Boolean(system.publicInfo) || system.requiresManualDocumentation,
+  ).length;
+  const systemEvidenceComplete =
+    hasDocumentedSystem &&
+    uniqueSystems.length > 0 &&
+    systemsReadyCount === uniqueSystems.length;
+  const canMarkProofReady = groundProofsComplete && systemEvidenceComplete;
+  const phase: UseCaseReadinessPhase = isProofReady(card.status)
+    ? "proof_ready"
+    : canMarkProofReady
+      ? "review_pending"
+      : "incomplete";
+
+  const steps: UseCaseReadinessStep[] = [
+    {
+      key: "groundProofs",
+      label: "Grundnachweise",
+      detail:
+        groundProofsComplete
+          ? `${completedItems.length} von ${items.length} dokumentiert`
+          : missingItems.map((item) => item.label).join(", "),
+      complete: groundProofsComplete,
+      target: {
+        focus: "governance",
+      },
+    },
+    {
+      key: "systemEvidence",
+      label: "Systemnachweis",
+      detail: !hasDocumentedSystem
+        ? "Noch kein System dokumentiert"
+        : `${systemsReadyCount} von ${uniqueSystems.length} Systemen fuer den Nachweis eingeordnet`,
+      complete: systemEvidenceComplete,
+      target: {
+        focus: "systems",
+      },
+    },
+    {
+      key: "formalReview",
+      label: "Formale Pruefung",
+      detail: isProofReady(card.status)
+        ? "Formal abgeschlossen"
+        : "Letzter Baustein noch offen",
+      complete: isProofReady(card.status),
+      target: {
+        focus: "review",
+      },
+    },
+  ];
+  const completedStepCount = steps.filter((step) => step.complete).length;
+  const nextStep = steps.find((step) => !step.complete) ?? null;
 
   return {
     phase,
     missingItems,
     completedItems,
     nextItem: missingItems[0] ?? null,
+    steps,
+    completedStepCount,
+    nextStep,
     canMarkProofReady,
     nextStatusActionAvailable: canMarkProofReady && !isProofReady(card.status),
   };

@@ -30,6 +30,7 @@ import {
   computeUseCaseReadiness,
   getUseCaseSystemSectionMode,
   getUseCaseSystemsSummary,
+  type UseCaseReadinessResult,
 } from '@/lib/register-first';
 import { cn } from '@/lib/utils';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
@@ -118,6 +119,7 @@ export default function UseCaseDetailPage() {
     () => (card ? computeUseCaseReadiness(card, orgSettings) : null),
     [card, orgSettings],
   );
+  const systemsStageHint = readiness ? getSystemsStageHint(readiness) : null;
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -409,51 +411,84 @@ export default function UseCaseDetailPage() {
           </div>
         )}
 
-        {systemSectionMode === 'multi' ? (
-          <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-            <div className="space-y-1">
+        <div
+          id="usecase-focus-systems"
+          className={
+            activeFocus === 'systems' ? focusHighlightClassName : undefined
+          }
+        >
+          <div className="space-y-4">
+            <div className="space-y-2">
               <h2 className="text-[18px] font-semibold tracking-tight">
-                Systemlandschaft
+                2. Systemnachweis
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Verbindet die Ablauf-Sicht mit der deduplizierten
-                Compliance-Perspektive fuer alle beteiligten Systeme.
+              <p className="text-sm text-muted-foreground">
+                Zweiter Baustein des Nachweisstatus. Dokumentiert beteiligte
+                Systeme und ihren Nachweisstand.
               </p>
+              {systemsStageHint ? (
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+                    Als Naechstes
+                  </p>
+                  <p className="text-sm leading-6 text-slate-600">
+                    {systemsStageHint}
+                  </p>
+                </div>
+              ) : null}
             </div>
 
-            <div className="mt-6 space-y-6">
-              <UseCaseWorkflowSection
-                card={card}
-                onSave={handleSaveMetadata}
-                mode="multi"
-                layout="embedded"
-              />
-              <div className="border-t border-slate-200 pt-6">
+            {systemSectionMode === 'multi' ? (
+              <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+                <div className="space-y-1">
+                  <h3 className="text-[18px] font-semibold tracking-tight">
+                    Systemlandschaft
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Verbindet die Ablauf-Sicht mit der deduplizierten
+                    Compliance-Perspektive fuer alle beteiligten Systeme.
+                  </p>
+                </div>
+
+                <div className="mt-6 space-y-6">
+                  <UseCaseWorkflowSection
+                    card={card}
+                    onSave={handleSaveMetadata}
+                    mode="multi"
+                    layout="embedded"
+                  />
+                  <div className="border-t border-slate-200 pt-6">
+                    <UseCaseSystemsComplianceSection
+                      card={card}
+                      isEditing={isEditing}
+                      onSave={handleSaveMetadata}
+                      mode="multi"
+                      layout="embedded"
+                      headingOverride="Nachweisstand je System"
+                      descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
+                    />
+                  </div>
+                </div>
+              </section>
+            ) : (
+              <div className="space-y-6">
+                <UseCaseWorkflowSection
+                  card={card}
+                  onSave={handleSaveMetadata}
+                  mode="single"
+                />
                 <UseCaseSystemsComplianceSection
                   card={card}
                   isEditing={isEditing}
                   onSave={handleSaveMetadata}
-                  mode="multi"
-                  layout="embedded"
+                  mode="single"
+                  headingOverride="Nachweisstand je System"
+                  descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
                 />
               </div>
-            </div>
-          </section>
-        ) : (
-          <div className="space-y-6">
-            <UseCaseWorkflowSection
-              card={card}
-              onSave={handleSaveMetadata}
-              mode="single"
-            />
-            <UseCaseSystemsComplianceSection
-              card={card}
-              isEditing={isEditing}
-              onSave={handleSaveMetadata}
-              mode="single"
-            />
+            )}
           </div>
-        )}
+        </div>
 
         <div
           id="usecase-focus-review"
@@ -608,6 +643,7 @@ function resolveGovernanceField(
 function getFocusTargetId(focus: ControlFocusTarget): string {
   if (focus === 'metadata') return 'usecase-focus-metadata';
   if (focus === 'owner') return 'usecase-focus-owner';
+  if (focus === 'systems') return 'usecase-focus-systems';
   if (focus === 'governance') return 'usecase-focus-governance';
   if (focus === 'oversight') return 'usecase-focus-oversight';
   if (focus === 'policy') return 'usecase-focus-policy';
@@ -622,4 +658,20 @@ function isServiceError(err: unknown, code: string): boolean {
     'code' in err &&
     String((err as { code: unknown }).code) === code
   );
+}
+
+function getSystemsStageHint(readiness: UseCaseReadinessResult): string {
+  if (readiness.phase === 'proof_ready') {
+    return 'Weiter zu 3. Formale Pruefung ist nicht mehr noetig; der Use-Case-Pass kann geoeffnet werden.';
+  }
+
+  if (readiness.nextStep?.key === 'groundProofs') {
+    return 'Erst 1. Grundnachweise abschliessen.';
+  }
+
+  if (readiness.nextStep?.key === 'systemEvidence') {
+    return 'Diesen Baustein vervollstaendigen.';
+  }
+
+  return 'Weiter zu 3. Formale Pruefung.';
 }

@@ -50,30 +50,51 @@ function getReviewContext(
 } {
   if (readiness.phase === "proof_ready") {
     return {
-      title: "Nachweisfaehig dokumentiert",
+      title: "Nachweisstatus: erreicht",
       description:
-        "Der formale Nachweisstatus ist gesetzt. Pass, Verlauf und Review-Dokumentation bleiben weiterhin nachvollziehbar.",
+        "Dieser Einsatzfall ist formal nachweisfaehig dokumentiert. Pass, Verlauf und Review-Dokumentation bleiben nachvollziehbar.",
     };
   }
 
   if (readiness.phase === "review_pending") {
     return {
-      title:
-        card.status === "REVIEWED"
-          ? "Grundnachweise vollstaendig"
-          : "Pruefstatus als naechster Schritt",
+      title: "Formale Pruefung jetzt dokumentierbar",
       description:
         card.status === "REVIEWED"
-          ? "Alle Grundnachweise sind dokumentiert. Der Status Nachweisfaehig kann jetzt formal dokumentiert werden."
-          : "Alle Grundnachweise sind dokumentiert. Als naechstes kann der formale Pruefstatus weitergefuehrt werden.",
+          ? "Grundnachweise und Systemnachweis sind dokumentiert. Dieser letzte Baustein kann jetzt formal abgeschlossen werden."
+          : "Grundnachweise und Systemnachweis sind dokumentiert. Die formale Pruefung kann jetzt dokumentiert werden.",
+    };
+  }
+
+  if (readiness.nextStep?.key === "systemEvidence") {
+    return {
+      title: "Formale Pruefung noch nicht abschliessbar",
+      description:
+        "Der Systemnachweis ist noch nicht vollstaendig dokumentiert. Erst danach kann der letzte Baustein formal abgeschlossen werden.",
     };
   }
 
   return {
-    title: "Grundnachweise noch unvollstaendig",
+    title: "Formale Pruefung noch nicht abschliessbar",
     description:
-      "Der formale Statusworkflow bleibt sichtbar und benutzbar. Nachweisfaehig kann erst dokumentiert werden, wenn die fehlenden Grundnachweise ergaenzt sind.",
+      "Es fehlen noch Grundnachweise. Erst danach kann der letzte Baustein formal abgeschlossen werden.",
   };
+}
+
+function getReviewNextHint(readiness: UseCaseReadinessResult): string {
+  if (readiness.phase === "proof_ready") {
+    return "Use-Case-Pass oeffnen oder Status neu bewerten.";
+  }
+
+  if (readiness.nextStep?.key === "groundProofs") {
+    return "Erst 1. Grundnachweise abschliessen.";
+  }
+
+  if (readiness.nextStep?.key === "systemEvidence") {
+    return "Erst 2. Systemnachweis abschliessen.";
+  }
+
+  return "Formale Pruefung jetzt dokumentieren.";
 }
 
 export function ReviewSection({
@@ -94,10 +115,15 @@ export function ReviewSection({
   const proofReadyBlocked =
     nextStatuses.includes("PROOF_READY") && !readiness.canMarkProofReady;
   const reviewContext = getReviewContext(card, readiness);
+  const reviewNextHint = getReviewNextHint(readiness);
+  const blockingSteps = readiness.steps.filter(
+    (step) => !step.complete && step.key !== "formalReview",
+  );
   const [selectedStatus, setSelectedStatus] = useState<RegisterUseCaseStatus | "">("");
   const [reason, setReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showReassessmentForm, setShowReassessmentForm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -105,6 +131,35 @@ export function ReviewSection({
       setSelectedStatus("");
     }
   }, [readiness.canMarkProofReady, selectedStatus]);
+
+  useEffect(() => {
+    if (readiness.phase !== "proof_ready") {
+      setShowReassessmentForm(false);
+    }
+  }, [readiness.phase]);
+
+  const shouldShowStatusForm =
+    readiness.phase !== "proof_ready" || showReassessmentForm;
+  const statusFieldLabel =
+    readiness.phase === "proof_ready"
+      ? "Status neu bewerten"
+      : "Formalen Status dokumentieren";
+  const statusTriggerPlaceholder =
+    readiness.phase === "proof_ready"
+      ? "Status fuer Neubewertung waehlen"
+      : "Naechsten formalen Status waehlen";
+  const submitLabel =
+    readiness.phase === "proof_ready"
+      ? "Neubewertung dokumentieren"
+      : selectedStatus === "PROOF_READY"
+        ? "Formale Pruefung dokumentieren"
+        : "Statusaenderung dokumentieren";
+  const confirmTitle =
+    selectedStatus === "PROOF_READY"
+      ? "Formale Pruefung bestaetigen"
+      : readiness.phase === "proof_ready"
+        ? "Neubewertung bestaetigen"
+        : "Statusaenderung bestaetigen";
 
   const handleConfirm = async () => {
     if (!selectedStatus) return;
@@ -126,9 +181,13 @@ export function ReviewSection({
     <>
       <section className="border-t border-slate-200 pt-8">
         <div className="space-y-2">
-          <h2 className="text-[18px] font-semibold tracking-tight">Pruefstatus</h2>
+          <h2 className="text-[18px] font-semibold tracking-tight">
+            3. Formale Pruefung
+          </h2>
           <p className="text-sm text-muted-foreground">
-            Formale Statusdokumentation ist getrennt von der Bearbeitung der Stammdaten.
+            Letzter Baustein zur Nachweisfaehigkeit. Formale
+            Statusdokumentation bleibt getrennt von der Bearbeitung der
+            Stammdaten.
           </p>
         </div>
 
@@ -151,36 +210,59 @@ export function ReviewSection({
                 <p className="text-sm leading-6 text-slate-600">
                   {reviewContext.description}
                 </p>
+                <div className="pt-1">
+                  <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+                    Als Naechstes
+                  </p>
+                  <p className="text-sm leading-6 text-slate-600">
+                    {reviewNextHint}
+                  </p>
+                </div>
               </div>
               {readiness.phase === "proof_ready" ? (
-                <Button asChild size="sm" variant="outline" className="shrink-0">
-                  <Link
-                    href={buildScopedUseCasePassHref(useCaseId, workspaceScope)}
-                  >
-                    Use-Case-Pass oeffnen
-                  </Link>
-                </Button>
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                  <Button asChild size="sm" variant="outline">
+                    <Link
+                      href={buildScopedUseCasePassHref(useCaseId, workspaceScope)}
+                    >
+                      Use-Case-Pass oeffnen
+                    </Link>
+                  </Button>
+                  {availableStatuses.length > 0 ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setShowReassessmentForm((current) => !current)
+                      }
+                    >
+                      {showReassessmentForm
+                        ? "Neubewertung ausblenden"
+                        : "Status neu bewerten"}
+                    </Button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
 
             {!readiness.canMarkProofReady ? (
               <div className="mt-4 border-t border-slate-200 pt-4">
                 <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                  Fuer Nachweisfaehig fehlt noch
+                  Vor dem formalen Abschluss fehlt noch
                 </p>
                 <ul className="mt-3 space-y-2">
-                  {readiness.missingItems.map((item) => (
-                    <li key={item.key} className="flex items-start gap-2 text-sm">
+                  {blockingSteps.map((step) => (
+                    <li key={step.key} className="flex items-start gap-2 text-sm">
                       <span className="mt-[7px] inline-block h-2 w-2 rounded-full border border-slate-300 bg-white" />
                       <Link
-                        href={buildUseCaseFocusLink(useCaseId, item.target.focus, {
+                        href={buildUseCaseFocusLink(useCaseId, step.target.focus, {
                           workspaceScope,
-                          edit: item.target.edit,
-                          field: item.target.field,
+                          edit: step.target.edit,
+                          field: step.target.field,
                         })}
                         className="text-slate-700 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
                       >
-                        {item.label}
+                        {step.label}
                       </Link>
                     </li>
                   ))}
@@ -198,18 +280,18 @@ export function ReviewSection({
             <p className="text-sm text-muted-foreground">
               Der aktuelle Status ist formal abgeschlossen.
             </p>
-          ) : (
+          ) : shouldShowStatusForm ? (
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-xs text-muted-foreground">
-                  Status ändern
+                  {statusFieldLabel}
                 </label>
                 <Select
                   value={selectedStatus}
                   onValueChange={(v) => setSelectedStatus(v as RegisterUseCaseStatus)}
                 >
                   <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Neuen Status waehlen" />
+                    <SelectValue placeholder={statusTriggerPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
                     {availableStatuses.map((status) => (
@@ -222,7 +304,7 @@ export function ReviewSection({
                 {proofReadyBlocked ? (
                   <p className="mt-2 text-xs text-slate-500">
                     Der Status Nachweisfaehig wird erst verfuegbar, wenn die
-                    fehlenden Grundnachweise dokumentiert sind.
+                    fehlenden Nachweisbausteine dokumentiert sind.
                   </p>
                 ) : null}
               </div>
@@ -247,11 +329,16 @@ export function ReviewSection({
                   disabled={!selectedStatus || isUpdating}
                 >
                   {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                  Statusänderung dokumentieren
+                  {submitLabel}
                 </Button>
                 {error && <p className="text-xs text-destructive">{error}</p>}
               </div>
             </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Der Status ist formal abgeschlossen. Eine Neubewertung bleibt
+              optional verfuegbar.
+            </p>
           )}
 
           {card.reviewHints.length > 0 && (
@@ -270,7 +357,7 @@ export function ReviewSection({
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Statusaenderung bestaetigen</AlertDialogTitle>
+            <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>
               Status von{" "}
               <strong>{registerUseCaseStatusLabels[card.status]}</strong> zu{" "}

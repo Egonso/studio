@@ -3,6 +3,7 @@ import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
 export const CONTROL_FOCUS_TARGETS = [
   "metadata",
   "owner",
+  "systems",
   "review",
   "oversight",
   "policy",

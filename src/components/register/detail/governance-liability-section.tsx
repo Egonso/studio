@@ -405,6 +405,10 @@ export function GovernanceLiabilitySection({
 
   const showOversightDecision = !hasOversight || editingField === "oversight";
   const showReviewCycleDecision = !hasReviewCycle || editingField === "reviewCycle";
+  const groundProofsNextHint =
+    missingRequirements.length > 0
+      ? "Offene Grundnachweise dokumentieren."
+      : "Weiter zu 2. Systemnachweis.";
 
   const handleActivateReviewWorkflow = useCallback(() => {
     if (!reviewCap.allowed) {
@@ -596,11 +600,11 @@ export function GovernanceLiabilitySection({
         <div className="space-y-2">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
             <ShieldCheck className="h-4 w-4 text-slate-500" />
-            Prueffaehigkeit
+            1. Grundnachweise
           </CardTitle>
           <p className="text-sm leading-6 text-slate-600">
-            Dokumentiert Grundnachweise, Review-Bezug und formale Nachweiswege fuer
-            diesen Einsatzfall.
+            Erster Baustein des Nachweisstatus. Dokumentiert die formalen
+            Grundnachweise fuer diesen Einsatzfall.
           </p>
         </div>
       </CardHeader>
@@ -615,9 +619,12 @@ export function GovernanceLiabilitySection({
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">Grundnachweise</h3>
+              <h3 className="text-sm font-semibold text-slate-900">
+                Dokumentationsstand
+              </h3>
               <p className="text-sm leading-6 text-slate-600">
-                Vier formale Angaben bilden die Grundlage fuer einen nachweisfaehigen
+                Risikoklasse, verantwortliche Rolle, Aufsichtsmodell und
+                Review-Zyklus bilden die Grundlage fuer einen nachweisfaehigen
                 Einsatzfall.
               </p>
             </div>
@@ -638,6 +645,15 @@ export function GovernanceLiabilitySection({
               items={missingRequirements}
               tone="open"
             />
+          </div>
+
+          <div className="mt-4 space-y-1">
+            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+              Als Naechstes
+            </p>
+            <p className="text-sm leading-6 text-slate-600">
+              {groundProofsNextHint}
+            </p>
           </div>
 
           <div className="mt-5 space-y-4">

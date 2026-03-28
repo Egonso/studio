@@ -25,6 +25,8 @@ interface UseCaseSystemsComplianceSectionProps {
   onSave: (updates: Partial<UseCaseCard>) => Promise<void>;
   mode?: "single" | "multi";
   layout?: "standalone" | "embedded";
+  headingOverride?: string;
+  descriptionOverride?: string;
 }
 
 type ActiveCheckTarget = "all" | string | null;
@@ -246,6 +248,8 @@ export function UseCaseSystemsComplianceSection({
   onSave,
   mode = "multi",
   layout = "standalone",
+  headingOverride,
+  descriptionOverride,
 }: UseCaseSystemsComplianceSectionProps) {
   const { toast } = useToast();
   const [activeCheckTarget, setActiveCheckTarget] =
@@ -413,14 +417,14 @@ export function UseCaseSystemsComplianceSection({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-[18px] font-semibold tracking-tight">
-            {isSingleMode
-              ? "Systemnachweis"
-              : "Systemnachweise"}
+            {headingOverride ??
+              (isSingleMode ? "Systemnachweis" : "Systemnachweise")}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {isSingleMode
-              ? "Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
-              : "Ablauf dokumentiert die Reihenfolge. Hier erscheint der deduplizierte Nachweisstand pro beteiligten System."}
+            {descriptionOverride ??
+              (isSingleMode
+                ? "Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+                : "Ablauf dokumentiert die Reihenfolge. Hier erscheint der deduplizierte Nachweisstand pro beteiligten System.")}
           </p>
         </div>
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { buildUseCaseFocusLink } from "@/lib/control/deep-link";
 import { buildScopedUseCasePassHref } from "@/lib/navigation/workspace-scope";
 import type { UseCaseReadinessResult } from "@/lib/register-first";
+import { cn } from "@/lib/utils";
 
 interface ProofReadinessSummaryProps {
   readiness: UseCaseReadinessResult;
@@ -17,66 +18,70 @@ function getPrimaryHref({
   useCaseId,
   workspaceScope,
 }: ProofReadinessSummaryProps): string {
-  if (readiness.phase === "proof_ready") {
+  if (readiness.completedStepCount === readiness.steps.length) {
     return buildScopedUseCasePassHref(useCaseId, workspaceScope);
   }
 
-  if (readiness.phase === "review_pending") {
-    return buildUseCaseFocusLink(useCaseId, "review", { workspaceScope });
+  if (readiness.nextStep?.key === "groundProofs" && readiness.nextItem) {
+    return buildUseCaseFocusLink(
+      useCaseId,
+      readiness.nextItem.target.focus,
+      {
+        workspaceScope,
+        edit: readiness.nextItem.target.edit,
+        field: readiness.nextItem.target.field,
+      },
+    );
   }
 
-  if (!readiness.nextItem) {
+  if (!readiness.nextStep) {
     return buildUseCaseFocusLink(useCaseId, "governance", { workspaceScope });
   }
 
   return buildUseCaseFocusLink(
     useCaseId,
-    readiness.nextItem.target.focus,
+    readiness.nextStep.target.focus,
     {
       workspaceScope,
-      edit: readiness.nextItem.target.edit,
-      field: readiness.nextItem.target.field,
+      edit: readiness.nextStep.target.edit,
+      field: readiness.nextStep.target.field,
     },
   );
 }
 
 function getPrimaryLabel(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === "proof_ready") {
+  if (readiness.completedStepCount === readiness.steps.length) {
     return "Use-Case-Pass oeffnen";
   }
 
-  if (readiness.phase === "review_pending") {
-    return "Pruefstatus dokumentieren";
+  if (readiness.nextStep?.key === "formalReview") {
+    return "Pruefung dokumentieren";
   }
 
-  return "Naechsten Nachweis ergaenzen";
+  if (readiness.nextStep?.key === "systemEvidence") {
+    return "Systemnachweis oeffnen";
+  }
+
+  return "Naechsten Baustein ergaenzen";
 }
 
 function getTitle(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === "proof_ready") {
-    return "Nachweisfaehig dokumentiert";
+  if (readiness.completedStepCount === readiness.steps.length) {
+    return "Nachweisstatus: erreicht";
   }
 
-  if (readiness.phase === "review_pending") {
-    return "Grundnachweise vollstaendig";
-  }
-
-  return "Noch nicht nachweisfaehig";
+  return `Nachweisstatus: ${readiness.completedStepCount} von ${readiness.steps.length} Bausteinen dokumentiert`;
 }
 
 function getDescription(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === "proof_ready") {
-    return "Dieser Einsatzfall ist formal nachweisbar dokumentiert.";
+  if (readiness.completedStepCount === readiness.steps.length) {
+    return "Grundnachweise, Systemnachweis und formale Pruefung sind dokumentiert. Dieser Einsatzfall ist formal nachweisfaehig.";
   }
 
-  if (readiness.phase === "review_pending") {
-    return "Alle Grundnachweise sind dokumentiert. Als naechstes kann der Pruefstatus dokumentiert werden.";
-  }
-
-  const count = readiness.missingItems.length;
-  return count === 1
-    ? "Fuer die formale Nachweisfaehigkeit fehlt noch 1 Grundnachweis."
-    : `Fuer die formale Nachweisfaehigkeit fehlen noch ${count} Grundnachweise.`;
+  const missingSteps = readiness.steps.filter((step) => !step.complete);
+  const missingLabels = missingSteps.map((step) => step.label).join(", ");
+  const nextLabel = readiness.nextStep ? ` Als Naechstes: ${readiness.nextStep.label}.` : "";
+  return `Fehlt noch: ${missingLabels}.${nextLabel}`;
 }
 
 export function ProofReadinessSummary(
@@ -90,7 +95,7 @@ export function ProofReadinessSummary(
     <section className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
       <div className="space-y-2">
         <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
-          Prueffaehigkeit
+          Nachweisstatus
         </p>
         <h2 className="text-[20px] font-semibold tracking-tight text-slate-950">
           {getTitle(readiness)}
@@ -100,29 +105,37 @@ export function ProofReadinessSummary(
         </p>
       </div>
 
-      {readiness.phase === "incomplete" ? (
-        <ul className="mt-5 space-y-2 text-sm text-slate-700">
-          {readiness.missingItems.map((item) => {
-            const href = buildUseCaseFocusLink(useCaseId, item.target.focus, {
-              workspaceScope,
-              edit: item.target.edit,
-              field: item.target.field,
-            });
-
-            return (
-              <li key={item.key} className="flex items-start gap-2">
-                <span className="mt-[7px] inline-block h-2 w-2 rounded-full border border-slate-300 bg-white" />
-                <Link
-                  href={href}
-                  className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-950"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {readiness.steps.map((step, index) => {
+          const isNextStep = readiness.nextStep?.key === step.key;
+          return (
+            <div
+              key={step.key}
+              className={cn(
+                "rounded-lg border px-4 py-4",
+                step.complete
+                  ? "border-slate-200 bg-slate-50/60"
+                  : isNextStep
+                    ? "border-slate-300 bg-white"
+                    : "border-slate-200 bg-white",
+              )}
+            >
+              <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                {index + 1}. {step.label}
+              </p>
+              <p className="mt-2 text-sm font-medium text-slate-900">
+                {step.complete ? "Dokumentiert" : "Offen"}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                {step.detail}
+              </p>
+              {isNextStep ? (
+                <p className="mt-3 text-xs text-slate-500">Als Naechstes</p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button asChild size="sm">
