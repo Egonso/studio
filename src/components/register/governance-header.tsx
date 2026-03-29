@@ -87,7 +87,7 @@ export function GovernanceHeader({
         ? 'Prüfen Sie neue externe Einreichungen in der External Inbox.'
         : openReviews > 0
           ? 'Bearbeiten Sie offene Prüfungen und führen Sie Use Cases weiter.'
-          : 'Teilen Sie einen Erfassungs- oder Lieferantenlink, um weitere Angaben einzusammeln.';
+          : 'Teilen Sie einen Erfassungs- oder Einreichungslink, um weitere Angaben einzusammeln.';
 
   const handleSupplierRequest = async () => {
     if (!register?.registerId) return;
@@ -112,7 +112,7 @@ export function GovernanceHeader({
         throw new Error(
           typeof data?.error === 'string'
             ? data.error
-            : 'Lieferanten-Link konnte nicht erstellt werden.',
+            : 'Einreichungslink konnte nicht erstellt werden.',
         );
       }
 
@@ -122,9 +122,9 @@ export function GovernanceHeader({
         setSupplierLinkCopied(false);
       }, 2200);
       toast({
-        title: 'Lieferanten-Link kopiert',
+        title: 'Einreichungslink kopiert',
         description:
-          'Ein neuer sicherer Lieferanten-Link wurde erstellt und in die Zwischenablage kopiert.',
+          'Ein neuer Einreichungslink wurde erstellt und in die Zwischenablage kopiert. Senden Sie ihn nur an den vorgesehenen Kontakt.',
       });
     } catch (error) {
       setSupplierLinkCopied(false);
@@ -170,11 +170,11 @@ export function GovernanceHeader({
       }
 
       toast({
-        title: 'Lieferanten-Link widerrufen',
+        title: 'Einreichungslink widerrufen',
         description:
           typeof data?.revokedCount === 'number' && data.revokedCount > 0
             ? `${data.revokedCount} aktiver Link wurde widerrufen.`
-            : 'Es gab keinen aktiven Lieferanten-Link.',
+            : 'Es gab keinen aktiven Einreichungslink.',
       });
     } catch (error) {
       toast({
@@ -292,7 +292,7 @@ export function GovernanceHeader({
                     <ChevronDown className="h-3.5 w-3.5" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-64">
                   <DropdownMenuItem
                     onClick={() => void handleCopyCaptureLink()}
                     className="flex items-center gap-2"
@@ -304,6 +304,7 @@ export function GovernanceHeader({
                     )}
                     {captureLinkCopied ? 'Erfassungslink kopiert' : 'Erfassungslink kopieren'}
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => void handleSupplierRequest()}
                     disabled={isCreatingSupplierLink}
@@ -316,9 +317,11 @@ export function GovernanceHeader({
                     ) : (
                       <Link2 className="h-4 w-4" />
                     )}
-                    {supplierLinkCopied ? 'Lieferantenlink kopiert' : 'Lieferantenlink erstellen'}
+                    <div>
+                      <div>{supplierLinkCopied ? 'Einreichungslink kopiert' : 'Einfacher Einreichungslink'}</div>
+                      <div className="text-[11px] text-muted-foreground">Ohne Verifikation</div>
+                    </div>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => void handleRevokeSupplierLink()}
                     disabled={isRevokingSupplierLink}
@@ -329,7 +332,7 @@ export function GovernanceHeader({
                     ) : (
                       <ShieldX className="h-4 w-4" />
                     )}
-                    Lieferantenlink widerrufen
+                    Einreichungslink widerrufen
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

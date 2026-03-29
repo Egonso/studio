@@ -313,6 +313,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /registerSupplierInvites/{inviteId} {
+      allow read, write: if false;
+    }
+
+    match /supplierInviteChallenges/{challengeId} {
+      allow read, write: if false;
+    }
+
     match /pendingWorkspaceInvites/{inviteId} {
       allow read, write: if false;
     }

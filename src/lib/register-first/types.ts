@@ -231,6 +231,10 @@ export interface SupplierRequestTokenRecord {
   revokedByEmail?: string | null;
   revocationReason?: 'manual' | 'replaced' | 'register_deleted' | null;
   lastUsedAt?: string | null;
+  firstUsedAt?: string | null;
+  lastUsedIpHash?: string | null;
+  submissionCount?: number;
+  maxSubmissions?: number | null;
 }
 
 export interface ExternalSubmission {

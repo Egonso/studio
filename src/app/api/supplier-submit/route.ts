@@ -11,12 +11,18 @@ import {
 } from '@/lib/register-first/external-submissions';
 import { sanitizeFirestorePayload } from '@/lib/register-first/firestore-sanitize';
 import {
+  hashIpForAudit,
   markSupplierRequestTokenUsed,
   resolveSupplierRequestTokenAccess,
 } from '@/lib/register-first/request-token-admin';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { parseSupplierRequestSubmission } from '@/lib/register-first/supplier-requests';
+import { parseSupplierInviteToken, updateSupplierInviteStatus } from '@/lib/register-first/supplier-invites';
+import { parseSupplierInviteRecord } from '@/lib/register-first/supplier-invite-schema';
+import { validateSupplierSession } from '@/lib/register-first/supplier-invite-session';
+import type { SupplierInviteRecord } from '@/lib/register-first/supplier-invite-types';
 import type { Register } from '@/lib/register-first/types';
+import type { SubmissionRiskFlag } from '@/lib/register-first/submission-trust-tier';
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
 
@@ -48,10 +54,232 @@ function mapTokenFailure(reason: string): { status: number; error: string } {
   }
 }
 
-function resolveSupplierRateLimitKey(request: Request, requestToken: string): string {
+function resolveClientIp(request: Request): string {
   const forwardedFor = request.headers.get('x-forwarded-for') ?? 'unknown';
-  const firstIp = forwardedFor.split(',')[0]?.trim() || 'unknown';
-  return `${firstIp}:${requestToken}`;
+  return forwardedFor.split(',')[0]?.trim() || 'unknown';
+}
+
+function resolveSupplierRateLimitKey(request: Request, requestToken: string): string {
+  return `${resolveClientIp(request)}:${requestToken}`;
+}
+
+function isV2InviteToken(token: string): boolean {
+  return token.startsWith('sinv1.');
+}
+
+const INVITE_COLLECTION = 'registerSupplierInvites';
+const RAPID_SUBMISSION_THRESHOLD_MS = 30_000; // 30 seconds
+
+function computeRiskFlags(
+  invite: SupplierInviteRecord,
+  submitIpHash: string,
+  verifiedAt: string | undefined,
+): SubmissionRiskFlag[] {
+  const flags: SubmissionRiskFlag[] = [];
+
+  // ipMismatch: OTP verification and submit from different IP hashes
+  if (invite.lastUsedIpHash && invite.lastUsedIpHash !== submitIpHash) {
+    flags.push('ipMismatch');
+  }
+
+  // rapidSubmission: < 30s between verification and submit
+  if (verifiedAt) {
+    const timeDiff = Date.now() - new Date(verifiedAt).getTime();
+    if (timeDiff < RAPID_SUBMISSION_THRESHOLD_MS) {
+      flags.push('rapidSubmission');
+    }
+  }
+
+  // deliveryBounced
+  if (invite.deliveryFailed) {
+    flags.push('deliveryBounced');
+  }
+
+  return flags;
+}
+
+async function handleV2Submit(
+  req: Request,
+  body: Record<string, unknown>,
+  requestToken: string,
+  ipHash: string,
+): Promise<NextResponse> {
+  const parsed = parseSupplierInviteToken(requestToken);
+  if (!parsed) {
+    return NextResponse.json(
+      { error: 'Ungueltiger Anfrage-Link.' },
+      { status: 400 },
+    );
+  }
+
+  // Validate session cookie
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const sessionMatch = cookieHeader.match(/__supplier_session=([^;]+)/);
+  const sessionCookieValue = sessionMatch?.[1];
+
+  const sessionResult = validateSupplierSession(sessionCookieValue, parsed.inviteId);
+  if (!sessionResult.valid) {
+    logWarn('supplier_invite_v2_submit_session_invalid', {
+      inviteId: parsed.inviteId,
+      reason: sessionResult.reason,
+      ipHash,
+    });
+    const messageMap: Record<string, string> = {
+      missing: 'Bitte verifizieren Sie sich zuerst.',
+      expired: 'Ihre Sitzung ist abgelaufen. Bitte verifizieren Sie sich erneut.',
+      invalid_signature: 'Ungueltige Sitzung. Bitte verifizieren Sie sich erneut.',
+      invite_mismatch: 'Sitzung passt nicht zur Anfrage.',
+      malformed: 'Ungueltige Sitzung.',
+    };
+    return NextResponse.json(
+      { error: messageMap[sessionResult.reason] ?? 'Sitzung ungueltig.' },
+      { status: 403 },
+    );
+  }
+
+  // Load invite
+  const inviteDoc = await db.collection(INVITE_COLLECTION).doc(parsed.inviteId).get();
+  if (!inviteDoc.exists) {
+    return NextResponse.json({ error: 'Anfrage nicht gefunden.' }, { status: 404 });
+  }
+
+  const invite = parseSupplierInviteRecord(inviteDoc.data());
+
+  // Check invite status
+  if (invite.revokedAt || invite.status === 'revoked') {
+    return NextResponse.json(
+      { error: 'Diese Anfrage wurde zurueckgezogen.' },
+      { status: 410 },
+    );
+  }
+
+  if (new Date(invite.expiresAt) <= new Date()) {
+    return NextResponse.json(
+      { error: 'Diese Anfrage ist abgelaufen.' },
+      { status: 410 },
+    );
+  }
+
+  if (invite.status === 'submitted' && invite.submissionCount >= invite.maxSubmissions) {
+    return NextResponse.json(
+      { error: 'Diese Anfrage wurde bereits beantwortet.' },
+      { status: 410 },
+    );
+  }
+
+  // Parse submission data
+  const parsedSubmission = parseSupplierRequestSubmission({
+    supplierEmail: body.supplierEmail,
+    supplierOrganisation: body.supplierOrganisation,
+    toolName: body.toolName,
+    systems: registerFirstFlags.supplierMultisystemCapture ? body.systems : undefined,
+    purpose: body.purpose,
+    dataCategory: body.dataCategory,
+    dataCategories: body.dataCategories,
+    aiActCategory: body.aiActCategory,
+    workflowConnectionMode: registerFirstFlags.supplierMultisystemCapture
+      ? body.workflowConnectionMode
+      : undefined,
+    workflowSummary: registerFirstFlags.supplierMultisystemCapture
+      ? body.workflowSummary
+      : undefined,
+  });
+
+  // Load register
+  const registerRef = db.doc(`users/${invite.ownerId}/registers/${invite.registerId}`);
+  const registerSnapshot = await registerRef.get();
+  const register = registerSnapshot.exists ? (registerSnapshot.data() as Register) : null;
+
+  // Workspace settings + approval workflow
+  const workspaceSettings = await getWorkspaceSettingsForRegister({
+    registerWorkspaceId: register?.workspaceId,
+    registerOwnerId: invite.ownerId,
+  });
+
+  const approvalWorkflow = createSubmissionApprovalWorkflow({
+    settings: workspaceSettings,
+    requestedAt: new Date().toISOString(),
+    requestedBy: sessionResult.payload.verifiedEmail,
+  });
+
+  // Compute risk flags
+  const riskFlags = computeRiskFlags(invite, ipHash, sessionResult.payload.verifiedAt);
+
+  // Build submission record with V2 verification metadata
+  const submission = buildExternalSubmissionRecord({
+    registerId: invite.registerId,
+    ownerId: invite.ownerId,
+    sourceType: 'supplier_request',
+    submittedByName: parsedSubmission.supplierOrganisation ?? parsedSubmission.supplierEmail,
+    submittedByEmail: sessionResult.payload.verifiedEmail,
+    submittedAt: new Date(),
+    rawPayloadSnapshot: {
+      ...parsedSubmission,
+      inviteId: invite.inviteId,
+      verifiedEmail: sessionResult.payload.verifiedEmail,
+      verificationMethod: 'email_otp',
+      verifiedAt: sessionResult.payload.verifiedAt,
+      senderPolicyResult: 'exact_match',
+      riskFlags,
+    },
+    status: 'submitted',
+    approvalWorkflow,
+  });
+
+  // Persist
+  await db
+    .doc(
+      `users/${submission.ownerId}/registers/${submission.registerId}/externalSubmissions/${submission.submissionId}`,
+    )
+    .set(sanitizeFirestorePayload(submission));
+
+  // Update invite status
+  const now = new Date().toISOString();
+  await updateSupplierInviteStatus(invite.inviteId, 'submitted', {
+    submissionCount: invite.submissionCount + 1,
+    lastUsedAt: now,
+    lastUsedIpHash: ipHash,
+    firstUsedAt: invite.firstUsedAt ?? now,
+  });
+
+  // KPI: time from verification to submission
+  const verifiedAtMs = new Date(sessionResult.payload.verifiedAt).getTime();
+  const timeToSubmitMs = Date.now() - verifiedAtMs;
+
+  // Notifications
+  const workspaceId = register?.workspaceId ?? invite.ownerId;
+  await deliverWorkspaceNotificationHooks({
+    workspaceId,
+    eventType: 'submission_received',
+    eventId: submission.submissionId,
+    data: {
+      kind: 'supplier_request',
+      submissionId: submission.submissionId,
+      registerId: submission.registerId,
+      submittedByEmail: submission.submittedByEmail,
+    },
+  }).catch((hookError) => {
+    logWarn('supplier_submission_hook_failed', {
+      submissionId: submission.submissionId,
+      workspaceId,
+      error: hookError instanceof Error ? hookError.message : 'unknown_hook_error',
+    });
+  });
+
+  logInfo('supplier_invite_v2_submitted', {
+    inviteId: invite.inviteId,
+    registerId: invite.registerId,
+    submissionId: submission.submissionId,
+    submissionCount: invite.submissionCount + 1,
+    timeToSubmitMs,
+    riskFlags,
+    ipHash,
+  });
+
+  return NextResponse.json({
+    success: true,
+    submissionId: submission.submissionId,
+  });
 }
 
 export async function POST(req: Request) {
@@ -90,15 +318,58 @@ export async function POST(req: Request) {
       );
     }
 
+    const clientIp = resolveClientIp(req);
+    const ipHash = hashIpForAudit(clientIp);
+
+    // Honeypot: invisible field — if filled, silently reject
+    if (typeof body?.companyWebsiteUrl === 'string' && body.companyWebsiteUrl.trim() !== '') {
+      logInfo('supplier_submission', {
+        tokenIdPreview: requestToken.slice(0, 12),
+        ipHash,
+        honeypotTriggered: true,
+        outcome: 'rejected_honeypot',
+      });
+      return NextResponse.json({ success: true, submissionId: 'accepted' });
+    }
+
+    // ── V2 Invite Flow ────────────────────────────────────────────────────
+    if (isV2InviteToken(requestToken)) {
+      return handleV2Submit(req, body, requestToken, ipHash);
+    }
+
+    // ── V1 Legacy Flow ────────────────────────────────────────────────────
     const tokenAccess = await resolveSupplierRequestTokenAccess(requestToken);
     if (!tokenAccess.ok) {
       const mapped = mapTokenFailure(tokenAccess.reason);
-      logWarn('supplier_submit_token_rejected', {
-        reason: tokenAccess.reason,
+      logInfo('supplier_submission', {
+        tokenIdPreview: requestToken.slice(0, 12),
+        ipHash,
+        honeypotTriggered: false,
+        outcome: `rejected_${tokenAccess.reason}`,
       });
       return NextResponse.json(
         { error: mapped.error },
         { status: mapped.status },
+      );
+    }
+
+    // Check maxSubmissions if explicitly set
+    const tokenRecord = tokenAccess.value.token;
+    if (
+      tokenRecord.maxSubmissions != null &&
+      (tokenRecord.submissionCount ?? 0) >= tokenRecord.maxSubmissions
+    ) {
+      logInfo('supplier_submission', {
+        tokenId: tokenRecord.tokenId,
+        ipHash,
+        submissionCount: tokenRecord.submissionCount ?? 0,
+        maxSubmissions: tokenRecord.maxSubmissions,
+        honeypotTriggered: false,
+        outcome: 'rejected_consumed',
+      });
+      return NextResponse.json(
+        { error: 'Dieser Einreichungslink wurde bereits verwendet.' },
+        { status: 410 },
       );
     }
 
@@ -164,7 +435,10 @@ export async function POST(req: Request) {
       .set(sanitizeFirestorePayload(submission));
 
     phase = 'mark_token_used';
-    await markSupplierRequestTokenUsed(tokenAccess.value.token.tokenId);
+    await markSupplierRequestTokenUsed(tokenAccess.value.token.tokenId, {
+      ipHash,
+      token: tokenAccess.value.token,
+    });
 
     const workspaceId = register?.workspaceId ?? tokenAccess.value.token.ownerId;
     phase = 'notify_submission_received';
@@ -209,11 +483,14 @@ export async function POST(req: Request) {
       });
     }
 
-    logInfo('supplier_submission_created', {
-      ownerId: submission.ownerId,
-      registerId: submission.registerId,
-      requestTokenId: submission.requestTokenId,
+    logInfo('supplier_submission', {
+      tokenId: tokenAccess.value.token.tokenId,
+      ipHash,
+      submissionCount: (tokenAccess.value.token.submissionCount ?? 0) + 1,
+      honeypotTriggered: false,
+      outcome: 'accepted',
       submissionId: submission.submissionId,
+      registerId: submission.registerId,
     });
 
     return NextResponse.json({

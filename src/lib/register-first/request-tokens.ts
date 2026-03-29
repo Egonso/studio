@@ -10,7 +10,7 @@ import { parseSupplierRequestTokenRecord } from "./schema";
 import type { SupplierRequestTokenRecord } from "./types";
 
 const TOKEN_PREFIX = "reqv1";
-const DEFAULT_EXPIRY_DAYS = 30;
+const DEFAULT_EXPIRY_DAYS = 7;
 
 export interface IssueSupplierRequestTokenInput {
   registerId: string;
@@ -100,6 +100,10 @@ export function issueSupplierRequestToken(
     revokedByEmail: null,
     revocationReason: null,
     lastUsedAt: null,
+    firstUsedAt: null,
+    lastUsedIpHash: null,
+    submissionCount: 0,
+    maxSubmissions: null,
   });
 
   return {

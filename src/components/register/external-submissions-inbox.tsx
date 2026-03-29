@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, ExternalLink, Loader2, Search, ShieldAlert, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, Loader2, Search, ShieldAlert, XCircle, AlertTriangle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,14 @@ import type {
   ExternalSubmissionStatus,
   Register,
 } from "@/lib/register-first/types";
+import {
+  compareSubmissionsByTrust,
+  getSubmissionRiskFlags,
+  getRiskFlagLabel,
+  getTrustTierLabel,
+  resolveSubmissionTrustTier,
+  type SubmissionTrustTier,
+} from "@/lib/register-first/submission-trust-tier";
 
 const STATUS_LABELS: Record<ExternalSubmissionStatus, string> = {
   submitted: "Eingegangen",
@@ -81,6 +89,41 @@ function statusVariant(status: ExternalSubmissionStatus) {
     default:
       return "outline";
   }
+}
+
+function trustTierVariant(tier: SubmissionTrustTier): "default" | "secondary" | "outline" | "destructive" {
+  switch (tier) {
+    case "verified":
+      return "secondary";
+    case "flagged":
+      return "destructive";
+    default:
+      return "outline";
+  }
+}
+
+function TrustTierBadge({ submission }: { submission: ExternalSubmission }) {
+  const tier = resolveSubmissionTrustTier(submission);
+  const riskFlags = getSubmissionRiskFlags(submission);
+  const label = getTrustTierLabel(tier);
+
+  return (
+    <div className="space-y-1">
+      <Badge variant={trustTierVariant(tier)} className="text-xs">
+        {tier === "flagged" ? (
+          <AlertTriangle className="mr-1 h-3 w-3" />
+        ) : tier === "verified" ? (
+          <CheckCircle2 className="mr-1 h-3 w-3" />
+        ) : null}
+        {label}
+      </Badge>
+      {riskFlags.length > 0 ? (
+        <div className="text-[11px] leading-tight text-muted-foreground">
+          {riskFlags.map((flag) => getRiskFlagLabel(flag)).join(", ")}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 interface ExternalSubmissionsInboxProps {
@@ -200,7 +243,10 @@ export function ExternalSubmissionsInbox({
     }
   };
 
-  const rows = useMemo(() => submissions, [submissions]);
+  const rows = useMemo(
+    () => [...submissions].sort(compareSubmissionsByTrust),
+    [submissions],
+  );
 
   return (
     <Card className="border-slate-200 shadow-sm">
@@ -308,6 +354,7 @@ export function ExternalSubmissionsInbox({
             <TableHeader>
               <TableRow>
                 <TableHead>Quelle</TableHead>
+                <TableHead>Vertrauen</TableHead>
                 <TableHead>Einreichung</TableHead>
                 <TableHead>Eingereicht von</TableHead>
                 <TableHead>Zeitpunkt</TableHead>
@@ -327,16 +374,24 @@ export function ExternalSubmissionsInbox({
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">
-                          {SOURCE_LABELS[submission.sourceType]}
+                          {submission.sourceType === "supplier_request" &&
+                           typeof submission.rawPayloadSnapshot.inviteId === "string"
+                            ? "Lieferantenanfrage"
+                            : SOURCE_LABELS[submission.sourceType]}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {submission.requestTokenId
-                            ? `Token ${submission.requestTokenId}`
-                            : submission.accessCodeId
-                              ? `Code ${submission.accessCodeId}`
-                              : submission.submissionId}
+                          {typeof submission.rawPayloadSnapshot.inviteId === "string"
+                            ? `Invite ${submission.rawPayloadSnapshot.inviteId}`
+                            : submission.requestTokenId
+                              ? `Token ${submission.requestTokenId}`
+                              : submission.accessCodeId
+                                ? `Code ${submission.accessCodeId}`
+                                : submission.submissionId}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <TrustTierBadge submission={submission} />
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">

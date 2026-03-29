@@ -332,6 +332,10 @@ export const supplierRequestTokenRecordSchema = z.object({
     .optional()
     .nullable(),
   lastUsedAt: z.string().datetime().optional().nullable(),
+  firstUsedAt: z.string().datetime().optional().nullable(),
+  lastUsedIpHash: z.string().trim().max(128).optional().nullable(),
+  submissionCount: z.number().int().min(0).optional(),
+  maxSubmissions: z.number().int().min(1).optional().nullable(),
 });
 
 export const externalSubmissionSchema = z.object({

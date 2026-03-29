@@ -6,6 +6,7 @@ export interface RegisterFirstFeatureFlags {
   standaloneMode: boolean;
   multisystemCapture: boolean;
   supplierMultisystemCapture: boolean;
+  supplierInviteV2: boolean;
   registerDeletion: boolean;
   riskAssistDetail: boolean;
   controlShell: boolean;
@@ -32,6 +33,7 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     standaloneMode: false,
     multisystemCapture: true,
     supplierMultisystemCapture: true,
+    supplierInviteV2: false,
     registerDeletion: false,
     riskAssistDetail: false,
     controlShell: true,
@@ -71,6 +73,10 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
   supplierMultisystemCapture: [
     "NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE",
     "REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE",
+  ],
+  supplierInviteV2: [
+    "NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED",
+    "SUPPLIER_INVITE_V2_ENABLED",
   ],
   registerDeletion: [
     "NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION",
@@ -166,6 +172,7 @@ export function getRegisterFirstFeatureFlags(
       standaloneMode: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_STANDALONE"] ?? env["REGISTER_FIRST_STANDALONE"]) || registerFirstDefaultFlags.standaloneMode,
       multisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.multisystemCapture,
       supplierMultisystemCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"] ?? env["REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE"]) || registerFirstDefaultFlags.supplierMultisystemCapture,
+      supplierInviteV2: parseBooleanFlag(env["NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED"] ?? env["SUPPLIER_INVITE_V2_ENABLED"]) || registerFirstDefaultFlags.supplierInviteV2,
       registerDeletion: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION"] ?? env["REGISTER_FIRST_REGISTER_DELETION"]) || registerFirstDefaultFlags.registerDeletion,
       riskAssistDetail: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL"] ?? env["REGISTER_FIRST_RISK_ASSIST_DETAIL"]) || registerFirstDefaultFlags.riskAssistDetail,
       controlShell: parseBooleanFlag(env["NEXT_PUBLIC_CONTROL_SHELL_ENABLED"] ?? env["CONTROL_SHELL_ENABLED"]) || registerFirstDefaultFlags.controlShell,
@@ -207,6 +214,9 @@ export function getRegisterFirstFeatureFlags(
     supplierMultisystemCapture:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_SUPPLIER_MULTISYSTEM_CAPTURE) ||
       registerFirstDefaultFlags.supplierMultisystemCapture,
+    supplierInviteV2:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED) ||
+      registerFirstDefaultFlags.supplierInviteV2,
     registerDeletion:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_REGISTER_DELETION) ||
       registerFirstDefaultFlags.registerDeletion,

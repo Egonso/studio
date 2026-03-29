@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { db } from "@/lib/firebase-admin";
 
 import { parseSupplierRequestTokenRecord } from "./schema";
@@ -6,6 +8,15 @@ import {
   verifySupplierRequestToken,
 } from "./request-tokens";
 import type { Register, SupplierRequestTokenRecord } from "./types";
+
+const IP_HASH_DAILY_SALT = new Date().toISOString().slice(0, 10);
+
+export function hashIpForAudit(ip: string): string {
+  return createHash("sha256")
+    .update(`${ip}:${IP_HASH_DAILY_SALT}`)
+    .digest("hex")
+    .slice(0, 32);
+}
 
 export type SupplierRequestTokenAccessFailureReason =
   | "invalid"
@@ -67,8 +78,26 @@ export async function resolveSupplierRequestTokenAccess(
   };
 }
 
-export async function markSupplierRequestTokenUsed(tokenId: string): Promise<void> {
-  await db.collection("registerRequestTokens").doc(tokenId).update({
-    lastUsedAt: new Date().toISOString(),
-  });
+export async function markSupplierRequestTokenUsed(
+  tokenId: string,
+  options?: { ipHash?: string; token?: SupplierRequestTokenRecord }
+): Promise<void> {
+  const now = new Date().toISOString();
+  const updates: Record<string, unknown> = {
+    lastUsedAt: now,
+  };
+
+  if (options?.ipHash) {
+    updates.lastUsedIpHash = options.ipHash;
+  }
+
+  const isFirstUse = options?.token && !options.token.firstUsedAt;
+  if (isFirstUse) {
+    updates.firstUsedAt = now;
+  }
+
+  const currentCount = options?.token?.submissionCount ?? 0;
+  updates.submissionCount = currentCount + 1;
+
+  await db.collection("registerRequestTokens").doc(tokenId).update(updates);
 }
