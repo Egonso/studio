@@ -522,6 +522,10 @@ export async function resolveAuthenticatedDestination(input: {
     return '/my-register';
   }
 
+  if (input.context.returnTo) {
+    return input.context.returnTo;
+  }
+
   if (input.syncNeedsRegister) {
     return buildAuthPath({
       mode: 'signup',

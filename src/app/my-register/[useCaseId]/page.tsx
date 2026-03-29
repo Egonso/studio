@@ -119,7 +119,6 @@ export default function UseCaseDetailPage() {
     () => (card ? computeUseCaseReadiness(card, orgSettings) : null),
     [card, orgSettings],
   );
-  const systemsStageHint = readiness ? getSystemsStageHint(readiness) : null;
   const [showGovernanceSection, setShowGovernanceSection] = useState(false);
   const [showSystemsSection, setShowSystemsSection] = useState(false);
   const [showReviewSection, setShowReviewSection] = useState(false);
@@ -426,6 +425,11 @@ export default function UseCaseDetailPage() {
                 description="Erster Baustein des Nachweisstatus."
                 statusLabel={getStepPresentationLabel(governancePresentation)}
                 hint={getGovernanceCompactHint(readiness)}
+                actionLabel={
+                  governancePresentation === 'completed'
+                    ? 'Details ansehen'
+                    : 'Schritt oeffnen'
+                }
                 onOpen={() => setShowGovernanceSection(true)}
               />
             ) : (
@@ -452,16 +456,21 @@ export default function UseCaseDetailPage() {
           }
         >
           {readiness && !isSystemsExpanded ? (
-            <CompactStepShell
-              title="2. Systemnachweis"
-              description="Zweiter Baustein des Nachweisstatus."
-              statusLabel={getStepPresentationLabel(systemsPresentation)}
-              hint={getSystemsCompactHint(readiness)}
-              onOpen={() => setShowSystemsSection(true)}
-            />
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
+              <CompactStepShell
+                title="2. Systemnachweis"
+                description="Zweiter Baustein des Nachweisstatus."
+                statusLabel={getStepPresentationLabel(systemsPresentation)}
+                hint={getSystemsCompactHint(readiness)}
+                actionLabel={
+                  systemsPresentation === 'completed'
+                    ? 'Details ansehen'
+                    : 'Schritt oeffnen'
+                }
+                onOpen={() => setShowSystemsSection(true)}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
                 <h2 className="text-[18px] font-semibold tracking-tight">
                   2. Systemnachweis
                 </h2>
@@ -469,16 +478,6 @@ export default function UseCaseDetailPage() {
                   Zweiter Baustein des Nachweisstatus. Dokumentiert beteiligte
                   Systeme und ihren Nachweisstand.
                 </p>
-                {systemsStageHint ? (
-                  <div className="space-y-1">
-                    <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                      Als Naechstes
-                    </p>
-                    <p className="text-sm leading-6 text-slate-600">
-                      {systemsStageHint}
-                    </p>
-                  </div>
-                ) : null}
               </div>
 
               {systemSectionMode === 'multi' ? (
@@ -527,6 +526,7 @@ export default function UseCaseDetailPage() {
                     mode="single"
                     headingOverride="Nachweisstand je System"
                     descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+                    showSectionAction={false}
                   />
                 </div>
               )}
@@ -541,12 +541,24 @@ export default function UseCaseDetailPage() {
           }
         >
           {readiness ? (
-            !isReviewExpanded ? (
+            reviewPresentation === 'upcoming' ? (
+              <BlockedStepShell
+                title="3. Formale Pruefung"
+                description="Letzter Baustein zur Nachweisfaehigkeit."
+                statusLabel="noch nicht verfuegbar"
+                hint={getReviewBlockedHint(readiness)}
+              />
+            ) : !isReviewExpanded ? (
               <CompactStepShell
                 title="3. Formale Pruefung"
                 description="Letzter Baustein zur Nachweisfaehigkeit."
                 statusLabel={getStepPresentationLabel(reviewPresentation)}
                 hint={getReviewCompactHint(readiness)}
+                actionLabel={
+                  reviewPresentation === 'completed'
+                    ? 'Details ansehen'
+                    : 'Schritt oeffnen'
+                }
                 onOpen={() => setShowReviewSection(true)}
               />
             ) : (
@@ -714,22 +726,6 @@ function isServiceError(err: unknown, code: string): boolean {
   );
 }
 
-function getSystemsStageHint(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === 'proof_ready') {
-    return 'Weiter zu 3. Formale Pruefung ist nicht mehr noetig; der Use-Case-Pass kann geoeffnet werden.';
-  }
-
-  if (readiness.nextStep?.key === 'groundProofs') {
-    return 'Erst 1. Grundnachweise abschliessen.';
-  }
-
-  if (readiness.nextStep?.key === 'systemEvidence') {
-    return 'Diesen Baustein vervollstaendigen.';
-  }
-
-  return 'Weiter zu 3. Formale Pruefung.';
-}
-
 type StepPresentation = 'active' | 'completed' | 'upcoming';
 
 function resolveStepPresentation(
@@ -753,49 +749,46 @@ function resolveStepPresentation(
 }
 
 function getStepPresentationLabel(presentation: StepPresentation): string {
-  if (presentation === 'completed') return 'dokumentiert';
+  if (presentation === 'completed') return 'abgeschlossen';
   if (presentation === 'active') return 'aktiv';
-  return 'spaeter';
+  return 'noch nicht verfuegbar';
 }
 
 function getGovernanceCompactHint(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === 'proof_ready') {
-    return 'Grundnachweise sind dokumentiert. Dieser Baustein bleibt bei Bedarf einsehbar.';
-  }
-
-  if (readiness.nextStep?.key === 'systemEvidence') {
-    return 'Grundnachweise sind dokumentiert. Weiter zu 2. Systemnachweis.';
-  }
-
-  return 'Grundnachweise sind dokumentiert. Der Abschnitt bleibt bei Bedarf einsehbar.';
+  void readiness;
+  return 'Bei Bedarf einsehbar.';
 }
 
 function getSystemsCompactHint(readiness: UseCaseReadinessResult): string {
   if (readiness.nextStep?.key === 'groundProofs') {
-    return 'Wird aktiv, sobald 1. Grundnachweise dokumentiert sind.';
+    return 'Wird aktiv, sobald Schritt 1 abgeschlossen ist.';
   }
 
   if (readiness.phase === 'proof_ready') {
-    return 'Systemnachweis ist dokumentiert. Die formale Pruefung ist bereits abgeschlossen.';
+    return 'Bei Bedarf einsehbar.';
   }
 
-  return 'Systemnachweis ist dokumentiert. Weiter zu 3. Formale Pruefung.';
+  return 'Schritt 3 ist jetzt verfuegbar.';
 }
 
 function getReviewCompactHint(readiness: UseCaseReadinessResult): string {
   if (readiness.phase === 'proof_ready') {
-    return 'Formale Pruefung ist dokumentiert. Der Status kann bei Bedarf neu bewertet werden.';
+    return 'Bei Bedarf neu bewertbar.';
   }
 
+  return 'Jetzt verfuegbar.';
+}
+
+function getReviewBlockedHint(readiness: UseCaseReadinessResult): string {
   if (readiness.nextStep?.key === 'groundProofs') {
-    return 'Wird aktiv, sobald 1. Grundnachweise und 2. Systemnachweis dokumentiert sind.';
+    return 'Voraussetzung: zuerst Grundnachweise und danach Systemnachweis abschliessen.';
   }
 
   if (readiness.nextStep?.key === 'systemEvidence') {
-    return 'Wird aktiv, sobald 2. Systemnachweis dokumentiert ist.';
+    return 'Voraussetzung: Systemnachweis abschliessen.';
   }
 
-  return 'Dieser Schritt ist jetzt aktiv und kann formal dokumentiert werden.';
+  return 'Dieser Schritt wird verfuegbar, sobald die fehlenden Nachweise abgeschlossen sind.';
 }
 
 function CompactStepShell({
@@ -803,12 +796,14 @@ function CompactStepShell({
   description,
   statusLabel,
   hint,
+  actionLabel,
   onOpen,
 }: {
   title: string;
   description: string;
   statusLabel: string;
   hint: string;
+  actionLabel: string;
   onOpen: () => void;
 }) {
   return (
@@ -828,8 +823,41 @@ function CompactStepShell({
             {statusLabel}
           </p>
           <Button size="sm" variant="outline" onClick={onOpen}>
-            Abschnitt anzeigen
+            {actionLabel}
           </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlockedStepShell({
+  title,
+  description,
+  statusLabel,
+  hint,
+}: {
+  title: string;
+  description: string;
+  statusLabel: string;
+  hint: string;
+}) {
+  return (
+    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-2.5 w-2.5 rounded-full border border-slate-300 bg-white" />
+            <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-sm leading-6 text-slate-600">{hint}</p>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
+          <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+            {statusLabel}
+          </p>
         </div>
       </div>
     </section>

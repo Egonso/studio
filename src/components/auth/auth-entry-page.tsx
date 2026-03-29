@@ -190,6 +190,7 @@ export default function AuthEntryPage() {
     routeContext.mode ||
       routeContext.intent ||
       routeContext.code ||
+      routeContext.returnTo ||
       routeContext.workspaceInvite ||
       routeContext.importUseCase ||
       routeContext.sessionId,
@@ -387,6 +388,7 @@ export default function AuthEntryPage() {
       routeContext.mode === 'login' &&
       !routeContext.code &&
       !routeContext.importUseCase &&
+      !routeContext.returnTo &&
       !routeContext.sessionId &&
       !routeContext.workspaceInvite
     ) {

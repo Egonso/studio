@@ -153,10 +153,35 @@ export async function runFoundationSmoke() {
   assert.equal(incompleteReadiness.phase, "incomplete");
   assert.deepEqual(
     incompleteReadiness.missingItems.map((item) => item.key),
-    ["oversight", "reviewCycle"],
+    ["risk", "oversight", "reviewCycle"],
   );
   assert.equal(incompleteReadiness.completedStepCount, 0);
   assert.equal(incompleteReadiness.nextStep?.key, "groundProofs");
+
+  const unassessedRiskReadiness = computeUseCaseReadiness(
+    {
+      ...card,
+      dataCategories: ["SPECIAL_PERSONAL"],
+      governanceAssessment: {
+        core: {
+          aiActCategory: "UNASSESSED",
+        },
+        flex: {
+          iso: {
+            oversightModel: "HITL",
+            reviewCycle: "quarterly",
+          },
+        },
+      },
+    },
+    null,
+  );
+  assert.equal(unassessedRiskReadiness.phase, "incomplete");
+  assert.deepEqual(
+    unassessedRiskReadiness.missingItems.map((item) => item.key),
+    ["risk"],
+  );
+  assert.equal(unassessedRiskReadiness.nextStep?.key, "groundProofs");
 
   const readyForReviewCard = {
     ...card,

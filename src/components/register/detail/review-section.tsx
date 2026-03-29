@@ -64,13 +64,13 @@ function getReviewContext(
 
   if (readiness.nextStep?.key === "systemEvidence") {
     return {
-      title: "Formale Pruefung noch nicht abschliessbar",
+      title: "Formale Pruefung noch nicht verfuegbar",
       description: "Der Systemnachweis ist noch nicht vollstaendig dokumentiert.",
     };
   }
 
   return {
-    title: "Formale Pruefung noch nicht abschliessbar",
+    title: "Formale Pruefung noch nicht verfuegbar",
     description: "Es fehlen noch Grundnachweise.",
   };
 }
@@ -88,7 +88,7 @@ function getReviewNextHint(readiness: UseCaseReadinessResult): string {
     return "Erst 2. Systemnachweis abschliessen.";
   }
 
-  return "Formale Pruefung jetzt dokumentieren.";
+  return "Status jetzt dokumentieren.";
 }
 
 export function ReviewSection({
@@ -98,6 +98,38 @@ export function ReviewSection({
   workspaceScope = null,
   onStatusChange,
 }: ReviewSectionProps) {
+  if (readiness.phase === "incomplete") {
+    return (
+      <section className="border-t border-slate-200 pt-8">
+        <div className="space-y-2">
+          <h2 className="text-[18px] font-semibold tracking-tight">
+            3. Formale Pruefung
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Letzter Baustein zur Nachweisfaehigkeit.
+          </p>
+        </div>
+
+        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50/60 px-4 py-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-slate-900">
+                Noch nicht verfuegbar
+              </p>
+              <p className="text-sm leading-6 text-slate-600">
+                Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
+                Nachweisbausteine abgeschlossen sind.
+              </p>
+            </div>
+            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+              Noch nicht verfuegbar
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const nextStatuses = getNextManualStatuses(card.status);
   const availableStatuses = useMemo(
     () =>
@@ -294,7 +326,7 @@ export function ReviewSection({
                 {proofReadyBlocked ? (
                   <p className="mt-2 text-xs text-slate-500">
                     Der Status Nachweisfaehig wird erst verfuegbar, wenn die
-                    fehlenden Nachweisbausteine dokumentiert sind.
+                    fehlenden Nachweisbausteine abgeschlossen sind.
                   </p>
                 ) : null}
               </div>

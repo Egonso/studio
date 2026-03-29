@@ -34,6 +34,7 @@ export default async function LoginRedirectPage({
       readSingleValue(resolved.mode) === 'signup'
         ? (readSingleValue(resolved.mode) as AuthRouteOptions['mode'])
         : 'login',
+    returnTo: readSingleValue(resolved.returnTo),
     sessionId:
       readSingleValue(resolved.session_id) ??
       readSingleValue(resolved.checkout_session_id),

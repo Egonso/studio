@@ -2,8 +2,8 @@ import type {
   ControlFocusTarget,
   GovernanceRepairField,
 } from "@/lib/control/deep-link";
+import { hasDocumentedAiActCategory } from "./risk-taxonomy";
 import {
-  resolvePrimaryDataCategory,
   type OrgSettings,
   type RegisterUseCaseStatus,
   type UseCaseCard,
@@ -70,9 +70,9 @@ export function computeUseCaseReadiness(
         focus: "metadata",
         edit: true,
       },
-      complete:
-        Boolean(card.governanceAssessment?.core?.aiActCategory) ||
-        Boolean(resolvePrimaryDataCategory(card)),
+      complete: hasDocumentedAiActCategory(
+        card.governanceAssessment?.core?.aiActCategory,
+      ),
     },
     {
       key: "owner",

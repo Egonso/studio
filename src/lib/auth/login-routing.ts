@@ -11,6 +11,7 @@ export interface AuthRouteOptions {
   intent?: AuthIntent | null;
   email?: string | null;
   code?: string | null;
+  returnTo?: string | null;
   workspaceInvite?: string | null;
   importUseCase?: string | null;
   sessionId?: string | null;
@@ -29,6 +30,19 @@ function setQueryParam(
   }
 }
 
+function normalizeReturnToPath(value: string | null | undefined): string | null {
+  const normalizedValue = value?.trim();
+  if (!normalizedValue) {
+    return null;
+  }
+
+  if (!normalizedValue.startsWith("/") || normalizedValue.startsWith("//")) {
+    return null;
+  }
+
+  return normalizedValue;
+}
+
 export function readLoginRouteOptions(
   searchParams: SearchParamsReader
 ): AuthRouteOptions {
@@ -42,6 +56,7 @@ export function readLoginRouteOptions(
         : null,
     email: searchParams.get("email"),
     code: searchParams.get("code"),
+    returnTo: normalizeReturnToPath(searchParams.get("returnTo")),
     workspaceInvite: searchParams.get("workspaceInvite"),
     importUseCase: searchParams.get("importUseCase"),
     sessionId:
@@ -63,6 +78,7 @@ export function buildAuthPath(options: AuthRouteOptions = {}): string {
 
   setQueryParam(params, "email", options.email);
   setQueryParam(params, "code", options.code);
+  setQueryParam(params, "returnTo", normalizeReturnToPath(options.returnTo));
   setQueryParam(params, "workspaceInvite", options.workspaceInvite);
   setQueryParam(params, "importUseCase", options.importUseCase);
   setQueryParam(params, "session_id", options.sessionId);

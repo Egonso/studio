@@ -11,9 +11,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { hasDocumentedAiActCategory } from "@/lib/register-first";
 import { cn } from "@/lib/utils";
 import {
-  resolvePrimaryDataCategory,
   type OrgSettings,
   type UseCaseCard,
 } from "@/lib/register-first/types";
@@ -319,9 +319,9 @@ export function GovernanceLiabilitySection({
   const trustCap = useCapability("trustPortal");
   const iso = card.governanceAssessment?.flex?.iso;
 
-  const hasRiskClass =
-    Boolean(card.governanceAssessment?.core?.aiActCategory) ||
-    Boolean(resolvePrimaryDataCategory(card));
+  const hasRiskClass = hasDocumentedAiActCategory(
+    card.governanceAssessment?.core?.aiActCategory,
+  );
   const hasOwner =
     Boolean(card.responsibility?.responsibleParty) ||
     card.responsibility?.isCurrentlyResponsible === true;
@@ -674,7 +674,7 @@ export function GovernanceLiabilitySection({
               </p>
             </div>
             <p className="text-xs text-slate-500">
-              {section1Passed} von {section1Total} dokumentiert
+              {section1Passed} von {section1Total} abgeschlossen
             </p>
           </div>
 

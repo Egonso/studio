@@ -55,18 +55,18 @@ function getPrimaryLabel(readiness: UseCaseReadinessResult): string {
   }
 
   if (readiness.nextStep?.key === "formalReview") {
-    return "Jetzt formale Pruefung dokumentieren";
+    return "Formale Pruefung oeffnen";
   }
 
   if (readiness.nextStep?.key === "systemEvidence") {
-    return "Jetzt Systemnachweis erledigen";
+    return "Systemnachweis oeffnen";
   }
 
-  return "Jetzt Grundnachweise erledigen";
+  return "Grundnachweise oeffnen";
 }
 
 function getStandLabel(readiness: UseCaseReadinessResult): string {
-  return `${readiness.completedStepCount} von ${readiness.steps.length} Bausteinen dokumentiert`;
+  return `${readiness.completedStepCount} von ${readiness.steps.length} Bausteinen abgeschlossen`;
 }
 
 function getStepStatusLabel(
@@ -79,14 +79,14 @@ function getStepStatusLabel(
   }
 
   if (step.complete) {
-    return "dokumentiert";
+    return "abgeschlossen";
   }
 
   if (readiness.nextStep?.key === step.key) {
     return "aktiv";
   }
 
-  return "spaeter";
+  return "noch nicht verfuegbar";
 }
 
 export function ProofReadinessSummary(

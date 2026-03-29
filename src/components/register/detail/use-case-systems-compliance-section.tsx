@@ -1,10 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
+import { buildAuthPath } from "@/lib/auth/login-routing";
 import {
   createAiToolsRegistryService,
   createUseCaseSystemPublicInfoEntry,
@@ -27,9 +30,16 @@ interface UseCaseSystemsComplianceSectionProps {
   layout?: "standalone" | "embedded";
   headingOverride?: string;
   descriptionOverride?: string;
+  showSectionAction?: boolean;
 }
 
 type ActiveCheckTarget = "all" | string | null;
+
+function isReloginFailureReason(value: string): boolean {
+  return /auth|unauthori|eingeloggt|sign in|session|sitzung|erneut an/i.test(
+    value
+  );
+}
 
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
@@ -143,7 +153,6 @@ function buildSystemNarrative(
   status: string;
   documented: string;
   missing: string;
-  nextStep: string;
   actionLabel: string | null;
 } {
   if (system.requiresManualDocumentation && !system.publicInfo) {
@@ -155,7 +164,6 @@ function buildSystemNarrative(
       status: "Manuelle Dokumentation erforderlich",
       documented: `${vendorText} System ist identifiziert.`,
       missing: "Es fehlen Angaben zu Betrieb, Datenschutz oder Vertragsgrundlagen.",
-      nextStep: "Jetzt Angaben manuell in den Nachweisen ergaenzen.",
       actionLabel: null,
     };
   }
@@ -169,7 +177,6 @@ function buildSystemNarrative(
       status: "Noch kein dokumentierter Compliance-Stand",
       documented: vendorText,
       missing: "Es fehlt ein dokumentierter Nachweisstand.",
-      nextStep: "Jetzt System pruefen und Nachweise speichern.",
       actionLabel: "Jetzt System pruefen",
     };
   }
@@ -194,10 +201,6 @@ function buildSystemNarrative(
         : signals.length >= 2
           ? "Keine akute Nachweisluecke sichtbar."
           : "Der Nachweis ist noch schmal.",
-    nextStep:
-      sourceCount === 0
-        ? "Jetzt erneut pruefen oder Quellen ergaenzen."
-        : "Bei Veraenderungen erneut pruefen.",
     actionLabel: "Jetzt erneut pruefen",
   };
 }
@@ -246,7 +249,11 @@ export function UseCaseSystemsComplianceSection({
   layout = "standalone",
   headingOverride,
   descriptionOverride,
+  showSectionAction = true,
 }: UseCaseSystemsComplianceSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [activeCheckTarget, setActiveCheckTarget] =
     useState<ActiveCheckTarget>(null);
@@ -276,6 +283,10 @@ export function UseCaseSystemsComplianceSection({
     systems,
     isEditing,
   });
+  const returnToPath = useMemo(() => {
+    const query = searchParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  }, [pathname, searchParams]);
 
   const runComplianceCheck = async (targetSystemKeys?: string[]) => {
     const targetSystems = systems.filter((system) =>
@@ -372,17 +383,34 @@ export function UseCaseSystemsComplianceSection({
 
       if (failures.length > 0) {
         const requiresRelogin = failures.some((failure) =>
-          /auth|unauthori|eingeloggt/i.test(failure.reason)
+          isReloginFailureReason(failure.reason)
         );
         toast({
           variant: "destructive",
-          title: "Compliance-Pruefung fehlgeschlagen",
+          title: requiresRelogin
+            ? "Sitzung abgelaufen"
+            : "Compliance-Pruefung fehlgeschlagen",
           description: requiresRelogin
-            ? "Ihre Sitzung konnte nicht bestaetigt werden. Bitte laden Sie die Seite neu und melden Sie sich gegebenenfalls erneut an."
+            ? "Bitte melden Sie sich erneut an, um den Systemnachweis fortzusetzen."
             : failures
                 .slice(0, 2)
                 .map((failure) => `${failure.systemName}: ${failure.reason}`)
                 .join(" | "),
+          action: requiresRelogin ? (
+            <ToastAction
+              altText="Zur Anmeldung"
+              onClick={() =>
+                router.push(
+                  buildAuthPath({
+                    mode: "login",
+                    returnTo: returnToPath,
+                  })
+                )
+              }
+            >
+              Zur Anmeldung
+            </ToastAction>
+          ) : undefined,
         });
         return;
       }
@@ -424,24 +452,26 @@ export function UseCaseSystemsComplianceSection({
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => void runComplianceCheck()}
-          disabled={activeCheckTarget !== null || researchableSystems.length === 0}
-        >
-          {activeCheckTarget === "all" ? (
-            <>
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              Pruefung laeuft...
-            </>
-          ) : (
-            isSingleMode
-              ? "Jetzt System pruefen"
-              : "Jetzt Systeme pruefen"
-          )}
-        </Button>
+        {showSectionAction ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => void runComplianceCheck()}
+            disabled={activeCheckTarget !== null || researchableSystems.length === 0}
+          >
+            {activeCheckTarget === "all" ? (
+              <>
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                Pruefung laeuft...
+              </>
+            ) : (
+              isSingleMode
+                ? "Jetzt System pruefen"
+                : "Jetzt Systeme pruefen"
+            )}
+          </Button>
+        ) : null}
       </div>
 
       <div className="mt-4 rounded-sm border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-600">
@@ -523,10 +553,6 @@ export function UseCaseSystemsComplianceSection({
                   <ComplianceNarrativeRow
                     label="Es fehlt"
                     value={narrative.missing}
-                  />
-                  <ComplianceNarrativeRow
-                    label="Naechster Schritt"
-                    value={narrative.nextStep}
                   />
 
                   {publicInfo ? (

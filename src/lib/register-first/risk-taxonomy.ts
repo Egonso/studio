@@ -95,6 +95,22 @@ export function parseStoredAiActCategory(
   return findMappedRiskClass(input) ?? "UNASSESSED";
 }
 
+export function hasDocumentedAiActCategory(
+  input: string | null | undefined
+): boolean {
+  if (typeof input !== "string") return false;
+
+  const trimmed = input.trim();
+  if (trimmed.length === 0) return false;
+
+  const mappedRiskClass = findMappedRiskClass(trimmed);
+  if (mappedRiskClass === null) {
+    return true;
+  }
+
+  return mappedRiskClass !== "UNASSESSED";
+}
+
 export function getRiskClassDisplayLabel(
   riskClass: CanonicalAiActRiskClass
 ): string {
