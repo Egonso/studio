@@ -11,6 +11,8 @@ interface ProofReadinessSummaryProps {
   readiness: UseCaseReadinessResult;
   useCaseId: string;
   workspaceScope?: string | null;
+  detailsExpanded?: boolean;
+  onToggleDetails?: () => void;
 }
 
 function getPrimaryHref({
@@ -97,6 +99,9 @@ export function ProofReadinessSummary(
   const primaryLabel = getPrimaryLabel(readiness);
   const standLabel = getStandLabel(readiness);
   const isComplete = readiness.completedStepCount === readiness.steps.length;
+  const secondaryLabel = props.detailsExpanded
+    ? "Details ausblenden"
+    : "Details ansehen";
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 md:p-6">
@@ -108,7 +113,9 @@ export function ProofReadinessSummary(
           {standLabel}
         </h2>
         {isComplete ? (
-          <p className="text-sm text-slate-600">Formal nachweisfaehig.</p>
+          <p className="text-sm text-slate-600">
+            Dieser Einsatzfall ist vollstaendig nachweisfaehig dokumentiert.
+          </p>
         ) : null}
       </div>
 
@@ -174,6 +181,15 @@ export function ProofReadinessSummary(
         <Button asChild size="sm">
           <Link href={primaryHref}>{primaryLabel}</Link>
         </Button>
+        {isComplete && props.onToggleDetails ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={props.onToggleDetails}
+          >
+            {secondaryLabel}
+          </Button>
+        ) : null}
       </div>
     </section>
   );

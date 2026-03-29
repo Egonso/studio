@@ -122,6 +122,7 @@ export default function UseCaseDetailPage() {
   const [showGovernanceSection, setShowGovernanceSection] = useState(false);
   const [showSystemsSection, setShowSystemsSection] = useState(false);
   const [showReviewSection, setShowReviewSection] = useState(false);
+  const [showProofReadyDetails, setShowProofReadyDetails] = useState(false);
   const governancePresentation = readiness
     ? resolveStepPresentation(readiness, 'groundProofs')
     : 'active';
@@ -143,6 +144,14 @@ export default function UseCaseDetailPage() {
     reviewPresentation === 'active' ||
     activeFocus === 'review' ||
     showReviewSection;
+  const hasProofStepFocus =
+    activeFocus === 'governance' ||
+    activeFocus === 'systems' ||
+    activeFocus === 'review';
+  const shouldShowCompletedDetails =
+    readiness?.phase === 'proof_ready' &&
+    (showProofReadyDetails || hasProofStepFocus);
+  const isProofReadyDetailsMode = Boolean(shouldShowCompletedDetails);
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -389,6 +398,13 @@ export default function UseCaseDetailPage() {
             readiness={readiness}
             useCaseId={card.useCaseId}
             workspaceScope={workspaceScope}
+            detailsExpanded={shouldShowCompletedDetails}
+            onToggleDetails={
+              readiness.phase === 'proof_ready'
+                ? () =>
+                    setShowProofReadyDetails((current) => !current)
+                : undefined
+            }
           />
         ) : null}
 
@@ -412,6 +428,17 @@ export default function UseCaseDetailPage() {
           </div>
         )}
 
+        {isProofReadyDetailsMode ? (
+          <section className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+              Nachweisdetails
+            </p>
+            <h2 className="text-[18px] font-semibold tracking-tight text-slate-950">
+              Vertiefende Nachweise
+            </h2>
+          </section>
+        ) : null}
+
         {registerFirstFlags.controlShell && (
           <div
             id="usecase-focus-governance"
@@ -419,7 +446,7 @@ export default function UseCaseDetailPage() {
               activeFocus === 'governance' ? focusHighlightClassName : undefined
             }
           >
-            {readiness && !isGovernanceExpanded ? (
+            {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness && !isProofReadyDetailsMode && !isGovernanceExpanded ? (
               <CompactStepShell
                 title="1. Grundnachweise"
                 description="Erster Baustein des Nachweisstatus."
@@ -455,7 +482,7 @@ export default function UseCaseDetailPage() {
             activeFocus === 'systems' ? focusHighlightClassName : undefined
           }
         >
-          {readiness && !isSystemsExpanded ? (
+          {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness && !isProofReadyDetailsMode && !isSystemsExpanded ? (
               <CompactStepShell
                 title="2. Systemnachweis"
                 description="Zweiter Baustein des Nachweisstatus."
@@ -540,7 +567,7 @@ export default function UseCaseDetailPage() {
             activeFocus === 'review' ? focusHighlightClassName : undefined
           }
         >
-          {readiness ? (
+          {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness ? (
             reviewPresentation === 'upcoming' ? (
               <BlockedStepShell
                 title="3. Formale Pruefung"
@@ -548,7 +575,7 @@ export default function UseCaseDetailPage() {
                 statusLabel="noch nicht verfuegbar"
                 hint={getReviewBlockedHint(readiness)}
               />
-            ) : !isReviewExpanded ? (
+            ) : !isProofReadyDetailsMode && !isReviewExpanded ? (
               <CompactStepShell
                 title="3. Formale Pruefung"
                 description="Letzter Baustein zur Nachweisfaehigkeit."

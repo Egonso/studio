@@ -42,7 +42,6 @@ interface ReviewSectionProps {
 }
 
 function getReviewContext(
-  card: UseCaseCard,
   readiness: UseCaseReadinessResult,
 ): {
   title: string;
@@ -50,8 +49,8 @@ function getReviewContext(
 } {
   if (readiness.phase === "proof_ready") {
     return {
-      title: "Nachweisstatus: erreicht",
-      description: "Dieser Einsatzfall ist formal nachweisfaehig dokumentiert.",
+      title: "Formale Pruefung abgeschlossen",
+      description: "Der formale Status dieses Einsatzfalls ist dokumentiert.",
     };
   }
 
@@ -77,7 +76,7 @@ function getReviewContext(
 
 function getReviewNextHint(readiness: UseCaseReadinessResult): string {
   if (readiness.phase === "proof_ready") {
-    return "Use-Case-Pass oeffnen oder Status neu bewerten.";
+    return "Bei Bedarf neu bewertbar.";
   }
 
   if (readiness.nextStep?.key === "groundProofs") {
@@ -108,7 +107,7 @@ export function ReviewSection({
   );
   const proofReadyBlocked =
     nextStatuses.includes("PROOF_READY") && !readiness.canMarkProofReady;
-  const reviewContext = getReviewContext(card, readiness);
+  const reviewContext = getReviewContext(readiness);
   const reviewNextHint = getReviewNextHint(readiness);
   const blockingSteps = readiness.steps.filter(
     (step) => !step.complete && step.key !== "formalReview",
@@ -186,6 +185,7 @@ export function ReviewSection({
       : readiness.phase === "proof_ready"
         ? "Neubewertung bestaetigen"
         : "Statusaenderung bestaetigen";
+  const showNextHint = readiness.phase !== "proof_ready";
 
   const handleConfirm = async () => {
     if (!selectedStatus) return;
@@ -232,14 +232,16 @@ export function ReviewSection({
                 <p className="text-sm leading-6 text-slate-600">
                   {reviewContext.description}
                 </p>
-                <div className="pt-1">
-                  <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                    Als Naechstes
-                  </p>
-                  <p className="text-sm leading-6 text-slate-600">
-                    {reviewNextHint}
-                  </p>
-                </div>
+                {showNextHint ? (
+                  <div className="pt-1">
+                    <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+                      Als Naechstes
+                    </p>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {reviewNextHint}
+                    </p>
+                  </div>
+                ) : null}
               </div>
               {readiness.phase === "proof_ready" ? (
                 <div className="flex shrink-0 flex-wrap items-center gap-2">
