@@ -98,38 +98,6 @@ export function ReviewSection({
   workspaceScope = null,
   onStatusChange,
 }: ReviewSectionProps) {
-  if (readiness.phase === "incomplete") {
-    return (
-      <section className="border-t border-slate-200 pt-8">
-        <div className="space-y-2">
-          <h2 className="text-[18px] font-semibold tracking-tight">
-            3. Formale Pruefung
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Letzter Baustein zur Nachweisfaehigkeit.
-          </p>
-        </div>
-
-        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50/60 px-4 py-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-slate-900">
-                Noch nicht verfuegbar
-              </p>
-              <p className="text-sm leading-6 text-slate-600">
-                Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
-                Nachweisbausteine abgeschlossen sind.
-              </p>
-            </div>
-            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-              Noch nicht verfuegbar
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const nextStatuses = getNextManualStatuses(card.status);
   const availableStatuses = useMemo(
     () =>
@@ -163,6 +131,38 @@ export function ReviewSection({
       setShowReassessmentForm(false);
     }
   }, [readiness.phase]);
+
+  if (readiness.phase === "incomplete") {
+    return (
+      <section className="border-t border-slate-200 pt-8">
+        <div className="space-y-2">
+          <h2 className="text-[18px] font-semibold tracking-tight">
+            3. Formale Pruefung
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Letzter Baustein zur Nachweisfaehigkeit.
+          </p>
+        </div>
+
+        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50/60 px-4 py-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-slate-900">
+                Noch nicht verfuegbar
+              </p>
+              <p className="text-sm leading-6 text-slate-600">
+                Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
+                Nachweisbausteine abgeschlossen sind.
+              </p>
+            </div>
+            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+              Noch nicht verfuegbar
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const shouldShowStatusForm =
     readiness.phase !== "proof_ready" || showReassessmentForm;

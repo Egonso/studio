@@ -92,7 +92,7 @@ function getStepStatusLabel(
 export function ProofReadinessSummary(
   props: ProofReadinessSummaryProps,
 ) {
-  const { readiness, useCaseId, workspaceScope } = props;
+  const { readiness } = props;
   const primaryHref = getPrimaryHref(props);
   const primaryLabel = getPrimaryLabel(readiness);
   const standLabel = getStandLabel(readiness);
