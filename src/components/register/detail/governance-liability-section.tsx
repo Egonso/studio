@@ -44,6 +44,7 @@ interface GovernanceLiabilitySectionProps {
   onCardUpdate?: (card: UseCaseCard) => void;
   focusField?: "oversight" | "reviewCycle" | "history" | null;
   autoOpenField?: "oversight" | "reviewCycle" | null;
+  onToggleDetails?: (() => void) | null;
 }
 
 type EditableField = "oversight" | "reviewCycle";
@@ -299,6 +300,7 @@ export function GovernanceLiabilitySection({
   onCardUpdate,
   focusField = null,
   autoOpenField = null,
+  onToggleDetails = null,
 }: GovernanceLiabilitySectionProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -647,7 +649,8 @@ export function GovernanceLiabilitySection({
   return (
     <Card className="border-slate-300">
       <CardHeader className="border-b border-slate-200 bg-white pb-4">
-        <div className="space-y-2">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
             <ShieldCheck className="h-4 w-4 text-slate-500" />
             1. Grundnachweise
@@ -655,6 +658,12 @@ export function GovernanceLiabilitySection({
           <p className="text-sm text-slate-600">
             Risikoklasse, Rolle, Aufsicht und Review-Zyklus.
           </p>
+          </div>
+          {onToggleDetails ? (
+            <Button size="sm" variant="outline" onClick={onToggleDetails}>
+              Details ausblenden
+            </Button>
+          ) : null}
         </div>
       </CardHeader>
 

@@ -17,6 +17,7 @@ import { ReviewSection } from '@/components/register/detail/review-section';
 import { AuditTrailSection } from '@/components/register/detail/audit-trail-section';
 import { ProofReadinessSummary } from '@/components/register/detail/proof-readiness-summary';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   isGovernanceRepairField,
   isControlFocusTarget,
@@ -152,6 +153,18 @@ export default function UseCaseDetailPage() {
     readiness?.phase === 'proof_ready' &&
     (showProofReadyDetails || hasProofStepFocus);
   const isProofReadyDetailsMode = Boolean(shouldShowCompletedDetails);
+  const canToggleGovernanceDetails =
+    !isProofReadyDetailsMode &&
+    governancePresentation === 'completed' &&
+    showGovernanceSection;
+  const canToggleSystemsDetails =
+    !isProofReadyDetailsMode &&
+    systemsPresentation === 'completed' &&
+    showSystemsSection;
+  const canToggleReviewDetails =
+    !isProofReadyDetailsMode &&
+    reviewPresentation === 'completed' &&
+    showReviewSection;
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -471,6 +484,11 @@ export default function UseCaseDetailPage() {
                 onCardUpdate={() => {
                   void loadUseCase();
                 }}
+                onToggleDetails={
+                  canToggleGovernanceDetails
+                    ? () => setShowGovernanceSection(false)
+                    : null
+                }
               />
             )}
           </div>
@@ -496,69 +514,83 @@ export default function UseCaseDetailPage() {
                 onOpen={() => setShowSystemsSection(true)}
               />
             ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                <h2 className="text-[18px] font-semibold tracking-tight">
-                  2. Systemnachweis
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Zweiter Baustein des Nachweisstatus. Dokumentiert beteiligte
-                  Systeme und ihren Nachweisstand.
-                </p>
-              </div>
-
-              {systemSectionMode === 'multi' ? (
-                <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-                  <div className="space-y-1">
-                    <h3 className="text-[18px] font-semibold tracking-tight">
-                      Systemlandschaft
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Verbindet die Ablauf-Sicht mit der deduplizierten
-                      Compliance-Perspektive fuer alle beteiligten Systeme.
-                    </p>
+              <Card className="border-slate-300">
+                <CardHeader className="border-b border-slate-200 bg-white pb-4">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="space-y-2">
+                      <CardTitle className="text-base font-semibold text-slate-900">
+                        2. Systemnachweis
+                      </CardTitle>
+                      <p className="text-sm text-slate-600">
+                        Dokumentiert beteiligte Systeme und ihren Nachweisstand.
+                      </p>
+                    </div>
+                    {canToggleSystemsDetails ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setShowSystemsSection(false)}
+                      >
+                        Details ausblenden
+                      </Button>
+                    ) : null}
                   </div>
+                </CardHeader>
 
-                  <div className="mt-6 space-y-6">
-                    <UseCaseWorkflowSection
-                      card={card}
-                      onSave={handleSaveMetadata}
-                      mode="multi"
-                      layout="embedded"
-                    />
-                    <div className="border-t border-slate-200 pt-6">
+                <CardContent className="space-y-6 p-5 md:p-6">
+                  {systemSectionMode === 'multi' ? (
+                    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
+                      <div className="space-y-1">
+                        <h3 className="text-[18px] font-semibold tracking-tight">
+                          Systemlandschaft
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Verbindet die Ablauf-Sicht mit der deduplizierten
+                          Compliance-Perspektive fuer alle beteiligten Systeme.
+                        </p>
+                      </div>
+
+                      <div className="mt-6 space-y-6">
+                        <UseCaseWorkflowSection
+                          card={card}
+                          onSave={handleSaveMetadata}
+                          mode="multi"
+                          layout="embedded"
+                        />
+                        <div className="border-t border-slate-200 pt-6">
+                          <UseCaseSystemsComplianceSection
+                            card={card}
+                            isEditing={isEditing}
+                            onSave={handleSaveMetadata}
+                            mode="multi"
+                            layout="embedded"
+                            headingOverride="Nachweisstand je System"
+                            descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
+                          />
+                        </div>
+                      </div>
+                    </section>
+                  ) : (
+                    <div className="space-y-6">
+                      <UseCaseWorkflowSection
+                        card={card}
+                        onSave={handleSaveMetadata}
+                        mode="single"
+                      />
                       <UseCaseSystemsComplianceSection
                         card={card}
                         isEditing={isEditing}
                         onSave={handleSaveMetadata}
-                        mode="multi"
-                        layout="embedded"
+                        mode="single"
                         headingOverride="Nachweisstand je System"
-                        descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
+                        descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+                        showSectionAction={false}
                       />
                     </div>
-                  </div>
-                </section>
-              ) : (
-                <div className="space-y-6">
-                  <UseCaseWorkflowSection
-                    card={card}
-                    onSave={handleSaveMetadata}
-                    mode="single"
-                  />
-                  <UseCaseSystemsComplianceSection
-                    card={card}
-                    isEditing={isEditing}
-                    onSave={handleSaveMetadata}
-                    mode="single"
-                    headingOverride="Nachweisstand je System"
-                    descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
-                    showSectionAction={false}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+                  )}
+                </CardContent>
+              </Card>
+            )}
         </div>
 
         <div
@@ -595,6 +627,11 @@ export default function UseCaseDetailPage() {
                 useCaseId={card.useCaseId}
                 workspaceScope={workspaceScope}
                 onStatusChange={handleStatusChange}
+                onToggleDetails={
+                  canToggleReviewDetails
+                    ? () => setShowReviewSection(false)
+                    : null
+                }
               />
             )
           ) : null}

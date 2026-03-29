@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
@@ -39,6 +40,7 @@ interface ReviewSectionProps {
   useCaseId: string;
   workspaceScope?: string | null;
   onStatusChange: (nextStatus: RegisterUseCaseStatus, reason?: string) => Promise<void>;
+  onToggleDetails?: (() => void) | null;
 }
 
 function getReviewContext(
@@ -96,6 +98,7 @@ export function ReviewSection({
   useCaseId,
   workspaceScope = null,
   onStatusChange,
+  onToggleDetails = null,
 }: ReviewSectionProps) {
   const nextStatuses = getNextManualStatuses(card.status);
   const availableStatuses = useMemo(
@@ -133,33 +136,37 @@ export function ReviewSection({
 
   if (readiness.phase === "incomplete") {
     return (
-      <section className="border-t border-slate-200 pt-8">
-        <div className="space-y-2">
-          <h2 className="text-[18px] font-semibold tracking-tight">
-            3. Formale Pruefung
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Letzter Baustein zur Nachweisfaehigkeit.
-          </p>
-        </div>
-
-        <div className="mt-6 rounded-md border border-slate-200 bg-slate-50/60 px-4 py-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-slate-900">
-                Noch nicht verfuegbar
-              </p>
-              <p className="text-sm leading-6 text-slate-600">
-                Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
-                Nachweisbausteine abgeschlossen sind.
-              </p>
-            </div>
-            <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-              Noch nicht verfuegbar
+      <Card className="border-slate-300">
+        <CardHeader className="border-b border-slate-200 bg-white pb-4">
+          <div className="space-y-2">
+            <CardTitle className="text-base font-semibold text-slate-900">
+              3. Formale Pruefung
+            </CardTitle>
+            <p className="text-sm text-slate-600">
+              Letzter Baustein zur Nachweisfaehigkeit.
             </p>
           </div>
-        </div>
-      </section>
+        </CardHeader>
+
+        <CardContent className="p-5 md:p-6 text-sm">
+          <div className="rounded-md border border-slate-200 bg-slate-50/60 px-4 py-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-900">
+                  Noch nicht verfuegbar
+                </p>
+                <p className="text-sm leading-6 text-slate-600">
+                  Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
+                  Nachweisbausteine abgeschlossen sind.
+                </p>
+              </div>
+              <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
+                Noch nicht verfuegbar
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -205,15 +212,26 @@ export function ReviewSection({
 
   return (
     <>
-      <section className="border-t border-slate-200 pt-8">
-        <div className="space-y-2">
-          <h2 className="text-[18px] font-semibold tracking-tight">
-            3. Formale Pruefung
-          </h2>
-          <p className="text-sm text-muted-foreground">Letzter Baustein zur Nachweisfaehigkeit.</p>
-        </div>
+      <Card className="border-slate-300">
+        <CardHeader className="border-b border-slate-200 bg-white pb-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-2">
+              <CardTitle className="text-base font-semibold text-slate-900">
+                3. Formale Pruefung
+              </CardTitle>
+              <p className="text-sm text-slate-600">
+                Letzter Baustein zur Nachweisfaehigkeit.
+              </p>
+            </div>
+            {onToggleDetails ? (
+              <Button size="sm" variant="outline" onClick={onToggleDetails}>
+                Details ausblenden
+              </Button>
+            ) : null}
+          </div>
+        </CardHeader>
 
-        <div className="mt-6 space-y-5">
+        <CardContent className="space-y-5 p-5 md:p-6 text-sm">
           <div
             className={cn(
               "rounded-md border px-4 py-4",
@@ -374,8 +392,8 @@ export function ReviewSection({
               </ul>
             </div>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
