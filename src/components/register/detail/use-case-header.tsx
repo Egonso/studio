@@ -59,13 +59,13 @@ import {
   buildScopedUseCasePassHref,
 } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
+import type { EditableMetadataField } from "./use-case-metadata-section";
 
 interface UseCaseHeaderProps {
   card: UseCaseCard;
-  isEditing: boolean;
-  onToggleEdit: () => void;
   onDelete?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
+  onEditField?: (field: EditableMetadataField) => void;
 }
 
 const aiRegistry = createAiToolsRegistryService();
@@ -87,10 +87,9 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 
 export function UseCaseHeader({
   card,
-  isEditing,
-  onToggleEdit,
   onDelete,
   onRefresh,
+  onEditField,
 }: UseCaseHeaderProps) {
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
@@ -308,68 +307,57 @@ export function UseCaseHeader({
             ) : null}
           </div>
 
-          {!isEditing ? (
-            <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onToggleEdit}
-                title="Stammdaten des Einsatzfalls ändern"
-              >
-                <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                Stammdaten bearbeiten
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
-                }
-                title="Use-Case-Pass öffnen"
-              >
-                Use-Case-Pass öffnen
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" title="Weitere Aktionen">
-                    <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" />
-                    Mehr
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem onSelect={() => window.print()}>
-                    <Download className="h-4 w-4" />
-                    PDF exportieren
+          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
+              }
+              title="Use-Case-Pass öffnen"
+            >
+              Use-Case-Pass öffnen
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" title="Weitere Aktionen">
+                  <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                  Mehr
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onSelect={() => window.print()}>
+                  <Download className="h-4 w-4" />
+                  PDF exportieren
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleExportJSON}>
+                  <FileJson className="h-4 w-4" />
+                  JSON exportieren
+                </DropdownMenuItem>
+                {(!card.sealedAt && profile?.isOfficer) || onDelete ? (
+                  <DropdownMenuSeparator />
+                ) : null}
+                {!card.sealedAt && profile?.isOfficer ? (
+                  <DropdownMenuItem
+                    onSelect={() => void handleSeal()}
+                    disabled={isSealing}
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {isSealing ? "Formal signieren..." : "Formal signieren"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handleExportJSON}>
-                    <FileJson className="h-4 w-4" />
-                    JSON exportieren
+                ) : null}
+                {onDelete ? (
+                  <DropdownMenuItem
+                    onSelect={() => setShowDeleteConfirm(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Loeschen
                   </DropdownMenuItem>
-                  {(!card.sealedAt && profile?.isOfficer) || onDelete ? (
-                    <DropdownMenuSeparator />
-                  ) : null}
-                  {!card.sealedAt && profile?.isOfficer ? (
-                    <DropdownMenuItem
-                      onSelect={() => void handleSeal()}
-                      disabled={isSealing}
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      {isSealing ? "Formal signieren..." : "Formal signieren"}
-                    </DropdownMenuItem>
-                  ) : null}
-                  {onDelete ? (
-                    <DropdownMenuItem
-                      onSelect={() => setShowDeleteConfirm(true)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Loeschen
-                    </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : null}
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {card.sealedAt ? (
@@ -381,10 +369,26 @@ export function UseCaseHeader({
 
         <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <MetaItem label="Owner-Rolle" value={ownerLabel} />
-            <MetaItem label="Entscheidungsrelevanz" value={decisionLabel} />
-            <MetaItem label="Risikoklasse" value={riskClass} />
-            <MetaItem label="Wirkungsbereich" value={usageScope} />
+            <MetaItem
+              label="Owner-Rolle"
+              value={ownerLabel}
+              onEdit={onEditField ? () => onEditField("responsibleParty") : undefined}
+            />
+            <MetaItem
+              label="Entscheidungsrelevanz"
+              value={decisionLabel}
+              onEdit={onEditField ? () => onEditField("decisionInfluence") : undefined}
+            />
+            <MetaItem
+              label="Risikoklasse"
+              value={riskClass}
+              onEdit={onEditField ? () => onEditField("aiActCategory") : undefined}
+            />
+            <MetaItem
+              label="Wirkungsbereich"
+              value={usageScope}
+              onEdit={onEditField ? () => onEditField("usageContexts") : undefined}
+            />
           </div>
         </div>
       </div>
@@ -418,11 +422,34 @@ function MetaItem({
   label,
   value,
   className,
+  onEdit,
 }: {
   label: string;
   value: string;
   className?: string;
+  onEdit?: () => void;
 }) {
+  if (onEdit) {
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        className={cn(
+          "group space-y-1 rounded-lg p-1.5 -m-1.5 text-left transition-colors hover:bg-white/80",
+          className,
+        )}
+      >
+        <div className="flex items-center gap-1.5">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+            {label}
+          </p>
+          <Pencil className="h-3 w-3 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
+        </div>
+        <p className="text-[15px] leading-7 font-medium text-slate-900">{value}</p>
+      </button>
+    );
+  }
+
   return (
     <div className={cn("space-y-1", className)}>
       <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">

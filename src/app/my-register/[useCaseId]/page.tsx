@@ -1,23 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
-import { RegisterStatusPill } from '@/components/register/detail/status-pill';
 import { UseCaseAssessmentWizard } from '@/components/register/detail/use-case-assessment-wizard';
 import type { RiskReviewLaunchContext } from '@/components/register/detail/use-case-assessment-wizard-model';
-import { UseCaseMetadataSection } from '@/components/register/detail/use-case-metadata-section';
+import {
+  UseCaseMetadataSection,
+  type EditableMetadataField,
+} from '@/components/register/detail/use-case-metadata-section';
 import { UseCaseSystemsComplianceSection } from '@/components/register/detail/use-case-systems-compliance-section';
 import { UseCaseWorkflowSection } from '@/components/register/detail/use-case-workflow-section';
 import { GovernanceLiabilitySection } from '@/components/register/detail/governance-liability-section';
 import { ReviewSection } from '@/components/register/detail/review-section';
 import { AuditTrailSection } from '@/components/register/detail/audit-trail-section';
 import { ProofReadinessSummary } from '@/components/register/detail/proof-readiness-summary';
+import { ProofStepAccordion } from '@/components/register/detail/proof-step-accordion';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   isGovernanceRepairField,
   isControlFocusTarget,
@@ -32,6 +34,7 @@ import {
   getUseCaseSystemSectionMode,
   getUseCaseSystemsSummary,
   type UseCaseReadinessResult,
+  type UseCaseReadinessStepKey,
 } from '@/lib/register-first';
 import { cn } from '@/lib/utils';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
@@ -61,16 +64,15 @@ export default function UseCaseDetailPage() {
   const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [isRiskReviewOpen, setIsRiskReviewOpen] = useState(false);
   const [riskReviewContext, setRiskReviewContext] =
     useState<RiskReviewLaunchContext | null>(null);
-  const [showDesktopEditBar, setShowDesktopEditBar] = useState(false);
   const [activeFocus, setActiveFocus] = useState<ControlFocusTarget | null>(
     null,
   );
   const [invalidFocus, setInvalidFocus] = useState<string | null>(null);
-  const heroBoundaryRef = useRef<HTMLDivElement | null>(null);
+  const [requestedEditField, setRequestedEditField] =
+    useState<EditableMetadataField | null>(null);
 
   const useCaseId = params.useCaseId;
   const focusParam = searchParams.get('focus');
@@ -105,66 +107,30 @@ export default function UseCaseDetailPage() {
         : 'single',
     [card],
   );
-  const systemsSummary = useMemo(
-    () =>
-      card
-        ? getUseCaseSystemsSummary(card, {
-            resolveToolName: (toolId) =>
-              aiRegistry.getById(toolId)?.productName ?? null,
-            emptyLabel: 'Kein System',
-          })
-        : 'Kein System',
-    [card],
-  );
   const readiness = useMemo(
     () => (card ? computeUseCaseReadiness(card, orgSettings) : null),
     [card, orgSettings],
   );
-  const [showGovernanceSection, setShowGovernanceSection] = useState(false);
-  const [showSystemsSection, setShowSystemsSection] = useState(false);
-  const [showReviewSection, setShowReviewSection] = useState(false);
-  const [showProofReadyDetails, setShowProofReadyDetails] = useState(false);
-  const governancePresentation = readiness
-    ? resolveStepPresentation(readiness, 'groundProofs')
-    : 'active';
-  const systemsPresentation = readiness
-    ? resolveStepPresentation(readiness, 'systemEvidence')
-    : 'upcoming';
-  const reviewPresentation = readiness
-    ? resolveStepPresentation(readiness, 'formalReview')
-    : 'upcoming';
-  const isGovernanceExpanded =
-    governancePresentation === 'active' ||
-    activeFocus === 'governance' ||
-    showGovernanceSection;
-  const isSystemsExpanded =
-    systemsPresentation === 'active' ||
-    activeFocus === 'systems' ||
-    showSystemsSection;
-  const isReviewExpanded =
-    reviewPresentation === 'active' ||
-    activeFocus === 'review' ||
-    showReviewSection;
-  const hasProofStepFocus =
-    activeFocus === 'governance' ||
-    activeFocus === 'systems' ||
-    activeFocus === 'review';
-  const shouldShowCompletedDetails =
-    readiness?.phase === 'proof_ready' &&
-    (showProofReadyDetails || hasProofStepFocus);
-  const isProofReadyDetailsMode = Boolean(shouldShowCompletedDetails);
-  const canToggleGovernanceDetails =
-    !isProofReadyDetailsMode &&
-    governancePresentation === 'completed' &&
-    showGovernanceSection;
-  const canToggleSystemsDetails =
-    !isProofReadyDetailsMode &&
-    systemsPresentation === 'completed' &&
-    showSystemsSection;
-  const canToggleReviewDetails =
-    !isProofReadyDetailsMode &&
-    reviewPresentation === 'completed' &&
-    showReviewSection;
+
+  // Map deep-link focus to the corresponding proof step key
+  const focusExpandedStep: UseCaseReadinessStepKey | null =
+    activeFocus === 'governance'
+      ? 'groundProofs'
+      : activeFocus === 'systems'
+        ? 'systemEvidence'
+        : activeFocus === 'review'
+          ? 'formalReview'
+          : null;
+
+  // Map deep-link ?focus=metadata&edit=1 to field-level edit
+  useEffect(() => {
+    if (editParam !== '1') return;
+    if (resolvedFocus === 'owner') {
+      setRequestedEditField('responsibleParty');
+    } else if (resolvedFocus === 'metadata') {
+      setRequestedEditField('purpose');
+    }
+  }, [editParam, resolvedFocus, useCaseId]);
 
   const loadUseCase = useCallback(async () => {
     if (!useCaseId) return;
@@ -227,39 +193,6 @@ export default function UseCaseDetailPage() {
       scopeContext.kind === 'workspace' ? scopeContext.workspaceId ?? null : null,
     );
   }, [scopeContext]);
-
-  useEffect(() => {
-    if (editParam !== '1') return;
-    if (resolvedFocus !== 'owner' && resolvedFocus !== 'metadata') return;
-    setIsEditing(true);
-  }, [editParam, resolvedFocus, useCaseId]);
-
-  useEffect(() => {
-    if (!isEditing) {
-      setShowDesktopEditBar(false);
-      return;
-    }
-
-    const boundary = heroBoundaryRef.current;
-    if (!boundary || typeof IntersectionObserver === 'undefined') {
-      setShowDesktopEditBar(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setShowDesktopEditBar(!entry.isIntersecting);
-      },
-      {
-        root: null,
-        threshold: 0,
-        rootMargin: '-92px 0px 0px 0px',
-      },
-    );
-
-    observer.observe(boundary);
-    return () => observer.disconnect();
-  }, [isEditing, card?.useCaseId]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -325,14 +258,15 @@ export default function UseCaseDetailPage() {
     try {
       await registerService.updateUseCase(card.useCaseId, updates, scopeContext);
       await loadUseCase();
-      setIsEditing(false);
     } catch (err) {
       console.error('Failed to save metadata', err);
-      // We don't necessarily want to replace the whole page with an error,
-      // but if we do, setting error works:
       setError('Fehler beim Speichern der Änderungen.');
     }
   };
+
+  const handleEditField = useCallback((field: EditableMetadataField) => {
+    setRequestedEditField(field);
+  }, []);
 
   if (authLoading || isLoading) {
     return (
@@ -392,152 +326,77 @@ export default function UseCaseDetailPage() {
       width="5xl"
       headerMode="hidden"
     >
-      <div
-        className={cn(
-          'space-y-10',
-          isEditing && 'pb-24 md:pb-0',
-        )}
-      >
+      <div className="space-y-10">
         <UseCaseHeader
           card={card}
-          isEditing={isEditing}
-          onToggleEdit={() => setIsEditing((prev) => !prev)}
           onRefresh={loadUseCase}
+          onEditField={handleEditField}
         />
-        <div ref={heroBoundaryRef} className="h-px" />
-
-        {readiness ? (
-          <ProofReadinessSummary
-            readiness={readiness}
-            useCaseId={card.useCaseId}
-            workspaceScope={workspaceScope}
-            detailsExpanded={shouldShowCompletedDetails}
-            onToggleDetails={
-              readiness.phase === 'proof_ready'
-                ? () =>
-                    setShowProofReadyDetails((current) => !current)
-                : undefined
-            }
-          />
-        ) : null}
-
-        {isEditing ? (
-          <UseCaseEditContextBar
-            purpose={card.purpose}
-            status={card.status}
-            systemsSummary={systemsSummary}
-            visible={showDesktopEditBar}
-            onCancel={() => setIsEditing(false)}
-          />
-        ) : null}
 
         {invalidFocus && (
           <div className="border-l-2 border-slate-300 pl-3 text-sm text-slate-600">
             <p className="font-medium">Hinweis</p>
             <p>
-              Der Focus-Parameter "{invalidFocus}" ist nicht gueltig und wurde
+              Der Focus-Parameter &quot;{invalidFocus}&quot; ist nicht gueltig und wurde
               ignoriert.
             </p>
           </div>
         )}
 
-        {isProofReadyDetailsMode ? (
-          <section className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
-              Nachweisdetails
-            </p>
-            <h2 className="text-[18px] font-semibold tracking-tight text-slate-950">
-              Vertiefende Nachweise
-            </h2>
-          </section>
-        ) : null}
-
-        {registerFirstFlags.controlShell && (
-          <div
-            id="usecase-focus-governance"
-            className={
-              activeFocus === 'governance' ? focusHighlightClassName : undefined
-            }
-          >
-            {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness && !isProofReadyDetailsMode && !isGovernanceExpanded ? (
-              <CompactStepShell
-                title="1. Grundnachweise"
-                description="Erster Baustein des Nachweisstatus."
-                statusLabel={getStepPresentationLabel(governancePresentation)}
-                hint={getGovernanceCompactHint(readiness)}
-                actionLabel={
-                  governancePresentation === 'completed'
-                    ? 'Details ansehen'
-                    : 'Schritt oeffnen'
-                }
-                onOpen={() => setShowGovernanceSection(true)}
-              />
-            ) : (
-              <GovernanceLiabilitySection
-                card={card}
-                useCases={allUseCases.length > 0 ? allUseCases : [card]}
-                orgSettings={orgSettings}
-                focusField={activeFocus === 'governance' ? governanceField : null}
-                autoOpenField={
-                  activeFocus === 'governance' ? governanceAutoOpenField : null
-                }
-                onCardUpdate={() => {
-                  void loadUseCase();
-                }}
-                onToggleDetails={
-                  canToggleGovernanceDetails
-                    ? () => setShowGovernanceSection(false)
-                    : null
-                }
-              />
-            )}
-          </div>
-        )}
-
-        <div
-          id="usecase-focus-systems"
-          className={
-            activeFocus === 'systems' ? focusHighlightClassName : undefined
-          }
-        >
-          {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness && !isProofReadyDetailsMode && !isSystemsExpanded ? (
-              <CompactStepShell
-                title="2. Systemnachweis"
-                description="Zweiter Baustein des Nachweisstatus."
-                statusLabel={getStepPresentationLabel(systemsPresentation)}
-                hint={getSystemsCompactHint(readiness)}
-                actionLabel={
-                  systemsPresentation === 'completed'
-                    ? 'Details ansehen'
-                    : 'Schritt oeffnen'
-                }
-                onOpen={() => setShowSystemsSection(true)}
-              />
-            ) : (
-              <Card className="border-slate-300">
-                <CardHeader className="border-b border-slate-200 bg-white pb-4">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-2">
-                      <CardTitle className="text-base font-semibold text-slate-900">
-                        2. Systemnachweis
-                      </CardTitle>
-                      <p className="text-sm text-slate-600">
-                        Dokumentiert beteiligte Systeme und ihren Nachweisstand.
-                      </p>
+        {readiness ? (
+          <section className="space-y-4">
+          <ProofReadinessSummary
+            readiness={readiness}
+            useCaseId={card.useCaseId}
+            workspaceScope={workspaceScope}
+          />
+          <ProofStepAccordion
+            readiness={readiness}
+            focusExpandedStep={focusExpandedStep}
+            renderStep={{
+              groundProofs: registerFirstFlags.controlShell
+                ? ({ onCollapse }) => (
+                    <div
+                      id="usecase-focus-governance"
+                      className={
+                        activeFocus === 'governance'
+                          ? focusHighlightClassName
+                          : undefined
+                      }
+                    >
+                      <GovernanceLiabilitySection
+                        card={card}
+                        useCases={
+                          allUseCases.length > 0 ? allUseCases : [card]
+                        }
+                        orgSettings={orgSettings}
+                        focusField={
+                          activeFocus === 'governance'
+                            ? governanceField
+                            : null
+                        }
+                        autoOpenField={
+                          activeFocus === 'governance'
+                            ? governanceAutoOpenField
+                            : null
+                        }
+                        onCardUpdate={() => {
+                          void loadUseCase();
+                        }}
+                        onToggleDetails={onCollapse}
+                      />
                     </div>
-                    {canToggleSystemsDetails ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setShowSystemsSection(false)}
-                      >
-                        Details ausblenden
-                      </Button>
-                    ) : null}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6 p-5 md:p-6">
+                  )
+                : undefined,
+              systemEvidence: ({ onCollapse }) => (
+                <div
+                  id="usecase-focus-systems"
+                  className={
+                    activeFocus === 'systems'
+                      ? focusHighlightClassName
+                      : undefined
+                  }
+                >
                   {systemSectionMode === 'multi' ? (
                     <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
                       <div className="space-y-1">
@@ -560,7 +419,7 @@ export default function UseCaseDetailPage() {
                         <div className="border-t border-slate-200 pt-6">
                           <UseCaseSystemsComplianceSection
                             card={card}
-                            isEditing={isEditing}
+                            isEditing={false}
                             onSave={handleSaveMetadata}
                             mode="multi"
                             layout="embedded"
@@ -579,7 +438,7 @@ export default function UseCaseDetailPage() {
                       />
                       <UseCaseSystemsComplianceSection
                         card={card}
-                        isEditing={isEditing}
+                        isEditing={false}
                         onSave={handleSaveMetadata}
                         mode="single"
                         headingOverride="Nachweisstand je System"
@@ -588,54 +447,33 @@ export default function UseCaseDetailPage() {
                       />
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
-        </div>
+                </div>
+              ),
+              formalReview: ({ onCollapse }) =>
+                readiness ? (
+                  <div
+                    id="usecase-focus-review"
+                    className={
+                      activeFocus === 'review'
+                        ? focusHighlightClassName
+                        : undefined
+                    }
+                  >
+                    <ReviewSection
+                      card={card}
+                      readiness={readiness}
+                      useCaseId={card.useCaseId}
+                      workspaceScope={workspaceScope}
+                      onStatusChange={handleStatusChange}
+                      onToggleDetails={onCollapse}
+                    />
+                  </div>
+                ) : null,
+            }}
+          />
+          </section>
+        ) : null}
 
-        <div
-          id="usecase-focus-review"
-          className={
-            activeFocus === 'review' ? focusHighlightClassName : undefined
-          }
-        >
-          {readiness?.phase === 'proof_ready' && !shouldShowCompletedDetails ? null : readiness ? (
-            reviewPresentation === 'upcoming' ? (
-              <BlockedStepShell
-                title="3. Formale Pruefung"
-                description="Letzter Baustein zur Nachweisfaehigkeit."
-                statusLabel="noch nicht verfuegbar"
-                hint={getReviewBlockedHint(readiness)}
-              />
-            ) : !isProofReadyDetailsMode && !isReviewExpanded ? (
-              <CompactStepShell
-                title="3. Formale Pruefung"
-                description="Letzter Baustein zur Nachweisfaehigkeit."
-                statusLabel={getStepPresentationLabel(reviewPresentation)}
-                hint={getReviewCompactHint(readiness)}
-                actionLabel={
-                  reviewPresentation === 'completed'
-                    ? 'Details ansehen'
-                    : 'Schritt oeffnen'
-                }
-                onOpen={() => setShowReviewSection(true)}
-              />
-            ) : (
-              <ReviewSection
-                card={card}
-                readiness={readiness}
-                useCaseId={card.useCaseId}
-                workspaceScope={workspaceScope}
-                onStatusChange={handleStatusChange}
-                onToggleDetails={
-                  canToggleReviewDetails
-                    ? () => setShowReviewSection(false)
-                    : null
-                }
-              />
-            )
-          ) : null}
-        </div>
         <div
           id="usecase-focus-metadata"
           className={
@@ -644,9 +482,10 @@ export default function UseCaseDetailPage() {
         >
           <UseCaseMetadataSection
             card={card}
-            isEditing={isEditing}
             onSave={handleSaveMetadata}
             focusTarget={activeFocus}
+            requestedEditField={requestedEditField}
+            onEditFieldConsumed={() => setRequestedEditField(null)}
             onOpenRiskReview={(context) => {
               setRiskReviewContext(context);
               setIsRiskReviewOpen(true);
@@ -676,80 +515,6 @@ export default function UseCaseDetailPage() {
         </div>
       </div>
     </SignedInAreaFrame>
-  );
-}
-
-function UseCaseEditContextBar({
-  purpose,
-  status,
-  systemsSummary,
-  visible,
-  onCancel,
-}: {
-  purpose: string;
-  status: RegisterUseCaseStatus;
-  systemsSummary: string;
-  visible: boolean;
-  onCancel: () => void;
-}) {
-  return (
-    <>
-      <div
-        className={cn(
-          'pointer-events-none fixed inset-x-0 top-16 z-40 hidden transition-all duration-150 md:block',
-          visible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0',
-        )}
-      >
-        <div className="mx-auto max-w-5xl px-4 md:px-8">
-          <div className="pointer-events-auto rounded-lg border border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/90">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-700">
-                    Bearbeitung aktiv
-                  </span>
-                  <RegisterStatusPill status={status} />
-                </div>
-                <p className="truncate text-sm font-medium text-slate-900">
-                  {purpose}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {systemsSummary}
-                </p>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-                  Abbrechen
-                </Button>
-                <Button type="submit" size="sm" form="use-case-metadata-form">
-                  Speichern
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur supports-[backdrop-filter]:bg-white/90 md:hidden">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
-              Bearbeitung aktiv
-            </p>
-            <p className="truncate text-sm font-medium text-slate-900">{purpose}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-              Abbrechen
-            </Button>
-            <Button type="submit" size="sm" form="use-case-metadata-form">
-              Speichern
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -787,143 +552,5 @@ function isServiceError(err: unknown, code: string): boolean {
     typeof err === 'object' &&
     'code' in err &&
     String((err as { code: unknown }).code) === code
-  );
-}
-
-type StepPresentation = 'active' | 'completed' | 'upcoming';
-
-function resolveStepPresentation(
-  readiness: UseCaseReadinessResult,
-  stepKey: UseCaseReadinessResult['steps'][number]['key'],
-): StepPresentation {
-  const step = readiness.steps.find((candidate) => candidate.key === stepKey);
-  if (!step) {
-    return 'upcoming';
-  }
-
-  if (step.complete) {
-    return 'completed';
-  }
-
-  if (readiness.nextStep?.key === step.key) {
-    return 'active';
-  }
-
-  return 'upcoming';
-}
-
-function getStepPresentationLabel(presentation: StepPresentation): string {
-  if (presentation === 'completed') return 'abgeschlossen';
-  if (presentation === 'active') return 'aktiv';
-  return 'noch nicht verfuegbar';
-}
-
-function getGovernanceCompactHint(readiness: UseCaseReadinessResult): string {
-  void readiness;
-  return 'Bei Bedarf einsehbar.';
-}
-
-function getSystemsCompactHint(readiness: UseCaseReadinessResult): string {
-  if (readiness.nextStep?.key === 'groundProofs') {
-    return 'Wird aktiv, sobald Schritt 1 abgeschlossen ist.';
-  }
-
-  if (readiness.phase === 'proof_ready') {
-    return 'Bei Bedarf einsehbar.';
-  }
-
-  return 'Schritt 3 ist jetzt verfuegbar.';
-}
-
-function getReviewCompactHint(readiness: UseCaseReadinessResult): string {
-  if (readiness.phase === 'proof_ready') {
-    return 'Bei Bedarf neu bewertbar.';
-  }
-
-  return 'Jetzt verfuegbar.';
-}
-
-function getReviewBlockedHint(readiness: UseCaseReadinessResult): string {
-  if (readiness.nextStep?.key === 'groundProofs') {
-    return 'Voraussetzung: zuerst Grundnachweise und danach Systemnachweis abschliessen.';
-  }
-
-  if (readiness.nextStep?.key === 'systemEvidence') {
-    return 'Voraussetzung: Systemnachweis abschliessen.';
-  }
-
-  return 'Dieser Schritt wird verfuegbar, sobald die fehlenden Nachweise abgeschlossen sind.';
-}
-
-function CompactStepShell({
-  title,
-  description,
-  statusLabel,
-  hint,
-  actionLabel,
-  onOpen,
-}: {
-  title: string;
-  description: string;
-  statusLabel: string;
-  hint: string;
-  actionLabel: string;
-  onOpen: () => void;
-}) {
-  return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <span className="inline-block h-2.5 w-2.5 rounded-full border border-slate-300 bg-white" />
-            <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
-          </div>
-          <p className="text-sm text-muted-foreground">{description}</p>
-          <p className="text-sm leading-6 text-slate-600">{hint}</p>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-          <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-            {statusLabel}
-          </p>
-          <Button size="sm" variant="outline" onClick={onOpen}>
-            {actionLabel}
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function BlockedStepShell({
-  title,
-  description,
-  statusLabel,
-  hint,
-}: {
-  title: string;
-  description: string;
-  statusLabel: string;
-  hint: string;
-}) {
-  return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <span className="inline-block h-2.5 w-2.5 rounded-full border border-slate-300 bg-white" />
-            <h2 className="text-[18px] font-semibold tracking-tight">{title}</h2>
-          </div>
-          <p className="text-sm text-muted-foreground">{description}</p>
-          <p className="text-sm leading-6 text-slate-600">{hint}</p>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-start gap-2 md:items-end">
-          <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-            {statusLabel}
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
