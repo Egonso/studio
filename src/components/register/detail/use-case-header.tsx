@@ -234,10 +234,7 @@ export function UseCaseHeader({
         </div>
       )}
       <div
-        className={cn(
-          "space-y-6",
-          isProofReady && "border-l-2 border-emerald-300 pl-4"
-        )}
+        className="space-y-6"
       >
         <div className="flex items-center gap-2">
           <Button

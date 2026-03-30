@@ -175,10 +175,16 @@ export default function UseCasePassPage() {
                     </div>
                     <div className="text-right">
                         <Image src="/register-logo.png" alt="AI Governance Register" width={120} height={40} className="h-10 w-auto ml-auto mb-3" />
-                        <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            <span>Dokumentiert & Registriert</span>
-                        </div>
+                        {useCase.status === "PROOF_READY" ? (
+                            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                <span>Dokumentiert & Registriert</span>
+                            </div>
+                        ) : (
+                            <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                                <span>Registerauszug</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
