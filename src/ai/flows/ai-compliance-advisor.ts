@@ -64,8 +64,17 @@ const complianceAdvisorFlow = ai.defineFlow(
     outputSchema: AiComplianceAdvisorOutputSchema,
   },
   async input => {
+    const isOverLimit = await isUserOverTokenLimit();
+    if (isOverLimit) {
+      throw new Error('Monthly token limit exceeded. Please upgrade your plan.');
+    }
+
     const result = await prompt(input);
-    // TODO: Re-implement token counting on the server-side
+
+    if (result.usage?.totalTokens) {
+      await updateTokenUsage(result.usage.totalTokens);
+    }
+
     return result.output!;
   }
 );
