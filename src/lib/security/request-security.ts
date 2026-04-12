@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { logWarn } from '@/lib/observability/logger';
+import { safeIdentifierSchema } from '@/lib/security/safe-schemas';
 import {
   checkPublicRateLimit,
   type PublicRateLimitDecision,
@@ -105,12 +106,7 @@ export function safeOptionalPlainTextSchema(
     .optional();
 }
 
-export const safeIdentifierSchema = z
-  .string()
-  .trim()
-  .min(1, 'Kennung ist erforderlich.')
-  .max(128, 'Kennung ist zu lang.')
-  .regex(/^[A-Za-z0-9][A-Za-z0-9_.:-]*$/, 'Kennung ist ungültig.');
+export { safeIdentifierSchema };
 
 export function safeHttpsUrlSchema(label: string) {
   return z
