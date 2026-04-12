@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
+  parseCheckoutRequestBody,
+  type CheckoutRequestBody,
+} from '@/lib/billing/checkout-request';
+import {
   buildBillingCancelUrl,
   buildBillingReturnUrl,
   createStripeServerClient,
@@ -33,20 +37,8 @@ import {
 import {
   buildRateLimitKey,
   enforceRequestRateLimit,
-  safeIdentifierSchema,
 } from '@/lib/security/request-security';
 import { listWorkspaceMembers } from '@/lib/workspace-admin';
-
-const CheckoutRequestSchema = z
-  .object({
-    targetPlan: z.enum(['pro', 'enterprise']).optional(),
-    registerId: safeIdentifierSchema.optional(),
-    workspaceId: safeIdentifierSchema.optional(),
-    billingInterval: z.enum(['month', 'year']).optional(),
-  })
-  .strict();
-
-type CheckoutRequestBody = z.infer<typeof CheckoutRequestSchema>;
 
 function resolveTargetPlan(input: string | null | undefined): StripeBillingPlan {
   return input === 'enterprise' ? 'enterprise' : 'pro';
@@ -262,7 +254,7 @@ export async function POST(request: NextRequest) {
   try {
     const decoded = await requireUser(request.headers.get('authorization'));
     const authorizationHeader = request.headers.get('authorization');
-    const body: CheckoutRequestBody = CheckoutRequestSchema.parse(
+    const body: CheckoutRequestBody = parseCheckoutRequestBody(
       await request.json().catch(() => ({})),
     );
     const targetPlan = resolveTargetPlan(body.targetPlan);
