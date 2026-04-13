@@ -124,9 +124,12 @@ export function AffiliateSettingsSection() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const [connectError, setConnectError] = useState<string | null>(null);
+
   const handleConnectStripe = async () => {
     if (!user) return;
     setConnectLoading(true);
+    setConnectError(null);
     try {
       const idToken = await user.getIdToken();
       const res = await fetch('/api/affiliate/connect/create', {
@@ -137,11 +140,16 @@ export function AffiliateSettingsSection() {
         },
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      if (!res.ok || !data.url) {
+        setConnectError(
+          data.error || 'Stripe-Verbindung konnte nicht hergestellt werden. Bitte versuche es erneut.',
+        );
+        return;
       }
+      window.location.href = data.url;
     } catch (error) {
       console.error('Failed to create Connect account:', error);
+      setConnectError('Netzwerkfehler beim Verbinden mit Stripe.');
     } finally {
       setConnectLoading(false);
     }
@@ -239,7 +247,10 @@ export function AffiliateSettingsSection() {
                   ? 'Onboarding fortsetzen'
                   : 'Stripe-Konto verbinden'}
               </Button>
-              {!affiliate.stripeConnectAccountId && (
+              {connectError && (
+                <p className="text-sm text-red-600">{connectError}</p>
+              )}
+              {!affiliate.stripeConnectAccountId && !connectError && (
                 <p className="text-xs text-muted-foreground">
                   Provisionen werden gesammelt und ausgezahlt, sobald dein Stripe-Konto verbunden ist.
                 </p>

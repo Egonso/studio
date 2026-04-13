@@ -57,11 +57,24 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ url: accountLink.url });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Stripe Connect create error:', error);
+
+    // Surface a human-readable reason
+    const msg =
+      error instanceof Error ? error.message : 'Unknown error';
+    const isAuthError =
+      msg.includes('Authentication') ||
+      msg.includes('Session expired') ||
+      msg.includes('email');
+
     return NextResponse.json(
-      { error: 'Failed to create Stripe Connect account' },
-      { status: 500 },
+      {
+        error: isAuthError
+          ? 'Authentifizierung fehlgeschlagen. Bitte erneut einloggen.'
+          : `Stripe Connect Fehler: ${msg}`,
+      },
+      { status: isAuthError ? 401 : 500 },
     );
   }
 }
