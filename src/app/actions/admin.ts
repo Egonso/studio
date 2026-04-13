@@ -14,6 +14,16 @@ import {
   updateCertificationSettings,
   updateCertificateByAdmin,
 } from '@/lib/certification/server';
+import {
+  createAffiliate as createAffiliateRecord,
+  forceResetAllOverrides,
+  getGlobalSettings as getAffiliateGlobalSettingsData,
+  listAffiliates as listAffiliatesData,
+  listCommissionsForAffiliate,
+  saveGlobalSettings as saveAffiliateGlobalSettingsData,
+  updateAffiliate as updateAffiliateRecord,
+} from '@/lib/affiliate/server';
+import type { AffiliateGlobalSettings, AffiliateRecord, AffiliateCommission } from '@/lib/affiliate/types';
 import { requireAdmin } from '@/lib/server-auth';
 
 function canLoadAdminData(): boolean {
@@ -257,4 +267,85 @@ export async function saveCertificationSettings(
     documentTemplateId: input.documentTemplateId ?? undefined,
     badgeAssetUrl: input.badgeAssetUrl ?? undefined,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Affiliate management
+// ---------------------------------------------------------------------------
+
+export async function getAffiliateAdminData(
+  idToken: string,
+): Promise<{ affiliates: AffiliateRecord[] }> {
+  await verifyAdmin(idToken);
+  if (!canLoadAdminData()) return { affiliates: [] };
+  const affiliates = await listAffiliatesData();
+  return { affiliates };
+}
+
+export async function getAffiliateGlobalSettings(
+  idToken: string,
+): Promise<AffiliateGlobalSettings> {
+  await verifyAdmin(idToken);
+  return getAffiliateGlobalSettingsData();
+}
+
+export async function saveAffiliateGlobalSettings(
+  idToken: string,
+  settings: {
+    defaultCommissionBoostRate: number;
+    defaultCommissionOngoingRate: number;
+    defaultBoostPeriodMonths: number;
+    defaultAttributionWindowMonths: number;
+  },
+) {
+  const actor = await verifyAdmin(idToken);
+  await saveAffiliateGlobalSettingsData({
+    ...settings,
+    updatedBy: actor.email ?? 'unknown',
+  });
+}
+
+export async function createAffiliate(
+  idToken: string,
+  input: { email: string; slug: string },
+): Promise<AffiliateRecord> {
+  const actor = await verifyAdmin(idToken);
+  return createAffiliateRecord({
+    email: input.email,
+    slug: input.slug,
+    createdBy: actor.email ?? 'unknown',
+  });
+}
+
+export async function updateAffiliate(
+  idToken: string,
+  input: {
+    email: string;
+    slug?: string;
+    active?: boolean;
+    commissionBoostRate?: number | null;
+    commissionOngoingRate?: number | null;
+    boostPeriodMonths?: number | null;
+    attributionWindowMonths?: number | null;
+  },
+) {
+  await verifyAdmin(idToken);
+  const { email, ...updates } = input;
+  await updateAffiliateRecord(email, updates);
+}
+
+export async function getAffiliateCommissions(
+  idToken: string,
+  affiliateEmail: string,
+): Promise<AffiliateCommission[]> {
+  await verifyAdmin(idToken);
+  return listCommissionsForAffiliate(affiliateEmail);
+}
+
+export async function forceResetAllAffiliatesToDefaults(
+  idToken: string,
+): Promise<{ resetCount: number }> {
+  await verifyAdmin(idToken);
+  const resetCount = await forceResetAllOverrides();
+  return { resetCount };
 }

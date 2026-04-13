@@ -15,6 +15,7 @@ import {
   setCustomerEntitlementStatus,
   upsertCustomerEntitlement,
 } from './product-entitlement-sync';
+import { processAffiliateCommission } from './affiliate-commission';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -250,6 +251,21 @@ export const stripeWebhook = onRequest(
           console.log(
             `Updated ${email} in both 'customers' (Studio) and 'allowlist' (Compass)`,
           );
+
+          // Affiliate commission processing
+          await processAffiliateCommission(db, stripe, {
+            email,
+            grossAmount: session.amount_total ?? 0,
+            currency: session.currency || 'eur',
+            stripeEventId: event.id,
+            stripeEventType: event.type,
+            checkoutSessionId: session.id,
+            invoiceId: null,
+            subscriptionId:
+              typeof session.subscription === 'string'
+                ? session.subscription
+                : null,
+          });
         }
       }
 
@@ -346,6 +362,21 @@ export const stripeWebhook = onRequest(
           }
 
           console.log(`Added ${email} to allowlist from Stripe subscription`);
+
+          // Affiliate commission processing
+          await processAffiliateCommission(db, stripe, {
+            email,
+            grossAmount: invoice.amount_paid ?? 0,
+            currency: (invoice.currency as string) || 'eur',
+            stripeEventId: event.id,
+            stripeEventType: event.type,
+            checkoutSessionId: null,
+            invoiceId: invoice.id,
+            subscriptionId:
+              typeof invoice.subscription === 'string'
+                ? invoice.subscription
+                : null,
+          });
         }
       }
 

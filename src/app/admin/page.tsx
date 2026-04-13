@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail, Bot } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail, Bot, Link2 } from "lucide-react";
 import {
     getAdminStats,
     getCertificationCertificateDetail,
@@ -22,8 +22,17 @@ import {
     saveCertificationSettings,
     updateCertificationCertificate,
     updateFeedbackStatus,
+    getAffiliateAdminData,
+    getAffiliateGlobalSettings,
+    saveAffiliateGlobalSettings,
+    createAffiliate,
+    updateAffiliate,
+    getAffiliateCommissions,
+    forceResetAllAffiliatesToDefaults,
 } from "@/app/actions/admin";
 import { CertificationAdminPanel } from "@/components/admin/certification-admin-panel";
+import { AffiliateAdminPanel } from "@/components/admin/affiliate-admin-panel";
+import type { AffiliateGlobalSettings as AffiliateGlobalSettingsType, AffiliateRecord } from "@/lib/affiliate/types";
 import { isAdminEmail } from "@/lib/admin-config";
 import type { AdminCertificationOverview } from "@/lib/certification/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -43,6 +52,8 @@ export default function AdminPage() {
     const [feedback, setFeedback] = useState<any[]>([]);
     const [usersList, setUsersList] = useState<any[]>([]);
     const [certificationOverview, setCertificationOverview] = useState<AdminCertificationOverview | null>(null);
+    const [affiliateList, setAffiliateList] = useState<AffiliateRecord[]>([]);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateGlobalSettingsType | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [billingRepairState, setBillingRepairState] = useState<{
         email: string;
@@ -77,17 +88,21 @@ export default function AdminPage() {
         setIsLoadingData(true);
         try {
             const idToken = await getAdminIdToken();
-            const [statsData, feedbackData, usersData, certificationData] = await Promise.all([
+            const [statsData, feedbackData, usersData, certificationData, affiliateData, affiliateSettingsData] = await Promise.all([
                 getAdminStats(idToken),
                 getFeedbackList(idToken, feedbackFilter),
                 getPlatformUsers(idToken, 50),
                 getCertificationAdminData(idToken),
+                getAffiliateAdminData(idToken),
+                getAffiliateGlobalSettings(idToken),
             ]);
 
             setStats(statsData);
             setFeedback(feedbackData);
             setUsersList(usersData);
             setCertificationOverview(certificationData);
+            setAffiliateList(affiliateData.affiliates);
+            setAffiliateSettings(affiliateSettingsData);
         } catch (error) {
             console.error("Failed to load admin data", error);
         } finally {
@@ -373,6 +388,10 @@ export default function AdminPage() {
                         <TabsTrigger value="feedback">Feedback Inbox</TabsTrigger>
                         <TabsTrigger value="users">User Management</TabsTrigger>
                         <TabsTrigger value="features">Feature-Radar</TabsTrigger>
+                        <TabsTrigger value="affiliates" className="gap-1.5">
+                            <Link2 className="h-4 w-4" />
+                            Affiliates
+                        </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="certification" className="space-y-4">
@@ -609,6 +628,39 @@ export default function AdminPage() {
                                 )}
                             </CardContent>
                         </Card>
+                    </TabsContent>
+
+                    <TabsContent value="affiliates" className="space-y-4">
+                        <AffiliateAdminPanel
+                            affiliates={affiliateList}
+                            globalSettings={affiliateSettings}
+                            usersList={usersList.map((u: { email?: string; displayName?: string | null }) => ({
+                                email: u.email ?? '',
+                                displayName: u.displayName ?? null,
+                            }))}
+                            loading={isLoadingData}
+                            onRefresh={fetchData}
+                            onSaveGlobalSettings={async (settings) => {
+                                const idToken = await getAdminIdToken();
+                                await saveAffiliateGlobalSettings(idToken, settings);
+                            }}
+                            onCreate={async (input) => {
+                                const idToken = await getAdminIdToken();
+                                await createAffiliate(idToken, input);
+                            }}
+                            onUpdate={async (input) => {
+                                const idToken = await getAdminIdToken();
+                                await updateAffiliate(idToken, input);
+                            }}
+                            onLoadCommissions={async (email) => {
+                                const idToken = await getAdminIdToken();
+                                return getAffiliateCommissions(idToken, email);
+                            }}
+                            onForceResetAll={async () => {
+                                const idToken = await getAdminIdToken();
+                                return forceResetAllAffiliatesToDefaults(idToken);
+                            }}
+                        />
                     </TabsContent>
                 </Tabs>
             </main>

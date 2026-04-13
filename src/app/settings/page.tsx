@@ -2,19 +2,24 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Settings, Shield } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Loader2, Link2, Settings, Shield } from 'lucide-react';
 
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
+import { AffiliateSettingsSection } from '@/components/settings/affiliate-settings-section';
 import { GovernanceSettingsSection } from '@/components/settings/governance-settings-section';
 import { SignedInAreaFrame } from '@/components/product-shells';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
+import { getAffiliateProfile } from '@/app/actions/affiliate';
 
-type SettingsSection = 'account' | 'governance';
+type SettingsSection = 'account' | 'governance' | 'affiliate';
 
 function resolveSection(section: string | null | undefined): SettingsSection {
-  return section === 'governance' ? 'governance' : 'account';
+  if (section === 'governance') return 'governance';
+  if (section === 'affiliate') return 'affiliate';
+  return 'account';
 }
 
 export default function SettingsPage() {
@@ -23,6 +28,22 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
 
   const activeSection = resolveSection(searchParams.get('section'));
+  const [isAffiliate, setIsAffiliate] = useState(false);
+
+  const checkAffiliateStatus = useCallback(async () => {
+    if (!user) return;
+    try {
+      const idToken = await user.getIdToken();
+      const profile = await getAffiliateProfile(idToken);
+      setIsAffiliate(profile.isAffiliate);
+    } catch {
+      setIsAffiliate(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void checkAffiliateStatus();
+  }, [checkAffiliateStatus]);
 
   if (loading) {
     return (
@@ -47,12 +68,13 @@ export default function SettingsPage() {
 
   const handleSectionChange = (section: string) => {
     const nextSection = resolveSection(section);
-    router.replace(
-      nextSection === 'governance'
-        ? ROUTE_HREFS.governanceSettings
-        : ROUTE_HREFS.settings,
-      { scroll: false },
-    );
+    if (nextSection === 'governance') {
+      router.replace(ROUTE_HREFS.governanceSettings, { scroll: false });
+    } else if (nextSection === 'affiliate') {
+      router.replace('/settings?section=affiliate', { scroll: false });
+    } else {
+      router.replace(ROUTE_HREFS.settings, { scroll: false });
+    }
   };
 
   return (
@@ -94,7 +116,7 @@ export default function SettingsPage() {
         </div>
 
         <Tabs value={activeSection} onValueChange={handleSectionChange}>
-          <TabsList className="grid h-auto w-full max-w-xl grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
+          <TabsList className={`grid h-auto w-full max-w-xl gap-2 rounded-lg bg-slate-100 p-1 ${isAffiliate ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger
               value="account"
               className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm"
@@ -109,6 +131,15 @@ export default function SettingsPage() {
               <Shield className="h-4 w-4" />
               Governance
             </TabsTrigger>
+            {isAffiliate && (
+              <TabsTrigger
+                value="affiliate"
+                className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm"
+              >
+                <Link2 className="h-4 w-4" />
+                Affiliate
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="account" className="mt-6">
@@ -118,6 +149,12 @@ export default function SettingsPage() {
           <TabsContent value="governance" className="mt-6">
             <GovernanceSettingsSection />
           </TabsContent>
+
+          {isAffiliate && (
+            <TabsContent value="affiliate" className="mt-6">
+              <AffiliateSettingsSection />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </SignedInAreaFrame>

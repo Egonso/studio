@@ -415,6 +415,14 @@ export async function authenticateWithEmailPassword(input: {
 
     await acceptWorkspaceInvites(auth, email, input.context.workspaceInvite);
 
+    // Affiliate attribution: if cookie is set, create referral record
+    void attributeAffiliateSignup(auth).catch((err) => {
+      logWarn('auth_entry_affiliate_attribution_failed', {
+        email,
+        errorCode: getErrorCode(err),
+      });
+    });
+
     const syncResult =
       (await syncRegisterEntitlement({
         sessionId: input.context.sessionId ?? undefined,
@@ -634,6 +642,40 @@ export async function completeRegisterSetup(input: {
     registerId: targetRegister.registerId,
     syncedPlan: syncResult?.plan ?? null,
   };
+}
+
+async function attributeAffiliateSignup(auth: Auth): Promise<void> {
+  const cookieMatch = document.cookie
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith('kiregister_ref='));
+
+  if (!cookieMatch) return;
+
+  const slug = cookieMatch.split('=')[1];
+  if (!slug) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const idToken = await user.getIdToken();
+  const response = await fetch('/api/affiliate/attribute-signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${idToken}`,
+    },
+    body: JSON.stringify({ slug }),
+  });
+
+  if (response.ok) {
+    // Fire-and-forget click tracking for the initial referral visit
+    void fetch('/api/affiliate/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug }),
+    }).catch(() => {});
+  }
 }
 
 export function buildAuthDiagnostics(input: {

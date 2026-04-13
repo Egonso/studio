@@ -447,5 +447,33 @@ service cloud.firestore {
         allow read, write: if false;
       }
     }
+
+    // -----------------------------------------------------------------------
+    // Affiliate system
+    // -----------------------------------------------------------------------
+
+    match /affiliateSettings/{docId} {
+      allow read, write: if false;
+    }
+
+    match /affiliates/{email} {
+      allow read: if isSignedIn() &&
+        request.auth.token.email.lower() == email;
+      allow write: if false;
+    }
+
+    match /affiliateReferrals/{referralId} {
+      allow read, write: if false;
+    }
+
+    match /affiliateCommissions/{commissionId} {
+      allow read: if isSignedIn() &&
+        resource.data.affiliateEmail == request.auth.token.email.lower();
+      allow write: if false;
+    }
+
+    match /affiliateClicks/{clickId} {
+      allow read, write: if false;
+    }
   }
 }

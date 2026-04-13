@@ -31,6 +31,20 @@ export function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.redirect(redirectUrl, 308));
   }
 
+  // Affiliate link: /ref/{slug} → set cookie and redirect to home
+  const refMatch = request.nextUrl.pathname.match(/^\/ref\/([a-z0-9_-]+)$/i);
+  if (refMatch) {
+    const slug = refMatch[1];
+    const response = NextResponse.redirect(new URL('/', request.url));
+    response.cookies.set('kiregister_ref', slug, {
+      maxAge: 90 * 24 * 60 * 60, // 90 days
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+    return applySecurityHeaders(response);
+  }
+
   return applySecurityHeaders(NextResponse.next());
 }
 
