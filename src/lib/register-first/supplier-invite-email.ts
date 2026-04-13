@@ -1,10 +1,8 @@
 import '@/lib/server-only-guard';
 
-import * as sgMail from '@sendgrid/mail';
-
 import { logInfo } from '@/lib/observability/logger';
 
-let configuredApiKey: string | null = null;
+const EMAILIT_API_BASE_URL = 'https://api.emailit.com/v2';
 
 function requireEnv(key: string): string {
   const value = process.env[key]?.trim();
@@ -14,18 +12,12 @@ function requireEnv(key: string): string {
   return value;
 }
 
-function ensureSendGridConfigured(): void {
-  const apiKey = requireEnv('SENDGRID_API_KEY');
-  if (configuredApiKey === apiKey) {
-    return;
-  }
-
-  sgMail.setApiKey(apiKey);
-  configuredApiKey = apiKey;
+function resolveEmailitApiKey(): string {
+  return requireEnv('EMAILIT_API_KEY');
 }
 
 function resolveSenderEmail(): string {
-  return requireEnv('SENDGRID_FROM_EMAIL');
+  return requireEnv('EMAILIT_FROM_EMAIL');
 }
 
 function formatExpiry(value: string): string {
@@ -41,6 +33,67 @@ function formatExpiry(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+async function extractErrorMessage(response: Response): Promise<string> {
+  try {
+    const data = (await response.json()) as
+      | { error?: string; message?: string }
+      | { errors?: Array<{ message?: string }> };
+
+    if ('error' in data && typeof data.error === 'string' && data.error.trim()) {
+      return data.error;
+    }
+
+    if ('message' in data && typeof data.message === 'string' && data.message.trim()) {
+      return data.message;
+    }
+
+    if (
+      'errors' in data &&
+      Array.isArray(data.errors) &&
+      typeof data.errors[0]?.message === 'string' &&
+      data.errors[0].message.trim()
+    ) {
+      return data.errors[0].message;
+    }
+  } catch {
+    // Fall back to status text below.
+  }
+
+  return response.statusText || `HTTP ${response.status}`;
+}
+
+async function sendEmailitTemplateEmail(input: {
+  to: string | string[];
+  template: string;
+  variables: Record<string, unknown>;
+  replyTo?: string | string[];
+  meta?: Record<string, string>;
+  idempotencyKey: string;
+}): Promise<void> {
+  const response = await fetch(`${EMAILIT_API_BASE_URL}/emails`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resolveEmailitApiKey()}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': input.idempotencyKey,
+    },
+    body: JSON.stringify({
+      from: resolveSenderEmail(),
+      to: input.to,
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+      template: input.template,
+      variables: input.variables,
+      meta: input.meta,
+      tracking: false,
+    }),
+  });
+
+  if (!response.ok) {
+    const message = await extractErrorMessage(response);
+    throw new Error(`Emailit send failed (${response.status}): ${message}`);
+  }
 }
 
 export interface SendSupplierInviteEmailInput {
@@ -59,14 +112,12 @@ export interface SendSupplierInviteEmailInput {
 export async function sendSupplierInviteEmail(
   input: SendSupplierInviteEmailInput,
 ): Promise<void> {
-  ensureSendGridConfigured();
-
-  await sgMail.send({
+  await sendEmailitTemplateEmail({
     to: input.to,
-    from: resolveSenderEmail(),
     replyTo: input.senderEmail ?? undefined,
-    templateId: requireEnv('SENDGRID_SUPPLIER_INVITE_TEMPLATE_ID'),
-    dynamicTemplateData: {
+    template: requireEnv('EMAILIT_SUPPLIER_INVITE_TEMPLATE'),
+    idempotencyKey: `supplier-invite-${input.inviteId}`,
+    variables: {
       organisationName: input.organisationName,
       requesterEmail: input.senderEmail ?? '',
       supplierOrganisationHint: input.supplierOrganisationHint ?? '',
@@ -75,6 +126,10 @@ export async function sendSupplierInviteEmail(
       publicUrl: input.publicUrl,
       expiresAt: input.expiresAt,
       expiresAtFormatted: formatExpiry(input.expiresAt),
+    },
+    meta: {
+      inviteId: input.inviteId,
+      registerId: input.registerId,
     },
   });
 
@@ -96,16 +151,18 @@ export interface SendSupplierOtpEmailInput {
 export async function sendSupplierOtpEmail(
   input: SendSupplierOtpEmailInput,
 ): Promise<void> {
-  ensureSendGridConfigured();
-
-  await sgMail.send({
+  await sendEmailitTemplateEmail({
     to: input.to,
-    from: resolveSenderEmail(),
-    templateId: requireEnv('SENDGRID_SUPPLIER_OTP_TEMPLATE_ID'),
-    dynamicTemplateData: {
+    template: requireEnv('EMAILIT_SUPPLIER_OTP_TEMPLATE'),
+    idempotencyKey: `supplier-otp-${input.challengeId}`,
+    variables: {
       organisationName: input.organisationName,
       otpCode: input.otpCode,
       expiresInMinutes: input.expiresInMinutes,
+    },
+    meta: {
+      inviteId: input.inviteId,
+      challengeId: input.challengeId,
     },
   });
 
@@ -135,13 +192,11 @@ export interface SendSupplierSubmissionConfirmationEmailInput {
 export async function sendSupplierSubmissionConfirmationEmail(
   input: SendSupplierSubmissionConfirmationEmailInput,
 ): Promise<void> {
-  ensureSendGridConfigured();
-
-  await sgMail.send({
+  await sendEmailitTemplateEmail({
     to: input.to,
-    from: resolveSenderEmail(),
-    templateId: requireEnv('SENDGRID_SUPPLIER_CONFIRMATION_TEMPLATE_ID'),
-    dynamicTemplateData: {
+    template: requireEnv('EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE'),
+    idempotencyKey: `supplier-confirmation-${input.submissionId}`,
+    variables: {
       organisationName: input.organisationName,
       supplierOrganisation: input.supplierOrganisation ?? '',
       verifiedEmail: input.verifiedEmail,
@@ -155,6 +210,11 @@ export async function sendSupplierSubmissionConfirmationEmail(
       nextStepTitle: input.nextStepTitle,
       nextStepDescription: input.nextStepDescription,
       setupUrl: input.setupUrl ?? '',
+    },
+    meta: {
+      inviteId: input.inviteId,
+      submissionId: input.submissionId,
+      registerId: input.registerId,
     },
   });
 

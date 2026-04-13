@@ -1,35 +1,24 @@
 import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
-import * as sgMail from '@sendgrid/mail';
-
-function getFunctionsConfig() {
-  return functions.config?.() as {
-    sendgrid?: {
-      api_key?: string;
-      welcome_template_id?: string;
-      from_email?: string;
-    };
-  };
-}
-
-function resolveSendGridApiKey(): string | null {
-  const fromEnv = process.env.SENDGRID_API_KEY;
-  if (fromEnv) return fromEnv;
-  return getFunctionsConfig().sendgrid?.api_key || null;
-}
+import {
+  resolveFunctionsEmailitApiKey,
+  resolveFunctionsEmailitFromEmail,
+  resolveFunctionsEmailitTemplate,
+  sendEmailitTemplateEmail,
+} from './emailit';
 
 function resolveTemplateId(): string {
   return (
-    process.env.SENDGRID_WELCOME_TEMPLATE_ID ||
-    getFunctionsConfig().sendgrid?.welcome_template_id ||
-    'd-31f1e6dcfac74aa7bcb399622afce289'
+    resolveFunctionsEmailitTemplate(
+      'EMAILIT_WELCOME_TEMPLATE',
+      'welcome_template',
+    ) || 'welcome'
   );
 }
 
 function resolveSenderEmail(): string {
   return (
-    process.env.SENDGRID_FROM_EMAIL ||
-    getFunctionsConfig().sendgrid?.from_email ||
+    resolveFunctionsEmailitFromEmail() ||
     'ki-eu-akt@momofeichtinger.com'
   );
 }
@@ -38,13 +27,11 @@ export const sendWelcomeEmailOnPurchase = functions.firestore
   .document('stripe_events/{eventId}')
   .onCreate(async (snap) => {
     try {
-      const sendGridApiKey = resolveSendGridApiKey();
-      if (!sendGridApiKey) {
-        console.error('SENDGRID_API_KEY is not configured');
+      const emailitApiKey = resolveFunctionsEmailitApiKey();
+      if (!emailitApiKey) {
+        console.error('EMAILIT_API_KEY is not configured');
         return null;
       }
-
-      sgMail.setApiKey(sendGridApiKey);
       const eventData = snap.data();
 
       // Check if this is a successful checkout event
@@ -67,24 +54,26 @@ export const sendWelcomeEmailOnPurchase = functions.firestore
 
       console.log(`Sending welcome email to: ${customerEmail}`);
 
-      // Prepare email data for SendGrid template
-      const emailData = {
+      await sendEmailitTemplateEmail({
+        apiKey: emailitApiKey,
         to: customerEmail,
         from: resolveSenderEmail(),
-        templateId: resolveTemplateId(),
-        dynamicTemplateData: {
+        template: resolveTemplateId(),
+        idempotencyKey: `welcome-email-${snap.id}`,
+        variables: {
           customerName: customerName,
           customerEmail: customerEmail,
           companyName: companyName,
           loginUrl: 'https://fortbildung.eukigesetz.com/login',
           supportEmail: 'KI-EU-Akt@momofeichtinger.com',
           amount: (amount / 100).toFixed(2), // Convert cents to euros
-          currency: currency.toUpperCase()
-        }
-      };
-
-      // Send the email
-      await sgMail.send(emailData);
+          currency: currency.toUpperCase(),
+        },
+        meta: {
+          customerEmail,
+          eventId: snap.id,
+        },
+      });
 
       console.log(`Welcome email sent successfully to ${customerEmail}`);
 

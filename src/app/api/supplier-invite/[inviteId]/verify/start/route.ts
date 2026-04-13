@@ -116,7 +116,7 @@ export async function POST(
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'production') {
-        logWarn('supplier_invite_otp_sendgrid_fallback', {
+        logWarn('supplier_invite_otp_email_fallback', {
           inviteId,
           challengeId: challenge.challengeId,
           reason: error instanceof Error ? error.message : 'unknown',

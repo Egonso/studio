@@ -3,10 +3,29 @@ import {
   createHash,
   createHmac,
 } from 'node:crypto';
+import * as functions from 'firebase-functions/v1';
 
 const DEFAULT_APP_ORIGIN = 'https://kiregister.com';
 const ENCRYPTION_VERSION = 'v1';
 const OPT_OUT_TOKEN_TTL_MS = 120 * 24 * 60 * 60 * 1000;
+
+function parseTrimmed(value: string | undefined | null): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
+
+function getFunctionsConfig() {
+  return functions.config?.() as {
+    app?: {
+      public_origin?: string;
+    };
+    supplier?: {
+      session_secret?: string;
+      session_secret_previous?: string;
+      app_origin?: string;
+    };
+  };
+}
 
 function normalizeOrigin(value: string | undefined): string | null {
   if (!value) return null;
@@ -29,12 +48,16 @@ function getPublicAppOrigin(): string {
   return (
     normalizeOrigin(process.env.NEXT_PUBLIC_APP_ORIGIN) ??
     normalizeOrigin(process.env.NEXT_PUBLIC_APP_BASE_URL) ??
+    normalizeOrigin(getFunctionsConfig().app?.public_origin) ??
+    normalizeOrigin(getFunctionsConfig().supplier?.app_origin) ??
     DEFAULT_APP_ORIGIN
   );
 }
 
 function getCurrentSecret(): string {
-  const secret = process.env.SUPPLIER_SESSION_SECRET?.trim();
+  const secret =
+    parseTrimmed(process.env.SUPPLIER_SESSION_SECRET) ??
+    parseTrimmed(getFunctionsConfig().supplier?.session_secret);
   if (!secret) {
     throw new Error(
       'SUPPLIER_SESSION_SECRET is not configured. Cannot manage supplier delivery data.',
@@ -44,7 +67,11 @@ function getCurrentSecret(): string {
 }
 
 function getPreviousSecret(): string | null {
-  return process.env.SUPPLIER_SESSION_SECRET_PREVIOUS?.trim() || null;
+  return (
+    parseTrimmed(process.env.SUPPLIER_SESSION_SECRET_PREVIOUS) ??
+    parseTrimmed(getFunctionsConfig().supplier?.session_secret_previous) ??
+    null
+  );
 }
 
 function deriveKey(secret: string): Buffer {

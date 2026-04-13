@@ -1,12 +1,16 @@
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions/v1';
-import * as sgMail from '@sendgrid/mail';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
 import {
   createSupplierReminderOptOutUrl,
   decryptSupplierInviteAccessUrl,
 } from './supplierInviteDelivery';
+import {
+  resolveFunctionsEmailitApiKey,
+  resolveFunctionsEmailitFromEmail,
+  resolveFunctionsEmailitTemplate,
+  sendEmailitTemplateEmail,
+} from './emailit';
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
 const DEFAULT_MAX_REMINDERS = 2;
@@ -31,33 +35,10 @@ interface SupplierInviteRecord {
   maxReminders?: number;
 }
 
-function getFunctionsConfig() {
-  return functions.config?.() as {
-    sendgrid?: {
-      api_key?: string;
-      reminder_template_id?: string;
-      from_email?: string;
-    };
-  };
-}
-
-function resolveSendGridApiKey(): string | null {
-  return process.env.SENDGRID_API_KEY || getFunctionsConfig().sendgrid?.api_key || null;
-}
-
 function resolveReminderTemplateId(): string | null {
-  return (
-    process.env.SENDGRID_SUPPLIER_REMINDER_TEMPLATE_ID ||
-    getFunctionsConfig().sendgrid?.reminder_template_id ||
-    null
-  );
-}
-
-function resolveSenderEmail(): string | null {
-  return (
-    process.env.SENDGRID_FROM_EMAIL ||
-    getFunctionsConfig().sendgrid?.from_email ||
-    null
+  return resolveFunctionsEmailitTemplate(
+    'EMAILIT_SUPPLIER_REMINDER_TEMPLATE',
+    'supplier_reminder_template',
   );
 }
 
@@ -140,18 +121,16 @@ export const scheduledSupplierReminders = onSchedule(
     retryCount: 1,
   },
   async () => {
-    const sendGridApiKey = resolveSendGridApiKey();
+    const emailitApiKey = resolveFunctionsEmailitApiKey();
     const templateId = resolveReminderTemplateId();
-    const fromEmail = resolveSenderEmail();
+    const fromEmail = resolveFunctionsEmailitFromEmail();
 
-    if (!sendGridApiKey || !templateId || !fromEmail) {
+    if (!emailitApiKey || !templateId || !fromEmail) {
       console.warn('supplier_invite_reminder_scheduler_skipped', {
-        reason: 'missing_sendgrid_configuration',
+        reason: 'missing_emailit_configuration',
       });
       return;
     }
-
-    sgMail.setApiKey(sendGridApiKey);
 
     const db = admin.firestore();
     const now = new Date();
@@ -189,11 +168,13 @@ export const scheduledSupplierReminders = onSchedule(
         );
         const optOutUrl = createSupplierReminderOptOutUrl(record.inviteId);
 
-        await sgMail.send({
+        await sendEmailitTemplateEmail({
+          apiKey: emailitApiKey,
           to: record.intendedEmail,
           from: fromEmail,
-          templateId,
-          dynamicTemplateData: {
+          template: templateId,
+          idempotencyKey: `supplier-reminder-${record.inviteId}-${reminderNumber}`,
+          variables: {
             organisationName,
             supplierOrganisationHint: record.supplierOrganisationHint ?? '',
             campaignLabel: record.campaignLabel ?? '',
@@ -203,6 +184,11 @@ export const scheduledSupplierReminders = onSchedule(
             expiresAtFormatted: formatExpiry(record.expiresAt),
             reminderNumber,
             optOutUrl,
+          },
+          meta: {
+            inviteId: record.inviteId,
+            registerId: record.registerId,
+            reminderNumber: String(reminderNumber),
           },
         });
 

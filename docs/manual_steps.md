@@ -51,19 +51,83 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
 - Set `SUPPLIER_SESSION_SECRET` in both the Studio app environment and the Functions environment
 - If your public origin is not `https://kiregister.com`, set `NEXT_PUBLIC_APP_ORIGIN` in the Functions environment as well so reminder opt-out links point to the correct host
 
-### SendGrid (for supplier invite + OTP delivery)
-- Create a transactional template for supplier invites
-- Create a transactional template for OTP codes
-- Create a transactional template for supplier reminders
-- Create a transactional template for supplier submission confirmations
-- Set `SENDGRID_API_KEY` in the Studio app environment
-- Set `SENDGRID_FROM_EMAIL` in the Studio app environment
-- Set `SENDGRID_SUPPLIER_INVITE_TEMPLATE_ID` in the Studio app environment
-- Set `SENDGRID_SUPPLIER_OTP_TEMPLATE_ID` in the Studio app environment
-- Set `SENDGRID_SUPPLIER_CONFIRMATION_TEMPLATE_ID` in the Studio app environment
-- Set `SENDGRID_SUPPLIER_REMINDER_TEMPLATE_ID` in the Functions environment
-- Verify SPF/DKIM for the sender domain before enabling V2 broadly
-- Sender: `noreply@[product-domain]`
+### Emailit (for supplier invite, OTP, reminders, confirmation, welcome email)
+- Create an Emailit workspace and an API key with sending access
+- Add your sending domain in Emailit and complete DNS verification
+- Required records for verification are checked by Emailit via `MX`, `SPF` and `DKIM`; `DMARC` is recommended but optional
+- Create templates in Emailit for:
+  - supplier invites
+  - OTP codes
+  - supplier reminders
+  - supplier submission confirmations
+  - optional: checkout / welcome mail
+- Set these variables in the Studio app environment:
+  - `EMAILIT_API_KEY`
+  - `EMAILIT_FROM_EMAIL`
+  - `EMAILIT_SUPPLIER_INVITE_TEMPLATE`
+  - `EMAILIT_SUPPLIER_OTP_TEMPLATE`
+  - `EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE`
+  - `SUPPLIER_SESSION_SECRET`
+- Set these variables in the Functions environment:
+  - `EMAILIT_API_KEY` or `functions.config().emailit.api_key`
+  - `EMAILIT_FROM_EMAIL` or `functions.config().emailit.from_email`
+  - `EMAILIT_SUPPLIER_REMINDER_TEMPLATE` or `functions.config().emailit.supplier_reminder_template`
+  - optional: `EMAILIT_WELCOME_TEMPLATE` or `functions.config().emailit.welcome_template`
+  - `SUPPLIER_SESSION_SECRET` or `functions.config().supplier.session_secret`
+  - optional: `SUPPLIER_SESSION_SECRET_PREVIOUS` or `functions.config().supplier.session_secret_previous`
+  - if needed: `NEXT_PUBLIC_APP_ORIGIN` or `functions.config().app.public_origin`
+- Keep the sender in RFC format, e.g. `KI-Register <noreply@your-domain.com>`
+- New Emailit workspaces start with rate limits of `2 messages / second` and `5000 / day`; request more in Emailit before larger beta rollouts if needed
+
+### Concrete Firebase Commands
+
+#### App Hosting secrets (`apphosting.yaml`)
+
+The repo now wires the required runtime variables in `apphosting.yaml`. You still need to store the secret values in Firebase App Hosting / Secret Manager:
+
+```bash
+firebase apphosting:secrets:set EMAILIT_API_KEY --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set EMAILIT_FROM_EMAIL --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_INVITE_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_OTP_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET --project ai-act-compass-m6o05 --location europe-west1
+```
+
+If you later rotate the session key and want overlap support:
+
+```bash
+firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET_PREVIOUS --project ai-act-compass-m6o05 --location europe-west1
+```
+
+`NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` is now already checked into `apphosting.yaml`.
+
+#### Functions config
+
+The reminder and welcome-email Functions now work with legacy runtime config as a fallback. Set it once with:
+
+```bash
+firebase functions:config:set \
+  emailit.api_key="REPLACE_ME" \
+  emailit.from_email="KI-Register <noreply@your-domain.com>" \
+  emailit.supplier_reminder_template="REPLACE_ME" \
+  emailit.welcome_template="REPLACE_ME_OPTIONAL" \
+  supplier.session_secret="REPLACE_ME" \
+  app.public_origin="https://kiregister.com"
+```
+
+Optional during key rotation:
+
+```bash
+firebase functions:config:set supplier.session_secret_previous="REPLACE_ME_OLD"
+```
+
+Then deploy Functions so the new config is picked up:
+
+```bash
+npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
+```
 
 ### Migration Strategy
 V1 tokens (`srt_` prefix) and V2 invites (`sinv_` prefix) coexist. V1 tokens expire naturally (max 7 days after Sprint 1a). No data migration required.
@@ -82,7 +146,7 @@ Set `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` to enable V2 invite creation i
 Deploy the updated composite indexes for V2 collections:
 
 ```bash
-firebase deploy --only firestore:indexes
+firebase deploy --only firestore:indexes --project ai-act-compass-m6o05
 ```
 
 **New Indexes (V2):**
@@ -166,3 +230,14 @@ Push the changes and deploy your Next.js application.
 ```bash
 git push
 ```
+
+For Firebase resources in this repo, the practical rollout sequence is:
+
+```bash
+firebase deploy --only firestore:rules --project ai-act-compass-m6o05
+firebase deploy --only firestore:indexes --project ai-act-compass-m6o05
+npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
+```
+
+The web app itself is served through Firebase App Hosting. Once the required App Hosting secrets exist, push to the connected GitHub branch or create a manual rollout for the backend in Firebase App Hosting.
