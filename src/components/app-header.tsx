@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, Bot, LogOut, Settings, UserCircle } from 'lucide-react';
+import { BookOpen, Bot, Link2, LogOut, Settings, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/auth-context';
 import { clearActiveProjectId } from '@/lib/data-service';
@@ -29,6 +29,7 @@ import { resolveAppHeaderBrandHref } from '@/lib/navigation/app-header-brand';
 import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
+import { useIsAffiliate } from '@/lib/affiliate/use-is-affiliate';
 
 interface AppHeaderProps {
   brandHref?: string;
@@ -51,6 +52,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
     overrideHref: brandHrefOverride,
   });
 
+  const { isAffiliate } = useIsAffiliate();
   const premiumNavItems = getVisiblePremiumControlNav(plan);
   const showControlNav =
     area === 'paid_governance_control' && premiumNavItems.length > 0;
@@ -77,13 +79,13 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
             prefetch={false}
           >
             <ThemeAwareLogo
-              alt="KI-Register"
+              alt="AI Register"
               width={30}
               height={30}
               className="h-7 w-auto"
             />
             <div className="truncate text-[15px] font-semibold tracking-tight text-slate-950">
-              KI-Register
+              AI Register
             </div>
           </Link>
 
@@ -107,7 +109,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
-                      Einstellungen
+                      Settings
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -120,14 +122,26 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       Agent Kit & API
                     </Link>
                   </DropdownMenuItem>
+                  {isAffiliate ? (
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href="/settings?section=affiliate"
+                        className="flex cursor-pointer items-center gap-2"
+                        prefetch={false}
+                      >
+                        <Link2 className="h-4 w-4" />
+                        Affiliate
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem asChild>
                     <Link
-                      href="/gesetz"
+                      href="/law"
                       className="flex cursor-pointer items-center gap-2"
                       prefetch={false}
                     >
                       <BookOpen className="h-4 w-4" />
-                      Gesetz
+                      Law
                     </Link>
                   </DropdownMenuItem>
                   {isAdminEmail(user.email) ? (
@@ -148,7 +162,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                     className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
                   >
                     <LogOut className="h-4 w-4" />
-                    Abmelden
+                    Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Link2, Settings, Shield } from 'lucide-react';
 
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
@@ -12,7 +11,7 @@ import { SignedInAreaFrame } from '@/components/product-shells';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
-import { getAffiliateProfile } from '@/app/actions/affiliate';
+import { useIsAffiliate } from '@/lib/affiliate/use-is-affiliate';
 
 type SettingsSection = 'account' | 'governance' | 'affiliate';
 
@@ -28,22 +27,7 @@ export default function SettingsPage() {
   const searchParams = useSearchParams();
 
   const activeSection = resolveSection(searchParams.get('section'));
-  const [isAffiliate, setIsAffiliate] = useState(false);
-
-  const checkAffiliateStatus = useCallback(async () => {
-    if (!user) return;
-    try {
-      const idToken = await user.getIdToken();
-      const profile = await getAffiliateProfile(idToken);
-      setIsAffiliate(profile.isAffiliate);
-    } catch {
-      setIsAffiliate(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    void checkAffiliateStatus();
-  }, [checkAffiliateStatus]);
+  const { isAffiliate } = useIsAffiliate();
 
   if (loading) {
     return (
