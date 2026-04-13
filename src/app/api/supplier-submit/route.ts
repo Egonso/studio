@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 
 import { db } from '@/lib/firebase-admin';
+import { buildPublicAppUrl } from '@/lib/app-url';
+import type { ApprovalWorkflow } from '@/lib/enterprise/workspace';
 import { deliverWorkspaceNotificationHooks } from '@/lib/enterprise/notifications';
 import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
@@ -15,6 +17,7 @@ import {
   markSupplierRequestTokenUsed,
   resolveSupplierRequestTokenAccess,
 } from '@/lib/register-first/request-token-admin';
+import { sendSupplierSubmissionConfirmationEmail } from '@/lib/register-first/supplier-invite-email';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { parseSupplierRequestSubmission } from '@/lib/register-first/supplier-requests';
 import { parseSupplierInviteToken, updateSupplierInviteStatus } from '@/lib/register-first/supplier-invites';
@@ -69,6 +72,78 @@ function isV2InviteToken(token: string): boolean {
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
 const RAPID_SUBMISSION_THRESHOLD_MS = 30_000; // 30 seconds
+
+function normalizeOptionalText(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function resolveSubmittedSystemNames(
+  body: Record<string, unknown>,
+  fallbackToolName: string,
+): string[] {
+  const systems = Array.isArray(body.systems)
+    ? body.systems
+        .map((entry) => normalizeOptionalText(entry))
+        .filter((value): value is string => value !== null)
+    : [];
+
+  if (systems.length > 0) {
+    return Array.from(new Set(systems));
+  }
+
+  return [fallbackToolName];
+}
+
+function formatWorkspaceRole(role: string): string {
+  switch (role) {
+    case 'OWNER':
+      return 'Inhaberschaft';
+    case 'ADMIN':
+      return 'Administration';
+    case 'REVIEWER':
+      return 'Review';
+    case 'EXTERNAL_OFFICER':
+      return 'Externer Officer';
+    default:
+      return 'internes Team';
+  }
+}
+
+function buildSupplierNextStep(approvalWorkflow: ApprovalWorkflow | null | undefined) {
+  if (
+    approvalWorkflow &&
+    approvalWorkflow.status === 'pending' &&
+    approvalWorkflow.requiredRoles.length > 0
+  ) {
+    const roleLabel = approvalWorkflow.requiredRoles
+      .map((role) => formatWorkspaceRole(role))
+      .join(', ');
+
+    return {
+      nextStepTitle: 'Interne Freigabe ausstehend',
+      nextStepDescription: `Die Einreichung liegt jetzt vor und wird intern geprueft. Fuer die naechste Freigabe sind ${roleLabel} vorgesehen.`,
+    };
+  }
+
+  return {
+    nextStepTitle: 'Interne Sichtung im Register',
+    nextStepDescription:
+      'Die Angaben liegen jetzt als nachvollziehbare externe Einreichung vor und koennen intern geprueft, freigegeben oder uebernommen werden.',
+  };
+}
+
+function buildSupplierSetupUrl(verifiedEmail: string): string {
+  const params = new URLSearchParams({
+    email: verifiedEmail,
+  });
+
+  return buildPublicAppUrl(`/einrichten?${params.toString()}`);
+}
 
 function computeRiskFlags(
   invite: SupplierInviteRecord,
@@ -189,6 +264,7 @@ async function handleV2Submit(
   const registerRef = db.doc(`users/${invite.ownerId}/registers/${invite.registerId}`);
   const registerSnapshot = await registerRef.get();
   const register = registerSnapshot.exists ? (registerSnapshot.data() as Register) : null;
+  const systemNames = resolveSubmittedSystemNames(body, parsedSubmission.toolName);
 
   // Workspace settings + approval workflow
   const workspaceSettings = await getWorkspaceSettingsForRegister({
@@ -201,6 +277,7 @@ async function handleV2Submit(
     requestedAt: new Date().toISOString(),
     requestedBy: sessionResult.payload.verifiedEmail,
   });
+  const nextStep = buildSupplierNextStep(approvalWorkflow);
 
   // Compute risk flags
   const riskFlags = computeRiskFlags(invite, ipHash, sessionResult.payload.verifiedAt);
@@ -276,9 +353,48 @@ async function handleV2Submit(
     ipHash,
   });
 
+  const organisationName =
+    register?.organisationName ?? register?.name ?? 'Ihre Organisation';
+  let confirmationEmailSent = false;
+  try {
+    await sendSupplierSubmissionConfirmationEmail({
+      inviteId: invite.inviteId,
+      submissionId: submission.submissionId,
+      registerId: invite.registerId,
+      to: sessionResult.payload.verifiedEmail,
+      organisationName,
+      supplierOrganisation: parsedSubmission.supplierOrganisation,
+      verifiedEmail: sessionResult.payload.verifiedEmail,
+      submittedAt: submission.submittedAt,
+      systemNames,
+      purpose: parsedSubmission.purpose,
+      aiActCategory: parsedSubmission.aiActCategory,
+      nextStepTitle: nextStep.nextStepTitle,
+      nextStepDescription: nextStep.nextStepDescription,
+      setupUrl: buildSupplierSetupUrl(sessionResult.payload.verifiedEmail),
+    });
+    confirmationEmailSent = true;
+  } catch (confirmationError) {
+    logWarn('supplier_invite_confirmation_email_failed', {
+      inviteId: invite.inviteId,
+      submissionId: submission.submissionId,
+      registerId: invite.registerId,
+      reason:
+        confirmationError instanceof Error
+          ? confirmationError.message
+          : 'unknown',
+    });
+  }
+
   return NextResponse.json({
     success: true,
     submissionId: submission.submissionId,
+    submittedAt: submission.submittedAt,
+    systemNames,
+    nextStepTitle: nextStep.nextStepTitle,
+    nextStepDescription: nextStep.nextStepDescription,
+    setupUrl: buildSupplierSetupUrl(sessionResult.payload.verifiedEmail),
+    confirmationEmailSent,
   });
 }
 

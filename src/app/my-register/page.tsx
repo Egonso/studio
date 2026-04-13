@@ -6,6 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
 import { PageStatePanel } from '@/components/product-shells';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -63,6 +70,13 @@ const ExternalSubmissionsInbox = dynamic(
     ),
   { ssr: false },
 );
+const SupplierInvitesList = dynamic(
+  () =>
+    import('@/components/register/supplier-invites-list').then(
+      (mod) => mod.SupplierInvitesList,
+    ),
+  { ssr: false },
+);
 const QuickCaptureModal = dynamic(
   () =>
     import('@/components/register/quick-capture-modal').then(
@@ -77,6 +91,17 @@ const CompanyOnboardingWizard = dynamic(
     ),
   { ssr: false },
 );
+
+interface SupplierInviteDashboardSummary {
+  campaignCount: number;
+  inviteCount: number;
+  openCount: number;
+  verifiedCount: number;
+  submittedCount: number;
+  deliveryIssueCount: number;
+  followUpDueCount: number;
+  optOutCount: number;
+}
 
 type OnboardingState = 'loading' | 'no_register' | 'ready';
 const CREATE_REGISTER_VALUE = '__create_register__';
@@ -117,6 +142,17 @@ export default function MyRegisterPage() {
     total: 0,
     open: 0,
   });
+  const [supplierInviteSummary, setSupplierInviteSummary] =
+    useState<SupplierInviteDashboardSummary>({
+      campaignCount: 0,
+      inviteCount: 0,
+      openCount: 0,
+      verifiedCount: 0,
+      submittedCount: 0,
+      deliveryIssueCount: 0,
+      followUpDueCount: 0,
+      optOutCount: 0,
+    });
 
   const [hasChecked, setHasChecked] = useState(false);
   const [syncedEntitlementKey, setSyncedEntitlementKey] = useState<
@@ -387,6 +423,7 @@ export default function MyRegisterPage() {
             register={activeRegister}
             externalInboxCount={externalInboxCounts.total}
             onQuickCapture={() => setCaptureOpen(true)}
+            onSupplierInvitesChanged={() => setRefreshKey((key) => key + 1)}
           >
             {activeRegister && (
               <div className="flex flex-wrap items-center gap-3">
@@ -471,6 +508,99 @@ export default function MyRegisterPage() {
               </div>
             )}
           </GovernanceHeader>
+          {registerFirstFlags.supplierInviteV2 &&
+            activeRegister &&
+            !showingExternalInbox && (
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="space-y-2">
+                <CardTitle>Lieferantenstatus</CardTitle>
+                <CardDescription>
+                  Ruhiger Ueberblick ueber Anfragegruppen, Nachfassbedarf und eingegangene externe Antworten fuer dieses Register.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                      Anfragegruppen
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                      {supplierInviteSummary.campaignCount}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {supplierInviteSummary.inviteCount} Kontakt
+                      {supplierInviteSummary.inviteCount === 1 ? "" : "e"} insgesamt
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                      Offen
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                      {supplierInviteSummary.openCount}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {supplierInviteSummary.verifiedCount} davon bereits verifiziert
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                      Eingereicht
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                      {supplierInviteSummary.submittedCount}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {externalInboxCounts.open} Eingang
+                      {externalInboxCounts.open === 1 ? "" : "e"} intern noch offen
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
+                      Nachfassen
+                    </p>
+                    <p className="text-2xl font-semibold tracking-tight text-slate-950">
+                      {supplierInviteSummary.followUpDueCount}
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      {supplierInviteSummary.deliveryIssueCount} Zustellproblem
+                      {supplierInviteSummary.deliveryIssueCount === 1 ? "" : "e"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-3 border-t border-slate-200 pt-4 text-sm text-slate-700 sm:grid-cols-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>Weitere Erinnerungen beendet</span>
+                    <span className="font-medium text-slate-950">
+                      {supplierInviteSummary.optOutCount}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span>Externe Einreichungen gesamt</span>
+                    <span className="font-medium text-slate-950">
+                      {externalInboxCounts.total}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span>Interne Review-Last</span>
+                    <span className="font-medium text-slate-950">
+                      {externalInboxCounts.open}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {registerFirstFlags.supplierInviteV2 &&
+            activeRegister &&
+            !showingExternalInbox && (
+              <SupplierInvitesList
+                registerId={activeRegister.registerId}
+                refreshKey={refreshKey}
+                onSummaryChange={setSupplierInviteSummary}
+              />
+            )}
           <div className="flex flex-wrap items-center gap-2">
             <div className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1">
               <button

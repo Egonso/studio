@@ -24,6 +24,11 @@ export const supplierInviteRecordSchema = z.object({
   createdBy: z.string().trim().min(1).max(200),
   createdByEmail: z.string().trim().email().max(320).optional().nullable(),
 
+  campaignId: z.string().trim().min(1).max(200).optional().nullable(),
+  campaignLabel: z.string().trim().min(1).max(200).optional().nullable(),
+  campaignContext: z.string().trim().min(1).max(500).optional().nullable(),
+  campaignSource: z.enum(['manual', 'csv']).optional().nullable(),
+
   expiresAt: z.string().datetime(),
   revokedAt: z.string().datetime().optional().nullable(),
   revokedBy: z.string().trim().min(1).max(200).optional().nullable(),
@@ -32,7 +37,15 @@ export const supplierInviteRecordSchema = z.object({
   lastUsedAt: z.string().datetime().optional().nullable(),
   lastUsedIpHash: z.string().trim().max(128).optional().nullable(),
 
+  inviteAccessUrlCiphertext: z.string().trim().min(10).max(4000).optional().nullable(),
+  inviteEmailSentAt: z.string().datetime().optional().nullable(),
   deliveryFailed: z.boolean().default(false),
+  otpDeliveryFailed: z.boolean().default(false),
+  remindersSent: z.number().int().min(0).max(10).default(0),
+  lastReminderAt: z.string().datetime().optional().nullable(),
+  reminderOptOut: z.boolean().default(false),
+  reminderOptOutAt: z.string().datetime().optional().nullable(),
+  maxReminders: z.number().int().min(0).max(10).default(2),
   riskFlags: z.array(z.string().trim().max(100)).max(20).default([]),
 
   reissueTargetEmail: z.string().trim().email().max(320).optional().nullable(),

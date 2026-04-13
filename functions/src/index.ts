@@ -1,6 +1,7 @@
 import * as admin from 'firebase-admin';
 import Stripe from 'stripe';
 import { sendWelcomeEmailOnPurchase } from './sendWelcomeEmail';
+import { scheduledSupplierReminders } from './scheduledSupplierReminders';
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import {
@@ -464,5 +465,6 @@ export const stripeWebhook = onRequest(
 
 // Export the welcome email function
 export { sendWelcomeEmailOnPurchase };
+export { scheduledSupplierReminders };
 export * from './tools/checkPublicInfo';
 export * from './legacyApi';

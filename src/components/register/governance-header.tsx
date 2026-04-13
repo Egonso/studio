@@ -7,11 +7,13 @@ import {
   ChevronDown,
   Link2,
   Loader2,
+  MailPlus,
   Settings,
   Share2,
   ShieldX,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SupplierInviteCreateDialog } from '@/components/register/supplier-invite-create-dialog';
 import type {
   UseCaseCard,
   RegisterUseCaseStatus,
@@ -20,6 +22,7 @@ import type {
 import { accessCodeService } from '@/lib/register-first/access-code-service';
 import { getPublicAppOrigin } from '@/lib/app-url';
 import { getFirebaseAuth } from '@/lib/firebase';
+import { registerFirstFlags } from '@/lib/register-first/flags';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +42,7 @@ interface GovernanceHeaderProps {
   externalInboxCount?: number;
   onQuickCapture?: () => void;
   onRegisterUpdated?: (partial: Partial<Register>) => void;
+  onSupplierInvitesChanged?: () => void;
   children?: React.ReactNode;
 }
 
@@ -49,6 +53,7 @@ export function GovernanceHeader({
   register,
   externalInboxCount = 0,
   onQuickCapture,
+  onSupplierInvitesChanged,
   children,
 }: GovernanceHeaderProps) {
   const router = useRouter();
@@ -58,6 +63,7 @@ export function GovernanceHeader({
   const [captureLinkCopied, setCaptureLinkCopied] = useState(false);
   const [isCreatingSupplierLink, setIsCreatingSupplierLink] = useState(false);
   const [isRevokingSupplierLink, setIsRevokingSupplierLink] = useState(false);
+  const [supplierInviteDialogOpen, setSupplierInviteDialogOpen] = useState(false);
   const orgName = register?.organisationName;
   const orgUnit = register?.organisationUnit;
   const orgSettings = register?.orgSettings;
@@ -87,7 +93,9 @@ export function GovernanceHeader({
         ? 'Prüfen Sie neue externe Einreichungen in der External Inbox.'
         : openReviews > 0
           ? 'Bearbeiten Sie offene Prüfungen und führen Sie Use Cases weiter.'
-          : 'Teilen Sie einen Erfassungs- oder Einreichungslink, um weitere Angaben einzusammeln.';
+          : registerFirstFlags.supplierInviteV2
+            ? 'Starten Sie eine kontaktgebundene Lieferantenanfrage oder teilen Sie einen Erfassungslink, um weitere Angaben einzusammeln.'
+            : 'Teilen Sie einen Erfassungs- oder Einreichungslink, um weitere Angaben einzusammeln.';
 
   const handleSupplierRequest = async () => {
     if (!register?.registerId) return;
@@ -284,6 +292,15 @@ export function GovernanceHeader({
                 + KI-Einsatzfall erfassen
               </button>
             )}
+            {register && registerFirstFlags.supplierInviteV2 && (
+              <button
+                onClick={() => setSupplierInviteDialogOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950"
+              >
+                <MailPlus className="h-3.5 w-3.5" />
+                Lieferanten anfragen
+              </button>
+            )}
             {register && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -342,6 +359,15 @@ export function GovernanceHeader({
       </div>
 
       {children && <div>{children}</div>}
+
+      {register && registerFirstFlags.supplierInviteV2 && (
+        <SupplierInviteCreateDialog
+          open={supplierInviteDialogOpen}
+          onOpenChange={setSupplierInviteDialogOpen}
+          register={register}
+          onCreated={onSupplierInvitesChanged}
+        />
+      )}
 
       <div className="grid gap-4 pt-5 sm:grid-cols-3">
         <div className="rounded-md border border-slate-200 bg-white px-4 py-4">

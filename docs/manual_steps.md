@@ -31,11 +31,14 @@ Create/Update `firestore.indexes.json` or add these via Console:
 
 ### Firestore Collections
 - `registerSupplierInvites` — admin SDK only (rules: `allow read, write: if false`)
+- `registerSupplierInviteCampaigns` — admin SDK only (rules: `allow read, write: if false`)
 - `supplierInviteChallenges` — admin SDK only (rules: `allow read, write: if false`)
+- `supplierConversionSignals` — admin SDK only (rules: `allow read, write: if false`)
 
 ### Composite Indexes
 | Collection | Fields | Purpose |
 | :--- | :--- | :--- |
+| `registerSupplierInviteCampaigns` | `registerId` (ASC), `createdAt` (DESC) | Anfragegruppen pro Register |
 | `registerSupplierInvites` | `registerId` (ASC), `status` (ASC) | Filter active invites per register |
 | `supplierInviteChallenges` | `inviteId` (ASC), `createdAt` (DESC) | OTP daily limit check |
 
@@ -45,18 +48,34 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
 ### Secrets
 - `SUPPLIER_SESSION_SECRET` — 32 byte random base64: `openssl rand -base64 32`
 - `SUPPLIER_SESSION_SECRET_PREVIOUS` — optional, for key rotation (set to old value when rotating)
+- Set `SUPPLIER_SESSION_SECRET` in both the Studio app environment and the Functions environment
+- If your public origin is not `https://kiregister.com`, set `NEXT_PUBLIC_APP_ORIGIN` in the Functions environment as well so reminder opt-out links point to the correct host
 
-### SendGrid (for OTP delivery)
+### SendGrid (for supplier invite + OTP delivery)
+- Create a transactional template for supplier invites
 - Create a transactional template for OTP codes
-- Set `SENDGRID_SUPPLIER_OTP_TEMPLATE_ID` in Functions Config
-- Verify SPF/DKIM for the sender domain
+- Create a transactional template for supplier reminders
+- Create a transactional template for supplier submission confirmations
+- Set `SENDGRID_API_KEY` in the Studio app environment
+- Set `SENDGRID_FROM_EMAIL` in the Studio app environment
+- Set `SENDGRID_SUPPLIER_INVITE_TEMPLATE_ID` in the Studio app environment
+- Set `SENDGRID_SUPPLIER_OTP_TEMPLATE_ID` in the Studio app environment
+- Set `SENDGRID_SUPPLIER_CONFIRMATION_TEMPLATE_ID` in the Studio app environment
+- Set `SENDGRID_SUPPLIER_REMINDER_TEMPLATE_ID` in the Functions environment
+- Verify SPF/DKIM for the sender domain before enabling V2 broadly
 - Sender: `noreply@[product-domain]`
 
 ### Migration Strategy
 V1 tokens (`srt_` prefix) and V2 invites (`sinv_` prefix) coexist. V1 tokens expire naturally (max 7 days after Sprint 1a). No data migration required.
 
 ### Feature Flag
-Set `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` to enable V2 invite creation.
+Set `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` to enable V2 invite creation in the UI and API.
+
+### Reminder Scheduler
+- Deploy Functions after adding `scheduledSupplierReminders`
+- The scheduler runs daily at `09:00` Europe/Berlin
+- Reminder mails are only sent for invites with a stored encrypted access link
+- Legacy invites from before Sprint 3 receive reminders only after recreate/resend
 
 ## 4. Deploy Firestore Indexes
 
@@ -70,6 +89,7 @@ firebase deploy --only firestore:indexes
 
 | Collection | Fields | Purpose |
 | :--- | :--- | :--- |
+| `registerSupplierInviteCampaigns` | `registerId` (ASC), `createdAt` (DESC) | Anfragegruppen pro Register |
 | `registerSupplierInvites` | `registerId` (ASC), `createdAt` (DESC) | Admin invite list per register |
 | `registerSupplierInvites` | `registerId` (ASC), `status` (ASC) | Filter active invites per register |
 | `supplierInviteChallenges` | `inviteId` (ASC), `createdAt` (DESC) | OTP daily limit check |
@@ -78,7 +98,7 @@ firebase deploy --only firestore:indexes
 
 ### Rollout Phases
 
-1. **Internal** — Set `SUPPLIER_INVITE_V2_ENABLED=true` for internal test accounts only.
+1. **Internal** — Set `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` in the target environment and test with real inboxes.
 2. **Beta** — Enable for 3–5 selected customers. Monitor KPIs for 2 weeks.
 3. **KPI Review** — Check gates (see below). Adjust SPF/DKIM or UX if needed.
 4. **GA** — Default to `true` for all new registers (if gates met).
@@ -98,15 +118,24 @@ These are orientation values, not hard automation. The team decides.
 
 ### KPI Instrumentation
 
-All KPI-relevant events are emitted via structured logging (`logInfo`/`logWarn`):
+All KPI-relevant events are emitted via structured logging in the app (`logInfo`/`logWarn`) and named `console` events in Functions:
 
 | Event | Fields | KPI |
 | :--- | :--- | :--- |
+| `supplier_invite_campaign_created` | campaignId, registerId, recipientCount, inviteEmailSentCount, inviteEmailFailedCount | Batch baseline |
 | `supplier_invite_v2_issued` | inviteId, registerId, intendedDomain | Invite creation baseline |
+| `supplier_invite_email_sent` | inviteId, registerId | Invite mail sent |
+| `supplier_invite_email_failed` | inviteId, registerId, reason | Invite delivery failure |
 | `supplier_invite_otp_sent` | inviteId, challengeId, ipHash | OTP start count |
+| `supplier_invite_otp_email_sent` | inviteId, challengeId | OTP mail sent |
 | `supplier_invite_otp_failed` | inviteId, challengeId, reason, ipHash | OTP failure analysis |
+| `supplier_invite_reminder_sent` | inviteId, reminderNumber | Reminder sent |
+| `supplier_invite_reminder_failed` | inviteId, reminderNumber, reason | Reminder failure |
+| `supplier_invite_confirmation_email_sent` | inviteId, submissionId, registerId | Confirmation mail sent |
+| `supplier_invite_confirmation_email_failed` | inviteId, submissionId, registerId, reason | Confirmation mail failed |
 | `supplier_invite_verified` | inviteId, challengeId, ipHash | Verification success |
 | `supplier_invite_v2_submitted` | inviteId, registerId, timeToSubmitMs, riskFlags | Submission + timing |
+| `supplier_conversion_signal_failed` | error | Optional supplier CTA tracking issue |
 | `supplier_invite_revoked` | inviteId, registerId, revokedBy | Admin action |
 | `supplier_invite_resend` | inviteId, registerId, resendBy | Resend rate |
 | `supplier_invite_recreated` | oldInviteId, newInviteId, registerId | Reissue rate |
@@ -114,8 +143,21 @@ All KPI-relevant events are emitted via structured logging (`logInfo`/`logWarn`)
 
 ### Rollback
 
-- Per-customer: set `SUPPLIER_INVITE_V2_ENABLED=false` for that environment.
+- Per-customer: set `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=false` for that environment.
 - Global: revert env var. V1 tokens continue to work. No data migration needed.
+
+### Batch Safety Defaults
+
+- Maximal `20` Kontakte pro Anfragegruppe
+- Maximal `2` Sammelanfragen pro `15` Minuten und Register
+- E-Mail-Deduplizierung innerhalb jeder Anfragegruppe
+- Bestehende offene Anfrage wird nur fuer dieselbe E-Mail ersetzt, nicht mehr registerweit
+
+### Reminder Safety Defaults
+
+- Maximal `2` automatische Erinnerungen pro Invite
+- Schwellwerte: Tag `3` und Tag `7` nach initialem Invite-Versand
+- Opt-out-Link in jeder Reminder-Mail
 
 ## 6. Deployment
 

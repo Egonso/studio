@@ -4,11 +4,16 @@ import { z } from 'zod';
 import { captureException } from '@/lib/observability/error-tracking';
 import { ServerAuthError, requireRegisterOwner } from '@/lib/server-auth';
 import { db } from '@/lib/firebase-admin';
+import { parseSupplierInviteCampaignRecord } from '@/lib/register-first/supplier-invite-campaign-schema';
 import { parseSupplierInviteRecord } from '@/lib/register-first/supplier-invite-schema';
 import { safeIdentifierSchema } from '@/lib/security/request-security';
-import type { SupplierInviteRecord } from '@/lib/register-first/supplier-invite-types';
+import type {
+  SupplierInviteCampaignRecord,
+  SupplierInviteRecord,
+} from '@/lib/register-first/supplier-invite-types';
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
+const CAMPAIGN_COLLECTION = 'registerSupplierInviteCampaigns';
 
 const ListQuerySchema = z.object({
   registerId: safeIdentifierSchema,
@@ -24,21 +29,39 @@ export async function GET(req: NextRequest) {
     const authorizationHeader = req.headers.get('authorization');
     await requireRegisterOwner(authorizationHeader, query.registerId);
 
-    const snapshot = await db
-      .collection(INVITE_COLLECTION)
-      .where('registerId', '==', query.registerId)
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get();
+    const [inviteSnapshot, campaignSnapshot] = await Promise.all([
+      db
+        .collection(INVITE_COLLECTION)
+        .where('registerId', '==', query.registerId)
+        .orderBy('createdAt', 'desc')
+        .limit(250)
+        .get(),
+      db
+        .collection(CAMPAIGN_COLLECTION)
+        .where('registerId', '==', query.registerId)
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .get(),
+    ]);
 
-    const invites: SupplierInviteRecord[] = snapshot.docs.map((doc) =>
+    const invites: SupplierInviteRecord[] = inviteSnapshot.docs.map((doc) =>
       parseSupplierInviteRecord(doc.data())
     );
+    const campaigns: SupplierInviteCampaignRecord[] = campaignSnapshot.docs.map((doc) =>
+      parseSupplierInviteCampaignRecord(doc.data())
+    );
 
-    // Strip secretHash before returning to client
-    const sanitized = invites.map(({ secretHash: _secret, ...rest }) => rest);
+    // Strip internal security and delivery fields before returning to client.
+    const sanitized = invites.map(
+      ({
+        secretHash: _secret,
+        inviteAccessUrlCiphertext: _inviteAccessUrlCiphertext,
+        lastUsedIpHash: _lastUsedIpHash,
+        ...rest
+      }) => rest,
+    );
 
-    return NextResponse.json({ invites: sanitized });
+    return NextResponse.json({ invites: sanitized, campaigns });
   } catch (error) {
     if (error instanceof ServerAuthError) {
       return NextResponse.json({ error: error.message }, { status: error.status });

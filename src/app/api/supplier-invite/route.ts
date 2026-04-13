@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { captureException } from '@/lib/observability/error-tracking';
-import { logInfo } from '@/lib/observability/logger';
+import { logInfo, logWarn } from '@/lib/observability/logger';
 import { ServerAuthError, requireRegisterOwner } from '@/lib/server-auth';
+import { db } from '@/lib/firebase-admin';
+import { encryptSupplierInviteAccessUrl } from '@/lib/register-first/supplier-invite-delivery';
+import { sendSupplierInviteEmail } from '@/lib/register-first/supplier-invite-email';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import {
   issueSupplierInvite,
@@ -24,6 +27,8 @@ const CreateInviteBodySchema = z
     maxSubmissions: z.number().int().min(1).max(100).optional(),
   })
   .strict();
+
+const INVITE_COLLECTION = 'registerSupplierInvites';
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,11 +67,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Revoke any active V2 invites for this register
+    // Replace only an existing open invite for the same recipient.
     await revokeActiveInvitesForRegister({
       ownerId: user.uid,
       registerId: body.registerId,
       revokedBy: user.uid,
+      intendedEmail: body.intendedEmail,
     });
 
     const issued = issueSupplierInvite({
@@ -78,14 +84,53 @@ export async function POST(req: NextRequest) {
       supplierOrganisationHint: body.supplierOrganisationHint,
       maxSubmissions: body.maxSubmissions,
     });
+    issued.record.inviteAccessUrlCiphertext = encryptSupplierInviteAccessUrl(
+      issued.publicUrl,
+    );
 
     await persistSupplierInvite(issued.record);
+
+    const organisationName =
+      register.organisationName ?? register.name ?? 'Ihre Organisation';
+    let inviteEmailSent = false;
+
+    try {
+      await sendSupplierInviteEmail({
+        inviteId: issued.inviteId,
+        registerId: body.registerId,
+        to: issued.record.intendedEmail,
+        publicUrl: issued.publicUrl,
+        organisationName,
+        senderEmail: user.email,
+        supplierOrganisationHint: issued.record.supplierOrganisationHint,
+        campaignLabel: issued.record.campaignLabel,
+        campaignContext: issued.record.campaignContext,
+        expiresAt: issued.record.expiresAt,
+      });
+      inviteEmailSent = true;
+      await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
+        deliveryFailed: false,
+        inviteEmailSentAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
+        deliveryFailed: true,
+        inviteEmailSentAt: null,
+      });
+
+      logWarn('supplier_invite_email_failed', {
+        inviteId: issued.inviteId,
+        registerId: body.registerId,
+        reason: error instanceof Error ? error.message : 'unknown',
+      });
+    }
 
     logInfo('supplier_invite_v2_issued', {
       ownerId: user.uid,
       registerId: body.registerId,
       inviteId: issued.inviteId,
       intendedDomain: issued.record.intendedDomain,
+      inviteEmailSent,
     });
 
     return NextResponse.json({
@@ -94,6 +139,7 @@ export async function POST(req: NextRequest) {
       expiresAt: issued.record.expiresAt,
       intendedEmail: issued.record.intendedEmail,
       organisationName: register.organisationName ?? register.name ?? null,
+      inviteEmailSent,
     });
   } catch (error) {
     if (error instanceof ServerAuthError) {

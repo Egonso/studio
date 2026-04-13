@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Loader2, Mail, ShieldCheck } from "lucide-react";
 
 import {
   QuickCaptureFields,
@@ -46,6 +46,16 @@ interface SupplierInviteFlowProps {
   inviteStatus: SupplierInviteStatus;
 }
 
+interface SubmitSuccessState {
+  submissionId: string;
+  submittedAt: string;
+  systemNames: string[];
+  nextStepTitle: string;
+  nextStepDescription: string;
+  setupUrl: string | null;
+  confirmationEmailSent: boolean;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 const EMPTY_SUPPLIER_CAPTURE_DRAFT: QuickCaptureFieldsDraft = {
@@ -65,6 +75,18 @@ const EMPTY_SUPPLIER_CAPTURE_DRAFT: QuickCaptureFieldsDraft = {
 function formatExpiry(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "bald";
+  return parsed.toLocaleString("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDate(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "unbekannt";
   return parsed.toLocaleString("de-DE", {
     day: "2-digit",
     month: "2-digit",
@@ -130,6 +152,7 @@ export default function SupplierInviteFlow({
   const [riskAccordionValue, setRiskAccordionValue] = useState<string | undefined>(undefined);
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [otpValue, setOtpValue] = useState("");
+  const [successState, setSuccessState] = useState<SubmitSuccessState | null>(null);
   const expiresLabel = useMemo(() => formatExpiry(expiresAt), [expiresAt]);
   const maskedEmail = useMemo(() => maskEmail(intendedEmail), [intendedEmail]);
   const supplierMultisystemEnabled = registerFirstFlags.supplierMultisystemCapture;
@@ -287,6 +310,32 @@ export default function SupplierInviteFlow({
           typeof data?.error === "string" ? data.error : "Fehler beim Uebermitteln."
         );
       }
+      setSuccessState({
+        submissionId:
+          typeof data?.submissionId === "string" ? data.submissionId : "unbekannt",
+        submittedAt:
+          typeof data?.submittedAt === "string"
+            ? data.submittedAt
+            : new Date().toISOString(),
+        systemNames:
+          Array.isArray(data?.systemNames) &&
+          data.systemNames.every((value: unknown) => typeof value === "string")
+            ? data.systemNames
+            : resolvedSystems,
+        nextStepTitle:
+          typeof data?.nextStepTitle === "string"
+            ? data.nextStepTitle
+            : "Interne Sichtung im Register",
+        nextStepDescription:
+          typeof data?.nextStepDescription === "string"
+            ? data.nextStepDescription
+            : "Die Angaben werden intern geprueft und dem Register zugeordnet.",
+        setupUrl:
+          typeof data?.setupUrl === "string" && data.setupUrl.trim().length > 0
+            ? data.setupUrl
+            : null,
+        confirmationEmailSent: data?.confirmationEmailSent === true,
+      });
       setStep("success");
     } catch (submitError) {
       setError(
@@ -297,26 +346,162 @@ export default function SupplierInviteFlow({
     }
   };
 
+  const handleSetupClick = async () => {
+    if (!successState?.setupUrl) {
+      return;
+    }
+
+    try {
+      await fetch("/api/supplier-conversion/signal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inviteId,
+          action: "cta_clicked",
+          source: "success_page",
+        }),
+        keepalive: true,
+      });
+    } catch {
+      // Secondary signal only — navigation should still continue.
+    } finally {
+      window.location.assign(successState.setupUrl);
+    }
+  };
+
   // ── Render: Success ───────────────────────────────────────────────────
 
   if (step === "success") {
+    const submittedAtLabel = formatDate(
+      successState?.submittedAt ?? new Date().toISOString()
+    );
+    const systemSummary = successState?.systemNames?.length
+      ? successState.systemNames.join(", ")
+      : resolvedSystems.join(", ");
+    const purposeSummary = formData.capture.purpose.trim();
+    const aiActSummary =
+      formData.aiActCategory.trim().length > 0
+        ? formData.aiActCategory.trim()
+        : "Keine Lieferanten-Einschaetzung angegeben";
+
     return (
       <PublicIntakeShell
         title="Lieferantenanfrage beantwortet"
         description={`Ihre Angaben wurden an ${organisationName} uebermittelt und werden intern geprueft.`}
         actions={[]}
+        meta={
+          <p>
+            Einreichungs-ID:{" "}
+            <span className="font-medium text-slate-950">
+              {successState?.submissionId ?? "unbekannt"}
+            </span>{" "}
+            · uebermittelt am {submittedAtLabel}
+          </p>
+        }
         asidePoints={[
           "Die Einreichung bleibt als unveraenderlicher Ursprung erhalten.",
           "Freigabe, Ablehnung oder Uebernahme passieren intern im Register.",
+          "Sie erhalten damit einen dokumentierten Eingangsbeleg fuer diese Anfrage.",
         ]}
       >
-        <PageStatePanel
-          tone="success"
-          icon={CheckCircle2}
-          area="public_external_intake"
-          title="Angaben uebermittelt"
-          description={`Vielen Dank. Die Angaben wurden als verifizierte Einreichung im Register von ${organisationName} gespeichert.`}
-        />
+        <div className="space-y-4">
+          <PageStatePanel
+            tone="success"
+            icon={CheckCircle2}
+            area="public_external_intake"
+            title="Angaben uebermittelt"
+            description={
+              successState?.confirmationEmailSent
+                ? `Vielen Dank. Die Angaben wurden als verifizierte Einreichung im Register von ${organisationName} gespeichert. Eine Bestaetigung wurde an ${maskedEmail} gesendet.`
+                : `Vielen Dank. Die Angaben wurden als verifizierte Einreichung im Register von ${organisationName} gespeichert.`
+            }
+          />
+
+          <Card className="shadow-sm">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <FileText className="h-5 w-5 text-slate-700" />
+                </div>
+                <div>
+                  <CardTitle>Einreichungsbeleg</CardTitle>
+                  <CardDescription>
+                    Zusammenfassung der verifizierten Lieferantenangaben fuer diese Anfrage.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                    Verifiziert als
+                  </p>
+                  <p className="text-sm text-slate-900">{maskedEmail}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                    Ihre Organisation
+                  </p>
+                  <p className="text-sm text-slate-900">
+                    {formData.supplierOrganisation.trim() || supplierOrganisationHint || "Nicht angegeben"}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                    Systeme
+                  </p>
+                  <p className="text-sm text-slate-900">{systemSummary}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                    KI-Act-Einschaetzung
+                  </p>
+                  <p className="text-sm text-slate-900">{aiActSummary}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                  Verwendungszweck
+                </p>
+                <p className="text-sm leading-7 text-slate-900">{purposeSummary}</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
+                  Interner naechster Schritt
+                </p>
+                <p className="mt-1 text-sm font-medium text-slate-900">
+                  {successState?.nextStepTitle ?? "Interne Sichtung im Register"}
+                </p>
+                <p className="mt-1 text-sm leading-7 text-slate-600">
+                  {successState?.nextStepDescription ??
+                    "Die Angaben werden intern geprueft und dem Register zugeordnet."}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {successState?.setupUrl ? (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>Eigene Nachweise vorbereiten</CardTitle>
+                <CardDescription>
+                  Falls Sie selbst regelmaessig solche Anfragen beantworten oder an Lieferanten stellen, koennen Sie ein eigenes Register einrichten.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="border-t bg-white p-6">
+                <Button type="button" variant="outline" onClick={() => void handleSetupClick()}>
+                  Eigenes Register einrichten
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
+          ) : null}
+        </div>
       </PublicIntakeShell>
     );
   }

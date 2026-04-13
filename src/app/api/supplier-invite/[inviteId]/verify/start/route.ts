@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
 import { hashIpForAudit } from '@/lib/register-first/request-token-admin';
+import { sendSupplierOtpEmail } from '@/lib/register-first/supplier-invite-email';
 import { parseSupplierInviteRecord } from '@/lib/register-first/supplier-invite-schema';
 import {
   createOtpChallenge,
@@ -13,6 +14,8 @@ import {
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
+const CHALLENGE_COLLECTION = 'supplierInviteChallenges';
+const OTP_EXPIRY_SECONDS = 600;
 
 function resolveClientIp(request: Request): string {
   const forwardedFor = request.headers.get('x-forwarded-for') ?? 'unknown';
@@ -87,16 +90,61 @@ export async function POST(
 
     // Create challenge — OTP goes to intendedEmail (not user-supplied)
     const challenge = await createOtpChallenge(inviteId, invite.intendedEmail, ipHash);
+    const registerDoc = await db
+      .doc(`users/${invite.ownerId}/registers/${invite.registerId}`)
+      .get();
+    const registerData = registerDoc.data() as
+      | { organisationName?: string | null; name?: string | null }
+      | undefined;
+    const organisationName =
+      registerData?.organisationName ??
+      registerData?.name ??
+      'Ihre Organisation';
 
-    // TODO: Send OTP via SendGrid Cloud Function
-    // For now, log the OTP in non-production environments
-    if (process.env.NODE_ENV !== 'production') {
-      logInfo('supplier_invite_otp_debug', {
+    try {
+      await sendSupplierOtpEmail({
         inviteId,
-        email: invite.intendedEmail,
-        otp: challenge.otp,
         challengeId: challenge.challengeId,
+        to: invite.intendedEmail,
+        organisationName,
+        otpCode: challenge.otp,
+        expiresInMinutes: OTP_EXPIRY_SECONDS / 60,
       });
+
+      await db.collection(INVITE_COLLECTION).doc(inviteId).update({
+        otpDeliveryFailed: false,
+      });
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        logWarn('supplier_invite_otp_sendgrid_fallback', {
+          inviteId,
+          challengeId: challenge.challengeId,
+          reason: error instanceof Error ? error.message : 'unknown',
+        });
+        logInfo('supplier_invite_otp_debug', {
+          inviteId,
+          email: invite.intendedEmail,
+          otp: challenge.otp,
+          challengeId: challenge.challengeId,
+        });
+      } else {
+        await db.collection(INVITE_COLLECTION).doc(inviteId).update({
+          otpDeliveryFailed: true,
+        });
+        await db.collection(CHALLENGE_COLLECTION).doc(challenge.challengeId).delete();
+
+        logWarn('supplier_invite_otp_failed', {
+          inviteId,
+          challengeId: challenge.challengeId,
+          reason: error instanceof Error ? error.message : 'unknown',
+          ipHash,
+        });
+
+        return NextResponse.json(
+          { error: 'Bestaetigungscode konnte nicht gesendet werden.' },
+          { status: 503 },
+        );
+      }
     }
 
     logInfo('supplier_invite_otp_sent', {
@@ -107,7 +155,7 @@ export async function POST(
 
     return NextResponse.json({
       challengeId: challenge.challengeId,
-      expiresInSeconds: 600,
+      expiresInSeconds: OTP_EXPIRY_SECONDS,
     });
   } catch (error) {
     captureException(error, {

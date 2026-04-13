@@ -9,6 +9,8 @@ import { buildPublicAppUrl } from '@/lib/app-url';
 
 import { parseSupplierInviteRecord } from './supplier-invite-schema';
 import type {
+  SupplierInviteCampaignRecord,
+  SupplierInviteCampaignSource,
   SupplierInviteRecord,
   SupplierInviteStatus,
 } from './supplier-invite-types';
@@ -18,13 +20,19 @@ import type { Register } from './types';
 
 const INVITE_PREFIX = 'sinv1';
 const INVITE_COLLECTION = 'registerSupplierInvites';
+const CAMPAIGN_COLLECTION = 'registerSupplierInviteCampaigns';
 const DEFAULT_EXPIRY_DAYS = 14;
 const DEFAULT_MAX_SUBMISSIONS = 1;
+const DEFAULT_MAX_REMINDERS = 2;
 
 // ── Token Helpers ───────────────────────────────────────��───────────────────
 
 export function createSupplierInviteId(): string {
   return `sinv_${randomBytes(12).toString('hex')}`;
+}
+
+export function createSupplierInviteCampaignId(): string {
+  return `sicp_${randomBytes(12).toString('hex')}`;
 }
 
 function createInviteSecret(): string {
@@ -63,6 +71,10 @@ export interface IssueSupplierInviteInput {
   createdByEmail?: string | null;
   intendedEmail: string;
   supplierOrganisationHint?: string | null;
+  campaignId?: string | null;
+  campaignLabel?: string | null;
+  campaignContext?: string | null;
+  campaignSource?: SupplierInviteCampaignSource | null;
   expiresInDays?: number;
   maxSubmissions?: number;
   now?: Date;
@@ -106,13 +118,25 @@ export function issueSupplierInvite(
     createdAt: now.toISOString(),
     createdBy: input.createdBy,
     createdByEmail: input.createdByEmail ?? null,
+    campaignId: input.campaignId ?? null,
+    campaignLabel: input.campaignLabel ?? null,
+    campaignContext: input.campaignContext ?? null,
+    campaignSource: input.campaignSource ?? null,
     expiresAt: expiresAt.toISOString(),
     revokedAt: null,
     revokedBy: null,
     firstUsedAt: null,
     lastUsedAt: null,
     lastUsedIpHash: null,
+    inviteAccessUrlCiphertext: null,
+    inviteEmailSentAt: null,
     deliveryFailed: false,
+    otpDeliveryFailed: false,
+    remindersSent: 0,
+    lastReminderAt: null,
+    reminderOptOut: false,
+    reminderOptOutAt: null,
+    maxReminders: DEFAULT_MAX_REMINDERS,
     riskFlags: [],
     reissueTargetEmail: null,
     reassignedFromEmail: null,
@@ -252,6 +276,7 @@ export async function revokeActiveInvitesForRegister(input: {
   ownerId: string;
   registerId: string;
   revokedBy: string;
+  intendedEmail?: string | null;
 }): Promise<number> {
   const snapshot = await db
     .collection(INVITE_COLLECTION)
@@ -259,9 +284,20 @@ export async function revokeActiveInvitesForRegister(input: {
     .where('ownerId', '==', input.ownerId)
     .get();
 
+  const normalizedEmail = input.intendedEmail?.trim().toLowerCase() ?? null;
+
   const activeDocs = snapshot.docs.filter((doc) => {
-    const data = doc.data();
-    return data.status === 'active' || data.status === 'verified';
+    const data = parseSupplierInviteRecord(doc.data());
+    const isOpen = data.status === 'active' || data.status === 'verified';
+    if (!isOpen) {
+      return false;
+    }
+
+    if (!normalizedEmail) {
+      return true;
+    }
+
+    return data.intendedEmail === normalizedEmail;
   });
 
   if (activeDocs.length === 0) return 0;
@@ -285,4 +321,10 @@ export async function persistSupplierInvite(
   record: SupplierInviteRecord
 ): Promise<void> {
   await db.collection(INVITE_COLLECTION).doc(record.inviteId).set(record);
+}
+
+export async function persistSupplierInviteCampaign(
+  record: SupplierInviteCampaignRecord,
+): Promise<void> {
+  await db.collection(CAMPAIGN_COLLECTION).doc(record.campaignId).set(record);
 }
