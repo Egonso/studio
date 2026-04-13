@@ -3,7 +3,11 @@ import {
   createHash,
   createHmac,
 } from 'node:crypto';
-import * as functions from 'firebase-functions/v1';
+
+import {
+  appPublicOriginParam,
+  supplierSessionSecret,
+} from './runtimeParams';
 
 const DEFAULT_APP_ORIGIN = 'https://kiregister.com';
 const ENCRYPTION_VERSION = 'v1';
@@ -14,17 +18,20 @@ function parseTrimmed(value: string | undefined | null): string | null {
   return trimmed ? trimmed : null;
 }
 
-function getFunctionsConfig() {
-  return functions.config?.() as {
-    app?: {
-      public_origin?: string;
-    };
-    supplier?: {
-      session_secret?: string;
-      session_secret_previous?: string;
-      app_origin?: string;
-    };
-  };
+function safeSecretValue(): string | null {
+  try {
+    return parseTrimmed(supplierSessionSecret.value());
+  } catch {
+    return null;
+  }
+}
+
+function safeAppOriginValue(): string | null {
+  try {
+    return normalizeOrigin(appPublicOriginParam.value());
+  } catch {
+    return null;
+  }
 }
 
 function normalizeOrigin(value: string | undefined): string | null {
@@ -48,8 +55,7 @@ function getPublicAppOrigin(): string {
   return (
     normalizeOrigin(process.env.NEXT_PUBLIC_APP_ORIGIN) ??
     normalizeOrigin(process.env.NEXT_PUBLIC_APP_BASE_URL) ??
-    normalizeOrigin(getFunctionsConfig().app?.public_origin) ??
-    normalizeOrigin(getFunctionsConfig().supplier?.app_origin) ??
+    safeAppOriginValue() ??
     DEFAULT_APP_ORIGIN
   );
 }
@@ -57,7 +63,7 @@ function getPublicAppOrigin(): string {
 function getCurrentSecret(): string {
   const secret =
     parseTrimmed(process.env.SUPPLIER_SESSION_SECRET) ??
-    parseTrimmed(getFunctionsConfig().supplier?.session_secret);
+    safeSecretValue();
   if (!secret) {
     throw new Error(
       'SUPPLIER_SESSION_SECRET is not configured. Cannot manage supplier delivery data.',
@@ -67,11 +73,7 @@ function getCurrentSecret(): string {
 }
 
 function getPreviousSecret(): string | null {
-  return (
-    parseTrimmed(process.env.SUPPLIER_SESSION_SECRET_PREVIOUS) ??
-    parseTrimmed(getFunctionsConfig().supplier?.session_secret_previous) ??
-    null
-  );
+  return parseTrimmed(process.env.SUPPLIER_SESSION_SECRET_PREVIOUS) ?? null;
 }
 
 function deriveKey(secret: string): Buffer {

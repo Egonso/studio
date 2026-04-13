@@ -8,9 +8,13 @@ import {
 import {
   resolveFunctionsEmailitApiKey,
   resolveFunctionsEmailitFromEmail,
-  resolveFunctionsEmailitTemplate,
+  resolveFunctionsReminderTemplate,
   sendEmailitTemplateEmail,
 } from './emailit';
+import {
+  emailitApiKeySecret,
+  supplierSessionSecret,
+} from './runtimeParams';
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
 const DEFAULT_MAX_REMINDERS = 2;
@@ -36,10 +40,7 @@ interface SupplierInviteRecord {
 }
 
 function resolveReminderTemplateId(): string | null {
-  return resolveFunctionsEmailitTemplate(
-    'EMAILIT_SUPPLIER_REMINDER_TEMPLATE',
-    'supplier_reminder_template',
-  );
+  return resolveFunctionsReminderTemplate();
 }
 
 function formatExpiry(value: string): string {
@@ -119,6 +120,7 @@ export const scheduledSupplierReminders = onSchedule(
     timeZone: 'Europe/Berlin',
     region: 'europe-west1',
     retryCount: 1,
+    secrets: [emailitApiKeySecret, supplierSessionSecret],
   },
   async () => {
     const emailitApiKey = resolveFunctionsEmailitApiKey();

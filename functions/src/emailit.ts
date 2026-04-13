@@ -1,4 +1,9 @@
-import * as functions from 'firebase-functions/v1';
+import {
+  emailitApiKeySecret,
+  emailitFromEmailParam,
+  emailitSupplierReminderTemplateParam,
+  emailitWelcomeTemplateParam,
+} from './runtimeParams';
 
 const EMAILIT_API_BASE_URL = 'https://api.emailit.com/v2';
 
@@ -92,21 +97,26 @@ export async function sendEmailitTemplateEmail(
   }
 }
 
-function getFunctionsConfig() {
-  return functions.config?.() as {
-    emailit?: {
-      api_key?: string;
-      from_email?: string;
-      welcome_template?: string;
-      supplier_reminder_template?: string;
-    };
-  };
+function safeSecretValue(secret: { value: () => string }): string | null {
+  try {
+    return parseTrimmed(secret.value());
+  } catch {
+    return null;
+  }
+}
+
+function safeStringValue(param: { value: () => string }): string | null {
+  try {
+    return parseTrimmed(param.value());
+  } catch {
+    return null;
+  }
 }
 
 export function resolveFunctionsEmailitApiKey(): string | null {
   return (
     parseTrimmed(process.env.EMAILIT_API_KEY) ??
-    parseTrimmed(getFunctionsConfig().emailit?.api_key) ??
+    safeSecretValue(emailitApiKeySecret) ??
     null
   );
 }
@@ -114,18 +124,23 @@ export function resolveFunctionsEmailitApiKey(): string | null {
 export function resolveFunctionsEmailitFromEmail(): string | null {
   return (
     parseTrimmed(process.env.EMAILIT_FROM_EMAIL) ??
-    parseTrimmed(getFunctionsConfig().emailit?.from_email) ??
+    safeStringValue(emailitFromEmailParam) ??
     null
   );
 }
 
-export function resolveFunctionsEmailitTemplate(
-  envKey: string,
-  legacyConfigKey: 'welcome_template' | 'supplier_reminder_template',
-): string | null {
+export function resolveFunctionsReminderTemplate(): string | null {
   return (
-    parseTrimmed(process.env[envKey]) ??
-    parseTrimmed(getFunctionsConfig().emailit?.[legacyConfigKey]) ??
+    parseTrimmed(process.env.EMAILIT_SUPPLIER_REMINDER_TEMPLATE) ??
+    safeStringValue(emailitSupplierReminderTemplateParam) ??
+    null
+  );
+}
+
+export function resolveFunctionsWelcomeTemplate(): string | null {
+  return (
+    parseTrimmed(process.env.EMAILIT_WELCOME_TEMPLATE) ??
+    safeStringValue(emailitWelcomeTemplateParam) ??
     null
   );
 }

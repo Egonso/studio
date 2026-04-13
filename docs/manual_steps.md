@@ -49,7 +49,7 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
 - `SUPPLIER_SESSION_SECRET` — 32 byte random base64: `openssl rand -base64 32`
 - `SUPPLIER_SESSION_SECRET_PREVIOUS` — optional, for key rotation (set to old value when rotating)
 - Set `SUPPLIER_SESSION_SECRET` in both the Studio app environment and the Functions environment
-- If your public origin is not `https://kiregister.com`, set `NEXT_PUBLIC_APP_ORIGIN` in the Functions environment as well so reminder opt-out links point to the correct host
+- If your public origin is not `https://kiregister.com`, set `APP_PUBLIC_ORIGIN` for Functions so reminder opt-out links point to the correct host
 
 ### Emailit (for supplier invite, OTP, reminders, confirmation, welcome email)
 - Create an Emailit workspace and an API key with sending access
@@ -61,6 +61,12 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
   - supplier reminders
   - supplier submission confirmations
   - optional: checkout / welcome mail
+- Recommended / currently provisioned aliases:
+  - `supplier-invite`
+  - `supplier-otp`
+  - `supplier-reminder`
+  - `supplier-confirmation`
+  - `welcome`
 - Set these variables in the Studio app environment:
   - `EMAILIT_API_KEY`
   - `EMAILIT_FROM_EMAIL`
@@ -68,16 +74,18 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
   - `EMAILIT_SUPPLIER_OTP_TEMPLATE`
   - `EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE`
   - `SUPPLIER_SESSION_SECRET`
+  - `NEXT_PUBLIC_APP_ORIGIN`
 - Set these variables in the Functions environment:
-  - `EMAILIT_API_KEY` or `functions.config().emailit.api_key`
-  - `EMAILIT_FROM_EMAIL` or `functions.config().emailit.from_email`
-  - `EMAILIT_SUPPLIER_REMINDER_TEMPLATE` or `functions.config().emailit.supplier_reminder_template`
-  - optional: `EMAILIT_WELCOME_TEMPLATE` or `functions.config().emailit.welcome_template`
-  - `SUPPLIER_SESSION_SECRET` or `functions.config().supplier.session_secret`
-  - optional: `SUPPLIER_SESSION_SECRET_PREVIOUS` or `functions.config().supplier.session_secret_previous`
-  - if needed: `NEXT_PUBLIC_APP_ORIGIN` or `functions.config().app.public_origin`
+  - secret: `EMAILIT_API_KEY`
+  - parameter: `EMAILIT_FROM_EMAIL`
+  - parameter: `EMAILIT_SUPPLIER_REMINDER_TEMPLATE`
+  - optional parameter: `EMAILIT_WELCOME_TEMPLATE` (default: `welcome`)
+  - secret: `SUPPLIER_SESSION_SECRET`
+  - optional env override for key rotation: `SUPPLIER_SESSION_SECRET_PREVIOUS`
+  - optional parameter: `APP_PUBLIC_ORIGIN` (default: `https://kiregister.com`)
 - Keep the sender in RFC format, e.g. `KI-Register <noreply@your-domain.com>`
 - New Emailit workspaces start with rate limits of `2 messages / second` and `5000 / day`; request more in Emailit before larger beta rollouts if needed
+- The Functions code no longer relies on `functions.config()`, because Firebase now recommends parameterized configuration / secrets instead
 
 ### Concrete Firebase Commands
 
@@ -92,6 +100,7 @@ firebase apphosting:secrets:set EMAILIT_SUPPLIER_INVITE_TEMPLATE --project ai-ac
 firebase apphosting:secrets:set EMAILIT_SUPPLIER_OTP_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
 firebase apphosting:secrets:set EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
 firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set NEXT_PUBLIC_APP_ORIGIN --project ai-act-compass-m6o05 --location europe-west1
 ```
 
 If you later rotate the session key and want overlap support:
@@ -104,28 +113,42 @@ firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET_PREVIOUS --project ai-ac
 
 #### Functions config
 
-The reminder and welcome-email Functions now work with legacy runtime config as a fallback. Set it once with:
+Set the required secrets first:
 
 ```bash
-firebase functions:config:set \
-  emailit.api_key="REPLACE_ME" \
-  emailit.from_email="KI-Register <noreply@your-domain.com>" \
-  emailit.supplier_reminder_template="REPLACE_ME" \
-  emailit.welcome_template="REPLACE_ME_OPTIONAL" \
-  supplier.session_secret="REPLACE_ME" \
-  app.public_origin="https://kiregister.com"
+firebase functions:secrets:set EMAILIT_API_KEY --project ai-act-compass-m6o05
+firebase functions:secrets:set SUPPLIER_SESSION_SECRET --project ai-act-compass-m6o05
 ```
 
-Optional during key rotation:
+Then deploy Functions. Firebase will prompt once for the non-secret parameters and write them to `functions/.env.ai-act-compass-m6o05`:
+
+- `EMAILIT_FROM_EMAIL`
+- `EMAILIT_SUPPLIER_REMINDER_TEMPLATE`
+- optional override: `EMAILIT_WELCOME_TEMPLATE`
+- optional override: `APP_PUBLIC_ORIGIN`
+
+If you want to avoid prompts, create `functions/.env.ai-act-compass-m6o05` manually before deploy, for example:
 
 ```bash
-firebase functions:config:set supplier.session_secret_previous="REPLACE_ME_OLD"
+cat > functions/.env.ai-act-compass-m6o05 <<'EOF'
+EMAILIT_FROM_EMAIL=KI-Register <noreply@your-domain.com>
+EMAILIT_SUPPLIER_REMINDER_TEMPLATE=REPLACE_ME
+EMAILIT_WELCOME_TEMPLATE=welcome
+APP_PUBLIC_ORIGIN=https://kiregister.com
+EOF
 ```
 
 Then deploy Functions so the new config is picked up:
 
 ```bash
 npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
+```
+
+Optional during key rotation:
+
+```bash
+echo 'SUPPLIER_SESSION_SECRET_PREVIOUS=REPLACE_ME_OLD' >> functions/.env.ai-act-compass-m6o05
 firebase deploy --only functions --project ai-act-compass-m6o05
 ```
 

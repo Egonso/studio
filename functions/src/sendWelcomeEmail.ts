@@ -3,17 +3,13 @@ import * as admin from 'firebase-admin';
 import {
   resolveFunctionsEmailitApiKey,
   resolveFunctionsEmailitFromEmail,
-  resolveFunctionsEmailitTemplate,
+  resolveFunctionsWelcomeTemplate,
   sendEmailitTemplateEmail,
 } from './emailit';
+import { emailitApiKeySecret } from './runtimeParams';
 
 function resolveTemplateId(): string {
-  return (
-    resolveFunctionsEmailitTemplate(
-      'EMAILIT_WELCOME_TEMPLATE',
-      'welcome_template',
-    ) || 'welcome'
-  );
+  return resolveFunctionsWelcomeTemplate() || 'welcome';
 }
 
 function resolveSenderEmail(): string {
@@ -23,7 +19,9 @@ function resolveSenderEmail(): string {
   );
 }
 
-export const sendWelcomeEmailOnPurchase = functions.firestore
+export const sendWelcomeEmailOnPurchase = functions.runWith({
+  secrets: [emailitApiKeySecret],
+}).firestore
   .document('stripe_events/{eventId}')
   .onCreate(async (snap) => {
     try {
