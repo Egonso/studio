@@ -71,7 +71,7 @@ export function PublicIntakeShell({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <header className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/"
             className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950"
@@ -85,7 +85,7 @@ export function PublicIntakeShell({
             <span>KI-Register</span>
           </Link>
           {actions.length > 0 ? (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
               {actions.map((action) => (
                 <Button
                   key={`${action.href}-${action.label}`}
@@ -100,16 +100,16 @@ export function PublicIntakeShell({
           ) : null}
         </header>
 
-        <div className="grid flex-1 gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
+        <div className="grid flex-1 gap-8 py-8 lg:gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
           <section className="space-y-8 pt-2">
             <div className="space-y-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 {AREA_SECTION_LABELS.public_external_intake}
               </p>
-              <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
+              <h1 className="max-w-3xl text-3xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
                 {title}
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-slate-600">
+              <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
                 {description}
               </p>
             </div>
@@ -180,7 +180,7 @@ export function SignedInAreaFrame({
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader brandHref={brandHref} />
-      <main className="flex-1 px-4 py-4 md:px-8">
+      <main className="flex-1 px-4 py-4 sm:px-6 md:px-8">
         <div
           className={cn(
             'mx-auto space-y-6',
@@ -199,7 +199,7 @@ export function SignedInAreaFrame({
                   {AREA_SECTION_LABELS[area]}
                 </p>
                 <div className="space-y-2">
-                  <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-slate-950">
+                  <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-slate-950 sm:text-[30px]">
                     {title}
                   </h1>
                   <p className="max-w-3xl text-sm leading-7 text-slate-600">

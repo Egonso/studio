@@ -55,7 +55,11 @@ export function WorkspaceSwitcher() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 w-[200px] justify-between">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-w-0 max-w-[11rem] justify-between gap-2 px-2 sm:w-[200px] sm:max-w-[200px]"
+                >
                     <div className="flex items-center gap-2 truncate">
                         <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                         <span className="truncate">
@@ -65,7 +69,7 @@ export function WorkspaceSwitcher() {
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[200px]" align="start">
+            <DropdownMenuContent className="w-[200px] max-w-[calc(100vw-1rem)]" align="start">
                 <DropdownMenuLabel className="text-xs text-muted-foreground">Mein Bereich</DropdownMenuLabel>
                 <DropdownMenuItem
                     onClick={() => handleSwitch(null)}

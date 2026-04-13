@@ -426,7 +426,7 @@ export default function MyRegisterPage() {
             onSupplierInvitesChanged={() => setRefreshKey((key) => key + 1)}
           >
             {activeRegister && (
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <Select
                   value={activeRegister?.registerId ?? ''}
                   onValueChange={(registerId) => {
@@ -438,7 +438,7 @@ export default function MyRegisterPage() {
                     void handleSwitchRegister(registerId);
                   }}
                 >
-                  <SelectTrigger className="w-[280px]">
+                  <SelectTrigger className="w-full sm:w-[280px]">
                     <SelectValue placeholder="Register auswählen" />
                   </SelectTrigger>
                   <SelectContent>
@@ -456,7 +456,7 @@ export default function MyRegisterPage() {
                 {registerFirstFlags.controlShell && activeRegister && (
                   <Button
                     variant="outline"
-                    className="h-10 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                    className="h-10 w-full border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
                     onClick={() =>
                       router.push(
                         appendWorkspaceScope(ROUTE_HREFS.control, workspaceScope),
@@ -472,7 +472,7 @@ export default function MyRegisterPage() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-10 gap-1.5 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950"
+                        className="h-10 w-full justify-between gap-1.5 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950 sm:w-auto sm:justify-center"
                       >
                         Optionen
                         <ChevronDown className="h-3.5 w-3.5" />
@@ -602,11 +602,11 @@ export default function MyRegisterPage() {
               />
             )}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white p-1">
+            <div className="inline-flex w-full items-center gap-1 rounded-md border border-slate-200 bg-white p-1 sm:w-auto">
               <button
                 type="button"
                 onClick={() => handleDocumentLensChange('documents')}
-                className={`rounded-md px-3 py-1.5 text-[13px] transition-colors ${
+                className={`flex-1 rounded-md px-3 py-1.5 text-[13px] transition-colors sm:flex-none ${
                   showingExternalInbox
                     ? 'text-slate-600 hover:text-slate-950'
                     : 'bg-slate-100 text-slate-950'
@@ -617,7 +617,7 @@ export default function MyRegisterPage() {
               <button
                 type="button"
                 onClick={() => handleDocumentLensChange('supplier_requests')}
-                className={`rounded-md px-3 py-1.5 text-[13px] transition-colors ${
+                className={`flex-1 rounded-md px-3 py-1.5 text-[13px] transition-colors sm:flex-none ${
                   showingExternalInbox
                     ? 'bg-slate-100 text-slate-950'
                     : 'text-slate-600 hover:text-slate-950'

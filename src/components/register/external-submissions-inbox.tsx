@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, ExternalLink, Loader2, Search, ShieldAlert, XCircle, AlertTriangle } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, Loader2, Search, ShieldAlert, XCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,14 +41,6 @@ import type {
   ExternalSubmissionStatus,
   Register,
 } from "@/lib/register-first/types";
-import {
-  compareSubmissionsByTrust,
-  getSubmissionRiskFlags,
-  getRiskFlagLabel,
-  getTrustTierLabel,
-  resolveSubmissionTrustTier,
-  type SubmissionTrustTier,
-} from "@/lib/register-first/submission-trust-tier";
 
 const STATUS_LABELS: Record<ExternalSubmissionStatus, string> = {
   submitted: "Eingegangen",
@@ -89,41 +81,6 @@ function statusVariant(status: ExternalSubmissionStatus) {
     default:
       return "outline";
   }
-}
-
-function trustTierVariant(tier: SubmissionTrustTier): "default" | "secondary" | "outline" | "destructive" {
-  switch (tier) {
-    case "verified":
-      return "secondary";
-    case "flagged":
-      return "destructive";
-    default:
-      return "outline";
-  }
-}
-
-function TrustTierBadge({ submission }: { submission: ExternalSubmission }) {
-  const tier = resolveSubmissionTrustTier(submission);
-  const riskFlags = getSubmissionRiskFlags(submission);
-  const label = getTrustTierLabel(tier);
-
-  return (
-    <div className="space-y-1">
-      <Badge variant={trustTierVariant(tier)} className="text-xs">
-        {tier === "flagged" ? (
-          <AlertTriangle className="mr-1 h-3 w-3" />
-        ) : tier === "verified" ? (
-          <CheckCircle2 className="mr-1 h-3 w-3" />
-        ) : null}
-        {label}
-      </Badge>
-      {riskFlags.length > 0 ? (
-        <div className="text-[11px] leading-tight text-muted-foreground">
-          {riskFlags.map((flag) => getRiskFlagLabel(flag)).join(", ")}
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 interface ExternalSubmissionsInboxProps {
@@ -243,10 +200,7 @@ export function ExternalSubmissionsInbox({
     }
   };
 
-  const rows = useMemo(
-    () => [...submissions].sort(compareSubmissionsByTrust),
-    [submissions],
-  );
+  const rows = useMemo(() => submissions, [submissions]);
 
   return (
     <Card className="border-slate-200 shadow-sm">
@@ -314,7 +268,7 @@ export function ExternalSubmissionsInbox({
               <SelectItem value="manual_import">Import</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               variant="outline"
               onClick={() => setSearchQuery(searchInput.trim())}
@@ -350,61 +304,42 @@ export function ExternalSubmissionsInbox({
             {emptyCopy}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Quelle</TableHead>
-                <TableHead>Vertrauen</TableHead>
-                <TableHead>Einreichung</TableHead>
-                <TableHead>Eingereicht von</TableHead>
-                <TableHead>Zeitpunkt</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Use Case</TableHead>
-                <TableHead className="text-right">Aktionen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            <div className="space-y-3 md:hidden">
               {rows.map((submission) => {
                 const isActing = actingId === submission.submissionId;
                 const title = getExternalSubmissionTitle(submission);
                 const actor = getExternalSubmissionActor(submission);
 
                 return (
-                  <TableRow key={submission.submissionId}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">
-                          {submission.sourceType === "supplier_request" &&
-                           typeof submission.rawPayloadSnapshot.inviteId === "string"
-                            ? "Lieferantenanfrage"
-                            : SOURCE_LABELS[submission.sourceType]}
+                  <div
+                    key={submission.submissionId}
+                    className="space-y-4 rounded-xl border border-slate-200 bg-white p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <div className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                          {SOURCE_LABELS[submission.sourceType]}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {typeof submission.rawPayloadSnapshot.inviteId === "string"
-                            ? `Invite ${submission.rawPayloadSnapshot.inviteId}`
-                            : submission.requestTokenId
-                              ? `Token ${submission.requestTokenId}`
-                              : submission.accessCodeId
-                                ? `Code ${submission.accessCodeId}`
-                                : submission.submissionId}
+                        <div className="text-sm font-semibold text-slate-900">
+                          {title}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <TrustTierBadge submission={submission} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-slate-900">{title}</div>
                         <div className="text-xs text-muted-foreground">
                           {typeof submission.rawPayloadSnapshot.purpose === "string"
                             ? submission.rawPayloadSnapshot.purpose
                             : "Keine Beschreibung"}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
+                      <Badge variant={statusVariant(submission.status)}>
+                        {STATUS_LABELS[submission.status]}
+                      </Badge>
+                    </div>
+
+                    <div className="grid gap-3 text-sm text-slate-700">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                          Eingereicht von
+                        </div>
                         <div>{actor}</div>
                         {submission.submittedByEmail ? (
                           <div className="text-xs text-muted-foreground">
@@ -412,68 +347,258 @@ export function ExternalSubmissionsInbox({
                           </div>
                         ) : null}
                       </div>
-                    </TableCell>
-                    <TableCell>{formatDate(submission.submittedAt)}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant(submission.status)}>
-                        {STATUS_LABELS[submission.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {submission.linkedUseCaseId ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                            Referenz
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {submission.requestTokenId
+                              ? `Token ${submission.requestTokenId}`
+                              : submission.accessCodeId
+                                ? `Code ${submission.accessCodeId}`
+                                : submission.submissionId}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                            Zeitpunkt
+                          </div>
+                          <div>{formatDate(submission.submittedAt)}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                          Use Case
+                        </div>
+                        {submission.linkedUseCaseId ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-auto px-0 text-primary"
+                            onClick={() =>
+                              router.push(
+                                buildScopedUseCaseDetailHref(
+                                  submission.linkedUseCaseId!,
+                                  workspaceScope,
+                                ),
+                              )
+                            }
+                          >
+                            {submission.linkedUseCaseId}
+                            <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                          </Button>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Noch keiner</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      {submission.status === "submitted" ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={isActing}
+                            className="w-full sm:w-auto"
+                            onClick={() => void handleReview(submission, "reject")}
+                          >
+                            {isActing ? (
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <XCircle className="mr-1.5 h-3.5 w-3.5" />
+                            )}
+                            Ablehnen
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={isActing}
+                            className="w-full sm:w-auto"
+                            onClick={() => void handleReview(submission, "approve")}
+                          >
+                            {isActing ? (
+                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                            )}
+                            {kmuMode && submission.sourceType === "supplier_request"
+                              ? "Freigeben + Use Case"
+                              : "Freigeben"}
+                          </Button>
+                          {submission.sourceType === "supplier_request" ? (
+                            <Button
+                              size="sm"
+                              disabled={isActing}
+                              className="w-full sm:w-auto"
+                              onClick={() => void handleReview(submission, "merge")}
+                            >
+                              {isActing ? (
+                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+                              )}
+                              Uebernehmen
+                            </Button>
+                          ) : null}
+                        </>
+                      ) : submission.status === "approved" &&
+                        submission.sourceType === "supplier_request" &&
+                        !submission.linkedUseCaseId ? (
                         <Button
-                          variant="ghost"
                           size="sm"
-                          className="h-auto px-0 text-primary"
-                          onClick={() =>
-                            router.push(
-                              buildScopedUseCaseDetailHref(
-                                submission.linkedUseCaseId!,
-                                workspaceScope,
-                              ),
-                            )
-                          }
+                          disabled={isActing}
+                          className="w-full sm:w-auto"
+                          onClick={() => void handleReview(submission, "merge")}
                         >
-                          {submission.linkedUseCaseId}
-                          <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                          {isActing ? (
+                            <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+                          )}
+                          Use Case anlegen
                         </Button>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Noch keiner</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        {submission.status === "submitted" ? (
-                          <>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Quelle</TableHead>
+                    <TableHead>Einreichung</TableHead>
+                    <TableHead>Eingereicht von</TableHead>
+                    <TableHead>Zeitpunkt</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Use Case</TableHead>
+                    <TableHead className="text-right">Aktionen</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((submission) => {
+                    const isActing = actingId === submission.submissionId;
+                    const title = getExternalSubmissionTitle(submission);
+                    const actor = getExternalSubmissionActor(submission);
+
+                    return (
+                      <TableRow key={submission.submissionId}>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {SOURCE_LABELS[submission.sourceType]}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {submission.requestTokenId
+                                ? `Token ${submission.requestTokenId}`
+                                : submission.accessCodeId
+                                  ? `Code ${submission.accessCodeId}`
+                                  : submission.submissionId}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium text-slate-900">{title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {typeof submission.rawPayloadSnapshot.purpose === "string"
+                                ? submission.rawPayloadSnapshot.purpose
+                                : "Keine Beschreibung"}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div>{actor}</div>
+                            {submission.submittedByEmail ? (
+                              <div className="text-xs text-muted-foreground">
+                                {submission.submittedByEmail}
+                              </div>
+                            ) : null}
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(submission.submittedAt)}</TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariant(submission.status)}>
+                            {STATUS_LABELS[submission.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {submission.linkedUseCaseId ? (
                             <Button
+                              variant="ghost"
                               size="sm"
-                              variant="outline"
-                              disabled={isActing}
-                              onClick={() => void handleReview(submission, "reject")}
+                              className="h-auto px-0 text-primary"
+                              onClick={() =>
+                                router.push(
+                                  buildScopedUseCaseDetailHref(
+                                    submission.linkedUseCaseId!,
+                                    workspaceScope,
+                                  ),
+                                )
+                              }
                             >
-                              {isActing ? (
-                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <XCircle className="mr-1.5 h-3.5 w-3.5" />
-                              )}
-                              Ablehnen
+                              {submission.linkedUseCaseId}
+                              <ExternalLink className="ml-1 h-3.5 w-3.5" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              disabled={isActing}
-                              onClick={() => void handleReview(submission, "approve")}
-                            >
-                              {isActing ? (
-                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                              )}
-                              {kmuMode && submission.sourceType === "supplier_request"
-                                ? "Freigeben + Use Case"
-                                : "Freigeben"}
-                            </Button>
-                            {submission.sourceType === "supplier_request" ? (
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Noch keiner</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {submission.status === "submitted" ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={isActing}
+                                  onClick={() => void handleReview(submission, "reject")}
+                                >
+                                  {isActing ? (
+                                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <XCircle className="mr-1.5 h-3.5 w-3.5" />
+                                  )}
+                                  Ablehnen
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  disabled={isActing}
+                                  onClick={() => void handleReview(submission, "approve")}
+                                >
+                                  {isActing ? (
+                                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                                  )}
+                                  {kmuMode && submission.sourceType === "supplier_request"
+                                    ? "Freigeben + Use Case"
+                                    : "Freigeben"}
+                                </Button>
+                                {submission.sourceType === "supplier_request" ? (
+                                  <Button
+                                    size="sm"
+                                    disabled={isActing}
+                                    onClick={() => void handleReview(submission, "merge")}
+                                  >
+                                    {isActing ? (
+                                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
+                                    )}
+                                    Uebernehmen
+                                  </Button>
+                                ) : null}
+                              </>
+                            ) : submission.status === "approved" &&
+                              submission.sourceType === "supplier_request" &&
+                              !submission.linkedUseCaseId ? (
                               <Button
                                 size="sm"
                                 disabled={isActing}
@@ -484,33 +609,18 @@ export function ExternalSubmissionsInbox({
                                 ) : (
                                   <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                                 )}
-                                Uebernehmen
+                                Use Case anlegen
                               </Button>
                             ) : null}
-                          </>
-                        ) : submission.status === "approved" &&
-                          submission.sourceType === "supplier_request" &&
-                          !submission.linkedUseCaseId ? (
-                          <Button
-                            size="sm"
-                            disabled={isActing}
-                            onClick={() => void handleReview(submission, "merge")}
-                          >
-                            {isActing ? (
-                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
-                            )}
-                            Use Case anlegen
-                          </Button>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

@@ -273,7 +273,7 @@ export function GovernanceHeader({
           </p>
         </div>
 
-        <div className="space-y-1">
+        <div className="w-full space-y-1 xl:w-auto">
           <div className="flex flex-wrap items-center justify-start gap-1.5 xl:justify-end">
             {register && (
               <button
@@ -287,7 +287,7 @@ export function GovernanceHeader({
             {register && onQuickCapture && (
               <button
                 onClick={onQuickCapture}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
               >
                 + KI-Einsatzfall erfassen
               </button>
@@ -302,9 +302,9 @@ export function GovernanceHeader({
               </button>
             )}
             {register && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                  <button className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 sm:w-auto">
                     Aktionen
                     <ChevronDown className="h-3.5 w-3.5" />
                   </button>

@@ -15,6 +15,7 @@ import { MessageCircle, Send, Bot, Minimize2 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
     role: 'user' | 'model' | 'system';
@@ -23,6 +24,7 @@ interface Message {
 
 export function SiteChatbotWidget() {
     const { user } = useAuth();
+    const isMobile = useIsMobile();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         { role: 'model', content: 'Hallo. Ich helfe dir bei KI Register, Fragen zur Plattform und beim Einreichen von Ideen, Fehlern oder Support-Anliegen.' }
@@ -40,6 +42,16 @@ export function SiteChatbotWidget() {
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
     const router = useRouter();
+    const floatingInsetStyles: React.CSSProperties = isMobile
+        ? {
+            bottom: 'calc(0.5rem + var(--safe-area-bottom))',
+            left: 'calc(0.5rem + var(--safe-area-left))',
+            right: 'calc(0.5rem + var(--safe-area-right))',
+        }
+        : {
+            bottom: 'calc(1rem + var(--safe-area-bottom))',
+            right: 'calc(1rem + var(--safe-area-right))',
+        };
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -160,7 +172,8 @@ export function SiteChatbotWidget() {
             <Button
                 onClick={() => setIsOpen(true)}
                 variant="secondary"
-                className="fixed bottom-4 right-4 h-10 w-10 rounded-full shadow-sm z-50 p-0 bg-muted hover:bg-muted/80 transition-transform hover:scale-105"
+                className="fixed z-50 h-10 w-10 rounded-full bg-muted p-0 shadow-sm transition-transform hover:scale-105 hover:bg-muted/80"
+                style={floatingInsetStyles}
             >
                 <MessageCircle className="h-5 w-5 text-muted-foreground" />
                 <span className="sr-only">Assistant öffnen</span>
@@ -169,7 +182,16 @@ export function SiteChatbotWidget() {
     }
 
     return (
-        <Card className="fixed bottom-4 right-4 w-[350px] sm:w-[400px] h-[550px] shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom-2 duration-300 border-primary/20">
+        <Card
+            className="fixed z-50 flex flex-col overflow-hidden border-primary/20 shadow-2xl animate-in slide-in-from-bottom-2 duration-300"
+            style={{
+                ...floatingInsetStyles,
+                height: isMobile ? 'min(72dvh, 34rem)' : '550px',
+                width: isMobile
+                    ? 'auto'
+                    : 'min(400px, calc(100vw - 2rem - var(--safe-area-left) - var(--safe-area-right)))',
+            }}
+        >
             <CardHeader className="p-3 border-b flex flex-row items-center justify-between bg-muted/30">
                 <div className="flex items-center gap-2">
                     <div className="bg-primary/10 p-1 rounded-full">

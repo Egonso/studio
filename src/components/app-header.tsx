@@ -70,10 +70,10 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
   return (
     <header className="sticky top-0 z-50 bg-white">
       <div className="mx-auto w-full max-w-6xl px-4 pt-2 md:px-6">
-        <div className="flex min-h-14 items-center gap-4 py-1.5">
+        <div className="flex min-h-14 flex-wrap items-center gap-3 py-1.5 sm:flex-nowrap sm:gap-4">
           <Link
             href={resolvedBrandHref}
-            className="flex min-w-0 items-center gap-2.5"
+            className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none"
             prefetch={false}
           >
             <ThemeAwareLogo
@@ -88,7 +88,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
           </Link>
 
           {user ? (
-            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto sm:gap-3">
               <WorkspaceSwitcher />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

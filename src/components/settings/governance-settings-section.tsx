@@ -928,7 +928,7 @@ export function GovernanceSettingsSection() {
                   value={reviewStandard}
                   onValueChange={setReviewStandard}
                 >
-                  <SelectTrigger className="w-[300px]">
+                  <SelectTrigger className="w-full sm:w-[300px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -982,7 +982,7 @@ export function GovernanceSettingsSection() {
                     value={riskMethodology}
                     onValueChange={setRiskMethodology}
                   >
-                    <SelectTrigger className="w-[300px]">
+                    <SelectTrigger className="w-full sm:w-[300px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -1109,7 +1109,7 @@ export function GovernanceSettingsSection() {
                     value={reviewCycleType}
                     onValueChange={setReviewCycleType}
                   >
-                    <SelectTrigger className="w-[300px]">
+                    <SelectTrigger className="w-full sm:w-[300px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
