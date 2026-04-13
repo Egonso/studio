@@ -123,8 +123,36 @@ export async function createAffiliate(input: {
   const email = normalizeEmail(input.email);
   const slug = input.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
 
+  if (!slug || slug.length < 2) {
+    return Promise.reject(
+      Object.assign(new Error('Slug muss mindestens 2 Zeichen lang sein.'), {
+        code: 'INVALID_SLUG',
+      }),
+    );
+  }
+
+  // Check if affiliate with this email already exists
+  const existingDoc = await db
+    .collection(AFFILIATE_COLLECTIONS.affiliates)
+    .doc(email)
+    .get();
+
+  if (existingDoc.exists) {
+    return Promise.reject(
+      Object.assign(
+        new Error(`Ein Affiliate mit der Email "${email}" existiert bereits.`),
+        { code: 'DUPLICATE_EMAIL' },
+      ),
+    );
+  }
+
   if (await isSlugTaken(slug)) {
-    throw new Error(`Affiliate slug "${slug}" is already taken.`);
+    return Promise.reject(
+      Object.assign(
+        new Error(`Der Slug "${slug}" ist bereits vergeben. Bitte wähle einen anderen.`),
+        { code: 'DUPLICATE_SLUG' },
+      ),
+    );
   }
 
   const record: AffiliateRecord = {
@@ -175,11 +203,16 @@ export async function updateAffiliate(
   const emailKey = normalizeEmail(email);
 
   if (updates.slug !== undefined) {
+    updates.slug = updates.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     const taken = await isSlugTaken(updates.slug, email);
     if (taken) {
-      throw new Error(`Affiliate slug "${updates.slug}" is already taken.`);
+      return Promise.reject(
+        Object.assign(
+          new Error(`Der Slug "${updates.slug}" ist bereits vergeben.`),
+          { code: 'DUPLICATE_SLUG' },
+        ),
+      );
     }
-    updates.slug = updates.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
   }
 
   await db

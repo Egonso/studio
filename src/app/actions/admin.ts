@@ -308,13 +308,19 @@ export async function saveAffiliateGlobalSettings(
 export async function createAffiliate(
   idToken: string,
   input: { email: string; slug: string },
-): Promise<AffiliateRecord> {
+): Promise<{ success: true; affiliate: AffiliateRecord } | { success: false; error: string }> {
   const actor = await verifyAdmin(idToken);
-  return createAffiliateRecord({
-    email: input.email,
-    slug: input.slug,
-    createdBy: actor.email ?? 'unknown',
-  });
+  try {
+    const affiliate = await createAffiliateRecord({
+      email: input.email,
+      slug: input.slug,
+      createdBy: actor.email ?? 'unknown',
+    });
+    return { success: true, affiliate };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Fehler beim Erstellen.';
+    return { success: false, error: message };
+  }
 }
 
 export async function updateAffiliate(

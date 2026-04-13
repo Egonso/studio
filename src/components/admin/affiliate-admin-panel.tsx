@@ -77,7 +77,7 @@ export interface AffiliateAdminPanelProps {
     defaultBoostPeriodMonths: number;
     defaultAttributionWindowMonths: number;
   }) => Promise<void>;
-  onCreate: (input: { email: string; slug: string }) => Promise<void>;
+  onCreate: (input: { email: string; slug: string }) => Promise<{ success: true } | { success: false; error: string }>;
   onUpdate: (input: {
     email: string;
     slug?: string;
@@ -254,7 +254,11 @@ export function AffiliateAdminPanel({
     setCreating(true);
     setCreateError(null);
     try {
-      await onCreate({ email: createEmail, slug: slugify(createSlug) });
+      const result = await onCreate({ email: createEmail, slug: slugify(createSlug) });
+      if (!result.success) {
+        setCreateError(result.error);
+        return;
+      }
       setCreateOpen(false);
       setCreateEmail('');
       setCreateSlug('');
