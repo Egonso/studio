@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Search, Trash2, Undo2, X } from "lucide-react";
 import {
@@ -226,6 +227,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
 }
 
 export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
+  const t = useTranslations();
   const isStandalone = mode === "standalone";
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -856,7 +858,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           className="text-destructive focus:bg-destructive/10"
         >
           <Trash2 className="mr-2 h-3.5 w-3.5" />
-          Löschen
+          {t('common.delete')}
         </DropdownMenuItem>
       )}
       {card.publicHashId && card.isPublicVisible && (
@@ -920,7 +922,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           onValueChange={(value) => setRiskFilter(value)}
         >
           <SelectTrigger className="h-9 w-full text-sm sm:w-40">
-            <SelectValue placeholder="Risikoklasse" />
+            <SelectValue placeholder={t('register.riskClass.label')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Alle Risikoklassen</SelectItem>
@@ -938,7 +940,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="updatedAt">Zuletzt geändert</SelectItem>
-              <SelectItem value="createdAt">Erstellt am</SelectItem>
+              <SelectItem value="createdAt">{t('common.createdOn')}</SelectItem>
               <SelectItem value="purpose">Name</SelectItem>
               <SelectItem value="owner">Owner-Rolle</SelectItem>
               <SelectItem value="status">Status</SelectItem>
@@ -969,7 +971,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         </Select>
         <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title="Filter anwenden"><Search className="h-3.5 w-3.5" /></Button>
         <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
-          Zurücksetzen
+          {t('common.reset')}
         </button>
         <button
           type="button"
@@ -998,7 +1000,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{t('common.error')}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -1164,7 +1166,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                           </div>
                           <div>
                             <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                              Risikoklasse
+                              {t('register.riskClass.label')}
                             </div>
                             <div>
                               {card.governanceAssessment?.core?.aiActCategory || "Unbekannt"}
@@ -1187,10 +1189,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[360px]">Einsatzfall</TableHead>
+                  <TableHead className="w-[360px]">{t('register.useCaseTitle')}</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Owner-Rolle</TableHead>
-                  <TableHead>Risikoklasse</TableHead>
+                  <TableHead>{t('register.riskClass.label')}</TableHead>
                   <TableHead>Aktivität</TableHead>
                   <TableHead className="w-[80px] text-right">Aktionen</TableHead>
                 </TableRow>
@@ -1338,7 +1340,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (confirmingStatusCard) {
@@ -1347,7 +1349,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                 }
               }}
             >
-              Bestätigen
+              {t('common.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, forwardRef } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -32,12 +33,6 @@ interface SetupSectionProps {
   user: User | null;
 }
 
-const ADMIN_STEP_LABELS: Record<AdminStep, string> = {
-  1: "Account",
-  2: "Organisation",
-  3: "Get started",
-};
-
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
@@ -52,6 +47,7 @@ function normalizeCode(value: string): string {
 
 export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
   function SetupSection({ entryMode, onEntryModeChange, user }, ref) {
+  const t = useTranslations();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -107,8 +103,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Content could not be copied.",
+        title: t("common.error"),
+        description: t("landing.copyFailed"),
       });
     }
   };
@@ -121,16 +117,16 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!name.trim() || !email.trim() || !password.trim()) {
       toast({
         variant: "destructive",
-        title: "Missing information",
-        description: "Please fill in all fields.",
+        title: t("common.error"),
+        description: t("auth.errors.fillAllFields"),
       });
       return;
     }
     if (password.length < 6) {
       toast({
         variant: "destructive",
-        title: "Password too short",
-        description: "The password must be at least 6 characters long.",
+        title: t("common.error"),
+        description: t("auth.errors.passwordTooShort"),
       });
       return;
     }
@@ -150,7 +146,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
       if (result.requiresEmailVerification) {
         toast({
-          title: "Please verify your email",
+          title: t("auth.emailVerificationRequired"),
           description:
             "Your account has been created. We have sent you a verification link. After confirmation you can proceed to step 2.",
         });
@@ -162,11 +158,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch (error: any) {
       const msg =
         error.code === "auth/email-already-in-use"
-          ? "This email address is already in use. Please sign in."
+          ? t("auth.errors.emailAlreadyInUse")
           : error.code === "auth/invalid-email"
-            ? "Please enter a valid email address."
-            : "Account could not be created. Please try again.";
-      toast({ variant: "destructive", title: "Error", description: msg });
+            ? t("auth.errors.invalidEmail")
+            : t("auth.errors.accountCreateFailed");
+      toast({ variant: "destructive", title: t("common.error"), description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
           buildLoginPath({
@@ -186,8 +182,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!orgNameValue) {
       toast({
         variant: "destructive",
-        title: "Missing information",
-        description: "Please enter the organisation name.",
+        title: t("common.error"),
+        description: t("auth.errors.enterOrgName"),
       });
       return;
     }
@@ -236,8 +232,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       setTargetRegisterId(registerId);
       if (existing) {
         toast({
-          title: "Existing register used",
-          description: `No duplicate was created for "${orgNameValue}".`,
+          title: t("landing.existingRegisterUsed"),
+          description: t("landing.existingRegisterUsedDesc", { orgName: orgNameValue }),
         });
       }
 
@@ -255,9 +251,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Register could not be created. Please try again.",
+        title: t("common.error"),
+        description: t("landing.registerCreateFailed"),
       });
     } finally {
       setIsSubmitting(false);
@@ -280,8 +275,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!code || code.length < 3) {
       toast({
         variant: "destructive",
-        title: "Invalid code",
-        description: "Please enter a valid invitation code.",
+        title: t("landing.invalidCode"),
+        description: t("landing.invalidCodeDesc"),
       });
       return;
     }
@@ -321,9 +316,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Error",
-        description:
-          "Code could not be verified. Please try again.",
+        title: t("common.error"),
+        description: t("auth.errors.codeVerificationFailed"),
       });
     } finally {
       setIsSubmitting(false);
@@ -334,8 +328,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!validatedCode) {
       toast({
         variant: "destructive",
-        title: "Code missing",
-        description: "Please verify the invitation code first.",
+        title: t("landing.codeMissing"),
+        description: t("landing.codeMissingDesc"),
       });
       setMemberStep("code");
       return;
@@ -343,16 +337,16 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!memberName.trim() || !memberEmail.trim() || !memberPassword.trim()) {
       toast({
         variant: "destructive",
-        title: "Missing information",
-        description: "Please fill in all fields.",
+        title: t("common.error"),
+        description: t("auth.errors.fillAllFields"),
       });
       return;
     }
     if (memberPassword.length < 6) {
       toast({
         variant: "destructive",
-        title: "Password too short",
-        description: "The password must be at least 6 characters long.",
+        title: t("common.error"),
+        description: t("auth.errors.passwordTooShort"),
       });
       return;
     }
@@ -373,7 +367,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
       if (result.requiresEmailVerification) {
         toast({
-          title: "Please verify your email",
+          title: t("auth.emailVerificationRequired"),
           description:
             "Your account has been created. We have sent you a verification link. After confirmation you can join the register.",
         });
@@ -387,11 +381,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch (error: any) {
       const msg =
         error.code === "auth/email-already-in-use"
-          ? "This email address is already in use. Please sign in."
+          ? t("auth.errors.emailAlreadyInUse")
           : error.code === "auth/invalid-email"
-            ? "Please enter a valid email address."
-            : "Account could not be created. Please try again.";
-      toast({ variant: "destructive", title: "Error", description: msg });
+            ? t("auth.errors.invalidEmail")
+            : t("auth.errors.accountCreateFailed");
+      toast({ variant: "destructive", title: t("common.error"), description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
           buildLoginPath({
@@ -427,7 +421,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Set up register
+            {t("landing.setupRegister")}
           </button>
           <button
             type="button"
@@ -438,7 +432,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Use invitation code
+            {t("landing.useInvitationCode")}
           </button>
         </div>
 
@@ -450,11 +444,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
             {/* Title + progress */}
             <div className="space-y-2">
               <h2 className="text-xl font-bold tracking-tight">
-                {adminStep === 3 ? "You are ready to go" : "KI-Set up register"}
+                {adminStep === 3 ? t("landing.youAreReadyToGo") : t("landing.kiSetUpRegister")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Step {adminStepNumber} of {adminTotalSteps} ·{" "}
-                {ADMIN_STEP_LABELS[adminStep]}
+                {t("common.stepOf", { current: adminStepNumber, total: adminTotalSteps })} ·{" "}
+                {t(`landing.adminStep${adminStep}`)}
               </p>
               <div className="flex items-center gap-1 pt-1">
                 {([1, 2, 3] as AdminStep[]).map((s) => (
@@ -479,7 +473,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               >
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="setup-name">
-                    Name
+                    {t("landing.yourName")}
                   </label>
                   <Input
                     id="setup-name"
@@ -491,7 +485,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="setup-email">
-                    Email address
+                    {t("common.emailLabel")}
                   </label>
                   <Input
                     id="setup-email"
@@ -506,7 +500,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     className="text-sm font-medium"
                     htmlFor="setup-password"
                   >
-                    Password
+                    {t("common.passwordLabel")}
                   </label>
                   <Input
                     id="setup-password"
@@ -524,11 +518,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                   {isSubmitting ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    "Continue"
+                    t("common.continue")
                   )}
                 </button>
                 <p className="text-center text-xs text-muted-foreground">
-                  Already have an account?{" "}
+                  {t("landing.alreadyHaveAccount")}{" "}
                   <Link
                     href={buildLoginPath({
                       mode: "login",
@@ -536,7 +530,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
-                    Sign in directly
+                    {t("landing.signInDirectly")}
                   </Link>
                 </p>
               </form>
@@ -556,33 +550,32 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     className="text-sm font-medium"
                     htmlFor="setup-orgName"
                   >
-                    Organisation name
+                    {t("landing.orgNameLabel")}
                   </label>
                   <Input
                     id="setup-orgName"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    placeholder="e.g. Acme Corp"
+                    placeholder={t("landing.orgNamePlaceholder")}
                     autoFocus
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="setup-role">
-                    Your role{" "}
+                    {t("landing.roleLabel")}{" "}
                     <span className="font-normal text-muted-foreground">
-                      (optional)
+                      ({t("common.optional")})
                     </span>
                   </label>
                   <Input
                     id="setup-role"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    placeholder="e.g. AI Governance Lead"
+                    placeholder={t("landing.rolePlaceholder")}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  If the organisation already exists, the existing
-                  register will be used.
+                  {t("landing.orgExistsNote")}
                 </p>
                 <button
                   type="submit"
@@ -592,7 +585,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                   {isSubmitting ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    "Continue"
+                    t("common.continue")
                   )}
                 </button>
               </form>
@@ -621,10 +614,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    Join AI Register
+                    {t("landing.joinAiRegister")}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Enter the invitation code from your organisation.
+                    {t("landing.enterCodeDesc")}
                   </p>
                 </div>
                 <form
@@ -639,7 +632,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-code"
                     >
-                      Invitation code
+                      {t("landing.inviteCodeLabel")}
                     </label>
                     <Input
                       id="member-code"
@@ -647,7 +640,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       onChange={(e) =>
                         setCodeInput(normalizeCode(e.target.value))
                       }
-                      placeholder="AI-XXXXXX"
+                      placeholder={t("landing.inviteCodePlaceholder")}
                       className="font-mono tracking-wider"
                       autoFocus
                     />
@@ -660,7 +653,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     {isSubmitting ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                     ) : (
-                      "Verify"
+                      t("common.verify")
                     )}
                   </button>
                 </form>
@@ -672,10 +665,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    Confirm organisation
+                    {t("landing.confirmOrgTitle")}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Check whether the code belongs to the correct organisation.
+                    {t("landing.confirmOrgDesc")}
                   </p>
                 </div>
                 <div className="rounded-md border p-4 space-y-1">
@@ -696,7 +689,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     onClick={() => setMemberStep("signup")}
                     className="w-full rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
                   >
-                    Confirm organisation
+                    {t("landing.confirmOrgTitle")}
                   </button>
                   <button
                     type="button"
@@ -708,7 +701,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     }}
                     className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline py-1"
                   >
-                    This is not my organisation
+                    {t("landing.notMyOrg")}
                   </button>
                 </div>
               </>
@@ -719,7 +712,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    Create account
+                    {t("landing.createAccountTitle")}
                   </h2>
                   {(memberOrgName || memberOrgLabel) && (
                     <p className="text-sm text-muted-foreground">
@@ -739,7 +732,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-name"
                     >
-                      Name
+                      {t("landing.yourName")}
                     </label>
                     <Input
                       id="member-name"
@@ -754,7 +747,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-email"
                     >
-                      Email address
+                      {t("common.emailLabel")}
                     </label>
                     <Input
                       id="member-email"
@@ -769,7 +762,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-password"
                     >
-                      Password
+                      {t("common.passwordLabel")}
                     </label>
                     <Input
                       id="member-password"
@@ -787,12 +780,12 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     {isSubmitting ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                     ) : (
-                      "Create account & go to capture"
+                      t("landing.createAccountAndCapture")
                     )}
                   </button>
                 </form>
                 <p className="text-center text-xs text-muted-foreground">
-                  Already have an account?{" "}
+                  {t("landing.alreadyHaveAccount")}{" "}
                   <Link
                     href={buildLoginPath({
                       mode: "login",
@@ -801,7 +794,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
-                    Sign in and continue directly
+                    {t("landing.signInAndContinue")}
                   </Link>
                 </p>
               </>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { LocaleSwitcher } from './locale-switcher';
 import { BookOpen, Bot, Link2, LogOut, Settings, UserCircle } from 'lucide-react';
 
@@ -37,6 +38,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {}) {
+  const t = useTranslations();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -111,7 +113,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <Settings className="h-4 w-4" />
-                      Settings
+                      {t('nav.settings')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -121,7 +123,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       prefetch={false}
                     >
                       <Bot className="h-4 w-4" />
-                      Agent Kit & API
+                      {t('nav.agentKit')}
                     </Link>
                   </DropdownMenuItem>
                   {isAffiliate ? (
@@ -132,7 +134,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                         prefetch={false}
                       >
                         <Link2 className="h-4 w-4" />
-                        Affiliate
+                        {t('nav.affiliate')}
                       </Link>
                     </DropdownMenuItem>
                   ) : null}
@@ -143,7 +145,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       prefetch={false}
                     >
                       <BookOpen className="h-4 w-4" />
-                      Law
+                      {t('nav.law')}
                     </Link>
                   </DropdownMenuItem>
                   {isAdminEmail(user.email) ? (
@@ -154,7 +156,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                         prefetch={false}
                       >
                         <Settings className="h-4 w-4" />
-                        Admin
+                        {t('nav.admin')}
                       </Link>
                     </DropdownMenuItem>
                   ) : null}
@@ -164,7 +166,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                     className="flex cursor-pointer items-center gap-2 text-destructive focus:text-destructive"
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign out
+                    {t('nav.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

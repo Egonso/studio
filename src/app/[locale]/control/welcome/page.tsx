@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   CheckCircle2,
   ClipboardCheck,
@@ -32,61 +33,55 @@ interface WelcomeModule {
   description: string;
 }
 
-const WELCOME_MODULES: WelcomeModule[] = [
-  {
-    href: ROUTE_HREFS.control,
-    icon: CheckCircle2,
-    title: 'Overview',
-    description:
-      'Sehen Sie Reifegrad, offene Aufgaben und den aktuellen Governance-Stand in einem Bericht.',
-  },
-  {
-    href: ROUTE_HREFS.controlReviews,
-    icon: ClipboardCheck,
-    title: 'Reviews / Action Queue',
-    description:
-      'Bearbeiten Sie formale Prüfungen und priorisierte Governance-Maßnahmen an einem Ort.',
-  },
-  {
-    href: ROUTE_HREFS.governanceSettings,
-    icon: Shield,
-    title: 'Governance Settings',
-    description:
-      'Hinterlegen Sie Rollen, Richtlinien, Incident-Prozesse und Review-Logik für Ihre Organisation.',
-  },
-  {
-    href: ROUTE_HREFS.controlPolicies,
-    icon: FileText,
-    title: 'Policy Engine',
-    description:
-      'Erstellen und pflegen Sie Richtlinien und verknüpfen Sie sie sauber mit dokumentierten Use Cases.',
-  },
-  {
-    href: ROUTE_HREFS.controlExports,
-    icon: Users,
-    title: 'Exports / Audit',
-    description:
-      'Erzeugen Sie Governance Reports, Policy Bundles und auditfähige Nachweispakete.',
-  },
-  {
-    href: ROUTE_HREFS.controlTrust,
-    icon: Globe,
-    title: 'Trust Portal',
-    description:
-      'Steuern Sie, welche Nachweise und Transparenzsignale öffentlich sichtbar werden dürfen.',
-  },
-  {
-    href: ROUTE_HREFS.academy,
-    icon: GraduationCap,
-    title: 'Academy',
-    description:
-      'Starten Sie Schulung, Lernfortschritt und Governance-Kompetenz direkt aus der Premium-Ebene.',
-  },
-];
-
 export default function ControlWelcomePage() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const WELCOME_MODULES: WelcomeModule[] = [
+    {
+      href: ROUTE_HREFS.control,
+      icon: CheckCircle2,
+      title: t('control.overview'),
+      description: t('control.overviewDesc'),
+    },
+    {
+      href: ROUTE_HREFS.controlReviews,
+      icon: ClipboardCheck,
+      title: t('control.reviews'),
+      description: t('control.welcome.reviewsDescription'),
+    },
+    {
+      href: ROUTE_HREFS.governanceSettings,
+      icon: Shield,
+      title: t('governance.settings'),
+      description: t('control.welcome.settingsDescription'),
+    },
+    {
+      href: ROUTE_HREFS.controlPolicies,
+      icon: FileText,
+      title: t('control.policies'),
+      description: t('control.welcome.policiesDescription'),
+    },
+    {
+      href: ROUTE_HREFS.controlExports,
+      icon: Users,
+      title: t('control.exports'),
+      description: t('control.exportsDesc'),
+    },
+    {
+      href: ROUTE_HREFS.controlTrust,
+      icon: Globe,
+      title: t('control.trustPortal'),
+      description: t('control.welcome.trustDescription'),
+    },
+    {
+      href: ROUTE_HREFS.academy,
+      icon: GraduationCap,
+      title: t('control.academy'),
+      description: t('control.academyDesc'),
+    },
+  ];
   const { user, loading: authLoading } = useAuth();
   const { allowed, loading: capabilityLoading, plan } =
     useCapability('reviewWorkflow');
@@ -176,7 +171,7 @@ export default function ControlWelcomePage() {
         setSyncError(
           error instanceof Error
             ? error.message
-            : 'Die Freischaltung konnte noch nicht abgeschlossen werden.',
+            : t('control.errors.reportLoadFailed'),
         );
         setSyncState('error');
       });
@@ -191,12 +186,12 @@ export default function ControlWelcomePage() {
     effectivePlan === 'pro' || effectivePlan === 'enterprise' || allowed;
   const heading =
     source === 'checkout'
-      ? 'Willkommen im Governance Control Center'
-      : 'Governance Control Center';
+      ? t('control.welcome.title')
+      : t('control.welcome.heading');
   const nextStep = hasPaidAccess
-    ? 'Starten Sie in Governance Settings, prüfen Sie danach Reviews und aktivieren Sie anschließend Policies und Exports.'
-    : 'Öffnen Sie zuerst die Freischaltung in den Governance-Einstellungen.';
-  const orgLabel = organisationName ?? 'Ihre Organisation';
+    ? t('control.welcome.nextStep')
+    : t('control.welcome.nextStepNoAccess');
+  const orgLabel = organisationName ?? t('common.unknown');
   const highlightedModules = useMemo(() => WELCOME_MODULES.slice(0, 3), []);
 
   if (authLoading || capabilityLoading || syncState === 'loading') {
@@ -204,14 +199,14 @@ export default function ControlWelcomePage() {
       <SignedInAreaFrame
         area="paid_governance_control"
         title={heading}
-        description="Wir ordnen Ihre Freischaltung zu und bereiten den Premium-Zugriff vor."
-        nextStep="Sobald die Billing-Rückkehr bestätigt ist, zeigen wir alle freigeschalteten Bereiche an."
+        description={t('control.welcome.preparing')}
+        nextStep={t('control.welcome.preparingNextStep')}
       >
         <PageStatePanel
           tone="loading"
           area="paid_governance_control"
-          title="Freischaltung wird vorbereitet"
-          description="Checkout, Entitlement-Sync und Premium-Navigation werden gerade bestätigt."
+          title={t('control.welcome.loading')}
+          description={t('control.welcome.loadingDesc')}
         />
       </SignedInAreaFrame>
     );
@@ -226,7 +221,7 @@ export default function ControlWelcomePage() {
       <SignedInAreaFrame
         area="paid_governance_control"
         title={heading}
-        description="Diese Seite steht nach erfolgreicher Governance-Freischaltung zur Verfügung."
+        description={t('control.welcome.notAvailableDesc')}
         nextStep={nextStep}
       >
         <PageStatePanel
@@ -234,20 +229,20 @@ export default function ControlWelcomePage() {
           area="paid_governance_control"
           title={
             syncState === 'error'
-              ? 'Freischaltung konnte nicht bestätigt werden'
-              : 'Governance-Stufe noch nicht aktiv'
+              ? t('control.welcome.confirmFailed')
+              : t('control.welcome.notActive')
           }
           description={
             syncError ??
-            'Öffnen Sie die Governance-Einstellungen, um die Freischaltung zu starten oder den Billing-Status zu prüfen.'
+            t('control.welcome.notActiveDesc')
           }
           actions={
             <div className="flex flex-wrap gap-2">
               <Button asChild>
-                <Link href={ROUTE_HREFS.governanceUpgrade}>Freischaltung öffnen</Link>
+                <Link href={ROUTE_HREFS.governanceUpgrade}>{t('control.welcome.openButton')}</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link href={ROUTE_HREFS.register}>Zum Register</Link>
+                <Link href={ROUTE_HREFS.register}>{t('settings.toRegister')}</Link>
               </Button>
             </div>
           }
@@ -260,15 +255,15 @@ export default function ControlWelcomePage() {
     <SignedInAreaFrame
       area="paid_governance_control"
       title={heading}
-      description={`Die Premium-Ebene ist für ${orgLabel} aktiv. Sie haben jetzt Zugriff auf Reviews, Richtlinien, Export- und Trust-Funktionen sowie die Academy.`}
+      description={t('control.welcome.premiumActive', { orgName: orgLabel })}
       nextStep={nextStep}
       actions={
         <>
           <Button asChild>
-            <Link href={ROUTE_HREFS.control}>Control öffnen</Link>
+            <Link href={ROUTE_HREFS.control}>{t('control.openControl')}</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link href={ROUTE_HREFS.governanceSettings}>Governance Settings</Link>
+            <Link href={ROUTE_HREFS.governanceSettings}>{t('governance.settings')}</Link>
           </Button>
         </>
       }
@@ -276,14 +271,12 @@ export default function ControlWelcomePage() {
       <Card className="border-gray-200 bg-gray-50/70">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-gray-950">
-            Freischaltung erfolgreich
+            {t('control.welcome.activationSuccess')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-gray-900">
           <p>
-            Sie behalten das Free Register und erhalten zusätzlich die komplette
-            Governance-Ebene für Reviews, Policies, Exports, Trust Portal und
-            Academy.
+            {t('control.welcome.activationSuccessDesc')}
           </p>
           <ul className="space-y-2">
             {highlightedModules.map((module) => (
@@ -317,7 +310,7 @@ export default function ControlWelcomePage() {
                   {module.description}
                 </p>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href={module.href}>Öffnen</Link>
+                  <Link href={module.href}>{t('control.welcome.openModuleButton')}</Link>
                 </Button>
               </CardContent>
             </Card>

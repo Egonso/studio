@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   AlertTriangle,
   Building,
@@ -158,6 +159,7 @@ function RoleInput({
 }
 
 export function GovernanceSettingsSection() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -348,11 +350,11 @@ export function GovernanceSettingsSection() {
             : current,
         );
         toast({
-          title: 'Freischaltung aktiv',
+          title: t('settings.billing.syncSuccess'),
           description:
             result.plan === 'enterprise'
-              ? 'Enterprise wurde für dieses Workspace-Profil zugeordnet.'
-              : 'Governance Control Center wurde für dieses Konto freigeschaltet.',
+              ? t('settings.billing.syncSuccessEnterprise')
+              : t('settings.billing.syncSuccessPro'),
         });
         router.replace(
           buildBillingWelcomePath(checkoutSessionId, {
@@ -364,9 +366,8 @@ export function GovernanceSettingsSection() {
         console.error('Governance entitlement sync failed', error);
         toast({
           variant: 'destructive',
-          title: 'Billing-Synchronisierung fehlgeschlagen',
-          description:
-            'Die Checkout-Rückkehr wurde erkannt, konnte aber noch nicht vollständig zugeordnet werden.',
+          title: t('settings.billing.syncFailed'),
+          description: t('settings.billing.syncFailedDesc'),
         });
       });
   }, [
@@ -433,8 +434,8 @@ export function GovernanceSettingsSection() {
           typeof payload.error === 'string'
             ? payload.error
             : action === 'portal'
-              ? 'Billing konnte nicht geöffnet werden.'
-              : 'Checkout konnte nicht gestartet werden.',
+              ? t('settings.billing.billingPortalError')
+              : t('settings.billing.checkoutError'),
         );
       }
 
@@ -444,12 +445,12 @@ export function GovernanceSettingsSection() {
         variant: 'destructive',
         title:
           action === 'portal'
-            ? 'Billing nicht verfügbar'
-            : 'Checkout nicht verfügbar',
+            ? t('settings.billing.billingNotAvailable')
+            : t('settings.billing.checkoutNotAvailable'),
         description:
           error instanceof Error
             ? error.message
-            : 'Die Billing-Aktion ist gerade nicht verfügbar.',
+            : t('settings.billing.billingActionUnavailable'),
       });
     } finally {
       setBillingAction(null);
@@ -554,16 +555,15 @@ export function GovernanceSettingsSection() {
       });
 
       toast({
-        title: 'Governance gespeichert',
-        description:
-          'Registerweite Regeln, Rollen und Zugangscodes wurden aktualisiert.',
+        title: t('settings.saved'),
+        description: t('settings.savedDesc'),
       });
     } catch (error) {
       console.error('Governance settings save failed', error);
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: 'Einstellungen konnten nicht gespeichert werden.',
+        title: t('common.error'),
+        description: t('settings.saveFailed'),
       });
     } finally {
       setIsSaving(false);
@@ -575,8 +575,8 @@ export function GovernanceSettingsSection() {
       <PageStatePanel
         tone="loading"
         area="signed_in_free_register"
-        title="Governance-Einstellungen werden geladen"
-        description="Organisationsdaten, Rollen, Review-Logik und Zugangscodes werden vorbereitet."
+        title={t('settings.loading')}
+        description={t('settings.loadingDesc')}
       />
     );
   }
@@ -585,11 +585,11 @@ export function GovernanceSettingsSection() {
     return (
       <PageStatePanel
         area="signed_in_free_register"
-        title="Kein Register gefunden"
-        description="Erstellen Sie zuerst ein Register, damit Governance-Regeln gepflegt werden können."
+        title={t('settings.noRegister')}
+        description={t('settings.noRegisterDesc')}
         actions={
           <Button asChild>
-            <Link href={ROUTE_HREFS.register}>Zum Register</Link>
+            <Link href={ROUTE_HREFS.register}>{t('settings.toRegister')}</Link>
           </Button>
         }
       />
@@ -613,30 +613,29 @@ export function GovernanceSettingsSection() {
     scopeContext?.kind === 'workspace' ? scopeContext.workspaceId : null;
   const currentPlanLabel =
     currentPlan === 'enterprise'
-      ? 'Enterprise'
+      ? t('settings.billing.enterprisePlan')
       : currentPlan === 'pro'
-        ? 'Governance Control Center'
-        : 'Free Register';
+        ? t('settings.billing.proPlan')
+        : t('settings.billing.freePlan');
   const currentPlanDescription =
     currentPlan === 'enterprise'
-      ? 'Organisation, Reviews, Policies, Exports und Identity-Prozesse sind für dieses Workspace-Profil freigeschaltet.'
+      ? t('settings.billing.enterpriseDesc')
       : currentPlan === 'pro'
-        ? 'Reviews, Policy Engine, Exports, Trust Portal und Academy sind freigeschaltet.'
-        : 'Register, Erfassung, externe Inbox und Basis-Governance bleiben aktiv. Reviews, Policies, Exports und Academy benötigen die Governance-Stufe.';
+        ? t('settings.billing.proDesc')
+        : t('settings.billing.freeDesc');
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Governance-Einstellungen</h2>
+          <h2 className="text-2xl font-bold">{t('settings.governance.title')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Organisationsweite Regeln für Rollen, Review-Zyklen, externe
-            Erfassung und Zugangscodes.
+            {t('governance.settingsDesc')}
           </p>
         </div>
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Änderungen speichern
+          {t('settings.governance.saveChanges')}
         </Button>
       </div>
 
@@ -647,10 +646,10 @@ export function GovernanceSettingsSection() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
             <p className="text-sm font-medium text-slate-950">
-              Tarif & Freischaltung
+              {t('settings.billing.title')}
             </p>
             <p className="text-sm text-slate-700">
-              Aktuell aktiv: {currentPlanLabel}
+              {t('settings.billing.currentPlan', { plan: currentPlanLabel })}
             </p>
             <p className="text-sm text-slate-600">{currentPlanDescription}</p>
             {enterpriseUpgradeDestination ? (
@@ -660,8 +659,8 @@ export function GovernanceSettingsSection() {
             ) : (
               <p className="text-xs text-slate-500">
                 {currentPlan === 'free'
-                  ? 'Die Pro-Stufe wird im gehosteten Stripe-Checkout aus aktiven Usern und dokumentierten Einsatzfällen ermittelt und danach automatisch diesem Register oder Workspace zugeordnet.'
-                  : 'Dieses Workspace-Profil ist bereits auf der höchsten Freischaltungsstufe.'}
+                  ? t('settings.billing.freeHint')
+                  : t('settings.billing.maxLevelHint')}
               </p>
             )}
             {currentPlan === 'free' ? (
@@ -676,7 +675,7 @@ export function GovernanceSettingsSection() {
                     onClick={() => setBillingInterval('month')}
                     disabled={billingAction !== null}
                   >
-                    Monatlich
+                    {t('settings.billing.monthly')}
                   </Button>
                   <Button
                     type="button"
@@ -685,17 +684,15 @@ export function GovernanceSettingsSection() {
                     onClick={() => setBillingInterval('year')}
                     disabled={billingAction !== null}
                   >
-                    Jährlich
+                    {t('settings.billing.yearly')}
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Jährlich reduziert die Governance-Stufen gegenüber monatlicher
-                  Zahlung um fast zwei Monate.
+                  {t('settings.billing.yearlyHint')}
                 </p>
                 {workspaceIdFromScope || register.workspaceId ? (
                   <p className="text-xs text-slate-500">
-                    Abgerechnet wird auf Basis des aktuell geöffneten
-                    Workspace-Kontexts.
+                    {t('settings.billing.workspaceContext')}
                   </p>
                 ) : null}
               </div>
@@ -705,11 +702,11 @@ export function GovernanceSettingsSection() {
           <div className="flex flex-col gap-2 sm:flex-row">
             {currentPlan === 'free' ? (
               <Button asChild variant="outline">
-                <Link href={ROUTE_HREFS.control}>Bericht ansehen</Link>
+                <Link href={ROUTE_HREFS.control}>{t('control.viewReport')}</Link>
               </Button>
             ) : (
               <Button asChild variant="outline">
-                <Link href={ROUTE_HREFS.control}>Control öffnen</Link>
+                <Link href={ROUTE_HREFS.control}>{t('control.openControl')}</Link>
               </Button>
             )}
             {currentPlan === 'free' ? (
@@ -720,7 +717,7 @@ export function GovernanceSettingsSection() {
                 {billingAction === 'checkout' ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Governance freischalten
+                {t('settings.billing.unlockGovernance')}
               </Button>
             ) : null}
             {currentPlan === 'pro' || currentPlan === 'enterprise' ? (
@@ -732,7 +729,7 @@ export function GovernanceSettingsSection() {
                 {billingAction === 'portal' ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Billing verwalten
+                {t('settings.billing.manageBilling')}
               </Button>
             ) : null}
             {enterpriseUpgradeDestination ? (
@@ -765,7 +762,7 @@ export function GovernanceSettingsSection() {
             ) : currentPlan === 'enterprise' ? (
               <Button asChild>
                 <Link href={ROUTE_HREFS.controlEnterprise}>
-                  Organisation öffnen
+                  {t('control.openOrganisation')}
                 </Link>
               </Button>
             ) : null}
@@ -782,56 +779,56 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <Building className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Organisationsdaten</span>
+              <span className="font-medium">{t('governance.orgData.title')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Organisation</Label>
+                  <Label>{t('governance.orgData.org')}</Label>
                   <Input
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    placeholder="z. B. Müller GmbH"
+                    placeholder={t('governance.orgData.orgPlaceholder')}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Organisationseinheit (optional)</Label>
+                  <Label>{t('governance.orgData.orgUnit')}</Label>
                   <Input
                     value={orgUnit}
                     onChange={(e) => setOrgUnit(e.target.value)}
-                    placeholder="z. B. Marketing"
+                    placeholder={t('governance.orgData.orgUnitPlaceholder')}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Branche</Label>
+                  <Label>{t('governance.orgData.industry')}</Label>
                   <Input
                     value={industry}
                     onChange={(e) => setIndustry(e.target.value)}
-                    placeholder="z. B. Technologie"
+                    placeholder={t('governance.orgData.industryPlaceholder')}
                   />
                 </div>
               </div>
               <div className="pt-2 text-sm font-medium">
-                Primärer Ansprechpartner
+                {t('governance.orgData.primaryContact')}
               </div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Name</Label>
+                  <Label>{t('governance.orgData.name')}</Label>
                   <Input
                     value={contactName}
                     onChange={(e) => setContactName(e.target.value)}
-                    placeholder="Vor- und Nachname"
+                    placeholder={t('governance.orgData.namePlaceholder')}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>E-Mail</Label>
+                  <Label>{t('governance.orgData.email')}</Label>
                   <Input
                     type="email"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
-                    placeholder="name@firma.de"
+                    placeholder={t('governance.orgData.emailPlaceholder')}
                   />
                 </div>
               </div>
@@ -846,18 +843,18 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <Shield className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Governance-Rahmen</span>
+              <span className="font-medium">{t('governance.frameworkTitle')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <div className="space-y-6">
               <div className="space-y-3 rounded-md border bg-muted/20 p-4">
                 <div className="text-sm font-medium">
-                  KI-Richtlinie (AI Policy)
+                  {t('settings.governance.aiPolicy')}
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-1.5 md:col-span-2">
-                    <Label>Dokumenten-URL</Label>
+                    <Label>{t('governance.aiPolicy.docUrl')}</Label>
                     <Input
                       value={aiPolicyUrl}
                       onChange={(e) => setAiPolicyUrl(e.target.value)}
@@ -865,15 +862,15 @@ export function GovernanceSettingsSection() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Owner / Verantwortlich</Label>
+                    <Label>{t('governance.aiPolicy.owner')}</Label>
                     <Input
                       value={aiPolicyOwner}
                       onChange={(e) => setAiPolicyOwner(e.target.value)}
-                      placeholder="z. B. Legal, CISO"
+                      placeholder={t('governance.aiPolicy.ownerPlaceholder')}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Letztes Review-Datum</Label>
+                    <Label>{t('governance.aiPolicy.lastReview')}</Label>
                     <Input
                       type="date"
                       value={aiPolicyReviewedAt}
@@ -884,9 +881,9 @@ export function GovernanceSettingsSection() {
               </div>
 
               <div className="space-y-3 rounded-md border bg-muted/20 p-4">
-                <div className="text-sm font-medium">Incident Management</div>
+                <div className="text-sm font-medium">{t('governance.incident.title')}</div>
                 <div className="space-y-1.5">
-                  <Label>Prozess-URL (für KI-Vorfälle)</Label>
+                  <Label>{t('governance.incident.processUrl')}</Label>
                   <Input
                     value={incidentUrl}
                     onChange={(e) => setIncidentUrl(e.target.value)}
@@ -897,7 +894,7 @@ export function GovernanceSettingsSection() {
 
               <div className="space-y-3 rounded-md border bg-muted/20 p-4">
                 <div className="text-sm font-medium">
-                  Rollen & Verantwortlichkeiten
+                  {t('settings.governance.roles')}
                 </div>
                 <div className="flex items-center gap-3">
                   <Checkbox
@@ -908,11 +905,11 @@ export function GovernanceSettingsSection() {
                     }
                   />
                   <Label htmlFor="gs-roles" className="text-sm">
-                    Sind KI-spezifische Rollen formal verteilt?
+                    {t('governance.roles.formallyDefined')}
                   </Label>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Rollen-Dokument-URL (optional)</Label>
+                  <Label>{t('governance.roles.docUrl')}</Label>
                   <Input
                     value={rolesUrl}
                     onChange={(e) => setRolesUrl(e.target.value)}
@@ -923,7 +920,7 @@ export function GovernanceSettingsSection() {
               </div>
 
               <div className="space-y-2">
-                <Label>Globale Mindest-Reviewfrequenz</Label>
+                <Label>{t('governance.review.minFrequency')}</Label>
                 <Select
                   value={reviewStandard}
                   onValueChange={setReviewStandard}
@@ -932,9 +929,9 @@ export function GovernanceSettingsSection() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="annual">Einmal jährlich</SelectItem>
-                    <SelectItem value="semiannual">Halbjährlich</SelectItem>
-                    <SelectItem value="risk-based">Risikobasiert</SelectItem>
+                    <SelectItem value="annual">{t('governance.review.annual')}</SelectItem>
+                    <SelectItem value="semiannual">{t('governance.review.semiannual')}</SelectItem>
+                    <SelectItem value="risk-based">{t('governance.review.riskBasedLabel')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -946,15 +943,14 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <FileCheck2 className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Geltungsbereich (Scope)</span>
+              <span className="font-medium">{t('governance.scope.title')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <FeatureGate feature="extendedOrgSettings" mode="overlay">
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  In welchen Bereichen setzt Ihre Organisation KI ein?
-                  Mehrfachauswahl möglich.
+                  {t('governance.scope.description')}
                 </p>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {SCOPE_OPTIONS.map((option) => (
@@ -977,7 +973,7 @@ export function GovernanceSettingsSection() {
                   ))}
                 </div>
                 <div className="space-y-2 pt-2">
-                  <Label>Risikobewertungs-Methodik</Label>
+                  <Label>{t('governance.riskMethodology.label')}</Label>
                   <Select
                     value={riskMethodology}
                     onValueChange={setRiskMethodology}
@@ -987,10 +983,10 @@ export function GovernanceSettingsSection() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="basis">
-                        Basis (EUKI Standard)
+                        {t('governance.riskMethodology.basis')}
                       </SelectItem>
                       <SelectItem value="extended">
-                        Erweitert (+ Impact Assessment)
+                        {t('governance.riskMethodology.extended')}
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -1004,16 +1000,14 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Rollen-Matrix (RACI)</span>
+              <span className="font-medium">{t('governance.raci.title')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <FeatureGate feature="extendedOrgSettings" mode="overlay">
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Definieren Sie, wer für welche Governance-Aufgabe
-                  verantwortlich ist. Diese Zuordnungen werden automatisch auf
-                  neue Use Cases vererbt.
+                  {t('governance.raci.description')}
                 </p>
                 {RACI_ROLES.map((role) => (
                   <RoleInput
@@ -1040,39 +1034,38 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Incident-Konfiguration</span>
+              <span className="font-medium">{t('governance.incident.config')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <FeatureGate feature="extendedOrgSettings" mode="overlay">
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Wie werden KI-bezogene Vorfälle gehandhabt? Diese
-                  Einstellungen gelten organisationsweit.
+                  {t('governance.incident.configDesc')}
                 </p>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label>Meldeweg</Label>
+                    <Label>{t('governance.incident.reportingPath')}</Label>
                     <Input
                       value={incidentReportingPath}
                       onChange={(e) => setIncidentReportingPath(e.target.value)}
-                      placeholder="z. B. Compliance-Team per E-Mail"
+                      placeholder={t('governance.incident.reportingPathPlaceholder')}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Eskalationsstufe</Label>
+                    <Label>{t('governance.incident.escalation')}</Label>
                     <Input
                       value={incidentEscalation}
                       onChange={(e) => setIncidentEscalation(e.target.value)}
-                      placeholder="z. B. Team → Abteilung → Vorstand"
+                      placeholder={t('governance.incident.escalationPlaceholder')}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Reaktionszeitrahmen</Label>
+                    <Label>{t('governance.incident.timeframe')}</Label>
                     <Input
                       value={incidentTimeframe}
                       onChange={(e) => setIncidentTimeframe(e.target.value)}
-                      placeholder="z. B. 72 Stunden"
+                      placeholder={t('governance.incident.timeframePlaceholder')}
                     />
                   </div>
                 </div>
@@ -1085,7 +1078,7 @@ export function GovernanceSettingsSection() {
                     }
                   />
                   <Label htmlFor="inc-doc" className="text-sm">
-                    Dokumentationspflicht bei jedem Vorfall
+                    {t('governance.incident.documentationRequired')}
                   </Label>
                 </div>
               </div>
@@ -1097,14 +1090,14 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Review-Logik</span>
+              <span className="font-medium">{t('governance.review.title')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <FeatureGate feature="extendedOrgSettings" mode="overlay">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Review-Typ</Label>
+                  <Label>{t('governance.review.type')}</Label>
                   <Select
                     value={reviewCycleType}
                     onValueChange={setReviewCycleType}
@@ -1113,28 +1106,28 @@ export function GovernanceSettingsSection() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="fixed">Fester Zyklus</SelectItem>
-                      <SelectItem value="risk_based">Risikobasiert</SelectItem>
-                      <SelectItem value="event_based">Eventbasiert</SelectItem>
+                      <SelectItem value="fixed">{t('governance.review.fixed')}</SelectItem>
+                      <SelectItem value="risk_based">{t('governance.review.riskBased')}</SelectItem>
+                      <SelectItem value="event_based">{t('governance.review.eventBased')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {reviewCycleType === 'fixed' ? (
                   <div className="space-y-1.5">
-                    <Label>Intervall</Label>
+                    <Label>{t('governance.review.interval')}</Label>
                     <Input
                       value={reviewCycleInterval}
                       onChange={(e) => setReviewCycleInterval(e.target.value)}
-                      placeholder="z. B. Alle 6 Monate"
+                      placeholder={t('governance.review.intervalPlaceholder')}
                     />
                   </div>
                 ) : null}
                 <p className="text-xs text-muted-foreground">
                   {reviewCycleType === 'risk_based'
-                    ? 'Hochrisiko-Systeme werden häufiger reviewed, Systeme mit minimalem Risiko seltener.'
+                    ? t('governance.review.riskBasedHint')
                     : reviewCycleType === 'event_based'
-                      ? 'Reviews werden durch Vorfälle, Regeländerungen oder wesentliche Systemänderungen ausgelöst.'
-                      : 'Alle Systeme werden im gleichen festen Rhythmus überprüft.'}
+                      ? t('governance.review.eventBasedHint')
+                      : t('governance.review.fixedHint')}
                 </p>
               </div>
             </FeatureGate>
@@ -1148,7 +1141,7 @@ export function GovernanceSettingsSection() {
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <div className="flex items-center gap-3">
               <GraduationCap className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Kompetenz & ISO Alignment</span>
+              <span className="font-medium">{t('governance.competency.title')}</span>
             </div>
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
@@ -1156,11 +1149,10 @@ export function GovernanceSettingsSection() {
               <div className="space-y-6">
                 <div className="space-y-3">
                   <div className="text-sm font-medium">
-                    Kompetenzanforderungen
+                    {t('governance.competency.requirements')}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Welche Schulungen setzt Ihre Organisation für
-                    KI-Verantwortliche voraus?
+                    {t('governance.competency.requirementsHint')}
                   </p>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     <div className="flex items-center gap-3 rounded-md border bg-muted/10 p-3">
@@ -1175,7 +1167,7 @@ export function GovernanceSettingsSection() {
                         htmlFor="comp-euai"
                         className="cursor-pointer text-sm"
                       >
-                        EU AI Act Schulung
+                        {t('governance.competency.euAiActTraining')}
                       </Label>
                     </div>
                     <div className="flex items-center gap-3 rounded-md border bg-muted/10 p-3">
@@ -1190,7 +1182,7 @@ export function GovernanceSettingsSection() {
                         htmlFor="comp-tech"
                         className="cursor-pointer text-sm"
                       >
-                        Technische KI-Kompetenz
+                        {t('governance.competency.technicalAiCompetency')}
                       </Label>
                     </div>
                     <div className="flex items-center gap-3 rounded-md border bg-muted/10 p-3">
@@ -1205,7 +1197,7 @@ export function GovernanceSettingsSection() {
                         htmlFor="comp-priv"
                         className="cursor-pointer text-sm"
                       >
-                        Datenschutz-Schulung
+                        {t('governance.competency.dataPrivacyTraining')}
                       </Label>
                     </div>
                     <div className="flex items-center gap-3 rounded-md border bg-muted/10 p-3">
@@ -1220,17 +1212,16 @@ export function GovernanceSettingsSection() {
                         htmlFor="comp-inc"
                         className="cursor-pointer text-sm"
                       >
-                        Incident-Training
+                        {t('governance.competency.incidentTraining')}
                       </Label>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-3 border-t pt-5">
-                  <div className="text-sm font-medium">ISO Alignment</div>
+                  <div className="text-sm font-medium">{t('governance.iso.title')}</div>
                   <p className="text-xs text-muted-foreground">
-                    Optionale Ausrichtung an ISO-Standards für erweiterte
-                    Audit-Nachweise.
+                    {t('governance.iso.hint')}
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 rounded-md border bg-muted/10 p-3">
@@ -1246,11 +1237,10 @@ export function GovernanceSettingsSection() {
                           htmlFor="iso-27001"
                           className="cursor-pointer text-sm font-medium"
                         >
-                          ISO 27001 Alignment
+                          {t('governance.iso.iso27001Label')}
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Informationssicherheit – relevante Controls werden im
-                          Audit-Export gemappt.
+                          {t('governance.iso.iso27001Desc')}
                         </p>
                       </div>
                     </div>
@@ -1267,11 +1257,10 @@ export function GovernanceSettingsSection() {
                           htmlFor="iso-42001"
                           className="cursor-pointer text-sm font-medium"
                         >
-                          ISO 42001 Vorbereitung
+                          {t('governance.iso.iso42001Label')}
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          KI-Management-System – strukturiertes Governance für
-                          KI nach internationalem Standard.
+                          {t('governance.iso.iso42001Desc')}
                         </p>
                       </div>
                     </div>
@@ -1306,18 +1295,17 @@ export function GovernanceSettingsSection() {
                     htmlFor="gs-disclosure"
                     className="text-sm font-medium leading-none"
                   >
-                    Organisation öffentlich anzeigen
+                    {t('governance.publicDisclosure.title')}
                   </Label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Wenn aktiviert, erscheint der Organisationsname auf der
-                    öffentlichen Verify-Seite.
+                    {t('governance.publicDisclosure.description')}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2 pt-2">
                 <div className="text-sm font-medium">
-                  Zugangscodes für Teammitglieder
+                  {t('governance.accessCodes.title')}
                 </div>
                 <AccessCodeManager registerId={register.registerId} />
               </div>

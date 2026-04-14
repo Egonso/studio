@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Link2, Settings, Shield } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
 import { AffiliateSettingsSection } from '@/components/settings/affiliate-settings-section';
@@ -22,6 +23,7 @@ function resolveSection(section: string | null | undefined): SettingsSection {
 }
 
 export default function SettingsPage() {
+  const t = useTranslations();
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,7 +36,7 @@ export default function SettingsPage() {
       <SignedInAreaFrame
         area="signed_in_free_register"
         title="Settings"
-        description="Konto und Governance an einem Ort."
+        description={t('settings.description')}
         nextStep="Wir laden Ihre Einstellungen."
         width="5xl"
       >
@@ -106,14 +108,14 @@ export default function SettingsPage() {
               className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm"
             >
               <Settings className="h-4 w-4" />
-              Konto
+              {t('settings.accountTab')}
             </TabsTrigger>
             <TabsTrigger
               value="governance"
               className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm"
             >
               <Shield className="h-4 w-4" />
-              Governance
+              {t('settings.governanceTab')}
             </TabsTrigger>
             {isAffiliate && (
               <TabsTrigger

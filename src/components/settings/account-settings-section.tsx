@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, Lock, Mail, ShieldCheck, User } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import { verifyOfficerKey } from '@/actions/officer-actions';
 import { Button } from '@/components/ui/button';
@@ -78,6 +79,7 @@ type OfficerFormData = z.infer<typeof officerSchema>;
 type InviteFormData = z.infer<typeof inviteSchema>;
 
 export function AccountSettingsSection() {
+  const t = useTranslations();
   const { user } = useAuth();
   const { toast } = useToast();
   const { profile } = useUserProfile();
@@ -143,20 +145,20 @@ export function AccountSettingsSection() {
       if (res.success) {
         toast({
           title: 'Success',
-          description: 'You are now verified as an EUKI Certified Officer.',
+          description: t('settings.account.officerSuccess'),
         });
       } else {
         toast({
           variant: 'destructive',
-          title: 'Error',
+          title: t('common.error'),
           description: res.message,
         });
       }
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Verification failed.',
+        title: t('common.error'),
+        description: t('settings.account.verificationFailed'),
       });
     } finally {
       setIsOfficerLoading(false);
@@ -185,9 +187,8 @@ export function AccountSettingsSection() {
       });
 
       toast({
-        title: 'Confirmation sent',
-        description:
-          'Please confirm your new email address via the link sent to your inbox.',
+        title: t('settings.account.confirmationSent'),
+        description: t('settings.account.confirmationSentDesc'),
       });
       emailForm.reset();
     } catch (error: any) {
@@ -196,12 +197,12 @@ export function AccountSettingsSection() {
         error.code === 'auth/invalid-credential';
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: t('common.error'),
         description: isWrongPassword
-          ? 'Incorrect password. Please try again.'
+          ? t('settings.account.incorrectPassword')
           : error.code === 'auth/email-already-in-use'
-            ? 'This email address is already in use.'
-            : 'Email could not be queued for verification. Please try again.',
+            ? t('settings.account.emailAlreadyInUse')
+            : t('settings.account.emailVerificationFailed'),
       });
     } finally {
       setIsEmailLoading(false);
@@ -227,8 +228,8 @@ export function AccountSettingsSection() {
       await updatePassword(auth.currentUser!, data.newPassword);
 
       toast({
-        title: 'Password updated',
-        description: 'Your password has been changed successfully.',
+        title: t('settings.account.passwordUpdated'),
+        description: t('settings.account.passwordUpdatedDesc'),
       });
       passwordForm.reset();
     } catch (error: any) {
@@ -237,10 +238,10 @@ export function AccountSettingsSection() {
         error.code === 'auth/invalid-credential';
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: t('common.error'),
         description: isWrongPassword
-          ? 'Incorrect current password. Please try again.'
-          : 'Password could not be changed. Please try again.',
+          ? t('settings.account.incorrectCurrentPassword')
+          : t('settings.account.passwordChangeFailed'),
       });
     } finally {
       setIsPasswordLoading(false);
@@ -250,9 +251,9 @@ export function AccountSettingsSection() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Account Settings</h2>
+        <h2 className="text-2xl font-bold">{t('settings.account.title')}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage your credentials, account security, and invitations.
+          {t('settings.account.subtitle')}
         </p>
       </div>
 
@@ -260,17 +261,17 @@ export function AccountSettingsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Account Information</CardTitle>
+            <CardTitle className="text-base">{t('settings.account.accountInfo')}</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Email address</span>
+            <span className="text-muted-foreground">{t('settings.account.emailAddress')}</span>
             <span className="font-medium">{user.email}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Member since</span>
+            <span className="text-muted-foreground">{t('settings.account.memberSince')}</span>
             <span className="font-medium">{createdAt}</span>
           </div>
         </CardContent>
@@ -280,10 +281,10 @@ export function AccountSettingsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Change Email Address</CardTitle>
+            <CardTitle className="text-base">{t('settings.account.changeEmail')}</CardTitle>
           </div>
           <CardDescription>
-            Enter your current password to change your email address.
+            {t('settings.account.changeEmailDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -297,7 +298,7 @@ export function AccountSettingsSection() {
                 name="newEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New email address</FormLabel>
+                    <FormLabel>{t('settings.account.newEmail')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -314,7 +315,7 @@ export function AccountSettingsSection() {
                 name="currentPasswordForEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current password</FormLabel>
+                    <FormLabel>{t('settings.account.currentPasswordForEmail')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -330,10 +331,10 @@ export function AccountSettingsSection() {
                 {isEmailLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Wird aktualisiert...
+                    {t('settings.account.updating')}
                   </>
                 ) : (
-                  'E-Mail aktualisieren'
+                  t('settings.account.updateEmail')
                 )}
               </Button>
             </form>
@@ -345,11 +346,10 @@ export function AccountSettingsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Zertifikats-Code</CardTitle>
+            <CardTitle className="text-base">{t('settings.account.certificateCode')}</CardTitle>
           </div>
           <CardDescription>
-            Hinterlegen Sie Ihren Code, um Register-Einträge rechtssicher
-            freigeben zu können.
+            {t('settings.account.certificateCodeDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -357,13 +357,12 @@ export function AccountSettingsSection() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                 <ShieldCheck className="h-4 w-4" />
-                <span>Verifiziert als EU AI Act Officer</span>
+                <span>{t('settings.account.verifiedOfficer')}</span>
               </div>
               <div className="text-sm text-muted-foreground">
-                Zertifiziert durch: {profile.certifiedBy}
+                {t('settings.account.certifiedBy', { certifier: profile.certifiedBy ?? '' })}
                 <br />
-                Geprüft am:{' '}
-                {new Date(profile.verifiedAt!).toLocaleDateString(APP_LOCALE)}
+                {t('settings.account.verifiedAt', { date: new Date(profile.verifiedAt!).toLocaleDateString(APP_LOCALE) })}
               </div>
             </div>
           ) : (
@@ -391,7 +390,7 @@ export function AccountSettingsSection() {
                     name="licenseKey"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Zertifikats-Code</FormLabel>
+                        <FormLabel>{t('settings.account.certificateCode')}</FormLabel>
                         <FormControl>
                           <Input placeholder="EUK-XXXX-XXXX" {...field} />
                         </FormControl>
@@ -403,10 +402,10 @@ export function AccountSettingsSection() {
                     {isOfficerLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Wird geprüft...
+                        {t('settings.account.verifying')}
                       </>
                     ) : (
-                      'Zertifikat hinterlegen'
+                      t('settings.account.submitCertificate')
                     )}
                   </Button>
                 </form>
@@ -421,11 +420,11 @@ export function AccountSettingsSection() {
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <CardTitle className="text-base">
-              Team & Externe Berater einladen
+              {t('settings.account.teamInvite')}
             </CardTitle>
           </div>
           <CardDescription>
-            Laden Sie Nutzer in Ihren Register-Workspace ein.
+            {t('settings.account.teamInviteDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -464,10 +463,10 @@ export function AccountSettingsSection() {
                       }
 
                       toast({
-                        title: 'Einladung erstellt',
+                        title: t('settings.account.inviteCreated'),
                         description: copied
-                          ? 'Einladungslink wurde in die Zwischenablage kopiert.'
-                          : 'Einladungslink erstellt. Bitte Browser-Zugriff auf die Zwischenablage erlauben und erneut senden.',
+                          ? t('settings.account.inviteLinkCopied')
+                          : t('settings.account.inviteLinkCreated'),
                       });
                     } else {
                       toast({
@@ -479,15 +478,15 @@ export function AccountSettingsSection() {
                   } else {
                     toast({
                       variant: 'destructive',
-                      title: 'Fehler',
+                      title: t('common.error'),
                       description: json.error,
                     });
                   }
                 } catch {
                   toast({
                     variant: 'destructive',
-                    title: 'Fehler',
-                    description: 'Konnte keine Einladung senden.',
+                    title: t('common.error'),
+                    description: t('settings.account.inviteFailed'),
                   });
                 } finally {
                   setIsInviteLoading(false);
@@ -500,7 +499,7 @@ export function AccountSettingsSection() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>E-Mail-Adresse des Nutzers</FormLabel>
+                    <FormLabel>{t('settings.account.inviteUserEmail')}</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
@@ -517,17 +516,17 @@ export function AccountSettingsSection() {
                 name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Rolle im Workspace</FormLabel>
+                    <FormLabel>{t('settings.account.workspaceRole')}</FormLabel>
                     <FormControl>
                       <select
                         {...field}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <option value="EXTERNAL_OFFICER">
-                          External Officer (Auditor)
+                          {t('settings.account.externalOfficer')}
                         </option>
                         <option value="MEMBER">
-                          Mitarbeiter (Lesen/Schreiben)
+                          {t('settings.account.memberRole')}
                         </option>
                       </select>
                     </FormControl>
@@ -539,10 +538,10 @@ export function AccountSettingsSection() {
                 {isInviteLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Wird gesendet...
+                    {t('settings.account.sending')}
                   </>
                 ) : (
-                  'Nutzer einladen'
+                  t('settings.account.sendInvite')
                 )}
               </Button>
             </form>
@@ -557,7 +556,7 @@ export function AccountSettingsSection() {
             <CardTitle className="text-base">Passwort ändern</CardTitle>
           </div>
           <CardDescription>
-            Wählen Sie ein sicheres Passwort mit mindestens 6 Zeichen.
+            {t('settings.account.changePasswordDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -571,7 +570,7 @@ export function AccountSettingsSection() {
                 name="currentPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current password</FormLabel>
+                    <FormLabel>{t('settings.account.currentPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -588,7 +587,7 @@ export function AccountSettingsSection() {
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Neues Passwort</FormLabel>
+                    <FormLabel>{t('settings.account.newPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -605,7 +604,7 @@ export function AccountSettingsSection() {
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Neues Passwort bestätigen</FormLabel>
+                    <FormLabel>{t('settings.account.confirmNewPassword')}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -621,10 +620,10 @@ export function AccountSettingsSection() {
                 {isPasswordLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Wird aktualisiert...
+                    {t('settings.account.updating')}
                   </>
                 ) : (
-                  'Passwort aktualisieren'
+                  t('settings.account.updatePassword')
                 )}
               </Button>
             </form>

@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
@@ -126,6 +127,7 @@ function getSuccessDescription(
 }
 
 export default function AuthEntryPage() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -211,7 +213,7 @@ export default function AuthEntryPage() {
           console.error('Failed to initialize Firebase Auth client', error);
           setAuthReady(false);
           setAuthInitError(
-            'Authentication is currently unavailable. Please try again or contact support.',
+            t('auth.errors.authUnavailable'),
           );
         }
       });
@@ -446,8 +448,8 @@ export default function AuthEntryPage() {
     if (!targetEmail.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: 'Bitte geben Sie Ihre E-Mail-Adresse ein.',
+        title: t('common.error'),
+        description: t('auth.errors.enterEmail'),
       });
       return;
     }
@@ -460,9 +462,8 @@ export default function AuthEntryPage() {
       // Intentionally swallow auth existence/config details.
     } finally {
       toast({
-        title: 'E-Mail gesendet',
-        description:
-          'Falls ein Konto mit dieser E-Mail existiert, wurde ein Reset-Link gesendet.',
+        title: t('auth.resetEmailSent'),
+        description: t('auth.resetEmailSentDesc'),
       });
       setIsResetting(false);
       setShowForgotPassword(false);
@@ -475,8 +476,8 @@ export default function AuthEntryPage() {
     if (!loginEmail.trim() || !loginPassword.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Fehlende Angaben',
-        description: 'Bitte geben Sie E-Mail-Adresse und Passwort ein.',
+        title: t('common.error'),
+        description: t('auth.errors.enterEmailPassword'),
       });
       return;
     }
@@ -484,10 +485,10 @@ export default function AuthEntryPage() {
     if (!authReady || authInitError) {
       toast({
         variant: 'destructive',
-        title: 'Authentifizierung nicht bereit',
+        title: t('auth.errors.authNotReady'),
         description:
           authInitError ??
-          'Authentifizierung wird noch initialisiert. Bitte versuchen Sie es erneut.',
+          t('auth.errors.authInitializing'),
       });
       return;
     }
@@ -504,9 +505,8 @@ export default function AuthEntryPage() {
 
       if (result.requiresEmailVerification) {
         toast({
-          title: 'E-Mail-Verifizierung erforderlich',
-          description:
-            'We have sent you a verification link. Please confirm your email address and then sign in again.',
+          title: t('auth.emailVerificationRequired'),
+          description: t('auth.emailVerificationDesc'),
         });
         setLoginPassword('');
         return;
@@ -519,10 +519,10 @@ export default function AuthEntryPage() {
       });
 
       toast({
-        title: 'Anmeldung erfolgreich',
+        title: t('auth.loginSuccess'),
         description: destination.startsWith('/?')
           ? 'Please complete your register setup on the same page now.'
-          : getSuccessDescription(result.syncedPlan, 'Leite weiter zum Register...'),
+          : getSuccessDescription(result.syncedPlan, t('auth.loginSuccessRedirect')),
       });
 
       setLoginPassword('');
@@ -530,7 +530,7 @@ export default function AuthEntryPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: t('common.error'),
         description: getAuthErrorDescription(error, 'login'),
       });
     } finally {
@@ -544,8 +544,8 @@ export default function AuthEntryPage() {
     if (!createName.trim() || !createEmail.trim() || !createPassword.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Fehlende Angaben',
-        description: 'Please fill in all fields.',
+        title: t('common.error'),
+        description: t('auth.errors.fillAllFields'),
       });
       return;
     }
@@ -553,8 +553,8 @@ export default function AuthEntryPage() {
     if (createPassword.length < 6) {
       toast({
         variant: 'destructive',
-        title: 'Passwort zu kurz',
-        description: 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+        title: t('common.error'),
+        description: t('auth.errors.passwordTooShort'),
       });
       return;
     }
@@ -562,10 +562,10 @@ export default function AuthEntryPage() {
     if (!authReady || authInitError) {
       toast({
         variant: 'destructive',
-        title: 'Authentifizierung nicht bereit',
+        title: t('auth.errors.authNotReady'),
         description:
           authInitError ??
-          'Authentifizierung wird noch initialisiert. Bitte versuchen Sie es erneut.',
+          t('auth.errors.authInitializing'),
       });
       return;
     }
@@ -587,16 +587,15 @@ export default function AuthEntryPage() {
 
       if (result.requiresEmailVerification) {
         toast({
-          title: 'Please confirm email',
-          description:
-            'Your account has been created. We have sent you a verification link. After confirmation, you can set up your register.',
+          title: t('auth.pleaseConfirmEmail'),
+          description: t('auth.emailVerificationDesc'),
         });
         setCreatePassword('');
         return;
       }
 
       toast({
-        title: 'Konto angelegt',
+        title: t('auth.accountCreated'),
         description: getSuccessDescription(
           result.syncedPlan,
           'Only the organisation step for your register remains.',
@@ -607,7 +606,7 @@ export default function AuthEntryPage() {
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: t('common.error'),
         description: getAuthErrorDescription(error, 'signup'),
       });
 
@@ -627,8 +626,8 @@ export default function AuthEntryPage() {
     if (!organisationName.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Fehlende Angabe',
-        description: 'Bitte geben Sie den Organisationsnamen ein.',
+        title: t('common.error'),
+        description: t('auth.errors.enterOrgName'),
       });
       return;
     }
@@ -692,9 +691,8 @@ export default function AuthEntryPage() {
       console.error('Register setup failed', error);
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description:
-          'Register konnte nicht eingerichtet werden. Bitte versuchen Sie es erneut.',
+        title: t('common.error'),
+        description: t('auth.errors.registerSetupFailed'),
       });
     } finally {
       setBusyAction(null);
@@ -707,8 +705,8 @@ export default function AuthEntryPage() {
     if (!validatedJoin) {
       toast({
         variant: 'destructive',
-        title: 'Code fehlt',
-        description: 'Please validate the invitation code first.',
+        title: t('common.error'),
+        description: t('auth.errors.checkInviteCode'),
       });
       setJoinStep('code');
       return;
@@ -717,8 +715,8 @@ export default function AuthEntryPage() {
     if (!joinName.trim() || !joinEmail.trim() || !joinPassword.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Fehlende Angaben',
-        description: 'Please fill in all fields.',
+        title: t('common.error'),
+        description: t('auth.errors.fillAllFields'),
       });
       return;
     }
@@ -726,8 +724,8 @@ export default function AuthEntryPage() {
     if (joinPassword.length < 6) {
       toast({
         variant: 'destructive',
-        title: 'Passwort zu kurz',
-        description: 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+        title: t('common.error'),
+        description: t('auth.errors.passwordTooShort'),
       });
       return;
     }
@@ -735,10 +733,10 @@ export default function AuthEntryPage() {
     if (!authReady || authInitError) {
       toast({
         variant: 'destructive',
-        title: 'Authentifizierung nicht bereit',
+        title: t('auth.errors.authNotReady'),
         description:
           authInitError ??
-          'Authentifizierung wird noch initialisiert. Bitte versuchen Sie es erneut.',
+          t('auth.errors.authInitializing'),
       });
       return;
     }
@@ -761,9 +759,8 @@ export default function AuthEntryPage() {
 
       if (result.requiresEmailVerification) {
         toast({
-          title: 'Please confirm email',
-          description:
-            'Your account has been created. We have sent you a verification link. After confirmation, you can join the organisation.',
+          title: t('auth.pleaseConfirmEmail'),
+          description: t('auth.emailVerificationDesc'),
         });
         setJoinPassword('');
         return;
@@ -778,7 +775,7 @@ export default function AuthEntryPage() {
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: t('common.error'),
         description: getAuthErrorDescription(error, 'signup'),
       });
 
@@ -801,8 +798,8 @@ export default function AuthEntryPage() {
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: 'Inhalt konnte nicht kopiert werden.',
+        title: t('common.error'),
+        description: t('landing.copyFailed'),
       });
     }
   }
@@ -818,10 +815,10 @@ export default function AuthEntryPage() {
 
   const authPanelTitle =
     mode === 'login'
-      ? 'Anmelden'
+      ? t('auth.signIn')
       : intent === 'join_register'
-        ? 'Mit Einladungscode beitreten'
-        : 'KI-Register einrichten';
+        ? t('auth.joinRegister')
+        : t('auth.setupRegister');
 
   const authPanelDescription =
     mode === 'login'
@@ -829,10 +826,10 @@ export default function AuthEntryPage() {
       : intent === 'join_register'
         ? 'Validate the invitation code first, then create your account.'
         : createStep === 1
-          ? 'Schritt 1 von 3 · Zugang'
+          ? t('auth.step1')
           : createStep === 2
-            ? 'Schritt 2 von 3 · Organisation'
-            : 'Schritt 3 von 3 · Weitergabe';
+            ? t('auth.step2')
+            : t('auth.step3');
 
   return (
     <MarketingShell>
@@ -941,8 +938,8 @@ export default function AuthEntryPage() {
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Anmelden</TabsTrigger>
-                  <TabsTrigger value="signup">Registrieren</TabsTrigger>
+                  <TabsTrigger value="login">{t('auth.signInTab')}</TabsTrigger>
+                  <TabsTrigger value="signup">{t('auth.signUp')}</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -977,7 +974,7 @@ export default function AuthEntryPage() {
                         : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
-                    Mit Einladungscode beitreten
+                    {t('auth.joinRegister')}
                   </button>
                 </div>
               ) : null}
@@ -988,7 +985,7 @@ export default function AuthEntryPage() {
                   <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Authentifizierung wird initialisiert.
+                      {t('auth.errors.authInitializing')}
                     </div>
                   </div>
                 ) : null}
@@ -1007,7 +1004,7 @@ export default function AuthEntryPage() {
                           className="text-sm font-medium text-slate-900"
                           htmlFor="login-email"
                         >
-                          E-Mail-Adresse
+                          {t('auth.email')}
                         </label>
                         <Input
                           id="login-email"
@@ -1024,7 +1021,7 @@ export default function AuthEntryPage() {
                           className="text-sm font-medium text-slate-900"
                           htmlFor="login-password"
                         >
-                          Passwort
+                          {t('auth.password')}
                         </label>
                         <Input
                           id="login-password"
@@ -1043,7 +1040,7 @@ export default function AuthEntryPage() {
                         className="w-full"
                         disabled={Boolean(busyAction) || !authReady}
                       >
-                        {isBusy('login') ? 'Melde an...' : 'Anmelden'}
+                        {isBusy('login') ? t('auth.signingIn') : t('auth.signIn')}
                       </Button>
                     </form>
 
@@ -1056,7 +1053,7 @@ export default function AuthEntryPage() {
                         }}
                         className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
                       >
-                        Passwort vergessen?
+                        {t('auth.forgotPassword')}
                       </button>
 
                       {showForgotPassword ? (
@@ -1077,7 +1074,7 @@ export default function AuthEntryPage() {
                             onClick={handlePasswordReset}
                             disabled={isResetting}
                           >
-                            {isResetting ? 'Sende Link...' : 'Reset-Link senden'}
+                            {isResetting ? t('common.pleaseWait') : t('auth.sendResetLink')}
                           </Button>
                         </div>
                       ) : null}
@@ -1110,7 +1107,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="create-email"
                           >
-                            E-Mail-Adresse
+                            {t('auth.email')}
                           </label>
                           <Input
                             id="create-email"
@@ -1127,7 +1124,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="create-password"
                           >
-                            Passwort
+                            {t('auth.password')}
                           </label>
                           <Input
                             id="create-password"
@@ -1148,7 +1145,7 @@ export default function AuthEntryPage() {
                         >
                           {isBusy('create_account')
                             ? 'Lege Zugang an...'
-                            : 'Weiter'}
+                            : t('common.next')}
                         </Button>
                       </form>
                     ) : null}
@@ -1160,7 +1157,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="organisation-name"
                           >
-                            Organisationsname
+                            {t('auth.organisationName')}
                           </label>
                           <Input
                             id="organisation-name"
@@ -1234,7 +1231,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="join-code"
                           >
-                            Einladungscode
+                            {t('auth.invitationCode')}
                           </label>
                           <Input
                             id="join-code"
@@ -1302,7 +1299,7 @@ export default function AuthEntryPage() {
                           }}
                           className="w-full text-center text-xs text-slate-500 underline-offset-4 hover:text-slate-950 hover:underline"
                         >
-                          Das ist nicht meine Organisation
+                          {t('auth.notMyOrganisation')}
                         </button>
                       </div>
                     ) : null}
@@ -1330,7 +1327,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="join-email"
                           >
-                            E-Mail-Adresse
+                            {t('auth.email')}
                           </label>
                           <Input
                             id="join-email"
@@ -1347,7 +1344,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="join-password"
                           >
-                            Passwort
+                            {t('auth.password')}
                           </label>
                           <Input
                             id="join-password"
@@ -1368,7 +1365,7 @@ export default function AuthEntryPage() {
                         >
                           {isBusy('join_signup')
                             ? 'Lege Zugang an...'
-                            : 'Konto anlegen & zur Erfassung'}
+                            : t('auth.continueToCapture')}
                         </Button>
                       </form>
                     ) : null}

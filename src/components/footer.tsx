@@ -1,18 +1,22 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 
 const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
-const FOOTER_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/downloads', label: 'Downloads' },
-  { href: '/my-register', label: 'Register' },
-  { href: '/control', label: 'Report' },
-  { href: '/legal-notice', label: 'Legal Notice' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
-  { href: WHITEPAPER_HREF, label: 'Whitepaper', external: true },
-];
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations();
+
+  const FOOTER_LINKS = [
+    { href: '/', label: t('footer.home') },
+    { href: '/downloads', label: 'Downloads' },
+    { href: '/my-register', label: 'Register' },
+    { href: '/control', label: t('footer.report') },
+    { href: '/legal-notice', label: t('footer.legalNotice') },
+    { href: '/privacy', label: t('footer.privacy') },
+    { href: '/terms', label: t('footer.terms') },
+    { href: WHITEPAPER_HREF, label: 'Whitepaper', external: true },
+  ];
+
   return (
     <footer className="w-full border-t border-slate-200 bg-white/95 text-slate-500 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 text-xs sm:px-6 lg:px-8">
@@ -42,8 +46,8 @@ export function Footer() {
         </div>
 
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} ZukunftBilden GmbH &amp; BewusstseinBilden UG</p>
-          <p>All user data remains in the EU.</p>
+          <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+          <p>{t('footer.allDataInEU')}</p>
         </div>
       </div>
     </footer>

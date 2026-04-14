@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ActionQueue } from '@/components/control/action-queue';
 import { ControlKpiHeader } from '@/components/control/control-kpi-header';
 import { ControlMaturityPanel } from '@/components/control/control-maturity-panel';
@@ -47,6 +48,7 @@ interface ControlSnapshot {
 }
 
 export default function ControlPage() {
+  const t = useTranslations();
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -96,9 +98,7 @@ export default function ControlPage() {
       setAcademyProgress(buildAcademyProgressSnapshot(completedCourseVideos));
     } catch (error) {
       console.error('Failed to load control snapshot', error);
-      setDataError(
-        'Berichtsdaten konnten nicht geladen werden. Bitte öffnen Sie zuerst ein Register und versuchen Sie es erneut.',
-      );
+      setDataError(t('control.errors.reportLoadFailed'));
     } finally {
       setIsDataLoading(false);
     }
@@ -176,7 +176,7 @@ export default function ControlPage() {
       <SignedInAreaFrame
         area={frameArea}
         brandHref={headerBrandHref}
-        title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
+        title={isReportOnlyMode ? t('nav.report') : t('control.title')}
         description={
           isReportOnlyMode
             ? 'Ihr Bericht wird vorbereitet.'
@@ -208,7 +208,7 @@ export default function ControlPage() {
     <SignedInAreaFrame
       area={frameArea}
       brandHref={headerBrandHref}
-      title={isReportOnlyMode ? 'Bericht' : 'Governance Control Center'}
+      title={isReportOnlyMode ? t('nav.report') : t('control.title')}
       description={
         snapshot?.organisationName
           ? isReportOnlyMode
@@ -244,7 +244,7 @@ export default function ControlPage() {
             }
             actions={
               <Button asChild>
-                <Link href={scopedHrefs.register}>Register öffnen</Link>
+                <Link href={scopedHrefs.register}>{t('settings.toRegister')}</Link>
               </Button>
             }
           />
@@ -366,19 +366,19 @@ export default function ControlPage() {
                         {canOpenReviews ? (
                           <Button asChild>
                             <Link href={scopedHrefs.controlReviews}>
-                              Reviews öffnen
+                              {t('control.reviews')}
                             </Link>
                           </Button>
                         ) : (
                           <Button asChild>
                             <Link href={scopedHrefs.register}>
-                              Register öffnen
+                              {t('settings.toRegister')}
                             </Link>
                           </Button>
                         )}
                         <Button asChild variant="outline">
                           <Link href={scopedHrefs.governanceSettings}>
-                            Governance Settings
+                            {t('governance.settings')}
                           </Link>
                         </Button>
                       </div>
@@ -456,26 +456,26 @@ export default function ControlPage() {
                         {canOpenAcademy ? (
                           <Button asChild>
                             <Link href={scopedHrefs.academy}>
-                              Academy öffnen
+                              {t('control.academy')}
                             </Link>
                           </Button>
                         ) : (
                           <Button asChild>
                             <Link href={scopedHrefs.register}>
-                              Register öffnen
+                              {t('settings.toRegister')}
                             </Link>
                           </Button>
                         )}
                         {canOpenExports ? (
                           <Button asChild variant="outline">
                             <Link href={scopedHrefs.controlExports}>
-                              Audit-Exports ansehen
+                              {t('control.exports')}
                             </Link>
                           </Button>
                         ) : (
                           <Button asChild variant="outline">
                             <Link href={scopedHrefs.governanceSettings}>
-                              Governance Settings
+                              {t('governance.settings')}
                             </Link>
                           </Button>
                         )}
