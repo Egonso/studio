@@ -153,10 +153,11 @@ export async function runFoundationSmoke() {
   assert.equal(incompleteReadiness.phase, "incomplete");
   assert.deepEqual(
     incompleteReadiness.missingItems.map((item) => item.key),
-    ["risk", "oversight", "reviewCycle"],
+    ["oversight", "reviewCycle", "risk"],
   );
   assert.equal(incompleteReadiness.completedStepCount, 0);
   assert.equal(incompleteReadiness.nextStep?.key, "groundProofs");
+  assert.equal(incompleteReadiness.nextItem?.key, "oversight");
 
   const unassessedRiskReadiness = computeUseCaseReadiness(
     {
@@ -182,6 +183,7 @@ export async function runFoundationSmoke() {
     ["risk"],
   );
   assert.equal(unassessedRiskReadiness.nextStep?.key, "groundProofs");
+  assert.equal(unassessedRiskReadiness.nextItem?.target.focus, "governance");
 
   const readyForReviewCard = {
     ...card,

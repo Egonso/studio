@@ -370,6 +370,14 @@ export default function UseCaseDetailPage() {
                           allUseCases.length > 0 ? allUseCases : [card]
                         }
                         orgSettings={orgSettings}
+                        onOpenRiskReview={
+                          registerFirstFlags.riskAssistDetail
+                            ? () => {
+                                setRiskReviewContext(null);
+                                setIsRiskReviewOpen(true);
+                              }
+                            : null
+                        }
                         focusField={
                           activeFocus === 'governance'
                             ? governanceField

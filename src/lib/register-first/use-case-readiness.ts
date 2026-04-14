@@ -64,17 +64,6 @@ export function computeUseCaseReadiness(
 
   const items: Array<UseCaseReadinessItem & { complete: boolean }> = [
     {
-      key: "risk",
-      label: "Risikoklasse festlegen",
-      target: {
-        focus: "metadata",
-        edit: true,
-      },
-      complete: hasDocumentedAiActCategory(
-        card.governanceAssessment?.core?.aiActCategory,
-      ),
-    },
-    {
       key: "owner",
       label: "Verantwortliche Rolle festlegen",
       target: {
@@ -107,6 +96,16 @@ export function computeUseCaseReadiness(
       complete:
         (Boolean(iso?.reviewCycle) && iso?.reviewCycle !== "unknown") ||
         Boolean(orgSettings?.reviewStandard),
+    },
+    {
+      key: "risk",
+      label: "Risikoklasse pruefen",
+      target: {
+        focus: "governance",
+      },
+      complete: hasDocumentedAiActCategory(
+        card.governanceAssessment?.core?.aiActCategory,
+      ),
     },
   ];
 

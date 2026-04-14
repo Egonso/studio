@@ -42,6 +42,7 @@ interface GovernanceLiabilitySectionProps {
   useCases?: UseCaseCard[];
   orgSettings?: OrgSettings | null;
   onCardUpdate?: (card: UseCaseCard) => void;
+  onOpenRiskReview?: (() => void) | null;
   focusField?: "oversight" | "reviewCycle" | "history" | null;
   autoOpenField?: "oversight" | "reviewCycle" | null;
   onToggleDetails?: (() => void) | null;
@@ -298,6 +299,7 @@ export function GovernanceLiabilitySection({
   useCases = [],
   orgSettings,
   onCardUpdate,
+  onOpenRiskReview = null,
   focusField = null,
   autoOpenField = null,
   onToggleDetails = null,
@@ -399,37 +401,6 @@ export function GovernanceLiabilitySection({
       : null,
   ]);
 
-  const missingRequirements = compactRequirements([
-    !hasRiskClass
-      ? {
-          key: "risk",
-          label: "Risikoklasse dokumentieren",
-          detail: "In Stammdaten.",
-        }
-      : null,
-    !hasOwner
-      ? {
-          key: "owner",
-          label: "Verantwortliche Rolle dokumentieren",
-          detail: "In Stammdaten.",
-        }
-      : null,
-    !hasOversight
-      ? {
-          key: "oversight",
-          label: "Aufsichtsmodell festlegen",
-          detail: null,
-        }
-      : null,
-    !hasReviewCycle
-      ? {
-          key: "reviewCycle",
-          label: "Review-Zyklus festlegen",
-          detail: null,
-        }
-      : null,
-  ]);
-
   const showOversightDecision = !hasOversight || editingField === "oversight";
   const showReviewCycleDecision = !hasReviewCycle || editingField === "reviewCycle";
   const activeDecisionField: EditableField | null =
@@ -453,11 +424,53 @@ export function GovernanceLiabilitySection({
     activeField: activeDecisionField,
     nextField: nextDecisionField,
   });
+  const canLaunchRiskReview =
+    !hasRiskClass && !activeDecisionField && Boolean(onOpenRiskReview);
+  const missingRequirements = compactRequirements([
+    !hasOwner
+      ? {
+          key: "owner",
+          label: "Verantwortliche Rolle dokumentieren",
+          detail: "In Stammdaten.",
+        }
+      : null,
+    !hasOversight
+      ? {
+          key: "oversight",
+          label: "Aufsichtsmodell festlegen",
+          detail: null,
+        }
+      : null,
+    !hasReviewCycle
+      ? {
+          key: "reviewCycle",
+          label: "Review-Zyklus festlegen",
+          detail: null,
+        }
+      : null,
+    !hasRiskClass
+      ? {
+          key: "risk",
+          label: canLaunchRiskReview
+            ? "Risikoklasse pruefen"
+            : "Risikoklasse dokumentieren",
+          detail: canLaunchRiskReview
+            ? "Als naechster Schritt nach Aufsicht und Review-Zyklus."
+            : "In Stammdaten.",
+          actionLabel: canLaunchRiskReview ? "Kurze Pruefung starten" : null,
+          onAction: canLaunchRiskReview ? () => onOpenRiskReview?.() : null,
+        }
+      : null,
+  ]);
   const groundProofsNextHint =
     activeDecisionField === "oversight"
       ? "Jetzt Aufsichtsmodell dokumentieren."
       : activeDecisionField === "reviewCycle"
         ? "Jetzt Review-Zyklus dokumentieren."
+        : canLaunchRiskReview
+          ? "Jetzt kurze Pruefung zur Risikoklasse starten."
+          : !hasRiskClass
+            ? "Jetzt Risikoklasse in den Stammdaten dokumentieren."
         : missingRequirements.length > 0
           ? "Offene Grundnachweise dokumentieren."
           : "Weiter zu 2. Systemnachweis.";
