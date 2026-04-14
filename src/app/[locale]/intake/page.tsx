@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,6 +97,7 @@ async function submitOwnerCaptureFallback(input: {
 }
 
 export default function IntakePage() {
+  const t = useTranslations();
   const multisystemEnabled = registerFirstFlags.multisystemCapture;
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -105,7 +107,7 @@ export default function IntakePage() {
   const [code, setCode] = useState(codeParam || "");
   const [codeInfo, setCodeInfo] = useState<CodeInfo | null>(null);
   const [ownerFallbackInfo, setOwnerFallbackInfo] = useState<OwnerCaptureFallbackInfo | null>(null);
-  const [errorTitle, setErrorTitle] = useState("Error");
+  const [errorTitle, setErrorTitle] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<SharedCaptureFieldErrors>({});
   const [form, setForm] = useState<CaptureFormData>({ ...EMPTY_FORM });
@@ -137,7 +139,7 @@ export default function IntakePage() {
 
   async function validateCode(c: string) {
     setPageState("loading");
-    setErrorTitle("Error");
+    setErrorTitle(t('common.error'));
     setErrorMsg(null);
     setOwnerFallbackInfo(null);
     try {
@@ -188,14 +190,14 @@ export default function IntakePage() {
         setPageState("form");
         return;
       }
-      setErrorTitle("Connection error");
-      setErrorMsg("Connection error. Please try again.");
+      setErrorTitle(t('common.error'));
+      setErrorMsg(t('intake.errors.connectionError'));
       setPageState("invalid");
     }
   }
 
   async function handleSubmit() {
-    setErrorTitle("Error");
+    setErrorTitle(t('common.error'));
     setErrorMsg(null);
     const validation = validateSharedCaptureFields(form, {
       multisystemEnabled,
@@ -268,8 +270,8 @@ export default function IntakePage() {
       setCreatedPurpose(validation.normalized.purpose);
       setPageState("success");
     } catch {
-      setErrorTitle("Connection error");
-      setErrorMsg("Connection error. Please try again.");
+      setErrorTitle(t('common.error'));
+      setErrorMsg(t('intake.errors.connectionError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -290,12 +292,12 @@ export default function IntakePage() {
 
   return (
     <PublicIntakeShell
-      title="Submit an AI use case without login"
-      description="Use an access code to submit details directly to the correct register. This form is separate from the internal workspace and serves only for structured intake."
+      title={t('intake.title')}
+      description={t('intake.descriptionFull')}
       meta={
         codeInfo ? (
           <p>
-            Target register:{" "}
+            {t('intake.targetRegister')}:{" "}
             <span className="font-medium text-slate-950">
               {codeInfo.organisationName ?? codeInfo.label}
             </span>
@@ -303,40 +305,40 @@ export default function IntakePage() {
         ) : null
       }
       asidePoints={[
-        "Submissions are stored as traceable entries and reviewed internally.",
-        "Public forms do not display internal register or governance views.",
-        "After submission, the next step is internal: document, review, or follow up.",
+        t('intake.asidePoints.0'),
+        t('intake.asidePoints.1'),
+        t('intake.asidePoints.2'),
       ]}
     >
       {pageState === "loading" && (
         <PageStatePanel
           tone="loading"
           area="public_external_intake"
-          title="Verifying code"
-          description="We are checking whether this access code is active and belongs to a valid register."
+          title={t('intake.verifyingCode')}
+          description={t('intake.verifyingCodeDesc')}
         />
       )}
 
       {pageState === "enter_code" && (
         <Card className="w-full shadow-sm">
           <CardHeader>
-            <CardTitle>Enter access code</CardTitle>
+            <CardTitle>{t('intake.enterCode')}</CardTitle>
             <CardDescription>
-              Enter the code you received from the responsible organisation.
+              {t('intake.enterCodeDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {errorMsg && (
               <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>{t('common.error')}</AlertTitle>
                 <AlertDescription>{errorMsg}</AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="access-code">Access code</Label>
+              <Label htmlFor="access-code">{t('intake.accessCode')}</Label>
               <Input
                 id="access-code"
-                placeholder="e.g. AI-K7M2X9"
+                placeholder={t('intake.accessCodePlaceholder')}
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 autoFocus
@@ -347,7 +349,7 @@ export default function IntakePage() {
               disabled={code.trim().length < 4}
               className="w-full"
             >
-              Continue to intake
+              {t('intake.continueToIntake')}
             </Button>
           </CardContent>
         </Card>
@@ -358,17 +360,17 @@ export default function IntakePage() {
           tone="error"
           area="public_external_intake"
           title={errorTitle}
-          description={errorMsg ?? "This access code could not be used."}
+          description={errorMsg ?? t('intake.errors.invalidCode')}
           actions={
             <Button
               variant="outline"
               onClick={() => {
                 setPageState("enter_code");
-                setErrorTitle("Error");
+                setErrorTitle(t('common.error'));
                 setErrorMsg(null);
               }}
             >
-              Enter a different code
+              {t('intake.errors.enterDifferentCode')}
             </Button>
           }
         />
@@ -377,19 +379,19 @@ export default function IntakePage() {
       {pageState === "form" && (
         <Card className="w-full shadow-sm">
           <CardHeader>
-            <CardTitle>Submit details</CardTitle>
+            <CardTitle>{t('intake.submitDetails')}</CardTitle>
             <CardDescription>
               {codeInfo?.organisationName
-                ? `This submission will be sent to ${codeInfo.organisationName}.`
+                ? t('intake.sendingTo', { orgName: codeInfo.organisationName })
                 : codeInfo?.label}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {ownerFallbackInfo && user && (
               <Alert>
-                <AlertTitle>Direct register access detected</AlertTitle>
+                <AlertTitle>{t('intake.directAccess')}</AlertTitle>
                 <AlertDescription>
-                  You are signed in as the register owner. This link will be assigned directly to your register, even if the public code verification is currently unavailable.
+                  {t('intake.directAccessDescription')}
                 </AlertDescription>
               </Alert>
             )}
@@ -412,7 +414,7 @@ export default function IntakePage() {
                 aria-live="polite"
                 className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
               >
-                Please complete the highlighted required fields before continuing.
+                {t('intake.errors.fillRequired')}
               </div>
             )}
 
@@ -422,7 +424,7 @@ export default function IntakePage() {
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Submit
+              {isSubmitting ? t('intake.submitting') : t('intake.submit')}
             </Button>
           </CardContent>
         </Card>
@@ -433,8 +435,8 @@ export default function IntakePage() {
           tone="success"
           icon={CheckCircle2}
           area="public_external_intake"
-          title="Submission saved"
-          description={`"${createdPurpose}" has been recorded as a traceable external submission.`}
+          title={t('intake.submissionSaved')}
+          description={t('intake.submissionSavedDescription', { purpose: createdPurpose })}
           actions={
             <>
               <Button
@@ -444,11 +446,11 @@ export default function IntakePage() {
                   setErrorMsg(null);
                 }}
               >
-                Submit another use case
+                {t('intake.submitAnother')}
               </Button>
               <Button asChild variant="outline">
                 <Link href="/?mode=signup&intent=create_register">
-                  Create your own register
+                  {t('intake.createRegister')}
                 </Link>
               </Button>
             </>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   ArrowRight,
   ExternalLink,
@@ -47,6 +48,7 @@ function formatDate(value: string | null): string {
 }
 
 export default function VerificationPage() {
+  const t = useTranslations();
   const params = useParams();
   const code = params.code as string;
   const [loading, setLoading] = useState(true);
@@ -144,7 +146,7 @@ export default function VerificationPage() {
           <div className="flex min-h-[360px] items-center justify-center border border-slate-200 bg-white px-6 py-12">
             <div className="flex items-center gap-3 text-sm text-slate-600">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Verifiziere Zertifikat...
+              {t('certification.verifying')}
             </div>
           </div>
         ) : error || !certificate ? (
@@ -153,7 +155,7 @@ export default function VerificationPage() {
               <ShieldX className="h-5 w-5" />
             </div>
             <h1 className="mt-6 text-3xl font-semibold tracking-tight text-slate-950">
-              Verifizierung fehlgeschlagen
+              {t('certification.verificationFailed')}
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
               {error || 'Ungültiger Code.'}
@@ -174,7 +176,7 @@ export default function VerificationPage() {
                 <div className="flex flex-wrap items-start justify-between gap-5">
                   <div className="space-y-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Zertifikatsprüfung
+                      {t('certification.title')}
                     </p>
                     <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
                       {statusMeta.title}
@@ -212,7 +214,7 @@ export default function VerificationPage() {
                   <div className="grid gap-4 border-y border-slate-200 py-6 sm:grid-cols-2">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                        Zertifikatscode
+                        {t('certification.certificateCode')}
                       </p>
                       <p className="mt-3 font-mono text-sm text-slate-950">
                         {certificate.certificateCode}

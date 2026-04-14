@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ControlPolicyEngine } from '@/components/control/control-policy-engine';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
@@ -58,6 +59,7 @@ function fallbackOrgSettings(register: Register): OrgSettings {
 }
 
 export default function ControlPoliciesPage() {
+  const t = useTranslations();
   const { user, loading } = useAuth();
   const router = useRouter();
   const {
@@ -156,7 +158,7 @@ export default function ControlPoliciesPage() {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
-        title="Policies"
+        title={t('policy.title')}
         description="Policy Engine für Richtlinien, Versionen und Governance-Baselines."
         nextStep="Die Policy-Abdeckung wird vorbereitet."
       >
@@ -175,7 +177,7 @@ export default function ControlPoliciesPage() {
   return (
     <SignedInAreaFrame
       area="paid_governance_control"
-      title="Policies"
+      title={t('policy.title')}
       description={
         snapshot?.register.organisationName
           ? `Richtlinien und Governance-Baselines für ${snapshot.register.organisationName}.`

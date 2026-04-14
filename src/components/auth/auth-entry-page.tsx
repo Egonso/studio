@@ -678,7 +678,7 @@ export default function AuthEntryPage() {
 
       toast({
         title: result.existingRegisterUsed
-          ? 'Bestehendes Register verwendet'
+          ? t('landing.existingRegisterUsed')
           : 'Register eingerichtet',
         description: result.importedUseCase
           ? 'The register is ready and the import has been applied.'
@@ -842,7 +842,7 @@ export default function AuthEntryPage() {
             className="h-8 w-auto"
           />
           <p className="text-base font-semibold tracking-tight text-slate-950">
-            KI-Register
+            {t('metadata.appName')}
           </p>
         </div>
 
@@ -861,7 +861,7 @@ export default function AuthEntryPage() {
               href="/downloads"
               className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
             >
-              Downloads
+              {t('nav.downloads')}
             </Link>
             <a
               href={WHITEPAPER_HREF}
@@ -963,7 +963,7 @@ export default function AuthEntryPage() {
                         : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
-                    Eigenes Register anlegen
+                    {t('auth.setupRegister')}
                   </button>
                   <button
                     type="button"
@@ -1091,7 +1091,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="create-name"
                           >
-                            Name
+                            {t('common.nameLabel')}
                           </label>
                           <Input
                             id="create-name"
@@ -1144,7 +1144,7 @@ export default function AuthEntryPage() {
                           disabled={Boolean(busyAction) || !authReady}
                         >
                           {isBusy('create_account')
-                            ? 'Lege Zugang an...'
+                            ? t('common.pleaseWait')
                             : t('common.next')}
                         </Button>
                       </form>
@@ -1175,7 +1175,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="organisation-role"
                           >
-                            Ihre Rolle <span className="text-slate-500">(optional)</span>
+                            {t('landing.roleLabel')} <span className="text-slate-500">({t('common.optional')})</span>
                           </label>
                           <Input
                             id="organisation-role"
@@ -1188,8 +1188,7 @@ export default function AuthEntryPage() {
                         </div>
 
                         <p className="text-xs leading-5 text-slate-500">
-                          Falls die Organisation bereits existiert, wird das
-                          vorhandene Register verwendet statt ein Duplikat anzulegen.
+                          {t('landing.orgExistsNote')}
                         </p>
 
                         <Button
@@ -1198,8 +1197,8 @@ export default function AuthEntryPage() {
                           disabled={Boolean(busyAction)}
                         >
                           {isBusy('register_setup')
-                            ? 'Richte Register ein...'
-                            : 'Register anlegen'}
+                            ? t('common.pleaseWait')
+                            : t('auth.setUpRegister')}
                         </Button>
                       </form>
                     ) : null}
@@ -1249,7 +1248,7 @@ export default function AuthEntryPage() {
                           className="w-full"
                           disabled={Boolean(busyAction)}
                         >
-                          {isBusy('validate_join_code') ? 'Validating...' : 'Validate code'}
+                          {isBusy('validate_join_code') ? t('common.pleaseWait') : t('common.verify')}
                         </Button>
                       </form>
                     ) : null}
@@ -1287,7 +1286,7 @@ export default function AuthEntryPage() {
                             className="w-full"
                             onClick={() => setJoinStep('signup')}
                           >
-                            Zugang anlegen
+                            {t('auth.createAccount')}
                           </Button>
                         )}
 
@@ -1311,7 +1310,7 @@ export default function AuthEntryPage() {
                             className="text-sm font-medium text-slate-900"
                             htmlFor="join-name"
                           >
-                            Name
+                            {t('common.nameLabel')}
                           </label>
                           <Input
                             id="join-name"
@@ -1364,7 +1363,7 @@ export default function AuthEntryPage() {
                           disabled={Boolean(busyAction) || !authReady}
                         >
                           {isBusy('join_signup')
-                            ? 'Lege Zugang an...'
+                            ? t('common.pleaseWait')
                             : t('auth.continueToCapture')}
                         </Button>
                       </form>
@@ -1382,7 +1381,7 @@ export default function AuthEntryPage() {
                 onClick={() => updateAuthRoute('signup', 'join_register')}
                 className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
               >
-                Ich habe einen Einladungscode
+                {t('auth.useInvitationCode')}
               </button>
             ) : null}
             {mode !== 'signup' || intent !== 'create_register' ? (
@@ -1391,7 +1390,7 @@ export default function AuthEntryPage() {
                 onClick={() => updateAuthRoute('signup', 'create_register')}
                 className="block text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
               >
-                Neues Register einrichten
+                {t('auth.setUpRegister')}
               </button>
             ) : null}
           </div>
