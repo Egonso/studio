@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { useParams } from "next/navigation";
 import { Loader2, XCircle, CheckCircle2, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -224,7 +225,7 @@ export default function VerifyPassPage() {
               <div className="flex items-baseline justify-between gap-4 py-1">
                 <span className="shrink-0 text-xs font-medium text-muted-foreground">Erstellt</span>
                 <span className="text-right text-sm">
-                  {new Date(entry.createdAt).toLocaleDateString("de-DE")}
+                  {new Date(entry.createdAt).toLocaleDateString(APP_LOCALE)}
                 </span>
               </div>
               {entry.verification && (

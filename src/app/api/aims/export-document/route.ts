@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { APP_LOCALE } from '@/lib/locale';
 import { z } from 'zod';
 
 import {
@@ -54,7 +55,7 @@ function normalizeAimsTimestamp(value: unknown): string {
 
   const seconds = (value as { seconds?: unknown }).seconds;
   if (typeof seconds === 'number' && Number.isFinite(seconds)) {
-    return new Date(seconds * 1000).toLocaleString('de-DE');
+    return new Date(seconds * 1000).toLocaleString(APP_LOCALE);
   }
 
   return '';
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
           'aimsProgress.updatedAt': normalizeAimsTimestamp(
             payload.exportData.aimsProgress?.updatedAt,
           ),
-          generatedAt: new Date(payload.exportData.generatedAt).toLocaleString('de-DE'),
+          generatedAt: new Date(payload.exportData.generatedAt).toLocaleString(APP_LOCALE),
         },
       }),
     });

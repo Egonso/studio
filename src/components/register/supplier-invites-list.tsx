@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import {
   Loader2,
   MailPlus,
@@ -133,7 +134,7 @@ function statusVariant(
 function formatDate(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "–";
-  return parsed.toLocaleString("de-DE", {
+  return parsed.toLocaleString(APP_LOCALE, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

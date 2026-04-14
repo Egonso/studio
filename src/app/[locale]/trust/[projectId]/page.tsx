@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { useParams } from "next/navigation";
 import { getPublicTrustPortal } from "@/lib/data-service";
 import type { PublicTrustPortal } from "@/lib/types";
@@ -128,7 +129,7 @@ export default function PublicTrustPortalPage() {
   };
 
   const formattedDate = publishedAt
-    ? new Date(publishedAt).toLocaleDateString("de-DE", {
+    ? new Date(publishedAt).toLocaleDateString(APP_LOCALE, {
       day: "numeric",
       month: "long",
       year: "numeric",

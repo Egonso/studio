@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Loader2, ArrowLeft, Printer, ShieldCheck } from "lucide-react";
@@ -135,7 +136,7 @@ export default function UseCasePassPage() {
     const reviewCycle = useCase.governanceAssessment?.flex?.iso?.reviewCycle || "unknown";
     const reviewLabel = isoReviewCycleLabels[reviewCycle] || "Nicht definiert";
 
-    const formattedDate = new Date(useCase.updatedAt || useCase.createdAt).toLocaleDateString("de-DE", {
+    const formattedDate = new Date(useCase.updatedAt || useCase.createdAt).toLocaleDateString(APP_LOCALE, {
         day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit'
     });
@@ -288,7 +289,7 @@ export default function UseCasePassPage() {
                 {/* Footer */}
                 <div className="mt-16 pt-6 border-t border-slate-200 text-center">
                     <p className="text-xs text-slate-400">
-                        Erstellt am {new Date().toLocaleDateString("de-DE")} mit dem AI Governance Register.
+                        Erstellt am {new Date().toLocaleDateString(APP_LOCALE)} mit dem AI Governance Register.
                         <br />
                         Dokument generiert über kiregister.com
                     </p>

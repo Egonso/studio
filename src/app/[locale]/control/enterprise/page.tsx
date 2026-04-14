@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { APP_LOCALE } from '@/lib/locale';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -120,7 +121,7 @@ function formatDate(value: string | null | undefined): string {
     return 'unbekannt';
   }
 
-  return parsed.toLocaleString('de-DE', {
+  return parsed.toLocaleString(APP_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

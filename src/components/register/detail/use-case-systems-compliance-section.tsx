@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
@@ -93,7 +94,7 @@ function formatCheckedAt(value: string | null | undefined): string | null {
     return null;
   }
 
-  return date.toLocaleDateString("de-DE");
+  return date.toLocaleDateString(APP_LOCALE);
 }
 
 function formatFlagLabel(value: ToolPublicInfo["flags"][keyof ToolPublicInfo["flags"]]): string {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { APP_LOCALE } from '@/lib/locale';
 import {
   Card,
   CardContent,
@@ -132,7 +133,7 @@ export function UseCasePassCard({ card, resolvedToolName }: UseCasePassCardProps
         {isV11 && card.publicHashId && (
           <InfoRow label="Public Hash" value={card.publicHashId} />
         )}
-        <InfoRow label="Erstellt" value={new Date(card.createdAt).toLocaleDateString("de-DE")} />
+        <InfoRow label="Erstellt" value={new Date(card.createdAt).toLocaleDateString(APP_LOCALE)} />
       </CardContent>
     </Card>
   );

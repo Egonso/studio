@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState, Fragment } from 'react';
+import { APP_LOCALE } from '@/lib/locale';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { getSharedPolicy } from '@/lib/data-service';
@@ -147,7 +148,7 @@ export default function SharedPolicyPage() {
                         </CardContent>
                         {policy && (
                             <CardFooter>
-                                <p className="text-xs text-muted-foreground">Geteilt am: {new Date(policy.createdAt?.toDate()).toLocaleString('de-DE')}</p>
+                                <p className="text-xs text-muted-foreground">Geteilt am: {new Date(policy.createdAt?.toDate()).toLocaleString(APP_LOCALE)}</p>
                             </CardFooter>
                         )}
                     </Card>

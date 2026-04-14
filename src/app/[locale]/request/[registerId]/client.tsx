@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 
 import {
@@ -51,7 +52,7 @@ function formatExpiry(value: string): string {
     return "bald";
   }
 
-  return parsed.toLocaleString("de-DE", {
+  return parsed.toLocaleString(APP_LOCALE, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { APP_LOCALE } from '@/lib/locale';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -40,7 +41,7 @@ function formatDate(value: string | null): string {
     return value;
   }
 
-  return parsed.toLocaleDateString('de-DE', {
+  return parsed.toLocaleDateString(APP_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

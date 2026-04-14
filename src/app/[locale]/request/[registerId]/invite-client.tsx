@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { APP_LOCALE } from '@/lib/locale';
 import { ArrowRight, CheckCircle2, FileText, Loader2, Mail, ShieldCheck } from "lucide-react";
 
 import {
@@ -75,7 +76,7 @@ const EMPTY_SUPPLIER_CAPTURE_DRAFT: QuickCaptureFieldsDraft = {
 function formatExpiry(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "bald";
-  return parsed.toLocaleString("de-DE", {
+  return parsed.toLocaleString(APP_LOCALE, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -87,7 +88,7 @@ function formatExpiry(value: string): string {
 function formatDate(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return "unbekannt";
-  return parsed.toLocaleString("de-DE", {
+  return parsed.toLocaleString(APP_LOCALE, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
