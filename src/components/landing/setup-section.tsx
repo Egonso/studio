@@ -237,7 +237,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       if (existing) {
         toast({
           title: "Existing register used",
-          description: `No duplicate was created for "${orgNameValue}".,
+          description: `No duplicate was created for "${orgNameValue}".`,
         });
       }
 

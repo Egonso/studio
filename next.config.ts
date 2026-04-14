@@ -1,5 +1,8 @@
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
 import { LEGACY_ROUTE_REDIRECTS } from './src/lib/navigation/route-manifest';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const SECURITY_HEADERS = [
   {
@@ -84,4 +87,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

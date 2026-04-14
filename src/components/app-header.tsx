@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { LocaleSwitcher } from './locale-switcher';
 import { BookOpen, Bot, Link2, LogOut, Settings, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/auth-context';
@@ -91,6 +92,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
 
           {user ? (
             <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto sm:gap-3">
+              <LocaleSwitcher />
               <WorkspaceSwitcher />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

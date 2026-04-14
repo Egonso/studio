@@ -1,37 +1,17 @@
-import type { Metadata } from 'next';
-
 import './globals.css';
-import { AppClientShell } from '@/components/app-client-shell';
 
-export const metadata: Metadata = {
-  title: 'AI Register',
-  description:
-    'Use-case-first AI Register for documentation, governance and evidence management under the EU AI Act.',
-  icons: {
-    icon: [
-      { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
-      { url: '/register-logo-dark.png', media: '(prefers-color-scheme: dark)' },
-    ],
-    shortcut: [
-      { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
-      { url: '/register-logo-dark.png', media: '(prefers-color-scheme: dark)' },
-    ],
-  },
-};
-
+// Minimal root layout – locale-specific layout lives in [locale]/layout.tsx
+// next-intl middleware handles locale detection and prefix routing
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <head />
-      <body
-        suppressHydrationWarning
-        className="antialiased bg-background"
-      >
-        <AppClientShell>{children}</AppClientShell>
+      <body suppressHydrationWarning className="antialiased bg-background">
+        {children}
       </body>
     </html>
   );

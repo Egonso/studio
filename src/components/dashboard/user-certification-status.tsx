@@ -6,6 +6,7 @@ import { CertificateBadgeCard } from "@/components/certification/certificate-bad
 import type { UserStatus } from "@/hooks/use-user-status";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface UserCertificationStatusProps {
     status: UserStatus | null;
@@ -204,10 +205,10 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
                                 asChild={hasStartedCourse}
                             >
                                 {hasStartedCourse ? (
-                                    <a href="/exam">
+                                    <Link href="/exam">
                                         <span>Zur Prüfung</span>
                                         <ExternalLink className="ml-2 h-4 w-4 text-muted-foreground" />
-                                    </a>
+                                    </Link>
                                 ) : (
                                     <span>Zur Prüfung (Gesperrt)</span>
                                 )}
