@@ -1,6 +1,6 @@
 import type { Auth, UserCredential } from 'firebase/auth';
 
-import { buildPublicAppUrl, getPublicAppOrigin } from '@/lib/app-url';
+import { getPublicAppOrigin } from '@/lib/app-url';
 import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import {
@@ -105,10 +105,19 @@ async function guardAuthAttempt(
 }
 
 async function sendVerificationEmail(user: UserCredential['user']): Promise<void> {
-  const { sendEmailVerification } = await import('firebase/auth');
-  await sendEmailVerification(user, {
-    url: buildPublicAppUrl('/login'),
+  const idToken = await user.getIdToken();
+  const response = await fetch('/api/auth/email-verification', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+    },
   });
+
+  if (!response.ok) {
+    throw new Error(
+      `Verification email failed with status ${response.status}.`,
+    );
+  }
 }
 
 function encodeCapturePath(code: string): string {
@@ -282,11 +291,20 @@ export async function loadAuthClient(): Promise<Auth> {
 
 export async function sendPasswordReset(email: string): Promise<void> {
   await guardAuthAttempt('password_reset', email);
-  const auth = await loadAuthClient();
-  const { sendPasswordResetEmail } = await import('firebase/auth');
-  await sendPasswordResetEmail(auth, normalizeEmail(email), {
-    url: buildPublicAppUrl('/login'),
+  const response = await fetch('/api/auth/password-reset', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: normalizeEmail(email),
+    }),
   });
+
+  if (!response.ok) {
+    throw new Error(`Password reset request failed with status ${response.status}.`);
+  }
+
   logInfo('auth_password_reset_requested', {
     email: normalizeEmail(email),
   });
