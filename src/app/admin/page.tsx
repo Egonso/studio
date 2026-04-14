@@ -646,7 +646,7 @@ export default function AdminPage() {
                             }}
                             onCreate={async (input) => {
                                 const idToken = await getAdminIdToken();
-                                await createAffiliate(idToken, input);
+                                return createAffiliate(idToken, input);
                             }}
                             onUpdate={async (input) => {
                                 const idToken = await getAdminIdToken();
