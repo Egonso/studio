@@ -1,12 +1,12 @@
 /**
- * Level 1, Section 03: Unterschriftsblock
+ * Level 1, Section 03: Signature Block
  *
- * Abschluss des Commitment Statements mit Datum und Unterschriftsfeldern.
- * Name aus orgSettings.contactPerson.name.
- * Immer inkludiert.
+ * Closing section of the commitment statement with date and signature fields.
+ * Name from orgSettings.contactPerson.name.
+ * Always included.
  *
- * Inhaltliche Referenz: policy-editor.tsx Level 1 Template (Zeile 70–74)
- * Juristisch defensiv: "dokumentierter IST-Zustand"
+ * Content reference: policy-editor.tsx Level 1 Template (line 70–74)
+ * Legally defensive: "documented current state"
  *
  * Sprint: PE-2a Level 1
  */
@@ -15,39 +15,39 @@ import type { SectionDefinition } from '../section-definition';
 
 export const signatureSection: SectionDefinition = {
     sectionId: 'l1-signature',
-    title: 'Inkrafttreten & Unterschriften',
+    title: 'Effective Date & Signatures',
     order: 900,
     level: 1,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const contactName = context.orgSettings.contactPerson?.name || '[Verantwortliche Person]';
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
-        const today = new Date().toLocaleDateString('de-DE', {
+        const contactName = context.orgSettings.contactPerson?.name || '[Responsible Person]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
+        const today = new Date().toLocaleDateString('en-GB', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
         });
 
         return [
-            `*Diese Erklärung dokumentiert den IST-Zustand der KI-Governance-Prinzipien ` +
-            `von ${orgName}. Sie ersetzt keine rechtliche Beratung und stellt ` +
-            `keine Compliance-Bestätigung dar.*`,
+            `*This statement documents the current state of the AI governance principles ` +
+            `of ${orgName}. It does not replace legal advice and does not constitute ` +
+            `a compliance certification.*`,
             ``,
             `---`,
             ``,
             `**Organisation:** ${orgName}`,
             ``,
-            `**Verantwortliche Person:** ${contactName}`,
+            `**Responsible Person:** ${contactName}`,
             ``,
-            `**Datum:** ${today}`,
+            `**Date:** ${today}`,
             ``,
-            `**Ort:** ____________________`,
+            `**Location:** ____________________`,
             ``,
-            `**Unterschrift Verantwortliche:r:** ____________________`,
+            `**Signature (Responsible Person):** ____________________`,
             ``,
-            `**Unterschrift Mitarbeitende:r:** ____________________`,
+            `**Signature (Employee):** ____________________`,
         ].join('\n');
     },
 };

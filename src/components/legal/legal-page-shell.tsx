@@ -21,12 +21,12 @@ export function LegalPageShell({
             className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950"
           >
             <ThemeAwareLogo
-              alt="KI-Register"
+              alt="AI Register"
               width={32}
               height={32}
               className="h-8 w-auto"
             />
-            <span>KI-Register</span>
+            <span>AI Register</span>
           </Link>
 
           <div className="flex items-center gap-4 text-sm text-slate-600">
@@ -50,7 +50,7 @@ export function LegalPageShell({
         <div className="space-y-10">
           <section className="space-y-3 border-b border-slate-200 pb-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Rechtliches
+              Legal
             </p>
             <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
               {title}

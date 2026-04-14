@@ -6,10 +6,10 @@
  * AI governance – it does NOT certify or guarantee compliance.
  *
  * Design:
- *   - NUR .ts, KEIN JSX, KEIN React, KEINE Komponenten
+ *   - .ts only, no JSX, no React, no components
  *   - Pure functions (no Firestore, no side effects)
- *   - Defensive Formulierung: "Dokumentierter IST-Zustand" nicht "Compliance-Bestätigung"
- *   - Alle Texte auf Deutsch
+ *   - Defensive wording: "Documented current state" not "Compliance confirmation"
+ *   - All text in English
  *   - Markdown output for downstream PDF/HTML rendering
  *
  * Sprint: GN-C ISO 42001 Audit-Dossier
@@ -98,14 +98,14 @@ export interface AuditDossierData {
     useCaseChapters: DossierUseCaseChapter[];
 }
 
-// ── German Labels ───────────────────────────────────────────────────────────
+// ── Labels ──────────────────────────────────────────────────────────────────
 
 const OVERSIGHT_MODEL_LABELS: Record<string, string> = {
     HITL: 'Human-in-the-Loop',
     HOTL: 'Human-on-the-Loop',
-    HUMAN_REVIEW: 'Menschliche Überprüfung',
-    NO_HUMAN: 'Keine menschliche Aufsicht',
-    unknown: 'Nicht festgelegt',
+    HUMAN_REVIEW: 'Human review',
+    NO_HUMAN: 'No human oversight',
+    unknown: 'Not specified',
 };
 
 function getDataCategoryLabel(category: string | undefined): string {
@@ -113,7 +113,7 @@ function getDataCategoryLabel(category: string | undefined): string {
 }
 
 function getOversightModelLabel(model: string | undefined | null): string {
-    return OVERSIGHT_MODEL_LABELS[model ?? 'unknown'] ?? model ?? 'Nicht festgelegt';
+    return OVERSIGHT_MODEL_LABELS[model ?? 'unknown'] ?? model ?? 'Not specified';
 }
 
 // ── ISO 42001 Alignment Assessment ──────────────────────────────────────────
@@ -144,9 +144,9 @@ function assessISOAlignment(
         step1_context: {
             status: hasUseCases && Boolean(orgSettings.industry),
             evidence: hasUseCases
-                ? `${useCases.length} KI-Anwendungsfälle erfasst. Branche: ${orgSettings.industry || 'nicht angegeben'}. ` +
-                  `Organisation: ${orgSettings.organisationName || 'nicht angegeben'}.`
-                : 'Keine KI-Anwendungsfälle erfasst.',
+                ? `${useCases.length} AI use cases documented. Industry: ${orgSettings.industry || 'not specified'}. ` +
+                  `Organisation: ${orgSettings.organisationName || 'not specified'}.`
+                : 'No AI use cases documented.',
         },
 
         // Clause 5: Leadership
@@ -159,35 +159,35 @@ function assessISOAlignment(
         step3_planning: {
             status: reviewedUseCases.length > 0,
             evidence: reviewedUseCases.length > 0
-                ? `${reviewedUseCases.length} von ${useCases.length} Anwendungsfällen geprüft. ` +
-                  `Risikokategorien wurden anhand von Expositions-Score und Datenkategorien bewertet.`
-                : 'Noch keine formale Risikobewertung durchgeführt.',
+                ? `${reviewedUseCases.length} of ${useCases.length} use cases reviewed. ` +
+                  `Risk categories were assessed based on exposure score and data categories.`
+                : 'No formal risk assessment carried out yet.',
         },
 
         // Clause 8: Operation
         step4_operation: {
             status: useCasesWithISO.length > 0,
             evidence: useCasesWithISO.length > 0
-                ? `${useCasesWithISO.length} Anwendungsfälle mit definiertem Review-Zyklus. ` +
-                  `Aufsichtsmodelle und Dokumentationsebenen sind erfasst.`
-                : 'Keine operativen ISO-Kontrollen konfiguriert.',
+                ? `${useCasesWithISO.length} use cases with defined review cycle. ` +
+                  `Oversight models and documentation levels are documented.`
+                : 'No operational ISO controls configured.',
         },
 
         // Clause 9: Performance Evaluation
         step5_monitoring: {
             status: hasReviewStandard && reviewedUseCases.length > 0,
             evidence: hasReviewStandard
-                ? `Review-Standard: ${orgSettings.reviewStandard}. ` +
-                  `${reviewedUseCases.length} Anwendungsfälle mit durchgeführtem Review.`
-                : 'Kein organisationsweiter Review-Standard festgelegt.',
+                ? `Review standard: ${orgSettings.reviewStandard}. ` +
+                  `${reviewedUseCases.length} use cases with completed review.`
+                : 'No organisation-wide review standard defined.',
         },
 
         // Clause 10: Improvement
         step6_improvement: {
             status: hasIncidentProcess,
             evidence: hasIncidentProcess
-                ? `Incident-Management-Prozess dokumentiert: ${orgSettings.incidentProcess!.url}`
-                : 'Kein dokumentierter Incident-Management-Prozess.',
+                ? `Incident management process documented: ${orgSettings.incidentProcess!.url}`
+                : 'No documented incident management process.',
         },
     };
 }
@@ -199,17 +199,17 @@ function buildLeadershipEvidence(
 ): string {
     const parts: string[] = [];
     if (hasPolicy) {
-        parts.push(`KI-Richtlinie vorhanden: ${orgSettings.aiPolicy!.url}`);
+        parts.push(`AI policy available: ${orgSettings.aiPolicy!.url}`);
         if (orgSettings.aiPolicy!.owner) {
-            parts.push(`Verantwortlich: ${orgSettings.aiPolicy!.owner}`);
+            parts.push(`Responsible: ${orgSettings.aiPolicy!.owner}`);
         }
     } else {
-        parts.push('Keine KI-Richtlinie hinterlegt');
+        parts.push('No AI policy on file');
     }
     if (hasRolesFramework) {
-        parts.push('Verantwortlichkeitsrahmen definiert');
+        parts.push('Roles and responsibilities framework defined');
     } else {
-        parts.push('Kein formaler Verantwortlichkeitsrahmen');
+        parts.push('No formal roles and responsibilities framework');
     }
     return parts.join('. ') + '.';
 }
@@ -218,7 +218,6 @@ function buildLeadershipEvidence(
 
 /**
  * Derive an overall maturity assessment from scores and alignment.
- * Returns a German label.
  */
 function deriveOverallMaturity(
     avgQuality: number,
@@ -233,11 +232,11 @@ function deriveOverallMaturity(
         alignment.step6_improvement,
     ].filter(s => s.status).length;
 
-    if (avgQuality >= 80 && alignedSteps >= 5) return 'Fortgeschritten';
-    if (avgQuality >= 60 && alignedSteps >= 3) return 'Aufbauend';
-    if (avgQuality >= 40 && alignedSteps >= 2) return 'Grundlegend';
+    if (avgQuality >= 80 && alignedSteps >= 5) return 'Advanced';
+    if (avgQuality >= 60 && alignedSteps >= 3) return 'Developing';
+    if (avgQuality >= 40 && alignedSteps >= 2) return 'Basic';
     if (avgQuality >= 20) return 'Initial';
-    return 'Nicht bewertet';
+    return 'Not assessed';
 }
 
 // ── Dossier Builder ─────────────────────────────────────────────────────────
@@ -252,7 +251,7 @@ function deriveOverallMaturity(
  *
  * @example
  *   const dossier = buildAuditDossier(useCases, orgSettings);
- *   // dossier.executiveSummary.overallMaturity === 'Aufbauend'
+ *   // dossier.executiveSummary.overallMaturity === 'Developing'
  *   // dossier.isoAlignment.step2_leadership.status === true
  *   // dossier.useCaseChapters.length === useCases.length
  */
@@ -272,8 +271,8 @@ export function buildAuditDossier(
     const overallMaturity = deriveOverallMaturity(scores.avgQuality, isoAlignment);
 
     const policyStatus = orgSettings.aiPolicy?.url
-        ? `Vorhanden (${orgSettings.aiPolicy.url})`
-        : 'Nicht hinterlegt';
+        ? `Available (${orgSettings.aiPolicy.url})`
+        : 'Not on file';
 
     // Build per-use-case chapters
     const useCaseChapters: DossierUseCaseChapter[] = useCases.map((uc) => {
@@ -303,7 +302,7 @@ export function buildAuditDossier(
             currentStatus: uc.status,
             currentStatusLabel: registerUseCaseStatusLabels[uc.status] ?? uc.status,
             responsibleParty: uc.responsibility?.responsibleParty
-                || (uc.responsibility?.isCurrentlyResponsible ? 'Selbst verantwortlich' : '–'),
+                || (uc.responsibility?.isCurrentlyResponsible ? 'Self-responsible' : '–'),
             toolName: uc.toolFreeText || uc.toolId || '–',
             nextReviewDate: deadline.nextReviewAt,
             deadlineStatus: deadline.status,
@@ -383,18 +382,18 @@ export function getDossierBlockers(
     const blockers: string[] = [];
 
     if (!orgSettings.organisationName?.trim()) {
-        blockers.push('Organisationsname fehlt in den Einstellungen');
+        blockers.push('Organisation name is missing in settings');
     }
     if (!orgSettings.industry?.trim()) {
-        blockers.push('Branche fehlt in den Einstellungen');
+        blockers.push('Industry is missing in settings');
     }
     if (!orgSettings.aiPolicy?.url?.trim()) {
-        blockers.push('KI-Richtlinie (AI Policy) muss hinterlegt sein');
+        blockers.push('AI policy must be on file');
     }
     if (useCases.length === 0) {
-        blockers.push('Keine Use Cases vorhanden');
+        blockers.push('No use cases available');
     } else if (!useCases.some(uc => uc.status !== 'UNREVIEWED')) {
-        blockers.push('Mindestens ein geprüfter Use Case erforderlich');
+        blockers.push('At least one reviewed use case is required');
     }
 
     return blockers;
@@ -403,16 +402,13 @@ export function getDossierBlockers(
 // ── Markdown Serialization ──────────────────────────────────────────────────
 
 /**
- * Format an ISO date string to German date format.
+ * Format an ISO date string to en-GB date format (DD Mon YYYY).
  */
-function formatDateDE(isoDate: string): string {
+function formatDateEN(isoDate: string): string {
     try {
         const d = new Date(isoDate);
         if (isNaN(d.getTime())) return '–';
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}.${month}.${year}`;
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     } catch {
         return '–';
     }
@@ -422,12 +418,12 @@ function formatDateDE(isoDate: string): string {
  * Convert an AuditDossierData to a structured Markdown document.
  *
  * Structure:
- *   1. Deckblatt (Title Page)
- *   2. Inhaltsverzeichnis
- *   3. Zusammenfassung (Executive Summary)
+ *   1. Title Page
+ *   2. Table of Contents
+ *   3. Executive Summary
  *   4. ISO 42001 Alignment
- *   5. Kapitel pro Use Case
- *   6. Haftungshinweis (Disclaimer)
+ *   5. Chapter per Use Case
+ *   6. Disclaimer
  *
  * @param dossier  AuditDossierData from buildAuditDossier()
  * @returns Structured Markdown string
@@ -435,65 +431,65 @@ function formatDateDE(isoDate: string): string {
 export function dossierToMarkdown(dossier: AuditDossierData): string {
     const lines: string[] = [];
 
-    // ── 1. Deckblatt ─────────────────────────────────────────────────────
-    lines.push('# KI-Governance Audit-Dossier');
+    // ── 1. Title Page ─────────────────────────────────────────────────────
+    lines.push('# AI Governance Audit Dossier');
     lines.push('');
     lines.push(`**Organisation:** ${dossier.organisation.name}`);
-    lines.push(`**Branche:** ${dossier.organisation.industry}`);
-    lines.push(`**Ansprechpartner:** ${dossier.organisation.contact}`);
-    lines.push(`**Erstellt am:** ${formatDateDE(dossier.generatedAt)}`);
+    lines.push(`**Industry:** ${dossier.organisation.industry}`);
+    lines.push(`**Contact:** ${dossier.organisation.contact}`);
+    lines.push(`**Generated on:** ${formatDateEN(dossier.generatedAt)}`);
     lines.push('');
-    lines.push('> **Hinweis:** Dieses Dokument dokumentiert den IST-Zustand der KI-Governance.');
-    lines.push('> Es stellt keine Compliance-Bestätigung, Zertifizierung oder rechtliche Bewertung dar.');
-    lines.push('> Die Verantwortung für regulatorische Konformität verbleibt bei der Organisation.');
+    lines.push('> **Note:** This document records the current state of AI governance.');
+    lines.push('> It does not constitute a compliance confirmation, certification or legal assessment.');
+    lines.push('> Responsibility for regulatory conformity remains with the organisation.');
     lines.push('');
     lines.push('---');
     lines.push('');
 
-    // ── 2. Inhaltsverzeichnis ────────────────────────────────────────────
-    lines.push('## Inhaltsverzeichnis');
+    // ── 2. Table of Contents ────────────────────────────────────────────
+    lines.push('## Table of Contents');
     lines.push('');
-    lines.push('1. Zusammenfassung');
+    lines.push('1. Executive Summary');
     lines.push('2. ISO 42001 Alignment');
     for (let i = 0; i < dossier.useCaseChapters.length; i++) {
         lines.push(`${i + 3}. ${dossier.useCaseChapters[i].name}`);
     }
-    lines.push(`${dossier.useCaseChapters.length + 3}. Haftungshinweis`);
+    lines.push(`${dossier.useCaseChapters.length + 3}. Disclaimer`);
     lines.push('');
     lines.push('---');
     lines.push('');
 
-    // ── 3. Zusammenfassung ───────────────────────────────────────────────
-    lines.push('## 1. Zusammenfassung');
+    // ── 3. Executive Summary ───────────────────────────────────────────────
+    lines.push('## 1. Executive Summary');
     lines.push('');
-    lines.push('| Kennzahl | Wert |');
+    lines.push('| Metric | Value |');
     lines.push('|---|---|');
-    lines.push(`| Erfasste Use Cases | ${dossier.executiveSummary.totalUseCases} |`);
-    lines.push(`| Davon geprüft | ${dossier.executiveSummary.reviewedCount} |`);
-    lines.push(`| Hoch-/Kritisch-Risiko | ${dossier.executiveSummary.highRiskCount} |`);
-    lines.push(`| Gesamtreife | ${dossier.executiveSummary.overallMaturity} |`);
-    lines.push(`| KI-Richtlinie | ${dossier.executiveSummary.policyStatus} |`);
+    lines.push(`| Documented use cases | ${dossier.executiveSummary.totalUseCases} |`);
+    lines.push(`| Of which reviewed | ${dossier.executiveSummary.reviewedCount} |`);
+    lines.push(`| High / critical risk | ${dossier.executiveSummary.highRiskCount} |`);
+    lines.push(`| Overall maturity | ${dossier.executiveSummary.overallMaturity} |`);
+    lines.push(`| AI policy | ${dossier.executiveSummary.policyStatus} |`);
     lines.push('');
 
     // ── 4. ISO 42001 Alignment ───────────────────────────────────────────
     lines.push('## 2. ISO 42001 Alignment');
     lines.push('');
-    lines.push('Die folgende Übersicht zeigt den dokumentierten Stand der Umsetzung je ISO/IEC 42001 Abschnitt.');
+    lines.push('The following overview shows the documented implementation status per ISO/IEC 42001 clause.');
     lines.push('');
 
     const alignmentSteps: [string, string, ISOAlignmentStep][] = [
-        ['Abschnitt 4', 'Kontext der Organisation', dossier.isoAlignment.step1_context],
-        ['Abschnitt 5', 'Führung', dossier.isoAlignment.step2_leadership],
-        ['Abschnitt 6', 'Planung', dossier.isoAlignment.step3_planning],
-        ['Abschnitt 8', 'Betrieb', dossier.isoAlignment.step4_operation],
-        ['Abschnitt 9', 'Leistungsbewertung', dossier.isoAlignment.step5_monitoring],
-        ['Abschnitt 10', 'Verbesserung', dossier.isoAlignment.step6_improvement],
+        ['Clause 4', 'Context of the Organisation', dossier.isoAlignment.step1_context],
+        ['Clause 5', 'Leadership', dossier.isoAlignment.step2_leadership],
+        ['Clause 6', 'Planning', dossier.isoAlignment.step3_planning],
+        ['Clause 8', 'Operation', dossier.isoAlignment.step4_operation],
+        ['Clause 9', 'Performance Evaluation', dossier.isoAlignment.step5_monitoring],
+        ['Clause 10', 'Improvement', dossier.isoAlignment.step6_improvement],
     ];
 
-    lines.push('| ISO-Abschnitt | Bereich | Status | Nachweis |');
+    lines.push('| ISO Clause | Area | Status | Evidence |');
     lines.push('|---|---|---|---|');
     for (const [clause, area, step] of alignmentSteps) {
-        const statusIcon = step.status ? 'Dokumentiert' : 'Ausstehend';
+        const statusIcon = step.status ? 'Documented' : 'Pending';
         // Escape pipe characters in evidence for Markdown table
         const evidence = step.evidence.replace(/\|/g, '\\|');
         lines.push(`| ${clause} | ${area} | ${statusIcon} | ${evidence} |`);
@@ -508,56 +504,56 @@ export function dossierToMarkdown(dossier: AuditDossierData): string {
         lines.push(`## ${chapterNum}. ${chapter.name}`);
         lines.push('');
 
-        lines.push('| Eigenschaft | Wert |');
+        lines.push('| Property | Value |');
         lines.push('|---|---|');
         lines.push(`| Tool | ${chapter.toolName} |`);
-        lines.push(`| Zweck | ${chapter.purpose} |`);
-        lines.push(`| Risikokategorie | ${chapter.riskCategoryLabel} |`);
-        lines.push(`| Aufsichtsmodell | ${getOversightModelLabel(chapter.oversightModel)} |`);
-        lines.push(`| Datenkategorie | ${chapter.dataCategoryLabel} |`);
-        lines.push(`| Governance-Qualität | ${chapter.qualityScore}% (${chapter.qualityLabel}) |`);
+        lines.push(`| Purpose | ${chapter.purpose} |`);
+        lines.push(`| Risk category | ${chapter.riskCategoryLabel} |`);
+        lines.push(`| Oversight model | ${getOversightModelLabel(chapter.oversightModel)} |`);
+        lines.push(`| Data category | ${chapter.dataCategoryLabel} |`);
+        lines.push(`| Governance quality | ${chapter.qualityScore}% (${chapter.qualityLabel}) |`);
         lines.push(`| Status | ${chapter.currentStatusLabel} |`);
-        lines.push(`| Verantwortlich | ${chapter.responsibleParty} |`);
-        lines.push(`| Nächstes Review | ${chapter.nextReviewDate ? formatDateDE(chapter.nextReviewDate) : 'Nicht festgelegt'} |`);
+        lines.push(`| Responsible | ${chapter.responsibleParty} |`);
+        lines.push(`| Next review | ${chapter.nextReviewDate ? formatDateEN(chapter.nextReviewDate) : 'Not specified'} |`);
         lines.push('');
 
         // Review-Historie
         if (chapter.reviewHistory.length > 0) {
-            lines.push('### Review-Historie');
+            lines.push('### Review History');
             lines.push('');
-            lines.push('| Datum | Prüfer | Status | Anmerkungen |');
+            lines.push('| Date | Reviewer | Status | Notes |');
             lines.push('|---|---|---|---|');
             for (const review of chapter.reviewHistory) {
                 const statusLabel = registerUseCaseStatusLabels[review.status as keyof typeof registerUseCaseStatusLabels] ?? review.status;
                 const notes = (review.notes ?? '–').replace(/\|/g, '\\|');
-                lines.push(`| ${formatDateDE(review.date)} | ${review.reviewer} | ${statusLabel} | ${notes} |`);
+                lines.push(`| ${formatDateEN(review.date)} | ${review.reviewer} | ${statusLabel} | ${notes} |`);
             }
             lines.push('');
         } else {
-            lines.push('*Noch kein Review durchgeführt.*');
+            lines.push('*No review carried out yet.*');
             lines.push('');
         }
     }
 
     // ── 6. Haftungshinweis ───────────────────────────────────────────────
     const disclaimerNum = dossier.useCaseChapters.length + 3;
-    lines.push(`## ${disclaimerNum}. Haftungshinweis`);
+    lines.push(`## ${disclaimerNum}. Disclaimer`);
     lines.push('');
-    lines.push('Dieses Dossier wurde automatisch auf Basis der im Register erfassten Daten erstellt.');
-    lines.push('Es dokumentiert ausschließlich den IST-Zustand zum angegebenen Stichtag.');
+    lines.push('This dossier was generated automatically based on the data recorded in the register.');
+    lines.push('It documents exclusively the current state as of the indicated date.');
     lines.push('');
-    lines.push('**Dieses Dokument ist ausdrücklich keine:**');
-    lines.push('- Bestätigung der Konformität mit dem EU AI Act oder anderen Regularien');
-    lines.push('- ISO/IEC 42001 Zertifizierung oder Audit-Ergebnis');
-    lines.push('- Rechtliche Bewertung oder Rechtsberatung');
-    lines.push('- Garantie für die Vollständigkeit oder Richtigkeit der erfassten Daten');
+    lines.push('**This document is expressly not:**');
+    lines.push('- A confirmation of conformity with the EU AI Act or other regulations');
+    lines.push('- An ISO/IEC 42001 certification or audit result');
+    lines.push('- A legal assessment or legal advice');
+    lines.push('- A guarantee of the completeness or accuracy of the recorded data');
     lines.push('');
-    lines.push('Die Organisation ist allein verantwortlich für die Sicherstellung der regulatorischen Konformität.');
-    lines.push('Für eine formale Zertifizierung nach ISO/IEC 42001 ist ein akkreditierter Auditor erforderlich.');
+    lines.push('The organisation is solely responsible for ensuring regulatory conformity.');
+    lines.push('A formal certification under ISO/IEC 42001 requires an accredited auditor.');
     lines.push('');
     lines.push('---');
     lines.push('');
-    lines.push(`*Generiert am ${formatDateDE(dossier.generatedAt)} | kiregister.com Governance Platform*`);
+    lines.push(`*Generated on ${formatDateEN(dossier.generatedAt)} | airegist.com Governance Platform*`);
 
     return lines.join('\n');
 }

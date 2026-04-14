@@ -79,35 +79,35 @@ function getContextNotices(
   if (context.workspaceInvite) {
     notices.push({
       id: 'workspace_invite',
-      title: 'Einladung erkannt',
+      title: 'Invitation detected',
       description:
-        'Nach der Anmeldung öffnen wir direkt den gemeinsamen Arbeitsbereich.',
+        'After signing in, we will open the shared workspace directly.',
     });
   }
 
   if (context.importUseCase) {
     notices.push({
       id: 'import_use_case',
-      title: 'Vorgang fortsetzen',
-      description: 'Sie setzen direkt dort fort, wo Sie zuletzt gestartet sind.',
+      title: 'Continue process',
+      description: 'You will continue right where you left off.',
     });
   }
 
   if (context.code && mode === 'login') {
     notices.push({
       id: 'join_after_login',
-      title: 'Einladungscode erkannt',
+      title: 'Invitation code detected',
       description:
-        'Nach der Anmeldung können Sie Ihrer Organisation direkt beitreten.',
+        'After signing in, you can join your organisation directly.',
     });
   }
 
   if (context.code && mode === 'signup' && intent === 'join_register') {
     notices.push({
       id: 'join_context',
-      title: 'Beitritt vorbereiten',
+      title: 'Preparing to join',
       description:
-        'Nach der Registrierung setzen Sie den Beitritt direkt fort.',
+        'After registration, you will continue joining directly.',
     });
   }
 
@@ -119,7 +119,7 @@ function getSuccessDescription(
   baseDescription: string,
 ): string {
   if (plan === 'pro' || plan === 'enterprise') {
-    return 'Governance Control Center wird für dieses Konto freigeschaltet.';
+    return 'Governance Control Centre will be activated for this account.';
   }
 
   return baseDescription;
@@ -167,7 +167,7 @@ export default function AuthEntryPage() {
   const [createPassword, setCreatePassword] = useState('');
   const [organisationName, setOrganisationName] = useState('');
   const [organisationRole, setOrganisationRole] = useState(
-    'KI-Verantwortliche/r',
+    'AI Responsible Person',
   );
   const [shareInviteCode, setShareInviteCode] = useState('');
   const [shareCaptureLink, setShareCaptureLink] = useState('');
@@ -211,7 +211,7 @@ export default function AuthEntryPage() {
           console.error('Failed to initialize Firebase Auth client', error);
           setAuthReady(false);
           setAuthInitError(
-            'Authentifizierung ist gerade nicht verfügbar. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
+            'Authentication is currently unavailable. Please try again or contact support.',
           );
         }
       });
@@ -506,7 +506,7 @@ export default function AuthEntryPage() {
         toast({
           title: 'E-Mail-Verifizierung erforderlich',
           description:
-            'Wir haben Ihnen einen Verifizierungslink gesendet. Bitte bestätigen Sie Ihre E-Mail-Adresse und melden Sie sich danach erneut an.',
+            'We have sent you a verification link. Please confirm your email address and then sign in again.',
         });
         setLoginPassword('');
         return;
@@ -521,7 +521,7 @@ export default function AuthEntryPage() {
       toast({
         title: 'Anmeldung erfolgreich',
         description: destination.startsWith('/?')
-          ? 'Bitte vervollständigen Sie jetzt Ihr Register auf derselben Seite.'
+          ? 'Please complete your register setup on the same page now.'
           : getSuccessDescription(result.syncedPlan, 'Leite weiter zum Register...'),
       });
 
@@ -545,7 +545,7 @@ export default function AuthEntryPage() {
       toast({
         variant: 'destructive',
         title: 'Fehlende Angaben',
-        description: 'Bitte füllen Sie alle Felder aus.',
+        description: 'Please fill in all fields.',
       });
       return;
     }
@@ -587,9 +587,9 @@ export default function AuthEntryPage() {
 
       if (result.requiresEmailVerification) {
         toast({
-          title: 'Bitte E-Mail bestätigen',
+          title: 'Please confirm email',
           description:
-            'Ihr Konto wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie Ihr Register einrichten.',
+            'Your account has been created. We have sent you a verification link. After confirmation, you can set up your register.',
         });
         setCreatePassword('');
         return;
@@ -599,7 +599,7 @@ export default function AuthEntryPage() {
         title: 'Konto angelegt',
         description: getSuccessDescription(
           result.syncedPlan,
-          'Jetzt fehlt nur noch der Organisationsschritt für Ihr Register.',
+          'Only the organisation step for your register remains.',
         ),
       });
       setCreateStep(2);
@@ -682,10 +682,10 @@ export default function AuthEntryPage() {
           ? 'Bestehendes Register verwendet'
           : 'Register eingerichtet',
         description: result.importedUseCase
-          ? 'Das Register ist bereit und der Import wurde übernommen.'
+          ? 'The register is ready and the import has been applied.'
           : getSuccessDescription(
               result.syncedPlan,
-              'Das Register ist startklar. Sie können jetzt direkt loslegen.',
+              'The register is ready. You can get started right away.',
             ),
       });
     } catch (error) {
@@ -708,7 +708,7 @@ export default function AuthEntryPage() {
       toast({
         variant: 'destructive',
         title: 'Code fehlt',
-        description: 'Bitte prüfen Sie zuerst den Einladungscode.',
+        description: 'Please validate the invitation code first.',
       });
       setJoinStep('code');
       return;
@@ -718,7 +718,7 @@ export default function AuthEntryPage() {
       toast({
         variant: 'destructive',
         title: 'Fehlende Angaben',
-        description: 'Bitte füllen Sie alle Felder aus.',
+        description: 'Please fill in all fields.',
       });
       return;
     }
@@ -761,9 +761,9 @@ export default function AuthEntryPage() {
 
       if (result.requiresEmailVerification) {
         toast({
-          title: 'Bitte E-Mail bestätigen',
+          title: 'Please confirm email',
           description:
-            'Ihr Zugang wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie der Organisation beitreten.',
+            'Your account has been created. We have sent you a verification link. After confirmation, you can join the organisation.',
         });
         setJoinPassword('');
         return;
@@ -827,7 +827,7 @@ export default function AuthEntryPage() {
     mode === 'login'
       ? 'Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort.'
       : intent === 'join_register'
-        ? 'Prüfen Sie zuerst den Einladungscode und legen Sie danach Ihren Zugang an.'
+        ? 'Validate the invitation code first, then create your account.'
         : createStep === 1
           ? 'Schritt 1 von 3 · Zugang'
           : createStep === 2
@@ -851,12 +851,12 @@ export default function AuthEntryPage() {
 
         <section className="space-y-6 pb-10">
           <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
-            Jede Organisation mit KI-Einsatz führt ein KI-Register.
+            Every organisation using AI maintains an AI register.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
             Ein KI-Register ist die organisationsinterne Standard-Struktur zur
-            Dokumentation von KI-Einsatzfällen. Es hält Verantwortlichkeiten,
-            Status und Nachweise in revisionsfähiger Form fest, wie es der EU
+            documentation of AI use cases. It records responsibilities,
+            status, and evidence in an auditable form as required by the EU
             AI Act fordert.
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
@@ -885,8 +885,8 @@ export default function AuthEntryPage() {
                 Verantwortung zuordnen
               </p>
               <p className="text-base leading-7 text-slate-600">
-                Jeder KI-Einsatzfall hat eine zuständige Rolle. Keine
-                Einsatzfälle ohne Eigentümer.
+                Every AI use case has a responsible role. No
+                use cases without an owner.
               </p>
             </div>
           </div>
@@ -894,10 +894,10 @@ export default function AuthEntryPage() {
             <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
             <div className="space-y-1">
               <p className="text-base font-medium text-slate-950">
-                Status und Prüfstand dokumentieren
+                Document status and review state
               </p>
               <p className="text-base leading-7 text-slate-600">
-                Vom Entwurf bis zur formalen Prüfung ist jeder Zustand
+                From draft to formal review, every state is
                 nachvollziehbar.
               </p>
             </div>
@@ -909,7 +909,7 @@ export default function AuthEntryPage() {
                 Nachweise erzeugen und exportieren
               </p>
               <p className="text-base leading-7 text-slate-600">
-                Use-Case-Pass als PDF und JSON. Standardisiert. Auditfähig.
+                Use case pass as PDF and JSON. Standardised. Audit-ready.
                 Teilbar.
               </p>
             </div>
@@ -1186,7 +1186,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setOrganisationRole(event.target.value)
                             }
-                            placeholder="z. B. KI-Verantwortliche/r"
+                            placeholder="z. B. AI Responsible Person"
                           />
                         </div>
 
@@ -1252,7 +1252,7 @@ export default function AuthEntryPage() {
                           className="w-full"
                           disabled={Boolean(busyAction)}
                         >
-                          {isBusy('validate_join_code') ? 'Prüfe...' : 'Code prüfen'}
+                          {isBusy('validate_join_code') ? 'Validating...' : 'Validate code'}
                         </Button>
                       </form>
                     ) : null}
@@ -1406,7 +1406,7 @@ export default function AuthEntryPage() {
             Registerinstanz.
           </p>
           <p className="text-sm leading-6 text-slate-600">
-            Nachweise und Registerauszüge lassen sich standardisiert teilen.
+            Evidence and register extracts can be shared in a standardised format.
           </p>
         </section>
 

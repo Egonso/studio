@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Download, FileJson, FileText, ClipboardCopy, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { AIProject, AIProjectAssessment } from '@/lib/types-portfolio';
+import { APP_LOCALE } from '@/lib/locale';
 
 interface PortfolioExportData {
     projectName: string;
@@ -20,7 +21,7 @@ const generateMarkdown = (data: PortfolioExportData | null): string => {
     if (!data) return 'Lade Daten...';
 
     let md = `# KI-Portfolio Strategie Report - ${data.projectName}\n`;
-    md += `_Generiert am: ${new Date(data.generatedAt).toLocaleString('de-DE')}_\n\n`;
+    md += `_Generated on: ${new Date(data.generatedAt).toLocaleString(APP_LOCALE)}_\n\n`;
 
     md += `## Zusammenfassung\n`;
     md += `- **Gesamtzahl Organisatione:** ${data.projects.length}\n`;

@@ -4,9 +4,9 @@ import './globals.css';
 import { AppClientShell } from '@/components/app-client-shell';
 
 export const metadata: Metadata = {
-  title: 'KI-Register',
+  title: 'AI Register',
   description:
-    'Use-case-first KI-Register fuer Dokumentation, Governance und Nachweisfuehrung.',
+    'Use-case-first AI Register for documentation, governance and evidence management under the EU AI Act.',
   icons: {
     icon: [
       { url: '/register-logo.png', media: '(prefers-color-scheme: light)' },
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="de" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head />
       <body
         suppressHydrationWarning

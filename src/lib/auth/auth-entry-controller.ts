@@ -91,8 +91,8 @@ async function guardAuthAttempt(
 
   const error = new Error(
     action === 'password_reset'
-      ? 'Zu viele Passwort-Reset-Anfragen in kurzer Zeit.'
-      : 'Zu viele Anmeldeversuche in kurzer Zeit.',
+      ? 'Too many password reset requests in a short time.'
+      : 'Too many login attempts in a short time.',
   ) as Error & { code?: string };
 
   if (response.status === 429) {
@@ -178,9 +178,9 @@ async function importPublicUseCaseIntoRegister(
     await registerService.createUseCaseFromCapture(
       {
         purpose:
-          publicData?.purpose ?? 'Importierter Use Case aus Netzwerkfreigabe',
+          publicData?.purpose ?? 'Imported use case from network share',
         toolFreeText:
-          publicData?.toolName ?? 'Importiertes KI-System aus Netzwerkfreigabe',
+          publicData?.toolName ?? 'Imported AI system from network share',
       },
       { registerId },
     );
@@ -256,15 +256,15 @@ export function getAuthErrorDescription(
     errorCode === 'auth/user-not-found' ||
     errorCode === 'auth/wrong-password'
   ) {
-    return 'Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihre E-Mail und Ihr Passwort.';
+    return 'Login failed. Please check your email and password.';
   }
 
   if (errorCode === 'auth/email-already-in-use') {
-    return 'Diese E-Mail-Adresse wird bereits verwendet.';
+    return 'This email address is already in use.';
   }
 
   if (errorCode === 'auth/invalid-email') {
-    return 'Bitte geben Sie eine gültige E-Mail-Adresse ein.';
+    return 'Please enter a valid email address.';
   }
 
   if (
@@ -272,16 +272,16 @@ export function getAuthErrorDescription(
     errorCode === 'auth/invalid-api-key' ||
     errorCode === 'auth/network-request-failed'
   ) {
-    return 'Authentifizierung ist gerade nicht verfügbar. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.';
+    return 'Authentication is currently unavailable. Please try again or contact support.';
   }
 
   if (errorCode === 'auth/too-many-requests') {
-    return 'Zu viele Versuche in kurzer Zeit. Bitte warten Sie kurz und versuchen Sie es erneut.';
+    return 'Too many attempts in a short time. Please wait a moment and try again.';
   }
 
   return action === 'signup'
-    ? 'Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.'
-    : 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+    ? 'Registration failed. Please try again.'
+    : 'An unexpected error occurred. Please try again.';
 }
 
 export async function loadAuthClient(): Promise<Auth> {
@@ -319,8 +319,8 @@ export async function validateJoinCode(
     return {
       ok: false,
       error: {
-        title: 'Code ungültig',
-        description: 'Bitte geben Sie einen gültigen Einladungscode ein.',
+        title: 'Invalid code',
+        description: 'Please enter a valid invite code.',
       },
     };
   }
@@ -330,7 +330,7 @@ export async function validateJoinCode(
       `/api/capture-by-code?code=${encodeURIComponent(code)}`,
     );
     const payload = (await response.json().catch(() => ({
-      error: 'Code konnte nicht überprüft werden.',
+      error: 'Code could not be verified.',
     }))) as {
       error?: string;
       organisationName?: string | null;
@@ -362,9 +362,9 @@ export async function validateJoinCode(
     return {
       ok: false,
       error: {
-        title: 'Fehler',
+        title: 'Error',
         description:
-          'Code konnte nicht überprüft werden. Bitte versuchen Sie es erneut.',
+          'Code could not be verified. Please try again.',
       },
     };
   }
@@ -580,16 +580,16 @@ export async function completeRegisterSetup(input: {
 }): Promise<RegisterSetupResult> {
   const organisationName = input.organisationName.trim();
   const role = input.role.trim();
-  const contactName = input.contactName.trim() || 'Unbenannt';
+  const contactName = input.contactName.trim() || 'Unnamed';
   const contactEmail = normalizeEmail(input.contactEmail);
 
   const existingRegisters = await registerService.listRegisters();
-  const normalizedName = organisationName.toLocaleLowerCase('de-DE');
+  const normalizedName = organisationName.toLocaleLowerCase('en-GB');
   const existing = existingRegisters.find((register) =>
     [register.organisationName, register.name]
       .filter((value): value is string => Boolean(value))
       .some(
-        (value) => value.trim().toLocaleLowerCase('de-DE') === normalizedName,
+        (value) => value.trim().toLocaleLowerCase('en-GB') === normalizedName,
       ),
   );
 

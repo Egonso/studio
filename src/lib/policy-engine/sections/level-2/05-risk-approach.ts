@@ -1,11 +1,11 @@
 /**
- * Level 2, Section 05: Risikobasierter Einsatz
+ * Level 2, Section 05: Risk-Based Use of AI Systems
  *
- * Zählt AI Act Risiko-Kategorien aus dem Register und stellt
- * den risikobasierten Ansatz der Organisation dar.
+ * Counts AI Act risk categories from the register and presents
+ * the organisation's risk-based approach.
  *
- * Immer inkludiert bei Level 2.
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Always included at Level 2.
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 2
  */
 
@@ -28,14 +28,14 @@ function countAiActCategories(useCases: UseCaseCard[]): Record<string, number> {
 
 export const riskApproachSection: SectionDefinition = {
     sectionId: 'l2-risk-approach',
-    title: 'Risikobasierter Einsatz von KI-Systemen',
+    title: 'Risk-Based Use of AI Systems',
     order: 400,
     level: 2,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const counts = countAiActCategories(context.useCases);
 
         const hochrisiko = counts['HIGH'] || 0;
@@ -46,19 +46,19 @@ export const riskApproachSection: SectionDefinition = {
         const unbewertet = counts['UNASSESSED'] || 0;
 
         const lines: string[] = [
-            `${orgName} verfolgt einen risikobasierten Ansatz bei der Einführung und dem ` +
-            `Betrieb von KI-Systemen, wie es der EU AI Act (Verordnung (EU) 2024/1689) vorsieht.`,
+            `${orgName} follows a risk-based approach to the introduction and operation ` +
+            `of AI systems, as envisaged by the EU AI Act (Regulation (EU) 2024/1689).`,
             ``,
-            `### Aktuelle Risikoverteilung im Register`,
+            `### Current Risk Distribution in the Register`,
             ``,
-            `Basierend auf dem aktuellen KI-Register (${total} erfasste Systeme) ergibt sich ` +
-            `folgende Verteilung:`,
+            `Based on the current AI register (${total} recorded systems), the following ` +
+            `distribution applies:`,
             ``,
         ];
 
         if (total > 0) {
-            lines.push(`| Risikokategorie | Anzahl |`);
-            lines.push(`|-----------------|--------|`);
+            lines.push(`| Risk Category | Count |`);
+            lines.push(`|---------------|-------|`);
             if (verboten > 0) lines.push(`| ${getRiskClassDisplayLabel('PROHIBITED')} | ${verboten} |`);
             if (hochrisiko > 0) lines.push(`| ${getRiskClassDisplayLabel('HIGH')} | ${hochrisiko} |`);
             if (transparenz > 0) lines.push(`| ${getRiskClassDisplayLabel('LIMITED')} | ${transparenz} |`);
@@ -67,30 +67,30 @@ export const riskApproachSection: SectionDefinition = {
             lines.push(``);
         } else {
             lines.push(
-                `> *Es sind noch keine KI-Systeme im Register erfasst. Die Risikobewertung ` +
-                `sollte nach Erfassung der Systeme durchgeführt werden.*`,
+                `> *No AI systems have been recorded in the register yet. The risk assessment ` +
+                `should be carried out once the systems have been captured.*`,
             );
             lines.push(``);
         }
 
         if (hochrisiko > 0) {
             lines.push(
-                `**Hinweis:** Ihr Register enthält ${hochrisiko} Hochrisiko-System${hochrisiko > 1 ? 'e' : ''}` +
-                `${transparenz > 0 ? ` und ${transparenz} System${transparenz > 1 ? 'e' : ''} mit begrenztem Risiko (Transparenzpflichten)` : ''}. ` +
-                `Für diese gelten erweiterte Anforderungen gemäß Kapitel III des AI Act.`,
+                `**Note:** Your register contains ${hochrisiko} high-risk system${hochrisiko > 1 ? 's' : ''}` +
+                `${transparenz > 0 ? ` and ${transparenz} system${transparenz > 1 ? 's' : ''} with limited risk (transparency obligations)` : ''}. ` +
+                `Extended requirements under Chapter III of the AI Act apply to these.`,
             );
         } else if (transparenz > 0) {
             lines.push(
-                `**Hinweis:** Ihr Register enthält ${transparenz} System${transparenz > 1 ? 'e' : ''} ` +
-                `mit begrenztem Risiko (Transparenzpflichten) gemäß Art. 50 AI Act.`,
+                `**Note:** Your register contains ${transparenz} system${transparenz > 1 ? 's' : ''} ` +
+                `with limited risk (transparency obligations) under Art. 50 of the AI Act.`,
             );
         }
 
         lines.push(``);
         lines.push(
-            `Jedes KI-System sollte vor Inbetriebnahme einer Risikobewertung unterzogen werden. ` +
-            `Die Bewertung sollte mindestens die AI-Act-Kategorisierung sowie eine Analyse ` +
-            `der betroffenen Personengruppen und Datenarten umfassen.`,
+            `Each AI system should undergo a risk assessment before deployment. ` +
+            `The assessment should cover at least the AI Act categorisation as well as an analysis ` +
+            `of the affected groups of persons and data types.`,
         );
 
         return lines.join('\n');

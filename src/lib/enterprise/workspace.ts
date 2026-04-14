@@ -307,7 +307,7 @@ export function createWorkspaceRecord(input: {
   const createdAt = input.createdAt ?? new Date().toISOString();
   return {
     orgId: input.orgId,
-    name: input.name.trim() || 'KI-Register Workspace',
+    name: input.name.trim() || 'AI Register Workspace',
     ownerUserId: input.ownerUserId,
     plan: input.plan ?? 'enterprise',
     createdAt,

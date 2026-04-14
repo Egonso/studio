@@ -1,4 +1,5 @@
 import { db } from '@/lib/firebase-admin';
+import { APP_LOCALE } from '@/lib/locale';
 import {
   createDefaultEnterpriseWorkspaceSettings,
   createWorkspaceRecord,
@@ -199,7 +200,7 @@ export async function listUserWorkspaces(
   }
 
   return Array.from(byOrgId.values()).sort((left, right) =>
-    left.name.localeCompare(right.name, 'de'),
+    left.name.localeCompare(right.name, APP_LOCALE),
   );
 }
 

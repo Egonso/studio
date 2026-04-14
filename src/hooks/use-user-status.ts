@@ -84,7 +84,7 @@ export function useUserStatus(email: string | null | undefined) {
                         verifyUrl:
                             mergedCertificate.verifyUrl ??
                             (mergedCertificate.code
-                                ? `https://kiregister.com/verify/${mergedCertificate.code}`
+                                ? `https://airegist.com/verify/${mergedCertificate.code}`
                                 : ''),
                         company: mergedCertificate.company ?? null,
                         modules: mergedCertificate.modules ?? [],

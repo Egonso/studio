@@ -1,6 +1,6 @@
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 
-const DEFAULT_SALES_EMAIL = 'sales@kiregister.com';
+const DEFAULT_SALES_EMAIL = 'sales@airegist.com';
 
 export interface GovernanceUpgradeDestination {
   href: string;
@@ -48,18 +48,18 @@ export function getGovernanceUpgradeDestination(
     return href
       ? {
           href,
-          label: 'Enterprise anfragen',
+          label: 'Request Enterprise',
           description:
-            'Enterprise baut auf der Governance-Stufe auf und ergänzt Organisation, Provisionierung und Beschaffung.',
+            'Enterprise builds on the Governance tier and adds organisation management, provisioning and procurement.',
           external: true,
           checkoutConfigured: true,
           targetPlan: 'enterprise',
         }
       : {
-          href: buildMailtoHref('Enterprise Upgrade anfragen'),
-          label: 'Enterprise anfragen',
+          href: buildMailtoHref('Enterprise Upgrade Request'),
+          label: 'Request Enterprise',
           description:
-            'Für Enterprise erfolgt die Freischaltung aktuell über den Vertrieb statt über einen Direkt-Checkout.',
+            'Enterprise activation currently goes through our sales team rather than a direct checkout.',
           external: true,
           checkoutConfigured: false,
           targetPlan: 'enterprise',
@@ -68,9 +68,9 @@ export function getGovernanceUpgradeDestination(
 
   return {
     href: '/settings?section=governance#upgrade-panel',
-    label: 'Governance freischalten',
+    label: 'Unlock Governance',
     description:
-      'Die bezahlte Governance-Stufe wird über die Governance-Einstellungen und einen serverseitig abgesicherten Stripe-Checkout freigeschaltet.',
+      'The paid Governance tier is activated via Governance Settings and a server-side secured Stripe checkout.',
     external: false,
     checkoutConfigured: true,
     targetPlan: 'pro',

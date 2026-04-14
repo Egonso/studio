@@ -27,10 +27,10 @@ interface AreaBadgeProps {
 }
 
 const AREA_SECTION_LABELS: Record<ProductAreaId, string> = {
-  public_marketing: 'Öffentlicher Einstieg',
-  public_external_intake: 'Öffentliche Einreichung',
+  public_marketing: 'Public Entry',
+  public_external_intake: 'Public Submission',
   signed_in_free_register: 'Register',
-  paid_governance_control: 'Organisationssteuerung',
+  paid_governance_control: 'Organisation Control',
 };
 
 export function AreaBadge({ area, className }: AreaBadgeProps) {
@@ -63,8 +63,8 @@ export function PublicIntakeShell({
   description,
   children,
   meta,
-  asideTitle = 'Einreichung und Prüfung',
-  asideDescription = 'Die Angaben werden strukturiert entgegengenommen, intern geprüft und dem zuständigen Register zugeordnet.',
+  asideTitle = 'Submission and Review',
+  asideDescription = 'The information is received in a structured manner, reviewed internally, and assigned to the responsible register.',
   asidePoints = [],
   actions = [],
 }: PublicIntakeShellProps) {
@@ -77,12 +77,12 @@ export function PublicIntakeShell({
             className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950"
           >
             <ThemeAwareLogo
-              alt="KI-Register"
+              alt="AI Register"
               width={32}
               height={32}
               className="h-8 w-auto"
             />
-            <span>KI-Register</span>
+            <span>AI Register</span>
           </Link>
           {actions.length > 0 ? (
             <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
@@ -208,7 +208,7 @@ export function SignedInAreaFrame({
                 </div>
                 {nextStep ? (
                   <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
-                    <span className="font-medium text-slate-950">Nächster Schritt:</span>{' '}
+                    <span className="font-medium text-slate-950">Next step:</span>{' '}
                     {nextStep}
                   </div>
                 ) : null}

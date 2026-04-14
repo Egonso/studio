@@ -146,16 +146,16 @@ function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | nu
 function formatDate(isoDate: string): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
-    return "unbekannt";
+    return "unknown";
   }
-  return date.toLocaleString("de-DE");
+  return date.toLocaleString("en-GB");
 }
 
 function getCardToolDisplayName(card: UseCaseCard): string {
   return getUseCaseSystemsSummary(card, {
     resolveToolName: (toolId) =>
       aiToolsRegistry.getById(toolId)?.productName ?? null,
-    emptyLabel: "Kein System",
+    emptyLabel: "No system",
   });
 }
 
@@ -180,7 +180,7 @@ function buildProofValidationMessage(
   );
 
   if (messages.length === 0) {
-    return "Verify-Link Daten sind ungueltig.";
+    return "Verify link data is invalid.";
   }
 
   return messages.join(" ");
@@ -343,11 +343,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
       if (code === "PROJECT_CONTEXT_MISSING") {
-        setError("Kein Organisationkontext gefunden. Oeffne zuerst ein Organisation im Dashboard.");
+        setError("No organisation context found. Please open an organisation in the dashboard first.");
       } else if (code === "UNAUTHENTICATED") {
-        setError("Du bist nicht angemeldet. Bitte melde dich erneut an.");
+        setError("You are not signed in. Please sign in again.");
       } else {
-        setError("Register konnte nicht geladen werden. Bitte versuche es erneut.");
+        setError("Register could not be loaded. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -415,10 +415,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     for (const uc of sortedUseCases) {
       let key: string;
       switch (viewMode) {
-        case "BY_OWNER": key = uc.responsibility.responsibleParty || "Nicht zugewiesen"; break;
-        case "BY_ORG": key = uc.organisation || "Keine Organisation"; break;
+        case "BY_OWNER": key = uc.responsibility.responsibleParty || "Not assigned"; break;
+        case "BY_ORG": key = uc.organisation || "No organisation"; break;
         case "BY_STATUS": key = registerUseCaseStatusLabels[uc.status]; break;
-        default: key = "Alle";
+        default: key = "All";
       }
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(uc);
@@ -464,10 +464,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       const code = mapServiceErrorCode(updateError);
       const message =
         code === "INVALID_STATUS_TRANSITION"
-          ? "Dieser Statuswechsel ist nicht zulaessig."
+          ? "This status transition is not permitted."
           : code === "AUTOMATION_FORBIDDEN"
-            ? "Governance-Entscheidungen sind nur manuell erlaubt."
-            : "Status konnte nicht aktualisiert werden.";
+            ? "Governance decisions are only permitted manually."
+            : "Status could not be updated.";
 
       setUpdateErrorById((prev) => ({
         ...prev,
@@ -486,9 +486,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         scopeContext,
       );
       await loadUseCases();
-      toast({ title: "Gelöscht", description: "Use Case wurde in den Papierkorb verschoben." });
+      toast({ title: "Deleted", description: "Use case has been moved to the recycle bin." });
     } catch {
-      toast({ variant: "destructive", title: "Fehler", description: "Use Case konnte nicht gelöscht werden." });
+      toast({ variant: "destructive", title: "Error", description: "Use case could not be deleted." });
     }
   };
 
@@ -500,9 +500,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         scopeContext,
       );
       await loadUseCases();
-      toast({ title: "Wiederhergestellt", description: "Use Case ist wieder aktiv." });
+      toast({ title: "Restored", description: "Use case is active again." });
     } catch {
-      toast({ variant: "destructive", title: "Fehler", description: "Use Case konnte nicht wiederhergestellt werden." });
+      toast({ variant: "destructive", title: "Error", description: "Use case could not be restored." });
     }
   };
 
@@ -568,8 +568,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Export fehlgeschlagen",
-        description: "v1.1 Use-Case Pass konnte nicht exportiert werden.",
+        title: "Export failed",
+        description: "v1.1 use case pass could not be exported.",
       });
     }
   };
@@ -593,8 +593,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Fehler",
-        description: "Sichtbarkeit konnte nicht geaendert werden.",
+        title: "Error",
+        description: "Visibility could not be changed.",
       });
     }
   };
@@ -659,10 +659,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       const code = mapServiceErrorCode(saveError);
       const message =
         code === "INVALID_STATUS_TRANSITION"
-          ? "Verify-Link Daten koennen nur in PROOF_READY gepflegt werden."
+          ? "Verify link data can only be maintained in PROOF_READY status."
           : code === "VALIDATION_FAILED"
-            ? "Verify-Link Daten sind ungueltig. Pruefe URL und Scope."
-            : "Verify-Link Daten konnten nicht gespeichert werden.";
+            ? "Verify link data is invalid. Check URL and scope."
+            : "Verify link data could not be saved.";
 
       setProofErrorById((prev) => ({
         ...prev,
@@ -680,7 +680,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (verifyUrl.length === 0) {
       setProofErrorById((prev) => ({
         ...prev,
-        [card.useCaseId]: "Es gibt noch keine Verify URL zum Kopieren.",
+        [card.useCaseId]: "There is no verify URL to copy yet.",
       }));
       return;
     }
@@ -689,14 +689,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       await copyTextToClipboard(verifyUrl);
       setProofErrorById((prev) => ({ ...prev, [card.useCaseId]: undefined }));
       toast({
-        title: "Verify-Link kopiert",
-        description: "Die Verify URL wurde in die Zwischenablage kopiert.",
+        title: "Verify link copied",
+        description: "The verify URL has been copied to the clipboard.",
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Kopieren fehlgeschlagen",
-        description: "Die Verify URL konnte nicht kopiert werden.",
+        title: "Copy failed",
+        description: "The verify URL could not be copied.",
       });
     }
   };
@@ -709,8 +709,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (!registerFirstFlags.proofGate) {
       toast({
         variant: "destructive",
-        title: "Vorschau deaktiviert",
-        description: "Die Vorschau ist aktuell nicht verfügbar.",
+        title: "Preview disabled",
+        description: "The preview is currently not available.",
       });
       return;
     }
@@ -741,7 +741,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       setProofErrorById((prev) => ({
         ...prev,
         [card.useCaseId]:
-          "PDF-Vorschau braucht Verify-Link Daten. URL und Scope zuerst ausfuellen.",
+          "PDF preview requires verify link data. Please fill in URL and scope first.",
       }));
       return;
     }
@@ -754,8 +754,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       if (!previewWindow) {
         downloadBlob(getProofPackPdfFileName(card.useCaseId), pdfBlob);
         toast({
-          title: "Popup blockiert",
-          description: "PDF wurde stattdessen als Download gestartet.",
+          title: "Popup blocked",
+          description: "PDF has been downloaded instead.",
         });
       }
 
@@ -765,14 +765,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Vorschau fehlgeschlagen",
-        description: "PDF-Vorschau konnte nicht erzeugt werden.",
+        title: "Preview failed",
+        description: "PDF preview could not be generated.",
       });
     }
   };
 
   const resultCountLabel = [
-    `${sortedUseCases.length} Einsatzf${sortedUseCases.length === 1 ? "all" : "aelle"}`,
+    `${sortedUseCases.length} use case${sortedUseCases.length === 1 ? "" : "s"}`,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -786,7 +786,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     <DropdownMenuContent align="end" className="w-56">
       {nextStatuses.length > 0 && (
         <div className="mb-1 border-b p-2">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Status ändern</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">Change status</p>
           <Select
             onValueChange={(value) => {
               setSelectedNextStatusById((prev) => ({
@@ -797,7 +797,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             }}
           >
             <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Neuer Status" />
+              <SelectValue placeholder="New status" />
             </SelectTrigger>
             <SelectContent>
               {nextStatuses.map((status) => (
@@ -977,11 +977,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           onClick={() => setShowDeleted(!showDeleted)}
         >
           <span className={`inline-block h-2 w-2 rounded-full transition-colors ${showDeleted ? "bg-foreground" : "border border-muted-foreground"}`} />
-          {showDeleted ? "Gelöschte ausblenden" : "Gelöschte anzeigen"}
+          {showDeleted ? "Hide deleted" : "Show deleted"}
         </button>
         {activeCustomFilter && (
           <Badge variant="secondary" className="h-9 px-3 text-sm flex items-center gap-1 cursor-pointer" onClick={() => setActiveCustomFilter(null)}>
-            Filter: {activeCustomFilter === 'missing_history' ? 'Fehlende Prüfhistorie' : activeCustomFilter === 'high_risk_missing_history' ? 'Hochrisiko Haftungslücke' : activeCustomFilter === 'external_missing_dossier' ? 'Transparenz Risiko' : activeCustomFilter.replace(/_/g, ' ')}
+            Filter: {activeCustomFilter === 'missing_history' ? 'Missing review history' : activeCustomFilter === 'high_risk_missing_history' ? 'High-risk liability gap' : activeCustomFilter === 'external_missing_dossier' ? 'Transparency risk' : activeCustomFilter.replace(/_/g, ' ')}
             <X className="h-3 w-3 ml-1" />
           </Badge>
         )}
@@ -998,7 +998,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Fehler</AlertTitle>
+          <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -1010,19 +1010,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       ) : useCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Noch keine Einsatzfälle dokumentiert</CardTitle>
+            <CardTitle>No use cases documented yet</CardTitle>
             <CardDescription>
-              Dokumentiere den ersten Einsatzfall über die Register-Aktion oben.
+              Document the first use case via the register action above.
             </CardDescription>
           </CardHeader>
         </Card>
       ) : sortedUseCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Keine Einträge für den aktuellen Filter</CardTitle>
+            <CardTitle>No entries for the current filter</CardTitle>
             <CardDescription>
-              Passe Suche, Status, Herkunft oder Dokumentansicht an, um weitere
-              Registerkarten anzuzeigen.
+              Adjust search, status, source, or document view to display more
+              register entries.
             </CardDescription>
           </CardHeader>
         </Card>

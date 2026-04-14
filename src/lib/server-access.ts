@@ -152,7 +152,7 @@ export function upsertWorkspaceMembership(
     orgName:
       normalizedOrgName ||
       nextByOrg.get(normalizedOrgId)?.orgName ||
-      "KI-Register Workspace",
+      "AI Register Workspace",
     role: normalizedRole,
   });
 
@@ -187,7 +187,7 @@ export function removeWorkspaceMembership(
     .map((workspace) => ({
       orgId: normalizeOptionalText(workspace.orgId) ?? '',
       orgName:
-        normalizeOptionalText(workspace.orgName) ?? 'KI-Register Workspace',
+        normalizeOptionalText(workspace.orgName) ?? 'AI Register Workspace',
       role: normalizeWorkspaceRole(workspace.role),
     }))
     .filter((workspace) => workspace.orgId.length > 0)
@@ -217,7 +217,7 @@ export function materializeWorkspaceAccessWriteModel(
 
     orgNameById.set(
       orgId,
-      normalizeOptionalText(workspace?.orgName) ?? "KI-Register Workspace"
+      normalizeOptionalText(workspace?.orgName) ?? "AI Register Workspace"
     );
   }
 
@@ -225,7 +225,7 @@ export function materializeWorkspaceAccessWriteModel(
     .filter((orgId) => orgId !== userId)
     .map((orgId) => ({
       orgId,
-      orgName: orgNameById.get(orgId) ?? "KI-Register Workspace",
+      orgName: orgNameById.get(orgId) ?? "AI Register Workspace",
       role: normalizeWorkspaceRole(access.rolesByOrg[orgId]),
     }));
 

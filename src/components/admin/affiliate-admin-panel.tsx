@@ -60,6 +60,7 @@ import type {
   AffiliateRecord,
 } from '@/lib/affiliate/types';
 import { AFFILIATE_DEFAULTS } from '@/lib/affiliate/types';
+import { APP_LOCALE } from '@/lib/locale';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -96,7 +97,7 @@ export interface AffiliateAdminPanelProps {
 // ---------------------------------------------------------------------------
 
 function formatEur(cents: number): string {
-  return new Intl.NumberFormat('de-DE', {
+  return new Intl.NumberFormat(APP_LOCALE, {
     style: 'currency',
     currency: 'EUR',
   }).format(cents / 100);
@@ -595,7 +596,7 @@ export function AffiliateAdminPanel({
                   Affiliate: {selectedAffiliate.email}
                 </CardTitle>
                 <CardDescription>
-                  Erstellt am {new Date(selectedAffiliate.createdAt).toLocaleDateString('de-DE')} von {selectedAffiliate.createdBy}
+                  Created on {new Date(selectedAffiliate.createdAt).toLocaleDateString(APP_LOCALE)} by {selectedAffiliate.createdBy}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-3">
@@ -715,7 +716,7 @@ export function AffiliateAdminPanel({
                     {detailCommissions.slice(0, 20).map((c) => (
                       <TableRow key={c.commissionId}>
                         <TableCell className="text-xs">
-                          {new Date(c.createdAt).toLocaleDateString('de-DE')}
+                          {new Date(c.createdAt).toLocaleDateString(APP_LOCALE)}
                         </TableCell>
                         <TableCell className="text-xs">{maskEmail(c.referredEmail)}</TableCell>
                         <TableCell className="text-right text-xs">{formatEur(c.grossAmount)}</TableCell>

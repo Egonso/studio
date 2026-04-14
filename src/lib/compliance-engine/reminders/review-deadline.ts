@@ -139,17 +139,17 @@ export function classifyDeadlineStatus(daysRemaining: number | null): DeadlineSt
  * Get a German label for a deadline status.
  *
  * @example
- *   getDeadlineStatusLabel('overdue');     // → 'Überfällig'
- *   getDeadlineStatusLabel('due_soon');    // → 'Bald fällig'
- *   getDeadlineStatusLabel('on_track');    // → 'Im Zeitplan'
- *   getDeadlineStatusLabel('no_deadline'); // → 'Keine Frist'
+ *   getDeadlineStatusLabel('overdue');     // → 'Overdue'
+ *   getDeadlineStatusLabel('due_soon');    // → 'Due soon'
+ *   getDeadlineStatusLabel('on_track');    // → 'On track'
+ *   getDeadlineStatusLabel('no_deadline'); // → 'No deadline'
  */
 export function getDeadlineStatusLabel(status: DeadlineStatus): string {
     switch (status) {
-        case 'overdue': return 'Überfällig';
-        case 'due_soon': return 'Bald fällig';
-        case 'on_track': return 'Im Zeitplan';
-        case 'no_deadline': return 'Keine Frist';
+        case 'overdue': return 'Overdue';
+        case 'due_soon': return 'Due soon';
+        case 'on_track': return 'On track';
+        case 'no_deadline': return 'No deadline';
     }
 }
 

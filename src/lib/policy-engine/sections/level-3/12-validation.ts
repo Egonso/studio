@@ -1,10 +1,10 @@
 /**
- * Level 3, Section 12: Validierung & Test
+ * Level 3, Section 12: Validation & Testing
  *
- * Beschreibt Anforderungen an Testing und Validierung von KI-Systemen.
- * Immer inkludiert bei Level 3.
+ * Describes requirements for testing and validation of AI systems.
+ * Always included at Level 3.
  *
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 3
  */
 
@@ -12,48 +12,48 @@ import type { SectionDefinition } from '../section-definition';
 
 export const validationSection: SectionDefinition = {
     sectionId: 'l3-validation',
-    title: 'Validierung & Test',
+    title: 'Validation & Testing',
     order: 1300,
     level: 3,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const totalSystems = context.useCases.length;
 
         const lines: string[] = [
-            `${orgName} sollte für alle KI-Systeme einen strukturierten Validierungs- und ` +
-            `Testprozess implementieren. Dies gilt insbesondere vor der Erstinbetriebnahme ` +
-            `sowie nach wesentlichen Änderungen am System.`,
+            `${orgName} should implement a structured validation and testing process ` +
+            `for all AI systems. This applies in particular before initial deployment ` +
+            `and after material changes to the system.`,
             ``,
-            `### Testanforderungen`,
+            `### Testing Requirements`,
             ``,
-            `Für die aktuell ${totalSystems} erfassten KI-Systeme sollten folgende ` +
-            `Testaspekte berücksichtigt werden:`,
+            `For the currently ${totalSystems} recorded AI systems, the following ` +
+            `testing aspects should be considered:`,
             ``,
-            `1. **Funktionale Validierung:** Überprüfung, ob das System seine vorgesehene ` +
-            `Funktion korrekt und zuverlässig erfüllt.`,
-            `2. **Bias- und Fairness-Prüfung:** Analyse auf systematische Verzerrungen, ` +
-            `insbesondere bei Systemen, die Entscheidungen über natürliche Personen beeinflussen.`,
-            `3. **Robustheits-Tests:** Prüfung des Systemverhaltens bei unerwarteten, ` +
-            `fehlerhaften oder adversarialen Eingaben.`,
-            `4. **Performance-Monitoring:** Kontinuierliche Überwachung der Systemleistung ` +
-            `im produktiven Betrieb (Model Drift Detection).`,
-            `5. **Integrationstests:** Validierung der korrekten Einbindung in bestehende ` +
-            `Geschäftsprozesse und IT-Systeme.`,
+            `1. **Functional Validation:** Verification that the system performs its intended ` +
+            `function correctly and reliably.`,
+            `2. **Bias & Fairness Testing:** Analysis for systematic biases, ` +
+            `particularly in systems that influence decisions about natural persons.`,
+            `3. **Robustness Testing:** Assessment of system behaviour with unexpected, ` +
+            `erroneous or adversarial inputs.`,
+            `4. **Performance Monitoring:** Continuous monitoring of system performance ` +
+            `in production (model drift detection).`,
+            `5. **Integration Testing:** Validation of correct integration into existing ` +
+            `business processes and IT systems.`,
             ``,
-            `### Dokumentation`,
+            `### Documentation`,
             ``,
-            `Testergebnisse sollten nachvollziehbar dokumentiert werden, einschließlich:`,
+            `Test results should be documented in a traceable manner, including:`,
             ``,
-            `- Testdatum und Tester`,
-            `- Testmethodik und Testdaten`,
-            `- Ergebnisse und identifizierte Abweichungen`,
-            `- Empfohlene Maßnahmen und deren Umsetzungsstatus`,
+            `- Test date and tester`,
+            `- Test methodology and test data`,
+            `- Results and identified deviations`,
+            `- Recommended measures and their implementation status`,
             ``,
-            `Bei Hochrisiko-Systemen sollte die Testdokumentation Teil der technischen ` +
-            `Dokumentation gemäß Art. 11 AI Act sein.`,
+            `For high-risk systems, the test documentation should form part of the technical ` +
+            `documentation pursuant to Art. 11 of the AI Act.`,
         ];
 
         return lines.join('\n');

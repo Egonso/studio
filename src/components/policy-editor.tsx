@@ -11,6 +11,7 @@ import { Button } from './ui/button';
 import { Printer, PlusCircle, ShieldAlert, BadgeCheck, Info, Loader2 } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { APP_LOCALE } from "@/lib/locale";
 import {
   Dialog,
   DialogContent,
@@ -317,7 +318,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
       if (value) {
         // Format date if key contains "datum"
         const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
-          ? new Date(value).toLocaleDateString('de-DE')
+          ? new Date(value).toLocaleDateString(APP_LOCALE)
           : value;
 
         filledContent = filledContent.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);
@@ -390,7 +391,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
 
     Object.entries(placeholders).forEach(([key, value]) => {
       const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
-        ? new Date(value).toLocaleDateString('de-DE')
+        ? new Date(value).toLocaleDateString(APP_LOCALE)
         : (value || `[${key}]`);
 
       contentToCopy = contentToCopy.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);
@@ -423,7 +424,7 @@ export function PolicyEditor({ onPolicyChange, onSave, isSaving, projectId, canG
 
     Object.entries(placeholders).forEach(([key, value]) => {
       const displayValue = (key.toLowerCase().includes('datum') && value.match(/^\d{4}-\d{2}-\d{2}$/))
-        ? new Date(value).toLocaleDateString('de-DE')
+        ? new Date(value).toLocaleDateString(APP_LOCALE)
         : (value || `[${key}]`);
 
       printableContent = printableContent.replace(new RegExp(`\\[${key}\\]`, 'g'), displayValue);

@@ -26,6 +26,7 @@ import type {
   CertificateAuditEvent,
   CertificateStatus,
 } from '@/lib/certification/types';
+import { APP_LOCALE } from '@/lib/locale';
 
 interface CertificationAdminPanelProps {
   overview: AdminCertificationOverview | null;
@@ -60,7 +61,7 @@ function formatDate(value: string | null | undefined, includeTime = false) {
     return '—';
   }
 
-  return new Date(value).toLocaleString('de-DE', {
+  return new Date(value).toLocaleString(APP_LOCALE, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

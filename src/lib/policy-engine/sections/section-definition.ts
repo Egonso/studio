@@ -6,11 +6,11 @@
  * sorts by order, and builds content via buildContent().
  *
  * Design:
- *   - NUR .ts, KEIN JSX, KEIN React, KEINE Komponenten
- *   - Keine LLM-Aufrufe, alles deterministisch
- *   - Alle Policy-Texte auf DEUTSCH
- *   - Juristisch defensiv: Konjunktiv, "sollte", nicht "muss"
- *   - Markdown-Format für alle Contents
+ *   - .ts only, NO JSX, NO React, NO components
+ *   - No LLM calls, everything deterministic
+ *   - All policy text in ENGLISH
+ *   - Legally defensive: subjunctive, "should", not "must"
+ *   - Markdown format for all contents
  *
  * Sprint: PE-2a Section Registry
  */
@@ -23,7 +23,7 @@ export interface SectionDefinition {
     /** Unique section identifier, e.g. "l1-commitment", "l2-inventory" */
     sectionId: string;
 
-    /** Human-readable section title (German) */
+    /** Human-readable section title (English) */
     title: string;
 
     /** Sort order within the policy document (lower = earlier) */

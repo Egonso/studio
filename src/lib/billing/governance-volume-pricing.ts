@@ -1,3 +1,5 @@
+import { APP_LOCALE } from '@/lib/locale';
+
 export type GovernanceBillingInterval = 'month' | 'year';
 
 export interface GovernanceVolumeSnapshot {
@@ -101,7 +103,7 @@ export function formatGovernanceTierPrice(
 ): string {
   const amount =
     interval === 'year' ? tier.yearlyAmountCents : tier.monthlyAmountCents;
-  const formatter = new Intl.NumberFormat('de-DE', {
+  const formatter = new Intl.NumberFormat(APP_LOCALE, {
     style: 'currency',
     currency: 'EUR',
     maximumFractionDigits: 0,

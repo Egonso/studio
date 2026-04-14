@@ -1,12 +1,12 @@
 /**
- * Level 1, Section 02: Grundregeln für KI-Nutzung
+ * Level 1, Section 02: Basic Rules for AI Use
  *
- * Referenziert Art. 5 AI Act (verbotene Praktiken).
- * Grundprinzipien für alle Mitarbeitenden.
- * Immer inkludiert.
+ * References Art. 5 AI Act (Prohibited AI Practices).
+ * Core principles for all employees.
+ * Always included.
  *
- * Inhaltliche Referenz: policy-editor.tsx Level 1 Template (Zeile 55–67)
- * Juristisch defensiv: Konjunktiv, "sollte", nicht "muss"
+ * Content reference: policy-editor.tsx Level 1 Template (line 55–67)
+ * Legally defensive: subjunctive, "should", not "must"
  *
  * Sprint: PE-2a Level 1
  */
@@ -15,44 +15,44 @@ import type { SectionDefinition } from '../section-definition';
 
 export const basicRulesSection: SectionDefinition = {
     sectionId: 'l1-basic-rules',
-    title: 'Grundregeln für die KI-Nutzung',
+    title: 'Basic Rules for AI Use',
     order: 200,
     level: 1,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
 
         return [
-            `**Abschnitt A: Grundprinzipien (für alle Mitarbeitenden)**`,
+            `**Section A: Core Principles (for all employees)**`,
             ``,
-            `Die folgenden Grundprinzipien gelten für alle Mitarbeitenden von ${orgName}, ` +
-            `die KI-Systeme nutzen oder mit KI-gestützten Prozessen in Berührung kommen:`,
+            `The following core principles apply to all employees of ${orgName} ` +
+            `who use AI systems or are involved in AI-supported processes:`,
             ``,
-            `1. KI-Systeme sollten nur dann eingesetzt werden, wenn sie nicht gegen verbotene Praktiken ` +
-            `gemäß Art. 5 des AI Act verstoßen (z. B. Manipulation, Social Scoring, ` +
-            `anlasslose biometrische Massenüberwachung).`,
+            `1. AI systems should only be deployed where they do not contravene prohibited practices ` +
+            `under Art. 5 of the AI Act (e.g. manipulation, social scoring, ` +
+            `indiscriminate biometric mass surveillance).`,
             ``,
-            `2. Mitarbeitende sollten KI-Tools mit Bewusstsein über Datenschutz und Sicherheit nutzen. ` +
-            `Die Eingabe sensibler personenbezogener Daten in öffentliche KI-Dienste sollte unterbleiben, ` +
-            `sofern keine explizite Freigabe vorliegt.`,
+            `2. Employees should use AI tools with awareness of data protection and security. ` +
+            `The input of sensitive personal data into public AI services should be avoided ` +
+            `unless explicit authorisation has been granted.`,
             ``,
-            `3. KI-basierte Entscheidungen, die Auswirkungen auf natürliche Personen haben können, ` +
-            `sollten durch eine menschliche Überprüfung ergänzt werden.`,
+            `3. AI-based decisions that may have an impact on natural persons ` +
+            `should be supplemented by human review.`,
             ``,
-            `4. Mitarbeitende sollten sich über interne Leitlinien, Updates und ` +
-            `organisationsspezifische Vorgaben zum KI-Einsatz informieren.`,
+            `4. Employees should stay informed about internal guidelines, updates and ` +
+            `organisation-specific requirements regarding AI use.`,
             ``,
             `---`,
             ``,
-            `**Abschnitt B: Schulung & Sensibilisierung**`,
+            `**Section B: Training & Awareness**`,
             ``,
-            `- Mitarbeitende, die regelmäßig mit KI-Tools arbeiten, sollten an einer ` +
-            `Sensibilisierungsschulung teilnehmen.`,
-            `- Personen, die KI-Systeme verantworten oder einführen, sollten eine ` +
-            `vertiefte Schulung absolvieren (intern oder extern).`,
-            `- Schulungsnachweise sollten dokumentiert werden.`,
+            `- Employees who regularly work with AI tools should participate in an ` +
+            `awareness training session.`,
+            `- Individuals who are responsible for or introduce AI systems should complete ` +
+            `an in-depth training course (internal or external).`,
+            `- Training records should be documented.`,
         ].join('\n');
     },
 };

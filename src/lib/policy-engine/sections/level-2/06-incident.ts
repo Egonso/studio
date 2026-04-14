@@ -1,10 +1,10 @@
 /**
- * Level 2, Section 06: Vorfallmanagement
+ * Level 2, Section 06: Incident Management
  *
- * Beschreibt den Umgang mit KI-bezogenen Vorfällen.
- * Conditional: nur wenn orgSettings.incidentProcess oder incidentConfig existiert.
+ * Describes how AI-related incidents are handled.
+ * Conditional: only if orgSettings.incidentProcess or incidentConfig exists.
  *
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 2
  */
 
@@ -12,7 +12,7 @@ import type { SectionDefinition } from '../section-definition';
 
 export const incidentSection: SectionDefinition = {
     sectionId: 'l2-incident',
-    title: 'Vorfallmanagement',
+    title: 'Incident Management',
     order: 500,
     level: 2,
 
@@ -21,42 +21,42 @@ export const incidentSection: SectionDefinition = {
     },
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const incidentUrl = context.orgSettings.incidentProcess?.url;
         const config = context.orgSettings.incidentConfig;
         const incidentOwner = context.orgSettings.raci?.incidentOwner;
 
         const lines: string[] = [
-            `${orgName} verfügt über einen definierten Prozess zum Umgang mit KI-bezogenen Vorfällen. ` +
-            `Ziel ist die schnelle Erkennung, Dokumentation und Behebung von Fehlverhalten, ` +
-            `Sicherheitslücken oder unerwarteten Ergebnissen von KI-Systemen.`,
+            `${orgName} has a defined process for handling AI-related incidents. ` +
+            `The objective is the prompt detection, documentation and resolution of malfunctions, ` +
+            `security vulnerabilities or unexpected outputs from AI systems.`,
             ``,
-            `### Meldeprozess`,
+            `### Reporting Process`,
             ``,
         ];
 
         if (incidentUrl) {
-            lines.push(`Der dokumentierte Vorfallprozess ist hinterlegt unter: ${incidentUrl}`);
+            lines.push(`The documented incident process is available at: ${incidentUrl}`);
             lines.push(``);
         }
 
         if (config) {
             if (config.reportingPath) {
-                lines.push(`**Meldeweg:** ${config.reportingPath}`);
+                lines.push(`**Reporting Channel:** ${config.reportingPath}`);
                 lines.push(``);
             }
             if (config.escalationLevel) {
-                lines.push(`**Eskalationsstufe:** ${config.escalationLevel}`);
+                lines.push(`**Escalation Level:** ${config.escalationLevel}`);
                 lines.push(``);
             }
             if (config.responseTimeframe) {
-                lines.push(`**Reaktionszeitraum:** ${config.responseTimeframe}`);
+                lines.push(`**Response Timeframe:** ${config.responseTimeframe}`);
                 lines.push(``);
             }
             if (config.documentationRequired) {
                 lines.push(
-                    `Jeder Vorfall sollte vollständig dokumentiert werden, einschließlich ` +
-                    `Ursachenanalyse, ergriffener Maßnahmen und Präventionsempfehlungen.`,
+                    `Each incident should be fully documented, including ` +
+                    `root cause analysis, measures taken and prevention recommendations.`,
                 );
                 lines.push(``);
             }
@@ -64,18 +64,18 @@ export const incidentSection: SectionDefinition = {
 
         if (incidentOwner?.name) {
             lines.push(
-                `**Vorfallverantwortliche:r:** ${incidentOwner.name}` +
+                `**Incident Owner:** ${incidentOwner.name}` +
                 `${incidentOwner.department ? ` (${incidentOwner.department})` : ''}`,
             );
             lines.push(``);
         }
 
         lines.push(
-            `Alle Mitarbeitenden sollten in der Lage sein, KI-bezogene Vorfälle ` +
-            `zeitnah über den definierten Meldeweg zu melden. ` +
-            `Bei Hochrisiko-Systemen gemäß Art. 62 AI Act sollten schwerwiegende Vorfälle ` +
-            `innerhalb der vorgeschriebenen Fristen an die zuständige Marktüberwachungsbehörde ` +
-            `gemeldet werden.`,
+            `All employees should be able to report AI-related incidents ` +
+            `promptly via the defined reporting channel. ` +
+            `For high-risk systems under Art. 72 of the AI Act (Reporting of Serious Incidents), serious incidents ` +
+            `should be reported to the competent market surveillance authority ` +
+            `within the prescribed timeframes.`,
         );
 
         return lines.join('\n');

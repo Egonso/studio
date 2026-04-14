@@ -76,7 +76,7 @@ export function createPolicyService(
                 registerId,
                 level,
                 status: "draft",
-                title: `KI-Richtlinie – ${POLICY_LEVEL_LABELS[level]}`,
+                title: `AI Policy – ${POLICY_LEVEL_LABELS[level]}`,
                 sections: [],
                 metadata: {
                     createdAt: now,

@@ -29,45 +29,46 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { buildPublicAppUrl } from '@/lib/app-url';
+import { APP_LOCALE } from '@/lib/locale';
 
 const emailSchema = z.object({
   newEmail: z.string().email({
-    message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+    message: 'Please enter a valid email address.',
   }),
   currentPasswordForEmail: z.string().min(1, {
-    message: 'Bitte geben Sie Ihr aktuelles Passwort ein.',
+    message: 'Please enter your current password.',
   }),
 });
 
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, {
-      message: 'Bitte geben Sie Ihr aktuelles Passwort ein.',
+      message: 'Please enter your current password.',
     }),
     newPassword: z.string().min(6, {
-      message: 'Das Passwort muss mindestens 6 Zeichen lang sein.',
+      message: 'Password must be at least 6 characters long.',
     }),
     confirmPassword: z.string().min(1, {
-      message: 'Bitte bestätigen Sie Ihr neues Passwort.',
+      message: 'Please confirm your new password.',
     }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Die Passwörter stimmen nicht überein.',
+    message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
 
 const officerSchema = z.object({
   licenseKey: z.string().min(1, {
-    message: 'Bitte geben Sie Ihren Zertifikats-Code ein.',
+    message: 'Please enter your certificate code.',
   }),
 });
 
 const inviteSchema = z.object({
   email: z.string().email({
-    message: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+    message: 'Please enter a valid email address.',
   }),
   role: z.enum(['EXTERNAL_OFFICER', 'MEMBER', 'ADMIN'], {
-    required_error: 'Bitte wählen Sie eine Rolle.',
+    required_error: 'Please select a role.',
   }),
 });
 
@@ -120,7 +121,7 @@ export function AccountSettingsSection() {
   }
 
   const createdAt = user.metadata.creationTime
-    ? new Date(user.metadata.creationTime).toLocaleDateString('de-DE', {
+    ? new Date(user.metadata.creationTime).toLocaleDateString(APP_LOCALE, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -141,21 +142,21 @@ export function AccountSettingsSection() {
       const res = await verifyOfficerKey(idToken, data.licenseKey);
       if (res.success) {
         toast({
-          title: 'Erfolgreich',
-          description: 'Sie sind nun als EUKI Certified Officer verifiziert.',
+          title: 'Success',
+          description: 'You are now verified as an EUKI Certified Officer.',
         });
       } else {
         toast({
           variant: 'destructive',
-          title: 'Fehler',
+          title: 'Error',
           description: res.message,
         });
       }
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: 'Verifizierung fehlgeschlagen.',
+        title: 'Error',
+        description: 'Verification failed.',
       });
     } finally {
       setIsOfficerLoading(false);
@@ -184,9 +185,9 @@ export function AccountSettingsSection() {
       });
 
       toast({
-        title: 'Bestätigung gesendet',
+        title: 'Confirmation sent',
         description:
-          'Bitte bestätigen Sie zuerst die neue E-Mail-Adresse über den Link in Ihrem Postfach.',
+          'Please confirm your new email address via the link sent to your inbox.',
       });
       emailForm.reset();
     } catch (error: any) {
@@ -195,12 +196,12 @@ export function AccountSettingsSection() {
         error.code === 'auth/invalid-credential';
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: 'Error',
         description: isWrongPassword
-          ? 'Falsches Passwort. Bitte versuchen Sie es erneut.'
+          ? 'Incorrect password. Please try again.'
           : error.code === 'auth/email-already-in-use'
-            ? 'Diese E-Mail-Adresse wird bereits verwendet.'
-            : 'E-Mail konnte nicht zur Verifizierung vorgemerkt werden. Bitte versuchen Sie es erneut.',
+            ? 'This email address is already in use.'
+            : 'Email could not be queued for verification. Please try again.',
       });
     } finally {
       setIsEmailLoading(false);
@@ -226,8 +227,8 @@ export function AccountSettingsSection() {
       await updatePassword(auth.currentUser!, data.newPassword);
 
       toast({
-        title: 'Passwort aktualisiert',
-        description: 'Ihr Passwort wurde erfolgreich geändert.',
+        title: 'Password updated',
+        description: 'Your password has been changed successfully.',
       });
       passwordForm.reset();
     } catch (error: any) {
@@ -236,10 +237,10 @@ export function AccountSettingsSection() {
         error.code === 'auth/invalid-credential';
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: 'Error',
         description: isWrongPassword
-          ? 'Falsches aktuelles Passwort. Bitte versuchen Sie es erneut.'
-          : 'Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut.',
+          ? 'Incorrect current password. Please try again.'
+          : 'Password could not be changed. Please try again.',
       });
     } finally {
       setIsPasswordLoading(false);
@@ -249,9 +250,9 @@ export function AccountSettingsSection() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Kontoeinstellungen</h2>
+        <h2 className="text-2xl font-bold">Account Settings</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Verwalten Sie Ihre Anmeldedaten, Kontosicherheit und Einladungen.
+          Manage your credentials, account security, and invitations.
         </p>
       </div>
 
@@ -259,17 +260,17 @@ export function AccountSettingsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">Kontoinformationen</CardTitle>
+            <CardTitle className="text-base">Account Information</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">E-Mail-Adresse</span>
+            <span className="text-muted-foreground">Email address</span>
             <span className="font-medium">{user.email}</span>
           </div>
           <Separator />
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Mitglied seit</span>
+            <span className="text-muted-foreground">Member since</span>
             <span className="font-medium">{createdAt}</span>
           </div>
         </CardContent>
@@ -279,11 +280,10 @@ export function AccountSettingsSection() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">E-Mail-Adresse ändern</CardTitle>
+            <CardTitle className="text-base">Change Email Address</CardTitle>
           </div>
           <CardDescription>
-            Geben Sie Ihr aktuelles Passwort ein, um Ihre E-Mail-Adresse zu
-            ändern.
+            Enter your current password to change your email address.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -297,11 +297,11 @@ export function AccountSettingsSection() {
                 name="newEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Neue E-Mail-Adresse</FormLabel>
+                    <FormLabel>New email address</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="neue@email.de"
+                        placeholder="new@email.com"
                         {...field}
                       />
                     </FormControl>
@@ -314,7 +314,7 @@ export function AccountSettingsSection() {
                 name="currentPasswordForEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Aktuelles Passwort</FormLabel>
+                    <FormLabel>Current password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
@@ -363,7 +363,7 @@ export function AccountSettingsSection() {
                 Zertifiziert durch: {profile.certifiedBy}
                 <br />
                 Geprüft am:{' '}
-                {new Date(profile.verifiedAt!).toLocaleDateString('de-DE')}
+                {new Date(profile.verifiedAt!).toLocaleDateString(APP_LOCALE)}
               </div>
             </div>
           ) : (
@@ -571,7 +571,7 @@ export function AccountSettingsSection() {
                 name="currentPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Aktuelles Passwort</FormLabel>
+                    <FormLabel>Current password</FormLabel>
                     <FormControl>
                       <Input
                         type="password"

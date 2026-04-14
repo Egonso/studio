@@ -22,9 +22,9 @@ export function evaluateGovernanceMaturity(context: EngineContext): {
     actions.push({
       id: 'policy_draft_org',
       type: 'policy_missing',
-      title: 'KI-Richtlinie ist noch im Entwurf',
+      title: 'AI policy is still in draft',
       description:
-        'Ihre Richtlinie wurde noch nicht genehmigt. Mitarbeiter haben dadurch noch keine verbindliche Handlungsanweisung.',
+        'Your policy has not yet been approved. Employees therefore do not yet have a binding set of instructions.',
       impactIncreaseEstimate: 20,
       severity: 'medium',
       href: ROUTE_HREFS.controlPolicies,
@@ -38,9 +38,9 @@ export function evaluateGovernanceMaturity(context: EngineContext): {
     actions.push({
       id: 'policy_missing_org',
       type: 'policy_missing',
-      title: 'Fehlende KI-Richtlinie (AI Policy)',
+      title: 'Missing AI policy',
       description:
-        'Ohne eine zentrale Richtlinie haben Ihre Mitarbeiter keine Handlungssicherheit beim Einsatz von KI.',
+        'Without a central policy your employees lack clear guidance on the use of AI.',
       impactIncreaseEstimate: 40,
       severity: 'high',
       href: ROUTE_HREFS.controlPolicies,
@@ -53,9 +53,9 @@ export function evaluateGovernanceMaturity(context: EngineContext): {
     actions.push({
       id: 'incident_process_missing_org',
       type: 'incident_process_missing',
-      title: 'Kein KI-Incident Prozess definiert',
+      title: 'No AI incident process defined',
       description:
-        'Sie müssen festlegen, wer im Fall einer KI-Fehlfunktion (Verletzung der Grundrechte) im Unternehmen entscheidet.',
+        'You must define who in the organisation decides in case of an AI malfunction (fundamental rights violation).',
       impactIncreaseEstimate: 30,
       severity: 'medium',
       href: ROUTE_HREFS.governanceSettings,
@@ -68,9 +68,9 @@ export function evaluateGovernanceMaturity(context: EngineContext): {
     actions.push({
       id: 'raci_missing_org',
       type: 'raci_missing',
-      title: 'KI-Rollen & Verantwortlichkeiten fehlen',
+      title: 'AI roles & responsibilities missing',
       description:
-        'Weisen Sie klare Rollen (z.B. AI Officer, Legal) für die Freigabe und Überwachung von KI-Systemen zu.',
+        'Assign clear roles (e.g. AI Officer, Legal) for the approval and oversight of AI systems.',
       impactIncreaseEstimate: 30,
       severity: 'medium',
       href: ROUTE_HREFS.governanceSettings,
@@ -83,9 +83,9 @@ export function evaluateGovernanceMaturity(context: EngineContext): {
     actions.push({
       id: 'use_cases_empty',
       type: 'first_use_case_missing',
-      title: 'Register ist leer',
+      title: 'Register is empty',
       description:
-        'Eine Governance-Strategie ohne erfasste Systeme (Schatten-IT) ist wirkungslos. Erfassen Sie Ihr erstes KI-Tool.',
+        'A governance strategy without recorded systems (shadow IT) is ineffective. Capture your first AI tool.',
       impactIncreaseEstimate: 20,
       severity: 'high',
       href: '/my-register',

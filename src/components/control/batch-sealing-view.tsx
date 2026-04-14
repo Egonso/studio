@@ -69,8 +69,8 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
             await Promise.all(promises);
 
             toast({
-                title: "Erfolgreich besiegelt",
-                description: `${selectedIds.size} Einsatzfälle wurden kryptografisch versiegelt.`,
+                title: "Successfully sealed",
+                description: `${selectedIds.size} use cases have been cryptographically sealed.`,
             });
 
             setSelectedIds(new Set());
@@ -79,8 +79,8 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
             console.error("Batch sealing error", error);
             toast({
                 variant: "destructive",
-                title: "Fehler beim Versiegeln",
-                description: "Einige Einsatzfälle konnten nicht versiegelt werden.",
+                title: "Sealing error",
+                description: "Some use cases could not be sealed.",
             });
         } finally {
             setIsSealing(false);
@@ -91,10 +91,10 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center rounded-lg border border-dashed text-slate-500">
                 <ShieldCheck className="w-12 h-12 mb-4 text-slate-300" />
-                <h3 className="text-lg font-medium text-slate-900">Nur für verifizierte Officers</h3>
+                <h3 className="text-lg font-medium text-slate-900">Verified officers only</h3>
                 <p className="mt-2 text-sm max-w-md">
-                    Die Batch-Sealing Funktion erlaubt es zertifizierten EUKI Officers, mehrere Einsatzfälle
-                    gleichzeitig freizugeben und zu versiegeln.
+                    The batch sealing function allows certified EUKI officers to approve and seal multiple use cases
+                    simultaneously.
                 </p>
             </div>
         );
@@ -103,7 +103,7 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
     if (unsealedUseCases.length === 0) {
         return (
             <div className="rounded-lg border p-8 text-center text-sm text-muted-foreground">
-                Alle aktuellen Einsatzfälle in diesem Register wurden bereits versiegelt.
+                All current use cases in this register have already been sealed.
             </div>
         );
     }
@@ -112,7 +112,7 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                    Wählen Sie Einstzfälle aus, um sie gemeinsam als "Rechtlich geprüft" zu signieren.
+                    Select use cases to sign them collectively as "Legally reviewed".
                 </p>
                 <Button
                     onClick={handleBatchSeal}
@@ -124,7 +124,7 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
                     ) : (
                         <ShieldCheck className="mr-1.5 h-4 w-4" />
                     )}
-                    {selectedIds.size} Use Case{selectedIds.size !== 1 && 's'} versiegeln
+                    {selectedIds.size} Use Case{selectedIds.size !== 1 && 's'} seal
                 </Button>
             </div>
 
@@ -139,12 +139,12 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
                                         selectedIds.size === unsealedUseCases.length
                                     }
                                     onCheckedChange={toggleAll}
-                                    aria-label="Alle auswählen"
+                                    aria-label="Select all"
                                 />
                             </TableHead>
-                            <TableHead>Einsatzfall / System</TableHead>
+                            <TableHead>Use case / System</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Erstellt am</TableHead>
+                            <TableHead>Created on</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -154,13 +154,13 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
                                     <Checkbox
                                         checked={selectedIds.has(uc.useCaseId)}
                                         onCheckedChange={() => toggleOne(uc.useCaseId)}
-                                        aria-label={`Use Case ${uc.purpose} auswählen`}
+                                        aria-label={`Use Case ${uc.purpose} select`}
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <div className="font-medium">{uc.purpose || "Ohne Titel"}</div>
+                                    <div className="font-medium">{uc.purpose || "No title"}</div>
                                     <div className="text-xs text-muted-foreground mt-0.5">
-                                        {uc.toolFreeText || uc.toolId || "Unbekanntes System"}
+                                        {uc.toolFreeText || uc.toolId || "Unknown system"}
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -169,7 +169,7 @@ export function BatchSealingView({ useCases, onRefresh }: BatchSealingViewProps)
                                     </span>
                                 </TableCell>
                                 <TableCell className="text-sm text-muted-foreground">
-                                    {new Date(uc.createdAt).toLocaleDateString("de-DE")}
+                                    {new Date(uc.createdAt).toLocaleDateString("en-GB")}
                                 </TableCell>
                             </TableRow>
                         ))}

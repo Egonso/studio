@@ -119,7 +119,7 @@ function createCandidate(
     useCaseLabel: formatUseCaseLabel(useCase),
     focus,
     deepLink: options.deepLink ?? buildUseCaseFocusLink(useCase.useCaseId, focus),
-    deepLinkLabel: options.deepLinkLabel ?? "Empfohlene Stelle öffnen",
+    deepLinkLabel: options.deepLinkLabel ?? "Open recommended section",
     viewLink: buildUseCaseDetailLink(useCase.useCaseId),
     updatedAtTimestamp: parseTimestamp(useCase.updatedAt),
   };
@@ -161,15 +161,15 @@ export function buildControlActionQueue(
           "high-risk-no-oversight",
           100,
           "governance",
-          "Hochrisiko-System ohne dokumentiertes Aufsichtsmodell.",
-          "Erhoehtes Haftungs- und Freigaberisiko.",
-          "Aufsichtsmodell dokumentieren und formale Verantwortlichkeit festhalten.",
+          "High-risk system without a documented oversight model.",
+          "Increased liability and approval risk.",
+          "Document the oversight model and record formal accountability.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               edit: true,
               field: "oversight",
             }),
-            deepLinkLabel: "Aufsichtsmodell festlegen",
+            deepLinkLabel: "Set oversight model",
           }
         )
       );
@@ -182,15 +182,15 @@ export function buildControlActionQueue(
           "high-risk-no-review-structure",
           95,
           "governance",
-          "Hochrisiko-System ohne strukturierten Review-Zyklus.",
-          "Regelmaessige Ueberwachung ist nicht belastbar nachweisbar.",
-          "Review-Rhythmus oder naechstes Review-Datum dokumentieren.",
+          "High-risk system without a structured review cycle.",
+          "Regular monitoring cannot be reliably evidenced.",
+          "Document the review cadence or next review date.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               edit: true,
               field: "reviewCycle",
             }),
-            deepLinkLabel: "Review-Zyklus setzen",
+            deepLinkLabel: "Set review cycle",
           }
         )
       );
@@ -203,14 +203,14 @@ export function buildControlActionQueue(
           "review-overdue",
           92,
           "governance",
-          "Review ist ueberfaellig.",
-          "Dokumentationsstand kann fuer externe Pruefungen veralten.",
-          "Review jetzt durchfuehren und Statusaenderung dokumentieren.",
+          "Review is overdue.",
+          "Documentation status may become outdated for external audits.",
+          "Conduct the review now and document the status change.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               field: "history",
             }),
-            deepLinkLabel: "Review dokumentieren",
+            deepLinkLabel: "Document review",
           }
         )
       );
@@ -223,14 +223,14 @@ export function buildControlActionQueue(
           "owner-missing",
           88,
           "owner",
-          "System ohne klare Owner-Zuordnung.",
-          "Verantwortlichkeiten sind organisatorisch nicht eindeutig.",
-          "Owner in der Stammdokumentation hinterlegen.",
+          "System without a clear owner assignment.",
+          "Responsibilities are not unambiguously defined.",
+          "Record the owner in the core documentation.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "owner", {
               edit: true,
             }),
-            deepLinkLabel: "Owner ergänzen",
+            deepLinkLabel: "Add owner",
           }
         )
       );
@@ -243,9 +243,9 @@ export function buildControlActionQueue(
           "proof-ready-no-proof",
           86,
           "audit",
-          "Status PROOF_READY ohne hinterlegte Nachweisdaten.",
-          "Export- und Audit-Faehigkeit ist dadurch nicht gesichert.",
-          "Proof-Daten aktualisieren und Nachweislink dokumentieren.",
+          "Status PROOF_READY without evidence data on file.",
+          "Export and audit capability is not secured.",
+          "Update proof data and document the evidence link.",
           {
             deepLink: null,
             deepLinkLabel: null,
@@ -261,15 +261,15 @@ export function buildControlActionQueue(
           "review-structure-missing",
           80,
           "governance",
-          "Kein strukturierter Review-Zyklus dokumentiert.",
-          "Review-Planung ist nicht verlaesslich steuerbar.",
-          "Review-Zyklus oder naechstes Review-Datum setzen.",
+          "No structured review cycle documented.",
+          "Review planning cannot be reliably managed.",
+          "Set the review cycle or next review date.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               edit: true,
               field: "reviewCycle",
             }),
-            deepLinkLabel: "Review-Zyklus setzen",
+            deepLinkLabel: "Set review cycle",
           }
         )
       );
@@ -282,9 +282,9 @@ export function buildControlActionQueue(
           "high-risk-no-policy",
           78,
           "policy",
-          "Hochrisiko-System ohne Policy-Zuordnung.",
-          "Kontrollmassnahmen sind nicht konsistent zugeordnet.",
-          "Policy-Links fuer dieses System im Register hinterlegen.",
+          "High-risk system without policy mapping.",
+          "Control measures are not consistently assigned.",
+          "Add policy links for this system in the register.",
           {
             deepLink: null,
             deepLinkLabel: null,
@@ -300,9 +300,9 @@ export function buildControlActionQueue(
           "policy-mapping-missing",
           74,
           "policy",
-          "Keine Policy-Zuordnung dokumentiert.",
-          "Governance-Regeln sind schwer nachweisbar.",
-          "Relevante Policy-Referenzen mit dem Einsatzfall verknuepfen.",
+          "No policy mapping documented.",
+          "Governance rules are difficult to evidence.",
+          "Link relevant policy references to the use case.",
           {
             deepLink: null,
             deepLinkLabel: null,
@@ -318,14 +318,14 @@ export function buildControlActionQueue(
           "audit-history-missing",
           68,
           "governance",
-          "Keine Audit-Historie fuer dieses System vorhanden.",
-          "Pruefhistorie ist noch nicht revisionssicher nachvollziehbar.",
-          "Ersten dokumentierten Review- oder Statusnachweis erfassen.",
+          "No audit history available for this system.",
+          "Review history is not yet audit-proof.",
+          "Record the first documented review or status evidence.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               field: "history",
             }),
-            deepLinkLabel: "Prüfhistorie aufbauen",
+            deepLinkLabel: "Build audit trail",
           }
         )
       );
@@ -338,14 +338,14 @@ export function buildControlActionQueue(
           "review-due",
           62,
           "governance",
-          "Review wird in den naechsten 30 Tagen faellig.",
-          "Bei Verzoegerung entsteht ein ueberfaelliger Pruefzustand.",
-          "Review-Termin und Zustaendigkeit jetzt vorbereiten.",
+          "Review is due within the next 30 days.",
+          "A delay will result in an overdue review status.",
+          "Prepare the review schedule and assign responsibility now.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               field: "history",
             }),
-            deepLinkLabel: "Review vorbereiten",
+            deepLinkLabel: "Prepare review",
           }
         )
       );
@@ -358,14 +358,14 @@ export function buildControlActionQueue(
           "status-unreviewed",
           58,
           "governance",
-          "System befindet sich weiterhin im Status UNREVIEWED.",
-          "Formale Pruefung ist noch nicht dokumentiert.",
-          "Ersten Review-Schritt und Statusaenderung dokumentieren.",
+          "System remains in UNREVIEWED status.",
+          "Formal review has not yet been documented.",
+          "Document the first review step and status change.",
           {
             deepLink: buildUseCaseFocusLink(useCase.useCaseId, "governance", {
               field: "history",
             }),
-            deepLinkLabel: "Review starten",
+            deepLinkLabel: "Start review",
           }
         )
       );
@@ -394,41 +394,41 @@ export function buildControlActionQueue(
         ruleId: "maintenance-review",
         priority: 40,
         focus: "governance",
-        problem: "Kontinuitaets-Check fuer den Review-Status ausstehend.",
-        impact: "Regelmaessige Pflege sichert langfristige Audit-Lesbarkeit.",
-        recommendedAction: "Review-Status kurz validieren und bei Bedarf aktualisieren.",
+        problem: "Continuity check for the review status is pending.",
+        impact: "Regular maintenance ensures long-term audit readability.",
+        recommendedAction: "Briefly validate the review status and update if needed.",
       },
       {
         ruleId: "maintenance-audit",
         priority: 39,
         focus: "audit",
-        problem: "Auditspur sollte regelmaessig nachgepflegt werden.",
-        impact: "Laufende Dokumentation reduziert Nachweisaufwand bei Pruefungen.",
-        recommendedAction: "Letzte Review-/Statusdokumentation auf Vollstaendigkeit pruefen.",
+        problem: "Audit trail should be maintained regularly.",
+        impact: "Ongoing documentation reduces the evidence burden during audits.",
+        recommendedAction: "Check the latest review/status documentation for completeness.",
       },
       {
         ruleId: "maintenance-policy",
         priority: 38,
         focus: "policy",
-        problem: "Policy-Abgleich sollte zyklisch bestaetigt werden.",
-        impact: "Inkonsistenzen zwischen Policy und Betrieb werden frueh sichtbar.",
-        recommendedAction: "Policy-Zuordnung gegen aktuelle Nutzung verifizieren.",
+        problem: "Policy alignment should be confirmed periodically.",
+        impact: "Inconsistencies between policy and operations become visible early.",
+        recommendedAction: "Verify the policy mapping against current usage.",
       },
       {
         ruleId: "maintenance-owner",
         priority: 37,
         focus: "owner",
-        problem: "Owner-Verantwortung regelmaessig bestaetigen.",
-        impact: "Stabile Verantwortlichkeit verbessert Steuerbarkeit.",
-        recommendedAction: "Owner-Angabe im Einsatzfall auf Aktualitaet pruefen.",
+        problem: "Owner responsibility should be confirmed regularly.",
+        impact: "Stable accountability improves manageability.",
+        recommendedAction: "Check whether the owner assignment in the use case is still current.",
       },
       {
         ruleId: "maintenance-oversight",
         priority: 36,
         focus: "governance",
-        problem: "Aufsichtsmodell im Lebenszyklus erneut bestaetigen.",
-        impact: "Aenderungen im Betrieb bleiben governance-seitig nachvollziehbar.",
-        recommendedAction: "Aufsichtsmodell auf aktuellen Einsatzstand abgleichen.",
+        problem: "Oversight model should be reconfirmed during the lifecycle.",
+        impact: "Operational changes remain traceable from a governance perspective.",
+        recommendedAction: "Align the oversight model with the current operational status.",
       },
     ];
 

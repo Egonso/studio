@@ -73,7 +73,7 @@ export function createGovernanceSignOffRecord(input: {
     status: workflow ? 'pending' : 'approved',
     summary:
       normalizeOptionalText(input.summary) ??
-      'Governance-Konfiguration zur Freigabe vorgelegt',
+      'Governance configuration submitted for approval',
     requestedAt,
     requestedByUserId: input.requestedByUserId,
     requestedByEmail: normalizeOptionalText(input.requestedByEmail),
@@ -81,7 +81,7 @@ export function createGovernanceSignOffRecord(input: {
     settingsSnapshot: buildGovernanceSignOffSettingsSnapshot(input.settings),
     resolvedAt: workflow ? null : requestedAt,
     resolvedByUserId: workflow ? null : input.requestedByUserId,
-    note: workflow ? null : 'Kein zusaetzlicher Governance-Sign-off erforderlich.',
+    note: workflow ? null : 'No additional governance sign-off required.',
   };
 }
 

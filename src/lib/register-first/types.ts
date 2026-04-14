@@ -4,7 +4,7 @@ import type {
 import type { CaptureAssistContext } from "@/lib/coverage-assist/types";
 
 export const CAPTURE_STEP_3_LABEL =
-  'Bist du aktuell dafür verantwortlich?' as const;
+  'Are you currently responsible for this?' as const;
 
 export type {
   AffectedParty,

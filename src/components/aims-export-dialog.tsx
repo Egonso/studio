@@ -10,6 +10,7 @@ import { Loader2, Download, FileJson, FileText, ClipboardCopy, FileType, FileSig
 import { useToast } from '@/hooks/use-toast';
 import { getRequiredPlan } from '@/lib/compliance-engine/capability/featureChecker';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import { APP_LOCALE } from '@/lib/locale';
 import type { AimsProgress } from '@/lib/data-service';
 
 
@@ -32,18 +33,18 @@ interface AimsExportData {
 }
 
 const generateMarkdown = (data: AimsExportData | null): string => {
-    if (!data) return 'Lade Daten...';
+    if (!data) return 'Loading data...';
 
     let md = `# AI Management System (AIMS) Dokument - ${data.projectName}\n`;
-    md += `_Generiert am: ${new Date(data.generatedAt).toLocaleString('de-DE')}_\n\n`;
+    md += `_Generated on: ${new Date(data.generatedAt).toLocaleString(APP_LOCALE)}_\n\n`;
 
-    md += `## 1. Geltungsbereich (Scope)\n`;
-    md += `**Geltungsbereich:** ${data.scope || 'N/A'}\n`;
-    md += `**KI-Systeme:** ${data.systems || 'N/A'}\n`;
-    md += `**Interne/Externe Faktoren:** ${data.factors || 'N/A'}\n`;
-    md += `**Betroffene Abteilungen:** ${data.departments || 'N/A'}\n\n`;
+    md += `## 1. Scope\n`;
+    md += `**Scope:** ${data.scope || 'N/A'}\n`;
+    md += `**AI Systems:** ${data.systems || 'N/A'}\n`;
+    md += `**Internal/External Factors:** ${data.factors || 'N/A'}\n`;
+    md += `**Affected Departments:** ${data.departments || 'N/A'}\n\n`;
 
-    md += `## 2. Stakeholder-Analyse\n`;
+    md += `## 2. Stakeholder Analysis\n`;
     if (data.stakeholders?.length > 0) {
         data.stakeholders.forEach((s, i) => {
             md += `### 2.${i + 1} ${s.name || 'Unbenannter Stakeholder'}\n`;

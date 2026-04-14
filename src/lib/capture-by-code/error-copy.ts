@@ -36,113 +36,131 @@ export function getCaptureByCodeErrorCopy(
   if (context === "validate") {
     if (status === 400 || status === 404) {
       return {
-        title: "Code ungültig",
+        title: "Invalid code",
         description:
           cleanMessage ||
-          "Dieser Zugangscode ist ungültig. Bitte prüfen Sie die Eingabe.",
+          "This access code is invalid. Please check your input.",
+      };
+    }
+
+    if (status === 410 && cleanMessage?.toLowerCase().includes("expired")) {
+      return {
+        title: "Code expired",
+        description:
+          cleanMessage ||
+          "This access code has expired. Please request a new code.",
       };
     }
 
     if (status === 410 && cleanMessage?.toLowerCase().includes("abgelaufen")) {
       return {
-        title: "Code abgelaufen",
+        title: "Code expired",
         description:
           cleanMessage ||
-          "Dieser Zugangscode ist abgelaufen. Bitte fordern Sie einen neuen Code an.",
+          "This access code has expired. Please request a new code.",
       };
     }
 
     if (status === 410) {
       return {
-        title: "Code nicht aktiv",
+        title: "Code inactive",
         description:
           cleanMessage ||
-          "Dieser Zugangscode ist derzeit nicht aktiv. Bitte fordern Sie einen neuen Code an.",
+          "This access code is currently inactive. Please request a new code.",
       };
     }
 
     if (status === 429) {
       return {
-        title: "Zu viele Anfragen",
+        title: "Too many requests",
         description:
           cleanMessage ||
-          "Der Code wurde zu oft geprüft. Bitte versuchen Sie es in wenigen Minuten erneut.",
+          "This code has been checked too often. Please try again in a few minutes.",
       };
     }
 
     if (status === 503 || status >= 500) {
       return {
-        title: "Dienst vorübergehend nicht verfügbar",
+        title: "Service temporarily unavailable",
         description: isLocalDevelopmentBrowser()
-          ? "Die öffentliche Erfassung ist lokal gerade nicht mit dem Serverdienst verbunden. Bitte prüfen Sie die lokale Server-Anbindung und versuchen Sie es erneut."
-          : "Der Zugangscode konnte gerade nicht geprüft werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
+          ? "Public capture is not connected to the server service locally. Please check the local server connection and try again."
+          : "The access code could not be verified right now. Please try again in a few minutes.",
       };
     }
 
     return {
-      title: "Code konnte nicht geprüft werden",
-      description: cleanMessage || "Bitte versuchen Sie es erneut.",
+      title: "Code could not be verified",
+      description: cleanMessage || "Please try again.",
     };
   }
 
   if (status === 400) {
     return {
-      title: "Angaben prüfen",
+      title: "Check your input",
       description:
         cleanMessage ||
-        "Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.",
+        "Please check your input and try again.",
     };
   }
 
   if (status === 404) {
     return {
-      title: "Code ungültig",
+      title: "Invalid code",
       description:
         cleanMessage ||
-        "Dieser Zugangscode ist ungültig. Bitte prüfen Sie die Eingabe.",
+        "This access code is invalid. Please check your input.",
+    };
+  }
+
+  if (status === 410 && cleanMessage?.toLowerCase().includes("expired")) {
+    return {
+      title: "Code expired",
+      description:
+        cleanMessage ||
+        "This access code has expired. Please request a new code.",
     };
   }
 
   if (status === 410 && cleanMessage?.toLowerCase().includes("abgelaufen")) {
     return {
-      title: "Code abgelaufen",
+      title: "Code expired",
       description:
         cleanMessage ||
-        "Dieser Zugangscode ist abgelaufen. Bitte fordern Sie einen neuen Code an.",
+        "This access code has expired. Please request a new code.",
     };
   }
 
   if (status === 410) {
     return {
-      title: "Code nicht aktiv",
+      title: "Code inactive",
       description:
         cleanMessage ||
-        "Dieser Zugangscode ist derzeit nicht aktiv. Bitte fordern Sie einen neuen Code an.",
+        "This access code is currently inactive. Please request a new code.",
     };
   }
 
   if (status === 429) {
     return {
-      title: "Zu viele Anfragen",
+      title: "Too many requests",
       description:
         cleanMessage ||
-        "Der Einsatzfall konnte gerade nicht gespeichert werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        "The use case could not be saved right now. Please try again in a few minutes.",
     };
   }
 
   if (status === 503 || status >= 500) {
     return {
-      title: "Dienst vorübergehend nicht verfügbar",
+      title: "Service temporarily unavailable",
       description: isLocalDevelopmentBrowser()
-        ? "Die öffentliche Erfassung ist lokal gerade nicht mit dem Serverdienst verbunden. Bitte prüfen Sie die lokale Server-Anbindung und versuchen Sie es erneut."
-        : "Der Einsatzfall konnte gerade nicht gespeichert werden. Bitte versuchen Sie es in wenigen Minuten erneut.",
+        ? "Public capture is not connected to the server service locally. Please check the local server connection and try again."
+        : "The use case could not be saved right now. Please try again in a few minutes.",
     };
   }
 
   return {
-    title: "Speichern fehlgeschlagen",
+    title: "Save failed",
     description:
       cleanMessage ||
-      "Der Einsatzfall konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "The use case could not be saved. Please try again.",
   };
 }

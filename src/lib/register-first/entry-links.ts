@@ -25,7 +25,7 @@ export function buildVerifyPassAbsoluteUrl(
 ): string {
   const base =
     baseUrl ??
-    (typeof window !== "undefined" ? window.location.origin : "https://kiregister.com");
+    (typeof window !== "undefined" ? window.location.origin : "https://airegist.com");
   return `${base}/verify/pass/${encodeURIComponent(publicHashId)}`;
 }
 

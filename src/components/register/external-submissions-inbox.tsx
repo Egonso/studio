@@ -43,25 +43,25 @@ import type {
 } from "@/lib/register-first/types";
 
 const STATUS_LABELS: Record<ExternalSubmissionStatus, string> = {
-  submitted: "Eingegangen",
-  approved: "Freigegeben",
-  rejected: "Abgelehnt",
-  merged: "Uebernommen",
+  submitted: "Received",
+  approved: "Approved",
+  rejected: "Rejected",
+  merged: "Merged",
 };
 
 const SOURCE_LABELS: Record<ExternalSubmissionSourceType, string> = {
-  supplier_request: "Lieferantenlink",
-  access_code: "Erfassungslink",
+  supplier_request: "Supplier link",
+  access_code: "Capture link",
   manual_import: "Import",
 };
 
 function formatDate(value: string): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    return "unbekannt";
+    return "unknown";
   }
 
-  return parsed.toLocaleString("de-DE", {
+  return parsed.toLocaleString("en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -96,7 +96,7 @@ export function ExternalSubmissionsInbox({
   refreshKey = 0,
   onCountsChange,
   title = "External Inbox",
-  description = "Nachvollziehbare externe Einreichungen aus Lieferantenlinks, Erfassungslinks und Imports.",
+  description = "Traceable external submissions from supplier links, capture links, and imports.",
 }: ExternalSubmissionsInboxProps) {
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
@@ -132,8 +132,8 @@ export function ExternalSubmissionsInbox({
       }
       setError(
         isExternalSubmissionPermissionError(loadError)
-          ? "Die External Inbox ist im aktuell verbundenen Firebase-Projekt noch nicht lesbar. Prüfen Sie die deployten Firestore-Regeln."
-          : "Externe Einreichungen konnten nicht geladen werden.",
+          ? "The External Inbox is not yet readable in the currently connected Firebase project. Please check the deployed Firestore rules."
+          : "External submissions could not be loaded.",
       );
     } finally {
       setLoading(false);
@@ -155,8 +155,8 @@ export function ExternalSubmissionsInbox({
   const kmuMode = isKmuRegisterMode(register);
   const hasFilters = statusFilter !== "all" || sourceFilter !== "all" || Boolean(searchQuery);
   const emptyCopy = hasFilters
-    ? "Keine Einreichungen im aktuellen Filter."
-    : "Noch keine externen Einreichungen vorhanden.";
+    ? "No submissions match the current filter."
+    : "No external submissions yet.";
 
   const handleReview = async (
     submission: ExternalSubmission,
@@ -179,21 +179,21 @@ export function ExternalSubmissionsInbox({
       toast({
         title:
           action === "reject"
-            ? "Einreichung abgelehnt"
+            ? "Submission rejected"
             : action === "merge"
-              ? "Einreichung uebernommen"
-              : "Einreichung freigegeben",
+              ? "Submission merged"
+              : "Submission approved",
         description:
           updated.linkedUseCaseId && action !== "reject"
-            ? `Verknuepfter Use Case: ${updated.linkedUseCaseId}`
+            ? `Linked use case: ${updated.linkedUseCaseId}`
             : undefined,
       });
     } catch (reviewError) {
       console.error("External submission review failed:", reviewError);
       toast({
         variant: "destructive",
-        title: "Aktion fehlgeschlagen",
-        description: "Die Einreichung konnte nicht aktualisiert werden.",
+        title: "Action failed",
+        description: "The submission could not be updated.",
       });
     } finally {
       setActingId(null);
@@ -213,8 +213,8 @@ export function ExternalSubmissionsInbox({
           {kmuMode ? (
             <div className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
               <ShieldAlert className="h-3.5 w-3.5" />
-              KMU-Modus aktiv: Freigaben aus Lieferantenlinks legen direkt einen
-              Use Case an.
+              SME mode active: Approvals from supplier links directly create a
+              use case.
             </div>
           ) : null}
         </div>
@@ -231,7 +231,7 @@ export function ExternalSubmissionsInbox({
                   setSearchQuery(searchInput.trim());
                 }
               }}
-              placeholder="Suche nach System, API, Zweck, Person oder Token"
+              placeholder="Search by system, API, purpose, person, or token"
               className="pl-9"
             />
           </div>
@@ -245,11 +245,11 @@ export function ExternalSubmissionsInbox({
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Status</SelectItem>
-              <SelectItem value="submitted">Eingegangen</SelectItem>
-              <SelectItem value="approved">Freigegeben</SelectItem>
-              <SelectItem value="rejected">Abgelehnt</SelectItem>
-              <SelectItem value="merged">Uebernommen</SelectItem>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="submitted">Received</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="merged">Merged</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -259,12 +259,12 @@ export function ExternalSubmissionsInbox({
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Quelle" />
+              <SelectValue placeholder="Source" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Alle Quellen</SelectItem>
-              <SelectItem value="supplier_request">Lieferantenlink</SelectItem>
-              <SelectItem value="access_code">Erfassungslink</SelectItem>
+              <SelectItem value="all">All sources</SelectItem>
+              <SelectItem value="supplier_request">Supplier link</SelectItem>
+              <SelectItem value="access_code">Capture link</SelectItem>
               <SelectItem value="manual_import">Import</SelectItem>
             </SelectContent>
           </Select>
@@ -327,7 +327,7 @@ export function ExternalSubmissionsInbox({
                         <div className="text-xs text-muted-foreground">
                           {typeof submission.rawPayloadSnapshot.purpose === "string"
                             ? submission.rawPayloadSnapshot.purpose
-                            : "Keine Beschreibung"}
+                            : "No description"}
                         </div>
                       </div>
                       <Badge variant={statusVariant(submission.status)}>
@@ -470,13 +470,13 @@ export function ExternalSubmissionsInbox({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Quelle</TableHead>
-                    <TableHead>Einreichung</TableHead>
-                    <TableHead>Eingereicht von</TableHead>
-                    <TableHead>Zeitpunkt</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Submission</TableHead>
+                    <TableHead>Submitted by</TableHead>
+                    <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Use Case</TableHead>
-                    <TableHead className="text-right">Aktionen</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -507,7 +507,7 @@ export function ExternalSubmissionsInbox({
                             <div className="text-xs text-muted-foreground">
                               {typeof submission.rawPayloadSnapshot.purpose === "string"
                                 ? submission.rawPayloadSnapshot.purpose
-                                : "Keine Beschreibung"}
+                                : "No description"}
                             </div>
                           </div>
                         </TableCell>

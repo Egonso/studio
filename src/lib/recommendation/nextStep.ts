@@ -26,22 +26,22 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
     if (progress.isoWizardCompleted) {
         return {
             key: 'MAINTENANCE',
-            headline: "KI-System erfolgreich etabliert",
-            acknowledgement: "Gratulation! Sie haben ein ISO 42001 konformes Management-System aufgesetzt.",
+            headline: "AI system successfully established",
+            acknowledgement: "Congratulations! You have set up an ISO 42001 compliant management system.",
             primaryTitle: "Governance Control & Monitoring",
-            primaryMeta: "Laufende Überwachung",
-            primaryWhy: "Ihr System ist aktiv. Nutzen Sie jetzt Control, um neue Use Cases zu prüfen und das Compliance-Level zu halten.",
-            primaryCtaLabel: "Zu Control",
+            primaryMeta: "Ongoing monitoring",
+            primaryWhy: "Your system is active. Use Control now to review new use cases and maintain the compliance level.",
+            primaryCtaLabel: "Go to Control",
             primaryHref: ROUTE_HREFS.control,
             secondary: [
                 {
-                    title: "Neuen Use Case dokumentieren",
-                    subtitle: "Register und Erfassung aktualisieren.",
+                    title: "Document new use case",
+                    subtitle: "Update register and capture.",
                     href: ROUTE_HREFS.register
                 },
                 {
-                    title: "Strategie anpassen",
-                    subtitle: "Governance-Steuerung.",
+                    title: "Adjust strategy",
+                    subtitle: "Governance control.",
                     href: ROUTE_HREFS.control
                 }
             ]
@@ -53,13 +53,13 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
         return {
             key: 'AI_ACT_BASE',
             headline: progress.projectName
-                ? `Empfohlene Vorgehensweise für ${progress.projectName} (EU AI Act)`
-                : "Empfohlene Vorgehensweise (EU AI Act)",
-            // Lead text handles "Basierend auf..." in component, logic returns structure
-            primaryTitle: "Ersten KI-Einsatzfall dokumentieren",
-            primaryMeta: "unter 5 Minuten · Grundlage für Nachweisfähigkeit und Haftungsbegrenzung",
-            primaryWhy: "Kernvoraussetzung für Nachweisfähigkeit, Haftungsbegrenzung und spätere Audit-Sicherheit.",
-            primaryCtaLabel: "Zum Register",
+                ? `Recommended approach for ${progress.projectName} (EU AI Act)`
+                : "Recommended approach (EU AI Act)",
+            // Lead text handles "Based on..." in component, logic returns structure
+            primaryTitle: "Document your first AI use case",
+            primaryMeta: "under 5 minutes · foundation for evidence capability and liability limitation",
+            primaryWhy: "Core prerequisite for evidence capability, liability limitation and future audit readiness.",
+            primaryCtaLabel: "Go to Register",
             primaryHref: ROUTE_HREFS.register,
             secondary: []
         };
@@ -69,22 +69,22 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
     if (progress.aiActBaseWizardCompleted && !progress.policiesGenerated) {
         return {
             key: 'COMPLIANCE_IN_A_DAY',
-            headline: "Guter Fortschritt – nächste sinnvolle Verdichtung",
-            acknowledgement: "Sie haben die AI-Act-Basisdokumentation überprüft. Damit ist erstmals klar dokumentiert, wo und wie KI in Ihrem Unternehmen eingesetzt wird.",
-            primaryTitle: "Smart Policy Engine: Richtlinien & Policies erstellen",
-            primaryMeta: "ca. 10–20 Minuten · Vorlagen vorhanden · sofort verwendbar",
-            primaryWhy: "In dieser Phase ist es wichtiger, dass Ihre KI-Nutzung schriftlich greifbar ist, als bereits formale Managementstrukturen aufzubauen. Richtlinien und Policies sind die Dokumente, die intern, extern und bei Prüfungen tatsächlich vorgelegt werden.",
-            primaryCtaLabel: "Smart Policy Engine starten",
+            headline: "Good progress \u2013 next meaningful consolidation",
+            acknowledgement: "You have reviewed the AI Act base documentation. For the first time, there is clear documentation of where and how AI is used in your organisation.",
+            primaryTitle: "Smart Policy Engine: Create guidelines & policies",
+            primaryMeta: "approx. 10\u201320 minutes \u00b7 templates available \u00b7 immediately usable",
+            primaryWhy: "At this stage it is more important that your AI usage is documented in writing than to build formal management structures. Guidelines and policies are the documents that are actually presented internally, externally and during audits.",
+            primaryCtaLabel: "Start Smart Policy Engine",
             primaryHref: ROUTE_HREFS.controlPolicies,
             secondary: [
                 {
                     title: "Governance Control",
-                    subtitle: "Für Teams mit strukturierten Reviews und Organisationssteuerung.",
+                    subtitle: "For teams with structured reviews and organisational control.",
                     href: ROUTE_HREFS.control
                 },
                 {
-                    title: "KI-Portfolio & Strategie",
-                    subtitle: "Wenn mehrere Use Cases bestehen oder Prioritäten unklar sind.",
+                    title: "AI Portfolio & Strategy",
+                    subtitle: "When multiple use cases exist or priorities are unclear.",
                     href: ROUTE_HREFS.control
                 }
             ]
@@ -95,22 +95,22 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
     if (progress.policiesGenerated && !progress.isoWizardStarted) {
         return {
             key: 'ISO_WIZARD',
-            headline: "Dokumentation vorhanden – Governance sinnvoll ergänzen",
-            acknowledgement: "Ihre Richtlinien sind nun dokumentiert. Der nächste sinnvolle Schritt ist, diese organisatorisch abzusichern.",
-            primaryTitle: "Governance Control ausbauen",
-            primaryMeta: "ca. 20–30 Minuten · Rollen, Verantwortlichkeiten und Prozesse klären",
-            primaryWhy: "Damit Ihre Policies nicht nur existieren, sondern getragen werden: Governance, Verantwortlichkeiten und regelmäßige Risikoanalyse erhöhen Auditfähigkeit und Prozesssicherheit.",
-            primaryCtaLabel: "Zu Control",
+            headline: "Documentation in place \u2013 complement with governance",
+            acknowledgement: "Your guidelines are now documented. The next logical step is to secure them organisationally.",
+            primaryTitle: "Expand Governance Control",
+            primaryMeta: "approx. 20\u201330 minutes \u00b7 clarify roles, responsibilities and processes",
+            primaryWhy: "So that your policies are not just documented but supported: governance, responsibilities and regular risk analysis increase audit readiness and process reliability.",
+            primaryCtaLabel: "Go to Control",
             primaryHref: ROUTE_HREFS.control,
             secondary: [
                 {
-                    title: "Export-Center",
-                    subtitle: "Alle Dokumente an einem Ort.",
+                    title: "Export Centre",
+                    subtitle: "All documents in one place.",
                     href: ROUTE_HREFS.controlExports
                 },
                 {
-                    title: "KI-Portfolio & Strategie",
-                    subtitle: "Strategische Ausrichtung.",
+                    title: "AI Portfolio & Strategy",
+                    subtitle: "Strategic alignment.",
                     href: ROUTE_HREFS.control
                 }
             ]
@@ -121,17 +121,17 @@ export function getNextRecommendation(progress: ProjectProgress): Recommendation
     // if (progress.isoWizardStarted) ... implied by previous checks failing
     return {
         key: 'ISO_WIZARD',
-        headline: "KI-Management weiter vervollständigen",
-        acknowledgement: "Sie haben bereits mit dem KI-Management begonnen.",
-        primaryTitle: "Governance weiter ausbauen",
-        primaryMeta: "ca. 20–30 Minuten · nächste Anforderungen bearbeiten",
-        primaryWhy: "In dieser Phase bringt kontinuierliche Vervollständigung die größte Wirkung, weil sie Wiederholbarkeit und Auditfähigkeit erhöht.",
-        primaryCtaLabel: "Weiter in Control",
+        headline: "Continue completing AI management",
+        acknowledgement: "You have already started with AI management.",
+        primaryTitle: "Continue expanding governance",
+        primaryMeta: "approx. 20\u201330 minutes \u00b7 work through next requirements",
+        primaryWhy: "At this stage, continuous completion has the greatest impact because it increases repeatability and audit readiness.",
+        primaryCtaLabel: "Continue in Control",
         primaryHref: ROUTE_HREFS.control,
         secondary: [
             {
-                title: "Export-Center",
-                subtitle: "Fortschritt prüfen.",
+                title: "Export Centre",
+                subtitle: "Review progress.",
                 href: ROUTE_HREFS.controlExports
             }
         ]

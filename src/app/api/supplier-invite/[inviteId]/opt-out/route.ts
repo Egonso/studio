@@ -11,7 +11,7 @@ const INVITE_COLLECTION = 'registerSupplierInvites';
 
 function renderHtml(title: string, message: string): string {
   return `<!doctype html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,8 +45,8 @@ export async function GET(
     if (!inviteDoc.exists) {
       return new NextResponse(
         renderHtml(
-          'Anfrage nicht gefunden',
-          'Die zugehoerige Lieferantenanfrage konnte nicht gefunden werden.',
+          'Request not found',
+          'The associated supplier request could not be found.',
         ),
         {
           status: 404,
@@ -62,8 +62,8 @@ export async function GET(
     if (!validation.valid) {
       return new NextResponse(
         renderHtml(
-          'Link ungueltig',
-          'Der Abmeldelink ist ungueltig oder abgelaufen. Bitte wenden Sie sich an den Absender, falls Sie keine weiteren Erinnerungen erhalten moechten.',
+          'Invalid link',
+          'The unsubscribe link is invalid or has expired. Please contact the sender if you no longer wish to receive reminders.',
         ),
         {
           status: 400,
@@ -83,8 +83,8 @@ export async function GET(
 
     return new NextResponse(
       renderHtml(
-        'Erinnerungen beendet',
-        `Fuer ${invite.intendedEmail} werden keine automatischen Erinnerungen zu dieser Anfrage mehr versendet.`,
+        'Reminders stopped',
+        `Automatic reminders for this request will no longer be sent to ${invite.intendedEmail}.`,
       ),
       {
         status: 200,
@@ -101,8 +101,8 @@ export async function GET(
     });
     return new NextResponse(
       renderHtml(
-        'Fehler',
-        'Die Abmeldung konnte nicht verarbeitet werden. Bitte versuchen Sie es spaeter erneut.',
+        'Error',
+        'The unsubscribe request could not be processed. Please try again later.',
       ),
       {
         status: 500,

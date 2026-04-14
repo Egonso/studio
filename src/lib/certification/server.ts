@@ -263,16 +263,16 @@ function buildFakePdfDataUri(certificate: PersonCertificateRecord, verifyUrl: st
     'BT',
     '/F1 20 Tf',
     '72 720 Td',
-    '(KI-Register Zertifikat) Tj',
+    '(AI Register Certificate) Tj',
     '0 -32 Td',
     '/F1 12 Tf',
     `(${escapePdfText(certificate.holderName)}) Tj`,
     '0 -18 Td',
     `(Code: ${escapePdfText(certificate.certificateCode)}) Tj`,
     '0 -18 Td',
-    `(Verifikation: ${escapePdfText(verifyUrl)}) Tj`,
+    `(Verification: ${escapePdfText(verifyUrl)}) Tj`,
     '0 -18 Td',
-    `(Generiert: ${escapePdfText(new Date().toISOString())}) Tj`,
+    `(Generated: ${escapePdfText(new Date().toISOString())}) Tj`,
     'ET',
   ].join('\n');
 
@@ -305,7 +305,7 @@ function buildFakePdfDataUri(certificate: PersonCertificateRecord, verifyUrl: st
 
 function formatCertificateDate(value: string | null | undefined): string {
   if (!value) {
-    return 'Nicht gesetzt';
+    return 'Not set';
   }
 
   const parsed = new Date(value);
@@ -313,7 +313,7 @@ function formatCertificateDate(value: string | null | undefined): string {
     return value;
   }
 
-  return parsed.toLocaleDateString('de-DE', {
+  return parsed.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -334,11 +334,11 @@ async function buildNativePdfDataUri(
   let y = 24;
   const effectiveStatus = resolveCertificateStatus(certificate);
   const subtitleLines = pdf.splitTextToSize(
-    'Öffentlich verifizierbarer Kompetenznachweis für die erfolgreiche interne Prüfung im KI-Register.',
+    'Publicly verifiable competency certificate for successful internal review in the AI Register.',
     right - left,
   );
   const introLines = pdf.splitTextToSize(
-    'Dieses Dokument bestätigt die nachgewiesene Befähigung zum strukturierten Umgang mit Anforderungen, Dokumentation und Governance rund um den EU AI Act.',
+    'This document confirms the demonstrated competence in the structured handling of requirements, documentation and governance related to the EU AI Act.',
     right - left,
   );
   const moduleLines = pdf.splitTextToSize(certificate.modules.join(' · '), right - left - 16);
@@ -354,7 +354,7 @@ async function buildNativePdfDataUri(
   pdf.setTextColor(17, 24, 39);
   pdf.setFont('courier', 'bold');
   pdf.setFontSize(10);
-  pdf.text('KI-REGISTER', left + 28, y + 8);
+  pdf.text('AI REGISTER', left + 28, y + 8);
   pdf.setFont('courier', 'normal');
   pdf.setFontSize(9);
   pdf.text('CERTIFICATE / PUBLIC RECORD', left + 28, y + 15);
@@ -367,7 +367,7 @@ async function buildNativePdfDataUri(
   y += 12;
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(27);
-  pdf.text('Kompetenzzertifikat', left, y);
+  pdf.text('Competency Certificate', left, y);
 
   y += 9;
   pdf.setFont('helvetica', 'normal');
@@ -377,7 +377,7 @@ async function buildNativePdfDataUri(
   y += subtitleLines.length * 5 + 14;
   pdf.setFont('courier', 'bold');
   pdf.setFontSize(10);
-  pdf.text('AUSGESTELLT FÜR', left, y);
+  pdf.text('ISSUED TO', left, y);
 
   y += 12;
   pdf.setFont('helvetica', 'bold');
@@ -407,20 +407,20 @@ async function buildNativePdfDataUri(
 
   pdf.setFont('courier', 'bold');
   pdf.setFontSize(9);
-  pdf.text('ZERTIFIKATSCODE', left + 6, fieldTop + 9);
-  pdf.text('AUSGESTELLT', left + 6, fieldTop + 25);
+  pdf.text('CERTIFICATE CODE', left + 6, fieldTop + 9);
+  pdf.text('ISSUED', left + 6, fieldTop + 25);
   pdf.text('STATUS', left + columnWidth + columnGap + 6, fieldTop + 9);
-  pdf.text('GÜLTIG BIS', left + columnWidth + columnGap + 6, fieldTop + 25);
+  pdf.text('VALID UNTIL', left + columnWidth + columnGap + 6, fieldTop + 25);
 
   pdf.setFont('helvetica', 'bold');
   pdf.setFontSize(12);
   pdf.text(certificate.certificateCode, left + 6, fieldTop + 16);
   pdf.text(
     effectiveStatus === 'active'
-      ? 'Aktiv'
+      ? 'Active'
       : effectiveStatus === 'expired'
-        ? 'Abgelaufen'
-        : 'Widerrufen',
+        ? 'Expired'
+        : 'Revoked',
     left + columnWidth + columnGap + 6,
     fieldTop + 16,
   );
@@ -437,7 +437,7 @@ async function buildNativePdfDataUri(
   y = fieldTop + fieldHeight + 14;
   pdf.setFont('courier', 'bold');
   pdf.setFontSize(9);
-  pdf.text('UMFANG', left, y);
+  pdf.text('SCOPE', left, y);
 
   y += 7;
   pdf.rect(left, y, right - left, 26);
@@ -448,7 +448,7 @@ async function buildNativePdfDataUri(
   y += 40;
   pdf.setFont('courier', 'bold');
   pdf.setFontSize(9);
-  pdf.text('ÖFFENTLICHE VERIFIKATION', left, y);
+  pdf.text('PUBLIC VERIFICATION', left, y);
 
   y += 7;
   pdf.rect(left, y, right - left, 28);
@@ -460,7 +460,7 @@ async function buildNativePdfDataUri(
   pdf.line(left, pageHeight - 30, right, pageHeight - 30);
   pdf.setFont('courier', 'normal');
   pdf.setFontSize(8);
-  pdf.text('KI-Register · Public Verification Record', left, pageHeight - 22);
+  pdf.text('AI Register · Public Verification Record', left, pageHeight - 22);
   pdf.text(formatCertificateDate(new Date().toISOString()), right, pageHeight - 22, {
     align: 'right',
   });
@@ -1048,7 +1048,7 @@ async function generateDocumentUrl(
           qrcode: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`,
           Zert_Nr: certificate.certificateCode,
           Vorname_Nachname: certificate.holderName,
-          datum: new Date(certificate.issuedAt).toLocaleDateString('de-DE'),
+          datum: new Date(certificate.issuedAt).toLocaleDateString('en-GB'),
         },
       }),
     });
@@ -1192,7 +1192,7 @@ export async function submitExamAttempt(
       certificateCode,
       publicUrl: buildCertificateVerifyUrl(certificateCode),
       auditTrail: [
-        buildAuditEvent(actor.email, 'issued', 'Zertifikat nach bestandener Prüfung ausgestellt.'),
+        buildAuditEvent(actor.email, 'issued', 'Certificate issued after passing the review.'),
       ],
     };
   }
@@ -1254,7 +1254,7 @@ export async function regenerateCertificateDocument(
     latestDocumentUrl: document.url,
     latestDocumentGeneratedAt: document.generatedAt,
     auditTrail: [
-      buildAuditEvent(actor.email, 'regenerated', 'PDF-Zertifikat neu generiert.'),
+      buildAuditEvent(actor.email, 'regenerated', 'Certificate PDF regenerated.'),
       ...certificate.auditTrail,
     ],
   };
@@ -1279,7 +1279,7 @@ export async function updateCertificateByAdmin(
       buildAuditEvent(
         actor.email,
         'status_changed',
-        input.note || `Status auf ${input.status} gesetzt.`,
+        input.note || `Status changed to ${input.status}.`,
       ),
     );
   }

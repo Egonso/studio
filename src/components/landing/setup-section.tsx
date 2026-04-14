@@ -15,6 +15,7 @@ import type { User } from "firebase/auth";
 import { getPublicAppOrigin } from "@/lib/app-url";
 import { getCaptureByCodeErrorCopy } from "@/lib/capture-by-code/error-copy";
 import { buildLoginPath } from "@/lib/auth/login-routing";
+import { APP_LOCALE } from "@/lib/locale";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -32,9 +33,9 @@ interface SetupSectionProps {
 }
 
 const ADMIN_STEP_LABELS: Record<AdminStep, string> = {
-  1: "Zugang",
+  1: "Account",
   2: "Organisation",
-  3: "Loslegen",
+  3: "Get started",
 };
 
 /* ------------------------------------------------------------------ */
@@ -69,7 +70,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
   // Step 2: Organisation
   const [orgName, setOrgName] = useState("");
-  const [role, setRole] = useState("KI-Verantwortliche/r");
+  const [role, setRole] = useState("AI Governance Lead");
 
   // Step 3: Invite code
   const [inviteCode, setInviteCode] = useState("");
@@ -106,8 +107,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Fehler",
-        description: "Inhalt konnte nicht kopiert werden.",
+        title: "Error",
+        description: "Content could not be copied.",
       });
     }
   };
@@ -120,16 +121,16 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!name.trim() || !email.trim() || !password.trim()) {
       toast({
         variant: "destructive",
-        title: "Fehlende Angaben",
-        description: "Bitte füllen Sie alle Felder aus.",
+        title: "Missing information",
+        description: "Please fill in all fields.",
       });
       return;
     }
     if (password.length < 6) {
       toast({
         variant: "destructive",
-        title: "Passwort zu kurz",
-        description: "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        title: "Password too short",
+        description: "The password must be at least 6 characters long.",
       });
       return;
     }
@@ -149,9 +150,9 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
       if (result.requiresEmailVerification) {
         toast({
-          title: "Bitte E-Mail bestätigen",
+          title: "Please verify your email",
           description:
-            "Ihr Konto wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie mit Schritt 2 fortfahren.",
+            "Your account has been created. We have sent you a verification link. After confirmation you can proceed to step 2.",
         });
         setPassword("");
         return;
@@ -161,11 +162,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch (error: any) {
       const msg =
         error.code === "auth/email-already-in-use"
-          ? "Diese E-Mail-Adresse wird bereits verwendet. Bitte melden Sie sich an."
+          ? "This email address is already in use. Please sign in."
           : error.code === "auth/invalid-email"
-            ? "Bitte geben Sie eine gültige E-Mail-Adresse ein."
-            : "Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
-      toast({ variant: "destructive", title: "Fehler", description: msg });
+            ? "Please enter a valid email address."
+            : "Account could not be created. Please try again.";
+      toast({ variant: "destructive", title: "Error", description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
           buildLoginPath({
@@ -185,8 +186,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!orgNameValue) {
       toast({
         variant: "destructive",
-        title: "Fehlende Angabe",
-        description: "Bitte geben Sie den Organisationsnamen ein.",
+        title: "Missing information",
+        description: "Please enter the organisation name.",
       });
       return;
     }
@@ -194,19 +195,19 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     setIsSubmitting(true);
     try {
       const existingRegisters = await registerService.listRegisters();
-      const normalizedName = orgNameValue.toLocaleLowerCase("de-DE");
+      const normalizedName = orgNameValue.toLocaleLowerCase(APP_LOCALE);
       const existing = existingRegisters.find((register) =>
         [register.organisationName, register.name]
           .filter((value): value is string => Boolean(value))
           .some(
-            (value) => value.trim().toLocaleLowerCase("de-DE") === normalizedName
+            (value) => value.trim().toLocaleLowerCase(APP_LOCALE) === normalizedName
           )
       );
 
       const registerId = existing
         ? existing.registerId
         : (await registerService.createRegister(orgNameValue)).registerId;
-      const contactName = name.trim() || user?.displayName?.trim() || "Unbenannt";
+      const contactName = name.trim() || user?.displayName?.trim() || "Unnamed";
       const contactEmail =
         email.trim().toLowerCase() || user?.email?.toLowerCase() || "";
 
@@ -235,8 +236,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
       setTargetRegisterId(registerId);
       if (existing) {
         toast({
-          title: "Bestehendes Register verwendet",
-          description: `Für "${orgNameValue}" wurde kein Duplikat angelegt.`,
+          title: "Existing register used",
+          description: `No duplicate was created for "${orgNameValue}".,
         });
       }
 
@@ -254,9 +255,9 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Fehler",
+        title: "Error",
         description:
-          "Register konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+          "Register could not be created. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -279,8 +280,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!code || code.length < 3) {
       toast({
         variant: "destructive",
-        title: "Code ungültig",
-        description: "Bitte geben Sie einen gültigen Einladungscode ein.",
+        title: "Invalid code",
+        description: "Please enter a valid invitation code.",
       });
       return;
     }
@@ -291,7 +292,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
         `/api/capture-by-code?code=${encodeURIComponent(code)}`
       );
       const payload = (await response.json().catch(() => ({
-        error: "Code konnte nicht überprüft werden.",
+        error: "Code could not be verified.",
       }))) as {
         error?: string;
         organisationName?: string | null;
@@ -320,9 +321,9 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch {
       toast({
         variant: "destructive",
-        title: "Fehler",
+        title: "Error",
         description:
-          "Code konnte nicht überprüft werden. Bitte versuchen Sie es erneut.",
+          "Code could not be verified. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -333,8 +334,8 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!validatedCode) {
       toast({
         variant: "destructive",
-        title: "Code fehlt",
-        description: "Bitte prüfen Sie zuerst den Einladungscode.",
+        title: "Code missing",
+        description: "Please verify the invitation code first.",
       });
       setMemberStep("code");
       return;
@@ -342,16 +343,16 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     if (!memberName.trim() || !memberEmail.trim() || !memberPassword.trim()) {
       toast({
         variant: "destructive",
-        title: "Fehlende Angaben",
-        description: "Bitte füllen Sie alle Felder aus.",
+        title: "Missing information",
+        description: "Please fill in all fields.",
       });
       return;
     }
     if (memberPassword.length < 6) {
       toast({
         variant: "destructive",
-        title: "Passwort zu kurz",
-        description: "Das Passwort muss mindestens 6 Zeichen lang sein.",
+        title: "Password too short",
+        description: "The password must be at least 6 characters long.",
       });
       return;
     }
@@ -372,9 +373,9 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
 
       if (result.requiresEmailVerification) {
         toast({
-          title: "Bitte E-Mail bestätigen",
+          title: "Please verify your email",
           description:
-            "Ihr Zugang wurde angelegt. Wir haben Ihnen einen Verifizierungslink gesendet. Nach der Bestätigung können Sie dem Register beitreten.",
+            "Your account has been created. We have sent you a verification link. After confirmation you can join the register.",
         });
         setMemberPassword("");
         return;
@@ -386,11 +387,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
     } catch (error: any) {
       const msg =
         error.code === "auth/email-already-in-use"
-          ? "Diese E-Mail-Adresse wird bereits verwendet. Bitte melden Sie sich an."
+          ? "This email address is already in use. Please sign in."
           : error.code === "auth/invalid-email"
-            ? "Bitte geben Sie eine gültige E-Mail-Adresse ein."
-            : "Konto konnte nicht erstellt werden. Bitte versuchen Sie es erneut.";
-      toast({ variant: "destructive", title: "Fehler", description: msg });
+            ? "Please enter a valid email address."
+            : "Account could not be created. Please try again.";
+      toast({ variant: "destructive", title: "Error", description: msg });
       if (error.code === "auth/email-already-in-use") {
         router.push(
           buildLoginPath({
@@ -426,7 +427,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Register einrichten
+            Set up register
           </button>
           <button
             type="button"
@@ -437,7 +438,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
-            Einladungscode verwenden
+            Use invitation code
           </button>
         </div>
 
@@ -449,10 +450,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
             {/* Title + progress */}
             <div className="space-y-2">
               <h2 className="text-xl font-bold tracking-tight">
-                {adminStep === 3 ? "Sie sind startklar" : "KI-Register einrichten"}
+                {adminStep === 3 ? "You are ready to go" : "KI-Set up register"}
               </h2>
               <p className="text-sm text-muted-foreground">
-                Schritt {adminStepNumber} von {adminTotalSteps} ·{" "}
+                Step {adminStepNumber} of {adminTotalSteps} ·{" "}
                 {ADMIN_STEP_LABELS[adminStep]}
               </p>
               <div className="flex items-center gap-1 pt-1">
@@ -484,20 +485,20 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     id="setup-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ihr Name"
+                    placeholder="Your name"
                     autoFocus
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="setup-email">
-                    E-Mail-Adresse
+                    Email address
                   </label>
                   <Input
                     id="setup-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ihre@organisation.de"
+                    placeholder="your@organisation.com"
                   />
                 </div>
                 <div className="space-y-2">
@@ -505,14 +506,14 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     className="text-sm font-medium"
                     htmlFor="setup-password"
                   >
-                    Passwort
+                    Password
                   </label>
                   <Input
                     id="setup-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mindestens 6 Zeichen"
+                    placeholder="At least 6 characters"
                   />
                 </div>
                 <button
@@ -523,11 +524,11 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                   {isSubmitting ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    "Weiter"
+                    "Continue"
                   )}
                 </button>
                 <p className="text-center text-xs text-muted-foreground">
-                  Bereits ein Konto?{" "}
+                  Already have an account?{" "}
                   <Link
                     href={buildLoginPath({
                       mode: "login",
@@ -535,7 +536,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
-                    Direkt anmelden
+                    Sign in directly
                   </Link>
                 </p>
               </form>
@@ -555,19 +556,19 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     className="text-sm font-medium"
                     htmlFor="setup-orgName"
                   >
-                    Organisationsname
+                    Organisation name
                   </label>
                   <Input
                     id="setup-orgName"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
-                    placeholder="z. B. Mustermann GmbH"
+                    placeholder="e.g. Acme Corp"
                     autoFocus
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium" htmlFor="setup-role">
-                    Ihre Rolle{" "}
+                    Your role{" "}
                     <span className="font-normal text-muted-foreground">
                       (optional)
                     </span>
@@ -576,12 +577,12 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     id="setup-role"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    placeholder="z. B. KI-Verantwortliche/r"
+                    placeholder="e.g. AI Governance Lead"
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Falls die Organisation bereits existiert, wird das vorhandene
-                  Register verwendet.
+                  If the organisation already exists, the existing
+                  register will be used.
                 </p>
                 <button
                   type="submit"
@@ -591,7 +592,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                   {isSubmitting ? (
                     <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                   ) : (
-                    "Weiter"
+                    "Continue"
                   )}
                 </button>
               </form>
@@ -620,10 +621,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    KI-Register beitreten
+                    Join AI Register
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Geben Sie den Einladungscode Ihrer Organisation ein.
+                    Enter the invitation code from your organisation.
                   </p>
                 </div>
                 <form
@@ -638,7 +639,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-code"
                     >
-                      Einladungscode
+                      Invitation code
                     </label>
                     <Input
                       id="member-code"
@@ -659,7 +660,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     {isSubmitting ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                     ) : (
-                      "Prüfen"
+                      "Verify"
                     )}
                   </button>
                 </form>
@@ -671,10 +672,10 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    Organisation bestätigen
+                    Confirm organisation
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Prüfen Sie, ob der Code zur richtigen Organisation gehört.
+                    Check whether the code belongs to the correct organisation.
                   </p>
                 </div>
                 <div className="rounded-md border p-4 space-y-1">
@@ -695,7 +696,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     onClick={() => setMemberStep("signup")}
                     className="w-full rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
                   >
-                    Organisation bestätigen
+                    Confirm organisation
                   </button>
                   <button
                     type="button"
@@ -707,7 +708,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     }}
                     className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline py-1"
                   >
-                    Das ist nicht meine Organisation
+                    This is not my organisation
                   </button>
                 </div>
               </>
@@ -718,7 +719,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
               <>
                 <div className="space-y-2">
                   <h2 className="text-xl font-bold tracking-tight">
-                    Zugang anlegen
+                    Create account
                   </h2>
                   {(memberOrgName || memberOrgLabel) && (
                     <p className="text-sm text-muted-foreground">
@@ -744,7 +745,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       id="member-name"
                       value={memberName}
                       onChange={(e) => setMemberName(e.target.value)}
-                      placeholder="Ihr Name"
+                      placeholder="Your name"
                       autoFocus
                     />
                   </div>
@@ -753,14 +754,14 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-email"
                     >
-                      E-Mail-Adresse
+                      Email address
                     </label>
                     <Input
                       id="member-email"
                       type="email"
                       value={memberEmail}
                       onChange={(e) => setMemberEmail(e.target.value)}
-                      placeholder="ihre@organisation.de"
+                      placeholder="your@organisation.com"
                     />
                   </div>
                   <div className="space-y-2">
@@ -768,14 +769,14 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                       className="text-sm font-medium"
                       htmlFor="member-password"
                     >
-                      Passwort
+                      Password
                     </label>
                     <Input
                       id="member-password"
                       type="password"
                       value={memberPassword}
                       onChange={(e) => setMemberPassword(e.target.value)}
-                      placeholder="Mindestens 6 Zeichen"
+                      placeholder="At least 6 characters"
                     />
                   </div>
                   <button
@@ -786,12 +787,12 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     {isSubmitting ? (
                       <Loader2 className="mx-auto h-4 w-4 animate-spin" />
                     ) : (
-                      "Konto anlegen & zur Erfassung"
+                      "Create account & go to capture"
                     )}
                   </button>
                 </form>
                 <p className="text-center text-xs text-muted-foreground">
-                  Bereits ein Konto?{" "}
+                  Already have an account?{" "}
                   <Link
                     href={buildLoginPath({
                       mode: "login",
@@ -800,7 +801,7 @@ export const SetupSection = forwardRef<HTMLElement, SetupSectionProps>(
                     })}
                     className="hover:text-foreground underline-offset-2 hover:underline"
                   >
-                    Anmelden und direkt fortfahren
+                    Sign in and continue directly
                   </Link>
                 </p>
               </>

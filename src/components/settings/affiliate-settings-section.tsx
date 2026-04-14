@@ -36,13 +36,14 @@ import type {
   AffiliateCommission,
   AffiliateRecord,
 } from '@/lib/affiliate/types';
+import { APP_LOCALE } from '@/lib/locale';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function formatEur(cents: number): string {
-  return new Intl.NumberFormat('de-DE', {
+  return new Intl.NumberFormat(APP_LOCALE, {
     style: 'currency',
     currency: 'EUR',
   }).format(cents / 100);
@@ -286,7 +287,7 @@ export function AffiliateSettingsSection() {
                 {commissions.map((c) => (
                   <TableRow key={c.commissionId}>
                     <TableCell className="text-sm">
-                      {new Date(c.createdAt).toLocaleDateString('de-DE')}
+                      {new Date(c.createdAt).toLocaleDateString(APP_LOCALE)}
                     </TableCell>
                     <TableCell className="text-sm">
                       {maskEmail(c.referredEmail)}

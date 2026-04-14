@@ -12,7 +12,7 @@ export const ROUTE_PATHS = {
   setup: '/einrichten',
   register: '/my-register',
   capture: '/capture',
-  publicCapture: '/erfassen',
+  publicCapture: '/intake',
   supplierRequestPattern: '/request/[requestToken]',
   settings: '/settings',
   settingsAgentKit: '/settings/agent-kit',
@@ -25,7 +25,7 @@ export const ROUTE_PATHS = {
   controlTrust: '/control/trust',
   controlEnterprise: '/control/organisation',
   academy: '/academy',
-  law: '/gesetz',
+  law: '/law',
   downloads: '/downloads',
   developersAgentKit: '/developers/agent-kit',
   verifyPattern: '/verify/[code]',
@@ -78,47 +78,47 @@ export const PRODUCT_AREA_DEFINITIONS: Record<
     id: 'public_marketing',
     shellLabel: 'Public Marketing',
     shortLabel: 'Start',
-    headline: 'KI-Register Einstieg',
+    headline: 'AI Register Entry',
     description:
-      'Öffentlicher Einstieg für neues Register, bestehende Anmeldung und Sonderkontexte wie Invite, Import oder Checkout-Rückkehr.',
+      'Public entry point for new register creation, existing login and special contexts such as invite, import or checkout return.',
     primaryHref: ROUTE_PATHS.marketingHome,
-    primaryCtaLabel: 'Neu starten',
+    primaryCtaLabel: 'Get started',
     secondaryHref: '/?mode=login',
-    secondaryCtaLabel: 'Anmelden',
+    secondaryCtaLabel: 'Sign in',
   },
   public_external_intake: {
     id: 'public_external_intake',
     shellLabel: 'Public Intake',
     shortLabel: 'Intake',
-    headline: 'Externe Angaben sicher einreichen',
+    headline: 'Submit information securely',
     description:
-      'Öffentliche Formulare zur strukturierten Einreichung über Zugangscode oder signierten Lieferantenlink.',
+      'Public forms for structured submissions via access code or signed supplier link.',
     primaryHref: ROUTE_PATHS.publicCapture,
-    primaryCtaLabel: 'Zugangscode verwenden',
+    primaryCtaLabel: 'Use access code',
     secondaryHref: '/?mode=signup&intent=create_register',
-    secondaryCtaLabel: 'Eigenes Register starten',
+    secondaryCtaLabel: 'Start your own register',
   },
   signed_in_free_register: {
     id: 'signed_in_free_register',
     shellLabel: 'Register',
     shortLabel: 'Register',
-    headline: 'Dokumentieren und prüfen',
+    headline: 'Document and review',
     description:
-      'Signed-in Arbeitsbereich für Use Cases, externe Einreichungen und Register-Einstellungen.',
+      'Signed-in workspace for use cases, external submissions and register settings.',
     primaryHref: ROUTE_HREFS.register,
-    primaryCtaLabel: 'Register öffnen',
+    primaryCtaLabel: 'Open register',
     secondaryHref: ROUTE_HREFS.externalInbox,
     secondaryCtaLabel: 'External Inbox',
   },
   paid_governance_control: {
     id: 'paid_governance_control',
     shellLabel: 'Governance',
-    shortLabel: 'Bericht',
-    headline: 'Governance-Bericht',
+    shortLabel: 'Report',
+    headline: 'Governance Report',
     description:
-      'Registerbasierte Analyse für Reifegrad, Prüfungen, Nachweise und weiterführende Governance-Bereiche.',
+      'Register-based analysis for maturity level, reviews, evidence and advanced governance areas.',
     primaryHref: ROUTE_HREFS.control,
-    primaryCtaLabel: 'Bericht öffnen',
+    primaryCtaLabel: 'Open report',
     secondaryHref: ROUTE_HREFS.controlPolicies,
     secondaryCtaLabel: 'Policies',
   },
@@ -195,9 +195,9 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
   {
     segment: 'paid_governance_control',
     href: ROUTE_HREFS.control,
-    label: 'Governance-Bericht',
+    label: 'Governance Report',
     description:
-      'Registerbasierte Analyse und Einstieg in weiterführende Governance-Bereiche.',
+      'Register-based analysis and entry to advanced governance areas.',
   },
   {
     segment: 'paid_governance_control',
@@ -236,7 +236,7 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
     href: ROUTE_HREFS.controlEnterprise,
     label: 'Organisation',
     description:
-      'Workspace-Administration, Freigaben, Beschaffung, Identity und Provisionierung.',
+      'Workspace administration, approvals, procurement, identity and provisioning.',
   },
   {
     segment: 'paid_governance_control',
@@ -409,6 +409,36 @@ export const DEPRECATED_ROUTE_ALIASES: DeprecatedRouteAlias[] = [
     permanent: false,
     reason: 'Legacy landing alias.',
   },
+  {
+    source: '/erfassen',
+    destination: ROUTE_PATHS.publicCapture,
+    permanent: true,
+    reason: 'German route migrated to English /intake.',
+  },
+  {
+    source: '/gesetz',
+    destination: ROUTE_PATHS.law,
+    permanent: true,
+    reason: 'German route migrated to English /law.',
+  },
+  {
+    source: '/datenschutz',
+    destination: '/privacy',
+    permanent: true,
+    reason: 'German route migrated to English /privacy.',
+  },
+  {
+    source: '/impressum',
+    destination: '/legal-notice',
+    permanent: true,
+    reason: 'German route migrated to English /legal-notice.',
+  },
+  {
+    source: '/agb',
+    destination: '/terms',
+    permanent: true,
+    reason: 'German route migrated to English /terms.',
+  },
 ];
 
 export const LEGACY_ROUTE_INVENTORY: LegacyRouteInventoryEntry[] = [
@@ -576,11 +606,11 @@ export const PRODUCT_NAV_MANIFEST: ProductNavItem[] = [
   },
   {
     id: 'control',
-    label: 'Bericht',
+    label: 'Report',
     href: ROUTE_HREFS.control,
     group: 'governance',
     premiumFeature: 'reviewWorkflow',
-    description: 'Registerbasierte Governance-Analyse.',
+    description: 'Register-based governance analysis.',
   },
 ];
 
@@ -623,10 +653,10 @@ export interface PremiumControlNavItem {
 export const PREMIUM_CONTROL_NAV_MANIFEST: PremiumControlNavItem[] = [
   {
     id: 'overview',
-    label: 'Bericht',
+    label: 'Report',
     href: ROUTE_HREFS.control,
     description:
-      'Registerbasierte Analyse zu Reifegrad, Prüfungen, Kursfortschritt und Nachweisen.',
+      'Register-based analysis of maturity level, reviews, course progress and evidence.',
     premiumFeature: 'reviewWorkflow',
   },
   {

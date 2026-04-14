@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { PolicyVersion } from "@/lib/policy-engine/types";
 import { POLICY_STATUS_LABELS } from "@/lib/policy-engine/types";
+import { APP_LOCALE } from "@/lib/locale";
 import { PolicyPreview } from "./policy-preview";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -24,7 +25,7 @@ interface PolicyVersionTimelineProps {
 
 function formatDateTime(iso: string): string {
     try {
-        return new Date(iso).toLocaleString("de-DE", {
+        return new Date(iso).toLocaleString(APP_LOCALE, {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

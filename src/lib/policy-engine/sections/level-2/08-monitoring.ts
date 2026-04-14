@@ -1,28 +1,28 @@
 /**
  * Level 2, Section 08: Monitoring & Audit
  *
- * Beschreibt den Review-Zyklus und Audit-Ansatz der Organisation.
- * Referenziert orgSettings.reviewStandard und orgSettings.reviewCycle.
- * Immer inkludiert bei Level 2.
+ * Describes the review cycle and audit approach of the organisation.
+ * References orgSettings.reviewStandard and orgSettings.reviewCycle.
+ * Always included at Level 2.
  *
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 2
  */
 
 import type { SectionDefinition } from '../section-definition';
 
-/** Map review standard values to German labels */
+/** Map review standard values to English labels */
 const REVIEW_STANDARD_LABELS: Record<string, string> = {
-    annual: 'jährlich',
-    semiannual: 'halbjährlich',
-    'risk-based': 'risikobasiert',
+    annual: 'annual',
+    semiannual: 'semi-annual',
+    'risk-based': 'risk-based',
 };
 
-/** Map review cycle types to German labels */
+/** Map review cycle types to English labels */
 const REVIEW_CYCLE_TYPE_LABELS: Record<string, string> = {
-    fixed: 'Fester Zyklus',
-    risk_based: 'Risikobasiert',
-    event_based: 'Anlassbezogen',
+    fixed: 'Fixed cycle',
+    risk_based: 'Risk-based',
+    event_based: 'Event-driven',
 };
 
 export const monitoringSection: SectionDefinition = {
@@ -34,63 +34,63 @@ export const monitoringSection: SectionDefinition = {
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const reviewStandard = context.orgSettings.reviewStandard;
         const reviewCycle = context.orgSettings.reviewCycle;
         const reviewOwner = context.orgSettings.raci?.reviewOwner;
 
         const lines: string[] = [
-            `${orgName} sollte KI-Systeme regelmäßig überprüfen, um deren Konformität mit ` +
-            `internen Richtlinien und regulatorischen Anforderungen sicherzustellen.`,
+            `${orgName} should review AI systems on a regular basis to ensure their conformity with ` +
+            `internal policies and regulatory requirements.`,
             ``,
-            `### Review-Zyklus`,
+            `### Review Cycle`,
             ``,
         ];
 
         if (reviewStandard) {
             const label = REVIEW_STANDARD_LABELS[reviewStandard] || reviewStandard;
-            lines.push(`**Review-Standard:** ${label}`);
+            lines.push(`**Review Standard:** ${label}`);
             lines.push(``);
         }
 
         if (reviewCycle) {
             const typeLabel = REVIEW_CYCLE_TYPE_LABELS[reviewCycle.type] || reviewCycle.type;
-            lines.push(`**Review-Typ:** ${typeLabel}`);
+            lines.push(`**Review Type:** ${typeLabel}`);
             if (reviewCycle.interval) {
-                lines.push(`**Intervall:** ${reviewCycle.interval}`);
+                lines.push(`**Interval:** ${reviewCycle.interval}`);
             }
             lines.push(``);
         }
 
         if (!reviewStandard && !reviewCycle) {
             lines.push(
-                `> *Es wurde noch kein formaler Review-Zyklus definiert. ` +
-                `Eine mindestens jährliche Überprüfung wird empfohlen.*`,
+                `> *No formal review cycle has been defined yet. ` +
+                `A review at least once per year is recommended.*`,
             );
             lines.push(``);
         }
 
         if (reviewOwner?.name) {
             lines.push(
-                `**Review-Verantwortliche:r:** ${reviewOwner.name}` +
+                `**Review Owner:** ${reviewOwner.name}` +
                 `${reviewOwner.department ? ` (${reviewOwner.department})` : ''}`,
             );
             lines.push(``);
         }
 
-        lines.push(`### Prüfungsinhalte`);
+        lines.push(`### Review Scope`);
         lines.push(``);
-        lines.push(`Jede Überprüfung sollte mindestens folgende Aspekte umfassen:`);
+        lines.push(`Each review should cover at least the following aspects:`);
         lines.push(``);
-        lines.push(`- Aktualität und Vollständigkeit des KI-Registers`);
-        lines.push(`- Korrektheit der Risikobewertungen (AI-Act-Kategorie)`);
-        lines.push(`- Wirksamkeit der definierten Kontrollmaßnahmen`);
-        lines.push(`- Einhaltung der Datenschutzanforderungen`);
-        lines.push(`- Dokumentation von Vorfällen und Korrekturmaßnahmen`);
+        lines.push(`- Completeness and accuracy of the AI register`);
+        lines.push(`- Correctness of risk assessments (AI Act category)`);
+        lines.push(`- Effectiveness of the defined control measures`);
+        lines.push(`- Compliance with data protection requirements`);
+        lines.push(`- Documentation of incidents and corrective actions`);
         lines.push(``);
         lines.push(
-            `Die Ergebnisse jeder Überprüfung sollten dokumentiert und den relevanten ` +
-            `Stakeholdern zugänglich gemacht werden.`,
+            `The results of each review should be documented and made available to the relevant ` +
+            `stakeholders.`,
         );
 
         return lines.join('\n');

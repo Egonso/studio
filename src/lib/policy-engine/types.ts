@@ -14,7 +14,7 @@ export interface PolicySection {
     order: number;
     /** True if this section was conditionally included */
     isConditional: boolean;
-    /** Human-readable reason for inclusion (e.g. "Gilt für Systeme mit personenbez. Daten") */
+    /** Human-readable reason for inclusion (e.g. "Applies to systems processing personal data") */
     conditionLabel?: string;
 }
 
@@ -91,14 +91,14 @@ export function isValidPolicyTransition(
 // ── Level Labels ────────────────────────────────────────────────────────────
 
 export const POLICY_LEVEL_LABELS: Record<PolicyLevel, string> = {
-    1: "Commitment (1 Seite)",
-    2: "Framework (3–5 Seiten)",
-    3: "Enterprise (8–10 Seiten)",
+    1: "Commitment (1 page)",
+    2: "Framework (3\u20135 pages)",
+    3: "Enterprise (8\u201310 pages)",
 };
 
 export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
-    draft: "Entwurf",
-    review: "In Prüfung",
-    approved: "Genehmigt",
-    archived: "Archiviert",
+    draft: "Draft",
+    review: "Under review",
+    approved: "Approved",
+    archived: "Archived",
 };

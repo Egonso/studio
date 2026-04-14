@@ -53,7 +53,7 @@ export function LawSidebar({ data, className }: LawSidebarProps) {
     const NavContent = () => (
         <div className="space-y-6 py-4">
             <div>
-                <h3 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider">Präambel</h3>
+                <h3 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider">Preamble</h3>
                 <ul className="space-y-1 text-sm">
                     <li>
                         <a
@@ -61,14 +61,14 @@ export function LawSidebar({ data, className }: LawSidebarProps) {
                             onClick={(e) => scrollToElement(e, 'pbl_1')}
                             className={cn("block px-2 py-1.5 rounded-md transition-colors hover:bg-muted/50 truncate", activeId === 'pbl_1' ? "bg-muted font-medium text-primary" : "text-muted-foreground")}
                         >
-                            Erwägungsgründe (1-{data.recitals.length})
+                            Recitals (1-{data.recitals.length})
                         </a>
                     </li>
                 </ul>
             </div>
 
             <div>
-                <h3 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider">Verfügender Teil</h3>
+                <h3 className="font-semibold mb-2 text-sm text-muted-foreground uppercase tracking-wider">Enacting Terms</h3>
                 <div className="space-y-4">
                     {data.chapters.map((chapter) => (
                         <div key={chapter.id}>
@@ -115,7 +115,7 @@ export function LawSidebar({ data, className }: LawSidebarProps) {
                     </SheetTrigger>
                     <SheetContent side="left" className="w-[85vw] sm:w-[350px] p-0">
                         <div className="h-full overflow-y-auto p-6">
-                            <h2 className="font-bold text-lg mb-4">Inhaltsverzeichnis</h2>
+                            <h2 className="font-bold text-lg mb-4">Table of Contents</h2>
                             <NavContent />
                         </div>
                     </SheetContent>

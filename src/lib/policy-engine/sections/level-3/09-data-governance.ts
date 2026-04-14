@@ -1,12 +1,12 @@
 /**
- * Level 3, Section 09: Daten-Governance
+ * Level 3, Section 09: Data Governance
  *
- * Conditional: inkludiert wenn ≥1 UseCase personenbezogene oder sensible Daten verarbeitet.
- * Prüft resolveDataCategories() auf PERSONAL_DATA, PERSONAL, SPECIAL_PERSONAL,
+ * Conditional: included when >= 1 use case processes personal or sensitive data.
+ * Checks resolveDataCategories() for PERSONAL_DATA, PERSONAL, SPECIAL_PERSONAL,
  * SENSITIVE, HEALTH_DATA, BIOMETRIC_DATA.
  *
- * conditionLabel: "Gilt für Systeme mit personenbezogenen/sensiblen Daten"
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * conditionLabel: "Applies to systems processing personal/sensitive data"
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 3
  */
 
@@ -34,7 +34,7 @@ function hasPersonalData(uc: UseCaseCard): boolean {
 
 export const dataGovernanceSection: SectionDefinition = {
     sectionId: 'l3-data-governance',
-    title: 'Daten-Governance & Datenschutz',
+    title: 'Data Governance & Data Protection',
     order: 1000,
     level: 3,
 
@@ -43,7 +43,7 @@ export const dataGovernanceSection: SectionDefinition = {
     },
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const affected = context.useCases.filter(hasPersonalData);
         const dpo = context.orgSettings.raci?.dpo;
 
@@ -58,11 +58,11 @@ export const dataGovernanceSection: SectionDefinition = {
         }
 
         const lines: string[] = [
-            `${orgName} verarbeitet in ${affected.length} erfassten KI-System${affected.length > 1 ? 'en' : ''} ` +
-            `personenbezogene oder sensible Daten. Die folgenden Anforderungen gelten ` +
-            `ergänzend zu den allgemeinen Datenschutzvorgaben der DSGVO.`,
+            `${orgName} processes personal or sensitive data in ${affected.length} recorded AI system${affected.length > 1 ? 's' : ''}. ` +
+            `The following requirements apply in addition to the general data protection ` +
+            `provisions of the GDPR.`,
             ``,
-            `### Betroffene Datenkategorien`,
+            `### Affected Data Categories`,
             ``,
         ];
 
@@ -72,7 +72,7 @@ export const dataGovernanceSection: SectionDefinition = {
         }
         lines.push(``);
 
-        lines.push(`### Betroffene Systeme`);
+        lines.push(`### Affected Systems`);
         lines.push(``);
         for (const uc of affected) {
             const cats = resolveDataCategories(uc)
@@ -83,19 +83,19 @@ export const dataGovernanceSection: SectionDefinition = {
         lines.push(``);
 
         if (dpo?.name) {
-            lines.push(`**Datenschutzbeauftragte:r:** ${dpo.name}${dpo.department ? ` (${dpo.department})` : ''}`);
+            lines.push(`**Data Protection Officer:** ${dpo.name}${dpo.department ? ` (${dpo.department})` : ''}`);
             lines.push(``);
         }
 
-        lines.push(`### Anforderungen`);
+        lines.push(`### Requirements`);
         lines.push(``);
-        lines.push(`- Vor Inbetriebnahme eines KI-Systems mit personenbezogenen Daten sollte eine ` +
-            `Datenschutz-Folgenabschätzung (DSFA) geprüft werden (Art. 35 DSGVO).`);
-        lines.push(`- Die Rechtsgrundlage für die Datenverarbeitung sollte dokumentiert sein.`);
-        lines.push(`- Betroffenenrechte (Auskunft, Löschung, Widerspruch) sollten ` +
-            `auch bei KI-gestützter Verarbeitung gewährleistet bleiben.`);
-        lines.push(`- Bei Systemen mit besonders sensiblen Daten (Gesundheit, Biometrie) ` +
-            `sollten zusätzliche technische und organisatorische Maßnahmen ergriffen werden.`);
+        lines.push(`- Before deploying an AI system that processes personal data, a ` +
+            `Data Protection Impact Assessment (DPIA) should be considered (Art. 35 GDPR).`);
+        lines.push(`- The legal basis for the data processing should be documented.`);
+        lines.push(`- Data subject rights (access, erasure, objection) should ` +
+            `remain safeguarded even in AI-supported processing.`);
+        lines.push(`- For systems handling particularly sensitive data (health, biometrics), ` +
+            `additional technical and organisational measures should be implemented.`);
 
         return lines.join('\n');
     },

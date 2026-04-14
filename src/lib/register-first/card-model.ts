@@ -18,10 +18,10 @@ export const registerUseCaseStatusLabels: Record<
   RegisterUseCaseStatus,
   string
 > = Object.freeze({
-  UNREVIEWED: "Formale Prüfung ausstehend",
-  REVIEW_RECOMMENDED: "Prüfung empfohlen",
-  REVIEWED: "Prüfung abgeschlossen",
-  PROOF_READY: "Nachweisfähig",
+  UNREVIEWED: "Formal review pending",
+  REVIEW_RECOMMENDED: "Review recommended",
+  REVIEWED: "Review completed",
+  PROOF_READY: "Evidence-ready",
 });
 
 export const registerUseCaseStatusTransitions: Record<
@@ -86,14 +86,14 @@ export type CaptureUsageContext =
 
 export const USAGE_CONTEXT_LABELS: Record<CaptureUsageContext, string> =
   Object.freeze({
-    INTERNAL_ONLY: "Nur interne Prozesse",
-    EMPLOYEES: "Mitarbeitende betroffen",
-    CUSTOMERS: "Kund*innen betroffen",
-    APPLICANTS: "Bewerber*innen betroffen",
-    PUBLIC: "Öffentlichkeit betroffen",
-    CUSTOMER_FACING: "Kund*innen betroffen",
-    EMPLOYEE_FACING: "Mitarbeitende betroffen",
-    EXTERNAL_PUBLIC: "Öffentlichkeit betroffen",
+    INTERNAL_ONLY: "Internal processes only",
+    EMPLOYEES: "Employees affected",
+    CUSTOMERS: "Customers affected",
+    APPLICANTS: "Applicants affected",
+    PUBLIC: "General public affected",
+    CUSTOMER_FACING: "Customers affected",
+    EMPLOYEE_FACING: "Employees affected",
+    EXTERNAL_PUBLIC: "General public affected",
   });
 
 export const USAGE_CONTEXT_OPTIONS: CaptureUsageContext[] = [
@@ -141,19 +141,19 @@ export type DataCategory = (typeof DATA_CATEGORIES)[number];
 
 export const DATA_CATEGORY_LABELS: Record<DataCategory, string> =
   Object.freeze({
-    NO_PERSONAL_DATA: "Keine personenbezogenen Daten",
-    PERSONAL_DATA: "Personenbezogene Daten",
-    SPECIAL_PERSONAL: "Besondere personenbezogene Daten",
-    HEALTH_DATA: "Gesundheitsdaten",
-    BIOMETRIC_DATA: "Biometrische Daten",
-    POLITICAL_RELIGIOUS: "Politische / religiöse Angaben",
-    OTHER_SENSITIVE: "Weitere sensible Daten",
-    INTERNAL_CONFIDENTIAL: "Interne / vertrauliche Unternehmensdaten",
-    PUBLIC_DATA: "Öffentlich zugängliche Daten",
-    NONE: "Keine besonderen Daten",
-    INTERNAL: "Interne Daten",
-    PERSONAL: "Personenbezogene Daten",
-    SENSITIVE: "Sensible Daten",
+    NO_PERSONAL_DATA: "No personal data",
+    PERSONAL_DATA: "Personal data",
+    SPECIAL_PERSONAL: "Special categories of personal data",
+    HEALTH_DATA: "Health data",
+    BIOMETRIC_DATA: "Biometric data",
+    POLITICAL_RELIGIOUS: "Political / religious data",
+    OTHER_SENSITIVE: "Other sensitive data",
+    INTERNAL_CONFIDENTIAL: "Internal / confidential business data",
+    PUBLIC_DATA: "Publicly available data",
+    NONE: "No special data",
+    INTERNAL: "Internal data",
+    PERSONAL: "Personal data",
+    SENSITIVE: "Sensitive data",
   });
 
 export const DATA_CATEGORY_MAIN_OPTIONS: DataCategory[] = [
@@ -217,9 +217,9 @@ export type DecisionInfluence =
 
 export const DECISION_INFLUENCE_LABELS: Record<DecisionInfluence, string> =
   Object.freeze({
-    ASSISTANCE: "Reine Assistenz (keine Entscheidungsrelevanz)",
-    PREPARATION: "Vorbereitung von Entscheidungen",
-    AUTOMATED: "Trifft oder automatisiert Entscheidungen",
+    ASSISTANCE: "Pure assistance (no decision relevance)",
+    PREPARATION: "Preparation of decisions",
+    AUTOMATED: "Makes or automates decisions",
   });
 
 export const DECISION_INFLUENCE_OPTIONS: DecisionInfluence[] = [

@@ -184,12 +184,12 @@ export function validateSharedCaptureFields(
 
   if (normalized.purpose.length < 3) {
     errors.purpose =
-      "Bitte gib einen Use-Case-Namen mit mindestens 3 Zeichen an.";
+      "Please enter a use case name with at least 3 characters.";
   }
 
   if (normalized.ownerRole.length < 2) {
     errors.ownerRole =
-      "Bitte gib eine Owner-Rolle oder Funktion mit mindestens 2 Zeichen an.";
+      "Please enter an owner role or function with at least 2 characters.";
   }
 
   const firstInvalidField =

@@ -18,7 +18,7 @@ export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
     // In a real app we'd injectNEXT_PUBLIC_APP_URL.
     const portalUrl = typeof window !== 'undefined'
         ? `${window.location.origin}/trust/${projectId}`
-        : `https://kiregister.com/trust/${projectId}`;
+        : `https://airegist.com/trust/${projectId}`;
 
     const snippet = `
 <!-- EUKI AI Governance Badge -->

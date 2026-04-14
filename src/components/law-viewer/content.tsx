@@ -9,10 +9,10 @@ interface LawContentProps {
 export function LawContent({ data }: LawContentProps) {
     return (
         <div className="prose prose-slate max-w-none dark:prose-invert">
-            <h1 className="text-3xl font-bold mb-8">EU AI Act (EU-KI-Verordnung)</h1>
+            <h1 className="text-3xl font-bold mb-8">EU AI Act (Regulation (EU) 2024/1689)</h1>
 
             <section id="pbl_1" className="mb-12">
-                <h2 className="text-2xl font-bold mb-4">Präambel (Erwägungsgründe)</h2>
+                <h2 className="text-2xl font-bold mb-4">Preamble (Recitals)</h2>
                 <div className="space-y-6">
                     {data.recitals.map((recital) => (
                         <div key={recital.id} id={recital.id} className="scroll-mt-24 p-4 rounded-lg bg-muted/30 border border-transparent hover:border-border transition-colors">
@@ -24,7 +24,7 @@ export function LawContent({ data }: LawContentProps) {
             </section>
 
             <section id="enc_1" className="mb-12">
-                <h2 className="text-2xl font-bold mb-4">Verfügender Teil</h2>
+                <h2 className="text-2xl font-bold mb-4">Enacting Terms</h2>
                 {data.chapters.map((chapter) => (
                     <div key={chapter.id} id={chapter.id} className="mb-8 scroll-mt-24">
                         {/* Increased z-index to 20 to stay above content but below AppHeader (z-50) */}
@@ -63,7 +63,7 @@ export function LawContent({ data }: LawContentProps) {
 
             {data.annexes.length > 0 && (
                 <section id="annexes" className="mb-12">
-                    <h2 className="text-2xl font-bold mb-4">Anhänge</h2>
+                    <h2 className="text-2xl font-bold mb-4">Annexes</h2>
                     <div className="space-y-8">
                         {data.annexes.map((annex) => (
                             <div key={annex.id} id={annex.id} className="scroll-mt-24 bg-card p-6 rounded-xl shadow-sm border">

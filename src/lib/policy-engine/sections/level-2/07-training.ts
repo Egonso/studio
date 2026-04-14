@@ -1,12 +1,12 @@
 /**
- * Level 2, Section 07: Schulung & Qualifizierung
+ * Level 2, Section 07: Training & Qualification
  *
- * Beschreibt Schulungsanforderungen für KI-Kompetenz.
- * Immer inkludiert bei Level >= 2.
- * Befüllt aus orgSettings.competencyMatrix falls vorhanden.
+ * Describes training requirements for AI literacy.
+ * Always included at Level >= 2.
+ * Populated from orgSettings.competencyMatrix if available.
  *
- * Referenz: Art. 4 AI Act (AI Literacy / KI-Kompetenz)
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Reference: Art. 4 AI Act (AI Literacy)
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 2
  */
 
@@ -14,22 +14,22 @@ import type { SectionDefinition } from '../section-definition';
 
 export const trainingSection: SectionDefinition = {
     sectionId: 'l2-training',
-    title: 'Schulung & Qualifizierung',
+    title: 'Training & Qualification',
     order: 600,
     level: 2,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const matrix = context.orgSettings.competencyMatrix;
 
         const lines: string[] = [
-            `Gemäß Art. 4 des EU AI Act sollten Anbieter und Betreiber von KI-Systemen ` +
-            `sicherstellen, dass ihr Personal über eine ausreichende KI-Kompetenz verfügt. ` +
-            `${orgName} verfolgt hierzu folgenden Ansatz:`,
+            `In accordance with Art. 4 of the EU AI Act (AI Literacy), providers and deployers of AI systems ` +
+            `should ensure that their staff possess sufficient AI competence. ` +
+            `${orgName} pursues the following approach:`,
             ``,
-            `### Schulungsbereiche`,
+            `### Training Areas`,
             ``,
         ];
 
@@ -38,26 +38,26 @@ export const trainingSection: SectionDefinition = {
 
             if (matrix.euAiActTrainingRequired) {
                 items.push(
-                    `- **EU AI Act Grundlagenschulung:** Erforderlich – Mitarbeitende mit KI-Bezug ` +
-                    `sollten die wesentlichen Anforderungen des AI Act kennen.`,
+                    `- **EU AI Act Fundamentals Training:** Required – Employees involved with AI ` +
+                    `should be familiar with the key requirements of the AI Act.`,
                 );
             }
             if (matrix.technicalAiCompetency) {
                 items.push(
-                    `- **Technische KI-Kompetenz:** Erforderlich – Technische Teams sollten über ` +
-                    `vertiefte Kenntnisse zu KI-Risiken, Bias und Modellvalidierung verfügen.`,
+                    `- **Technical AI Competence:** Required – Technical teams should have ` +
+                    `in-depth knowledge of AI risks, bias and model validation.`,
                 );
             }
             if (matrix.dataPrivacyTraining) {
                 items.push(
-                    `- **Datenschutz-Schulung:** Erforderlich – Schulung zu DSGVO-Anforderungen ` +
-                    `im Kontext von KI-Systemen, insbesondere bei Verarbeitung personenbezogener Daten.`,
+                    `- **Data Protection Training:** Required – Training on GDPR requirements ` +
+                    `in the context of AI systems, particularly where personal data is processed.`,
                 );
             }
             if (matrix.incidentTraining) {
                 items.push(
-                    `- **Vorfall-Schulung:** Erforderlich – Mitarbeitende sollten den Meldeprozess ` +
-                    `für KI-bezogene Vorfälle kennen und anwenden können.`,
+                    `- **Incident Training:** Required – Employees should know and be able to apply ` +
+                    `the reporting process for AI-related incidents.`,
                 );
             }
 
@@ -65,28 +65,28 @@ export const trainingSection: SectionDefinition = {
                 lines.push(...items);
             } else {
                 lines.push(
-                    `Die Kompetenzmatrix ist definiert, es wurden jedoch noch keine konkreten ` +
-                    `Schulungsanforderungen aktiviert.`,
+                    `The competency matrix is defined; however, no specific ` +
+                    `training requirements have been activated yet.`,
                 );
             }
         } else {
             lines.push(
-                `- Alle Mitarbeitenden mit KI-Bezug sollten eine Grundlagenschulung zum ` +
-                `verantwortungsvollen Umgang mit KI-Systemen erhalten.`,
+                `- All employees involved with AI should receive foundational training on ` +
+                `the responsible use of AI systems.`,
             );
             lines.push(
-                `- Personen in Governance-Rollen sollten vertiefende Schulungen zum ` +
-                `EU AI Act und zur Risikoklassifizierung absolvieren.`,
+                `- Individuals in governance roles should complete advanced training on ` +
+                `the EU AI Act and risk classification.`,
             );
             lines.push(
-                `- Schulungsnachweise sollten dokumentiert und regelmäßig aktualisiert werden.`,
+                `- Training records should be documented and updated regularly.`,
             );
         }
 
         lines.push(``);
         lines.push(
-            `> *Hinweis: Die Kompetenzanforderungen gemäß Art. 4 AI Act gelten ab dem ` +
-            `2. Februar 2025. Organisationen sollten rechtzeitig geeignete Maßnahmen ergreifen.*`,
+            `> *Note: The competence requirements under Art. 4 of the AI Act (AI Literacy) apply from ` +
+            `2 February 2025. Organisations should take appropriate measures in good time.*`,
         );
 
         return lines.join('\n');

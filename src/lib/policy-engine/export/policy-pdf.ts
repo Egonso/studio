@@ -3,9 +3,9 @@ import { POLICY_LEVEL_LABELS, POLICY_STATUS_LABELS } from "../types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDateDE(iso: string): string {
+function formatDate(iso: string): string {
     try {
-        return new Date(iso).toLocaleDateString("de-DE", {
+        return new Date(iso).toLocaleDateString("en-GB", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -25,8 +25,8 @@ function stripMarkdown(md: string): string {
 }
 
 function generateFilename(doc: PolicyDocument): string {
-    const date = formatDateDE(doc.metadata.updatedAt).replace(/\./g, "-");
-    return `KI-Richtlinie_Level${doc.level}_v${doc.metadata.version}_${date}.pdf`;
+    const date = formatDate(doc.metadata.updatedAt).replace(/\//g, "-");
+    return `AI-Policy_Level${doc.level}_v${doc.metadata.version}_${date}.pdf`;
 }
 
 // ── PDF Generation ──────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ export async function generatePolicyPdf(
     pdf.setFontSize(10);
     pdf.setTextColor(100);
     pdf.text(
-        `Version ${doc.metadata.version} • Status: ${POLICY_STATUS_LABELS[doc.status]} • ${formatDateDE(doc.metadata.updatedAt)}`,
+        `Version ${doc.metadata.version} • Status: ${POLICY_STATUS_LABELS[doc.status]} • ${formatDate(doc.metadata.updatedAt)}`,
         pageWidth / 2,
         y,
         { align: "center" },
@@ -84,7 +84,7 @@ export async function generatePolicyPdf(
     y = margin;
     pdf.setFontSize(16);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Inhaltsverzeichnis", margin, y);
+    pdf.text("Table of Contents", margin, y);
     y += 10;
 
     const sorted = [...doc.sections].sort((a, b) => a.order - b.order);
@@ -144,7 +144,7 @@ export async function generatePolicyPdf(
         pdf.setFontSize(8);
         pdf.setTextColor(150);
         pdf.text(
-            `${doc.orgContextSnapshot.organisationName || "KI-Richtlinie"} • Seite ${i} von ${totalPages}`,
+            `${doc.orgContextSnapshot.organisationName || "AI Policy"} \u2022 Page ${i} of ${totalPages}`,
             pageWidth / 2,
             290,
             { align: "center" },

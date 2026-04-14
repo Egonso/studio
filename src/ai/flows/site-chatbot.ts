@@ -34,60 +34,49 @@ type LawData = {
   recitals?: LawRecital[];
 };
 
-const ARTICLE_REF_REGEX = /(?:artikel|art\.?|paragraf|paragraph|§)\s*(\d+)/gi;
-const RECITAL_REF_REGEX = /(?:erwägungsgrund|erw\.?|recital)\s*(\d+)/gi;
+const ARTICLE_REF_REGEX = /(?:article|art\.?|section|§)\s*(\d+)/gi;
+const RECITAL_REF_REGEX = /(?:recital|rec\.?|erwägungsgrund|erw\.?)\s*(\d+)/gi;
 
 const STOPWORDS = new Set([
-  'der',
-  'die',
-  'das',
-  'und',
-  'oder',
-  'ist',
-  'ein',
-  'eine',
-  'was',
-  'wie',
-  'wer',
-  'wo',
-  'sagt',
-  'steht',
-  'dazu',
-  'über',
-  'zum',
-  'zur',
-  'bei',
-  'mit',
-  'von',
-  'für',
-  'auf',
-  'in',
+  'the',
+  'a',
   'an',
-  'zu',
-  'es',
-  'sich',
-  'den',
-  'dem',
-  'des',
-  'als',
-  'auch',
-  'nach',
-  'noch',
-  'nur',
-  'aber',
-  'wenn',
-  'dann',
-  'kann',
-  'muss',
-  'wird',
-  'hat',
-  'sind',
-  'ich',
-  'du',
-  'sie',
-  'er',
-  'wir',
-  'mir',
+  'is',
+  'are',
+  'was',
+  'were',
+  'what',
+  'how',
+  'who',
+  'where',
+  'says',
+  'about',
+  'with',
+  'from',
+  'for',
+  'on',
+  'in',
+  'to',
+  'it',
+  'its',
+  'and',
+  'or',
+  'but',
+  'if',
+  'then',
+  'can',
+  'does',
+  'do',
+  'not',
+  'no',
+  'also',
+  'after',
+  'still',
+  'only',
+  'when',
+  'this',
+  'that',
+  'which',
 ]);
 
 function uniqueNumbersFromRegex(text: string, regex: RegExp): number[] {
@@ -110,7 +99,7 @@ function parseArticleNumber(article: LawArticle): number | null {
     if (Number.isFinite(parsed)) return parsed;
   }
 
-  const titleMatch = String(article.title ?? '').match(/artikel\s*(\d+)/i);
+  const titleMatch = String(article.title ?? '').match(/(?:article|artikel)\s*(\d+)/i);
   if (titleMatch) {
     const parsed = Number.parseInt(titleMatch[1], 10);
     if (Number.isFinite(parsed)) return parsed;
@@ -139,7 +128,7 @@ function findRecitalByNumber(lawData: LawData, recitalNumber: number): LawRecita
 function extractKeywords(text: string): string[] {
   return text
     .toLowerCase()
-    .replace(/[^a-zäöüß\s]/gi, ' ')
+    .replace(/[^a-zäöüß\s\-]/gi, ' ')
     .split(/\s+/)
     .filter((word) => word.length > 3 && !STOPWORDS.has(word));
 }
@@ -157,23 +146,23 @@ function buildDirectLawAnswer(lawData: LawData, userMessage: string): string | n
   for (const articleNumber of articleRefs.slice(0, 3)) {
     const article = findArticleByNumber(lawData, articleNumber);
     if (!article) {
-      sections.push(`- Artikel ${articleNumber} [[Art. ${articleNumber}]] wurde im Datensatz nicht gefunden.`);
+      sections.push(`- Article ${articleNumber} [[Art. ${articleNumber}]] was not found in the dataset.`);
       continue;
     }
 
-    const body = compactText(article.text ?? article.title ?? 'Kein Text verfügbar.', 1300);
-    sections.push(`- Artikel ${articleNumber} [[Art. ${articleNumber}]]: ${body}`);
+    const body = compactText(article.text ?? article.title ?? 'No text available.', 1300);
+    sections.push(`- Article ${articleNumber} [[Art. ${articleNumber}]]: ${body}`);
   }
 
   for (const recitalNumber of recitalRefs.slice(0, 2)) {
     const recital = findRecitalByNumber(lawData, recitalNumber);
     if (!recital) {
-      sections.push(`- Erwägungsgrund ${recitalNumber} [[Erw. ${recitalNumber}]] wurde im Datensatz nicht gefunden.`);
+      sections.push(`- Recital ${recitalNumber} [[Rec. ${recitalNumber}]] was not found in the dataset.`);
       continue;
     }
 
-    const body = compactText(recital.text ?? 'Kein Text verfügbar.', 1100);
-    sections.push(`- Erwägungsgrund ${recitalNumber} [[Erw. ${recitalNumber}]]: ${body}`);
+    const body = compactText(recital.text ?? 'No text available.', 1100);
+    sections.push(`- Recital ${recitalNumber} [[Rec. ${recitalNumber}]]: ${body}`);
   }
 
   if (sections.length === 0) {
@@ -181,11 +170,11 @@ function buildDirectLawAnswer(lawData: LawData, userMessage: string): string | n
   }
 
   return [
-    'Schnellzugriff auf den EU AI Act:',
+    'Quick reference from the EU AI Act:',
     ...sections,
     '',
-    'Wenn du willst, fasse ich dir den Inhalt in 3 Bullet Points zusammen.',
-    'Hinweis: Das ist keine Rechtsberatung.',
+    'If you like, I can summarise the content in 3 bullet points.',
+    'Note: This is not legal advice.',
   ].join('\n');
 }
 
@@ -242,12 +231,12 @@ function buildLawContext(lawData: LawData, userMessage: string): string {
     return '';
   }
 
-  const chunks: string[] = ['EU AI ACT — RELEVANTE ABSCHNITTE:\n'];
+  const chunks: string[] = ['EU AI ACT — RELEVANT SECTIONS:\n'];
   if (matchedArticles.length > 0) {
     chunks.push(matchedArticles.join('\n\n'));
   }
   if (matchedRecitals.length > 0) {
-    chunks.push(`ERWÄGUNGSGRÜNDE:\n${matchedRecitals.join('\n\n')}`);
+    chunks.push(`RECITALS:\n${matchedRecitals.join('\n\n')}`);
   }
 
   return chunks.join('\n\n');
@@ -303,18 +292,18 @@ export const siteChatbotFlow = ai.defineFlow(
     }
 
     const systemPrompt = `
-Du bist der intelligente Assistent für "EuKIGesetz Studio" (kiregister.com).
-Deine Aufgabe: Nutzern helfen, die Plattform zu nutzen, den EU AI Act zu verstehen, und relevante Inhalte zu finden.
-Antworte IMMER auf Deutsch, professionell und hilfsbereit.
+You are the intelligent assistant for "AI Register" (airegist.com).
+Your task: help users navigate the platform, understand the EU AI Act, and find relevant content.
+ALWAYS respond in English, professionally and helpfully.
 
-**Zitatformat für EU AI Act:**
-- Für Artikel: Schreibe "Artikel 5 [[Art. 5]]" — die [[Art. X]] Klammern werden im Frontend zu Links.
-- Für Erwägungsgründe: Schreibe "Erwägungsgrund 12 [[Erw. 12]]".
+**Citation format for the EU AI Act:**
+- For articles: write "Article 5 [[Art. 5]]" — the [[Art. X]] brackets become links in the frontend.
+- For recitals: write "Recital 12 [[Rec. 12]]".
 
-**EU AI Act Kontext (relevante Abschnitte):**
-${lawContext || 'Kein spezifischer Gesetzesausschnitt vorausgewählt.'}
+**EU AI Act context (relevant sections):**
+${lawContext || 'No specific law excerpt pre-selected.'}
 
-**Plattform-Wissen:**
+**Platform knowledge:**
 ${SITE_TREE}
 
 ${FEATURE_OVERVIEW}
@@ -322,14 +311,14 @@ ${FEATURE_OVERVIEW}
 ${COMMON_QUESTIONS}
 
 **Navigation:**
-Wenn der Nutzer nach einer bestimmten Funktion oder Seite fragt, nutze IMMER das 'navigateTool' um direkt dorthin zu leiten.
-Beispiel: "Wo dokumentiere ich einen Use Case?" → navigateTool mit path="/my-register".
+When the user asks about a specific feature or page, ALWAYS use the 'navigateTool' to direct them there.
+Example: "Where do I document a use case?" → navigateTool with path="/my-register".
 
-**Wichtig:**
-- Sei proaktiv: Wenn ein Nutzer ein Thema anspricht, schlage relevante Seiten und Funktionen vor.
-- Bei Rechtsfragen: Weise darauf hin, dass deine Antworten keine Rechtsberatung darstellen.
-- Nutze die FAQ-Szenarien, um häufige Fragen schnell und strukturiert zu beantworten.
-- Halte Antworten kompakt aber informativ. Nutze Aufzählungszeichen.
+**Important:**
+- Be proactive: when a user raises a topic, suggest relevant pages and features.
+- For legal questions: point out that your answers do not constitute legal advice.
+- Use the FAQ scenarios to answer common questions quickly and in a structured way.
+- Keep answers concise but informative. Use bullet points.
     `;
 
     const userHistory = input.messages
@@ -359,7 +348,7 @@ Beispiel: "Wo dokumentiere ich einen Use Case?" → navigateTool mit path="/my-r
       });
 
       const outputToolCalls = (response as any).toolCalls || (response.output as any)?.toolCalls;
-      let finalText = response.text || 'Ich konnte gerade keine Antwort erzeugen. Bitte versuche es erneut.';
+      let finalText = response.text || 'I was unable to generate a response right now. Please try again.';
 
       if (outputToolCalls && outputToolCalls.length > 0) {
         const navCall = outputToolCalls.find((tc: any) => tc.toolName === 'navigateTool');
@@ -372,7 +361,7 @@ Beispiel: "Wo dokumentiere ich einen Use Case?" → navigateTool mit path="/my-r
       return finalText;
     } catch (genError: any) {
       console.error('Chatbot ai.generate error:', genError);
-      return 'Entschuldigung, der Assistent ist momentan nicht erreichbar. Bitte versuche es später erneut.';
+      return 'Sorry, the assistant is currently unavailable. Please try again later.';
     }
   }
 );

@@ -14,6 +14,7 @@ import type { PolicyDocument } from "@/lib/policy-engine/types";
 import {
     POLICY_STATUS_LABELS,
 } from "@/lib/policy-engine/types";
+import { APP_LOCALE } from "@/lib/locale";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,7 @@ function statusVariant(
 
 function formatDate(iso: string): string {
     try {
-        return new Date(iso).toLocaleDateString("de-DE", {
+        return new Date(iso).toLocaleDateString(APP_LOCALE, {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",

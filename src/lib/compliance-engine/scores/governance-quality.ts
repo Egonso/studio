@@ -142,9 +142,9 @@ export function calculateGovernanceQuality(useCase: UseCaseCard): number {
  * Get a qualitative label for governance quality.
  */
 export function getGovernanceQualityLabel(score: number): string {
-    if (score >= 80) return 'Stark';
-    if (score >= 60) return 'Solide';
-    if (score >= 40) return 'Ausbaufähig';
-    if (score >= 20) return 'Lückenhaft';
-    return 'Nicht bewertet';
+    if (score >= 80) return 'Strong';
+    if (score >= 60) return 'Solid';
+    if (score >= 40) return 'Developing';
+    if (score >= 20) return 'Incomplete';
+    return 'Not assessed';
 }

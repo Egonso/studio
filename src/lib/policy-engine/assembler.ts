@@ -9,8 +9,8 @@
  *   5. Returns PolicySection[] ready for storage or rendering
  *
  * Design:
- *   - NUR .ts, KEIN JSX, KEIN React
- *   - Keine LLM-Aufrufe, alles deterministisch
+ *   - .ts only, no JSX, no React
+ *   - No LLM calls, fully deterministic
  *   - Pure function, no side effects
  *   - Error-resilient: sections that throw are skipped with a warning
  *
@@ -96,11 +96,11 @@ export function assemblePolicyMarkdown(context: PolicyContext): string {
     // Document title based on level
     const levelTitles: Record<1 | 2 | 3, string> = {
         1: 'AI-Commitment Statement',
-        2: 'AI Governance & Nutzungspolicy',
-        3: 'Technische & Entwickler-Richtlinie',
+        2: 'AI Governance & Usage Policy',
+        3: 'Technical & Developer Policy',
     };
 
-    const orgName = context.orgSettings.organisationName || '[Firmenname]';
+    const orgName = context.orgSettings.organisationName || '[Organisation name]';
     lines.push(`# ${levelTitles[context.level]}`);
     lines.push(`**${orgName}**`);
     lines.push('');
@@ -149,6 +149,6 @@ function deriveConditionLabel(
     _context: PolicyContext,
 ): string | undefined {
     // Future: map sectionId patterns to condition descriptions
-    // e.g., "l2-data-protection" → "Gilt für Systeme mit personenbezogenen Daten"
-    return `Bedingt inkludiert: ${def.sectionId}`;
+    // e.g., "l2-data-protection" → "Applies to systems processing personal data"
+    return `Conditionally included: ${def.sectionId}`;
 }

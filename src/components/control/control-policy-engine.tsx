@@ -41,7 +41,7 @@ export function ControlPolicyEngine({
         <CardHeader className="space-y-1">
           <CardTitle>Policy Engine</CardTitle>
           <CardDescription>
-            Deterministische Policy-Abdeckung aus Registerdaten und Nachweis-Mapping auf Use Cases.
+            Deterministic policy coverage from register data and evidence mapping to use cases.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -49,21 +49,21 @@ export function ControlPolicyEngine({
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Policy Coverage</p>
             <p className="mt-1 text-2xl font-semibold">{coverage.coveragePercent}%</p>
             <p className="text-xs text-muted-foreground">
-              {coverage.mappedUseCases}/{coverage.totalUseCases} Use Cases gemappt
+              {coverage.mappedUseCases}/{coverage.totalUseCases} use cases mapped
             </p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Policies gesamt</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Total policies</p>
             <p className="mt-1 text-2xl font-semibold">{coverage.policiesTotal}</p>
-            <p className="text-xs text-muted-foreground">Genehmigt: {coverage.approvedPolicies}</p>
+            <p className="text-xs text-muted-foreground">Approved: {coverage.approvedPolicies}</p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Versionierte Policies</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Versioned Policies</p>
             <p className="mt-1 text-2xl font-semibold">{coverage.policiesWithVersionHistory}</p>
-            <p className="text-xs text-muted-foreground">mit Historie</p>
+            <p className="text-xs text-muted-foreground">with history</p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Orphan-Referenzen</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Orphan References</p>
             <p className="mt-1 text-2xl font-semibold">{coverage.orphanMappingReferences}</p>
             <p className="text-xs text-muted-foreground">Policy-Links ohne passendes Dokument</p>
           </div>
@@ -184,7 +184,7 @@ export function ControlPolicyEngine({
           <div className="rounded-md border p-3 text-sm">
             <p className="font-medium">{preview.levelLabel}</p>
             <p className="text-xs text-muted-foreground">
-              Abschnitte: {preview.sectionCount} | Generiert: {new Date(preview.generatedAt).toLocaleString("de-DE")}
+              Abschnitte: {preview.sectionCount} | Generiert: {new Date(preview.generatedAt).toLocaleString("en-GB")}
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
               Datengrundlage: {preview.dataBasis.totalUseCases} Use Cases, {preview.dataBasis.mappedUseCases} mit Mapping,

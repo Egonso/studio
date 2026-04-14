@@ -1,13 +1,13 @@
 /**
- * Level 3, Section 10: Hochrisiko-Systeme
+ * Level 3, Section 10: High-Risk AI Systems
  *
- * Conditional: inkludiert wenn ≥1 UseCase mit aiActCategory 'Hochrisiko'
- * ODER resolveDecisionInfluence(uc) === 'AUTOMATED'.
+ * Conditional: included when >= 1 use case has aiActCategory 'High-risk'
+ * OR resolveDecisionInfluence(uc) === 'AUTOMATED'.
  *
- * Listet betroffene Use Cases namentlich auf.
- * Referenz: AI Act Kapitel III (Art. 6–49), Anhang III
+ * Lists affected use cases by name.
+ * Reference: AI Act Chapter III (Art. 6–49), Annex III
  *
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 3
  */
 
@@ -31,7 +31,7 @@ function isHighRisk(uc: UseCaseCard): boolean {
 
 export const highRiskSection: SectionDefinition = {
     sectionId: 'l3-high-risk',
-    title: 'Anforderungen an Hochrisiko-KI-Systeme',
+    title: 'Requirements for High-Risk AI Systems',
     order: 1100,
     level: 3,
 
@@ -40,15 +40,15 @@ export const highRiskSection: SectionDefinition = {
     },
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const affected = context.useCases.filter(isHighRisk);
 
         const lines: string[] = [
-            `${orgName} betreibt ${affected.length} KI-System${affected.length > 1 ? 'e' : ''}, ` +
-            `die als Hochrisiko-Systeme eingestuft sind oder automatisierte Entscheidungen treffen. ` +
-            `Für diese gelten erweiterte Anforderungen gemäß Kapitel III des AI Act.`,
+            `${orgName} operates ${affected.length} AI system${affected.length > 1 ? 's' : ''} ` +
+            `classified as high-risk or making automated decisions. ` +
+            `Extended requirements under Chapter III of the AI Act apply to these.`,
             ``,
-            `### Betroffene Systeme`,
+            `### Affected Systems`,
             ``,
         ];
 
@@ -60,29 +60,29 @@ export const highRiskSection: SectionDefinition = {
             const influence = resolveDecisionInfluence(uc);
             const influenceLabel = influence ? DECISION_INFLUENCE_LABELS[influence] : '–';
             lines.push(
-                `- **${uc.purpose}** – Kategorie: ${cat}, Entscheidungseinfluss: ${influenceLabel}`,
+                `- **${uc.purpose}** – Category: ${cat}, Decision influence: ${influenceLabel}`,
             );
         }
         lines.push(``);
 
-        lines.push(`### Pflichten gemäß AI Act Kapitel III`);
+        lines.push(`### Obligations under AI Act Chapter III`);
         lines.push(``);
-        lines.push(`Für die oben genannten Systeme sollten folgende Anforderungen umgesetzt werden:`);
+        lines.push(`The following requirements should be implemented for the systems listed above:`);
         lines.push(``);
-        lines.push(`1. **Risikomanagementsystem** (Art. 9): Ein dokumentiertes Risikomanagementsystem ` +
-            `sollte über den gesamten Lebenszyklus des Systems aufrechterhalten werden.`);
-        lines.push(`2. **Daten-Governance** (Art. 10): Trainings-, Validierungs- und Testdaten ` +
-            `sollten definierten Qualitätskriterien genügen.`);
-        lines.push(`3. **Technische Dokumentation** (Art. 11): Die Funktionsweise, Grenzen und ` +
-            `Risiken des Systems sollten vollständig dokumentiert sein.`);
-        lines.push(`4. **Aufzeichnungspflichten** (Art. 12): Automatische Protokollierung ` +
-            `relevanter Systemereignisse sollte implementiert werden.`);
-        lines.push(`5. **Transparenz** (Art. 13): Betreiber sollten über ausreichende Informationen ` +
-            `verfügen, um das System sachgemäß einsetzen zu können.`);
-        lines.push(`6. **Menschliche Aufsicht** (Art. 14): Eine angemessene menschliche ` +
-            `Überwachung sollte sichergestellt sein.`);
-        lines.push(`7. **Genauigkeit, Robustheit, Cybersicherheit** (Art. 15): Das System ` +
-            `sollte über seinen Lebenszyklus hinweg angemessen genau, robust und sicher sein.`);
+        lines.push(`1. **Risk Management System** (Art. 9): A documented risk management system ` +
+            `should be maintained throughout the entire lifecycle of the system.`);
+        lines.push(`2. **Data and Data Governance** (Art. 10): Training, validation and test data ` +
+            `should meet defined quality criteria.`);
+        lines.push(`3. **Technical Documentation** (Art. 11): The functioning, limitations and ` +
+            `risks of the system should be fully documented.`);
+        lines.push(`4. **Record-Keeping Obligations** (Art. 12): Automatic logging ` +
+            `of relevant system events should be implemented.`);
+        lines.push(`5. **Transparency and Provision of Information to Deployers** (Art. 13): Deployers should have sufficient information ` +
+            `to be able to use the system appropriately.`);
+        lines.push(`6. **Human Oversight** (Art. 14): Appropriate human ` +
+            `oversight should be ensured.`);
+        lines.push(`7. **Accuracy, Robustness, Cybersecurity** (Art. 15): The system ` +
+            `should be appropriately accurate, robust and secure throughout its lifecycle.`);
 
         return lines.join('\n');
     },

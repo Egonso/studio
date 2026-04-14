@@ -4,117 +4,117 @@
  */
 
 export const SITE_TREE = `
-SITEMAP — EuKIGesetz Studio (kiregister.com)
+SITEMAP — AI Register (airegist.com)
 
-🏠 HAUPTNAVIGATION (eingeloggte User):
+🏠 MAIN NAVIGATION (signed-in users):
 ├── /my-register ............ AI Governance Register
-│   Kanonische Free-Register Oberfläche:
-│   - Register-Überblick
+│   Canonical free register workspace:
+│   - Register overview
 │   - Use Cases
 │   - External Inbox
-│   - Quick Capture und Use-Case Pässe
+│   - Quick Capture and Use-Case Passes
 │
 ├── /control ................ AI Governance Control
-│   Kanonische bezahlte Governance-Steuerung:
+│   Canonical paid governance control surface:
 │   - KPI Header
 │   - Governance Maturity Model
-│   - Action Queue (priorisierte Maßnahmen)
+│   - Action Queue (prioritised actions)
 │   - Policies, Exports, Trust Portal, Academy
 │
 ├── /control/policies ....... Policy Engine
-│   Organisationsweite Richtlinien und Policy-Steuerung
+│   Organisation-wide policies and policy management
 │
 ├── /control/exports ........ Export Center
-│   Organisationsweite Audit- und Nachweis-Exporte
+│   Organisation-wide audit and evidence exports
 │
 ├── /control/trust .......... Trust Portal Management
-│   Öffentliche Vertrauenssignale und Verify-Ausgaben
+│   Public trust signals and verify outputs
 │
 ├── /academy ................. AI Governance Academy
-│   Strukturierter Online-Kurs zum EU AI Act:
-│   - Module 1-5 mit Videos und Materialien
-│   - Fortschrittsanzeige pro Modul
-│   - Download von Arbeitsmaterialien (PDF)
-│   - Videobasiertes Lernen mit Praxisfällen
+│   Structured online course on the EU AI Act:
+│   - Modules 1-5 with videos and materials
+│   - Progress indicator per module
+│   - Downloadable work materials (PDF)
+│   - Video-based learning with practical cases
 │
-├── /gesetz ................. EU AI Act Volltext-Viewer
-│   Volltext des EU AI Act zum Nachschlagen:
-│   - Alle 113 Artikel durchsuchbar
-│   - 180 Erwägungsgründe
-│   - Deep-Linking zu einzelnen Artikeln (#art_5)
-│   - Sprungmarken und Kapitelnavigation
+├── /law .................... EU AI Act Full-Text Viewer
+│   Full text of the EU AI Act for reference:
+│   - All 113 articles searchable
+│   - 180 recitals
+│   - Deep linking to individual articles (#art_5)
+│   - Jump marks and chapter navigation
 │
-├── /exam ................... Zertifizierungsprüfung
-│   Abschlusstest für die AI-Act-Kompetenz:
-│   - Multiple-Choice Prüfung
-│   - Bestehensgrenze und Ergebnisanzeige
-│   - Zertifikat nach Bestehen
+├── /exam ................... Certification Exam
+│   Final test for AI Act competency:
+│   - Multiple-choice exam
+│   - Pass threshold and results display
+│   - Certificate upon passing
 │
 ├── /capture ................. Standalone Quick Capture
-│   Schnellerfassung eines KI-Einsatzfalls (ohne Register-Kontext)
+│   Quick capture of an AI use case (without register context)
 │
-└── /login .................. Anmeldeseite
-    Login/Registrierung für die Plattform
+└── /login .................. Sign-in page
+    Login / registration for the platform
 
-🌐 ÖFFENTLICHE SEITEN (kein Login erforderlich):
-├── / ....................... Landingpage
-├── /erfassen ............... Öffentliche Erfassung per Zugangscode
-├── /request/[requestToken] ... Öffentliche Lieferantenanfrage
-├── /verify/[code] ......... Verifikationsseite (Code-basiert)
-├── /verify/pass/[hashId] .. Verifikations-Pass (öffentliche Use-Case Prüfung)
-├── /trust/[projectId] ..... Öffentliches Trust Portal
-└── /cbs/share/[policyId] .. Geteilte Compliance-Richtlinie
+🌐 PUBLIC PAGES (no login required):
+├── / ....................... Landing page
+├── /intake ................. Public intake via access code
+├── /request/[requestToken] ... Public supplier request
+├── /verify/[code] ......... Verification page (code-based)
+├── /verify/pass/[hashId] .. Verification pass (public use-case review)
+├── /trust/[projectId] ..... Public Trust Portal
+└── /cbs/share/[policyId] .. Shared compliance policy
 `;
 
 export const FEATURE_OVERVIEW = `
-FEATURES & FUNKTIONEN — EuKIGesetz Studio
+FEATURES & FUNCTIONS — AI Register
 
 ═══════════════════════════════════════════════════════════
 
 📋 AI GOVERNANCE REGISTER (/my-register)
-Was es tut: Formale Dokumentation aller KI-Einsatzfälle
-Für wen: Free-Register Nutzer, Compliance-Officer, Datenschutzbeauftragte
-Kernfunktionen:
-- Quick Capture: Use Cases schnell erfassen (Name, Tool, Kontext, Daten)
-- 4-stufiger Status-Workflow:
-  • Formale Prüfung ausstehend
-  • Prüfung empfohlen
-  • Prüfung abgeschlossen
-  • Nachweisfähig
-- Öffentliche Verifizierung einzelner Einträge
-- Organisations-Scope konfigurieren (Name, Einheit)
-- Audit-Trail mit Statusänderungen
-- External Inbox für tracebare externe Einreichungen
+What it does: Formal documentation of all AI use cases
+For whom: Free-register users, compliance officers, data protection officers
+Core functions:
+- Quick Capture: rapidly record use cases (name, tool, context, data)
+- 4-stage status workflow:
+  • Formal review pending
+  • Review recommended
+  • Review completed
+  • Evidence-ready
+- Public verification of individual entries
+- Configure organisation scope (name, unit)
+- Audit trail with status changes
+- External Inbox for traceable external submissions
 
 ═══════════════════════════════════════════════════════════
 
 🧭 AI GOVERNANCE CONTROL (/control)
-Was es tut: Organisationsweite Steuerung und Governance-Reifegrad
-Für wen: Governance Leads, Compliance-Leitung, Audit-Verantwortliche
-Kernfunktionen:
-- KPI Header (10-Sekunden-Überblick)
+What it does: Organisation-wide governance control and maturity level
+For whom: Governance leads, compliance leadership, audit owners
+Core functions:
+- KPI Header (10-second overview)
 - Maturity Level (Level 1-5)
-- Priorisierte Maßnahmen mit Deep Links ins Register
-- Organisationsweite Policy-, Export- und Trust-Funktionen
+- Prioritised actions with deep links into the register
+- Organisation-wide policy, export, and trust functions
 
 ═══════════════════════════════════════════════════════════
 
 ⚙️ POLICY ENGINE (/control/policies)
-Was es tut: Automatische Erstellung von Compliance-Richtlinien
-Für wen: Compliance-Verantwortliche, Rechtsabteilung
-Kernfunktionen:
-- KI-gestützte Richtlinienerstellung
-- Mapping auf EU AI Act Artikel
-- Richtlinien bearbeiten und anpassen
-- Teilen per öffentlichem Link (/cbs/share/...)
-- Export als Dokument
+What it does: Automated creation of compliance policies
+For whom: Compliance owners, legal department
+Core functions:
+- AI-assisted policy generation
+- Mapping to EU AI Act articles
+- Edit and customise policies
+- Share via public link (/cbs/share/...)
+- Export as document
 
 ═══════════════════════════════════════════════════════════
 
 📦 EXPORT CENTER (/control/exports)
-Was es tut: Organisationsweite Audit- und Nachweis-Exporte bündeln
-Für wen: Audit, Compliance-Leitung, Procurement, externe Prüfer
-Kernfunktionen:
+What it does: Bundle organisation-wide audit and evidence exports
+For whom: Audit, compliance leadership, procurement, external reviewers
+Core functions:
 - Governance Report
 - ISO / Audit Dossier
 - Policy Bundle
@@ -123,93 +123,93 @@ Kernfunktionen:
 ═══════════════════════════════════════════════════════════
 
 🎓 AI GOVERNANCE ACADEMY (/academy)
-Was es tut: Strukturierter Lernkurs zum EU AI Act
-Für wen: Alle Mitarbeiter, die mit KI arbeiten
-Kernfunktionen:
-- 5 Module mit Videos und Arbeitsmaterialien
-- Fortschrittsanzeige pro Modul/Video
-- PDF-Downloads für jedes Thema
-- Praxisorientierte Fallstudien
-Module:
-1. Grundlagen des EU AI Act
-2. Risikoklassen und Pflichten
-3. Technische Compliance
-4. Praxis-Simulationen
+What it does: Structured learning course on the EU AI Act
+For whom: All employees who work with AI
+Core functions:
+- 5 modules with videos and work materials
+- Progress indicator per module/video
+- PDF downloads for each topic
+- Practice-oriented case studies
+Modules:
+1. Fundamentals of the EU AI Act
+2. Risk classes and obligations
+3. Technical compliance
+4. Practical simulations
 5. Implementation & Governance
 
 ═══════════════════════════════════════════════════════════
 
-📜 EU AI ACT VOLLTEXT (/gesetz)
-Was es tut: Vollständiger Gesetzestext zum Durchsuchen
-Für wen: Alle, die den Originaltext nachschlagen wollen
-Kernfunktionen:
-- 113 Artikel + 180 Erwägungsgründe
-- Volltextsuche
-- Deep-Linking (z.B. /gesetz#art_5)
-- Kapitelnavigation
+📜 EU AI ACT FULL TEXT (/law)
+What it does: Complete legal text for searching and reference
+For whom: Anyone who wants to look up the original text
+Core functions:
+- 113 articles + 180 recitals
+- Full-text search
+- Deep linking (e.g. /law#art_5)
+- Chapter navigation
 
 ═══════════════════════════════════════════════════════════
 
-📝 ZERTIFIZIERUNGSPRÜFUNG (/exam)
-Was es tut: Kompetenznachweis durch Abschlusstest
-Für wen: Kursteilnehmer nach Abschluss aller Module
-Kernfunktionen:
-- Multiple-Choice Prüfung
-- Sofortige Ergebnisanzeige
-- Zertifikat bei Bestehen
+📝 CERTIFICATION EXAM (/exam)
+What it does: Competency proof through a final test
+For whom: Course participants after completing all modules
+Core functions:
+- Multiple-choice exam
+- Instant results display
+- Certificate upon passing
 
 ═══════════════════════════════════════════════════════════
 
 🌐 TRUST & VERIFY
-Was es tut: Öffentlich einsehbarer Compliance-Nachweis
-Für wen: Externe Stakeholder, Kunden, Regulatoren
-Kernfunktionen:
-- Öffentliche Verify-Pässe für einzelne Use Cases
-- Trust Portal Ausgabe für geteilte Nachweise
-- Keine Anmeldung erforderlich
+What it does: Publicly viewable compliance evidence
+For whom: External stakeholders, customers, regulators
+Core functions:
+- Public verify passes for individual use cases
+- Trust Portal output for shared evidence
+- No login required
 
 ═══════════════════════════════════════════════════════════
 
-✅ VERIFIKATION (/verify/pass/[hashId])
-Was es tut: Öffentlicher Nachweis für einzelne Use Cases
-Für wen: Externe, denen ein Verify-Link geteilt wurde
-Kernfunktionen:
-- Use-Case Details einsehen
-- Status und Datenbank-Referenz prüfen
-- Kein Login erforderlich
+✅ VERIFICATION (/verify/pass/[hashId])
+What it does: Public proof for individual use cases
+For whom: External parties who received a verify link
+Core functions:
+- View use-case details
+- Check status and database reference
+- No login required
 `;
 
 export const COMMON_QUESTIONS = `
-HÄUFIGE NUTZER-SZENARIEN (Chatbot-Wissen)
+COMMON USER SCENARIOS (chatbot knowledge)
 
-Q: "Wie starte ich mit der Compliance?"
-A: Starte im Register unter /my-register. Erfasse dort deinen ersten KI-Einsatzfall.
-   Für Governance-Aufbau und Richtlinien geht es danach in /control und /control/policies weiter.
+Q: "How do I get started with compliance?"
+A: Start in the Register at /my-register. Record your first AI use case there.
+   For governance setup and policies, continue to /control and /control/policies.
 
-Q: "Wo finde ich den Text vom EU AI Act?"
-A: Unter /gesetz findest du den Volltext. Du kannst direkt zu Artikeln springen, z.B. /gesetz#art_5.
+Q: "Where can I find the EU AI Act text?"
+A: At /law you will find the full text. You can jump directly to articles, e.g. /law#art_5.
 
-Q: "Wie dokumentiere ich unsere KI-Nutzung?"
-A: Nutze das AI Governance Register unter /my-register. Klicke auf "+ Erfassen" für Quick Capture.
-   Dort gibst du den Use-Case-Namen, das genutzten Tool und den Datenkontext an.
+Q: "How do I document our AI usage?"
+A: Use the AI Governance Register at /my-register. Click "+ Capture" for Quick Capture.
+   There you enter the use-case name, the tool used, and the data context.
 
-Q: "Was ist der Unterschied zwischen Register und Control?"
-A: Register (/my-register) = schnelle, formale Dokumentation aller KI-Einsatzfälle.
-   Control (/control) = organisationsweite Steuerung mit Policies, Exports, Trust und Academy.
+Q: "What is the difference between Register and Control?"
+A: Register (/my-register) = quick, formal documentation of all AI use cases.
+   Control (/control) = organisation-wide governance with Policies, Exports, Trust, and Academy.
 
-Q: "Wie erstelle ich eine Richtlinie?"
-A: Gehe zur Policy Engine unter /control/policies. Dort kannst du KI-gestützt Compliance-Richtlinien erstellen,
-   die automatisch auf relevante EU AI Act Artikel gemappt werden.
+Q: "How do I create a policy?"
+A: Go to the Policy Engine at /control/policies. There you can create AI-assisted compliance policies
+   that are automatically mapped to relevant EU AI Act articles.
 
-Q: "Wie kann ich den Compliance-Status öffentlich zeigen?"
-A: Nutze /control/trust für die interne Steuerung und aktiviere öffentliche Nachweise direkt an den Use Cases im Register.
-   Öffentliche Verify-Links laufen über /verify/pass/[hashId].
+Q: "How can I show compliance status publicly?"
+A: Use /control/trust for internal management and activate public evidence directly on the use cases in the register.
+   Public verify links run via /verify/pass/[hashId].
 
-Q: "Was passiert nach der Zertifizierungsprüfung?"
-A: Nach Bestehen der Prüfung (/exam) erhältst du ein Zertifikat. Dieses kann auch über das 
-   Verifikationssystem (/verify) von Dritten überprüft werden.
+Q: "What happens after the certification exam?"
+A: After passing the exam (/exam) you receive a certificate. This can also be
+   verified by third parties through the verification system (/verify).
 
-Q: "Wie mache ich einen Use Case öffentlich verifizierbar?"
-A: Im Register (/my-register): Öffne das 3-Punkt-Menü beim Eintrag → "Öffentlich machen".
-   Dann kannst du den Verify-Link kopieren und teilen.
+Q: "How do I make a use case publicly verifiable?"
+A: In the Register (/my-register): open the 3-dot menu on the entry → "Make public".
+   Then you can copy and share the verify link.
 `;

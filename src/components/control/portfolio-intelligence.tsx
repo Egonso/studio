@@ -28,10 +28,10 @@ const STATUS_COLUMNS: RegisterUseCaseStatus[] = [
 ];
 
 const STATUS_SHORT_LABELS: Record<RegisterUseCaseStatus, string> = {
-  UNREVIEWED: "Ungeprueft",
-  REVIEW_RECOMMENDED: "Empfohlen",
-  REVIEWED: "Geprueft",
-  PROOF_READY: "Nachweis",
+  UNREVIEWED: "Unreviewed",
+  REVIEW_RECOMMENDED: "Recommended",
+  REVIEWED: "Reviewed",
+  PROOF_READY: "Proof",
 };
 
 function matrixCellTone(value: number, maxValue: number): string {
@@ -71,7 +71,7 @@ function EmptyState({ text }: { text: string }) {
 
 function RiskMatrix({ rows }: { rows: PortfolioRiskMatrixRow[] }) {
   if (rows.length === 0) {
-    return <EmptyState text="Keine Risikodaten vorhanden." />;
+    return <EmptyState text="No risk data available." />;
   }
 
   const maxValue = Math.max(...rows.map((row) => row.total), 0);
@@ -81,13 +81,13 @@ function RiskMatrix({ rows }: { rows: PortfolioRiskMatrixRow[] }) {
       <table className="w-full text-sm">
         <thead className="bg-slate-50/70">
           <tr>
-            <th className="px-3 py-2 text-left font-medium">Risikoklasse</th>
+            <th className="px-3 py-2 text-left font-medium">Risk class</th>
             {STATUS_COLUMNS.map((status) => (
               <th key={status} className="px-2 py-2 text-right font-medium">
                 {STATUS_SHORT_LABELS[status]}
               </th>
             ))}
-            <th className="px-2 py-2 text-right font-medium">Gesamt</th>
+            <th className="px-2 py-2 text-right font-medium">Total</th>
             <th className="px-2 py-2 text-right font-medium">Drilldown</th>
           </tr>
         </thead>
@@ -120,7 +120,7 @@ function RiskMatrix({ rows }: { rows: PortfolioRiskMatrixRow[] }) {
 
 function DepartmentTable({ rows }: { rows: PortfolioDepartmentMetric[] }) {
   if (rows.length === 0) {
-    return <EmptyState text="Keine Fachbereichsdaten vorhanden." />;
+    return <EmptyState text="No department data available." />;
   }
 
   return (
@@ -128,11 +128,11 @@ function DepartmentTable({ rows }: { rows: PortfolioDepartmentMetric[] }) {
       <table className="w-full text-sm">
         <thead className="bg-slate-50/70">
           <tr>
-            <th className="px-3 py-2 text-left font-medium">Fachbereich</th>
-            <th className="px-2 py-2 text-right font-medium">Systeme</th>
-            <th className="px-2 py-2 text-right font-medium">Hochrisiko</th>
-            <th className="px-2 py-2 text-right font-medium">Geprueft %</th>
-            <th className="px-2 py-2 text-right font-medium">Review ueberfaellig</th>
+            <th className="px-3 py-2 text-left font-medium">Department</th>
+            <th className="px-2 py-2 text-right font-medium">Systems</th>
+            <th className="px-2 py-2 text-right font-medium">High risk</th>
+            <th className="px-2 py-2 text-right font-medium">Reviewed %</th>
+            <th className="px-2 py-2 text-right font-medium">Reviews overdue</th>
             <th className="px-2 py-2 text-right font-medium">Drilldown</th>
           </tr>
         </thead>
@@ -157,7 +157,7 @@ function DepartmentTable({ rows }: { rows: PortfolioDepartmentMetric[] }) {
 
 function OwnerTable({ rows }: { rows: PortfolioOwnerMetric[] }) {
   if (rows.length === 0) {
-    return <EmptyState text="Keine Owner-Daten vorhanden." />;
+    return <EmptyState text="No owner data available." />;
   }
 
   return (
@@ -166,10 +166,10 @@ function OwnerTable({ rows }: { rows: PortfolioOwnerMetric[] }) {
         <thead className="bg-slate-50/70">
           <tr>
             <th className="px-3 py-2 text-left font-medium">Owner</th>
-            <th className="px-2 py-2 text-right font-medium">Systeme</th>
-            <th className="px-2 py-2 text-right font-medium">Hochrisiko</th>
-            <th className="px-2 py-2 text-right font-medium">Geprueft %</th>
-            <th className="px-2 py-2 text-right font-medium">Review ueberfaellig</th>
+            <th className="px-2 py-2 text-right font-medium">Systems</th>
+            <th className="px-2 py-2 text-right font-medium">High risk</th>
+            <th className="px-2 py-2 text-right font-medium">Reviewed %</th>
+            <th className="px-2 py-2 text-right font-medium">Reviews overdue</th>
             <th className="px-2 py-2 text-right font-medium">Drilldown</th>
           </tr>
         </thead>
@@ -194,7 +194,7 @@ function OwnerTable({ rows }: { rows: PortfolioOwnerMetric[] }) {
 
 function StatusList({ rows }: { rows: PortfolioStatusMetric[] }) {
   if (rows.length === 0) {
-    return <EmptyState text="Keine Statusdaten vorhanden." />;
+    return <EmptyState text="No status data available." />;
   }
 
   return (
@@ -229,13 +229,13 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
         <CardHeader className="space-y-1">
           <CardTitle>Portfolio Intelligence</CardTitle>
           <CardDescription>
-            Org-weite Analyse fuer Risiko, Verantwortlichkeiten und Status. Stand:{" "}
-            {capturedAt.toLocaleString("de-DE")}
+            Org-wide analysis for risk, responsibilities, and status. Stand:{" "}
+            {capturedAt.toLocaleString("en-GB")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Systeme gesamt</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Total systems</p>
             <p className="mt-1 text-2xl font-semibold">{metrics.totalSystems}</p>
           </div>
           <div className="rounded-md border p-3">
@@ -246,12 +246,12 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
           </div>
           <div className="rounded-md border p-3">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Kritische Systeme
+              Critical systems
             </p>
             <p className="mt-1 text-2xl font-semibold">{rci.assessedSystems}</p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Konzentration</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Concentration</p>
             <p className="mt-1 text-2xl font-semibold">{bandLabel}</p>
           </div>
         </CardContent>
@@ -259,9 +259,9 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
 
       <Card>
         <CardHeader>
-          <CardTitle>Risikoverteilung</CardTitle>
+          <CardTitle>Risk Distribution</CardTitle>
           <CardDescription>
-            Matrix nach Risikoklasse und Workflow-Status (ruhige Heatmap-Logik in Grau).
+            Matrix nach Risk class und Workflow-Status (ruhige Heatmap-Logik in Grau).
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -272,9 +272,9 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Fachbereichsanalyse</CardTitle>
+            <CardTitle>Departmentsanalyse</CardTitle>
             <CardDescription>
-              Verteilung nach Organisationseinheit mit Drilldown auf konkrete Use Cases.
+              Distribution by organisational unit with drilldown to specific use cases.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -286,7 +286,7 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
           <CardHeader>
             <CardTitle>Owner-Performance</CardTitle>
             <CardDescription>
-              Owner-Portfolio mit Review-Abdeckung und ueberfaelligen Reviews.
+              Owner portfolio with review coverage and overdue reviews.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -298,9 +298,9 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
       <div className="grid gap-6 xl:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Status-Verteilung</CardTitle>
+            <CardTitle>Status Distribution</CardTitle>
             <CardDescription>
-              Steuerungsstand je Workflow-Status mit direktem Einstieg pro Segment.
+              Control status per workflow status with direct access per segment.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -317,7 +317,7 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
           </CardHeader>
           <CardContent className="space-y-3">
             {rci.topConcentrations.length === 0 ? (
-              <EmptyState text="Keine Hochrisiko- oder Verbotssegmente dokumentiert." />
+              <EmptyState text="No high-risk or prohibited segments documented." />
             ) : (
               rci.topConcentrations.map((entry) => (
                 <div
@@ -327,7 +327,7 @@ export function PortfolioIntelligence({ metrics, capturedAt }: PortfolioIntellig
                   <div>
                     <p className="text-sm">{entry.group}</p>
                     <p className="text-xs text-muted-foreground">
-                      {entry.count} kritische Systeme ({entry.sharePercent}%)
+                      {entry.count} critical systems ({entry.sharePercent}%)
                     </p>
                   </div>
                   <DrilldownLink link={entry.drilldownLink} />

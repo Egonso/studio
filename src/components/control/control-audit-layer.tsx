@@ -55,8 +55,8 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
         <CardHeader className="space-y-1">
           <CardTitle>ISO & Audit Layer</CardTitle>
           <CardDescription>
-            Organisationsweite Lifecycle-Sicht, Gap-Analyse und immutable Historie. Stand: {" "}
-            {new Date(snapshot.generatedAt).toLocaleString("de-DE")}
+            Organisation-wide lifecycle view, gap analysis, and immutable history. As of: {" "}
+            {new Date(snapshot.generatedAt).toLocaleString("en-GB")}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -73,7 +73,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
             <p className="mt-1 text-2xl font-semibold">{snapshot.maturityLevel}</p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Systeme gesamt</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Total systems</p>
             <p className="mt-1 text-2xl font-semibold">{snapshot.lifecycle.totalSystems}</p>
           </div>
         </CardContent>
@@ -84,7 +84,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
           <CardHeader>
             <CardTitle>ISO Lifecycle Management</CardTitle>
             <CardDescription>
-              Lifecycle- und Review-Stand auf Organisationsebene.
+              Lifecycle and review status at organisation level.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -106,23 +106,23 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                 <p className="mt-1 font-mono text-lg">{snapshot.lifecycle.unknown}</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-xs text-muted-foreground">Review ueberfaellig</p>
+                <p className="text-xs text-muted-foreground">Reviews overdue</p>
                 <p className="mt-1 font-mono text-lg">{snapshot.lifecycle.overdueReviews}</p>
               </div>
               <div className="rounded-md border p-3">
-                <p className="text-xs text-muted-foreground">Review bald faellig</p>
+                <p className="text-xs text-muted-foreground">Reviews due soon</p>
                 <p className="mt-1 font-mono text-lg">{snapshot.lifecycle.dueSoonReviews}</p>
               </div>
             </div>
             <div className="space-y-2 text-sm">
               <p className="rounded-md border px-3 py-2">
-                Review-Zyklus definiert: {snapshot.lifecycle.withReviewCycle}/{snapshot.lifecycle.totalSystems}
+                Review cycle defined: {snapshot.lifecycle.withReviewCycle}/{snapshot.lifecycle.totalSystems}
               </p>
               <p className="rounded-md border px-3 py-2">
-                Aufsichtsmodell definiert: {snapshot.lifecycle.withOversightModel}/{snapshot.lifecycle.totalSystems}
+                Oversight model defined: {snapshot.lifecycle.withOversightModel}/{snapshot.lifecycle.totalSystems}
               </p>
               <p className="rounded-md border px-3 py-2">
-                Dokumentationslevel definiert: {snapshot.lifecycle.withDocumentationLevel}/{snapshot.lifecycle.totalSystems}
+                Documentation level defined: {snapshot.lifecycle.withDocumentationLevel}/{snapshot.lifecycle.totalSystems}
               </p>
             </div>
           </CardContent>
@@ -130,9 +130,9 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Status-Verteilung</CardTitle>
+            <CardTitle>Status Distribution</CardTitle>
             <CardDescription>
-              Formaler Workflow-Stand ueber alle dokumentierten Systeme.
+              Formal workflow status across all documented systems.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -149,9 +149,9 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>ISO Clause Sicht</CardTitle>
+          <CardTitle>ISO Clause View</CardTitle>
           <CardDescription>
-            Dokumentationsstand je ISO-Klausel auf Basis der Registerdaten.
+            Documentation status per ISO clause based on register data.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -159,11 +159,11 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
             <table className="w-full text-sm">
               <thead className="bg-slate-50/70">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium">Klausel</th>
-                  <th className="px-3 py-2 text-left font-medium">Bereich</th>
-                  <th className="px-3 py-2 text-left font-medium">Dokumentiert</th>
+                  <th className="px-3 py-2 text-left font-medium">Clause</th>
+                  <th className="px-3 py-2 text-left font-medium">Area</th>
+                  <th className="px-3 py-2 text-left font-medium">Documented</th>
                   <th className="px-3 py-2 text-right font-medium">Coverage</th>
-                  <th className="px-3 py-2 text-left font-medium">Evidenz</th>
+                  <th className="px-3 py-2 text-left font-medium">Evidence</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,7 +171,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                   <tr key={entry.clause} className="border-t">
                     <td className="px-3 py-2 font-mono">{entry.clause}</td>
                     <td className="px-3 py-2">{entry.title}</td>
-                    <td className="px-3 py-2">{entry.documented ? "Ja" : "Offen"}</td>
+                    <td className="px-3 py-2">{entry.documented ? "Yes" : "Open"}</td>
                     <td className="px-3 py-2 text-right font-mono">{entry.coveragePercent}%</td>
                     <td className="px-3 py-2 text-muted-foreground">{entry.evidence}</td>
                   </tr>
@@ -184,15 +184,15 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Gap-Analyse</CardTitle>
+          <CardTitle>Gap Analysis</CardTitle>
           <CardDescription>
-            Priorisierte Luecken fuer Audit-Readiness auf Organisationsebene.
+            Prioritised gaps for audit readiness at organisation level.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {snapshot.gapAnalysis.length === 0 ? (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              Keine offenen Audit-Luecken erkannt.
+              No open audit gaps detected.
             </p>
           ) : (
             snapshot.gapAnalysis.map((gap) => (
@@ -202,14 +202,14 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                     <p className="text-sm font-medium">{gap.title}</p>
                     <p className="text-xs text-muted-foreground">{gap.impact}</p>
                     <p className="text-xs text-muted-foreground">
-                      Betroffene Systeme: {gap.affectedSystems} | Coverage: {gap.coveragePercent}%
+                      Affected systems: {gap.affectedSystems} | Coverage: {gap.coveragePercent}%
                     </p>
-                    <p className="text-xs">Empfehlung: {gap.recommendedAction}</p>
+                    <p className="text-xs">Recommendation: {gap.recommendedAction}</p>
                   </div>
                   {gap.deepLink && (
                     <Button asChild variant="outline" size="sm">
                       <Link href={appendWorkspaceScope(gap.deepLink, workspaceScope)}>
-                        Einsatzfall oeffnen
+                        Open use case
                         <ArrowRight className="ml-1 h-3.5 w-3.5" />
                       </Link>
                     </Button>
@@ -225,25 +225,25 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
         <CardHeader>
           <CardTitle>Immutable Review History</CardTitle>
           <CardDescription>
-            Aggregierte Review- und Statushistorie mit unveraenderlicher Referenz.
+            Aggregated review and status history with immutable reference.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {historyRows.length === 0 ? (
             <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              Noch keine Review- oder Statushistorie dokumentiert.
+              No review or status history documented yet.
             </p>
           ) : (
             <div className="overflow-x-auto rounded-md border">
               <table className="w-full text-xs">
                 <thead className="bg-slate-50/70">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium">Zeitpunkt</th>
-                    <th className="px-3 py-2 text-left font-medium">Typ</th>
+                    <th className="px-3 py-2 text-left font-medium">Timestamp</th>
+                    <th className="px-3 py-2 text-left font-medium">Type</th>
                     <th className="px-3 py-2 text-left font-medium">System</th>
                     <th className="px-3 py-2 text-left font-medium">Detail</th>
-                    <th className="px-3 py-2 text-left font-medium">Akteur</th>
-                    <th className="px-3 py-2 text-left font-medium">Referenz</th>
+                    <th className="px-3 py-2 text-left font-medium">Actor</th>
+                    <th className="px-3 py-2 text-left font-medium">Reference</th>
                     <th className="px-3 py-2 text-left font-medium">Link</th>
                   </tr>
                 </thead>
@@ -251,7 +251,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                   {historyRows.map((entry) => (
                     <tr key={entry.eventId} className="border-t align-top">
                       <td className="px-3 py-2 whitespace-nowrap">
-                        {new Date(entry.timestamp).toLocaleString("de-DE")}
+                        {new Date(entry.timestamp).toLocaleString("en-GB")}
                       </td>
                       <td className="px-3 py-2">{entry.eventType === "REVIEW" ? "Review" : "Status"}</td>
                       <td className="px-3 py-2">
@@ -266,7 +266,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
                       <td className="px-3 py-2">
                         <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
                           <Link href={appendWorkspaceScope(entry.deepLink, workspaceScope)}>
-                            Zum Eintrag
+                            Go to entry
                           </Link>
                         </Button>
                       </td>
@@ -278,7 +278,7 @@ export function ControlAuditLayer({ snapshot }: ControlAuditLayerProps) {
           )}
           {snapshot.immutableReviewHistory.length > historyRows.length && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Anzeige gekuerzt auf {historyRows.length} Eintraege.
+              Display truncated to {historyRows.length} entries.
             </p>
           )}
         </CardContent>

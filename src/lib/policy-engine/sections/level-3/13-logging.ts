@@ -1,12 +1,12 @@
 /**
- * Level 3, Section 13: Logging & Alarmierung
+ * Level 3, Section 13: Logging & Alerting
  *
- * Beschreibt Anforderungen an automatische Protokollierung
- * und Alarmierung für KI-Systeme.
- * Immer inkludiert bei Level 3.
+ * Describes requirements for automatic logging
+ * and alerting for AI systems.
+ * Always included at Level 3.
  *
- * Referenz: Art. 12 AI Act (Aufzeichnungspflichten)
- * Juristisch defensiv: Konjunktiv, "sollte" nicht "muss"
+ * Reference: Art. 12 AI Act (Record-Keeping Obligations)
+ * Legally defensive: subjunctive, "should", not "must"
  * Sprint: PE-2b Level 3
  */
 
@@ -14,60 +14,60 @@ import type { SectionDefinition } from '../section-definition';
 
 export const loggingSection: SectionDefinition = {
     sectionId: 'l3-logging',
-    title: 'Logging & Alarmierung',
+    title: 'Logging & Alerting',
     order: 1400,
     level: 3,
 
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Firmenname]';
+        const orgName = context.orgSettings.organisationName || '[Company Name]';
         const securityOfficer = context.orgSettings.raci?.securityOfficer;
 
         const lines: string[] = [
-            `Gemäß Art. 12 AI Act sollten Hochrisiko-KI-Systeme über automatische ` +
-            `Aufzeichnungsfähigkeiten (Logging) verfügen. ${orgName} sollte dieses ` +
-            `Prinzip auf alle KI-Systeme im Register anwenden.`,
+            `Pursuant to Art. 12 of the AI Act (Record-Keeping Obligations), high-risk AI systems should have automatic ` +
+            `logging capabilities. ${orgName} should apply this ` +
+            `principle to all AI systems in the register.`,
             ``,
-            `### Logging-Anforderungen`,
+            `### Logging Requirements`,
             ``,
-            `- **Nutzungsprotokolle:** Wer hat wann welches System mit welchen ` +
-            `Parametern genutzt.`,
-            `- **Entscheidungsprotokolle:** Bei entscheidungsunterstützenden Systemen ` +
-            `sollte die Grundlage der Empfehlung oder Entscheidung nachvollziehbar sein.`,
-            `- **Fehlerprotokolle:** Systemfehler, Timeouts und unerwartetes Verhalten ` +
-            `sollten automatisch erfasst werden.`,
-            `- **Änderungsprotokolle:** Modellupdates, Konfigurationsänderungen und ` +
-            `Datenaktualisierungen sollten versioniert dokumentiert werden.`,
+            `- **Usage Logs:** Who used which system, when and with what ` +
+            `parameters.`,
+            `- **Decision Logs:** For decision-support systems, ` +
+            `the basis of the recommendation or decision should be traceable.`,
+            `- **Error Logs:** System errors, timeouts and unexpected behaviour ` +
+            `should be captured automatically.`,
+            `- **Change Logs:** Model updates, configuration changes and ` +
+            `data updates should be documented with version control.`,
             ``,
-            `### Aufbewahrung`,
+            `### Retention`,
             ``,
-            `Protokolle sollten für einen angemessenen Zeitraum aufbewahrt werden ` +
-            `(empfohlen: mindestens 12 Monate, bei Hochrisiko-Systemen gemäß ` +
-            `regulatorischen Anforderungen länger).`,
+            `Logs should be retained for an appropriate period ` +
+            `(recommended: at least 12 months; longer for high-risk systems in accordance ` +
+            `with regulatory requirements).`,
             ``,
-            `### Alarmierung`,
+            `### Alerting`,
             ``,
-            `Für kritische Ereignisse sollte ein automatisches Alarmsystem eingerichtet werden:`,
+            `An automatic alerting system should be set up for critical events:`,
             ``,
-            `- Signifikante Leistungsabweichungen (Performance Drift)`,
-            `- Unerwartete Fehlerraten über definiertem Schwellwert`,
-            `- Sicherheitsrelevante Ereignisse (unauthorisierter Zugriff, Datenexfiltration)`,
-            `- Ausfall oder Nicht-Erreichbarkeit eines Systems`,
+            `- Significant performance deviations (performance drift)`,
+            `- Unexpected error rates above a defined threshold`,
+            `- Security-relevant events (unauthorised access, data exfiltration)`,
+            `- System outage or unavailability`,
             ``,
         ];
 
         if (securityOfficer?.name) {
             lines.push(
-                `**IT-Sicherheitsbeauftragte:r:** ${securityOfficer.name}` +
+                `**IT Security Officer:** ${securityOfficer.name}` +
                 `${securityOfficer.department ? ` (${securityOfficer.department})` : ''}`,
             );
             lines.push(``);
         }
 
         lines.push(
-            `Alarme sollten an die zuständigen Verantwortlichen weitergeleitet ` +
-            `und in den Vorfallmanagement-Prozess eingebunden werden.`,
+            `Alerts should be forwarded to the responsible persons ` +
+            `and integrated into the incident management process.`,
         );
 
         return lines.join('\n');

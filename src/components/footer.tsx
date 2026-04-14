@@ -2,13 +2,13 @@ import Link from 'next/link';
 
 const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
 const FOOTER_LINKS = [
-  { href: '/', label: 'Startseite' },
+  { href: '/', label: 'Home' },
   { href: '/downloads', label: 'Downloads' },
   { href: '/my-register', label: 'Register' },
-  { href: '/control', label: 'Bericht' },
-  { href: '/impressum', label: 'Impressum' },
-  { href: '/datenschutz', label: 'Datenschutz' },
-  { href: '/agb', label: 'AGB' },
+  { href: '/control', label: 'Report' },
+  { href: '/legal-notice', label: 'Legal Notice' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
   { href: WHITEPAPER_HREF, label: 'Whitepaper', external: true },
 ];
 
@@ -17,7 +17,7 @@ export function Footer() {
     <footer className="w-full border-t border-slate-200 bg-white/95 text-slate-500 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 text-xs sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="font-medium text-slate-700">KI-Register</span>
+          <span className="font-medium text-slate-700">AI Register</span>
           {FOOTER_LINKS.map((link) =>
             link.external ? (
               <a
@@ -43,7 +43,7 @@ export function Footer() {
 
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <p>&copy; {new Date().getFullYear()} ZukunftBilden GmbH &amp; BewusstseinBilden UG</p>
-          <p>Alle Nutzerdaten bleiben in der EU.</p>
+          <p>All user data remains in the EU.</p>
         </div>
       </div>
     </footer>

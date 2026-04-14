@@ -88,14 +88,14 @@ export function GovernanceHeader({
     counts.byStatus.UNREVIEWED + counts.byStatus.REVIEW_RECOMMENDED;
   const nextStep =
     counts.total === 0
-      ? 'Erfassen Sie den ersten KI-Einsatzfall.'
+      ? 'Capture your first AI use case.'
       : externalInboxCount > 0
-        ? 'Prüfen Sie neue externe Einreichungen in der External Inbox.'
+        ? 'Review new external submissions in the External Inbox.'
         : openReviews > 0
-          ? 'Bearbeiten Sie offene Prüfungen und führen Sie Use Cases weiter.'
+          ? 'Process open reviews and advance use cases.'
           : registerFirstFlags.supplierInviteV2
-            ? 'Starten Sie eine kontaktgebundene Lieferantenanfrage oder teilen Sie einen Erfassungslink, um weitere Angaben einzusammeln.'
-            : 'Teilen Sie einen Erfassungs- oder Einreichungslink, um weitere Angaben einzusammeln.';
+            ? 'Start a contact-bound supplier request or share a capture link to collect further information.'
+            : 'Share a capture or submission link to collect further information.';
 
   const handleSupplierRequest = async () => {
     if (!register?.registerId) return;
@@ -104,7 +104,7 @@ export function GovernanceHeader({
       const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       if (!token) {
-        throw new Error('Bitte melden Sie sich erneut an.');
+        throw new Error('Please sign in again.');
       }
 
       const response = await fetch('/api/request-tokens', {
@@ -120,7 +120,7 @@ export function GovernanceHeader({
         throw new Error(
           typeof data?.error === 'string'
             ? data.error
-            : 'Einreichungslink konnte nicht erstellt werden.',
+            : 'Submission link could not be created.',
         );
       }
 
@@ -130,19 +130,19 @@ export function GovernanceHeader({
         setSupplierLinkCopied(false);
       }, 2200);
       toast({
-        title: 'Einreichungslink kopiert',
+        title: 'Submission link copied',
         description:
-          'Ein neuer Einreichungslink wurde erstellt und in die Zwischenablage kopiert. Senden Sie ihn nur an den vorgesehenen Kontakt.',
+          'A new submission link has been created and copied to the clipboard. Only send it to the intended contact.',
       });
     } catch (error) {
       setSupplierLinkCopied(false);
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: 'Error',
         description:
           error instanceof Error
             ? error.message
-            : 'Link konnte nicht erstellt werden.',
+            : 'Link could not be created.',
       });
     } finally {
       setIsCreatingSupplierLink(false);
@@ -156,7 +156,7 @@ export function GovernanceHeader({
       const auth = await getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       if (!token) {
-        throw new Error('Bitte melden Sie sich erneut an.');
+        throw new Error('Please sign in again.');
       }
 
       const response = await fetch(
@@ -173,25 +173,25 @@ export function GovernanceHeader({
         throw new Error(
           typeof data?.error === 'string'
             ? data.error
-            : 'Lieferanten-Link konnte nicht widerrufen werden.',
+            : 'Supplier link could not be revoked.',
         );
       }
 
       toast({
-        title: 'Einreichungslink widerrufen',
+        title: 'Submission link revoked',
         description:
           typeof data?.revokedCount === 'number' && data.revokedCount > 0
-            ? `${data.revokedCount} aktiver Link wurde widerrufen.`
-            : 'Es gab keinen aktiven Einreichungslink.',
+            ? `${data.revokedCount} active link(s) revoked.`
+            : 'There was no active submission link.',
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Fehler',
+        title: 'Error',
         description:
           error instanceof Error
             ? error.message
-            : 'Lieferanten-Link konnte nicht widerrufen werden.',
+            : 'Supplier link could not be revoked.',
       });
     } finally {
       setIsRevokingSupplierLink(false);
@@ -222,15 +222,15 @@ export function GovernanceHeader({
         setCaptureLinkCopied(false);
       }, 2200);
       toast({
-        title: 'Erfassungslink kopiert',
-        description: 'Der Link wurde in die Zwischenablage kopiert.',
+        title: 'Capture link copied',
+        description: 'The link has been copied to the clipboard.',
       });
     } catch {
       setCaptureLinkCopied(false);
       toast({
         variant: 'destructive',
-        title: 'Fehler',
-        description: 'Erfassungslink konnte nicht kopiert werden.',
+        title: 'Error',
+        description: 'Capture link could not be copied.',
       });
     }
   };
@@ -248,7 +248,7 @@ export function GovernanceHeader({
                 </span>
                 {orgUnit && (
                   <span>
-                    Organisationseinheit:{' '}
+                    Organisational unit:{' '}
                     <span className="font-medium text-slate-950">
                       {orgUnit}
                     </span>
@@ -256,7 +256,7 @@ export function GovernanceHeader({
                 )}
                 {orgSettings?.contactPerson?.name && (
                   <span>
-                    Kontakt:{' '}
+                    Contact:{' '}
                     <span className="font-medium text-slate-950">
                       {orgSettings.contactPerson.name}
                     </span>
@@ -264,9 +264,9 @@ export function GovernanceHeader({
                 )}
               </>
             ) : (
-              <span>Organisation: Private Registerinstanz</span>
+              <span>Organisation: Private register instance</span>
             )}
-            <span>Register-Version: {REGISTER_VERSION}</span>
+            <span>Register version: {REGISTER_VERSION}</span>
           </div>
           <p className="max-w-3xl text-[13px] leading-6 text-slate-600">
             {nextStep}
@@ -279,7 +279,7 @@ export function GovernanceHeader({
               <button
                 onClick={() => router.push(scopedHrefs.governanceSettings)}
                 className="rounded-md border border-slate-300 p-1.5 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950"
-                title="Governance-Einstellungen"
+                title="Governance settings"
               >
                 <Settings className="h-4 w-4" />
               </button>
@@ -289,7 +289,7 @@ export function GovernanceHeader({
                 onClick={onQuickCapture}
                 className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
               >
-                + KI-Einsatzfall erfassen
+                + Capture AI use case
               </button>
             )}
             {register && registerFirstFlags.supplierInviteV2 && (
@@ -298,14 +298,14 @@ export function GovernanceHeader({
                 className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950"
               >
                 <MailPlus className="h-3.5 w-3.5" />
-                Lieferanten anfragen
+                Request supplier
               </button>
             )}
             {register && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                   <button className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 sm:w-auto">
-                    Aktionen
+                    Actions
                     <ChevronDown className="h-3.5 w-3.5" />
                   </button>
                 </DropdownMenuTrigger>
@@ -319,7 +319,7 @@ export function GovernanceHeader({
                     ) : (
                       <Share2 className="h-4 w-4" />
                     )}
-                    {captureLinkCopied ? 'Erfassungslink kopiert' : 'Erfassungslink kopieren'}
+                    {captureLinkCopied ? 'Capture link copied' : 'Copy capture link'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -335,8 +335,8 @@ export function GovernanceHeader({
                       <Link2 className="h-4 w-4" />
                     )}
                     <div>
-                      <div>{supplierLinkCopied ? 'Einreichungslink kopiert' : 'Einfacher Einreichungslink'}</div>
-                      <div className="text-[11px] text-muted-foreground">Ohne Verifikation</div>
+                      <div>{supplierLinkCopied ? 'Submission link copied' : 'Simple submission link'}</div>
+                      <div className="text-[11px] text-muted-foreground">Without verification</div>
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -349,7 +349,7 @@ export function GovernanceHeader({
                     ) : (
                       <ShieldX className="h-4 w-4" />
                     )}
-                    Einreichungslink widerrufen
+                    Revoke submission link
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -372,7 +372,7 @@ export function GovernanceHeader({
       <div className="grid gap-4 pt-5 sm:grid-cols-3">
         <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
           <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-            Einsatzfälle gesamt
+            Use cases total
           </p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
             {counts.total}
@@ -380,7 +380,7 @@ export function GovernanceHeader({
         </div>
         <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
           <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-            Offene Prüfungen
+            Open reviews
           </p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-900">
             {openReviews}
@@ -388,7 +388,7 @@ export function GovernanceHeader({
         </div>
         <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
           <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-            Externe Einreichungen
+            External submissions
           </p>
           <div className="mt-1 flex items-end justify-between gap-3">
             <p className="text-2xl font-semibold tabular-nums text-slate-900">
@@ -399,7 +399,7 @@ export function GovernanceHeader({
               onClick={() => router.push(scopedHrefs.externalInbox)}
               className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             >
-              Anzeigen
+              View
             </button>
           </div>
         </div>

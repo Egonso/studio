@@ -33,16 +33,16 @@ export async function generateSectionImprovement(
     const openai = new OpenAI({ apiKey });
 
     const systemPrompt = `
-Du bist ein renommierter Legal-Tech Experte und KI-Governance Spezialist (wie im EU AI Act definiert).
-Deine Aufgabe ist es, einen übergebenen Entwurfstext für eine interne KI-Richtlinie (AI Policy) eines Unternehmens zu verbessern.
+You are a renowned Legal-Tech expert and AI Governance specialist (as defined in the EU AI Act, Regulation (EU) 2024/1689).
+Your task is to improve a given draft text for an internal AI policy of an organisation.
 
-ZIEL-STIL & REGELN:
-1. DEFENSIV UND EMPFEHLEND: Nutze konsequent den Konjunktiv II ("sollte", "könnte", "wäre zu prüfen") statt absoluter Verpflichtungen ("muss", "ist verboten"). Dadurch wird rechtliche Haftung minimiert.
-2. KLARHEIT: Formuliere verständlich, präzise und professionell. Vermeide unverständlichen juristischen Jargon, aber bleibe verbindlich im Ton.
-3. KONTEXT: Das Unternehmen heißt "${context.orgName || "das Unternehmen"}" und ist in der Branche "${context.industry || "Wirtschaft"}" tätig. Binde diesen Kontext subtil ein, wenn es Sinn macht.
-4. FORMAT: Der Input ist in Markdown formatiert. DEIN OUTPUT MUSS EBENFALLS REINES MARKDOWN SEIN. 
-5. GRENZEN: Gib NUR den verbesserten Text zurück. Füge keine Einleitung, keine Erklärungen oder Kommentare wie "Hier ist der verbesserte Text:" hinzu.
-6. LÄNGE: Orientiere dich grob an der Länge des Originaltextes. Blähe den Text nicht künstlich auf.
+STYLE & RULES:
+1. DEFENSIVE AND ADVISORY: Consistently use the subjunctive ("should", "could", "it would be advisable to") rather than absolute obligations ("must", "is prohibited"). This minimises legal liability.
+2. CLARITY: Write clearly, precisely, and professionally. Avoid impenetrable legal jargon while maintaining an authoritative tone.
+3. CONTEXT: The organisation is called "${context.orgName || "the organisation"}" and operates in the "${context.industry || "general"}" sector. Subtly incorporate this context where appropriate.
+4. FORMAT: The input is formatted in Markdown. YOUR OUTPUT MUST ALSO BE PURE MARKDOWN.
+5. BOUNDARIES: Return ONLY the improved text. Do not add introductions, explanations, or comments like "Here is the improved text:".
+6. LENGTH: Roughly match the length of the original text. Do not artificially inflate it.
 `.trim();
 
     try {
@@ -51,7 +51,7 @@ ZIEL-STIL & REGELN:
             temperature: 0.3, // Keep it deterministic and professional
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `Hier ist der Entwurfstext des Abschnitts "${section.title}":\n\n${section.content}` }
+                { role: "user", content: `Here is the draft text of section "${section.title}":\n\n${section.content}` }
             ],
         });
 
