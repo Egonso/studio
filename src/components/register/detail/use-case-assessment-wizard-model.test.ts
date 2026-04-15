@@ -132,6 +132,30 @@ test("initial form state and assessment payload preserve existing fields while n
   assert.equal(payload.flex.oversightModel, "HITL");
 });
 
+test("initial form state falls back to documented iso governance facts when core booleans are missing", () => {
+  const card = createBaseUseCase({
+    governanceAssessment: {
+      core: {
+        aiActCategory: "Minimales Risiko",
+      },
+      flex: {
+        iso: {
+          reviewCycle: "monthly",
+          oversightModel: "HUMAN_REVIEW",
+          documentationLevel: "standard",
+          lifecycleStatus: "active",
+        },
+      },
+    },
+  });
+
+  const formState = createInitialRiskReviewFormState(card, null);
+
+  assert.equal(formState.oversightDefined, "yes");
+  assert.equal(formState.reviewCycleDefined, "yes");
+  assert.equal(formState.documentationLevelDefined, "yes");
+});
+
 test("governance follow-up stays optional for calm minimal cases and appears when review is indicated", () => {
   assert.equal(
     shouldShowGovernanceReviewStep({

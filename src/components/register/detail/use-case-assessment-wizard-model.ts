@@ -69,6 +69,17 @@ function booleanToChoice(
   return "unknown";
 }
 
+function documentedValueToChoice(input: {
+  explicit: boolean | null | undefined;
+  documented: boolean;
+}): RiskReviewBooleanChoice {
+  if (input.explicit !== undefined && input.explicit !== null) {
+    return booleanToChoice(input.explicit);
+  }
+
+  return input.documented ? "yes" : "unknown";
+}
+
 function choiceToBoolean(
   value: RiskReviewBooleanChoice,
 ): boolean | undefined {
@@ -154,23 +165,36 @@ export function createInitialRiskReviewFormState(
   card: Pick<UseCaseCard, "governanceAssessment">,
   launchContext: RiskReviewLaunchContext | null | undefined,
 ): RiskReviewFormState {
+  const core = card.governanceAssessment?.core;
+  const flex = card.governanceAssessment?.flex;
+  const iso = flex?.iso;
+
   return {
     aiActCategory:
       launchContext?.aiActCategory ??
-      getRiskClassEditorValue(card.governanceAssessment?.core?.aiActCategory),
-    oversightDefined: booleanToChoice(
-      card.governanceAssessment?.core?.oversightDefined,
-    ),
-    reviewCycleDefined: booleanToChoice(
-      card.governanceAssessment?.core?.reviewCycleDefined,
-    ),
-    documentationLevelDefined: booleanToChoice(
-      card.governanceAssessment?.core?.documentationLevelDefined,
-    ),
-    customAssessmentText:
-      card.governanceAssessment?.flex?.customAssessmentText ?? "",
+      getRiskClassEditorValue(core?.aiActCategory),
+    oversightDefined: documentedValueToChoice({
+      explicit: core?.oversightDefined,
+      documented:
+        (typeof flex?.oversightModel === "string" &&
+          flex.oversightModel.trim().length > 0) ||
+        (iso?.oversightModel != null && iso.oversightModel !== "unknown"),
+    }),
+    reviewCycleDefined: documentedValueToChoice({
+      explicit: core?.reviewCycleDefined,
+      documented:
+        (typeof flex?.reviewFrequency === "string" &&
+          flex.reviewFrequency.trim().length > 0) ||
+        (iso?.reviewCycle != null && iso.reviewCycle !== "unknown"),
+    }),
+    documentationLevelDefined: documentedValueToChoice({
+      explicit: core?.documentationLevelDefined,
+      documented:
+        iso?.documentationLevel != null && iso.documentationLevel !== "unknown",
+    }),
+    customAssessmentText: flex?.customAssessmentText ?? "",
     customAssessmentSource: normalizeCustomAssessmentSource(
-      card.governanceAssessment?.flex?.customAssessmentSource,
+      flex?.customAssessmentSource,
     ),
   };
 }
