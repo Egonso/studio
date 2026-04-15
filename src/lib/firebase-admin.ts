@@ -102,13 +102,41 @@ function normalizePrivateKey(value?: string): string | undefined {
   if (!cleaned) return undefined;
 
   const normalized = cleaned.replace(/\\n/g, '\n');
-  if (normalized.includes('BEGIN PRIVATE KEY')) {
-    return normalized;
+
+  const normalizePemBlock = (candidate: string): string | undefined => {
+    const beginMarker = '-----BEGIN PRIVATE KEY-----';
+    const endMarker = '-----END PRIVATE KEY-----';
+    if (
+      !candidate.includes(beginMarker) ||
+      !candidate.includes(endMarker)
+    ) {
+      return undefined;
+    }
+
+    const body = candidate
+      .replace(beginMarker, '')
+      .replace(endMarker, '')
+      .replace(/\s+/g, '');
+
+    if (!body) {
+      return undefined;
+    }
+
+    const wrappedBody = body.match(/.{1,64}/g)?.join('\n') ?? body;
+    return `${beginMarker}\n${wrappedBody}\n${endMarker}\n`;
+  };
+
+  const normalizedPem = normalizePemBlock(normalized);
+  if (normalizedPem) {
+    return normalizedPem;
   }
 
   const maybeDecoded = decodeBase64(normalized);
-  if (maybeDecoded && maybeDecoded.includes('BEGIN PRIVATE KEY')) {
-    return maybeDecoded;
+  if (maybeDecoded) {
+    const decodedPem = normalizePemBlock(maybeDecoded);
+    if (decodedPem) {
+      return decodedPem;
+    }
   }
 
   return normalized;
