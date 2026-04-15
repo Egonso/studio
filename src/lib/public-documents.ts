@@ -10,6 +10,13 @@ const publicDocumentLinkSchema = z.object({
   description: z.string().min(1).optional(),
 });
 
+const publicDocumentDownloadSchema = z.object({
+  label: z.string().min(1),
+  href: z.string().min(1),
+  description: z.string().min(1).optional(),
+  format: z.enum(['PDF', 'XLSX', 'CSV', 'ZIP']),
+});
+
 const publicDocumentFaqSchema = z.object({
   q: z.string().min(1),
   a: z.string().min(1),
@@ -66,6 +73,7 @@ const publicDocumentSchema = z.object({
   stance_label: z.string().min(1),
   author: z.string().min(1),
   cta: publicDocumentLinkSchema.optional(),
+  downloads: z.array(publicDocumentDownloadSchema).optional().default([]),
   related_links: z.array(publicDocumentLinkSchema).optional().default([]),
   faq: z.array(publicDocumentFaqSchema).optional().default([]),
   sections: z.array(publicDocumentSectionSchema).min(1),
@@ -75,6 +83,7 @@ export type PublicDocument = z.infer<typeof publicDocumentSchema> & {
   filePath: string;
 };
 export type PublicDocumentSection = z.infer<typeof publicDocumentSectionSchema>;
+export type PublicDocumentDownload = z.infer<typeof publicDocumentDownloadSchema>;
 export type PublicDocumentLink = z.infer<typeof publicDocumentLinkSchema>;
 
 const CONTENT_ROOT = path.join(process.cwd(), 'src/content/public-documents');
@@ -206,6 +215,16 @@ export function getPublicDocumentCollectionCopy(
 
 export function getPublicDocumentPlainText(doc: PublicDocument): string {
   const lines: string[] = [doc.title, '', doc.summary];
+
+  if (doc.downloads.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples');
+    for (const download of doc.downloads) {
+      lines.push(`${download.label} (${download.format}): ${download.href}`);
+      if (download.description) {
+        lines.push(download.description);
+      }
+    }
+  }
 
   for (const section of doc.sections) {
     lines.push('', section.heading);

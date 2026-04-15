@@ -21,6 +21,20 @@
   "object_label": "Partner-Artefakt",
   "stance_label": "Arbeitsdokument",
   "author": "KIRegister",
+  "downloads": [
+    {
+      "label": "Practitioner Kit / Workshopleitfaden",
+      "href": "/downloads/artefacts/ki-register-practitioner-kit-workshopleitfaden.pdf",
+      "description": "Kompakter PDF-Leitfaden fuer Workshops, Audits und Starttermine mit Fachbereichen.",
+      "format": "PDF"
+    },
+    {
+      "label": "Beispiel Registerauszug fuer Workshops",
+      "href": "/downloads/artefacts/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Excel-Beispiel mit mehreren Use Cases, Owner-Zuordnung, Kategorie und Verify-Referenz.",
+      "format": "XLSX"
+    }
+  ],
   "cta": {
     "label": "Partner werden",
     "href": "/de/artefacts/use-case-pass-explainer",

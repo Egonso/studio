@@ -21,6 +21,20 @@
   "object_label": "Explainer-Artefakt",
   "stance_label": "Einordnungsdokument",
   "author": "KIRegister",
+  "downloads": [
+    {
+      "label": "Use-Case Pass Explainer / One-Pager",
+      "href": "/downloads/artefacts/ki-register-use-case-pass-explainer-one-pager.pdf",
+      "description": "Kurzer PDF-Einstieg fuer Einkauf, Legal und Governance mit der Kernaussage des Formats.",
+      "format": "PDF"
+    },
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/downloads/artefacts/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Direktes Beispiel eines ausgefuellten Passes fuer einen dokumentierten KI-Einsatzfall.",
+      "format": "PDF"
+    }
+  ],
   "cta": {
     "label": "Der Use-Case Pass als Standardnachweis",
     "href": "/de/standards/use-case-pass",

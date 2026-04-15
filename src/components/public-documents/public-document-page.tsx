@@ -3,6 +3,7 @@ import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 import {
   getPublicDocumentCollectionCopy,
   getPublicDocumentTypeLabel,
+  type PublicDocumentDownload,
   type PublicDocument,
   type PublicDocumentLink,
 } from '@/lib/public-documents';
@@ -44,6 +45,46 @@ function renderLink(link: PublicDocumentLink, locale: string) {
     >
       {link.label}
     </a>
+  );
+}
+
+function renderDownload(download: PublicDocumentDownload, locale: string) {
+  const isExternal = /^https?:\/\//.test(download.href);
+  const openInNewTab = download.format === 'PDF' || isExternal;
+  const downloadFile = !isExternal && download.format !== 'PDF';
+  const actionLabel =
+    locale === 'de'
+      ? download.format === 'PDF'
+        ? 'Datei öffnen'
+        : 'Datei herunterladen'
+      : download.format === 'PDF'
+        ? 'Open file'
+        : 'Download file';
+
+  return (
+    <div key={`${download.label}-${download.href}`} className="border border-slate-200 px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            {download.format}
+          </p>
+          <p className="text-sm font-medium text-slate-950">{download.label}</p>
+          {download.description ? (
+            <p className="max-w-2xl text-sm leading-7 text-slate-600">{download.description}</p>
+          ) : null}
+        </div>
+
+        <a
+          className="text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+          download={downloadFile ? true : undefined}
+          href={download.href}
+          rel={openInNewTab ? 'noreferrer' : undefined}
+          target={openInNewTab ? '_blank' : undefined}
+        >
+          {actionLabel}
+        </a>
+      </div>
+    </div>
   );
 }
 
@@ -143,6 +184,17 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
                 </div>
               </div>
             </section>
+
+            {document.downloads.length > 0 ? (
+              <section className="space-y-4 border-b border-slate-200 pb-8">
+                <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                  {isGerman ? 'Downloads und Beispiele' : 'Downloads and examples'}
+                </h2>
+                <div className="space-y-3">
+                  {document.downloads.map((download) => renderDownload(download, document.locale))}
+                </div>
+              </section>
+            ) : null}
 
             {document.sections.map((section) => (
               <section key={section.heading} className="space-y-4 border-b border-slate-200 pb-8">

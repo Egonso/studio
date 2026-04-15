@@ -22,6 +22,20 @@
   "object_label": "Standard-Dokument",
   "stance_label": "Referenzformat",
   "author": "KIRegister",
+  "downloads": [
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/downloads/artefacts/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Ausgefuelltes PDF-Beispiel fuer einen dokumentierten KI-Einsatzfall mit Owner, Kategorie und Nachweislogik.",
+      "format": "PDF"
+    },
+    {
+      "label": "Beispiel Use-Case-Register",
+      "href": "/downloads/artefacts/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Excel-Beispiel fuer mehrere Pass-Eintraege mit Verify-Referenzen und Review-Status.",
+      "format": "XLSX"
+    }
+  ],
   "cta": {
     "label": "Register starten",
     "href": "/de",

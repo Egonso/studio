@@ -21,6 +21,20 @@
   "object_label": "Lieferketten-Artefakt",
   "stance_label": "Beschaffungsdokument",
   "author": "KIRegister",
+  "downloads": [
+    {
+      "label": "Supplier Request Template",
+      "href": "/downloads/artefacts/ki-register-supplier-request-template.xlsx",
+      "description": "Excel-Vorlage fuer strukturierte Lieferkettenanfragen mit Pflichtfeldern und Beispielantwort.",
+      "format": "XLSX"
+    },
+    {
+      "label": "Beispielantwort fuer OEM-Anfragen",
+      "href": "/downloads/artefacts/ki-register-supplier-response-beispiel.pdf",
+      "description": "Ausgefuelltes PDF-Beispiel fuer eine belastbare Supplier-Response auf Use-Case-Ebene.",
+      "format": "PDF"
+    }
+  ],
   "cta": {
     "label": "Supplier Pass anfordern",
     "href": "mailto:zoltangal@web.de?subject=Supplier%20Pass%20anfordern",

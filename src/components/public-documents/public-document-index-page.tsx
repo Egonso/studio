@@ -38,6 +38,7 @@ export function PublicDocumentIndexPage({
   const statusLabel = isGerman ? 'Dokumentlage' : 'Document status';
   const effectiveLabel = isGerman ? 'Stand der Rechtslage' : 'Effective legal position';
   const updatedLabel = isGerman ? 'Aktualisiert' : 'Updated';
+  const downloadsLabel = isGerman ? 'Downloads verfügbar' : 'downloads available';
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
@@ -87,6 +88,11 @@ export function PublicDocumentIndexPage({
                       </Link>
                     </h2>
                     <p className="text-[15px] leading-7 text-slate-700">{doc.summary}</p>
+                    {doc.downloads.length > 0 ? (
+                      <p className="text-[13px] font-medium text-slate-500">
+                        {doc.downloads.length} {downloadsLabel}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="min-w-[210px] space-y-2 border border-slate-200 px-4 py-4">

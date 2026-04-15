@@ -15,6 +15,7 @@ const VALID_TEMPLATE_VARIANTS = new Set([
   'authority-update',
   'artefact-sheet',
 ]);
+const VALID_DOWNLOAD_FORMATS = new Set(['PDF', 'XLSX', 'CSV', 'ZIP']);
 const BANNED_TITLE_PATTERNS = [
   {
     regex: /\b(?:ist|sind)\s+(?:kein|keine|nicht)\b.{0,120}\bsondern\b/i,
@@ -54,6 +55,36 @@ function walkJsonFiles(dirPath) {
 function requiredString(doc, key, errors) {
   if (typeof doc[key] !== 'string' || doc[key].trim().length === 0) {
     errors.push(`Missing or invalid string field "${key}".`);
+  }
+}
+
+function validateDownloads(doc, errors) {
+  if (doc.downloads == null) {
+    return;
+  }
+
+  if (!Array.isArray(doc.downloads)) {
+    errors.push('downloads must be an array when present.');
+    return;
+  }
+
+  for (const [index, download] of doc.downloads.entries()) {
+    if (!download || typeof download !== 'object') {
+      errors.push(`Download ${index} is invalid.`);
+      continue;
+    }
+
+    if (typeof download.label !== 'string' || download.label.trim().length === 0) {
+      errors.push(`Download ${index} is missing a label.`);
+    }
+
+    if (typeof download.href !== 'string' || download.href.trim().length === 0) {
+      errors.push(`Download ${index} is missing an href.`);
+    }
+
+    if (!VALID_DOWNLOAD_FORMATS.has(download.format)) {
+      errors.push(`Download ${index} uses unsupported format "${download.format}".`);
+    }
   }
 }
 
@@ -106,6 +137,16 @@ function getSegment(contentType) {
 
 function buildPlainText(doc) {
   const lines = [doc.title, '', doc.summary];
+
+  if (Array.isArray(doc.downloads) && doc.downloads.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples');
+    for (const download of doc.downloads) {
+      lines.push(`${download.label} (${download.format}): ${download.href}`);
+      if (typeof download.description === 'string' && download.description.trim().length > 0) {
+        lines.push(download.description);
+      }
+    }
+  }
 
   for (const section of doc.sections) {
     lines.push('', section.heading);
@@ -201,12 +242,18 @@ function validateDocument(doc, filePath) {
     errors.push('cta must contain label and href when present.');
   }
 
+  validateDownloads(doc, errors);
+
   if (doc.content_type === 'update' && doc.template_variant !== 'authority-update') {
     errors.push('Updates must use the authority-update template.');
   }
 
   if (doc.content_type === 'artefact' && doc.template_variant !== 'artefact-sheet') {
     errors.push('Artefacts must use the artefact-sheet template.');
+  }
+
+  if (doc.content_type === 'artefact' && (!Array.isArray(doc.downloads) || doc.downloads.length === 0)) {
+    errors.push('Artefacts must include at least one download or example file.');
   }
 
   if (
@@ -280,6 +327,7 @@ function buildManifest(validationResults) {
           deletePath: path.relative(ROOT, result.filePath),
           notificationEmail: result.doc.notification_email,
           sourceUrls: result.doc.source_urls,
+          downloads: result.doc.downloads ?? [],
           lastSubstantiveUpdate: result.doc.last_substantive_update,
           fullText: buildPlainText(result.doc),
           autoPublishEligible: result.doc.content_type !== 'standard',
