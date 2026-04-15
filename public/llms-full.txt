@@ -1,0 +1,451 @@
+# AI Registry / KI Register — Complete Platform Reference
+
+> This file contains the full reference documentation for AI Registry (airegist.com), a use-case-first AI governance platform for EU AI Act compliance. It is intended for large-context LLMs, AI agents, and automated systems that need complete platform knowledge in a single document.
+
+---
+
+## 1. Product Overview
+
+**AI Registry** (English name) / **KI Register** (German name) is a B2B SaaS platform that helps organisations document, assess, and govern their AI systems in compliance with the EU AI Act (Regulation (EU) 2024/1689).
+
+The platform is built on a "use-case-first" approach: every AI system is registered as a concrete use case with structured attributes, rather than abstract policy documents. Governance, risk assessment, and evidence management are layered on top of this inventory.
+
+**Domain:** https://airegist.com
+**Languages:** German (/de/) and English (/en/) — automatic browser language detection
+**Data residency:** European Union (GDPR compliant)
+**Legal controllers:** ZukunftBilden GmbH + BewusstseinBilden UG (haftungsbeschränkt), Austria — joint controllers per GDPR Art. 26
+
+---
+
+## 2. EU AI Act Context
+
+The EU AI Act (Regulation (EU) 2024/1689) entered into force on 2 August 2024. It applies to:
+- **Providers** — organisations that develop or place AI systems on the market
+- **Deployers** — organisations that use AI systems in a professional context
+
+AI Registry is primarily built for **deployers** — the majority of organisations that use off-the-shelf AI tools (e.g. ChatGPT, Microsoft Copilot, Salesforce Einstein) and must document and govern their use.
+
+Key compliance milestones:
+- Prohibited AI systems: enforceable from February 2025
+- GPAI model obligations: August 2025
+- High-risk AI system obligations (Annex III): August 2026
+- Full application including other high-risk systems: August 2027
+
+---
+
+## 3. Core Data Model
+
+### Use Case (Einsatzfall)
+
+The central entity. Fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `toolId` | string | Identifier of the AI tool/system in use |
+| `purpose` | string | What the AI system is used for |
+| `riskClass` | enum | MINIMAL, LIMITED, HIGH, PROHIBITED, UNASSESSED |
+| `usageContexts` | array | INTERNAL_ONLY, EMPLOYEES, CUSTOMERS, PUBLIC, BUSINESS_PARTNERS, AUTOMATED_DECISION |
+| `dataCategories` | array | NO_PERSONAL_DATA, PERSONAL_DATA, SPECIAL_PERSONAL, FINANCIAL_DATA, HEALTH_DATA, BIOMETRIC_DATA |
+| `decisionInfluence` | enum | ASSISTANCE, PREPARATION, AUTOMATED |
+| `status` | enum | UNREVIEWED, REVIEW_RECOMMENDED, REVIEWED, PROOF_READY |
+| `oversightModel` | enum | HITL (human-in-the-loop), HOTL (human-on-the-loop), HUMAN_REVIEW, NO_HUMAN |
+| `reviewCycle` | enum | annual, semiannual, quarterly, monthly, ad_hoc |
+| `lifecycleStatus` | enum | active, paused, retired |
+| `responsibleParty` | string | Who is responsible for this use case |
+| `riskAssessment` | object | EU AI Act assessment results |
+| `publicInfo` | object | Public-facing information for trust portal |
+| `externalIntake` | object | If submitted via external intake form |
+
+### Register
+
+An organisation's complete collection of use cases. One register per organisation (workspace). Contains all use cases plus organisation-level governance settings.
+
+### Organisation / Workspace
+
+Maps to a company or organisational unit. Has:
+- Members with roles (owner, member, external officer)
+- Governance settings (RACI matrix, incident process, review standards, AI policy)
+- Billing entitlement (Free / Pro / Enterprise)
+- Access codes for external intake submissions
+
+---
+
+## 4. Risk Classification
+
+### EU AI Act Four-Tier Model
+
+**Prohibited (Unacceptable Risk)**
+- Social scoring by public authorities
+- Real-time remote biometric identification in public spaces (with exceptions)
+- Subliminal manipulation causing harm
+- Exploitation of vulnerabilities of specific groups
+- Biometric categorisation inferring sensitive attributes
+- Emotion recognition in workplace/education
+
+**High-Risk (Annex III)**
+Specific categories where significant documentation and human oversight are legally required:
+1. Biometric identification and categorisation
+2. Critical infrastructure management
+3. Education and vocational training (student assessment, admissions)
+4. Employment and workers management (CV screening, performance evaluation)
+5. Essential private and public services (credit scoring, benefits eligibility)
+6. Law enforcement (risk assessment of individuals, polygraphs)
+7. Migration, asylum, border control
+8. Administration of justice and democratic processes
+
+**Limited Risk (Transparency Obligations)**
+- Chatbots and conversational AI — must disclose AI identity to users
+- Emotion recognition systems — must inform affected persons
+- Deep fakes — must label synthetic content
+- General-purpose AI with systemic risk
+
+**Minimal Risk**
+- AI-enabled video games
+- Spam filters
+- Most productivity AI (writing assistance, translation, summarisation)
+- Recommendation systems in low-stakes contexts
+
+---
+
+## 5. Platform Features by Tier
+
+### Free Register (All users)
+
+**Use Case Registration**
+- Add, edit and delete AI use cases with full metadata
+- Risk classification (manually set or via assessment wizard)
+- Status tracking (UNREVIEWED → REVIEW_RECOMMENDED → REVIEWED → PROOF_READY)
+- Usage context tagging, data category tagging, decision influence classification
+
+**EU AI Act Law Viewer**
+- Full text of Regulation (EU) 2024/1689
+- Recitals (1–180), Articles (1–113), Annexes
+- Searchable, readable interface
+
+**External Intake / Access Codes**
+- Generate shareable access codes for team members or partners
+- Recipients submit AI use cases via public form at /intake — no login needed
+- Submissions appear in the register as traceable external entries
+
+**Basic Risk Assessment**
+- Guided assessment wizard per use case
+- Maps to EU AI Act Annex III categories
+- Outputs risk classification recommendation
+
+### Governance Control Centre (Pro / Enterprise)
+
+**Policy Generator (3 levels)**
+- Level 1: Commitment Policy (1 page) — executive sign-off document
+- Level 2: Framework Policy (3–5 pages) — operational guidelines
+- Level 3: Enterprise Policy (8–10 pages) — comprehensive governance document
+- AI writing assistant for defensive policy language
+- Link policies to specific use cases
+
+**Audit Export**
+- Export complete governance dossier as PDF
+- Structured data export (AIMS format)
+- Per use case evidence packages
+- Organisation-level audit report
+
+**Trust Portal**
+- Public-facing governance page per organisation
+- Shows: which AI systems are in use, risk classifications, governance status
+- Verifiable quality seal with certificate code
+- Accessible without login — for auditors, partners, customers
+
+**Portfolio Analytics**
+- Risk/value matrix across all registered use cases
+- Compliance exposure detection (missing assessments, missing oversight, prohibited systems)
+- Portfolio-level governance health score
+- Benchmarking insights
+
+**ISO Alignment**
+- ISO 42001 (AI management systems) — requirement mapping
+- ISO 27001 — security control alignment
+- Gap analysis per use case
+
+**Review Workflows**
+- Formal review documentation per use case
+- Deadline assignment and tracking
+- Overdue / due-soon / on-track status
+- Review history audit trail
+
+**Governance Settings (RACI + Standards)**
+- RACI matrix: who is Responsible, Accountable, Consulted, Informed per AI governance process
+- Incident response process definition
+- Review standards and cycles organisation-wide
+- Competency and training requirements
+
+**Supply Chain Assessment**
+- Evaluate AI governance of vendors and suppliers
+- Document supply chain AI risk
+- Supplier invitation and verification workflow
+
+### Enterprise (additional to Pro)
+
+- Multi-organisation structure (subsidiaries, divisions)
+- Advanced executive reporting dashboards
+- Custom API integrations
+- Dedicated onboarding and support
+
+---
+
+## 6. Industry-Specific Guidance
+
+### Healthcare & Life Sciences
+
+**EU AI Act risk level:** Most clinical AI is **High-Risk** (Annex III, Category 6 — critical medical devices overlap; Category 5(a) — essential private services including healthcare).
+
+**Common use cases to register:**
+- AI-assisted diagnostics (radiology, pathology)
+- Patient deterioration prediction / early warning systems
+- Clinical decision support tools
+- Administrative AI (appointment scheduling, billing coding)
+- Drug interaction checkers
+
+**Key documentation requirements:**
+- Risk assessment per system with justification for risk class
+- Human oversight model: HITL required for clinical decisions affecting patient safety
+- Data categories: HEALTH_DATA, SPECIAL_PERSONAL — triggers GDPR Art. 9 special category obligations
+- Review cycle: minimum annual, recommended quarterly for active clinical systems
+
+**Compliance exposure triggers in AI Registry:**
+- Health data + AUTOMATED decision influence → flags as probable high-risk
+- No human oversight documented on health-data system → compliance warning
+
+---
+
+### HR & Recruitment
+
+**EU AI Act risk level:** **High-Risk** (Annex III, Category 4 — employment and workers management). This is one of the most scrutinised categories.
+
+**Covered systems:**
+- CV / resume screening tools
+- Candidate ranking and shortlisting algorithms
+- Interview analysis AI (video, tone, language)
+- Performance evaluation systems
+- Workforce planning and scheduling AI
+- Employee monitoring tools
+
+**Intersecting regulation:**
+- GDPR Art. 22: Automated decision-making — employees and candidates have the right not to be subject to solely automated decisions with significant effects
+- Works council / Betriebsrat consultation requirements in DACH
+- Equal treatment obligations (AGG in Germany, GlBG in Austria)
+
+**Required documentation in AI Registry:**
+- Decision influence: must document whether AI is ASSISTANCE, PREPARATION, or AUTOMATED
+- Oversight model: HITL or at minimum HOTL for hiring/firing decisions
+- Data categories: PERSONAL_DATA minimum; SPECIAL_PERSONAL if processing photos, voice, or inferred characteristics
+- Formal risk assessment required before deployment
+
+---
+
+### Finance & Banking
+
+**EU AI Act risk level:** Mixed — **High-Risk** for credit scoring (Annex III, Category 5(b)), **Limited Risk** for many analytical tools.
+
+**Common use cases:**
+- Credit scoring and loan decisions
+- Fraud detection (real-time transaction analysis)
+- AML (anti-money laundering) transaction monitoring
+- Algorithmic trading signals / robo-advisory
+- Customer service chatbots
+- KYC (know your customer) identity verification
+- Insurance risk assessment
+
+**Intersecting regulation:**
+- MiFID II: algorithmic trading obligations
+- EBA guidelines on internal governance including AI
+- DORA (Digital Operational Resilience Act): AI systems in ICT risk scope
+- GDPR Art. 22: automated credit decisions — individuals have the right to human review
+
+**Key documentation requirements:**
+- Credit scoring systems: mandatory risk assessment + transparency documentation
+- Chatbots: must disclose AI identity (Limited Risk transparency obligation)
+- Fraud/AML: typically institutional internal use → INTERNAL_ONLY context + HITL oversight
+
+---
+
+### Education & Training
+
+**EU AI Act risk level:** **High-Risk** (Annex III, Category 3) when used by educational institutions to assess students, determine access, or influence educational pathways.
+
+**Covered systems:**
+- Automated essay grading
+- Student performance prediction / early intervention
+- Admissions scoring tools
+- Learning path personalisation
+- Plagiarism and academic integrity detection
+- Attendance and engagement monitoring
+
+**Key considerations:**
+- Applies to educational institutions (universities, schools, training providers)
+- Consumer-facing tutoring apps generally minimal risk
+- Student data: combination of PERSONAL_DATA + potentially SPECIAL_PERSONAL (health/disability accommodations)
+- Parent/guardian notification requirements for minors
+
+---
+
+### Public Sector & Government
+
+**EU AI Act risk level:** Highest scrutiny. Several categories are either **High-Risk** or **Prohibited**.
+
+**High-risk categories for public sector:**
+- Benefits eligibility determination (social welfare, unemployment)
+- Public procurement evaluation
+- Traffic management and infrastructure AI
+- Emergency response prioritisation
+
+**Near-prohibited / maximum scrutiny:**
+- Social scoring by public bodies → **Prohibited**
+- Predictive policing → **Prohibited** (risk assessment of individuals to predict criminal offences)
+- Real-time biometric surveillance → **Prohibited** with narrow exceptions
+- Border control / asylum AI → High-risk, Annex III Category 7
+
+**Compliance requirements:**
+- Fundamental rights impact assessment (FRIA) required for high-risk public sector AI
+- Democratic oversight and public accountability documentation
+- Transparency: citizens must be informed when AI is used in decisions affecting them
+
+---
+
+### Legal & Consulting
+
+**EU AI Act risk level:** Typically **Limited Risk** or **Minimal Risk**. High-risk possible if AI is used in administration of justice (Annex III, Category 8).
+
+**Common use cases:**
+- Contract review and analysis AI
+- Legal research assistants (case law retrieval, summarisation)
+- Document automation
+- Compliance monitoring tools
+- Client-facing chatbots and intake tools
+- Billing and matter management AI
+
+**Key considerations:**
+- Legal research/summarisation AI: Minimal Risk — no transparency obligation, but best practice to document
+- If AI assists judges or tribunals in decision-making: High-Risk (Annex III, Category 8)
+- Client-facing chatbots: Limited Risk — must disclose AI interaction
+- Privilege and confidentiality: data category documentation critical (PERSONAL_DATA, sometimes SPECIAL_PERSONAL for client matters)
+
+---
+
+### Manufacturing & Operations
+
+**EU AI Act risk level:** Generally **Minimal Risk** to **Limited Risk**, unless safety-critical.
+
+**Common use cases:**
+- Predictive maintenance (equipment failure prediction)
+- Quality control vision AI (defect detection)
+- Supply chain demand forecasting
+- Energy optimisation
+- Robotics process control
+- Worker safety monitoring
+
+**Safety-critical exceptions (High-Risk):**
+- AI controlling safety components in machinery covered by EU Machinery Directive → High-Risk
+- AI in critical infrastructure (energy grid, water supply) → High-Risk Annex III Category 2
+
+**Key documentation:**
+- Mostly INTERNAL_ONLY context + NO_PERSONAL_DATA → typically minimal risk
+- If processing worker biometrics (badge access, safety monitoring) → BIOMETRIC_DATA → risk class review needed
+- Supply chain AI: use the supply chain assessment feature to document vendor AI governance
+
+---
+
+## 7. API Reference
+
+AI Registry provides a REST API for programmatic access to register data.
+
+**Authentication:** Bearer token (Firebase Auth JWT or API key from Agent Kit)
+**Base URL:** https://airegist.com/api
+
+### Key Endpoints
+
+`GET /api/workspaces` — List workspaces the authenticated user has access to
+
+`GET /api/workspaces/{orgId}/registers` — Get registers for a workspace
+
+`GET /api/workspaces/{orgId}/external-submissions` — List external intake submissions
+
+`POST /api/workspaces/{orgId}/external-submissions` — Create an external submission
+
+`GET /api/workspaces/{orgId}/members` — List workspace members
+
+`GET /api/registers/{registerId}/external-submissions` — Get submissions for a specific register
+
+`POST /api/supplier-invite` — Create a supplier governance assessment invitation
+
+`GET /api/supplier-invite/list` — List supplier invitations
+
+`POST /api/invites` — Create a workspace member invitation
+
+`GET /api/capture-by-code?code={code}` — Validate an access code and get the target register info (public, no auth required)
+
+`GET /api/certification` — Get certification status for the authenticated user
+
+`POST /api/draft-assessment` — Generate a draft EU AI Act risk assessment using AI
+
+`POST /api/policy/improve` — AI writing assistant to improve AI policy text
+
+`GET /api/workspaces/{orgId}/audit-export` — Export full governance audit dossier
+
+### Agent Kit
+
+The Agent Kit provides structured access for AI agents:
+- Configured per workspace in Settings → Agent Kit & API
+- Returns governance summaries, risk exposure reports, use case metadata in agent-friendly format
+- Useful for: Slack bots reporting compliance status, CI/CD gates on AI system changes, ERP integration for new tool onboarding
+
+---
+
+## 8. Glossary
+
+| Term | Definition |
+|---|---|
+| **Deployer** | Organisation using an AI system in a professional context (vs. Provider who builds it) |
+| **Provider** | Organisation that develops or places an AI system on the market |
+| **Use Case / Einsatzfall** | A concrete AI application registered in the platform |
+| **Risk Class** | EU AI Act tier: Minimal, Limited, High-Risk, or Prohibited |
+| **HITL** | Human-in-the-loop — a human reviews/approves every AI output before it affects a person |
+| **HOTL** | Human-on-the-loop — AI operates autonomously but human can intervene |
+| **FRIA** | Fundamental Rights Impact Assessment — required for high-risk public sector AI |
+| **Governance Control Centre** | AI Registry Pro/Enterprise tier with policy, audit, trust portal features |
+| **Trust Portal** | Public governance evidence page, accessible without login |
+| **Access Code** | Shareable code for external submission of use cases without login |
+| **RACI** | Responsible, Accountable, Consulted, Informed — governance assignment matrix |
+| **Annex III** | The list of high-risk AI application categories in the EU AI Act |
+| **GPAI** | General-Purpose AI (e.g. large language models) — subject to transparency and FRIA obligations |
+| **Proof Ready** | Status indicating a use case has full documentation for regulatory evidence |
+
+---
+
+## 9. Legal and Data Protection
+
+**Joint Controllers (GDPR Art. 26):**
+- ZukunftBilden GmbH, Salzburg, Austria
+- BewusstseinBilden UG (haftungsbeschränkt), Germany
+
+**Data location:** European Union (Firebase/Google Cloud EU regions)
+
+**Legal basis for processing (GDPR Art. 6):**
+- Art. 6(1)(b): Contract performance — account and service delivery
+- Art. 6(1)(c): Legal obligation — EU AI Act compliance documentation
+- Art. 6(1)(f): Legitimate interest — security, fraud prevention, product improvement
+
+**Data subject rights:** Access (Art. 15), Rectification (Art. 16), Erasure (Art. 17), Portability (Art. 20), Objection (Art. 21) — exercisable via privacy@airegist.com
+
+**Governing law:** Austrian law. Jurisdiction: Landesgericht Salzburg.
+
+**Consumer withdrawal (EU Consumer Rights Directive):** 14-day right of withdrawal for new subscriptions, starting from subscription date.
+
+**EU ODR platform:** https://ec.europa.eu/consumers/odr
+
+---
+
+## 10. Contact
+
+- Website: https://airegist.com
+- Privacy / data protection: see https://airegist.com/en/privacy
+- Legal notice: see https://airegist.com/en/legal-notice
+- Terms: see https://airegist.com/en/terms
+- Copyright: © 2025 AI Register – ZukunftBilden GmbH & BewusstseinBilden UG (haftungsbeschränkt)

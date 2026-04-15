@@ -1,0 +1,110 @@
+# AI Registry / KI Register
+
+> AI Registry (English) / KI Register (German) is a use-case-first AI governance platform for organisations required to comply with the EU AI Act (Regulation (EU) 2024/1689). It provides structured documentation, risk classification, governance workflows, and audit-ready evidence management for AI systems in use.
+
+For the complete platform reference in a single file, see [Full Reference](https://airegist.com/llms-full.txt).
+
+## What AI Registry Does
+
+AI Registry is the operational layer between an organisation's AI usage and its legal obligations under the EU AI Act. Organisations use it to:
+
+- **Register AI use cases** with structured metadata (purpose, data categories, affected groups, decision influence)
+- **Classify risk** per the EU AI Act four-tier model (minimal, limited, high-risk, prohibited)
+- **Run guided risk assessments** aligned to EU AI Act Annex III high-risk categories
+- **Manage governance** with human oversight documentation, review cycles, ISO 42001 / ISO 27001 alignment
+- **Generate AI policies** at three levels: Commitment (1 page), Framework (3–5 pages), Enterprise (8–10 pages)
+- **Export audit dossiers** as PDF or structured data for regulatory evidence
+- **Operate a Trust Portal** — a public governance proof page for external stakeholders, auditors, and partners
+- **Assess supply chain** — verify AI governance requirements in the vendor/supplier chain
+- **Accept external submissions** via access codes, allowing team members or business partners to submit AI use cases without a login
+
+## Core Concepts
+
+- **Use Case / Einsatzfall** — the primary unit. Every AI system in use is registered as a use case with fields for purpose, risk class, data categories, usage context, decision influence, responsible party, and oversight model.
+- **Risk Classes** — Minimal Risk, Limited Risk (transparency obligations), High-Risk (Annex III), Prohibited (unacceptable risk). The platform maps to official EU AI Act English terminology.
+- **Deployer / Provider** — EU AI Act roles. Most organisations are deployers. The platform is built for deployer obligations (Art. 26 ff. EU AI Act).
+- **Human-in-the-loop (HITL)** — oversight model option required for high-risk systems. The platform tracks and documents this.
+- **Register** — an organisation's complete inventory of AI use cases with their governance status.
+- **Governance Control Centre** — the premium tier that adds policy engine, audit export, trust portal, batch operations, and portfolio analytics.
+
+## Platform Architecture
+
+- Web app at https://airegist.com
+- Authentication: email/password with Firebase Auth
+- Data: Firestore (EU region)
+- All user data stored in EU (GDPR Art. 26 joint controllers: ZukunftBilden GmbH + BewusstseinBilden UG)
+- Languages: German (default, /de/...) and English (/en/...) with automatic browser detection
+- Access: SaaS subscription (Free Register tier + Governance Control Centre Pro/Enterprise)
+
+## Pages and Features
+
+- [Home / Landing](https://airegist.com/en): Product overview, sign-up and invitation code entry
+- [My Register](https://airegist.com/en/my-register): The main dashboard — list and manage all registered AI use cases
+- [EU AI Act Viewer](https://airegist.com/en/law): Full text of Regulation (EU) 2024/1689 with recitals, articles and annexes, searchable
+- [Intake / External Submission](https://airegist.com/en/intake): Public form for submitting AI use cases via access code — no login required
+- [Governance Control Centre](https://airegist.com/en/control): Premium governance dashboard — reviews, policies, exports, portfolio, trust
+- [Settings](https://airegist.com/en/settings): Organisation governance settings, RACI matrix, incident process, AI policy configuration
+- [Trust Portal](https://airegist.com/en/trust): Public governance evidence page per organisation (accessible without login)
+- [Verification](https://airegist.com/en/verify): Verify AI Registry quality seals and certifications by code
+
+## EU AI Act Compliance Scope
+
+The platform supports deployer obligations under Regulation (EU) 2024/1689:
+
+- Art. 9: Risk management system documentation for high-risk AI
+- Art. 13: Transparency and provision of information
+- Art. 14: Human oversight — model selection and documentation
+- Art. 26: Deployer obligations including use-case registration and risk assessment
+- Art. 29: Obligations when deploying general-purpose AI
+- Annex III: High-risk AI system categories (biometrics, education, employment, essential services, law enforcement, migration, justice, critical infrastructure)
+- Recital 47 / Art. 6: Risk classification methodology
+
+## Industries Served
+
+AI Registry is used across sectors with significant EU AI Act exposure:
+
+**Healthcare & Life Sciences** — AI-assisted diagnostics, patient risk scoring, clinical decision support. High-risk under Annex III Art. 6(c). Requires risk assessment, human oversight, and evidence documentation.
+
+**HR & Recruitment** — CV screening, candidate ranking, performance evaluation AI. High-risk under Annex III Art. 6(d). Particularly scrutinised under EU AI Act and GDPR Art. 22.
+
+**Finance & Banking** — Credit scoring, fraud detection, algorithmic trading signals, AML systems. High-risk or limited-risk depending on automation level. Requires transparency obligations.
+
+**Education & Training** — Student assessment AI, learning path personalisation, automated grading. High-risk under Annex III Art. 6(b) when used in educational institutions.
+
+**Public Sector & Government** — Benefits eligibility, permit processing, law enforcement analytics. Highest scrutiny under EU AI Act. Some use cases near prohibited category.
+
+**Legal & Consulting** — Contract analysis, legal research assistants, compliance automation. Typically limited risk with transparency obligations.
+
+**Manufacturing & Operations** — Predictive maintenance, quality control vision AI, supply chain optimisation. Generally minimal to limited risk unless safety-critical.
+
+**Professional Services** — Client-facing AI tools, report generation, data analysis. Typically minimal risk but documentation required for accountability.
+
+## Agent Kit & API
+
+AI Registry provides a programmatic API for enterprise integrations and agent workflows:
+
+- REST API for reading and writing use case data to the register
+- Agent Kit: structured access for AI agents to query governance status, risk classifications, and compliance exposure
+- Access via Settings → Agent Kit & API (requires authentication)
+- Use cases: automated use-case registration pipelines, compliance monitoring agents, ERP/HR system integrations
+
+## Pricing Tiers
+
+- **Free Register** — Unlimited use case registration, basic risk classification, intake access codes
+- **Governance Control Centre (Pro)** — Policy generator, audit export, trust portal, ISO alignment, review workflows, portfolio analytics
+- **Enterprise** — Multi-organisation structure, advanced reporting, custom integrations, dedicated support
+
+## Legal
+
+- Privacy Policy: https://airegist.com/en/privacy
+- Legal Notice: https://airegist.com/en/legal-notice
+- Terms and Conditions: https://airegist.com/en/terms
+- Governing law: Austrian law (Landesgericht Salzburg)
+- Data controller: ZukunftBilden GmbH + BewusstseinBilden UG (haftungsbeschränkt), joint controllers per GDPR Art. 26
+- EU ODR platform: https://ec.europa.eu/consumers/odr
+
+## Optional
+
+- [Changelog / Release notes](https://airegist.com/en/downloads): Platform updates and release history
+- [Academy](https://airegist.com/en/academy): EU AI Act certification preparation — become a certified EU AI Act Officer
+- [Certification Verification](https://airegist.com/en/verify): Verify AI Registry quality seals by certificate code

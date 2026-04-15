@@ -45,7 +45,7 @@ async function resolveActor(
   return requireAuthenticatedUser(authorizationHeader);
 }
 
-export function createDraftAssistPostHandler(
+function createDraftAssistPostHandler(
   deps: DraftAssistRouteDeps = {},
 ) {
   const generate = deps.generate ?? generateDraftAssist;
