@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
+import { defaultLocale } from '../i18n/routing';
 
 const PORT = 3310;
 const APP_URL = `http://127.0.0.1:${PORT}`;
+const ROOT_ENTRY_URL = `${APP_URL}/${defaultLocale}`;
 
 function collectServerOutput(child: ReturnType<typeof spawn>) {
   let buffer = '';
@@ -63,7 +65,7 @@ async function waitForRootRoute(timeoutMs: number): Promise<{
 
   while (Date.now() < deadline) {
     try {
-      const response = await fetch(APP_URL, {
+      const response = await fetch(ROOT_ENTRY_URL, {
         headers: {
           Accept: 'text/html',
         },
@@ -75,8 +77,9 @@ async function waitForRootRoute(timeoutMs: number): Promise<{
 
       const looksLikeRootRoute =
         response.status === 200 &&
-        (/\/_next\/static\/chunks\/app\/page\.js/i.test(html) ||
-          /KI-Register/i.test(html));
+        (/<title>KI Register<\/title>/i.test(html) ||
+          /Use-Case-first KI Register/i.test(html) ||
+          /"signIn":"Anmelden"/i.test(html));
 
       if (looksLikeRootRoute) {
         return { status: response.status, html };
@@ -122,8 +125,9 @@ export async function runRootRouteSmoke() {
 
     assert.equal(status, 200);
     assert.ok(
-      /\/_next\/static\/chunks\/app\/page\.js/i.test(html) ||
-        /KI-Register/i.test(html),
+      /<title>KI Register<\/title>/i.test(html) ||
+        /Use-Case-first KI Register/i.test(html) ||
+        /"signIn":"Anmelden"/i.test(html),
       'Root route should render the app entry instead of failing during SSR.',
     );
     assert.ok(

@@ -32,28 +32,30 @@ function readSource(filePath: string): string {
 }
 
 test('free signup/login entry stays focused and direct', () => {
-  const rootPageSource = readSource('src/app/page.tsx');
+  const rootPageSource = readSource('src/app/[locale]/page.tsx');
   const authEntrySource = readSource('src/components/auth/auth-entry-page.tsx');
+  const germanMessages = readSource('messages/de.json');
 
   assert.match(rootPageSource, /AuthEntryPage/);
-  assert.match(authEntrySource, />Registrieren</);
-  assert.match(authEntrySource, />Anmelden</);
-  assert.match(authEntrySource, /Eigenes Register anlegen/);
+  assert.match(authEntrySource, /useTranslations/);
+  assert.match(germanMessages, /"signUp": "Registrieren"/);
+  assert.match(germanMessages, /"signIn": "Anmelden"/);
+  assert.match(germanMessages, /"createRegister": "Eigenes Register anlegen"/);
   assert.match(
-    authEntrySource,
-    /Jede Organisation mit KI-Einsatz führt ein KI-Register\./,
+    germanMessages,
+    /"heroTitle": "Jede Organisation mit KI-Einsatz führt ein KI Register\."/,
   );
   assert.match(
-    authEntrySource,
-    /Governance Control Center wird für dieses Konto freigeschaltet\./,
+    germanMessages,
+    /"governanceActivating": "Governance Control Center wird für dieses Konto freigeschaltet\."/,
   );
   assert.match(
-    authEntrySource,
-    /Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort\./,
+    germanMessages,
+    /"loginDescription": "Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort\."/,
   );
   assert.match(
-    authEntrySource,
-    /Nachweise und Registerauszüge lassen sich standardisiert teilen\./,
+    germanMessages,
+    /"shareNote": "Nachweise und Registerauszüge lassen sich in standardisierter Form teilen\."/,
   );
   assert.doesNotMatch(authEntrySource, /self-serve/i);
   assert.doesNotMatch(authEntrySource, /Checkout erkannt/);
@@ -210,7 +212,7 @@ test('external inbox and premium destinations stay discoverable', () => {
   const inboxSource = readSource(
     'src/components/register/external-submissions-inbox.tsx',
   );
-  const controlSource = readSource('src/app/control/page.tsx');
+  const controlSource = readSource('src/app/[locale]/control/page.tsx');
   assert.match(inboxSource, /Eingegangen/);
   assert.match(inboxSource, /Freigegeben/);
   assert.match(inboxSource, /Abgelehnt/);
@@ -218,7 +220,8 @@ test('external inbox and premium destinations stay discoverable', () => {
   assert.match(inboxSource, /Ablehnen/);
   assert.match(inboxSource, /Freigeben/);
   assert.match(controlSource, /Bericht aktuell halten/);
-  assert.match(controlSource, /Reviews öffnen/);
+  assert.match(controlSource, /scopedHrefs\.controlReviews/);
+  assert.match(controlSource, /t\('control\.reviews'\)/);
 
   const premiumNavHrefs = new Set(
     getVisiblePremiumControlNav('pro').map((entry) => entry.href),

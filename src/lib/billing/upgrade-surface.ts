@@ -1,6 +1,6 @@
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 
-const DEFAULT_SALES_EMAIL = 'sales@airegist.com';
+const DEFAULT_SALES_EMAIL = 'zoltangal@web.de';
 
 export interface GovernanceUpgradeDestination {
   href: string;
@@ -48,18 +48,18 @@ export function getGovernanceUpgradeDestination(
     return href
       ? {
           href,
-          label: 'Request Enterprise',
+          label: 'Enterprise anfragen',
           description:
-            'Enterprise builds on the Governance tier and adds organisation management, provisioning and procurement.',
+            'Enterprise baut auf Governance auf und ergänzt Organisationsverwaltung, Provisioning und Procurement.',
           external: true,
           checkoutConfigured: true,
           targetPlan: 'enterprise',
         }
       : {
           href: buildMailtoHref('Enterprise Upgrade Request'),
-          label: 'Request Enterprise',
+          label: 'Enterprise anfragen',
           description:
-            'Enterprise activation currently goes through our sales team rather than a direct checkout.',
+            'Enterprise wird aktuell über direkten Kontakt statt über einen Checkout freigeschaltet.',
           external: true,
           checkoutConfigured: false,
           targetPlan: 'enterprise',
@@ -68,9 +68,9 @@ export function getGovernanceUpgradeDestination(
 
   return {
     href: '/settings?section=governance#upgrade-panel',
-    label: 'Unlock Governance',
+    label: 'Governance freischalten',
     description:
-      'The paid Governance tier is activated via Governance Settings and a server-side secured Stripe checkout.',
+      'Die bezahlte Governance-Stufe wird über Governance Settings und einen serverseitig abgesicherten Stripe-Checkout aktiviert.',
     external: false,
     checkoutConfigured: true,
     targetPlan: 'pro',

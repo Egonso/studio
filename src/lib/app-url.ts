@@ -1,4 +1,4 @@
-const DEFAULT_APP_ORIGIN = "https://airegist.com";
+const DEFAULT_APP_ORIGIN = "https://kiregister.com";
 
 function normalizeOrigin(value: string | undefined): string | null {
   if (!value) return null;

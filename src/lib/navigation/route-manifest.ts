@@ -516,6 +516,7 @@ export function getProductAreaForPathname(
   }
 
   if (
+    pathname === '/erfassen' ||
     pathname === ROUTE_PATHS.publicCapture ||
     pathname.startsWith('/request/')
   ) {
@@ -571,6 +572,7 @@ export function showSiteChatbotForPathname(pathname: string): boolean {
 
   if (
     pathname === ROUTE_PATHS.publicCapture ||
+    pathname === '/erfassen' ||
     pathname.startsWith('/request/') ||
     pathname === '/exam'
   ) {

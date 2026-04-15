@@ -31,7 +31,7 @@ function isHighRisk(uc: UseCaseCard): boolean {
 
 export const highRiskSection: SectionDefinition = {
     sectionId: 'l3-high-risk',
-    title: 'Requirements for High-Risk AI Systems',
+    title: 'Anforderungen an Hochrisiko-KI-Systeme',
     order: 1100,
     level: 3,
 
@@ -44,11 +44,11 @@ export const highRiskSection: SectionDefinition = {
         const affected = context.useCases.filter(isHighRisk);
 
         const lines: string[] = [
-            `${orgName} operates ${affected.length} AI system${affected.length > 1 ? 's' : ''} ` +
-            `classified as high-risk or making automated decisions. ` +
-            `Extended requirements under Chapter III of the AI Act apply to these.`,
+            `${orgName} betreibt ${affected.length} KI-System${affected.length > 1 ? 'e' : ''}, ` +
+            `die als Hochrisiko eingestuft sind oder automatisierte Entscheidungen vorbereiten. ` +
+            `Für diese gelten die erweiterten Anforderungen aus Kapitel III des AI Act.`,
             ``,
-            `### Affected Systems`,
+            `### Betroffene Systeme`,
             ``,
         ];
 
@@ -60,29 +60,22 @@ export const highRiskSection: SectionDefinition = {
             const influence = resolveDecisionInfluence(uc);
             const influenceLabel = influence ? DECISION_INFLUENCE_LABELS[influence] : '–';
             lines.push(
-                `- **${uc.purpose}** – Category: ${cat}, Decision influence: ${influenceLabel}`,
+                `- **${uc.purpose}** – Kategorie: ${cat}, Entscheidungseinfluss: ${influenceLabel}`,
             );
         }
         lines.push(``);
 
-        lines.push(`### Obligations under AI Act Chapter III`);
+        lines.push(`### Pflichten nach Kapitel III AI Act`);
         lines.push(``);
-        lines.push(`The following requirements should be implemented for the systems listed above:`);
+        lines.push(`Für die oben genannten Systeme sollten insbesondere folgende Anforderungen umgesetzt werden:`);
         lines.push(``);
-        lines.push(`1. **Risk Management System** (Art. 9): A documented risk management system ` +
-            `should be maintained throughout the entire lifecycle of the system.`);
-        lines.push(`2. **Data and Data Governance** (Art. 10): Training, validation and test data ` +
-            `should meet defined quality criteria.`);
-        lines.push(`3. **Technical Documentation** (Art. 11): The functioning, limitations and ` +
-            `risks of the system should be fully documented.`);
-        lines.push(`4. **Record-Keeping Obligations** (Art. 12): Automatic logging ` +
-            `of relevant system events should be implemented.`);
-        lines.push(`5. **Transparency and Provision of Information to Deployers** (Art. 13): Deployers should have sufficient information ` +
-            `to be able to use the system appropriately.`);
-        lines.push(`6. **Human Oversight** (Art. 14): Appropriate human ` +
-            `oversight should be ensured.`);
-        lines.push(`7. **Accuracy, Robustness, Cybersecurity** (Art. 15): The system ` +
-            `should be appropriately accurate, robust and secure throughout its lifecycle.`);
+        lines.push(`1. **Risikomanagementsystem** (Art. 9): Ein dokumentiertes Risikomanagement sollte über den gesamten Lebenszyklus aufrechterhalten werden.`);
+        lines.push(`2. **Daten- und Data-Governance** (Art. 10): Trainings-, Validierungs- und Testdaten sollten definierten Qualitätskriterien genügen.`);
+        lines.push(`3. **Technische Dokumentation** (Art. 11): Funktionsweise, Grenzen und Risiken des Systems sollten vollständig dokumentiert werden.`);
+        lines.push(`4. **Aufzeichnungspflichten** (Art. 12): Relevante Systemereignisse sollten nachvollziehbar protokolliert werden.`);
+        lines.push(`5. **Informationen für Betreiber** (Art. 13): Betreiber sollten ausreichend Informationen erhalten, um das System sachgerecht einsetzen zu können.`);
+        lines.push(`6. **Menschliche Aufsicht** (Art. 14): Eine angemessene menschliche Aufsicht sollte sichergestellt werden.`);
+        lines.push(`7. **Genauigkeit, Robustheit, Cybersicherheit** (Art. 15): Das System sollte über seinen Lebenszyklus hinweg angemessen genau, robust und sicher sein.`);
 
         return lines.join('\n');
     },

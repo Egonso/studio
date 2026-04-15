@@ -25,7 +25,7 @@ function hasTransparencyObligation(uc: UseCaseCard): boolean {
 
 export const transparencySection: SectionDefinition = {
     sectionId: 'l3-transparency',
-    title: 'Transparency Obligations',
+    title: 'Transparenzpflichten',
     order: 1200,
     level: 3,
 
@@ -38,10 +38,10 @@ export const transparencySection: SectionDefinition = {
         const affected = context.useCases.filter(hasTransparencyObligation);
 
         const lines: string[] = [
-            `Transparency obligations under Art. 50 of the EU AI Act apply to ` +
-            `${affected.length} AI system${affected.length > 1 ? 's' : ''} of ${orgName}.`,
+            `Transparenzpflichten nach Art. 50 des EU AI Act gelten für ` +
+            `${affected.length} KI-System${affected.length > 1 ? 'e' : ''} von ${orgName}.`,
             ``,
-            `### Affected Systems`,
+            `### Betroffene Systeme`,
             ``,
         ];
 
@@ -50,29 +50,21 @@ export const transparencySection: SectionDefinition = {
                 aiActCategory: uc.governanceAssessment?.core?.aiActCategory,
                 short: true,
             });
-            lines.push(`- **${uc.purpose}** – Category: ${category}`);
+            lines.push(`- **${uc.purpose}** – Kategorie: ${category}`);
         }
         lines.push(``);
 
-        lines.push(`### Requirements under Art. 50 AI Act`);
+        lines.push(`### Anforderungen nach Art. 50 AI Act`);
         lines.push(``);
-        lines.push(`The following transparency obligations should be implemented for the listed systems:`);
+        lines.push(`Für die aufgeführten Systeme sollten insbesondere folgende Transparenzpflichten umgesetzt werden:`);
         lines.push(``);
-        lines.push(`1. **Interaction Obligation** (Art. 50(1)): Persons interacting with an AI system ` +
-            `should be informed that they are dealing with an AI system ` +
-            `– unless this is obvious from the circumstances.`);
-        lines.push(`2. **Labelling of Synthetic Content** (Art. 50(2)): AI-generated content ` +
-            `(text, audio, image, video) should be labelled as such in a machine-readable manner.`);
-        lines.push(`3. **Deep Fake Labelling** (Art. 50(4)): Where a system generates or manipulates image, audio or ` +
-            `video content resembling real persons, places or events ` +
-            `("deep fakes"), this should be disclosed.`);
-        lines.push(`4. **Emotion Recognition / Biometrics** (Art. 50(3)): Where a system recognises emotions ` +
-            `or performs biometric categorisation, affected persons ` +
-            `should be informed accordingly.`);
+        lines.push(`1. **Interaktionspflicht** (Art. 50 Abs. 1): Personen, die mit einem KI-System interagieren, sollten darüber informiert werden, sofern dies nicht offensichtlich ist.`);
+        lines.push(`2. **Kennzeichnung synthetischer Inhalte** (Art. 50 Abs. 2): KI-generierte Inhalte wie Text, Audio, Bild oder Video sollten maschinenlesbar als künstlich erzeugt oder manipuliert gekennzeichnet werden.`);
+        lines.push(`3. **Deep-Fake-Kennzeichnung** (Art. 50 Abs. 4): Werden Bild-, Ton- oder Videoinhalte erzeugt oder manipuliert, die realen Personen, Orten oder Ereignissen ähneln, sollte dies offengelegt werden.`);
+        lines.push(`4. **Emotionserkennung / Biometrie** (Art. 50 Abs. 3): Werden Emotionen erkannt oder biometrische Kategorien gebildet, sollten betroffene Personen darüber informiert werden.`);
         lines.push(``);
         lines.push(
-            `The implementation of transparency obligations should be documented and verified ` +
-            `as part of the regular review process.`,
+            `Die Umsetzung der Transparenzpflichten sollte dokumentiert und im Rahmen der regelmäßigen Reviews überprüft werden.`,
         );
 
         return lines.join('\n');

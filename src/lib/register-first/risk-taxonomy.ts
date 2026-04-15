@@ -12,29 +12,29 @@ export type CanonicalAiActRiskClass =
   (typeof CANONICAL_AI_ACT_RISK_CLASSES)[number];
 
 const RISK_CLASS_DISPLAY_LABELS: Record<CanonicalAiActRiskClass, string> = {
-  UNASSESSED: "Not yet assessed",
-  MINIMAL: "Minimal risk",
-  LIMITED: "Limited risk (transparency obligations)",
-  HIGH: "High-risk",
-  PROHIBITED: "Prohibited",
+  UNASSESSED: "Noch nicht eingestuft",
+  MINIMAL: "Minimales Risiko",
+  LIMITED: "Begrenztes Risiko (Transparenzpflichten)",
+  HIGH: "Hochrisiko",
+  PROHIBITED: "Verboten",
 };
 
 const RISK_CLASS_SHORT_LABELS: Record<CanonicalAiActRiskClass, string> = {
-  UNASSESSED: "Not yet assessed",
-  MINIMAL: "Minimal risk",
-  LIMITED: "Limited risk",
-  HIGH: "High-risk",
-  PROHIBITED: "Prohibited",
+  UNASSESSED: "Noch nicht eingestuft",
+  MINIMAL: "Minimales Risiko",
+  LIMITED: "Begrenztes Risiko",
+  HIGH: "Hochrisiko",
+  PROHIBITED: "Verboten",
 };
 
 const RISK_CLASS_STORED_LABELS: Record<
   Exclude<CanonicalAiActRiskClass, "UNASSESSED">,
   string
 > = {
-  MINIMAL: "Minimal risk",
-  LIMITED: "Transparency obligations",
-  HIGH: "High-risk",
-  PROHIBITED: "Prohibited",
+  MINIMAL: "Minimales Risiko",
+  LIMITED: "Transparenzpflichten",
+  HIGH: "Hochrisiko",
+  PROHIBITED: "Verboten",
 };
 
 function normalizeRiskClassKey(value: string): string {
@@ -65,11 +65,13 @@ const RISK_CLASS_ALIASES: Record<string, CanonicalAiActRiskClass> =
     begrenztes_risiko_transparenzpflichten: "LIMITED",
     transparenz_risiko: "LIMITED",
     transparenzpflichten: "LIMITED",
+    transparency_obligations: "LIMITED",
     limited_risk: "LIMITED",
     limited: "LIMITED",
 
     hohes_risiko: "HIGH",
     hochrisiko: "HIGH",
+    high_risk_system: "HIGH",
     high_risk: "HIGH",
     high: "HIGH",
 

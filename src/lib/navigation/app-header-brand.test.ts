@@ -71,8 +71,8 @@ test('signed-in frame passes an explicit brandHref contract into AppHeader', () 
 });
 
 test('free report mode overrides the brand back to the register while trust keeps the default control brand', () => {
-  const controlSource = readSource('src/app/control/page.tsx');
-  const trustSource = readSource('src/app/control/trust/page.tsx');
+  const controlSource = readSource('src/app/[locale]/control/page.tsx');
+  const trustSource = readSource('src/app/[locale]/control/trust/page.tsx');
 
   assert.match(
     controlSource,

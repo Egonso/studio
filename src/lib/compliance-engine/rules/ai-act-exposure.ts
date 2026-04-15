@@ -30,8 +30,8 @@ export function evaluateRegulatoryExposure(context: EngineContext): { index: num
                     id: `assessment_missing_${useCase.useCaseId}`,
                     type: 'risk_assessment_missing',
                     targetId: useCase.useCaseId,
-                    title: `Risk assessment missing: ${systemName}`,
-                    description: 'A risk assessment is legally mandatory for high-risk AI systems under the EU AI Act.',
+                    title: `Risikoprüfung fehlt: ${systemName}`,
+                    description: 'Für Hochrisiko-KI-Systeme ist eine dokumentierte Risikoprüfung nach dem EU AI Act erforderlich.',
                     impactReductionEstimate: 40,
                     severity: 'critical',
                     href: `/my-register/${useCase.useCaseId}?tab=governance_core`
@@ -46,8 +46,8 @@ export function evaluateRegulatoryExposure(context: EngineContext): { index: num
                     id: `oversight_missing_${useCase.useCaseId}`,
                     type: 'human_oversight_missing',
                     targetId: useCase.useCaseId,
-                    title: `Human oversight missing: ${systemName}`,
-                    description: 'High-risk AI systems require defined human oversight (human-in-the-loop).',
+                    title: `Menschliche Aufsicht fehlt: ${systemName}`,
+                    description: 'Hochrisiko-KI-Systeme benötigen eine definierte menschliche Aufsicht.',
                     impactReductionEstimate: 20,
                     severity: 'high',
                     href: `/my-register/${useCase.useCaseId}?tab=governance_core`
@@ -62,8 +62,8 @@ export function evaluateRegulatoryExposure(context: EngineContext): { index: num
                 id: `prohibited_${useCase.useCaseId}`,
                 type: 'risk_assessment_missing',
                 targetId: useCase.useCaseId,
-                title: `Prohibited AI system detected: ${systemName}`,
-                description: 'This system falls under unacceptable risk and very likely violates EU law.',
+                title: `Verbotenes KI-System erkannt: ${systemName}`,
+                description: 'Dieses System fällt unter unannehmbares Risiko und verstößt sehr wahrscheinlich gegen EU-Recht.',
                 impactReductionEstimate: 100,
                 severity: 'critical',
                 href: `/my-register/${useCase.useCaseId}`

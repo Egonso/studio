@@ -1,10 +1,9 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import os from 'node:os';
-
 const ROOT_DIR = process.cwd();
 const SRC_DIR = path.join(ROOT_DIR, 'src');
+const REPO_TMP_DIR = path.join(ROOT_DIR, '.tmp', 'tsx');
 const LOCAL_TSX_BIN = path.join(
   ROOT_DIR,
   'node_modules',
@@ -13,19 +12,13 @@ const LOCAL_TSX_BIN = path.join(
 );
 
 function ensureTmpDir() {
-  const configuredTmp = process.env.TMPDIR?.trim();
-  if (configuredTmp) {
-    return configuredTmp;
-  }
-
-  const repoTmp = path.join(ROOT_DIR, '.tmp');
-  mkdirSync(repoTmp, { recursive: true });
-  process.env.TMPDIR = `${repoTmp}${path.sep}`;
+  mkdirSync(REPO_TMP_DIR, { recursive: true });
+  process.env.TMPDIR = `${REPO_TMP_DIR}${path.sep}`;
   return process.env.TMPDIR;
 }
 
 function cleanupTsxTmpDirs() {
-  const tmpDir = ensureTmpDir() || os.tmpdir();
+  const tmpDir = ensureTmpDir();
   if (!existsSync(tmpDir)) {
     return;
   }

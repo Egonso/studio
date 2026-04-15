@@ -28,7 +28,7 @@ function countAiActCategories(useCases: UseCaseCard[]): Record<string, number> {
 
 export const riskApproachSection: SectionDefinition = {
     sectionId: 'l2-risk-approach',
-    title: 'Risk-Based Use of AI Systems',
+    title: 'Risikobasierter Einsatz von KI-Systemen',
     order: 400,
     level: 2,
 
@@ -46,19 +46,19 @@ export const riskApproachSection: SectionDefinition = {
         const unbewertet = counts['UNASSESSED'] || 0;
 
         const lines: string[] = [
-            `${orgName} follows a risk-based approach to the introduction and operation ` +
-            `of AI systems, as envisaged by the EU AI Act (Regulation (EU) 2024/1689).`,
+            `${orgName} verfolgt einen risikobasierten Ansatz für die Einführung und den Betrieb ` +
+            `von KI-Systemen im Sinne des EU AI Act (Verordnung (EU) 2024/1689).`,
             ``,
-            `### Current Risk Distribution in the Register`,
+            `### Aktuelle Risikoverteilung im Register`,
             ``,
-            `Based on the current AI register (${total} recorded systems), the following ` +
-            `distribution applies:`,
+            `Auf Basis des aktuellen KI-Registers (${total} erfasste Systeme) ergibt sich folgende ` +
+            `Verteilung:`,
             ``,
         ];
 
         if (total > 0) {
-            lines.push(`| Risk Category | Count |`);
-            lines.push(`|---------------|-------|`);
+            lines.push(`| Risikokategorie | Anzahl |`);
+            lines.push(`|-----------------|--------|`);
             if (verboten > 0) lines.push(`| ${getRiskClassDisplayLabel('PROHIBITED')} | ${verboten} |`);
             if (hochrisiko > 0) lines.push(`| ${getRiskClassDisplayLabel('HIGH')} | ${hochrisiko} |`);
             if (transparenz > 0) lines.push(`| ${getRiskClassDisplayLabel('LIMITED')} | ${transparenz} |`);
@@ -67,30 +67,30 @@ export const riskApproachSection: SectionDefinition = {
             lines.push(``);
         } else {
             lines.push(
-                `> *No AI systems have been recorded in the register yet. The risk assessment ` +
-                `should be carried out once the systems have been captured.*`,
+                `> *Es wurden noch keine KI-Systeme im Register erfasst. Die Risikoprüfung ` +
+                `sollte erfolgen, sobald die Systeme dokumentiert sind.*`,
             );
             lines.push(``);
         }
 
         if (hochrisiko > 0) {
             lines.push(
-                `**Note:** Your register contains ${hochrisiko} high-risk system${hochrisiko > 1 ? 's' : ''}` +
-                `${transparenz > 0 ? ` and ${transparenz} system${transparenz > 1 ? 's' : ''} with limited risk (transparency obligations)` : ''}. ` +
-                `Extended requirements under Chapter III of the AI Act apply to these.`,
+                `**Hinweis:** Ihr Register enthält ${hochrisiko} Hochrisiko-System${hochrisiko > 1 ? 'e' : ''}` +
+                `${transparenz > 0 ? ` und ${transparenz} System${transparenz > 1 ? 'e' : ''} mit begrenztem Risiko (Transparenzpflichten)` : ''}. ` +
+                `Für diese gelten die erweiterten Anforderungen aus Kapitel III des AI Act.`,
             );
         } else if (transparenz > 0) {
             lines.push(
-                `**Note:** Your register contains ${transparenz} system${transparenz > 1 ? 's' : ''} ` +
-                `with limited risk (transparency obligations) under Art. 50 of the AI Act.`,
+                `**Hinweis:** Ihr Register enthält ${transparenz} System${transparenz > 1 ? 'e' : ''} ` +
+                `mit begrenztem Risiko (Transparenzpflichten) nach Art. 50 AI Act.`,
             );
         }
 
         lines.push(``);
         lines.push(
-            `Each AI system should undergo a risk assessment before deployment. ` +
-            `The assessment should cover at least the AI Act categorisation as well as an analysis ` +
-            `of the affected groups of persons and data types.`,
+            `Jedes KI-System sollte vor dem Einsatz risikobasiert bewertet werden. ` +
+            `Die Bewertung sollte mindestens die AI-Act-Kategorisierung sowie eine Analyse ` +
+            `der betroffenen Personengruppen und Datenarten umfassen.`,
         );
 
         return lines.join('\n');

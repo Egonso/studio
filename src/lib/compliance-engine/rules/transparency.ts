@@ -15,8 +15,8 @@ export function evaluateTransparency(context: EngineContext): { index: number; a
         actions.push({
             id: 'trust_portal_missing',
             type: 'trust_portal_offline',
-            title: 'Trust Portal is disabled',
-            description: 'Enable the external portal to demonstrate transparency externally and obtain the AI Governance badge.',
+            title: 'Trust Portal ist deaktiviert',
+            description: 'Aktivieren Sie das externe Portal, um Transparenz nach außen zu zeigen und das AI-Governance-Badge zu unterstützen.',
             impactIncreaseEstimate: 50,
             severity: 'medium',
             href: '/trust/config'
@@ -35,8 +35,8 @@ export function evaluateTransparency(context: EngineContext): { index: number; a
         actions.push({
             id: 'use_cases_uncategorized',
             type: 'use_cases_uncategorized',
-            title: `Classify risk level for ${unclassifiedCount} systems`,
-            description: 'Go to the register and classify these systems (risk tab) to ensure audit readiness.',
+            title: `Risikostufe für ${unclassifiedCount} Systeme klassifizieren`,
+            description: 'Gehen Sie ins Register und klassifizieren Sie diese Systeme im Risiko-Tab, damit die Audit-Bereitschaft hergestellt wird.',
             impactIncreaseEstimate: penalty,
             severity: 'high',
             href: '/my-register'

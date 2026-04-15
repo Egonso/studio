@@ -98,7 +98,7 @@ function toRatio(part: number, total: number): number {
 }
 
 function getControlMaturityCopy(locale?: string) {
-  if (locale?.toLowerCase().startsWith('de')) {
+  if (!locale || locale.toLowerCase().startsWith('de')) {
     return {
       levelTitles: {
         1: 'Level 1 - Dokumentiert',
@@ -206,7 +206,7 @@ function getControlMaturityCopy(locale?: string) {
     orgPolicyBaseline: 'Organisation-wide policy baseline available',
     addOrgPolicyBaseline:
       'Add at least an AI policy or incident process to the register profile.',
-    openGovernanceSettings: 'Open Governance Settings',
+    openGovernanceSettings: 'Governance Settings öffnen',
     level4Achieved: 'Level 4 fully achieved',
     completePolicyAndBaseline:
       'Complete policy mapping and organisation baseline first.',

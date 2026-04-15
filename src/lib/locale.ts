@@ -1,10 +1,10 @@
 /**
  * Centralized locale configuration for the AI Register platform.
  * All date/number formatting should use these constants to ensure
- * consistent en-GB formatting across the application.
+ * consistent German formatting across the application.
  */
 
-export const APP_LOCALE = 'en-GB' as const;
+export const APP_LOCALE = 'de-DE' as const;
 
 export const APP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
   day: '2-digit',

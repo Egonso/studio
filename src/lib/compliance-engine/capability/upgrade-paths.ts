@@ -31,18 +31,18 @@ export function getFeatureUpgradeCtaLabel(feature: FeatureCapability): string {
   switch (feature) {
     case 'extendedOrgSettings':
     case 'governanceWizard':
-      return 'Open Governance Settings';
+      return 'Governance Settings öffnen';
     case 'reviewWorkflow':
-      return 'Open Report';
+      return 'Bericht öffnen';
     case 'policyEngine':
-      return 'Open Policies';
+      return 'Policies öffnen';
     case 'auditExport':
-      return 'Open Exports';
+      return 'Exports öffnen';
     case 'trustPortal':
-      return 'Open Trust Portal';
+      return 'Trust Portal öffnen';
     case 'competencyMatrix':
-      return 'Open Academy';
+      return 'Academy öffnen';
     default:
-      return 'Open Report';
+      return 'Bericht öffnen';
   }
 }

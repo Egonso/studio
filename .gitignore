@@ -16,6 +16,8 @@
 /playwright-report/
 /.playwright-cli/
 /.tmp/
+/functions/lib/
+/excalidraw.log
 
 # next.js
 /.next/
