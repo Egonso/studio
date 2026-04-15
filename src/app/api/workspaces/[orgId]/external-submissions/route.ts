@@ -6,6 +6,11 @@ import { parseExternalSubmission } from '@/lib/register-first/schema';
 import { ServerAuthError, requireWorkspaceMember } from '@/lib/server-auth';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 
+type ExternalSubmissionListEntry = ExternalSubmission & {
+  organisationName: string | null;
+  registerName: string;
+};
+
 interface RouteContext {
   params: Promise<{ orgId: string }>;
 }
@@ -74,10 +79,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
           .filter(
             (
               entry,
-            ): entry is ExternalSubmission & {
-              registerName?: string | null;
-              organisationName?: string | null;
-            } => entry !== null,
+            ): entry is ExternalSubmissionListEntry => entry !== null,
           );
       }),
     );

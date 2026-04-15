@@ -1,10 +1,12 @@
+'use client';
+
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 
 const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
 
-export async function Footer() {
-  const t = await getTranslations();
+export function Footer() {
+  const t = useTranslations();
 
   const FOOTER_LINKS = [
     { href: '/', label: t('footer.home') },

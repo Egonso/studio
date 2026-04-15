@@ -8,6 +8,11 @@ import {
 import { parseExternalSubmission } from '@/lib/register-first/schema';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 
+type ExternalSubmissionListEntry = ExternalSubmission & {
+  organisationName: string | null;
+  registerName: string;
+};
+
 interface RouteContext {
   params: Promise<{ registerId: string }>;
 }
@@ -25,10 +30,7 @@ function handleRegisterRouteError(error: unknown) {
 }
 
 function matchesSearch(
-  submission: ExternalSubmission & {
-    organisationName?: string | null;
-    registerName?: string | null;
-  },
+  submission: ExternalSubmissionListEntry,
   searchText: string | null,
 ): boolean {
   if (!searchText) {
@@ -99,10 +101,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
       .filter(
         (
           entry,
-        ): entry is ExternalSubmission & {
-          organisationName?: string | null;
-          registerName?: string | null;
-        } => entry !== null,
+        ): entry is ExternalSubmissionListEntry => entry !== null,
       )
       .filter((entry) =>
         statusFilter ? entry.status === statusFilter : true,
