@@ -15,6 +15,18 @@ const VALID_TEMPLATE_VARIANTS = new Set([
   'authority-update',
   'artefact-sheet',
 ]);
+const BANNED_TITLE_PATTERNS = [
+  {
+    regex: /\b(?:ist|sind)\s+(?:kein|keine|nicht)\b.{0,120}\bsondern\b/i,
+    message:
+      'Title uses the contrast pattern "nicht X, sondern Y", which reads like generic AI copy. Use a direct institutional headline instead.',
+  },
+  {
+    regex: /\bnicht\s+nur\b.{0,120}\bsondern\s+auch\b/i,
+    message:
+      'Title uses the pattern "nicht nur X, sondern auch Y". Public headlines should stay direct and non-performative.',
+  },
+];
 
 function walkJsonFiles(dirPath) {
   const files = [];
@@ -153,6 +165,14 @@ function validateDocument(doc, filePath) {
 
   if (!VALID_TEMPLATE_VARIANTS.has(doc.template_variant)) {
     errors.push(`Unsupported template variant "${doc.template_variant}".`);
+  }
+
+  if (typeof doc.title === 'string') {
+    for (const pattern of BANNED_TITLE_PATTERNS) {
+      if (pattern.regex.test(doc.title)) {
+        errors.push(pattern.message);
+      }
+    }
   }
 
   if (!Array.isArray(doc.source_urls) || doc.source_urls.length === 0) {

@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-04-15T15:25:49.258Z",
+  "generatedAt": "2026-04-15T18:20:30.552Z",
   "documents": [
     {
       "slug": "ai-literacy-verantwortung-2026",
       "locale": "de",
       "contentType": "update",
-      "title": "AI Literacy ist kein Schulungsdekor, sondern eine Nachweispflicht im Betrieb",
+      "title": "AI Literacy im Betrieb: Rollenbezug und Nachweisführung",
       "reviewStatus": "reviewed",
       "templateVariant": "authority-update",
       "publishedUrl": "https://kiregister.com/de/updates/ai-literacy-verantwortung-2026",
@@ -17,7 +17,7 @@
         "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
       ],
       "lastSubstantiveUpdate": "2026-04-15",
-      "fullText": "AI Literacy ist kein Schulungsdekor, sondern eine Nachweispflicht im Betrieb\n\nDie europäische Linie bleibt klar: Kompetenzaufbau rund um KI muss organisationsbezogen, rollenspezifisch und praktisch sein. Für Unternehmen reicht es nicht, einen allgemeinen Kurs einzukaufen und den Rest offen zu lassen.\n\nPraktische Bedeutung\nArt. 4 wird oft wie eine klassische Schulungspflicht gelesen. Die offizielle europäische Kommunikation betont aber, dass AI Literacy sich am Nutzungskontext, an der Rolle und an der konkreten Verantwortung orientieren muss.\nFür Unternehmen bedeutet das: Wer KI verantwortet, einsetzen lässt, freigibt, prüft oder dokumentiert, braucht nicht nur allgemeines Wissen, sondern eine belastbare Zuordnung im operativen System.\n\nWas sich daraus für das Register ergibt\nRollen müssen mit realen Einsatzfällen verbunden werden.\nSchulungsnachweise brauchen einen Bezug zur tatsächlichen Nutzung.\nAI Literacy ist stärker, wenn sie mit Policy, Review und Nachweisdokumenten gekoppelt ist.\nTrainer und Berater werden relevanter, wenn sie nicht nur lehren, sondern die Registerarbeit mit anleiten.\n\nSofort sinnvolle Reaktion\nManagement: Verantwortungsmodell pro Einsatzfall festlegen.\nFachbereich: Reale Use Cases erfassen statt nur Tool-Namen sammeln.\nCompliance: Schulung, Review und Dokumentation in einer Kette betrachten.",
+      "fullText": "AI Literacy im Betrieb: Rollenbezug und Nachweisführung\n\nDie europäische Linie bleibt klar: Kompetenzaufbau rund um KI muss organisationsbezogen, rollenspezifisch und praktisch sein. Für Unternehmen reicht es nicht, einen allgemeinen Kurs einzukaufen und den Rest offen zu lassen.\n\nPraktische Bedeutung\nArt. 4 wird oft wie eine klassische Schulungspflicht gelesen. Die offizielle europäische Kommunikation betont aber, dass AI Literacy sich am Nutzungskontext, an der Rolle und an der konkreten Verantwortung orientieren muss.\nFür Unternehmen bedeutet das: Wer KI verantwortet, einsetzen lässt, freigibt, prüft oder dokumentiert, braucht nicht nur allgemeines Wissen, sondern eine belastbare Zuordnung im operativen System.\n\nWas sich daraus für das Register ergibt\nRollen müssen mit realen Einsatzfällen verbunden werden.\nSchulungsnachweise brauchen einen Bezug zur tatsächlichen Nutzung.\nAI Literacy ist stärker, wenn sie mit Policy, Review und Nachweisdokumenten gekoppelt ist.\nTrainer und Berater werden relevanter, wenn sie nicht nur lehren, sondern die Registerarbeit mit anleiten.\n\nSofort sinnvolle Reaktion\nManagement: Verantwortungsmodell pro Einsatzfall festlegen.\nFachbereich: Reale Use Cases erfassen statt nur Tool-Namen sammeln.\nCompliance: Schulung, Review und Dokumentation in einer Kette betrachten.",
       "autoPublishEligible": true
     },
     {
