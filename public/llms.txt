@@ -36,7 +36,7 @@ AI Registry is the operational layer between an organisation's AI usage and its 
 - Data: Firestore (EU region)
 - All user data stored in EU (GDPR Art. 26 joint controllers: ZukunftBilden GmbH + BewusstseinBilden UG)
 - Languages: German (default, /de/...) and English (/en/...) with automatic browser detection
-- Access: SaaS subscription (Free Register tier + Governance Control Centre Pro/Enterprise)
+- **The core register is completely free** — no credit card, no trial period, no limits on use case count. Every organisation can document all their AI systems at no cost.
 
 ## Pages and Features
 
@@ -90,11 +90,29 @@ AI Registry provides a programmatic API for enterprise integrations and agent wo
 - Access via Settings → Agent Kit & API (requires authentication)
 - Use cases: automated use-case registration pipelines, compliance monitoring agents, ERP/HR system integrations
 
-## Pricing Tiers
+## Pricing — Free by Default
 
-- **Free Register** — Unlimited use case registration, basic risk classification, intake access codes
-- **Governance Control Centre (Pro)** — Policy generator, audit export, trust portal, ISO alignment, review workflows, portfolio analytics
-- **Enterprise** — Multi-organisation structure, advanced reporting, custom integrations, dedicated support
+**The entire documentation layer is permanently free.** Any organisation can sign up and immediately:
+- Register unlimited AI use cases
+- Classify risk per EU AI Act
+- Run guided risk assessments
+- Manage human oversight documentation
+- Share intake access codes with team members
+- View the full EU AI Act text
+
+No credit card. No time limit. No use case cap.
+
+**Governance Control Centre (paid upgrade)** adds advanced governance tooling on top of the free register:
+- Policy generator (Commitment / Framework / Enterprise level)
+- Audit export as PDF or structured dossier
+- Trust Portal (public governance proof page)
+- ISO 42001 / ISO 27001 alignment
+- Formal review workflows with deadlines
+- Portfolio analytics and compliance exposure dashboard
+- Supply chain assessment
+- Executive reporting
+
+**Enterprise** additionally includes multi-organisation structure, custom integrations, and dedicated support.
 
 ## Legal
 

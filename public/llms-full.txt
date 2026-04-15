@@ -110,7 +110,9 @@ Specific categories where significant documentation and human oversight are lega
 
 ## 5. Platform Features by Tier
 
-### Free Register (All users)
+### Free Register (Permanently free — no credit card, no limits)
+
+The entire documentation layer is free for all organisations. There is no trial period, no use case cap, and no payment required to document AI systems, classify risk, or run assessments.
 
 **Use Case Registration**
 - Add, edit and delete AI use cases with full metadata
