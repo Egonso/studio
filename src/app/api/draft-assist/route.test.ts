@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 import type { DraftAssistAssistResult } from "@/lib/draft-assist/types";
 import type { PublicRateLimitDecision } from "@/lib/security/public-rate-limit";
 
-import { createDraftAssistPostHandler } from "./route";
+import { createDraftAssistPostHandler } from "./handler";
 
 function readSource(path: string): string {
   return readFileSync(resolve(process.cwd(), path), "utf8");
