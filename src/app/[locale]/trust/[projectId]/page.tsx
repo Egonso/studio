@@ -27,7 +27,7 @@ import { PortalKpiSection } from "@/components/trust-portal/portal-kpi-section";
 import { PortalSystemsTable } from "@/components/trust-portal/portal-systems-table";
 
 export default function PublicTrustPortalPage() {
-  const params = useParams();
+  const params = useParams() ?? {};
   const projectId = params.projectId as string;
 
   const [portalData, setPortalData] = useState<PublicTrustPortal | null>(null);

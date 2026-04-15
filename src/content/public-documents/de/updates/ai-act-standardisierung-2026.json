@@ -1,0 +1,73 @@
+{
+  "slug": "ai-act-standardisierung-2026",
+  "locale": "de",
+  "content_type": "update",
+  "sector": "cross-industry",
+  "intent": "regulatory-radar",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "authority-update",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Standardisierung wird zur Anschlussfrage für jedes KI-Register",
+  "summary": "Je klarer europäische Standards und gemeinsame Spezifikationen werden, desto wichtiger wird ein internes Format, das solche Anforderungen pro Einsatzfall anschlussfähig macht. Genau dort gewinnt oder verliert das Register an Relevanz.",
+  "object_label": "Regulatorisches Update",
+  "stance_label": "Standardisierungs-Hinweis",
+  "author": "KIRegister",
+  "cta": {
+    "label": "OEM Supplier Request Kit ansehen",
+    "href": "/de/artefacts/oem-supplier-request-kit",
+    "description": "Lieferkettenanfragen werden nur belastbar, wenn der Nachweis pro Einsatzfall standardnah strukturiert ist."
+  },
+  "related_links": [
+    {
+      "label": "KI-Governance für Automobil-Zulieferer",
+      "href": "/de/industries/automotive-suppliers",
+      "description": "Warum die Standardisierungsfrage in der Lieferkette besonders früh praktisch wird."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Warum das relevant ist",
+      "paragraphs": [
+        "Standardisierung klingt nach Fernziel, wirkt aber operativ sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Evidenz oder Struktur entwickeln, wird aus einem internen Dokumentationsproblem ein Formatproblem.",
+        "Das Register braucht deshalb kein beliebiges Notizsystem, sondern ein konsistentes Dokumentmuster, das sich in Export, Verify-Links und Partnerkommunikation wiederholt."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Konsequenzen für die Content- und Produktlogik",
+      "items": [
+        "Öffentliche Bildungsinhalte müssen immer an ein echtes Artefakt oder einen echten Workflow andocken.",
+        "Brancheninhalte sollten nicht nur erklären, sondern die spätere Evidenzstruktur vorwegnehmen.",
+        "Partnerkits müssen dieselben Begriffe und Felder verwenden wie das Register selbst."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "MVP-Standardisierung im KIRegister-Kontext",
+      "rows": [
+        {
+          "label": "Format",
+          "value": "Ein Use-Case Pass pro KI-Einsatzfall."
+        },
+        {
+          "label": "Öffentlicher Beleg",
+          "value": "Verify-Link oder strukturiertes Artefakt."
+        },
+        {
+          "label": "Lieferkette",
+          "value": "Supplier Request auf derselben Datenlogik wie der interne Pass."
+        }
+      ]
+    }
+  ]
+}

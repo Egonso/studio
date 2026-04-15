@@ -13,7 +13,8 @@
  * Sprint: GN-E Review-UI
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
     Dialog,
@@ -39,18 +40,60 @@ import { useToast } from "@/hooks/use-toast";
 import type { UseCaseCard, RegisterUseCaseStatus } from "@/lib/register-first/types";
 import { addReview } from "@/lib/register-first/review-service";
 import { registerService } from "@/lib/register-first/register-service";
-import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import { getRegisterUseCaseStatusLabel } from "@/lib/register-first/status-flow";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
 /** Statuses the user can pick in the review dialog (never UNREVIEWED). */
 type ReviewTargetStatus = Exclude<RegisterUseCaseStatus, "UNREVIEWED">;
 
-const REVIEW_TARGET_STATUSES: { value: ReviewTargetStatus; label: string }[] = [
-    { value: "REVIEWED", label: registerUseCaseStatusLabels.REVIEWED },
-    { value: "PROOF_READY", label: registerUseCaseStatusLabels.PROOF_READY },
-    { value: "REVIEW_RECOMMENDED", label: registerUseCaseStatusLabels.REVIEW_RECOMMENDED },
-];
+function getReviewDialogCopy(locale: string) {
+    if (locale === "de") {
+        return {
+            reviewRecorded: "Review dokumentiert",
+            error: "Fehler",
+            saveFailed: "Review konnte nicht gespeichert werden.",
+            title: "Formale Prüfung dokumentieren",
+            description:
+                "Eine formale Prüfung dokumentiert den aktuellen Governance-Status. Sie stellt keine automatische Bewertung dar.",
+            reviewer: "Prüfer:in",
+            newStatus: "Neuer Status",
+            selectStatus: "Status auswählen",
+            notes: "Notizen",
+            optionalMax500: "optional, max. 500 Zeichen",
+            notesPlaceholder:
+                "z. B. ISO 42001 Konformität geprüft, alle Maßnahmen umgesetzt.",
+            disclaimer:
+                "Diese Dokumentation erfasst den IST-Zustand der menschlichen Prüfung. Sie ersetzt keine rechtliche Beratung und stellt keine Compliance-Bestätigung dar.",
+            cancel: "Abbrechen",
+            save: "Review dokumentieren",
+            unknownReviewer: "unbekannt",
+            statusPrefix: "Status",
+        } as const;
+    }
+
+    return {
+        reviewRecorded: "Review recorded",
+        error: "Error",
+        saveFailed: "Review could not be saved.",
+        title: "Document formal review",
+        description:
+            "A formal review records the current governance status. It does not represent an automatic assessment.",
+        reviewer: "Reviewer",
+        newStatus: "New status",
+        selectStatus: "Select status",
+        notes: "Notes",
+        optionalMax500: "optional, max. 500 characters",
+        notesPlaceholder:
+            "e.g. ISO 42001 conformity checked, all measures implemented.",
+        disclaimer:
+            "This record captures the current state of the human review. It does not replace legal advice and does not constitute a compliance confirmation.",
+        cancel: "Cancel",
+        save: "Record review",
+        unknownReviewer: "unknown",
+        statusPrefix: "Status",
+    } as const;
+}
 
 interface ReviewDialogProps {
     /** The use case being reviewed */
@@ -71,14 +114,27 @@ export function ReviewDialog({
     onOpenChange,
     onReviewAdded,
 }: ReviewDialogProps) {
+    const locale = useLocale();
     const { user } = useAuth();
     const { toast } = useToast();
+    const copy = useMemo(() => getReviewDialogCopy(locale), [locale]);
+    const reviewTargetStatuses: { value: ReviewTargetStatus; label: string }[] = useMemo(
+        () => [
+            { value: "REVIEWED", label: getRegisterUseCaseStatusLabel("REVIEWED", locale) },
+            { value: "PROOF_READY", label: getRegisterUseCaseStatusLabel("PROOF_READY", locale) },
+            {
+                value: "REVIEW_RECOMMENDED",
+                label: getRegisterUseCaseStatusLabel("REVIEW_RECOMMENDED", locale),
+            },
+        ],
+        [locale]
+    );
 
     const [nextStatus, setNextStatus] = useState<ReviewTargetStatus>("REVIEWED");
     const [notes, setNotes] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
-    const reviewerEmail = user?.email ?? "unbekannt";
+    const reviewerEmail = user?.email ?? copy.unknownReviewer;
 
     const handleSubmit = useCallback(async () => {
         setIsSaving(true);
@@ -109,40 +165,37 @@ export function ReviewDialog({
             onOpenChange(false);
 
             toast({
-                title: "Review dokumentiert",
-                description: `Status: ${registerUseCaseStatusLabels[updatedCard.status]}`,
+                title: copy.reviewRecorded,
+                description: `${copy.statusPrefix}: ${getRegisterUseCaseStatusLabel(updatedCard.status, locale)}`,
             });
         } catch (err) {
             console.error("Review submission failed:", err);
             toast({
                 variant: "destructive",
-                title: "Fehler",
+                title: copy.error,
                 description:
                     err instanceof Error
                         ? err.message
-                        : "Review konnte nicht gespeichert werden.",
+                        : copy.saveFailed,
             });
         } finally {
             setIsSaving(false);
         }
-    }, [card, reviewerEmail, nextStatus, notes, onReviewAdded, onOpenChange, toast]);
+    }, [card, copy, locale, reviewerEmail, nextStatus, notes, onReviewAdded, onOpenChange, toast]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
-                    <DialogTitle>Formale Prüfung dokumentieren</DialogTitle>
-                    <DialogDescription>
-                        Eine formale Prüfung dokumentiert den aktuellen Governance-Status.
-                        Sie stellt keine automatische Bewertung dar.
-                    </DialogDescription>
+                    <DialogTitle>{copy.title}</DialogTitle>
+                    <DialogDescription>{copy.description}</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
                     {/* Reviewer (auto-filled, read-only) */}
                     <div className="space-y-2">
                         <Label htmlFor="reviewer" className="text-sm font-medium">
-                            Prüfer:in
+                            {copy.reviewer}
                         </Label>
                         <div
                             id="reviewer"
@@ -155,17 +208,17 @@ export function ReviewDialog({
                     {/* Target Status */}
                     <div className="space-y-2">
                         <Label htmlFor="review-status" className="text-sm font-medium">
-                            Neuer Status
+                            {copy.newStatus}
                         </Label>
                         <Select
                             value={nextStatus}
                             onValueChange={(val) => setNextStatus(val as ReviewTargetStatus)}
                         >
                             <SelectTrigger id="review-status">
-                                <SelectValue placeholder="Status auswählen" />
+                                <SelectValue placeholder={copy.selectStatus} />
                             </SelectTrigger>
                             <SelectContent>
-                                {REVIEW_TARGET_STATUSES.map((s) => (
+                                {reviewTargetStatuses.map((s) => (
                                     <SelectItem key={s.value} value={s.value}>
                                         {s.label}
                                     </SelectItem>
@@ -177,13 +230,16 @@ export function ReviewDialog({
                     {/* Notes */}
                     <div className="space-y-2">
                         <Label htmlFor="review-notes" className="text-sm font-medium">
-                            Notizen <span className="font-normal text-muted-foreground">(optional, max. 500 Zeichen)</span>
+                            {copy.notes}{" "}
+                            <span className="font-normal text-muted-foreground">
+                                ({copy.optionalMax500})
+                            </span>
                         </Label>
                         <Textarea
                             id="review-notes"
                             value={notes}
                             onChange={(e) => setNotes(e.target.value.slice(0, 500))}
-                            placeholder="z.B. ISO 42001 Konformität geprüft, alle Maßnahmen umgesetzt."
+                            placeholder={copy.notesPlaceholder}
                             rows={3}
                             maxLength={500}
                         />
@@ -194,8 +250,7 @@ export function ReviewDialog({
 
                     {/* Disclaimer */}
                     <div className="rounded-md bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
-                        Diese Dokumentation erfasst den IST-Zustand der menschlichen Prüfung.
-                        Sie ersetzt keine rechtliche Beratung und stellt keine Compliance-Bestätigung dar.
+                        {copy.disclaimer}
                     </div>
                 </div>
 
@@ -205,14 +260,14 @@ export function ReviewDialog({
                         onClick={() => onOpenChange(false)}
                         disabled={isSaving}
                     >
-                        Abbrechen
+                        {copy.cancel}
                     </Button>
                     <Button
                         onClick={() => void handleSubmit()}
                         disabled={isSaving}
                     >
                         {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Review dokumentieren
+                        {copy.save}
                     </Button>
                 </DialogFooter>
             </DialogContent>

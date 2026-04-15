@@ -1,0 +1,75 @@
+{
+  "slug": "oem-supplier-request-kit",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "automotive",
+  "intent": "supplier-evidence",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette",
+  "summary": "Das Supplier Request Kit ist für Situationen gedacht, in denen ein Auftraggeber oder OEM eine strukturierte Aussage zu einem KI-Einsatzfall verlangt. Es bündelt die minimal sinnvolle Evidenz, ohne aus einer Anfrage sofort ein Beratungsprojekt zu machen.",
+  "object_label": "Lieferketten-Artefakt",
+  "stance_label": "Beschaffungsdokument",
+  "author": "KIRegister",
+  "cta": {
+    "label": "Supplier Pass anfordern",
+    "href": "mailto:zoltangal@web.de?subject=Supplier%20Pass%20anfordern",
+    "description": "Die Supplier-Request-Fläche ist der richtige Ort für strukturierte Anfragen entlang der Lieferkette."
+  },
+  "related_links": [
+    {
+      "label": "KI-Governance für Automobil-Zulieferer",
+      "href": "/de/industries/automotive-suppliers",
+      "description": "Branchenspezifischer Kontext für Lieferkettenanforderungen und operative Prüfpfade."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "bullets",
+      "heading": "Minimaler Inhalt einer belastbaren Lieferkettenanfrage",
+      "items": [
+        "Beschreibung des konkreten KI-Einsatzfalls",
+        "Verantwortliche Rolle beim Lieferanten",
+        "Angaben zu Datenbezug, Entscheidungsnähe und externer Wirkung",
+        "Aktueller Prüfstatus des Einsatzfalls",
+        "Referenz auf Verify-Link, Export oder formales Artefakt"
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Was dieses Kit reduziert",
+      "rows": [
+        {
+          "label": "E-Mail-Pingpong",
+          "value": "Die Anfrage wird in Felder übersetzt, die nicht jedes Mal neu ausformuliert werden müssen."
+        },
+        {
+          "label": "Dokumentationschaos",
+          "value": "Der Lieferant antwortet auf dieselbe Logik, nach der der Pass intern aufgebaut ist."
+        },
+        {
+          "label": "Unklare Verantwortung",
+          "value": "Die Anfrage bezieht sich auf einen identifizierten Einsatzfall und nicht auf ein diffuses Tool-Portfolio."
+        }
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Warum das für Automotive zuerst Sinn ergibt",
+      "paragraphs": [
+        "In der Automobil-Lieferkette wirken Beschaffungsdruck, Dokumentationsanforderungen und Sicherheitskultur besonders früh zusammen. Deshalb ist dort ein präzises Anfrageartefakt wertvoller als generische Governance-Rhetorik.",
+        "Der Use-Case Pass ist dabei keine Zusatzschicht, sondern die gemeinsame Struktur zwischen interner Registerarbeit und externer Antwortfähigkeit."
+      ]
+    }
+  ]
+}

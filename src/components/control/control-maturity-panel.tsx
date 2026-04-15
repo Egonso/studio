@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { CheckCircle2, Circle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,8 +17,36 @@ interface ControlMaturityPanelProps {
   maturity: ControlMaturityResult;
 }
 
+function getControlMaturityCopy(locale: string) {
+  if (locale === "de") {
+    return {
+      evidence: "Datengrundlage",
+      missing: "Fehlend",
+      criteriaMet: "Kriterien erfüllt",
+      fulfilled: "erfüllt",
+      open: "offen",
+      title: "Governance-Reifegradmodell",
+      description:
+        "Aktueller Stand: {label}. Das Level wird deterministisch aus Registerdaten berechnet.",
+    } as const;
+  }
+
+  return {
+    evidence: "Evidence",
+    missing: "Missing",
+    criteriaMet: "Criteria met",
+    fulfilled: "met",
+    open: "open",
+    title: "Governance Maturity Model",
+    description:
+      "Current state: {label}. The level is calculated deterministically from register data.",
+  } as const;
+}
+
 function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
   const workspaceScope = useWorkspaceScope();
+  const locale = useLocale();
+  const copy = getControlMaturityCopy(locale);
 
   return (
     <div className="rounded-md border p-3">
@@ -29,9 +58,13 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
         )}
         <div className="space-y-1">
           <p className="text-sm">{criterion.label}</p>
-          <p className="text-xs text-muted-foreground">Datengrundlage: {criterion.evidence}</p>
+          <p className="text-xs text-muted-foreground">
+            {copy.evidence}: {criterion.evidence}
+          </p>
           {!criterion.fulfilled && (
-            <p className="text-xs text-muted-foreground">Fehlend: {criterion.missing}</p>
+            <p className="text-xs text-muted-foreground">
+              {copy.missing}: {criterion.missing}
+            </p>
           )}
           {!criterion.fulfilled && criterion.actionHref && criterion.actionLabel && (
             <div className="pt-1">
@@ -55,6 +88,8 @@ function CriterionRow({ criterion }: { criterion: MaturityCriterionResult }) {
 
 function LevelBlock({ level }: { level: MaturityLevelResult }) {
   const workspaceScope = useWorkspaceScope();
+  const locale = useLocale();
+  const copy = getControlMaturityCopy(locale);
   const firstActionableCriterion = level.criteria.find(
     (criterion) =>
       !criterion.fulfilled && criterion.actionHref && criterion.actionLabel
@@ -66,11 +101,11 @@ function LevelBlock({ level }: { level: MaturityLevelResult }) {
         <div>
           <h3 className="text-sm font-semibold">{level.title}</h3>
           <p className="text-xs text-muted-foreground">
-            Kriterien erfuellt: {level.achievedCriteria}/{level.totalCriteria}
+            {copy.criteriaMet}: {level.achievedCriteria}/{level.totalCriteria}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          {level.fulfilled ? "erfuellt" : "offen"}
+          {level.fulfilled ? copy.fulfilled : copy.open}
         </p>
       </div>
 
@@ -99,13 +134,15 @@ function LevelBlock({ level }: { level: MaturityLevelResult }) {
 }
 
 export function ControlMaturityPanel({ maturity }: ControlMaturityPanelProps) {
+  const locale = useLocale();
+  const copy = getControlMaturityCopy(locale);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Governance Maturity Model</CardTitle>
+        <CardTitle>{copy.title}</CardTitle>
         <CardDescription>
-          Aktueller Stand: {maturity.currentLabel}. Das Level wird deterministisch aus
-          Registerdaten berechnet.
+          {copy.description.replace("{label}", maturity.currentLabel)}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -1,4 +1,5 @@
 export {
+  getRegisterUseCaseStatusLabel,
   registerUseCaseStatusLabels,
   registerUseCaseStatusOrder,
 } from "./card-model";

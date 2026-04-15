@@ -12,7 +12,7 @@ import {
 } from "@/lib/navigation/route-manifest";
 
 export function GlobalChrome() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '/';
   const area = getProductAreaForPathname(pathname);
   const showFooter = showGlobalFooterForPathname(pathname);
   const showChatbot = showSiteChatbotForPathname(pathname);

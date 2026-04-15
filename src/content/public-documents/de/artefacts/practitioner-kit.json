@@ -1,0 +1,74 @@
+{
+  "slug": "practitioner-kit",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "partner-channel",
+  "intent": "partner-activation",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Practitioner Kit für Berater, Auditoren und Trainer",
+  "summary": "Dieses Dokument übersetzt den Use-Case-Pass in einen partnerfähigen Arbeitsmodus. Es ist für Personen gedacht, die nicht nur über Governance sprechen, sondern sie mit Kunden operativ verankern wollen.",
+  "object_label": "Partner-Artefakt",
+  "stance_label": "Arbeitsdokument",
+  "author": "KIRegister",
+  "cta": {
+    "label": "Partner werden",
+    "href": "/de/artefacts/use-case-pass-explainer",
+    "description": "Der schnellste Einstieg ist ein gemeinsames Begriffs- und Artefaktverständnis. Danach folgt die operative Nutzung."
+  },
+  "related_links": [
+    {
+      "label": "AI Literacy ist eine Nachweispflicht im Betrieb",
+      "href": "/de/updates/ai-literacy-verantwortung-2026",
+      "description": "Regulatorischer Kontext für rollenbezogene Kompetenz und operative Umsetzung."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "bullets",
+      "heading": "Wofür das Kit gedacht ist",
+      "items": [
+        "Workshops, in denen reale KI-Einsatzfälle statt abstrakter Beispiele dokumentiert werden",
+        "Audit-Vorbereitung mit klarer Falllogik pro Use Case",
+        "Begleitung von Fachbereichen, die einen belastbaren Startpunkt für Governance brauchen",
+        "Partnerformate, in denen Schulung und Dokumentation zusammenlaufen"
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Was ein Practitioner mitbringen sollte",
+      "rows": [
+        {
+          "label": "Vor dem Termin",
+          "value": "Verstehen, welche Rollen, Systeme und Abteilungen betroffen sind."
+        },
+        {
+          "label": "Im Termin",
+          "value": "Use Cases live erfassen, Verantwortungen klären und offene Risiken markieren."
+        },
+        {
+          "label": "Nach dem Termin",
+          "value": "Die Registerstruktur so hinterlassen, dass der Kunde weiterarbeiten kann."
+        }
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was dieses Kit bewusst nicht ist",
+      "paragraphs": [
+        "Es ist kein Zertifikat und kein Versprechen, dass ein Unternehmen automatisch compliant wird. Es ist ein Arbeitsgerüst, das die operative Registerlogik nach außen anschlussfähig macht.",
+        "Gerade deshalb stärkt es den Partnerkanal: Es reduziert Reibung, ohne juristische oder operative Überversprechen zu machen."
+      ]
+    }
+  ]
+}

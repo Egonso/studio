@@ -102,7 +102,7 @@ export default function TaskPage() {
   const [guideError, setGuideError] = useState<string | null>(null);
 
   const router = useRouter();
-  const params = useParams();
+  const params = useParams() ?? {};
   const taskId = params.id as string;
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();

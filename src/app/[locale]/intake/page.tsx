@@ -99,7 +99,7 @@ async function submitOwnerCaptureFallback(input: {
 export default function IntakePage() {
   const t = useTranslations();
   const multisystemEnabled = registerFirstFlags.multisystemCapture;
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { user } = useAuth();
   const codeParam = searchParams.get("code");
 

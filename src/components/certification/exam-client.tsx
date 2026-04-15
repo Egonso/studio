@@ -78,7 +78,7 @@ function computeLocalSectionScore(sectionIndex: number, answers: number[]): Exam
 
 export function CertificationExamClient() {
   const { user, loading } = useAuth();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const [courseUnlocked, setCourseUnlocked] = useState(false);
   const [unlockLoading, setUnlockLoading] = useState(true);
   const [attemptId, setAttemptId] = useState<string | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { APP_LOCALE } from '@/lib/locale';
+import { useLocale } from "next-intl";
 import {
   ArrowLeft,
   Download,
@@ -44,11 +44,11 @@ import {
 import { RegisterStatusPill } from "@/components/register/detail/status-pill";
 import type { UseCaseCard } from "@/lib/register-first/types";
 import {
-  DATA_CATEGORY_LABELS,
-  DECISION_INFLUENCE_LABELS,
+  getDataCategoryLabel,
+  getDecisionInfluenceLabel,
+  getUsageContextLabel,
   resolveDataCategories,
   resolveDecisionInfluence,
-  USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first/types";
 import { cn } from "@/lib/utils";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -92,6 +92,7 @@ export function UseCaseHeader({
   onRefresh,
   onEditField,
 }: UseCaseHeaderProps) {
+  const locale = useLocale();
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
   const { toast } = useToast();
@@ -119,15 +120,19 @@ export function UseCaseHeader({
     short: true,
   });
   const usageScope = card.usageContexts.length
-    ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
+    ? card.usageContexts
+        .map((ctx) => getUsageContextLabel(ctx, locale))
+        .join(", ")
     : "Nicht angegeben";
   const decisionInfluence = resolveDecisionInfluence(card);
   const decisionLabel = decisionInfluence
-    ? DECISION_INFLUENCE_LABELS[decisionInfluence]
+    ? getDecisionInfluenceLabel(decisionInfluence, locale)
     : legacyDecisionImpactLabels[card.decisionImpact];
   const dataCategories = resolveDataCategories(card);
   const dataCategoryLabel = dataCategories.length
-    ? dataCategories.map((cat) => DATA_CATEGORY_LABELS[cat] ?? cat).join(", ")
+    ? dataCategories
+        .map((cat) => getDataCategoryLabel(cat, locale) ?? cat)
+        .join(", ")
     : "Nicht angegeben";
   const ownerLabel = card.responsibility.isCurrentlyResponsible
     ? "Erfasser:in (selbst)"
@@ -221,7 +226,7 @@ export function UseCaseHeader({
     card.globalUseCaseId ?? "EUKI-ID offen",
     `v${card.cardVersion}`,
     provenanceLine,
-    `Aktualisiert ${formatDate(card.updatedAt)}`,
+    `Aktualisiert ${formatDate(card.updatedAt, locale)}`,
   ].join(" · ");
 
   return (
@@ -231,7 +236,7 @@ export function UseCaseHeader({
           <p className="font-black text-4xl uppercase mb-2 tracking-widest">EUKI CERTIFIED</p>
           <p className="text-lg font-bold">Gezeichnet von {card.sealedByName}</p>
           <p className="text-sm font-mono mt-3">Hash: {card.sealHash}</p>
-          <p className="text-sm mt-1">{formatDate(card.sealedAt)}</p>
+          <p className="text-sm mt-1">{formatDate(card.sealedAt, locale)}</p>
         </div>
       )}
       <div
@@ -466,10 +471,10 @@ function HeaderSignalPill({ children }: { children: string }) {
   );
 }
 
-function formatDate(isoDate: string): string {
+function formatDate(isoDate: string, locale: string): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) return "unbekannt";
-  return date.toLocaleString(APP_LOCALE, {
+  return date.toLocaleString(locale === "de" ? "de-DE" : "en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

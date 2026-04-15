@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, Pencil, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -13,7 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RiskClassAssist } from "@/components/register/detail/risk-class-assist";
-import { useToast } from "@/hooks/use-toast";
 import type { ControlFocusTarget } from "@/lib/control/deep-link";
 import type {
   CaptureUsageContext,
@@ -24,14 +24,14 @@ import type {
 } from "@/lib/register-first/types";
 import {
   DATA_CATEGORY_MAIN_OPTIONS,
-  DATA_CATEGORY_LABELS,
   DATA_CATEGORY_SPECIAL_OPTIONS,
   DECISION_INFLUENCE_OPTIONS,
-  DECISION_INFLUENCE_LABELS,
+  getDataCategoryLabel,
+  getDecisionInfluenceLabel,
+  getUsageContextLabel,
   resolveDataCategories,
   resolveDecisionInfluence,
   USAGE_CONTEXT_OPTIONS,
-  USAGE_CONTEXT_LABELS,
 } from "@/lib/register-first/types";
 import {
   getRiskClassShortLabel,
@@ -140,8 +140,8 @@ export function UseCaseMetadataSection({
   requestedEditField,
   onEditFieldConsumed,
 }: UseCaseMetadataSectionProps) {
+  const locale = useLocale();
   const router = useRouter();
-  const { toast } = useToast();
   const riskSelectionRef = useRef<HTMLDivElement | null>(null);
 
   const [editDraft, setEditDraft] = useState<UseCaseEditDraft>(() =>
@@ -166,16 +166,20 @@ export function UseCaseMetadataSection({
     short: true,
   });
   const usageScope = card.usageContexts.length
-    ? card.usageContexts.map((ctx) => USAGE_CONTEXT_LABELS[ctx]).join(", ")
+    ? card.usageContexts
+        .map((ctx) => getUsageContextLabel(ctx, locale))
+        .join(", ")
     : "Nicht angegeben";
   const dataCategories = resolveDataCategories(card);
   const dataCategoryLabel = dataCategories.length
-    ? dataCategories.map((cat) => DATA_CATEGORY_LABELS[cat] ?? cat).join(", ")
+    ? dataCategories
+        .map((cat) => getDataCategoryLabel(cat, locale) ?? cat)
+        .join(", ")
     : "Nicht angegeben";
 
   const decisionInfluence = resolveDecisionInfluence(card);
   const decisionLabel = decisionInfluence
-    ? DECISION_INFLUENCE_LABELS[decisionInfluence]
+    ? getDecisionInfluenceLabel(decisionInfluence, locale)
     : decisionImpactLabels[card.decisionImpact];
   const ownerLabel = card.responsibility.isCurrentlyResponsible
     ? "Erfasser:in (selbst)"
@@ -517,7 +521,7 @@ export function UseCaseMetadataSection({
                               }))
                             }
                           />
-                          {USAGE_CONTEXT_LABELS[option]}
+                          {getUsageContextLabel(option, locale)}
                         </label>
                       ))}
                     </div>
@@ -562,7 +566,7 @@ export function UseCaseMetadataSection({
                             }
                             className="h-4 w-4"
                           />
-                          {DECISION_INFLUENCE_LABELS[option]}
+                          {getDecisionInfluenceLabel(option, locale)}
                         </label>
                       ))}
                     </div>
@@ -732,7 +736,7 @@ export function UseCaseMetadataSection({
                                 }))
                               }
                             />
-                            <span>{DATA_CATEGORY_LABELS[option]}</span>
+                            <span>{getDataCategoryLabel(option, locale)}</span>
                           </label>
 
                           {option === "SPECIAL_PERSONAL" &&
@@ -773,7 +777,7 @@ export function UseCaseMetadataSection({
                                           }))
                                         }
                                       />
-                                      {DATA_CATEGORY_LABELS[sub]}
+                                      {getDataCategoryLabel(sub, locale)}
                                     </label>
                                   ))}
                               </div>

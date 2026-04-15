@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +30,7 @@ import { buildScopedUseCasePassHref } from "@/lib/navigation/workspace-scope";
 import {
   type UseCaseReadinessResult,
   getNextManualStatuses,
-  registerUseCaseStatusLabels,
+  getRegisterUseCaseStatusLabel,
 } from "@/lib/register-first";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,7 @@ export function ReviewSection({
   onStatusChange,
   onToggleDetails = null,
 }: ReviewSectionProps) {
+  const locale = useLocale();
   const nextStatuses = getNextManualStatuses(card.status);
   const availableStatuses = useMemo(
     () =>
@@ -335,13 +337,13 @@ export function ReviewSection({
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder={statusTriggerPlaceholder} />
                   </SelectTrigger>
-                  <SelectContent>
-                    {availableStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {registerUseCaseStatusLabels[status]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                    <SelectContent>
+                      {availableStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {getRegisterUseCaseStatusLabel(status, locale)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                 </Select>
                 {proofReadyBlocked ? (
                   <p className="mt-2 text-xs text-slate-500">
@@ -401,10 +403,13 @@ export function ReviewSection({
             <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>
               Status von{" "}
-              <strong>{registerUseCaseStatusLabels[card.status]}</strong> zu{" "}
+              <strong>{getRegisterUseCaseStatusLabel(card.status, locale)}</strong> zu{" "}
               <strong>
                 {selectedStatus
-                  ? registerUseCaseStatusLabels[selectedStatus as RegisterUseCaseStatus]
+                  ? getRegisterUseCaseStatusLabel(
+                      selectedStatus as RegisterUseCaseStatus,
+                      locale,
+                    )
                   : ""}
               </strong>{" "}
               aendern? Diese Aktion dokumentiert eine formale Entscheidung.

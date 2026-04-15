@@ -156,7 +156,7 @@ export function AssessmentWizard() {
   const [answers, setAnswers] = useState<Answers>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { allowed: canRunAssessment } = useCapability('assessmentWizard');
 
   const currentStepId = stepHistory[stepHistory.length - 1];

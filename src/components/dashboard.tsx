@@ -101,7 +101,7 @@ export function Dashboard({
   onUseCaseCaptured,
   register = null,
 }: DashboardProps) {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const router = useRouter();
   const { toast } = useToast();
   const shownTriggerSignatureRef = useRef<string | null>(null);

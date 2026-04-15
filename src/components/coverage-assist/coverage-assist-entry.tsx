@@ -1,13 +1,21 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import type { CoverageAssistSeedSuggestion } from "@/lib/coverage-assist/types";
+import { useMemo, useState } from 'react';
+import { useLocale } from 'next-intl';
+import { Sparkles } from 'lucide-react';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import type { CoverageAssistSeedSuggestion } from '@/lib/coverage-assist/types';
 
 interface CoverageAssistEntryProps {
   toolName: string;
@@ -18,6 +26,52 @@ interface CoverageAssistEntryProps {
   onContinueWithoutSuggestion: () => void;
 }
 
+function getCoverageAssistCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      label: 'Coverage Assist',
+      title: 'Wobei unterstützt dich {toolName} hier gerade?',
+      helperWithSuggestions:
+        'Wähle einen typischen Startpunkt oder formuliere den Zweck selbst. Gespeichert wird erst nach deiner Bestätigung im Quick Capture.',
+      helperWithoutSuggestions:
+        'Für dieses Tool gibt es noch keine kuratierten Vorschläge. Du kannst den Zweck kurz selbst formulieren oder direkt mit Tool-Vorauswahl fortfahren.',
+      alertTitle: 'Nichts wurde automatisch gespeichert',
+      alertDescription:
+        'Dieses Gerät hat lokal erkannt, dass du ein bekanntes KI-Tool nutzt. Nichts wurde automatisch gespeichert. Du entscheidest, ob und wie ein Einsatzfall angelegt wird.',
+      localMatch: 'Lokal erkannt',
+      customTitle: 'Zweck lieber selbst formulieren?',
+      customDescription:
+        'Sinnvoll, wenn keiner der Vorschläge genau passt.',
+      customToggle: 'Selbst formulieren',
+      placeholder:
+        'z. B. E-Mails schneller vorformulieren oder Inhalte für Termine zusammenfassen',
+      continueWithCustom: 'Mit eigener Formulierung weiter',
+      continueWithout: 'Ohne Vorschlag fortfahren',
+    } as const;
+  }
+
+  return {
+    label: 'Coverage Assist',
+    title: 'What is {toolName} helping you with here right now?',
+    helperWithSuggestions:
+      'Choose a typical starting point or phrase the purpose yourself. Nothing is saved until you confirm it in Quick Capture.',
+    helperWithoutSuggestions:
+      'There are no curated suggestions for this tool yet. You can phrase the purpose yourself or continue directly with the selected tool.',
+    alertTitle: 'Nothing was saved automatically',
+    alertDescription:
+      'This device detected locally that you are using a known AI tool. Nothing was saved automatically. You decide whether and how a use case should be created.',
+    localMatch: 'Detected locally',
+    customTitle: 'Prefer to phrase the purpose yourself?',
+    customDescription:
+      'Useful when none of the suggestions fits exactly.',
+    customToggle: 'Write it myself',
+    placeholder:
+      'e.g. draft emails faster or summarise material for upcoming meetings',
+    continueWithCustom: 'Continue with custom wording',
+    continueWithout: 'Continue without suggestion',
+  } as const;
+}
+
 export function CoverageAssistEntry({
   toolName,
   matchedHost,
@@ -26,44 +80,42 @@ export function CoverageAssistEntry({
   onSubmitCustomPurpose,
   onContinueWithoutSuggestion,
 }: CoverageAssistEntryProps) {
+  const locale = useLocale();
+  const copy = useMemo(() => getCoverageAssistCopy(locale), [locale]);
   const [showCustomComposer, setShowCustomComposer] = useState(
-    suggestions.length === 0
+    suggestions.length === 0,
   );
-  const [customPurpose, setCustomPurpose] = useState("");
+  const [customPurpose, setCustomPurpose] = useState('');
 
   const helperCopy = useMemo(() => {
     if (suggestions.length === 0) {
-      return "Fuer dieses Tool gibt es noch keine kuratierten Vorschlaege. Sie koennen den Zweck kurz selbst formulieren oder direkt mit Tool-Vorauswahl fortfahren.";
+      return copy.helperWithoutSuggestions;
     }
 
-    return "Waehlen Sie einen typischen Startpunkt oder formulieren Sie den Zweck selbst. Gespeichert wird erst nach Ihrer Bestaetigung im Quick Capture.";
-  }, [suggestions.length]);
+    return copy.helperWithSuggestions;
+  }, [copy.helperWithSuggestions, copy.helperWithoutSuggestions, suggestions.length]);
 
   return (
     <Card className="mx-auto w-full max-w-3xl border-slate-200 shadow-sm">
       <CardHeader className="space-y-3">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
-          <span>Coverage Assist</span>
+          <span>{copy.label}</span>
         </div>
         <CardTitle className="text-xl">
-          Wobei unterstuetzt dich {toolName} hier gerade?
+          {copy.title.replace('{toolName}', toolName)}
         </CardTitle>
         <CardDescription>{helperCopy}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <Alert>
-          <AlertTitle>Nichts wurde automatisch gespeichert</AlertTitle>
-          <AlertDescription>
-            Dieses Geraet hat lokal erkannt, dass Sie ein bekanntes KI-Tool nutzen.
-            Nichts wurde automatisch gespeichert. Sie entscheiden, ob und wie ein
-            Einsatzfall angelegt wird.
-          </AlertDescription>
+          <AlertTitle>{copy.alertTitle}</AlertTitle>
+          <AlertDescription>{copy.alertDescription}</AlertDescription>
         </Alert>
 
         {matchedHost ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600">
-            <Badge variant="outline">Lokal erkannt</Badge>
+            <Badge variant="outline">{copy.localMatch}</Badge>
             <span>{matchedHost}</span>
           </div>
         ) : null}
@@ -99,18 +151,18 @@ export function CoverageAssistEntry({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-medium text-slate-900">
-                Zweck lieber selbst formulieren?
+                {copy.customTitle}
               </div>
               <div className="text-sm text-slate-600">
-                Sinnvoll, wenn keiner der Vorschlaege genau passt.
+                {copy.customDescription}
               </div>
             </div>
             <Button
               type="button"
-              variant={showCustomComposer ? "secondary" : "outline"}
+              variant={showCustomComposer ? 'secondary' : 'outline'}
               onClick={() => setShowCustomComposer((current) => !current)}
             >
-              Selbst formulieren
+              {copy.customToggle}
             </Button>
           </div>
 
@@ -119,7 +171,7 @@ export function CoverageAssistEntry({
               <Textarea
                 value={customPurpose}
                 onChange={(event) => setCustomPurpose(event.target.value)}
-                placeholder="z. B. E-Mails schneller vorformulieren oder Inhalte fuer Termine zusammenfassen"
+                placeholder={copy.placeholder}
                 rows={3}
               />
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -128,14 +180,14 @@ export function CoverageAssistEntry({
                   onClick={() => onSubmitCustomPurpose(customPurpose)}
                   disabled={customPurpose.trim().length < 3}
                 >
-                  Mit eigener Formulierung weiter
+                  {copy.continueWithCustom}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={onContinueWithoutSuggestion}
                 >
-                  Ohne Vorschlag fortfahren
+                  {copy.continueWithout}
                 </Button>
               </div>
             </div>
@@ -146,7 +198,7 @@ export function CoverageAssistEntry({
                 variant="ghost"
                 onClick={onContinueWithoutSuggestion}
               >
-                Ohne Vorschlag fortfahren
+                {copy.continueWithout}
               </Button>
             </div>
           )}

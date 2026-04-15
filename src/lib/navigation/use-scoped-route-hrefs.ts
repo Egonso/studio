@@ -1,54 +1,72 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useLocale } from 'next-intl';
 
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { ROUTE_HREFS } from './route-manifest';
 import { appendWorkspaceScope } from './workspace-scope';
 import { useWorkspaceScope } from './use-workspace-scope';
 
 export function useScopedRouteHrefs() {
+  const locale = useLocale();
   const workspaceScope = useWorkspaceScope();
 
   return useMemo(
     () => ({
-      register: appendWorkspaceScope(ROUTE_HREFS.register, workspaceScope),
-      useCases: appendWorkspaceScope(ROUTE_HREFS.useCases, workspaceScope),
-      externalInbox: appendWorkspaceScope(
-        ROUTE_HREFS.externalInbox,
-        workspaceScope,
+      register: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.register, workspaceScope),
       ),
-      settings: appendWorkspaceScope(ROUTE_HREFS.settings, workspaceScope),
-      settingsAgentKit: appendWorkspaceScope(
-        ROUTE_HREFS.settingsAgentKit,
-        workspaceScope,
+      useCases: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.useCases, workspaceScope),
       ),
-      control: appendWorkspaceScope(ROUTE_HREFS.control, workspaceScope),
-      controlReviews: appendWorkspaceScope(
-        ROUTE_HREFS.controlReviews,
-        workspaceScope,
+      externalInbox: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.externalInbox, workspaceScope),
       ),
-      governanceSettings: appendWorkspaceScope(
-        ROUTE_HREFS.governanceSettings,
-        workspaceScope,
+      settings: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.settings, workspaceScope),
       ),
-      controlPolicies: appendWorkspaceScope(
-        ROUTE_HREFS.controlPolicies,
-        workspaceScope,
+      settingsAgentKit: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.settingsAgentKit, workspaceScope),
       ),
-      controlExports: appendWorkspaceScope(
-        ROUTE_HREFS.controlExports,
-        workspaceScope,
+      control: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.control, workspaceScope),
       ),
-      controlTrust: appendWorkspaceScope(
-        ROUTE_HREFS.controlTrust,
-        workspaceScope,
+      controlReviews: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.controlReviews, workspaceScope),
       ),
-      controlEnterprise: appendWorkspaceScope(
-        ROUTE_HREFS.controlEnterprise,
-        workspaceScope,
+      governanceSettings: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.governanceSettings, workspaceScope),
       ),
-      academy: appendWorkspaceScope(ROUTE_HREFS.academy, workspaceScope),
+      controlPolicies: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.controlPolicies, workspaceScope),
+      ),
+      controlExports: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.controlExports, workspaceScope),
+      ),
+      controlTrust: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.controlTrust, workspaceScope),
+      ),
+      controlEnterprise: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.controlEnterprise, workspaceScope),
+      ),
+      academy: localizeHref(
+        locale,
+        appendWorkspaceScope(ROUTE_HREFS.academy, workspaceScope),
+      ),
     }),
-    [workspaceScope],
+    [locale, workspaceScope],
   );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
+import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 import { industries } from '@/data/industries';
+import { localizeHref } from '@/lib/i18n/localize-href';
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -19,9 +21,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function IndustriesIndexPage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations('industries');
+  const metadataT = await getTranslations({ locale, namespace: 'metadata' });
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Top nav with logo */}
+      <div className="border-b border-slate-100">
+        <div className="mx-auto max-w-3xl px-4 py-3 sm:px-6 lg:px-8">
+          <Link
+            href={localizeHref(locale, '/')}
+            className="inline-flex transition-opacity hover:opacity-70"
+          >
+            <ThemeAwareLogo
+              alt={metadataT('appName')}
+              width={28}
+              height={28}
+              className="h-6 w-auto"
+            />
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
       <section className="border-b border-slate-100">
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">

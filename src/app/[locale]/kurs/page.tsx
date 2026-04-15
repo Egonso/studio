@@ -104,7 +104,7 @@ function ResourceIcon({ type }: { type: string }) {
 export default function CoursePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const {
     allowed,
     loading: capabilityLoading,

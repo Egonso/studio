@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 
 import { ActionQueue } from '@/components/control/action-queue';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { buildControlActionQueue } from '@/lib/control/action-queue-engine';
 import { calculateControlOverview } from '@/lib/control/maturity-calculator';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
@@ -29,8 +31,88 @@ interface ReviewSnapshot {
   capturedAt: Date;
 }
 
+function getReviewsPageCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      title: 'Reviews / Action Queue',
+      loadingFrameDescription:
+        'Priorisierte Prüfungen, Fristen und Governance-Aufgaben.',
+      loadingNextStep: 'Wir laden Review-Kontext und priorisierte Aufgaben.',
+      loadingPanelTitle: 'Reviews werden geladen',
+      loadingPanelDescription:
+        'Action Queue, fällige Reviews und Governance-Fristen werden vorbereitet.',
+      frameDescriptionWithOrg:
+        'Priorisierte Review-Arbeit für {organisation}.',
+      frameDescription:
+        'Priorisierte Review-Arbeit, Action Queue und Governance-Fristen.',
+      nextStepWithItems:
+        'Arbeiten Sie zuerst überfällige oder hochriskante Review-Themen ab.',
+      nextStepEmpty:
+        'Die Action Queue ist leer. Prüfen Sie Policies, Trust Portal oder Academy als nächsten Governance-Schritt.',
+      disabledTitle: 'Control ist noch nicht freigeschaltet',
+      disabledDescription:
+        'Die bezahlte Governance-Ebene ist in diesem Workspace noch nicht aktiviert.',
+      openRegister: 'Register öffnen',
+      gatedTitle: 'Reviews gehören zur Governance-Stufe',
+      gatedDescription:
+        'Formale Review-Workflows und die Action Queue bleiben für bezahlte Governance-Workspaces reserviert.',
+      openOverview: 'Overview öffnen',
+      upgradeOptions: 'Upgrade-Optionen',
+      dataLoadingTitle: 'Review-Daten werden geladen',
+      dataLoadingDescription:
+        'Action Queue und Review-Kennzahlen werden aus dem Register abgeleitet.',
+      dataErrorTitle: 'Reviews konnten nicht geladen werden',
+      actionQueue: 'Action Queue',
+      reviewsDue: 'Reviews fällig',
+      reviewsOverdue: 'Reviews überfällig',
+      systemsWithoutOwner: 'Systeme ohne Owner',
+      loadDataError:
+        'Review-Daten konnten nicht geladen werden. Bitte öffnen Sie zuerst ein Register und versuchen Sie es erneut.',
+    } as const;
+  }
+
+  return {
+    title: 'Reviews / Action Queue',
+    loadingFrameDescription:
+      'Prioritised reviews, deadlines and governance actions.',
+    loadingNextStep: 'We are loading review context and prioritised actions.',
+    loadingPanelTitle: 'Loading reviews',
+    loadingPanelDescription:
+      'Action queue, due reviews and governance deadlines are being prepared.',
+    frameDescriptionWithOrg:
+      'Prioritised review work for {organisation}.',
+    frameDescription:
+      'Prioritised review work, action queue and governance deadlines.',
+    nextStepWithItems:
+      'Work through overdue or high-risk review items first.',
+    nextStepEmpty:
+      'The action queue is empty. Review policies, trust portal or academy as the next governance step.',
+    disabledTitle: 'Control is not enabled yet',
+    disabledDescription:
+      'The paid governance layer is not activated in this workspace yet.',
+    openRegister: 'Open register',
+    gatedTitle: 'Reviews belong to the governance tier',
+    gatedDescription:
+      'Formal review workflows and the action queue remain reserved for paid governance workspaces.',
+    openOverview: 'Open overview',
+    upgradeOptions: 'Upgrade options',
+    dataLoadingTitle: 'Loading review data',
+    dataLoadingDescription:
+      'Action queue and review metrics are derived from the register.',
+    dataErrorTitle: 'Reviews could not be loaded',
+    actionQueue: 'Action Queue',
+    reviewsDue: 'Reviews due',
+    reviewsOverdue: 'Reviews overdue',
+    systemsWithoutOwner: 'Systems without owner',
+    loadDataError:
+      'Review data could not be loaded. Please open a register first and try again.',
+  } as const;
+}
+
 export default function ControlReviewsPage() {
   const { user, loading } = useAuth();
+  const locale = useLocale();
+  const copy = useMemo(() => getReviewsPageCopy(locale), [locale]);
   const router = useRouter();
   const {
     allowed: reviewAllowed,
@@ -66,13 +148,11 @@ export default function ControlReviewsPage() {
       });
     } catch (error) {
       console.error('Failed to load control reviews', error);
-      setDataError(
-        'Review-Daten konnten nicht geladen werden. Bitte öffnen Sie zuerst ein Register und versuchen Sie es erneut.',
-      );
+      setDataError(copy.loadDataError);
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [copy.loadDataError]);
 
   useEffect(() => {
     if (
@@ -92,27 +172,32 @@ export default function ControlReviewsPage() {
       snapshot.useCases,
       snapshot.orgSettings,
       snapshot.capturedAt,
+      locale,
     );
-  }, [snapshot]);
+  }, [locale, snapshot]);
 
   const actionQueue = useMemo(() => {
     if (!snapshot) return [];
     return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt);
   }, [snapshot]);
 
+  const registerHref = localizeHref(locale, ROUTE_HREFS.register);
+  const controlHref = localizeHref(locale, ROUTE_HREFS.control);
+  const governanceUpgradeHref = localizeHref(locale, ROUTE_HREFS.governanceUpgrade);
+
   if (loading || capabilityLoading) {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
-        title="Reviews / Action Queue"
-        description="Priorisierte Prüfungen, Fristen und Governance-Aufgaben."
-        nextStep="Wir laden Review-Kontext und priorisierte Aufgaben."
+        title={copy.title}
+        description={copy.loadingFrameDescription}
+        nextStep={copy.loadingNextStep}
       >
         <PageStatePanel
           tone="loading"
           area="paid_governance_control"
-          title="Reviews werden geladen"
-          description="Action Queue, fällige Reviews und Governance-Fristen werden vorbereitet."
+          title={copy.loadingPanelTitle}
+          description={copy.loadingPanelDescription}
         />
       </SignedInAreaFrame>
     );
@@ -123,44 +208,45 @@ export default function ControlReviewsPage() {
   return (
     <SignedInAreaFrame
       area="paid_governance_control"
-      title="Reviews / Action Queue"
+      title={copy.title}
       description={
         snapshot?.organisationName
-          ? `Priorisierte Review-Arbeit für ${snapshot.organisationName}.`
-          : 'Priorisierte Review-Arbeit, Action Queue und Governance-Fristen.'
+          ? copy.frameDescriptionWithOrg.replace(
+              '{organisation}',
+              snapshot.organisationName,
+            )
+          : copy.frameDescription
       }
       nextStep={
         actionQueue.length > 0
-          ? 'Arbeiten Sie zuerst überfällige oder hochriskante Review-Themen ab.'
-          : 'Die Action Queue ist leer. Prüfen Sie Policies, Trust Portal oder Academy als nächsten Governance-Schritt.'
+          ? copy.nextStepWithItems
+          : copy.nextStepEmpty
       }
     >
       <div className="space-y-6">
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Control ist noch nicht freigeschaltet"
-            description="Die bezahlte Governance-Ebene ist in diesem Workspace noch nicht aktiviert."
+            title={copy.disabledTitle}
+            description={copy.disabledDescription}
             actions={
               <Button asChild>
-                <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                <Link href={registerHref}>{copy.openRegister}</Link>
               </Button>
             }
           />
         ) : !reviewAllowed ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Reviews gehören zur Governance-Stufe"
-            description="Formale Review-Workflows und die Action Queue bleiben für bezahlte Governance-Workspaces reserviert."
+            title={copy.gatedTitle}
+            description={copy.gatedDescription}
             actions={
               <>
                 <Button asChild>
-                  <Link href={ROUTE_HREFS.control}>Overview öffnen</Link>
+                  <Link href={controlHref}>{copy.openOverview}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.governanceUpgrade}>
-                    Upgrade-Optionen
-                  </Link>
+                  <Link href={governanceUpgradeHref}>{copy.upgradeOptions}</Link>
                 </Button>
               </>
             }
@@ -171,8 +257,8 @@ export default function ControlReviewsPage() {
               <PageStatePanel
                 tone="loading"
                 area="paid_governance_control"
-                title="Review-Daten werden geladen"
-                description="Action Queue und Review-Kennzahlen werden aus dem Register abgeleitet."
+                title={copy.dataLoadingTitle}
+                description={copy.dataLoadingDescription}
               />
             )}
 
@@ -180,7 +266,7 @@ export default function ControlReviewsPage() {
               <PageStatePanel
                 tone="error"
                 area="paid_governance_control"
-                title="Reviews konnten nicht geladen werden"
+                title={copy.dataErrorTitle}
                 description={dataError}
               />
             )}
@@ -190,7 +276,7 @@ export default function ControlReviewsPage() {
                 <div className="grid gap-4 md:grid-cols-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardDescription>Action Queue</CardDescription>
+                      <CardDescription>{copy.actionQueue}</CardDescription>
                       <CardTitle className="text-3xl">
                         {actionQueue.length}
                       </CardTitle>
@@ -198,7 +284,7 @@ export default function ControlReviewsPage() {
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardDescription>Reviews fällig</CardDescription>
+                      <CardDescription>{copy.reviewsDue}</CardDescription>
                       <CardTitle className="text-3xl">
                         {overview.kpis.reviewsDue}
                       </CardTitle>
@@ -206,7 +292,7 @@ export default function ControlReviewsPage() {
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardDescription>Reviews überfällig</CardDescription>
+                      <CardDescription>{copy.reviewsOverdue}</CardDescription>
                       <CardTitle className="text-3xl">
                         {overview.kpis.reviewsOverdue}
                       </CardTitle>
@@ -214,7 +300,7 @@ export default function ControlReviewsPage() {
                   </Card>
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardDescription>Systeme ohne Owner</CardDescription>
+                      <CardDescription>{copy.systemsWithoutOwner}</CardDescription>
                       <CardTitle className="text-3xl">
                         {overview.kpis.systemsWithoutOwner}
                       </CardTitle>

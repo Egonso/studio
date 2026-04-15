@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-04-15T15:25:49.258Z",
+  "documents": [
+    {
+      "slug": "ai-literacy-verantwortung-2026",
+      "locale": "de",
+      "contentType": "update",
+      "title": "AI Literacy ist kein Schulungsdekor, sondern eine Nachweispflicht im Betrieb",
+      "reviewStatus": "reviewed",
+      "templateVariant": "authority-update",
+      "publishedUrl": "https://kiregister.com/de/updates/ai-literacy-verantwortung-2026",
+      "routePath": "/de/updates/ai-literacy-verantwortung-2026",
+      "deletePath": "src/content/public-documents/de/updates/ai-literacy-verantwortung-2026.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "AI Literacy ist kein Schulungsdekor, sondern eine Nachweispflicht im Betrieb\n\nDie europäische Linie bleibt klar: Kompetenzaufbau rund um KI muss organisationsbezogen, rollenspezifisch und praktisch sein. Für Unternehmen reicht es nicht, einen allgemeinen Kurs einzukaufen und den Rest offen zu lassen.\n\nPraktische Bedeutung\nArt. 4 wird oft wie eine klassische Schulungspflicht gelesen. Die offizielle europäische Kommunikation betont aber, dass AI Literacy sich am Nutzungskontext, an der Rolle und an der konkreten Verantwortung orientieren muss.\nFür Unternehmen bedeutet das: Wer KI verantwortet, einsetzen lässt, freigibt, prüft oder dokumentiert, braucht nicht nur allgemeines Wissen, sondern eine belastbare Zuordnung im operativen System.\n\nWas sich daraus für das Register ergibt\nRollen müssen mit realen Einsatzfällen verbunden werden.\nSchulungsnachweise brauchen einen Bezug zur tatsächlichen Nutzung.\nAI Literacy ist stärker, wenn sie mit Policy, Review und Nachweisdokumenten gekoppelt ist.\nTrainer und Berater werden relevanter, wenn sie nicht nur lehren, sondern die Registerarbeit mit anleiten.\n\nSofort sinnvolle Reaktion\nManagement: Verantwortungsmodell pro Einsatzfall festlegen.\nFachbereich: Reale Use Cases erfassen statt nur Tool-Namen sammeln.\nCompliance: Schulung, Review und Dokumentation in einer Kette betrachten.",
+      "autoPublishEligible": true
+    },
+    {
+      "slug": "use-case-pass",
+      "locale": "de",
+      "contentType": "standard",
+      "title": "Der Use-Case Pass als Standardnachweis für KI-Einsatzfälle",
+      "reviewStatus": "reviewed",
+      "templateVariant": "institutional-report",
+      "publishedUrl": "https://kiregister.com/de/standards/use-case-pass",
+      "routePath": "/de/standards/use-case-pass",
+      "deletePath": "src/content/public-documents/de/standards/use-case-pass.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "Der Use-Case Pass als Standardnachweis für KI-Einsatzfälle\n\nDer Use-Case Pass beschreibt nicht ein Tool, sondern einen konkreten KI-Einsatzfall mit Verantwortung, Wirkung, Datenbezug und Nachweislogik. Genau auf dieser Einheit wird in Audits, Lieferketten und Governance-Prüfungen entschieden.\n\nWarum der Markt die falsche Einheit dokumentiert\nViele Unternehmen dokumentieren heute Tools, Anbieter oder allgemeine Richtlinien. Geprüft wird in der Praxis aber fast nie ein Tool im Abstrakten, sondern ein konkreter Einsatzfall mit Zweck, betroffenen Personen, Datenarten, Verantwortlichkeiten und Wirkung.\nDer Use-Case Pass setzt genau auf dieser Ebene an. Er ist kein Marketing-Asset und kein allgemeiner Leitfaden, sondern ein formales Arbeitsdokument für einen einzelnen KI-Einsatzfall.\n\nWas ein belastbarer Use-Case Pass enthalten muss\nZweck und Nutzungskontext des Einsatzfalls\nVerantwortliche Person oder Rolle\nWirkung auf Entscheidungen, Bewertungen oder externe Kommunikation\nDatenkategorien und besondere Schutzbedarfe\nStatus der Prüfung und Nachweisfähigkeit\nVerweise auf Richtlinien, Kontrollen, Exporte oder öffentliche Verify-Links\n\nWarum das Format strategisch wichtiger ist als die Oberfläche\nAudit: Auditoren brauchen pro Fall eine klare Evidenzkette, nicht eine Sammlung allgemeiner Absichtserklärungen.\nLieferkette: OEMs und größere Auftraggeber fragen nicht nach Ihrer gesamten Tool-Landschaft, sondern nach dem konkret betroffenen KI-Einsatz.\nPartnerkanal: Berater, Auditoren und Trainer können ein klares Artefakt viel leichter verbreiten als eine unscharfe Governance-Plattform.\n\nFAQ\nWarum ist ein Pass pro Einsatzfall wichtiger als eine Tool-Liste?\nWeil Regulierung, Verantwortung und Nachweis an der konkreten Nutzung hängen. Dasselbe Modell kann in einem Fall unkritisch und in einem anderen hochrelevant sein.\nErsetzt der Use-Case Pass eine rechtliche Prüfung?\nNein. Er ersetzt kein Rechtsgutachten, sondern strukturiert die Informationen so, dass interne Prüfung, Aufsicht und Partneranforderungen belastbar bearbeitet werden können.\nIst der Pass eher für interne Governance oder für externe Partner gedacht?\nBeides. Intern ist er die kleinste steuerbare Einheit. Extern ist er die kleinste sinnvoll verifizierbare Einheit für Audit, Due Diligence und Lieferkette.",
+      "autoPublishEligible": false
+    },
+    {
+      "slug": "oem-supplier-request-kit",
+      "locale": "de",
+      "contentType": "artefact",
+      "title": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette",
+      "reviewStatus": "reviewed",
+      "templateVariant": "artefact-sheet",
+      "publishedUrl": "https://kiregister.com/de/artefacts/oem-supplier-request-kit",
+      "routePath": "/de/artefacts/oem-supplier-request-kit",
+      "deletePath": "src/content/public-documents/de/artefacts/oem-supplier-request-kit.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette\n\nDas Supplier Request Kit ist für Situationen gedacht, in denen ein Auftraggeber oder OEM eine strukturierte Aussage zu einem KI-Einsatzfall verlangt. Es bündelt die minimal sinnvolle Evidenz, ohne aus einer Anfrage sofort ein Beratungsprojekt zu machen.\n\nMinimaler Inhalt einer belastbaren Lieferkettenanfrage\nBeschreibung des konkreten KI-Einsatzfalls\nVerantwortliche Rolle beim Lieferanten\nAngaben zu Datenbezug, Entscheidungsnähe und externer Wirkung\nAktueller Prüfstatus des Einsatzfalls\nReferenz auf Verify-Link, Export oder formales Artefakt\n\nWas dieses Kit reduziert\nE-Mail-Pingpong: Die Anfrage wird in Felder übersetzt, die nicht jedes Mal neu ausformuliert werden müssen.\nDokumentationschaos: Der Lieferant antwortet auf dieselbe Logik, nach der der Pass intern aufgebaut ist.\nUnklare Verantwortung: Die Anfrage bezieht sich auf einen identifizierten Einsatzfall und nicht auf ein diffuses Tool-Portfolio.\n\nWarum das für Automotive zuerst Sinn ergibt\nIn der Automobil-Lieferkette wirken Beschaffungsdruck, Dokumentationsanforderungen und Sicherheitskultur besonders früh zusammen. Deshalb ist dort ein präzises Anfrageartefakt wertvoller als generische Governance-Rhetorik.\nDer Use-Case Pass ist dabei keine Zusatzschicht, sondern die gemeinsame Struktur zwischen interner Registerarbeit und externer Antwortfähigkeit.",
+      "autoPublishEligible": true
+    },
+    {
+      "slug": "practitioner-kit",
+      "locale": "de",
+      "contentType": "artefact",
+      "title": "Practitioner Kit für Berater, Auditoren und Trainer",
+      "reviewStatus": "reviewed",
+      "templateVariant": "artefact-sheet",
+      "publishedUrl": "https://kiregister.com/de/artefacts/practitioner-kit",
+      "routePath": "/de/artefacts/practitioner-kit",
+      "deletePath": "src/content/public-documents/de/artefacts/practitioner-kit.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "Practitioner Kit für Berater, Auditoren und Trainer\n\nDieses Dokument übersetzt den Use-Case-Pass in einen partnerfähigen Arbeitsmodus. Es ist für Personen gedacht, die nicht nur über Governance sprechen, sondern sie mit Kunden operativ verankern wollen.\n\nWofür das Kit gedacht ist\nWorkshops, in denen reale KI-Einsatzfälle statt abstrakter Beispiele dokumentiert werden\nAudit-Vorbereitung mit klarer Falllogik pro Use Case\nBegleitung von Fachbereichen, die einen belastbaren Startpunkt für Governance brauchen\nPartnerformate, in denen Schulung und Dokumentation zusammenlaufen\n\nWas ein Practitioner mitbringen sollte\nVor dem Termin: Verstehen, welche Rollen, Systeme und Abteilungen betroffen sind.\nIm Termin: Use Cases live erfassen, Verantwortungen klären und offene Risiken markieren.\nNach dem Termin: Die Registerstruktur so hinterlassen, dass der Kunde weiterarbeiten kann.\n\nWas dieses Kit bewusst nicht ist\nEs ist kein Zertifikat und kein Versprechen, dass ein Unternehmen automatisch compliant wird. Es ist ein Arbeitsgerüst, das die operative Registerlogik nach außen anschlussfähig macht.\nGerade deshalb stärkt es den Partnerkanal: Es reduziert Reibung, ohne juristische oder operative Überversprechen zu machen.",
+      "autoPublishEligible": true
+    },
+    {
+      "slug": "ai-act-standardisierung-2026",
+      "locale": "de",
+      "contentType": "update",
+      "title": "Standardisierung wird zur Anschlussfrage für jedes KI-Register",
+      "reviewStatus": "reviewed",
+      "templateVariant": "authority-update",
+      "publishedUrl": "https://kiregister.com/de/updates/ai-act-standardisierung-2026",
+      "routePath": "/de/updates/ai-act-standardisierung-2026",
+      "deletePath": "src/content/public-documents/de/updates/ai-act-standardisierung-2026.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "Standardisierung wird zur Anschlussfrage für jedes KI-Register\n\nJe klarer europäische Standards und gemeinsame Spezifikationen werden, desto wichtiger wird ein internes Format, das solche Anforderungen pro Einsatzfall anschlussfähig macht. Genau dort gewinnt oder verliert das Register an Relevanz.\n\nWarum das relevant ist\nStandardisierung klingt nach Fernziel, wirkt aber operativ sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Evidenz oder Struktur entwickeln, wird aus einem internen Dokumentationsproblem ein Formatproblem.\nDas Register braucht deshalb kein beliebiges Notizsystem, sondern ein konsistentes Dokumentmuster, das sich in Export, Verify-Links und Partnerkommunikation wiederholt.\n\nKonsequenzen für die Content- und Produktlogik\nÖffentliche Bildungsinhalte müssen immer an ein echtes Artefakt oder einen echten Workflow andocken.\nBrancheninhalte sollten nicht nur erklären, sondern die spätere Evidenzstruktur vorwegnehmen.\nPartnerkits müssen dieselben Begriffe und Felder verwenden wie das Register selbst.\n\nMVP-Standardisierung im KIRegister-Kontext\nFormat: Ein Use-Case Pass pro KI-Einsatzfall.\nÖffentlicher Beleg: Verify-Link oder strukturiertes Artefakt.\nLieferkette: Supplier Request auf derselben Datenlogik wie der interne Pass.",
+      "autoPublishEligible": true
+    },
+    {
+      "slug": "use-case-pass-explainer",
+      "locale": "de",
+      "contentType": "artefact",
+      "title": "Use-Case Pass Explainer für Einkauf, Legal und Governance",
+      "reviewStatus": "reviewed",
+      "templateVariant": "artefact-sheet",
+      "publishedUrl": "https://kiregister.com/de/artefacts/use-case-pass-explainer",
+      "routePath": "/de/artefacts/use-case-pass-explainer",
+      "deletePath": "src/content/public-documents/de/artefacts/use-case-pass-explainer.json",
+      "notificationEmail": "zoltangal@web.de",
+      "sourceUrls": [
+        "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+      ],
+      "lastSubstantiveUpdate": "2026-04-15",
+      "fullText": "Use-Case Pass Explainer für Einkauf, Legal und Governance\n\nDieses Dokument ist die kurze, anschlussfähige Erklärung des Use-Case-Pass-Ansatzes für Personen, die kein Tool kaufen wollen, aber verstehen müssen, warum ein einsatzfallbasierter Nachweis sinnvoller ist als allgemeine KI-Statements.\n\nDie kurze Erklärung\nEin Use-Case Pass dokumentiert einen einzelnen KI-Einsatzfall so, dass Zweck, Verantwortung, Risiko- und Nachweisbezug in einem Objekt zusammenlaufen.\nFür Einkauf, Legal und Governance ist das hilfreich, weil sich Entscheidungen, Freigaben und Rückfragen auf eine definierte Einheit beziehen lassen. Das reduziert Übersetzungsarbeit zwischen Fachbereich, Compliance und Partnern.\n\nDrei Fragen, die der Explainer beantwortet\nWarum reicht eine allgemeine KI-Richtlinie allein nicht aus?\nWeshalb ist ein Einsatzfall die richtige Governance-Einheit?\nWie hängt ein interner Pass mit externer Verifikation oder Supplier Requests zusammen?\n\nTypische Lesergruppen\nEinkauf: Will verstehen, welche Nachweise entlang der Beschaffung sinnvoll und verhältnismäßig sind.\nLegal: Will eine saubere Struktur für Prüfung, Haftungsabgrenzung und Eskalation.\nGovernance: Will ein Format, das intern steuerbar und extern kommunizierbar bleibt.",
+      "autoPublishEligible": true
+    }
+  ]
+}

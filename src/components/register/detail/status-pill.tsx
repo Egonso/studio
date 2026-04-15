@@ -1,6 +1,7 @@
 "use client";
 
-import { registerUseCaseStatusLabels } from "@/lib/register-first";
+import { useLocale } from "next-intl";
+import { getRegisterUseCaseStatusLabel } from "@/lib/register-first";
 import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,8 @@ const statusPillClassNames: Record<RegisterUseCaseStatus, string> = {
 };
 
 export function RegisterStatusPill({ status, className }: RegisterStatusPillProps) {
+  const locale = useLocale();
+
   return (
     <span
       className={cn(
@@ -30,7 +33,7 @@ export function RegisterStatusPill({ status, className }: RegisterStatusPillProp
           statusPillClassNames[status],
         )}
       />
-      {registerUseCaseStatusLabels[status]}
+      {getRegisterUseCaseStatusLabel(status, locale)}
     </span>
   );
 }

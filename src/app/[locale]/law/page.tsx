@@ -12,7 +12,12 @@ async function getLawData(): Promise<LawData> {
     return JSON.parse(fileContents);
 }
 
-export default async function LawPage() {
+interface Props {
+    params: Promise<{ locale: string }>;
+}
+
+export default async function LawPage({ params }: Props) {
+    const { locale } = await params;
     const data = await getLawData();
 
     return (
@@ -20,12 +25,12 @@ export default async function LawPage() {
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar - Hidden on mobile, sticky on desktop */}
                 <aside className="hidden lg:block w-64 xl:w-80 flex-shrink-0">
-                    <LawSidebar data={data} />
+                    <LawSidebar data={data} locale={locale} />
                 </aside>
 
                 {/* Main Content */}
                 <div className="flex-1 min-w-0">
-                    <LawContent data={data} />
+                    <LawContent data={data} locale={locale} />
                 </div>
             </div>
         </main>

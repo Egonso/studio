@@ -1,6 +1,6 @@
 "use client";
 
-import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import { useTranslations } from 'next-intl';
 import type { RegisterUseCaseStatus } from "@/lib/register-first/types";
 
 interface RegisterStatusBadgeProps {
@@ -24,11 +24,13 @@ const textClassName: Record<RegisterUseCaseStatus, string> = {
 };
 
 export function RegisterStatusBadge({ status }: RegisterStatusBadgeProps) {
+  const t = useTranslations('register.status');
+
   return (
     <span className="inline-flex items-center gap-2 text-sm">
       <span className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${dotClassName[status]}`} />
       <span className={textClassName[status]}>
-        {registerUseCaseStatusLabels[status]}
+        {t(status)}
       </span>
     </span>
   );

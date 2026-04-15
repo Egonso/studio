@@ -20,6 +20,23 @@ export interface IndustryLocaleContent {
   faq: IndustryFaq[];
   metaTitle: string;
   metaDescription: string;
+  objectLabel?: string;
+  stanceLabel?: string;
+  author?: string;
+  reviewedBy?: string;
+  effectiveDate?: string;
+  lastSubstantiveUpdate?: string;
+  sourceUrls?: string[];
+  cta?: {
+    label: string;
+    href: string;
+    description?: string;
+  };
+  relatedLinks?: Array<{
+    label: string;
+    href: string;
+    description?: string;
+  }>;
 }
 
 export interface Industry {
@@ -31,6 +48,173 @@ export interface Industry {
 }
 
 export const industries: Industry[] = [
+  {
+    slug: 'automotive-suppliers',
+    deSlug: 'automotive-zulieferer',
+    icon: '🚗',
+    de: {
+      name: 'Automobil-Zulieferer',
+      tagline: 'KI-Governance für Lieferkette, Freigabe und Nachweise',
+      heroDescription:
+        'Für Automobil-Zulieferer wird KI-Governance konkret, sobald ein OEM, Tier-1-Kunde oder Auditor einen belastbaren Nachweis zu einem einzelnen KI-Einsatzfall verlangt.',
+      euActRiskLevel: 'Minimales / Begrenztes Risiko mit Hochrisiko-Spitzen',
+      euActRiskDetail:
+        'Hoher Nachweisdruck durch Lieferkette, Safety-Kontext und spätere Standardisierung; Hochrisiko vor allem bei sicherheitsnahen oder entscheidungsrelevanten Anwendungen.',
+      whyAffected: [
+        'Viele KI-Einsatzfälle in der Zulieferkette sind operativ zunächst unkritisch, werden aber beschaffungs- und auditseitig schnell erklärungsbedürftig.',
+        'Sobald KI in qualitätsrelevanten, sicherheitsnahen oder freigaberelevanten Prozessen eingesetzt wird, steigen Review- und Nachweiserwartungen deutlich.',
+        'Lieferkettenkommunikation scheitert oft nicht an fehlender Absicht, sondern an fehlender gemeinsamer Struktur für einen konkreten Einsatzfall.',
+        'Automotive ist deshalb ein plausibler Beachhead für den Use-Case Pass: Beschaffungslogik, Qualitätskultur und Nachweisdisziplin treffen hier früh zusammen.',
+      ],
+      typicalUseCases: [
+        { name: 'Computer Vision in Qualitätskontrolle', risk: 'minimal' },
+        { name: 'Generative KI für Angebots- und Dokumententexte', risk: 'minimal' },
+        { name: 'Lieferantenbewertung mit KI-gestützten Signalen', risk: 'limited' },
+        { name: 'Produktionsassistenz mit sicherheitsnahen Handlungsempfehlungen', risk: 'limited' },
+        { name: 'Freigabeunterstützung in sicherheitskritischen Prozessen', risk: 'high' },
+        { name: 'Predictive Maintenance für interne Anlagen', risk: 'minimal' },
+        { name: 'KI-gestützte Arbeitssicherheitsauswertung mit Personaldaten', risk: 'limited' },
+      ],
+      obligations: [
+        'Jeden realen KI-Einsatzfall separat erfassen statt nur Tool-Listen zu pflegen.',
+        'Verantwortliche Rolle pro Einsatzfall benennen und dokumentieren.',
+        'Bei sicherheitsnahen oder freigaberelevanten Anwendungen Review und Nachweis vertiefen.',
+        'Supplier Requests auf derselben Struktur beantworten wie den internen Use-Case Pass.',
+        'AI Literacy, Richtlinien und Registerarbeit als eine Evidenzkette behandeln.',
+      ],
+      faq: [
+        {
+          q: 'Sind Automobil-Zulieferer automatisch im Hochrisiko-Bereich?',
+          a: 'Nein. Viele Anwendungen bleiben minimal oder begrenzt riskant. Der Nachweisdruck ist trotzdem hoch, weil Lieferkette, Qualität und Sicherheit eine saubere Falllogik verlangen.',
+        },
+        {
+          q: 'Warum reicht eine allgemeine KI-Richtlinie nicht aus?',
+          a: 'Weil Kunden und Auditoren meist wissen wollen, welcher konkrete KI-Einsatzfall betroffen ist, welche Wirkung er hat und wer ihn verantwortet. Dafür braucht es einsatzfallbezogene Evidenz.',
+        },
+        {
+          q: 'Wann wird ein Use-Case Pass in der Lieferkette besonders wertvoll?',
+          a: 'Sobald Rückfragen zu einem einzelnen KI-Einsatzfall auftauchen, etwa in Beschaffung, Due Diligence, Qualitätsfreigabe oder Partnerprüfung.',
+        },
+        {
+          q: 'Ist das eher ein Tool- oder ein Format-Thema?',
+          a: 'Strategisch ist es vor allem ein Format-Thema. Das Register ist die operative Heimat, aber der eigentliche Hebel ist ein wiederholbares Nachweisformat pro Einsatzfall.',
+        },
+      ],
+      metaTitle: 'KI-Governance für Automobil-Zulieferer – KI Register',
+      metaDescription:
+        'Automotive-first Hub für KI-Einsatzfälle, Supplier Requests und den Use-Case Pass als Nachweisformat in der Lieferkette.',
+      objectLabel: 'Branchen-Dokument',
+      stanceLabel: 'Automotive-Playbook',
+      author: 'KIRegister',
+      reviewedBy: 'KIRegister Redaktion',
+      effectiveDate: '2026-04-15',
+      lastSubstantiveUpdate: '2026-04-15',
+      sourceUrls: [
+        'https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai',
+        'https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation',
+        'https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy',
+      ],
+      cta: {
+        label: 'Supplier Pass anfordern',
+        href: 'mailto:zoltangal@web.de?subject=Supplier%20Pass%20anfordern',
+        description:
+          'Für Lieferkettenanfragen sollte der nächste Schritt eine strukturierte Anfrage sein, nicht eine lose E-Mail ohne Falllogik.',
+      },
+      relatedLinks: [
+        {
+          label: 'Der Use-Case Pass als Standardnachweis',
+          href: '/de/standards/use-case-pass',
+          description: 'Grundlagendokument für die einsatzfallbasierte Nachweislogik.',
+        },
+        {
+          label: 'OEM Supplier Request Kit',
+          href: '/de/artefacts/oem-supplier-request-kit',
+          description: 'Beschaffungsnahes Artefakt für strukturierte Rückfragen entlang der Lieferkette.',
+        },
+      ],
+    },
+    en: {
+      name: 'Automotive Suppliers',
+      tagline: 'AI governance for supply chain, approvals, and evidence',
+      heroDescription:
+        'For automotive suppliers, AI governance becomes concrete when an OEM, tier-one customer, or auditor requests a reliable record for one specific AI use case.',
+      euActRiskLevel: 'Minimal / Limited Risk with high-risk peaks',
+      euActRiskDetail:
+        'Strong evidence pressure through supply chain, safety context, and later standardisation; high-risk mainly for safety-adjacent or decision-relevant applications.',
+      whyAffected: [
+        'Many supplier-side AI use cases are operationally harmless at first, but become procurement and audit topics very quickly.',
+        'As soon as AI touches quality-relevant, safety-adjacent, or approval-relevant processes, review and evidence expectations rise materially.',
+        'Supply-chain communication often fails because there is no shared structure for one concrete AI use case.',
+        'Automotive is therefore a plausible beachhead for the use-case pass: procurement logic, quality culture, and evidence discipline meet early.',
+      ],
+      typicalUseCases: [
+        { name: 'Computer vision in quality control', risk: 'minimal' },
+        { name: 'Generative AI for offers and technical documentation', risk: 'minimal' },
+        { name: 'Supplier evaluation with AI-supported signals', risk: 'limited' },
+        { name: 'Production assistance with safety-adjacent recommendations', risk: 'limited' },
+        { name: 'Approval support in safety-critical processes', risk: 'high' },
+        { name: 'Predictive maintenance for internal equipment', risk: 'minimal' },
+        { name: 'AI-supported workplace safety evaluation using employee data', risk: 'limited' },
+      ],
+      obligations: [
+        'Capture each real AI use case separately instead of maintaining tool lists only.',
+        'Assign and document a responsible role per use case.',
+        'Deepen review and evidence for safety-adjacent or approval-relevant applications.',
+        'Answer supplier requests on the same structure as the internal use-case pass.',
+        'Treat AI literacy, policies, and register work as one evidence chain.',
+      ],
+      faq: [
+        {
+          q: 'Are automotive suppliers automatically in the high-risk category?',
+          a: 'No. Many applications remain minimal or limited risk. The evidence pressure is still high because supply chain, quality, and safety require a clean case logic.',
+        },
+        {
+          q: 'Why is a general AI policy not enough?',
+          a: 'Because customers and auditors usually want to know which specific AI use case is affected, what it changes, and who is responsible. That requires case-based evidence.',
+        },
+        {
+          q: 'When does a use-case pass become especially valuable in the supply chain?',
+          a: 'As soon as questions arise about one concrete AI use case in procurement, due diligence, quality approval, or partner review.',
+        },
+        {
+          q: 'Is this mainly a tool problem or a format problem?',
+          a: 'Strategically it is mainly a format problem. The register is the operational home, but the real lever is a repeatable evidence format per use case.',
+        },
+      ],
+      metaTitle: 'AI governance for automotive suppliers — AI Registry',
+      metaDescription:
+        'Automotive-first hub for AI use cases, supplier requests, and the use-case pass as an evidence format in the supply chain.',
+      objectLabel: 'Industry Document',
+      stanceLabel: 'Automotive Playbook',
+      author: 'AI Registry',
+      reviewedBy: 'AI Registry Editorial',
+      effectiveDate: '2026-04-15',
+      lastSubstantiveUpdate: '2026-04-15',
+      sourceUrls: [
+        'https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai',
+        'https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation',
+        'https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy',
+      ],
+      cta: {
+        label: 'Request a supplier pass',
+        href: 'mailto:zoltangal@web.de?subject=Request%20a%20supplier%20pass',
+        description:
+          'For supply-chain evidence, the next step should be a structured request rather than an unstructured e-mail chain.',
+      },
+      relatedLinks: [
+        {
+          label: 'The use-case pass as an evidence standard',
+          href: '/de/standards/use-case-pass',
+          description: 'Foundational document for case-based evidence logic.',
+        },
+        {
+          label: 'OEM supplier request kit',
+          href: '/de/artefacts/oem-supplier-request-kit',
+          description: 'Procurement-facing artefact for structured requests across the supply chain.',
+        },
+      ],
+    },
+  },
   {
     slug: 'healthcare',
     deSlug: 'gesundheit',

@@ -254,7 +254,7 @@ export function UseCaseSystemsComplianceSection({
 }: UseCaseSystemsComplianceSectionProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { toast } = useToast();
   const [activeCheckTarget, setActiveCheckTarget] =
     useState<ActiveCheckTarget>(null);

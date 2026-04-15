@@ -73,7 +73,7 @@ const renderPolicyContent = (content: string, placeholders: Record<string, strin
 
 
 export default function SharedPolicyPage() {
-    const params = useParams();
+    const params = useParams() ?? {};
     const policyId = params.policyId as string;
     const [policy, setPolicy] = useState<SharedPolicy | null>(null);
     const [isLoading, setIsLoading] = useState(true);

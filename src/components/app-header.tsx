@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { LocaleSwitcher } from './locale-switcher';
 import { BookOpen, Bot, Link2, LogOut, Settings, UserCircle } from 'lucide-react';
 
@@ -32,15 +32,17 @@ import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { useIsAffiliate } from '@/lib/affiliate/use-is-affiliate';
+import { localizeHref } from '@/lib/i18n/localize-href';
 
 interface AppHeaderProps {
   brandHref?: string;
 }
 
 export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {}) {
+  const locale = useLocale();
   const t = useTranslations();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const pathname = usePathname() ?? '/';
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const router = useRouter();
   const { user } = useAuth();
   const { plan } = useCapability('trustPortal');
@@ -66,7 +68,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
       const auth = await getFirebaseAuth();
       await auth.signOut();
       clearActiveProjectId();
-      router.push('/');
+      router.push(localizeHref(locale, '/'));
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -77,12 +79,12 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
       <div className="mx-auto w-full max-w-6xl px-4 pt-2 md:px-6">
         <div className="flex min-h-14 flex-wrap items-center gap-3 py-1.5 sm:flex-nowrap sm:gap-4">
           <Link
-            href={resolvedBrandHref}
+            href={localizeHref(locale, resolvedBrandHref)}
             className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none"
             prefetch={false}
           >
             <ThemeAwareLogo
-              alt="AI Register"
+              alt={t('metadata.appName')}
               width={30}
               height={30}
               className="h-7 w-auto"
@@ -129,7 +131,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                   {isAffiliate ? (
                     <DropdownMenuItem asChild>
                       <Link
-                        href="/settings?section=affiliate"
+                        href={localizeHref(locale, '/settings?section=affiliate')}
                         className="flex cursor-pointer items-center gap-2"
                         prefetch={false}
                       >
@@ -139,11 +141,11 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                     </DropdownMenuItem>
                   ) : null}
                   <DropdownMenuItem asChild>
-                    <Link
-                      href="/law"
-                      className="flex cursor-pointer items-center gap-2"
-                      prefetch={false}
-                    >
+                      <Link
+                        href={localizeHref(locale, '/law')}
+                        className="flex cursor-pointer items-center gap-2"
+                        prefetch={false}
+                      >
                       <BookOpen className="h-4 w-4" />
                       {t('nav.law')}
                     </Link>
@@ -151,7 +153,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                   {isAdminEmail(user.email) ? (
                     <DropdownMenuItem asChild>
                       <Link
-                        href="/admin"
+                        href={localizeHref(locale, '/admin')}
                         className="flex cursor-pointer items-center gap-2"
                         prefetch={false}
                       >
@@ -188,7 +190,10 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
               return (
                 <Link
                   key={item.id}
-                  href={appendWorkspaceScope(item.href, workspaceScope)}
+                  href={localizeHref(
+                    locale,
+                    appendWorkspaceScope(item.href, workspaceScope),
+                  )}
                   prefetch={false}
                   className={cn(
                     'inline-flex h-9 shrink-0 items-center border-b-2 px-0 text-[14px] font-medium transition-colors',

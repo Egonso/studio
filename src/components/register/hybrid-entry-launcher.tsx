@@ -31,7 +31,7 @@ export function RegisterHybridEntryLauncher() {
   const { user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
 
   const projectId = searchParams.get("projectId") ?? getActiveProjectId();
 

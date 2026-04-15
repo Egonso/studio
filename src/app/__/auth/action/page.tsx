@@ -110,7 +110,7 @@ function getActionErrorMessage(error: unknown, mode: string | null): string {
 }
 
 export default function AuthActionPage() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const mode = searchParams.get('mode');
   const oobCode = searchParams.get('oobCode');
   const continuePath = isSafeContinuePath(searchParams.get('continueUrl'));

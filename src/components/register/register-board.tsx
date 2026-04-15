@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Search, Trash2, Undo2, X } from "lucide-react";
 import {
@@ -65,7 +65,6 @@ import {
 } from "@/lib/register-first/types";
 import {
   getNextManualStatuses,
-  registerUseCaseStatusLabels,
   registerUseCaseStatusOrder,
 } from "@/lib/register-first/status-flow";
 import { SUPPLIER_REQUEST_FILTER } from "@/lib/register-first/supplier-requests";
@@ -108,6 +107,7 @@ type StatusFilter = RegisterUseCaseStatus | "ALL";
 type SortField = "updatedAt" | "createdAt" | "purpose" | "owner" | "status" | "tool";
 type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
 type ProofBooleanChoice = "YES" | "NO";
+type RiskFilter = "ALL" | "MINIMAL" | "HIGH" | "PROHIBITED" | "UNKNOWN";
 
 interface ProofMetaDraft {
   verifyUrl: string;
@@ -118,13 +118,192 @@ interface ProofMetaDraft {
 
 
 
-const statusFilterOptions: Array<{ value: StatusFilter; label: string }> = [
-  { value: "ALL", label: "Alle Status" },
-  ...registerUseCaseStatusOrder.map((status) => ({
-    value: status,
-    label: registerUseCaseStatusLabels[status],
-  })),
-];
+function getRegisterBoardCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      unknown: 'Unbekannt',
+      noSystem: 'Kein System',
+      invalidVerifyLink: 'Verify-Link-Daten sind ungültig.',
+      noContext: 'Kein Organisationskontext gefunden. Bitte zuerst eine Organisation im Dashboard öffnen.',
+      notSignedIn: 'Sie sind nicht angemeldet. Bitte erneut anmelden.',
+      registerLoadFailed: 'Register konnte nicht geladen werden. Bitte erneut versuchen.',
+      notAssigned: 'Nicht zugewiesen',
+      noOrganisation: 'Keine Organisation',
+      statusTransitionForbidden: 'Dieser Statuswechsel ist nicht erlaubt.',
+      manualOnly: 'Governance-Entscheidungen sind nur manuell erlaubt.',
+      statusUpdateFailed: 'Status konnte nicht aktualisiert werden.',
+      deleted: 'Gelöscht',
+      deletedDesc: 'Der Einsatzfall wurde in den Papierkorb verschoben.',
+      restored: 'Wiederhergestellt',
+      restoredDesc: 'Der Einsatzfall ist wieder aktiv.',
+      deleteFailed: 'Einsatzfall konnte nicht gelöscht werden.',
+      restoreFailed: 'Einsatzfall konnte nicht wiederhergestellt werden.',
+      exportFailed: 'Export fehlgeschlagen',
+      exportFailedDesc: 'Der Use-Case Pass v1.1 konnte nicht exportiert werden.',
+      visibilityFailed: 'Sichtbarkeit konnte nicht geändert werden.',
+      proofStatusOnly:
+        'Verify-Link-Daten können nur im Status Proof-ready gepflegt werden.',
+      verifyLinkInvalid: 'Verify-Link-Daten sind ungültig. Bitte URL und Scope prüfen.',
+      verifyLinkSaveFailed: 'Verify-Link-Daten konnten nicht gespeichert werden.',
+      noVerifyUrl: 'Es gibt noch keine Verify-URL zum Kopieren.',
+      verifyLinkCopied: 'Verify-Link kopiert',
+      verifyLinkCopiedDesc: 'Die Verify-URL wurde in die Zwischenablage kopiert.',
+      copyFailed: 'Kopieren fehlgeschlagen',
+      copyFailedDesc: 'Die Verify-URL konnte nicht kopiert werden.',
+      previewDisabled: 'Vorschau deaktiviert',
+      previewDisabledDesc: 'Die Vorschau ist aktuell nicht verfügbar.',
+      popupBlocked: 'Popup blockiert',
+      popupBlockedDesc: 'Das PDF wurde stattdessen heruntergeladen.',
+    previewFailed: 'Vorschau fehlgeschlagen',
+    previewFailedDesc: 'Die PDF-Vorschau konnte nicht erzeugt werden.',
+    previewNeedsVerify: 'Für die PDF-Vorschau müssen zuerst Verify-URL und Scope gepflegt werden.',
+      changeStatus: 'Status ändern',
+      newStatus: 'Neuer Status',
+      useCasePass: 'Use-Case Pass (JSON)',
+      useCasePassV11: 'Use-Case Pass v1.1 (JSON)',
+      proofPackDraft: 'Proof-Pack Entwurf (JSON)',
+      proofPackPdf: 'Proof Pack (PDF)',
+      pdfPreview: 'PDF Vorschau',
+      makePrivate: 'Auf privat setzen',
+      makePublic: 'Öffentlich machen',
+      restore: 'Wiederherstellen',
+      copyVerifyLink: 'Verify-Link kopieren',
+      openVerifyLink: 'Verify-Link öffnen',
+      searchPlaceholder: 'Einsatzfall suchen…',
+      statusPlaceholder: 'Status',
+      sortPlaceholder: 'Sortierung',
+      viewPlaceholder: 'Ansicht',
+      allStatuses: 'Alle Status',
+      allRiskClasses: 'Alle Risikoklassen',
+      minimalRisk: 'Minimales Risiko',
+      highRisk: 'Hochrisiko',
+      prohibitedRisk: 'Verboten',
+      activity: 'Aktivität',
+      actions: 'Aktionen',
+      ownerRole: 'Owner-Rolle',
+      systems: 'Systeme',
+      applyFilters: 'Filter anwenden',
+      ascending: 'Aufsteigend',
+      descending: 'Absteigend',
+      viewAll: 'Alle',
+      viewByOwner: 'Nach Owner-Rolle',
+      viewByOrganisation: 'Nach Organisation',
+      viewByStatus: 'Nach Status',
+      hideDeleted: 'Gelöschte ausblenden',
+      showDeleted: 'Gelöschte anzeigen',
+      noUseCasesTitle: 'Noch keine Einsatzfälle dokumentiert',
+      noUseCasesDesc: 'Dokumentieren Sie oben den ersten Einsatzfall im Register.',
+      noFilteredEntriesTitle: 'Keine Einträge für den aktuellen Filter',
+      noFilteredEntriesDesc:
+        'Passen Sie Suche, Status, Risikoklasse oder Ansicht an, um mehr Registereinträge zu sehen.',
+      resultCount: (count: number) =>
+        `${count} Einsatzfall${count === 1 ? '' : 'fälle'}`,
+      missingReviewHistory: 'Fehlende Review-Historie',
+      highRiskGap: 'Hochrisiko-Haftungslücke',
+      transparencyRisk: 'Transparenzrisiko',
+      sortUpdatedAt: 'Zuletzt geändert',
+      sortCreatedAt: 'Erstellt am',
+      sortName: 'Name',
+      sortOwner: 'Owner-Rolle',
+      sortStatus: 'Status',
+      sortSystems: 'Systeme',
+      confirmStatusTitle: 'Statusänderung bestätigen',
+      confirmStatusDesc:
+        'Diese Statusänderung dokumentiert eine formale Entscheidung. Fortfahren?',
+    };
+  }
+
+  return {
+    unknown: 'Unknown',
+    noSystem: 'No system',
+    invalidVerifyLink: 'Verify link data is invalid.',
+    noContext:
+      'No organisation context found. Please open an organisation in the dashboard first.',
+    notSignedIn: 'You are not signed in. Please sign in again.',
+    registerLoadFailed: 'Register could not be loaded. Please try again.',
+    notAssigned: 'Not assigned',
+    noOrganisation: 'No organisation',
+    statusTransitionForbidden: 'This status transition is not permitted.',
+    manualOnly: 'Governance decisions are only permitted manually.',
+    statusUpdateFailed: 'Status could not be updated.',
+    deleted: 'Deleted',
+    deletedDesc: 'The use case has been moved to the recycle bin.',
+    restored: 'Restored',
+    restoredDesc: 'The use case is active again.',
+    deleteFailed: 'Use case could not be deleted.',
+    restoreFailed: 'Use case could not be restored.',
+    exportFailed: 'Export failed',
+    exportFailedDesc: 'The v1.1 use case pass could not be exported.',
+    visibilityFailed: 'Visibility could not be changed.',
+    proofStatusOnly: 'Verify link data can only be maintained in Proof-ready status.',
+    verifyLinkInvalid: 'Verify link data is invalid. Please check URL and scope.',
+    verifyLinkSaveFailed: 'Verify link data could not be saved.',
+    noVerifyUrl: 'There is no verify URL to copy yet.',
+    verifyLinkCopied: 'Verify link copied',
+    verifyLinkCopiedDesc: 'The verify URL has been copied to the clipboard.',
+    copyFailed: 'Copy failed',
+    copyFailedDesc: 'The verify URL could not be copied.',
+    previewDisabled: 'Preview disabled',
+    previewDisabledDesc: 'The preview is currently not available.',
+    popupBlocked: 'Popup blocked',
+    popupBlockedDesc: 'The PDF was downloaded instead.',
+    previewFailed: 'Preview failed',
+    previewFailedDesc: 'The PDF preview could not be generated.',
+    previewNeedsVerify: 'PDF preview requires verify link data first. Please fill in URL and scope.',
+    changeStatus: 'Change status',
+    newStatus: 'New status',
+    useCasePass: 'Use case pass (JSON)',
+    useCasePassV11: 'Use case pass v1.1 (JSON)',
+    proofPackDraft: 'Proof pack draft (JSON)',
+    proofPackPdf: 'Proof pack (PDF)',
+    pdfPreview: 'PDF preview',
+    makePrivate: 'Make private',
+    makePublic: 'Make public',
+    restore: 'Restore',
+    copyVerifyLink: 'Copy verify link',
+    openVerifyLink: 'Open verify link',
+    searchPlaceholder: 'Search use case…',
+    statusPlaceholder: 'Status',
+    sortPlaceholder: 'Sort',
+    viewPlaceholder: 'View',
+    allStatuses: 'All statuses',
+    allRiskClasses: 'All risk classes',
+    minimalRisk: 'Minimal risk',
+    highRisk: 'High-risk',
+    prohibitedRisk: 'Prohibited',
+    activity: 'Activity',
+    actions: 'Actions',
+    ownerRole: 'Owner role',
+    systems: 'Systems',
+    applyFilters: 'Apply filters',
+    ascending: 'Ascending',
+    descending: 'Descending',
+    viewAll: 'All',
+    viewByOwner: 'By owner role',
+    viewByOrganisation: 'By organisation',
+    viewByStatus: 'By status',
+    hideDeleted: 'Hide deleted',
+    showDeleted: 'Show deleted',
+    noUseCasesTitle: 'No use cases documented yet',
+    noUseCasesDesc: 'Document the first use case using the register action above.',
+    noFilteredEntriesTitle: 'No entries for the current filter',
+    noFilteredEntriesDesc:
+      'Adjust search, status, risk class or view to display more register entries.',
+    resultCount: (count: number) => `${count} use case${count === 1 ? '' : 's'}`,
+    missingReviewHistory: 'Missing review history',
+    highRiskGap: 'High-risk liability gap',
+    transparencyRisk: 'Transparency risk',
+    sortUpdatedAt: 'Recently updated',
+    sortCreatedAt: 'Created on',
+    sortName: 'Name',
+    sortOwner: 'Owner role',
+    sortStatus: 'Status',
+    sortSystems: 'Systems',
+    confirmStatusTitle: 'Confirm status change',
+    confirmStatusDesc:
+      'This status change records a formal decision. Continue?',
+  };
+}
 
 function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -144,19 +323,19 @@ function mapServiceErrorCode(error: unknown): RegisterFirstServiceErrorCode | nu
   return null;
 }
 
-function formatDate(isoDate: string): string {
+function formatDate(isoDate: string, locale: string, unknownLabel: string): string {
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
-    return "unknown";
+    return unknownLabel;
   }
-  return date.toLocaleString("en-GB");
+  return date.toLocaleString(locale === 'de' ? 'de-DE' : 'en-GB');
 }
 
-function getCardToolDisplayName(card: UseCaseCard): string {
+function getCardToolDisplayName(card: UseCaseCard, emptyLabel: string): string {
   return getUseCaseSystemsSummary(card, {
     resolveToolName: (toolId) =>
       aiToolsRegistry.getById(toolId)?.productName ?? null,
-    emptyLabel: "No system",
+    emptyLabel,
   });
 }
 
@@ -174,14 +353,15 @@ function isProofChoiceYes(value: ProofBooleanChoice): boolean {
 }
 
 function buildProofValidationMessage(
-  errors: ReturnType<typeof validateVerifyLinkInput>["errors"]
+  errors: ReturnType<typeof validateVerifyLinkInput>["errors"],
+  fallbackMessage: string,
 ): string {
   const messages = [errors.verifyUrl, errors.scope].filter(
     (value): value is string => Boolean(value)
   );
 
   if (messages.length === 0) {
-    return "Verify link data is invalid.";
+    return fallbackMessage;
   }
 
   return messages.join(" ");
@@ -227,7 +407,9 @@ async function copyTextToClipboard(value: string): Promise<void> {
 }
 
 export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
+  const locale = useLocale();
   const t = useTranslations();
+  const copy = getRegisterBoardCopy(locale);
   const isStandalone = mode === "standalone";
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -257,7 +439,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<ViewMode>("ALL");
   const [showDeleted, setShowDeleted] = useState(false);
-  const [riskFilter, setRiskFilter] = useState<string>("ALL");
+  const [riskFilter, setRiskFilter] = useState<RiskFilter>("ALL");
 
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
@@ -270,6 +452,20 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   const [proofDraftById, setProofDraftById] = useState<Record<string, ProofMetaDraft>>({});
   const [_savingProofUseCaseId, setSavingProofUseCaseId] = useState<string | null>(null);
   const [_proofErrorById, setProofErrorById] = useState<Record<string, string | undefined>>({});
+  const statusLabel = useCallback(
+    (status: RegisterUseCaseStatus) => t(`register.status.${status}`),
+    [t],
+  );
+  const statusFilterOptions = useMemo(
+    () => [
+      { value: "ALL" as const, label: copy.allStatuses },
+      ...registerUseCaseStatusOrder.map((status) => ({
+        value: status,
+        label: statusLabel(status),
+      })),
+    ],
+    [copy.allStatuses, statusLabel],
+  );
 
   const loadUseCases = useCallback(async () => {
     setIsLoading(true);
@@ -292,9 +488,21 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
       if (riskFilter !== "ALL") {
         items = items.filter((uc) => {
-          const cat = uc.governanceAssessment?.core?.aiActCategory || "Unbekannt";
-          if (riskFilter === "Unbekannt") return cat === "Unbekannt";
-          return cat === riskFilter;
+          const category = (uc.governanceAssessment?.core?.aiActCategory || "").toLowerCase();
+          if (!category) return riskFilter === "UNKNOWN";
+
+          switch (riskFilter) {
+            case "MINIMAL":
+              return category.includes("minimal");
+            case "HIGH":
+              return category.includes("high") || category.includes("hoch");
+            case "PROHIBITED":
+              return category.includes("unacceptable") || category.includes("verbot");
+            case "UNKNOWN":
+              return category.includes("unknown") || category.includes("unbekannt");
+            default:
+              return true;
+          }
         });
       }
 
@@ -345,16 +553,16 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch (loadError) {
       const code = mapServiceErrorCode(loadError);
       if (code === "PROJECT_CONTEXT_MISSING") {
-        setError("No organisation context found. Please open an organisation in the dashboard first.");
+        setError(copy.noContext);
       } else if (code === "UNAUTHENTICATED") {
-        setError("You are not signed in. Please sign in again.");
+        setError(copy.notSignedIn);
       } else {
-        setError("Register could not be loaded. Please try again.");
+        setError(copy.registerLoadFailed);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [activeCustomFilter, isStandalone, projectId, registerId, riskFilter, scopeContext, searchQuery, showDeleted, statusFilter]);
+  }, [activeCustomFilter, copy.noContext, copy.notSignedIn, copy.registerLoadFailed, isStandalone, projectId, registerId, riskFilter, scopeContext, searchQuery, showDeleted, statusFilter]);
 
   useEffect(() => {
     void loadUseCases();
@@ -401,7 +609,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         case "purpose": cmp = a.purpose.localeCompare(b.purpose); break;
         case "owner": cmp = (a.responsibility.responsibleParty ?? "").localeCompare(b.responsibility.responsibleParty ?? ""); break;
         case "status": cmp = registerUseCaseStatusOrder.indexOf(a.status) - registerUseCaseStatusOrder.indexOf(b.status); break;
-        case "tool": cmp = getCardToolDisplayName(a).localeCompare(getCardToolDisplayName(b)); break;
+        case "tool": cmp = getCardToolDisplayName(a, copy.noSystem).localeCompare(getCardToolDisplayName(b, copy.noSystem)); break;
         case "createdAt": cmp = a.createdAt.localeCompare(b.createdAt); break;
         case "updatedAt":
         default: cmp = a.updatedAt.localeCompare(b.updatedAt); break;
@@ -409,7 +617,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       return sortDir === "asc" ? cmp : -cmp; // flip if desc
     });
     return sorted;
-  }, [visibleUseCases, sortField, sortDir]);
+  }, [copy.noSystem, sortDir, sortField, visibleUseCases]);
 
   const groupedUseCases = useMemo(() => {
     if (viewMode === "ALL") return null;
@@ -417,16 +625,16 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     for (const uc of sortedUseCases) {
       let key: string;
       switch (viewMode) {
-        case "BY_OWNER": key = uc.responsibility.responsibleParty || "Not assigned"; break;
-        case "BY_ORG": key = uc.organisation || "No organisation"; break;
-        case "BY_STATUS": key = registerUseCaseStatusLabels[uc.status]; break;
-        default: key = "All";
+        case "BY_OWNER": key = uc.responsibility.responsibleParty || copy.notAssigned; break;
+        case "BY_ORG": key = uc.organisation || copy.noOrganisation; break;
+        case "BY_STATUS": key = statusLabel(uc.status); break;
+        default: key = copy.viewAll;
       }
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(uc);
     }
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
-  }, [sortedUseCases, viewMode]);
+  }, [copy.noOrganisation, copy.notAssigned, copy.viewAll, sortedUseCases, statusLabel, viewMode]);
 
   const handleUpdateStatus = async (card: UseCaseCard) => {
     const nextStatus = selectedNextStatusById[card.useCaseId];
@@ -466,10 +674,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       const code = mapServiceErrorCode(updateError);
       const message =
         code === "INVALID_STATUS_TRANSITION"
-          ? "This status transition is not permitted."
+          ? copy.statusTransitionForbidden
           : code === "AUTOMATION_FORBIDDEN"
-            ? "Governance decisions are only permitted manually."
-            : "Status could not be updated.";
+            ? copy.manualOnly
+            : copy.statusUpdateFailed;
 
       setUpdateErrorById((prev) => ({
         ...prev,
@@ -488,9 +696,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         scopeContext,
       );
       await loadUseCases();
-      toast({ title: "Deleted", description: "Use case has been moved to the recycle bin." });
+      toast({ title: copy.deleted, description: copy.deletedDesc });
     } catch {
-      toast({ variant: "destructive", title: "Error", description: "Use case could not be deleted." });
+      toast({ variant: "destructive", title: t('common.error'), description: copy.deleteFailed });
     }
   };
 
@@ -502,9 +710,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         scopeContext,
       );
       await loadUseCases();
-      toast({ title: "Restored", description: "Use case is active again." });
+      toast({ title: copy.restored, description: copy.restoredDesc });
     } catch {
-      toast({ variant: "destructive", title: "Error", description: "Use case could not be restored." });
+      toast({ variant: "destructive", title: t('common.error'), description: copy.restoreFailed });
     }
   };
 
@@ -570,8 +778,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Export failed",
-        description: "v1.1 use case pass could not be exported.",
+        title: copy.exportFailed,
+        description: copy.exportFailedDesc,
       });
     }
   };
@@ -595,8 +803,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Visibility could not be changed.",
+        title: t('common.error'),
+        description: copy.visibilityFailed,
       });
     }
   };
@@ -625,7 +833,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (!validation.isValid) {
       setProofErrorById((prev) => ({
         ...prev,
-        [card.useCaseId]: buildProofValidationMessage(validation.errors),
+        [card.useCaseId]: buildProofValidationMessage(validation.errors, copy.invalidVerifyLink),
       }));
       return;
     }
@@ -661,10 +869,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       const code = mapServiceErrorCode(saveError);
       const message =
         code === "INVALID_STATUS_TRANSITION"
-          ? "Verify link data can only be maintained in PROOF_READY status."
+          ? copy.proofStatusOnly
           : code === "VALIDATION_FAILED"
-            ? "Verify link data is invalid. Check URL and scope."
-            : "Verify link data could not be saved.";
+            ? copy.verifyLinkInvalid
+            : copy.verifyLinkSaveFailed;
 
       setProofErrorById((prev) => ({
         ...prev,
@@ -682,7 +890,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (verifyUrl.length === 0) {
       setProofErrorById((prev) => ({
         ...prev,
-        [card.useCaseId]: "There is no verify URL to copy yet.",
+        [card.useCaseId]: copy.noVerifyUrl,
       }));
       return;
     }
@@ -691,14 +899,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       await copyTextToClipboard(verifyUrl);
       setProofErrorById((prev) => ({ ...prev, [card.useCaseId]: undefined }));
       toast({
-        title: "Verify link copied",
-        description: "The verify URL has been copied to the clipboard.",
+        title: copy.verifyLinkCopied,
+        description: copy.verifyLinkCopiedDesc,
       });
     } catch {
       toast({
         variant: "destructive",
-        title: "Copy failed",
-        description: "The verify URL could not be copied.",
+        title: copy.copyFailed,
+        description: copy.copyFailedDesc,
       });
     }
   };
@@ -711,8 +919,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (!registerFirstFlags.proofGate) {
       toast({
         variant: "destructive",
-        title: "Preview disabled",
-        description: "The preview is currently not available.",
+        title: copy.previewDisabled,
+        description: copy.previewDisabledDesc,
       });
       return;
     }
@@ -742,8 +950,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     if (!previewCard.proof) {
       setProofErrorById((prev) => ({
         ...prev,
-        [card.useCaseId]:
-          "PDF preview requires verify link data. Please fill in URL and scope first.",
+        [card.useCaseId]: copy.previewNeedsVerify,
       }));
       return;
     }
@@ -756,8 +963,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       if (!previewWindow) {
         downloadBlob(getProofPackPdfFileName(card.useCaseId), pdfBlob);
         toast({
-          title: "Popup blocked",
-          description: "PDF has been downloaded instead.",
+          title: copy.popupBlocked,
+          description: copy.popupBlockedDesc,
         });
       }
 
@@ -767,14 +974,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     } catch {
       toast({
         variant: "destructive",
-        title: "Preview failed",
-        description: "PDF preview could not be generated.",
+        title: copy.previewFailed,
+        description: copy.previewFailedDesc,
       });
     }
   };
 
   const resultCountLabel = [
-    `${sortedUseCases.length} use case${sortedUseCases.length === 1 ? "" : "s"}`,
+    copy.resultCount(sortedUseCases.length),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -799,12 +1006,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             }}
           >
             <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="New status" />
+              <SelectValue placeholder={copy.newStatus} />
             </SelectTrigger>
             <SelectContent>
               {nextStatuses.map((status) => (
                 <SelectItem key={status} value={status}>
-                  {registerUseCaseStatusLabels[status]}
+                  {statusLabel(status)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -816,41 +1023,41 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         onClick={() => handleExportUseCasePass(card)}
         disabled={!outputState.cardJsonEnabled}
       >
-        Use-Case Pass (JSON)
+        {copy.useCasePass}
       </DropdownMenuItem>
       {card.cardVersion === "1.1" && (
         <DropdownMenuItem
           onClick={() => void handleExportUseCasePassV11(card)}
           disabled={!outputState.cardJsonEnabled}
         >
-          Use-Case Pass v1.1 (JSON)
+          {copy.useCasePassV11}
         </DropdownMenuItem>
       )}
       <DropdownMenuItem
         onClick={() => handleExportProofPackDraft(card)}
         disabled={!outputState.proofPackDraftEnabled}
       >
-        Proof-Pack Entwurf (JSON)
+        {copy.proofPackDraft}
       </DropdownMenuItem>
       <DropdownMenuItem
         onClick={() => handleExportProofPackPdf(card)}
         disabled={!proofPdfState.enabled}
       >
-        Proof Pack (PDF)
+        {copy.proofPackPdf}
       </DropdownMenuItem>
       {card.status === "PROOF_READY" && (
         <DropdownMenuItem onClick={() => handlePreviewProofPackPdf(card)}>
-          PDF Vorschau
+          {copy.pdfPreview}
         </DropdownMenuItem>
       )}
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={() => void handleTogglePublicVisibility(card)}>
-        {card.isPublicVisible ? "Auf privat setzen" : "Öffentlich machen"}
+        {card.isPublicVisible ? copy.makePrivate : copy.makePublic}
       </DropdownMenuItem>
       {card.isDeleted ? (
         <DropdownMenuItem onClick={() => void handleRestore(card)}>
           <Undo2 className="mr-2 h-3.5 w-3.5" />
-          Wiederherstellen
+          {copy.restore}
         </DropdownMenuItem>
       ) : (
         <DropdownMenuItem
@@ -867,12 +1074,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             onClick={() => {
               const url = buildVerifyPassAbsoluteUrl(card.publicHashId!);
               void copyTextToClipboard(url).then(() =>
-                toast({ title: "Verify-Link kopiert", description: url })
+                toast({ title: copy.verifyLinkCopied, description: url })
               );
             }}
           >
             <ClipboardCopy className="mr-2 h-3.5 w-3.5" />
-            Verify-Link kopieren
+            {copy.copyVerifyLink}
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a
@@ -881,7 +1088,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
               rel="noopener noreferrer"
             >
               <ExternalLink className="mr-2 h-3.5 w-3.5" />
-              Verify-Link öffnen
+              {copy.openVerifyLink}
             </a>
           </DropdownMenuItem>
         </>
@@ -899,7 +1106,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         <Input
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Use Case suchen…"
+          placeholder={copy.searchPlaceholder}
           className="h-9 w-full text-sm sm:max-w-xs"
         />
         <Select
@@ -907,7 +1114,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           onValueChange={(value) => setStatusFilter(value as StatusFilter)}
         >
           <SelectTrigger className="h-9 w-full text-sm sm:w-40">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={copy.statusPlaceholder} />
           </SelectTrigger>
           <SelectContent>
             {statusFilterOptions.map((option) => (
@@ -919,32 +1126,31 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         </Select>
         <Select
           value={riskFilter}
-          onValueChange={(value) => setRiskFilter(value)}
+          onValueChange={(value) => setRiskFilter(value as RiskFilter)}
         >
           <SelectTrigger className="h-9 w-full text-sm sm:w-40">
             <SelectValue placeholder={t('register.riskClass.label')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Alle Risikoklassen</SelectItem>
-            <SelectItem value="Minimal Risk">Minimal Risk</SelectItem>
-            <SelectItem value="High Risk">High Risk</SelectItem>
-            <SelectItem value="Unacceptable Risk">Unacceptable Risk</SelectItem>
-            <SelectItem value="Not Applicable">Not Applicable</SelectItem>
-            <SelectItem value="Unbekannt">Unbekannt</SelectItem>
+            <SelectItem value="ALL">{copy.allRiskClasses}</SelectItem>
+            <SelectItem value="MINIMAL">{copy.minimalRisk}</SelectItem>
+            <SelectItem value="HIGH">{copy.highRisk}</SelectItem>
+            <SelectItem value="PROHIBITED">{copy.prohibitedRisk}</SelectItem>
+            <SelectItem value="UNKNOWN">{copy.unknown}</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex items-center gap-1">
           <Select value={sortField} onValueChange={(v) => setSortField(v as SortField)}>
             <SelectTrigger className="h-9 w-full text-sm sm:w-36">
-              <SelectValue placeholder="Sortierung" />
+              <SelectValue placeholder={copy.sortPlaceholder} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="updatedAt">Zuletzt geändert</SelectItem>
-              <SelectItem value="createdAt">{t('common.createdOn')}</SelectItem>
-              <SelectItem value="purpose">Name</SelectItem>
-              <SelectItem value="owner">Owner-Rolle</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="tool">Systeme</SelectItem>
+              <SelectItem value="updatedAt">{copy.sortUpdatedAt}</SelectItem>
+              <SelectItem value="createdAt">{copy.sortCreatedAt}</SelectItem>
+              <SelectItem value="purpose">{copy.sortName}</SelectItem>
+              <SelectItem value="owner">{copy.sortOwner}</SelectItem>
+              <SelectItem value="status">{copy.sortStatus}</SelectItem>
+              <SelectItem value="tool">{copy.sortSystems}</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -953,23 +1159,23 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             size="sm"
             className="h-9 w-9 p-0"
             onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-            title={sortDir === "asc" ? "Aufsteigend" : "Absteigend"}
+            title={sortDir === "asc" ? copy.ascending : copy.descending}
           >
             {sortDir === "asc" ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
           </Button>
         </div>
         <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
           <SelectTrigger className="h-9 w-full text-sm sm:w-44">
-            <SelectValue placeholder="Ansicht" />
+            <SelectValue placeholder={copy.viewPlaceholder} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Alle</SelectItem>
-            <SelectItem value="BY_OWNER">Nach Owner-Rolle</SelectItem>
-            <SelectItem value="BY_ORG">Nach Organisation</SelectItem>
-            <SelectItem value="BY_STATUS">Nach Status</SelectItem>
+            <SelectItem value="ALL">{copy.viewAll}</SelectItem>
+            <SelectItem value="BY_OWNER">{copy.viewByOwner}</SelectItem>
+            <SelectItem value="BY_ORG">{copy.viewByOrganisation}</SelectItem>
+            <SelectItem value="BY_STATUS">{copy.viewByStatus}</SelectItem>
           </SelectContent>
         </Select>
-        <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title="Filter anwenden"><Search className="h-3.5 w-3.5" /></Button>
+        <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title={copy.applyFilters}><Search className="h-3.5 w-3.5" /></Button>
         <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
           {t('common.reset')}
         </button>
@@ -979,11 +1185,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           onClick={() => setShowDeleted(!showDeleted)}
         >
           <span className={`inline-block h-2 w-2 rounded-full transition-colors ${showDeleted ? "bg-foreground" : "border border-muted-foreground"}`} />
-          {showDeleted ? "Hide deleted" : "Show deleted"}
+          {showDeleted ? copy.hideDeleted : copy.showDeleted}
         </button>
         {activeCustomFilter && (
           <Badge variant="secondary" className="h-9 px-3 text-sm flex items-center gap-1 cursor-pointer" onClick={() => setActiveCustomFilter(null)}>
-            Filter: {activeCustomFilter === 'missing_history' ? 'Missing review history' : activeCustomFilter === 'high_risk_missing_history' ? 'High-risk liability gap' : activeCustomFilter === 'external_missing_dossier' ? 'Transparency risk' : activeCustomFilter.replace(/_/g, ' ')}
+            Filter: {activeCustomFilter === 'missing_history' ? copy.missingReviewHistory : activeCustomFilter === 'high_risk_missing_history' ? copy.highRiskGap : activeCustomFilter === 'external_missing_dossier' ? copy.transparencyRisk : activeCustomFilter.replace(/_/g, ' ')}
             <X className="h-3 w-3 ml-1" />
           </Badge>
         )}
@@ -1012,20 +1218,15 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       ) : useCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>No use cases documented yet</CardTitle>
-            <CardDescription>
-              Document the first use case via the register action above.
-            </CardDescription>
+            <CardTitle>{copy.noUseCasesTitle}</CardTitle>
+            <CardDescription>{copy.noUseCasesDesc}</CardDescription>
           </CardHeader>
         </Card>
       ) : sortedUseCases.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>No entries for the current filter</CardTitle>
-            <CardDescription>
-              Adjust search, status, source, or document view to display more
-              register entries.
-            </CardDescription>
+            <CardTitle>{copy.noFilteredEntriesTitle}</CardTitle>
+            <CardDescription>{copy.noFilteredEntriesDesc}</CardDescription>
           </CardHeader>
         </Card>
       ) : (
@@ -1039,13 +1240,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   let currentGroup: string;
                   switch (viewMode) {
                     case "BY_OWNER":
-                      currentGroup = card.responsibility.responsibleParty || "Nicht zugewiesen";
+                      currentGroup = card.responsibility.responsibleParty || copy.notAssigned;
                       break;
                     case "BY_ORG":
-                      currentGroup = card.organisation || "Keine Organisation";
+                      currentGroup = card.organisation || copy.noOrganisation;
                       break;
                     case "BY_STATUS":
-                      currentGroup = registerUseCaseStatusLabels[card.status];
+                      currentGroup = statusLabel(card.status);
                       break;
                     default:
                       currentGroup = "";
@@ -1055,13 +1256,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   if (prev) {
                     switch (viewMode) {
                       case "BY_OWNER":
-                        prevGroup = prev.responsibility.responsibleParty || "Nicht zugewiesen";
+                        prevGroup = prev.responsibility.responsibleParty || copy.notAssigned;
                         break;
                       case "BY_ORG":
-                        prevGroup = prev.organisation || "Keine Organisation";
+                        prevGroup = prev.organisation || copy.noOrganisation;
                         break;
                       case "BY_STATUS":
-                        prevGroup = registerUseCaseStatusLabels[prev.status];
+                        prevGroup = statusLabel(prev.status);
                         break;
                     }
                   }
@@ -1069,11 +1270,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                     const count = sortedUseCases.filter((uc) => {
                       switch (viewMode) {
                         case "BY_OWNER":
-                          return (uc.responsibility.responsibleParty || "Nicht zugewiesen") === currentGroup;
+                          return (uc.responsibility.responsibleParty || copy.notAssigned) === currentGroup;
                         case "BY_ORG":
-                          return (uc.organisation || "Keine Organisation") === currentGroup;
+                          return (uc.organisation || copy.noOrganisation) === currentGroup;
                         case "BY_STATUS":
-                          return registerUseCaseStatusLabels[uc.status] === currentGroup;
+                          return statusLabel(uc.status) === currentGroup;
                         default:
                           return true;
                       }
@@ -1084,13 +1285,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                 }
 
                 const nextStatuses = getNextManualStatuses(card.status);
-                const toolDisplayName = getCardToolDisplayName(card);
+                const toolDisplayName = getCardToolDisplayName(card, copy.noSystem);
                 const workflowBadge = getUseCaseWorkflowBadge(card, {
                   resolveToolName: (toolId) =>
                     aiToolsRegistry.getById(toolId)?.productName ?? null,
                 });
                 const ownerRole =
-                  card.responsibility.responsibleParty || "Nicht zugewiesen";
+                  card.responsibility.responsibleParty || copy.notAssigned;
                 const outputState = getStatusGatedOutputState(
                   card.status,
                   registerFirstFlags
@@ -1119,17 +1320,17 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                         <div className="min-w-0 space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className={`text-sm font-medium text-slate-950 ${card.isDeleted ? "line-through" : ""}`}>
-                              {card.purpose}
-                            </span>
-                            {card.isDeleted ? (
-                              <Badge variant="destructive" className="shrink-0">
-                                Gelöscht
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Systeme: {toolDisplayName}
-                          </div>
+                            {card.purpose}
+                          </span>
+                          {card.isDeleted ? (
+                            <Badge variant="destructive" className="shrink-0">
+                              {copy.deleted}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {copy.systems}: {toolDisplayName}
+                        </div>
                           {workflowBadge ? (
                             <div className="text-xs text-muted-foreground">
                               {workflowBadge}
@@ -1151,7 +1352,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                       <div className="grid gap-3 text-sm text-slate-700">
                         <div>
                           <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                            Status
+                            {copy.sortStatus}
                           </div>
                           <div className="pt-1">
                             <RegisterStatusBadge status={card.status} />
@@ -1160,7 +1361,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                         <div className="grid gap-3 sm:grid-cols-2">
                           <div>
                             <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                              Owner-Rolle
+                              {copy.ownerRole}
                             </div>
                             <div>{ownerRole}</div>
                           </div>
@@ -1169,15 +1370,15 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                               {t('register.riskClass.label')}
                             </div>
                             <div>
-                              {card.governanceAssessment?.core?.aiActCategory || "Unbekannt"}
+                              {card.governanceAssessment?.core?.aiActCategory || copy.unknown}
                             </div>
                           </div>
                         </div>
                         <div>
                           <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                            Aktivität
+                            {copy.activity}
                           </div>
-                          <div>{formatDate(card.updatedAt)}</div>
+                          <div>{formatDate(card.updatedAt, locale, copy.unknown)}</div>
                         </div>
                       </div>
                     </div>
@@ -1190,11 +1391,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[360px]">{t('register.useCaseTitle')}</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Owner-Rolle</TableHead>
+                  <TableHead>{copy.sortStatus}</TableHead>
+                  <TableHead>{copy.ownerRole}</TableHead>
                   <TableHead>{t('register.riskClass.label')}</TableHead>
-                  <TableHead>Aktivität</TableHead>
-                  <TableHead className="w-[80px] text-right">Aktionen</TableHead>
+                  <TableHead>{copy.activity}</TableHead>
+                  <TableHead className="w-[80px] text-right">{copy.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1204,26 +1405,26 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   if (groupedUseCases) {
                     let currentGroup: string;
                     switch (viewMode) {
-                      case "BY_OWNER": currentGroup = card.responsibility.responsibleParty || "Nicht zugewiesen"; break;
-                      case "BY_ORG": currentGroup = card.organisation || "Keine Organisation"; break;
-                      case "BY_STATUS": currentGroup = registerUseCaseStatusLabels[card.status]; break;
+                      case "BY_OWNER": currentGroup = card.responsibility.responsibleParty || copy.notAssigned; break;
+                      case "BY_ORG": currentGroup = card.organisation || copy.noOrganisation; break;
+                      case "BY_STATUS": currentGroup = statusLabel(card.status); break;
                       default: currentGroup = "";
                     }
                     const prev = idx > 0 ? sortedUseCases[idx - 1] : null;
                     let prevGroup = "";
                     if (prev) {
                       switch (viewMode) {
-                        case "BY_OWNER": prevGroup = prev.responsibility.responsibleParty || "Nicht zugewiesen"; break;
-                        case "BY_ORG": prevGroup = prev.organisation || "Keine Organisation"; break;
-                        case "BY_STATUS": prevGroup = registerUseCaseStatusLabels[prev.status]; break;
+                        case "BY_OWNER": prevGroup = prev.responsibility.responsibleParty || copy.notAssigned; break;
+                        case "BY_ORG": prevGroup = prev.organisation || copy.noOrganisation; break;
+                        case "BY_STATUS": prevGroup = statusLabel(prev.status); break;
                       }
                     }
                     if (!prev || currentGroup !== prevGroup) {
                       const count = sortedUseCases.filter((uc) => {
                         switch (viewMode) {
-                          case "BY_OWNER": return (uc.responsibility.responsibleParty || "Nicht zugewiesen") === currentGroup;
-                          case "BY_ORG": return (uc.organisation || "Keine Organisation") === currentGroup;
-                          case "BY_STATUS": return registerUseCaseStatusLabels[uc.status] === currentGroup;
+                          case "BY_OWNER": return (uc.responsibility.responsibleParty || copy.notAssigned) === currentGroup;
+                          case "BY_ORG": return (uc.organisation || copy.noOrganisation) === currentGroup;
+                          case "BY_STATUS": return statusLabel(uc.status) === currentGroup;
                           default: return true;
                         }
                       }).length;
@@ -1233,13 +1434,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   }
 
                   const nextStatuses = getNextManualStatuses(card.status);
-                  const toolDisplayName = getCardToolDisplayName(card);
+                  const toolDisplayName = getCardToolDisplayName(card, copy.noSystem);
                   const workflowBadge = getUseCaseWorkflowBadge(card, {
                     resolveToolName: (toolId) =>
                       aiToolsRegistry.getById(toolId)?.productName ?? null,
                   });
                   const ownerRole =
-                    card.responsibility.responsibleParty || "Nicht zugewiesen";
+                    card.responsibility.responsibleParty || copy.notAssigned;
                   const outputState = getStatusGatedOutputState(
                     card.status,
                     registerFirstFlags
@@ -1273,11 +1474,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                                 {card.purpose}
                               </span>
                               {card.isDeleted && (
-                                <Badge variant="destructive" className="shrink-0">Gelöscht</Badge>
+                                <Badge variant="destructive" className="shrink-0">{copy.deleted}</Badge>
                               )}
                             </div>
                             <span className="text-xs text-muted-foreground">
-                              Systeme: {toolDisplayName}
+                              {copy.systems}: {toolDisplayName}
                             </span>
                             {workflowBadge ? (
                               <span className="text-xs text-muted-foreground">
@@ -1297,13 +1498,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
                         <TableCell>
                           <span className="text-sm text-slate-700">
-                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">Unbekannt</span>}
+                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">{copy.unknown}</span>}
                           </span>
                         </TableCell>
 
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
-                            {formatDate(card.updatedAt)}
+                            {formatDate(card.updatedAt, locale, copy.unknown)}
                           </span>
                         </TableCell>
 
@@ -1334,9 +1535,9 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Statusänderung bestätigen</AlertDialogTitle>
+            <AlertDialogTitle>{copy.confirmStatusTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              Diese Statusänderung dokumentiert eine formale Entscheidung. Fortfahren?
+              {copy.confirmStatusDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

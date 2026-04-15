@@ -5,28 +5,250 @@ import {
   LegalSection,
 } from '@/components/legal/legal-page-shell';
 
-export const metadata: Metadata = {
-  title: 'Terms of Service | AI Register',
-  description:
-    'General terms and conditions for the use of AI Register.',
-};
+interface Props {
+  params: Promise<{ locale: string }>;
+}
 
-export default function TermsPage() {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+
+  if (locale === 'de') {
+    return {
+      title: 'AGB | KI Register',
+      description:
+        'Allgemeine Geschäftsbedingungen für die Nutzung des KI Registers.',
+    };
+  }
+
+  return {
+    title: 'Terms of Service | AI Registry',
+    description:
+      'General terms and conditions for the use of AI Registry.',
+  };
+}
+
+export default async function TermsPage({ params }: Props) {
+  const { locale } = await params;
+
+  if (locale === 'de') {
+    return (
+      <LegalPageShell
+        title="AGB"
+        description="Bedingungen für Nutzung, Buchung und Bereitstellung des KI Registers. Diese AGB basieren auf den ursprünglichen deutschsprachigen Bedingungen und wurden auf die aktuelle Register-, Governance- und Download-Lösung angepasst."
+      >
+        <LegalSection title="1. Geltungsbereich">
+          <p>
+            Diese Allgemeinen Geschäftsbedingungen gelten für sämtliche
+            Vertragsbeziehungen zwischen den Anbietern ZukunftBilden GmbH und
+            BewusstseinBilden UG (haftungsbeschränkt), nachfolgend gemeinsam
+            Anbieter genannt, und den Kundinnen, Kunden und Nutzenden des KI
+            Registers.
+          </p>
+          <p>
+            Sie gelten für die Nutzung des KI Registers, für kostenpflichtige
+            Governance-, Export- oder Academy-Leistungen, für Downloads sowie
+            für damit zusammenhängende Nebenleistungen.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="2. Vertragsschluss und Zugang">
+          <p>
+            Die Darstellung der Leistungen auf der Website stellt kein
+            verbindliches Angebot dar, sondern eine Aufforderung zur Bestellung
+            oder Registrierung.
+          </p>
+          <p>
+            Ein Vertragsverhältnis kommt mit Registrierung, Aktivierung eines
+            Kontos, Bestätigung einer Bestellung oder Bereitstellung des
+            gebuchten Leistungsumfangs zustande.
+          </p>
+          <p>
+            Soweit der Zugang über Teambeitritt, Einladungscode oder externe
+            Einreichung erfolgt, gelten ergänzend die jeweils angezeigten
+            Zugangsvoraussetzungen und Bedingungen.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="3. Preise und Zahlung">
+          <p>
+            Soweit kostenpflichtige Leistungen gebucht werden, gelten die zum
+            Zeitpunkt der Bestellung ausgewiesenen Preise.
+          </p>
+          <p>
+            Die Zahlung kann unter anderem über Stripe abgewickelt werden. Der
+            Zugang zu kostenpflichtigen Funktionen wird nach bestätigtem
+            Zahlungseingang oder bestätigter Berechtigungszuweisung
+            freigeschaltet.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="4. Leistungsumfang">
+          <p>
+            Der konkrete Leistungsumfang richtet sich nach der gebuchten oder
+            aktivierten Produktstufe. Dazu können insbesondere gehören:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Registerführung für KI-Einsatzfälle</li>
+            <li>Erfassung interner und externer Einreichungen</li>
+            <li>Review-, Audit- und Exportfunktionen</li>
+            <li>Governance-Einstellungen und Organisationssteuerung</li>
+            <li>Academy-, Kurs- und Lerninhalte</li>
+            <li>Downloads und Quick-Capture-Werkzeuge</li>
+          </ul>
+          <p>
+            Inhalte, Vorlagen und Funktionen können weiterentwickelt,
+            aktualisiert oder ersetzt werden, soweit der Vertragszweck dadurch
+            nicht unzumutbar beeinträchtigt wird.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="5. Nutzungsrechte und Nutzerkonten">
+          <p>
+            Sämtliche Inhalte, Vorlagen, Texte, Grafiken, Exporte, Kursmaterialien
+            und Softwarebestandteile des KI Registers sind urheberrechtlich
+            geschützt.
+          </p>
+          <p>
+            Mit der Nutzung wird ein einfaches, nicht übertragbares Recht
+            eingeräumt, den Dienst vertragsgemäß zu nutzen. Die Weitergabe von
+            Zugangsdaten oder unbefugte Vervielfältigung von Inhalten ist
+            unzulässig.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="6. Pflichten der Nutzenden">
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Zugangsdaten sind vertraulich aufzubewahren.</li>
+            <li>
+              Angaben bei Registrierung und Nutzung müssen zutreffend sein.
+            </li>
+            <li>
+              Das System darf nicht missbräuchlich genutzt oder technisch
+              kompromittiert werden.
+            </li>
+            <li>
+              Für Inhalte von Registereinträgen und Einreichungen bleibt die
+              einreichende Organisation verantwortlich.
+            </li>
+          </ul>
+        </LegalSection>
+
+        <LegalSection title="7. Widerrufsrecht für Verbraucher:innen">
+          <p>
+            Verbraucherinnen und Verbraucher haben ein gesetzliches
+            Widerrufsrecht von 14 Tagen gemäß den Art. 9 bis 16 der
+            Verbraucherrechte-Richtlinie (Richtlinie 2011/83/EU). Zur Ausübung
+            genügt eine eindeutige Erklärung per E-Mail oder Post an einen der
+            Anbieter.
+          </p>
+          <p>
+            Bei digitalen Inhalten kann das Widerrufsrecht vorzeitig erlöschen,
+            wenn mit der Ausführung erst begonnen wird, nachdem die
+            Verbraucherin oder der Verbraucher ausdrücklich zugestimmt und die
+            Kenntnis vom Verlust des Widerrufsrechts bestätigt hat.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="8. Haftung und Gewährleistung">
+          <p>
+            Die Anbieter haften unbeschränkt bei Vorsatz, grober Fahrlässigkeit
+            sowie für Schäden aus der Verletzung des Lebens, des Körpers oder
+            der Gesundheit.
+          </p>
+          <p>
+            Im Übrigen ist die Haftung auf den vorhersehbaren, typischerweise
+            eintretenden Schaden begrenzt, soweit eine wesentliche
+            Vertragspflicht verletzt wurde.
+          </p>
+          <p>
+            Das KI Register dient der Dokumentation, Governance und
+            Nachweisführung. Es ersetzt keine individuelle Rechtsberatung. Es
+            wird keine Gewähr dafür übernommen, dass die Nutzung des Dienstes in
+            jedem Einzelfall sämtliche rechtlichen Anforderungen erfüllt.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="9. Datenschutz">
+          <p>
+            Personenbezogene Daten werden ausschließlich nach Maßgabe der
+            geltenden gesetzlichen Bestimmungen und der gesonderten
+            Datenschutzerklärung verarbeitet.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="10. Beendigung">
+          <p>
+            Verträge über Einzelleistungen enden mit vollständiger Erbringung
+            der gebuchten Leistung, sofern nichts Abweichendes vereinbart ist.
+          </p>
+          <p>
+            Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt
+            unberührt, insbesondere bei Missbrauch, Weitergabe von Zugangsdaten
+            oder erheblichen Verstößen gegen diese Bedingungen.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="11. Schlussbestimmungen">
+          <p>
+            Es gilt das Recht der Republik Österreich unter Ausschluss des
+            UN-Kaufrechts, soweit dem keine zwingenden verbraucherschützenden
+            Vorschriften entgegenstehen.
+          </p>
+          <p>
+            Wenn Sie Verbraucher:in mit gewöhnlichem Aufenthalt in der EU sind,
+            genießen Sie zusätzlich den Schutz zwingender Bestimmungen des
+            Rechts Ihres Aufenthaltsstaats (Art. 6 Abs. 2 Rom-I-Verordnung).
+          </p>
+          <p>
+            Gerichtsstand für Kaufleute, juristische Personen des öffentlichen
+            Rechts oder öffentlich-rechtliche Sondervermögen ist Salzburg,
+            Österreich.
+          </p>
+          <p>
+            Sollten einzelne Bestimmungen unwirksam sein oder werden, bleibt die
+            Wirksamkeit der übrigen Bestimmungen unberührt.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="12. Online-Streitbeilegung">
+          <p>
+            Die Europäische Kommission stellt eine Plattform zur
+            Online-Streitbeilegung bereit:{' '}
+            <a
+              href="https://ec.europa.eu/consumers/odr"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              https://ec.europa.eu/consumers/odr
+            </a>
+          </p>
+          <p>
+            Wir sind weder verpflichtet noch bereit, an
+            Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+            teilzunehmen.
+          </p>
+        </LegalSection>
+
+        <p className="text-xs text-slate-500">Stand: 12. März 2026</p>
+      </LegalPageShell>
+    );
+  }
+
   return (
     <LegalPageShell
       title="Terms of Service"
-      description="Terms governing the use, booking and provision of AI Register. These terms are based on the original German-language conditions, adapted for the current register, governance and download solution."
+      description="Terms governing the use, booking and provision of AI Registry. These terms are based on the original German-language conditions, adapted for the current register, governance and download solution."
     >
       <LegalSection title="1. Scope">
         <p>
           These Terms of Service apply to all contractual relationships between
           the Providers ZukunftBilden GmbH and BewusstseinBilden UG
           (haftungsbeschraenkt), hereinafter jointly referred to as the
-          Providers (or &ldquo;we&rdquo;), and the customers and users of
-          AI Register.
+          Providers, and the customers and users of AI Registry.
         </p>
         <p>
-          They apply to the use of AI Register, to paid governance, export or
+          They apply to the use of AI Registry, to paid governance, export or
           academy services, to downloads and to any related ancillary services.
         </p>
       </LegalSection>
@@ -82,8 +304,8 @@ export default function TermsPage() {
 
       <LegalSection title="5. Usage Rights and User Accounts">
         <p>
-          All content, templates, texts, graphics, exports, course materials and
-          software components of AI Register are protected by copyright.
+          All content, templates, texts, graphics, exports, course materials
+          and software components of AI Registry are protected by copyright.
         </p>
         <p>
           Upon use, a simple, non-transferable right to use the service in
@@ -112,7 +334,7 @@ export default function TermsPage() {
       <LegalSection title="7. Right of Withdrawal for Consumers">
         <p>
           Consumers have a statutory right of withdrawal of 14 days in
-          accordance with Articles 9&ndash;16 of the Consumer Rights Directive
+          accordance with Articles 9–16 of the Consumer Rights Directive
           (Directive 2011/83/EU). To exercise this right, it is sufficient to
           send a clear statement by e-mail or post to one of the Providers.
         </p>
@@ -134,7 +356,7 @@ export default function TermsPage() {
           breached.
         </p>
         <p>
-          AI Register serves the purpose of documentation, governance and
+          AI Registry serves the purpose of documentation, governance and
           record-keeping. It does not replace individual legal advice. No
           guarantee is given that use of the service will satisfy all legal
           requirements of a specific individual case.
@@ -170,8 +392,7 @@ export default function TermsPage() {
         <p>
           If you are a consumer habitually resident in the EU, you additionally
           enjoy the protection afforded by mandatory provisions of the law of
-          your country of habitual residence (Art.&nbsp;6(2) Rome&nbsp;I
-          Regulation).
+          your country of habitual residence (Art. 6(2) Rome I Regulation).
         </p>
         <p>
           The place of jurisdiction for merchants, legal entities under public
@@ -197,8 +418,8 @@ export default function TermsPage() {
           </a>
         </p>
         <p>
-          We are neither obliged nor willing to participate in dispute resolution
-          proceedings before a consumer arbitration board.
+          We are neither obliged nor willing to participate in dispute
+          resolution proceedings before a consumer arbitration board.
         </p>
       </LegalSection>
 

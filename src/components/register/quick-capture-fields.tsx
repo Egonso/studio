@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { ChevronDown, ChevronRight, Plus, X } from "lucide-react";
 
 import { ToolAutocomplete } from "@/components/tool-autocomplete";
@@ -25,12 +26,12 @@ import type {
   WorkflowConnectionMode,
 } from "@/lib/register-first/types";
 import {
-  DATA_CATEGORY_LABELS,
   DATA_CATEGORY_MAIN_OPTIONS,
   DATA_CATEGORY_SPECIAL_OPTIONS,
-  DECISION_INFLUENCE_LABELS,
   DECISION_INFLUENCE_OPTIONS,
-  USAGE_CONTEXT_LABELS,
+  getDataCategoryLabels,
+  getDecisionInfluenceLabels,
+  getUsageContextLabels,
   USAGE_CONTEXT_OPTIONS,
 } from "@/lib/register-first/types";
 
@@ -71,6 +72,107 @@ interface QuickCaptureFieldsProps {
   forceOpenDataSection?: boolean;
 }
 
+function getQuickCaptureCopy(locale: string) {
+  if (locale === "de") {
+    return {
+      purposeLabel: "Einsatzfall-Name",
+      purposePlaceholder: "z. B. Marketing Copy Generator",
+      systemsLabel: "Systeme",
+      systemLabel: "System / Tool",
+      systemHelperMulti:
+        "Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen.",
+      systemHelperSingle:
+        "Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.",
+      customSystem: "Eigenes System",
+      systemFallback: "System",
+      ownerRoleLabel: "Owner-Rolle (funktional)",
+      ownerRolePlaceholder: "z. B. Head of Marketing / HR Lead / IT Security",
+      ownerRoleHelp:
+        "Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.",
+      contactPersonLabel: "Kontaktperson",
+      max160Optional: "Optional, max. 160 Zeichen",
+      contactPersonPlaceholder: "z. B. Max Mustermann",
+      optional: "optional",
+      catalogSystem: "Katalog-System",
+      remove: "entfernen",
+      systemPlaceholder:
+        "z. B. ChatGPT, Perplexity API, Gemini API, Sora",
+      cancel: "Abbrechen",
+      addAnotherSystem: "Weiteres System",
+      workflowRelation: "Zusammenhang",
+      itemsAdded: "ergänzt",
+      workflowQuestion: "Wie laufen die Systeme überwiegend zusammen?",
+      workflowManual: "Manuell nacheinander",
+      workflowSemi: "Teilweise automatisiert",
+      workflowFull: "Weitgehend automatisiert",
+      workflowSummary: "Kurze Ablaufbeschreibung",
+      workflowSummaryPlaceholder:
+        "z. B. Perplexity API recherchiert Themen, Gemini API schreibt Text, Sora erstellt Bilder",
+      impactAndAffected: "Wirkung & Betroffene",
+      selected: "gewählt",
+      effectArea: "Wirkungsbereich (Mehrfachauswahl)",
+      decisionInfluence: "Einfluss auf Entscheidungen",
+      dataSensitivity: "Daten & Sensitivität",
+      dataCategories: "Datenkategorien (Mehrfachauswahl)",
+      gdprHint:
+        "Art. 9 DSGVO umfasst auch: ethnische Herkunft, Gewerkschaftszugehörigkeit, genetische Daten, sexuelle Orientierung",
+      descriptionLabel: "Kurzbeschreibung",
+      autoPurposeWithCategory: (toolName: string, category: string) =>
+        `Einsatz von ${toolName} für ${category}`,
+      autoPurposeWithoutCategory: (toolName: string) =>
+        `Einsatz von ${toolName}`,
+    } as const;
+  }
+
+  return {
+    purposeLabel: "Use Case Name",
+    purposePlaceholder: "e.g. Marketing copy generator",
+    systemsLabel: "Systems",
+    systemLabel: "System / Tool",
+    systemHelperMulti:
+      "Optional. You can capture tools, APIs, or other involved systems.",
+    systemHelperSingle:
+      "Optional. You can choose a tool from the catalogue or enter your own name.",
+    customSystem: "Custom system",
+    systemFallback: "System",
+    ownerRoleLabel: "Owner role (functional)",
+    ownerRolePlaceholder:
+      "e.g. Head of Marketing / HR Lead / IT Security",
+    ownerRoleHelp: "Capture the role or function, not the changing person name.",
+    contactPersonLabel: "Contact person",
+    max160Optional: "Optional, max. 160 characters",
+    contactPersonPlaceholder: "e.g. Jane Doe",
+    optional: "optional",
+    catalogSystem: "Catalogue system",
+    remove: "remove",
+    systemPlaceholder: "e.g. ChatGPT, Perplexity API, Gemini API, Sora",
+    cancel: "Cancel",
+    addAnotherSystem: "Add another system",
+    workflowRelation: "Relationship",
+    itemsAdded: "added",
+    workflowQuestion: "How do the systems mainly work together?",
+    workflowManual: "Manual sequence",
+    workflowSemi: "Partly automated",
+    workflowFull: "Largely automated",
+    workflowSummary: "Short workflow summary",
+    workflowSummaryPlaceholder:
+      "e.g. Perplexity API researches topics, Gemini API writes text, Sora creates images",
+    impactAndAffected: "Impact & affected parties",
+    selected: "selected",
+    effectArea: "Impact area (multiple choice)",
+    decisionInfluence: "Influence on decisions",
+    dataSensitivity: "Data & sensitivity",
+    dataCategories: "Data categories (multiple choice)",
+    gdprHint:
+      "Art. 9 GDPR also includes ethnic origin, trade-union membership, genetic data, and sexual orientation",
+    descriptionLabel: "Short description",
+    autoPurposeWithCategory: (toolName: string, category: string) =>
+      `Use of ${toolName} for ${category}`,
+    autoPurposeWithoutCategory: (toolName: string) =>
+      `Use of ${toolName}`,
+  } as const;
+}
+
 export function QuickCaptureFields({
   draft,
   onChange,
@@ -82,14 +184,28 @@ export function QuickCaptureFields({
   showContactPerson = true,
   showUsageSection = true,
   autoFillPurposeFromSystem = true,
-  purposeLabel = "Use-Case Name",
-  purposePlaceholder = "z. B. Marketing Copy Generator",
+  purposeLabel,
+  purposePlaceholder,
   purposeHelperText = null,
   systemLabel,
   systemHelperText,
   showSystemOptionalLabel = true,
   forceOpenDataSection = false,
 }: QuickCaptureFieldsProps) {
+  const locale = useLocale();
+  const copy = useMemo(() => getQuickCaptureCopy(locale), [locale]);
+  const usageContextLabels = useMemo(
+    () => getUsageContextLabels(locale),
+    [locale]
+  );
+  const decisionInfluenceLabels = useMemo(
+    () => getDecisionInfluenceLabels(locale),
+    [locale]
+  );
+  const dataCategoryLabels = useMemo(
+    () => getDataCategoryLabels(locale),
+    [locale]
+  );
   const multisystemEnabled =
     multisystemEnabledOverride ?? registerFirstFlags.multisystemCapture;
   const [section1Open, setSection1Open] = useState(
@@ -119,13 +235,17 @@ export function QuickCaptureFields({
   const workflowCount =
     (draft.workflowConnectionMode ? 1 : 0) +
     (draft.workflowSummary.trim().length > 0 ? 1 : 0);
+  const resolvedPurposeLabel = purposeLabel ?? copy.purposeLabel;
+  const resolvedPurposePlaceholder =
+    purposePlaceholder ?? copy.purposePlaceholder;
   const resolvedSystemLabel =
-    systemLabel ?? (multisystemEnabled ? "Systeme" : "System / Tool");
+    systemLabel ??
+    (multisystemEnabled ? copy.systemsLabel : copy.systemLabel);
   const resolvedSystemHelperText =
     systemHelperText ??
     (multisystemEnabled
-      ? "Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen."
-      : "Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.");
+      ? copy.systemHelperMulti
+      : copy.systemHelperSingle);
 
   useEffect(() => {
     if (forceOpenDataSection) {
@@ -159,10 +279,10 @@ export function QuickCaptureFields({
 
   const createSystemDisplayLabel = (system: OrderedUseCaseSystem) => {
     if (system.toolId === "other") {
-      return system.toolFreeText ?? "Eigenes System";
+      return system.toolFreeText ?? copy.customSystem;
     }
 
-    return system.toolFreeText ?? system.toolId ?? "System";
+    return system.toolFreeText ?? system.toolId ?? copy.systemFallback;
   };
 
   const addSystem = (value: string, toolData?: { name?: string; category?: string }) => {
@@ -192,8 +312,11 @@ export function QuickCaptureFields({
               draft.purpose ||
               (toolData?.name
                 ? toolData.category
-                  ? `Einsatz von ${toolData.name} für ${toolData.category}`
-                  : `Einsatz von ${toolData.name}`
+                  ? copy.autoPurposeWithCategory(
+                      toolData.name,
+                      toolData.category
+                    )
+                  : copy.autoPurposeWithoutCategory(toolData.name)
                 : draft.purpose),
           }
         : {}),
@@ -211,11 +334,11 @@ export function QuickCaptureFields({
     <div className="space-y-4 py-2">
       <div className="space-y-1.5">
         <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.purpose}>
-          {purposeLabel} <span className="text-destructive">*</span>
+          {resolvedPurposeLabel} <span className="text-destructive">*</span>
         </Label>
         <Input
           id={SHARED_CAPTURE_FIELD_IDS.purpose}
-          placeholder={purposePlaceholder}
+          placeholder={resolvedPurposePlaceholder}
           value={draft.purpose}
           onChange={(event) => onChange({ purpose: event.target.value })}
           autoFocus={autoFocusPurpose}
@@ -236,11 +359,11 @@ export function QuickCaptureFields({
       {showOwnerRole ? (
         <div className="space-y-1.5">
           <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.ownerRole}>
-            Owner-Rolle (funktional) <span className="text-destructive">*</span>
+            {copy.ownerRoleLabel} <span className="text-destructive">*</span>
           </Label>
           <Input
             id={SHARED_CAPTURE_FIELD_IDS.ownerRole}
-            placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+            placeholder={copy.ownerRolePlaceholder}
             value={draft.ownerRole}
             onChange={(event) => onChange({ ownerRole: event.target.value })}
             aria-invalid={Boolean(errors.ownerRole)}
@@ -248,7 +371,7 @@ export function QuickCaptureFields({
             className={errors.ownerRole ? "border-destructive focus-visible:ring-destructive" : undefined}
           />
           <p className="text-xs text-muted-foreground">
-            Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.
+            {copy.ownerRoleHelp}
           </p>
           {errors.ownerRole && (
             <p id="qc-owner-error" className="text-xs text-destructive">
@@ -260,10 +383,13 @@ export function QuickCaptureFields({
 
       {showContactPerson ? (
         <div className="space-y-1.5">
-          <Label htmlFor="qc-contact-person">Kontaktperson (optional)</Label>
+          <Label htmlFor="qc-contact-person">
+            {copy.contactPersonLabel}{" "}
+            <span className="text-muted-foreground">({copy.optional})</span>
+          </Label>
           <Input
             id="qc-contact-person"
-            placeholder="z. B. Max Mustermann"
+            placeholder={copy.contactPersonPlaceholder}
             value={draft.contactPersonName}
             onChange={(event) =>
               onChange({ contactPersonName: event.target.value })
@@ -277,7 +403,10 @@ export function QuickCaptureFields({
           <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
             {resolvedSystemLabel}
             {showSystemOptionalLabel ? (
-              <span className="text-muted-foreground"> (optional)</span>
+              <span className="text-muted-foreground">
+                {" "}
+                ({copy.optional})
+              </span>
             ) : null}
           </Label>
           <ToolAutocomplete
@@ -298,8 +427,11 @@ export function QuickCaptureFields({
                         purpose:
                           draft.purpose ||
                           (toolData.category
-                            ? `Einsatz von ${toolData.name} für ${toolData.category}`
-                            : `Einsatz von ${toolData.name}`),
+                            ? copy.autoPurposeWithCategory(
+                                toolData.name,
+                                toolData.category
+                              )
+                            : copy.autoPurposeWithoutCategory(toolData.name)),
                       }
                     : {}),
                 });
@@ -323,7 +455,10 @@ export function QuickCaptureFields({
           <Label htmlFor={SHARED_CAPTURE_FIELD_IDS.tool}>
             {resolvedSystemLabel}
             {showSystemOptionalLabel ? (
-              <span className="text-muted-foreground"> (optional)</span>
+              <span className="text-muted-foreground">
+                {" "}
+                ({copy.optional})
+              </span>
             ) : null}
           </Label>
 
@@ -343,7 +478,9 @@ export function QuickCaptureFields({
                         {createSystemDisplayLabel(system)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {system.toolId === "other" ? "Eigenes System" : "Katalog-System"}
+                        {system.toolId === "other"
+                          ? copy.customSystem
+                          : copy.catalogSystem}
                       </p>
                     </div>
                   </div>
@@ -353,7 +490,7 @@ export function QuickCaptureFields({
                     size="icon"
                     className="h-8 w-8 text-muted-foreground"
                     onClick={() => removeSystem(system.entryId)}
-                    aria-label={`${createSystemDisplayLabel(system)} entfernen`}
+                    aria-label={`${createSystemDisplayLabel(system)} ${copy.remove}`}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -367,7 +504,7 @@ export function QuickCaptureFields({
               <ToolAutocomplete
                 inputId={SHARED_CAPTURE_FIELD_IDS.tool}
                 value={pendingSystemValue}
-                placeholder="z. B. ChatGPT, Perplexity API, Gemini API, Sora"
+                placeholder={copy.systemPlaceholder}
                 onChange={() => {}}
                 onInputChange={setPendingSystemValue}
                 onSelect={addSystem}
@@ -383,7 +520,7 @@ export function QuickCaptureFields({
                     setIsAddingSystem(false);
                   }}
                 >
-                  Abbrechen
+                  {copy.cancel}
                 </Button>
               )}
             </div>
@@ -398,7 +535,7 @@ export function QuickCaptureFields({
               onClick={() => setIsAddingSystem(true)}
             >
               <Plus className="mr-1.5 h-4 w-4" />
-              Weiteres System
+              {copy.addAnotherSystem}
             </Button>
           )}
 
@@ -421,11 +558,14 @@ export function QuickCaptureFields({
                   ) : (
                     <ChevronRight className="h-4 w-4" />
                   )}
-                  Zusammenhang <span className="text-muted-foreground">(optional)</span>
+                  {copy.workflowRelation}{" "}
+                  <span className="text-muted-foreground">
+                    ({copy.optional})
+                  </span>
                 </span>
                 {workflowCount > 0 && (
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                    {workflowCount} ergänzt
+                    {workflowCount} {copy.itemsAdded}
                   </span>
                 )}
               </button>
@@ -434,21 +574,21 @@ export function QuickCaptureFields({
                 <div className="space-y-4 border-t px-3 py-3">
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
-                      Wie laufen die Systeme überwiegend zusammen?
+                      {copy.workflowQuestion}
                     </Label>
                     <div className="space-y-1.5">
                       {[
                         {
                           value: "MANUAL_SEQUENCE" as const,
-                          label: "Manuell nacheinander",
+                          label: copy.workflowManual,
                         },
                         {
                           value: "SEMI_AUTOMATED" as const,
-                          label: "Teilweise automatisiert",
+                          label: copy.workflowSemi,
                         },
                         {
                           value: "FULLY_AUTOMATED" as const,
-                          label: "Weitgehend automatisiert",
+                          label: copy.workflowFull,
                         },
                       ].map((option) => (
                         <label
@@ -472,11 +612,14 @@ export function QuickCaptureFields({
 
                   <div className="space-y-1.5">
                     <Label htmlFor="qc-workflow-summary">
-                      Kurze Ablaufbeschreibung <span className="text-muted-foreground">(optional)</span>
+                      {copy.workflowSummary}{" "}
+                      <span className="text-muted-foreground">
+                        ({copy.optional})
+                      </span>
                     </Label>
                     <Textarea
                       id="qc-workflow-summary"
-                      placeholder="z. B. Perplexity API recherchiert Themen, Gemini API schreibt Text, Sora erstellt Bilder"
+                      placeholder={copy.workflowSummaryPlaceholder}
                       value={draft.workflowSummary}
                       onChange={(event) =>
                         onChange({
@@ -510,11 +653,11 @@ export function QuickCaptureFields({
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )}
-              Wirkung &amp; Betroffene
+              {copy.impactAndAffected}
             </span>
             {section1Count > 0 && (
               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                {section1Count} gewählt
+                {section1Count} {copy.selected}
               </span>
             )}
           </button>
@@ -523,7 +666,7 @@ export function QuickCaptureFields({
             <div className="space-y-4 border-t px-3 py-3">
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  Wirkungsbereich (Mehrfachauswahl)
+                  {copy.effectArea}
                 </Label>
                 <div className="space-y-1.5">
                   {USAGE_CONTEXT_OPTIONS.map((option) => (
@@ -539,7 +682,7 @@ export function QuickCaptureFields({
                           })
                         }
                       />
-                      {USAGE_CONTEXT_LABELS[option]}
+                      {usageContextLabels[option]}
                     </label>
                   ))}
                 </div>
@@ -547,7 +690,7 @@ export function QuickCaptureFields({
 
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  Einfluss auf Entscheidungen
+                  {copy.decisionInfluence}
                 </Label>
                 <div className="space-y-1.5">
                   {DECISION_INFLUENCE_OPTIONS.map((option) => (
@@ -562,7 +705,7 @@ export function QuickCaptureFields({
                         onChange={() => onChange({ decisionInfluence: option })}
                         className="h-4 w-4 border-border text-primary"
                       />
-                      {DECISION_INFLUENCE_LABELS[option]}
+                      {decisionInfluenceLabels[option]}
                     </label>
                   ))}
                 </div>
@@ -584,11 +727,11 @@ export function QuickCaptureFields({
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            Daten &amp; Sensitivität
+            {copy.dataSensitivity}
           </span>
           {mainDataCategoryCount > 0 && (
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              {mainDataCategoryCount} gewählt
+              {mainDataCategoryCount} {copy.selected}
             </span>
           )}
         </button>
@@ -596,7 +739,7 @@ export function QuickCaptureFields({
         {section2Open && (
           <div className="space-y-1.5 border-t px-3 py-3">
             <Label className="text-xs text-muted-foreground">
-              Datenkategorien (Mehrfachauswahl)
+              {copy.dataCategories}
             </Label>
 
             {DATA_CATEGORY_MAIN_OPTIONS.map((option) => (
@@ -613,7 +756,7 @@ export function QuickCaptureFields({
                       })
                     }
                   />
-                  <span className="flex-1">{DATA_CATEGORY_LABELS[option]}</span>
+                  <span className="flex-1">{dataCategoryLabels[option]}</span>
                   {option === "SPECIAL_PERSONAL" && (
                     <button
                       type="button"
@@ -643,21 +786,19 @@ export function QuickCaptureFields({
                         <Checkbox
                           checked={draft.dataCategories.includes(subOption)}
                           onCheckedChange={() =>
-                            onChange({
-                              dataCategories: applyDataCategoryLogic(
-                                draft.dataCategories,
-                                subOption
-                              ),
-                            })
-                          }
-                        />
-                        {DATA_CATEGORY_LABELS[subOption]}
+                          onChange({
+                            dataCategories: applyDataCategoryLogic(
+                              draft.dataCategories,
+                              subOption
+                            ),
+                          })
+                        }
+                      />
+                        {dataCategoryLabels[subOption]}
                       </label>
                     ))}
                     <p className="mt-1.5 text-[10px] leading-tight text-muted-foreground">
-                      Art. 9 DSGVO umfasst auch: ethnische Herkunft,
-                      Gewerkschaftszugehörigkeit, genetische Daten, sexuelle
-                      Orientierung
+                      {copy.gdprHint}
                     </p>
                   </div>
                 )}
@@ -669,10 +810,10 @@ export function QuickCaptureFields({
 
       {showDescription && (
         <div className="space-y-1.5">
-          <Label htmlFor="qc-desc">Kurzbeschreibung</Label>
+          <Label htmlFor="qc-desc">{copy.descriptionLabel}</Label>
           <Textarea
             id="qc-desc"
-            placeholder="Optional, max. 160 Zeichen"
+            placeholder={copy.max160Optional}
             value={draft.description ?? ""}
             onChange={(event) =>
               onChange({ description: event.target.value.slice(0, 160) })

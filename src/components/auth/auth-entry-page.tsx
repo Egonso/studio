@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
@@ -40,6 +40,7 @@ import {
   type AuthEntryContext,
   type JoinCodeValidationSuccess,
 } from '@/lib/auth/auth-entry-controller';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import {
   buildAuthPath,
   getInitialAuthIntent,
@@ -68,73 +69,20 @@ interface ContextNotice {
   title: string;
 }
 
-function getContextNotices(
-  context: ReturnType<typeof readLoginRouteOptions>,
-  mode: AuthMode,
-  intent: AuthIntent,
-  checkoutContext: CheckoutReturnContext,
-): ContextNotice[] {
-  const notices: ContextNotice[] = [];
-  void checkoutContext;
-
-  if (context.workspaceInvite) {
-    notices.push({
-      id: 'workspace_invite',
-      title: 'Invitation detected',
-      description:
-        'After signing in, we will open the shared workspace directly.',
-    });
-  }
-
-  if (context.importUseCase) {
-    notices.push({
-      id: 'import_use_case',
-      title: 'Continue process',
-      description: 'You will continue right where you left off.',
-    });
-  }
-
-  if (context.code && mode === 'login') {
-    notices.push({
-      id: 'join_after_login',
-      title: 'Invitation code detected',
-      description:
-        'After signing in, you can join your organisation directly.',
-    });
-  }
-
-  if (context.code && mode === 'signup' && intent === 'join_register') {
-    notices.push({
-      id: 'join_context',
-      title: 'Preparing to join',
-      description:
-        'After registration, you will continue joining directly.',
-    });
-  }
-
-  return notices;
-}
-
-function getSuccessDescription(
-  plan: SubscriptionPlan | null,
-  baseDescription: string,
-): string {
-  if (plan === 'pro' || plan === 'enterprise') {
-    return 'Governance Control Centre will be activated for this account.';
-  }
-
-  return baseDescription;
-}
-
 export default function AuthEntryPage() {
+  const locale = useLocale();
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { toast } = useToast();
   const { loading: authLoading, user } = useAuth();
+  const localizeInternalHref = useCallback(
+    (href: string) => localizeHref(locale, href),
+    [locale],
+  );
 
   const routeContext = useMemo(
-    () => readLoginRouteOptions(searchParams),
+    () => readLoginRouteOptions(searchParams ?? new URLSearchParams()),
     [searchParams],
   );
 
@@ -168,8 +116,8 @@ export default function AuthEntryPage() {
   const [createEmail, setCreateEmail] = useState('');
   const [createPassword, setCreatePassword] = useState('');
   const [organisationName, setOrganisationName] = useState('');
-  const [organisationRole, setOrganisationRole] = useState(
-    'AI Responsible Person',
+  const [organisationRole, setOrganisationRole] = useState(() =>
+    t('auth.defaultOwnerRole'),
   );
   const [shareInviteCode, setShareInviteCode] = useState('');
   const [shareCaptureLink, setShareCaptureLink] = useState('');
@@ -198,6 +146,15 @@ export default function AuthEntryPage() {
       routeContext.sessionId,
   );
 
+  const authContext: AuthEntryContext = useMemo(
+    () => ({
+      ...routeContext,
+      intent,
+      mode,
+    }),
+    [intent, mode, routeContext],
+  );
+
   useEffect(() => {
     let cancelled = false;
 
@@ -221,7 +178,7 @@ export default function AuthEntryPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setMode(getInitialAuthMode(routeContext));
@@ -382,7 +339,7 @@ export default function AuthEntryPage() {
     }
 
     if (!hasExplicitAuthContext) {
-      router.replace('/my-register');
+      router.replace(localizeInternalHref('/my-register'));
       return;
     }
 
@@ -394,22 +351,65 @@ export default function AuthEntryPage() {
       !routeContext.sessionId &&
       !routeContext.workspaceInvite
     ) {
-      router.replace('/my-register');
+      router.replace(localizeInternalHref('/my-register'));
     }
-  }, [authLoading, hasExplicitAuthContext, routeContext, router, user]);
+  }, [
+    authLoading,
+    hasExplicitAuthContext,
+    localizeInternalHref,
+    routeContext,
+    router,
+    user,
+  ]);
 
-  const contextNotices = useMemo(
-    () => getContextNotices(routeContext, mode, intent, checkoutContext),
-    [checkoutContext, intent, mode, routeContext],
-  );
+  const contextNotices = useMemo(() => {
+    const notices: ContextNotice[] = [];
+    void checkoutContext;
 
-  const authContext: AuthEntryContext = useMemo(
-    () => ({
-      ...routeContext,
-      intent,
-      mode,
-    }),
-    [intent, mode, routeContext],
+    if (routeContext.workspaceInvite) {
+      notices.push({
+        id: 'workspace_invite',
+        title: t('auth.invitationDetected'),
+        description: t('auth.invitationDetectedDesc'),
+      });
+    }
+
+    if (routeContext.importUseCase) {
+      notices.push({
+        id: 'import_use_case',
+        title: t('auth.continueProcess'),
+        description: t('auth.continueProcessDesc'),
+      });
+    }
+
+    if (routeContext.code && mode === 'login') {
+      notices.push({
+        id: 'join_after_login',
+        title: t('auth.inviteCodeDetected'),
+        description: t('auth.inviteCodeDetectedDesc'),
+      });
+    }
+
+    if (routeContext.code && mode === 'signup' && intent === 'join_register') {
+      notices.push({
+        id: 'join_context',
+        title: t('auth.joiningContext'),
+        description: t('auth.joiningContextDesc'),
+      });
+    }
+
+    return notices;
+  }, [checkoutContext, intent, mode, routeContext, t]);
+
+  const getSuccessDescription = useCallback(
+    (plan: SubscriptionPlan | null, baseDescription: string) => {
+      if (plan === 'pro' || plan === 'enterprise') {
+        return t('auth.governanceControlActivated');
+      }
+
+      return baseDescription;
+    },
+    [t],
   );
 
   function updateAuthRoute(nextMode: AuthMode, nextIntent: AuthIntent = intent) {
@@ -417,11 +417,13 @@ export default function AuthEntryPage() {
     setIntent(nextIntent);
     startTransition(() => {
       router.replace(
-        buildAuthPath({
-          ...routeContext,
-          intent: nextMode === 'login' ? nextIntent : nextIntent,
-          mode: nextMode,
-        }),
+        localizeInternalHref(
+          buildAuthPath({
+            ...routeContext,
+            intent: nextMode === 'login' ? nextIntent : nextIntent,
+            mode: nextMode,
+          }),
+        ),
       );
     });
   }
@@ -433,11 +435,13 @@ export default function AuthEntryPage() {
     }
     startTransition(() => {
       router.replace(
-        buildAuthPath({
-          ...routeContext,
-          intent: nextIntent,
-          mode: 'signup',
-        }),
+        localizeInternalHref(
+          buildAuthPath({
+            ...routeContext,
+            intent: nextIntent,
+            mode: 'signup',
+          }),
+        ),
       );
     });
   }
@@ -521,12 +525,12 @@ export default function AuthEntryPage() {
       toast({
         title: t('auth.loginSuccess'),
         description: destination.startsWith('/?')
-          ? 'Please complete your register setup on the same page now.'
+          ? t('auth.completeSetupSamePage')
           : getSuccessDescription(result.syncedPlan, t('auth.loginSuccessRedirect')),
       });
 
       setLoginPassword('');
-      router.push(destination);
+      router.push(localizeInternalHref(destination));
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -598,7 +602,7 @@ export default function AuthEntryPage() {
         title: t('auth.accountCreated'),
         description: getSuccessDescription(
           result.syncedPlan,
-          'Only the organisation step for your register remains.',
+          t('auth.organisationStepRemaining'),
         ),
       });
       setCreateStep(2);
@@ -639,9 +643,8 @@ export default function AuthEntryPage() {
     if (!contactEmail) {
       toast({
         variant: 'destructive',
-        title: 'Fehlende E-Mail-Adresse',
-        description:
-          'Bitte melden Sie sich erneut an oder legen Sie das Konto neu an.',
+        title: t('auth.errors.missingEmailTitle'),
+        description: t('auth.errors.missingEmailDesc'),
       });
       return;
     }
@@ -663,10 +666,12 @@ export default function AuthEntryPage() {
         (result.syncedPlan === 'pro' || result.syncedPlan === 'enterprise')
       ) {
         router.push(
-          buildBillingWelcomePath(routeContext.sessionId, {
-            source: 'checkout',
-            first_run: true,
-          }),
+          localizeInternalHref(
+            buildBillingWelcomePath(routeContext.sessionId, {
+              source: 'checkout',
+              first_run: true,
+            }),
+          ),
         );
         return;
       }
@@ -679,12 +684,12 @@ export default function AuthEntryPage() {
       toast({
         title: result.existingRegisterUsed
           ? t('landing.existingRegisterUsed')
-          : 'Register eingerichtet',
+          : t('auth.registerReady'),
         description: result.importedUseCase
-          ? 'The register is ready and the import has been applied.'
+          ? t('auth.registerReadyImportedDesc')
           : getSuccessDescription(
               result.syncedPlan,
-              'The register is ready. You can get started right away.',
+              t('auth.registerReadyDesc'),
             ),
       });
     } catch (error) {
@@ -767,11 +772,15 @@ export default function AuthEntryPage() {
       }
 
       toast({
-        title: 'Zugang angelegt',
-        description: 'Leite direkt in die Erfassung Ihrer Organisation weiter.',
+        title: t('auth.accessCreated'),
+        description: t('auth.accessCreatedDesc'),
       });
       setJoinPassword('');
-      router.push(`/erfassen?code=${encodeURIComponent(validatedJoin.code)}`);
+      router.push(
+        localizeInternalHref(
+          `/erfassen?code=${encodeURIComponent(validatedJoin.code)}`,
+        ),
+      );
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -808,7 +817,7 @@ export default function AuthEntryPage() {
     if (createdRegisterId) {
       setCreatedRegisterId(createdRegisterId);
     }
-    router.push('/my-register?onboarding=true');
+    router.push(localizeInternalHref('/my-register?onboarding=true'));
   }
 
   const isBusy = (key: string) => busyAction === key;
@@ -822,9 +831,9 @@ export default function AuthEntryPage() {
 
   const authPanelDescription =
     mode === 'login'
-      ? 'Melden Sie sich mit Ihrem bestehenden Zugang an und setzen Sie direkt fort.'
+      ? t('auth.loginDescription')
       : intent === 'join_register'
-        ? 'Validate the invitation code first, then create your account.'
+        ? t('auth.joinRegisterDescription')
         : createStep === 1
           ? t('auth.step1')
           : createStep === 2
@@ -836,7 +845,7 @@ export default function AuthEntryPage() {
       <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
         <div className="mb-10 flex items-center gap-3">
           <ThemeAwareLogo
-            alt="KI-Register"
+            alt={t('metadata.appName')}
             width={34}
             height={34}
             className="h-8 w-auto"
@@ -848,17 +857,14 @@ export default function AuthEntryPage() {
 
         <section className="space-y-6 pb-10">
           <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
-            Every organisation using AI maintains an AI register.
+            {t('auth.marketing.heroTitle')}
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
-            Ein KI-Register ist die organisationsinterne Standard-Struktur zur
-            documentation of AI use cases. It records responsibilities,
-            status, and evidence in an auditable form as required by the EU
-            AI Act fordert.
+            {t('auth.marketing.heroDescription')}
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link
-              href="/downloads"
+              href={localizeInternalHref('/downloads')}
               className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
             >
               {t('nav.downloads')}
@@ -869,7 +875,7 @@ export default function AuthEntryPage() {
               rel="noreferrer"
               className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
             >
-              Whitepaper herunterladen
+              {t('auth.marketing.whitepaperDownload')}
             </a>
           </div>
         </section>
@@ -879,11 +885,10 @@ export default function AuthEntryPage() {
             <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
             <div className="space-y-1">
               <p className="text-base font-medium text-slate-950">
-                Verantwortung zuordnen
+                {t('auth.marketing.featureResponsibilityTitle')}
               </p>
               <p className="text-base leading-7 text-slate-600">
-                Every AI use case has a responsible role. No
-                use cases without an owner.
+                {t('auth.marketing.featureResponsibilityDescription')}
               </p>
             </div>
           </div>
@@ -891,11 +896,10 @@ export default function AuthEntryPage() {
             <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
             <div className="space-y-1">
               <p className="text-base font-medium text-slate-950">
-                Document status and review state
+                {t('auth.marketing.featureStatusTitle')}
               </p>
               <p className="text-base leading-7 text-slate-600">
-                From draft to formal review, every state is
-                nachvollziehbar.
+                {t('auth.marketing.featureStatusDescription')}
               </p>
             </div>
           </div>
@@ -903,11 +907,10 @@ export default function AuthEntryPage() {
             <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
             <div className="space-y-1">
               <p className="text-base font-medium text-slate-950">
-                Nachweise erzeugen und exportieren
+                {t('auth.marketing.featureEvidenceTitle')}
               </p>
               <p className="text-base leading-7 text-slate-600">
-                Use case pass as PDF and JSON. Standardised. Audit-ready.
-                Teilbar.
+                {t('auth.marketing.featureEvidenceDescription')}
               </p>
             </div>
           </div>
@@ -1011,7 +1014,7 @@ export default function AuthEntryPage() {
                           type="email"
                           value={loginEmail}
                           onChange={(event) => setLoginEmail(event.target.value)}
-                          placeholder="ihre@organisation.de"
+                          placeholder={t('auth.placeholders.email')}
                           autoComplete="email"
                         />
                       </div>
@@ -1030,7 +1033,7 @@ export default function AuthEntryPage() {
                           onChange={(event) =>
                             setLoginPassword(event.target.value)
                           }
-                          placeholder="Mindestens 6 Zeichen"
+                          placeholder={t('auth.placeholders.password')}
                           autoComplete="current-password"
                         />
                       </div>
@@ -1064,7 +1067,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setResetEmail(event.target.value)
                             }
-                            placeholder="ihre@organisation.de"
+                            placeholder={t('auth.placeholders.email')}
                             autoComplete="email"
                           />
                           <Button
@@ -1097,7 +1100,7 @@ export default function AuthEntryPage() {
                             id="create-name"
                             value={createName}
                             onChange={(event) => setCreateName(event.target.value)}
-                            placeholder="Ihr Name"
+                            placeholder={t('auth.placeholders.name')}
                             autoComplete="name"
                           />
                         </div>
@@ -1114,7 +1117,7 @@ export default function AuthEntryPage() {
                             type="email"
                             value={createEmail}
                             onChange={(event) => setCreateEmail(event.target.value)}
-                            placeholder="ihre@organisation.de"
+                            placeholder={t('auth.placeholders.email')}
                             autoComplete="email"
                           />
                         </div>
@@ -1133,7 +1136,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setCreatePassword(event.target.value)
                             }
-                            placeholder="Mindestens 6 Zeichen"
+                            placeholder={t('auth.placeholders.password')}
                             autoComplete="new-password"
                           />
                         </div>
@@ -1165,7 +1168,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setOrganisationName(event.target.value)
                             }
-                            placeholder="z. B. Mustermann GmbH"
+                            placeholder={t('auth.placeholders.organisation')}
                             autoComplete="organization"
                           />
                         </div>
@@ -1183,7 +1186,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setOrganisationRole(event.target.value)
                             }
-                            placeholder="z. B. AI Responsible Person"
+                            placeholder={t('auth.placeholders.role')}
                           />
                         </div>
 
@@ -1238,7 +1241,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setJoinCodeInput(event.target.value.toUpperCase())
                             }
-                            placeholder="AI-XXXXXX"
+                            placeholder={t('auth.invitationCodePlaceholder')}
                             className="font-mono tracking-wider"
                           />
                         </div>
@@ -1259,10 +1262,10 @@ export default function AuthEntryPage() {
                           <p className="text-sm font-medium text-slate-950">
                             {validatedJoin.organisationName ??
                               validatedJoin.label ??
-                              'Organisation'}
+                              t('auth.organisationFallback')}
                           </p>
                           <p className="mt-1 font-mono text-xs text-slate-500">
-                            Code: {validatedJoin.code}
+                            {t('auth.codeValue', { code: validatedJoin.code })}
                           </p>
                         </div>
 
@@ -1272,13 +1275,15 @@ export default function AuthEntryPage() {
                             className="w-full"
                             onClick={() =>
                               router.push(
-                                `/erfassen?code=${encodeURIComponent(
-                                  validatedJoin.code,
-                                )}`,
+                                localizeInternalHref(
+                                  `/erfassen?code=${encodeURIComponent(
+                                    validatedJoin.code,
+                                  )}`,
+                                ),
                               )
                             }
                           >
-                            Direkt zur Erfassung
+                            {t('auth.goToIntake')}
                           </Button>
                         ) : (
                           <Button
@@ -1316,7 +1321,7 @@ export default function AuthEntryPage() {
                             id="join-name"
                             value={joinName}
                             onChange={(event) => setJoinName(event.target.value)}
-                            placeholder="Ihr Name"
+                            placeholder={t('auth.placeholders.name')}
                             autoComplete="name"
                           />
                         </div>
@@ -1333,7 +1338,7 @@ export default function AuthEntryPage() {
                             type="email"
                             value={joinEmail}
                             onChange={(event) => setJoinEmail(event.target.value)}
-                            placeholder="ihre@organisation.de"
+                            placeholder={t('auth.placeholders.email')}
                             autoComplete="email"
                           />
                         </div>
@@ -1352,7 +1357,7 @@ export default function AuthEntryPage() {
                             onChange={(event) =>
                               setJoinPassword(event.target.value)
                             }
-                            placeholder="Mindestens 6 Zeichen"
+                            placeholder={t('auth.placeholders.password')}
                             autoComplete="new-password"
                           />
                         </div>
@@ -1398,11 +1403,10 @@ export default function AuthEntryPage() {
 
         <section className="space-y-2 border-t border-slate-200 pt-6">
           <p className="text-sm leading-6 text-slate-600">
-            Privat und organisationsintern. Ihre Daten bleiben in Ihrer
-            Registerinstanz.
+            {t('auth.marketing.privacyNote')}
           </p>
           <p className="text-sm leading-6 text-slate-600">
-            Evidence and register extracts can be shared in a standardised format.
+            {t('auth.marketing.shareNote')}
           </p>
         </section>
 

@@ -161,7 +161,7 @@ function RoleInput({
 export function GovernanceSettingsSection() {
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();

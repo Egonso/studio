@@ -118,7 +118,7 @@ function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
 export default function MyRegisterPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const { plan } = useCapability('reviewWorkflow');
   const workspaceScope = useWorkspaceScope();
   const initialFilter = searchParams.get('filter') as string | undefined;

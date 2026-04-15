@@ -1,78 +1,122 @@
-import React from 'react';
+import { cn } from '@/lib/utils';
 import { LawData } from '@/types/law';
-import { cn } from '@/lib/utils'; // Assuming cn utility exists, otherwise I'll use template literals
 
 interface LawContentProps {
-    data: LawData;
+  data: LawData;
+  locale: string;
 }
 
-export function LawContent({ data }: LawContentProps) {
-    return (
-        <div className="prose prose-slate max-w-none dark:prose-invert">
-            <h1 className="text-3xl font-bold mb-8">EU AI Act (Regulation (EU) 2024/1689)</h1>
+function getLawContentCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      title: 'EU AI Act (Verordnung (EU) 2024/1689)',
+      preamble: 'Präambel (Erwägungsgründe)',
+      enactingTerms: 'Normtext',
+      annexes: 'Anhänge',
+      directLink: 'Direktlink',
+    } as const;
+  }
 
-            <section id="pbl_1" className="mb-12">
-                <h2 className="text-2xl font-bold mb-4">Preamble (Recitals)</h2>
-                <div className="space-y-6">
-                    {data.recitals.map((recital) => (
-                        <div key={recital.id} id={recital.id} className="scroll-mt-24 p-4 rounded-lg bg-muted/30 border border-transparent hover:border-border transition-colors">
-                            <span className="font-bold text-primary mr-2">({recital.number})</span>
-                            <span>{recital.text}</span>
-                        </div>
-                    ))}
-                </div>
-            </section>
+  return {
+    title: 'EU AI Act (Regulation (EU) 2024/1689)',
+    preamble: 'Preamble (Recitals)',
+    enactingTerms: 'Enacting Terms',
+    annexes: 'Annexes',
+    directLink: 'Direct link',
+  } as const;
+}
 
-            <section id="enc_1" className="mb-12">
-                <h2 className="text-2xl font-bold mb-4">Enacting Terms</h2>
-                {data.chapters.map((chapter) => (
-                    <div key={chapter.id} id={chapter.id} className="mb-8 scroll-mt-24">
-                        {/* Increased z-index to 20 to stay above content but below AppHeader (z-50) */}
-                        <div className="sticky top-14 bg-background/95 backdrop-blur py-4 z-20 border-b mb-6 shadow-sm">
-                            <h3 className="text-xl font-bold">{chapter.title}</h3>
-                        </div>
+export function LawContent({ data, locale }: LawContentProps) {
+  const copy = getLawContentCopy(locale);
 
-                        <div className="space-y-8">
-                            {chapter.articles.map((article) => {
-                                const displayTitle = (article as any).title || article.id;
-                                // Check if title is very long (like Article 3 definitions), if so, style differently
-                                const isLongTitle = displayTitle.length > 80;
+  return (
+    <div className="prose prose-slate max-w-none dark:prose-invert">
+      <h1 className="mb-8 text-3xl font-bold">{copy.title}</h1>
 
-                                return (
-                                    <article key={article.id} id={article.id} className="scroll-mt-28">
-                                        <div className="bg-card text-card-foreground p-6 rounded-xl shadow-sm border hover:border-primary/20 transition-colors relative group">
-                                            {/* Handle long titles with clamp or different size */}
-                                            <h4 className={cn(
-                                                "font-semibold text-primary mb-3",
-                                                isLongTitle ? "text-base leading-snug" : "text-lg"
-                                            )}>
-                                                {displayTitle}
-                                            </h4>
-                                            <div className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
-                                                {article.text}
-                                            </div>
-                                            <a href={`#${article.id}`} className="opacity-0 group-hover:opacity-100 absolute top-4 right-4 text-muted-foreground hover:text-primary transition-opacity" title="Direct Link">#</a>
-                                        </div>
-                                    </article>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
-            </section>
-
-            {data.annexes.length > 0 && (
-                <section id="annexes" className="mb-12">
-                    <h2 className="text-2xl font-bold mb-4">Annexes</h2>
-                    <div className="space-y-8">
-                        {data.annexes.map((annex) => (
-                            <div key={annex.id} id={annex.id} className="scroll-mt-24 bg-card p-6 rounded-xl shadow-sm border">
-                                <div className="whitespace-pre-wrap">{annex.text}</div>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
+      <section id="pbl_1" className="mb-12">
+        <h2 className="mb-4 text-2xl font-bold">{copy.preamble}</h2>
+        <div className="space-y-6">
+          {data.recitals.map((recital) => (
+            <div
+              key={recital.id}
+              id={recital.id}
+              className="scroll-mt-24 rounded-lg border border-transparent bg-muted/30 p-4 transition-colors hover:border-border"
+            >
+              <span className="mr-2 font-bold text-primary">
+                ({recital.number})
+              </span>
+              <span>{recital.text}</span>
+            </div>
+          ))}
         </div>
-    );
+      </section>
+
+      <section id="enc_1" className="mb-12">
+        <h2 className="mb-4 text-2xl font-bold">{copy.enactingTerms}</h2>
+        {data.chapters.map((chapter) => (
+          <div key={chapter.id} id={chapter.id} className="mb-8 scroll-mt-24">
+            <div className="sticky top-14 z-20 mb-6 border-b bg-background/95 py-4 shadow-sm backdrop-blur">
+              <h3 className="text-xl font-bold">{chapter.title}</h3>
+            </div>
+
+            <div className="space-y-8">
+              {chapter.articles.map((article) => {
+                const displayTitle =
+                  'title' in article && typeof article.title === 'string'
+                    ? article.title
+                    : article.id;
+                const isLongTitle = displayTitle.length > 80;
+
+                return (
+                  <article
+                    key={article.id}
+                    id={article.id}
+                    className="scroll-mt-28"
+                  >
+                    <div className="group relative rounded-xl border bg-card p-6 text-card-foreground shadow-sm transition-colors hover:border-primary/20">
+                      <h4
+                        className={cn(
+                          'mb-3 font-semibold text-primary',
+                          isLongTitle ? 'text-base leading-snug' : 'text-lg',
+                        )}
+                      >
+                        {displayTitle}
+                      </h4>
+                      <div className="whitespace-pre-wrap leading-relaxed text-muted-foreground">
+                        {article.text}
+                      </div>
+                      <a
+                        href={`#${article.id}`}
+                        className="absolute top-4 right-4 opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
+                        title={copy.directLink}
+                      >
+                        #
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {data.annexes.length > 0 ? (
+        <section id="annexes" className="mb-12">
+          <h2 className="mb-4 text-2xl font-bold">{copy.annexes}</h2>
+          <div className="space-y-8">
+            {data.annexes.map((annex) => (
+              <div
+                key={annex.id}
+                id={annex.id}
+                className="scroll-mt-24 rounded-xl border bg-card p-6 shadow-sm"
+              >
+                <div className="whitespace-pre-wrap">{annex.text}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
 }

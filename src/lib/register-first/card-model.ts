@@ -1,5 +1,11 @@
 import type { OrderedUseCaseSystem, UseCaseWorkflow } from "./types";
 
+export type RegisterDisplayLocale = "de" | "en";
+
+function resolveDisplayLocale(locale?: string): RegisterDisplayLocale {
+  return locale?.toLowerCase().startsWith("de") ? "de" : "en";
+}
+
 export const REGISTER_USE_CASE_STATUS_VALUES = [
   "UNREVIEWED",
   "REVIEW_RECOMMENDED",
@@ -23,6 +29,29 @@ export const registerUseCaseStatusLabels: Record<
   REVIEWED: "Review completed",
   PROOF_READY: "Evidence-ready",
 });
+
+const registerUseCaseStatusLabelsDe: Record<RegisterUseCaseStatus, string> =
+  Object.freeze({
+    UNREVIEWED: "Formale Prüfung ausstehend",
+    REVIEW_RECOMMENDED: "Prüfung empfohlen",
+    REVIEWED: "Prüfung abgeschlossen",
+    PROOF_READY: "Nachweisfähig",
+  });
+
+export function getRegisterUseCaseStatusLabels(
+  locale?: string
+): Record<RegisterUseCaseStatus, string> {
+  return resolveDisplayLocale(locale) === "de"
+    ? registerUseCaseStatusLabelsDe
+    : registerUseCaseStatusLabels;
+}
+
+export function getRegisterUseCaseStatusLabel(
+  status: RegisterUseCaseStatus,
+  locale?: string
+): string {
+  return getRegisterUseCaseStatusLabels(locale)[status];
+}
 
 export const registerUseCaseStatusTransitions: Record<
   RegisterUseCaseStatus,
@@ -96,6 +125,34 @@ export const USAGE_CONTEXT_LABELS: Record<CaptureUsageContext, string> =
     EXTERNAL_PUBLIC: "General public affected",
   });
 
+const usageContextLabelsDe: Record<CaptureUsageContext, string> = Object.freeze(
+  {
+    INTERNAL_ONLY: "Nur interne Prozesse",
+    EMPLOYEES: "Mitarbeitende betroffen",
+    CUSTOMERS: "Kund*innen betroffen",
+    APPLICANTS: "Bewerber*innen betroffen",
+    PUBLIC: "Öffentlichkeit betroffen",
+    CUSTOMER_FACING: "Kund*innen betroffen",
+    EMPLOYEE_FACING: "Mitarbeitende betroffen",
+    EXTERNAL_PUBLIC: "Öffentlichkeit betroffen",
+  }
+);
+
+export function getUsageContextLabels(
+  locale?: string
+): Record<CaptureUsageContext, string> {
+  return resolveDisplayLocale(locale) === "de"
+    ? usageContextLabelsDe
+    : USAGE_CONTEXT_LABELS;
+}
+
+export function getUsageContextLabel(
+  context: CaptureUsageContext,
+  locale?: string
+): string {
+  return getUsageContextLabels(locale)[context];
+}
+
 export const USAGE_CONTEXT_OPTIONS: CaptureUsageContext[] = [
   "INTERNAL_ONLY",
   "EMPLOYEES",
@@ -155,6 +212,37 @@ export const DATA_CATEGORY_LABELS: Record<DataCategory, string> =
     PERSONAL: "Personal data",
     SENSITIVE: "Sensitive data",
   });
+
+const dataCategoryLabelsDe: Record<DataCategory, string> = Object.freeze({
+  NO_PERSONAL_DATA: "Keine personenbezogenen Daten",
+  PERSONAL_DATA: "Personenbezogene Daten",
+  SPECIAL_PERSONAL: "Besondere personenbezogene Daten",
+  HEALTH_DATA: "Gesundheitsdaten",
+  BIOMETRIC_DATA: "Biometrische Daten",
+  POLITICAL_RELIGIOUS: "Politische / religiöse Angaben",
+  OTHER_SENSITIVE: "Weitere sensible Daten",
+  INTERNAL_CONFIDENTIAL: "Interne / vertrauliche Unternehmensdaten",
+  PUBLIC_DATA: "Öffentlich zugängliche Daten",
+  NONE: "Keine besonderen Daten",
+  INTERNAL: "Interne Daten",
+  PERSONAL: "Personenbezogene Daten",
+  SENSITIVE: "Sensible Daten",
+});
+
+export function getDataCategoryLabels(
+  locale?: string
+): Record<DataCategory, string> {
+  return resolveDisplayLocale(locale) === "de"
+    ? dataCategoryLabelsDe
+    : DATA_CATEGORY_LABELS;
+}
+
+export function getDataCategoryLabel(
+  category: DataCategory,
+  locale?: string
+): string {
+  return getDataCategoryLabels(locale)[category];
+}
 
 export const DATA_CATEGORY_MAIN_OPTIONS: DataCategory[] = [
   "NO_PERSONAL_DATA",
@@ -221,6 +309,28 @@ export const DECISION_INFLUENCE_LABELS: Record<DecisionInfluence, string> =
     PREPARATION: "Preparation of decisions",
     AUTOMATED: "Makes or automates decisions",
   });
+
+const decisionInfluenceLabelsDe: Record<DecisionInfluence, string> =
+  Object.freeze({
+    ASSISTANCE: "Reine Assistenz (keine Entscheidungsrelevanz)",
+    PREPARATION: "Vorbereitung von Entscheidungen",
+    AUTOMATED: "Trifft oder automatisiert Entscheidungen",
+  });
+
+export function getDecisionInfluenceLabels(
+  locale?: string
+): Record<DecisionInfluence, string> {
+  return resolveDisplayLocale(locale) === "de"
+    ? decisionInfluenceLabelsDe
+    : DECISION_INFLUENCE_LABELS;
+}
+
+export function getDecisionInfluenceLabel(
+  influence: DecisionInfluence,
+  locale?: string
+): string {
+  return getDecisionInfluenceLabels(locale)[influence];
+}
 
 export const DECISION_INFLUENCE_OPTIONS: DecisionInfluence[] = [
   "ASSISTANCE",

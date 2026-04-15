@@ -1,3 +1,4 @@
+import { useLocale } from "next-intl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ControlKpiSnapshot } from "@/lib/control/maturity-calculator";
 
@@ -26,46 +27,93 @@ function KpiCard({ title, value, description }: KpiCardProps) {
   );
 }
 
+function getControlKpiHeaderCopy(locale: string) {
+  if (locale === "de") {
+    return {
+      overview: "Überblick",
+      asOf: "Stand",
+      dateLocale: "de-DE",
+      documentedSystems: "Dokumentierte Systeme",
+      documentedSystemsDesc: "Aktiv dokumentierte Systeme im Register.",
+      highRisk: "Hochrisiko",
+      highRiskDesc: "Anteil mit Einstufung Hochrisiko.",
+      reviewsDue: "Reviews fällig / überfällig",
+      reviewsDueDesc: "Fällig in 30 Tagen / bereits überfällig.",
+      systemsWithoutOwner: "Systeme ohne Owner",
+      systemsWithoutOwnerDesc: "Ohne klare Verantwortlichkeitszuordnung.",
+      governanceScore: "Governance-Score",
+      governanceScoreDesc:
+        "Dokumentation, Ownership, Review, Aufsicht, Policy-Mapping.",
+      isoReadiness: "ISO-Readiness",
+      isoReadinessDesc:
+        "Review-Struktur, Dokumentationslevel, Aufsicht und Audit-Historie.",
+    } as const;
+  }
+
+  return {
+    overview: "Overview",
+    asOf: "As of",
+    dateLocale: "en-GB",
+    documentedSystems: "Documented Systems",
+    documentedSystemsDesc: "Actively documented systems in the register.",
+    highRisk: "High Risk",
+    highRiskDesc: "Proportion classified as high risk.",
+    reviewsDue: "Reviews due / overdue",
+    reviewsDueDesc: "Due within 30 days / already overdue.",
+    systemsWithoutOwner: "Systems without owner",
+    systemsWithoutOwnerDesc: "Without clear accountability assignment.",
+    governanceScore: "Governance Score",
+    governanceScoreDesc:
+      "Documentation, ownership, review, oversight, policy mapping.",
+    isoReadiness: "ISO Readiness",
+    isoReadinessDesc:
+      "Review structure, documentation level, oversight, and audit history.",
+  } as const;
+}
+
 export function ControlKpiHeader({ snapshot, capturedAt }: ControlKpiHeaderProps) {
+  const locale = useLocale();
+  const copy = getControlKpiHeaderCopy(locale);
+
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h2 className="text-lg font-semibold">Overview</h2>
+        <h2 className="text-lg font-semibold">{copy.overview}</h2>
         <p className="text-xs text-muted-foreground">
-          As of: {capturedAt.toLocaleString("en-GB")}
+          {copy.asOf}: {capturedAt.toLocaleString(copy.dateLocale)}
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
-          title="Documented Systems"
+          title={copy.documentedSystems}
           value={String(snapshot.totalSystems)}
-          description="Actively documented systems in the register."
+          description={copy.documentedSystemsDesc}
         />
         <KpiCard
-          title="High Risk"
+          title={copy.highRisk}
           value={`${snapshot.highRiskCount} (${snapshot.highRiskPercent}%)`}
-          description="Proportion classified as high risk."
+          description={copy.highRiskDesc}
         />
         <KpiCard
-          title="Reviews due / overdue"
+          title={copy.reviewsDue}
           value={`${snapshot.reviewsDue} / ${snapshot.reviewsOverdue}`}
-          description="Due within 30 days / already overdue."
+          description={copy.reviewsDueDesc}
         />
         <KpiCard
-          title="Systems without owner"
+          title={copy.systemsWithoutOwner}
           value={String(snapshot.systemsWithoutOwner)}
-          description="Without clear accountability assignment."
+          description={copy.systemsWithoutOwnerDesc}
         />
         <KpiCard
-          title="Governance Score"
+          title={copy.governanceScore}
           value={`${snapshot.governanceScore}%`}
-          description="Documentation, ownership, review, oversight, policy mapping."
+          description={copy.governanceScoreDesc}
         />
         <KpiCard
-          title="ISO Readiness"
+          title={copy.isoReadiness}
           value={`${snapshot.isoReadinessPercent}%`}
-          description="Review structure, documentation level, oversight, and audit history."
+          description={copy.isoReadinessDesc}
         />
       </div>
     </section>

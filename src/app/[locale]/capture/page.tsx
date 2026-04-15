@@ -58,11 +58,15 @@ export default function StandaloneCapturePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const safeSearchParams = useMemo(
+    () => searchParams ?? new URLSearchParams(),
+    [searchParams]
+  );
   const workspaceScope = useWorkspaceScope();
-  const source = searchParams.get("source");
-  const prefill = (searchParams.get("prefill") ?? "").trim();
-  const originUrl = (searchParams.get("originUrl") ?? "").trim();
-  const checkoutSessionId = searchParams.get("checkout_session_id");
+  const source = safeSearchParams.get("source");
+  const prefill = (safeSearchParams.get("prefill") ?? "").trim();
+  const originUrl = (safeSearchParams.get("originUrl") ?? "").trim();
+  const checkoutSessionId = safeSearchParams.get("checkout_session_id");
   const [guestMode, setGuestMode] = useState(false);
   const [onboardingState, setOnboardingState] = useState<OnboardingState>("loading");
   const [registerName, setRegisterName] = useState("Mein Register");
@@ -80,12 +84,12 @@ export default function StandaloneCapturePage() {
   );
   const assistEntryState = useMemo(
     () =>
-      resolveCoverageAssistEntryState(searchParams, {
+      resolveCoverageAssistEntryState(safeSearchParams, {
         phase1Enabled: coverageAssistPilotEnabled,
         seedLibraryEnabled:
           coverageAssistPilotEnabled && registerFirstFlags.coverageAssistSeedLibrary,
       }),
-    [coverageAssistPilotEnabled, searchParams]
+    [coverageAssistPilotEnabled, safeSearchParams]
   );
   const [captureOpen, setCaptureOpen] = useState(
     () => assistEntryState === null && !draftAssistCaptureEnabled

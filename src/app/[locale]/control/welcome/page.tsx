@@ -36,7 +36,7 @@ interface WelcomeModule {
 export default function ControlWelcomePage() {
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
 
   const WELCOME_MODULES: WelcomeModule[] = [
     {

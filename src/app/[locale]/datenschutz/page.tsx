@@ -1,5 +1,10 @@
 import { redirect } from 'next/navigation';
 
-export default function DatenschutzRedirect() {
-  redirect('/privacy');
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function DatenschutzRedirect({ params }: Props) {
+  const { locale } = await params;
+  redirect(`/${locale}/privacy`);
 }

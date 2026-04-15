@@ -97,6 +97,129 @@ function toRatio(part: number, total: number): number {
   return part / total;
 }
 
+function getControlMaturityCopy(locale?: string) {
+  if (locale?.toLowerCase().startsWith('de')) {
+    return {
+      levelTitles: {
+        1: 'Level 1 - Dokumentiert',
+        2: 'Level 2 - Verantwortlichkeiten definiert',
+        3: 'Level 3 - Reviews strukturiert',
+        4: 'Level 4 - Richtlinien konsistent verknüpft',
+        5: 'Level 5 - Audit-ready',
+      } as const,
+      yes: 'Ja',
+      no: 'Nein',
+      noHighRiskSystem: 'Kein Hochrisiko-System im Register',
+      systemsDocumented: 'Systeme im Register dokumentiert',
+      documentedSystems: 'dokumentierte Systeme',
+      systems: 'Systeme',
+      documentAtLeastOne:
+        'Dokumentieren Sie mindestens einen Einsatzfall im Register.',
+      captureUseCase: 'Einsatzfall erfassen',
+      coreDocumentationComplete:
+        'Kerndokumentation weitgehend vollständig',
+      addPurposeAndUsageContext:
+        'Ergänzen Sie Zweck und Wirkungsbereich bei unvollständigen Einsatzfällen.',
+      openIncompleteUseCase: 'Unvollständigen Einsatzfall öffnen',
+      level1Achieved: 'Level 1 vollständig erreicht',
+      completeLevel1Baseline:
+        'Schließen Sie zuerst die Dokumentationsbasis aus Level 1 ab.',
+      responsibilitiesAssigned:
+        'Verantwortlichkeiten klar zugewiesen',
+      addOwner: 'Ergänzen Sie fehlende Owner-Rollen.',
+      addOwnerAction: 'Owner ergänzen',
+      level2Achieved: 'Level 2 vollständig erreicht',
+      consolidateResponsibilities:
+        'Stabilisieren Sie zuerst die Verantwortlichkeiten.',
+      reviewCyclesStructured: 'Review-Zyklen strukturiert',
+      setReviewCycleOrDate:
+        'Legen Sie einen Review-Zyklus oder ein nächstes Review-Datum fest.',
+      setReviewCycleAction: 'Review-Zyklus festlegen',
+      highRiskOversight:
+        'Hochrisiko-Systeme mit Aufsicht abgedeckt',
+      documentOversight:
+        'Dokumentieren Sie für jedes Hochrisiko-System ein Aufsichtsmodell.',
+      setOversightAction: 'Aufsichtsmodell festlegen',
+      level3Achieved: 'Level 3 vollständig erreicht',
+      stabiliseReviewAndOversight:
+        'Stabilisieren Sie zuerst Review-Struktur und Hochrisiko-Aufsicht.',
+      policyMapping: 'Richtlinien konsistent mit Systemen verknüpft',
+      addPolicyLinks: 'Ergänzen Sie Richtlinien-Verknüpfungen pro Einsatzfall.',
+      orgPolicyBaseline:
+        'Organisationsweite Richtlinienbasis vorhanden',
+      addOrgPolicyBaseline:
+        'Hinterlegen Sie mindestens eine KI-Richtlinie oder einen Incident-Prozess im Registerprofil.',
+      openGovernanceSettings: 'Governance-Einstellungen öffnen',
+      level4Achieved: 'Level 4 vollständig erreicht',
+      completePolicyAndBaseline:
+        'Schließen Sie zuerst Policy-Mapping und Organisationsbasis ab.',
+      auditHistoryAvailable: 'Audit-Historie breit verfügbar',
+      completeAuditHistory:
+        'Vervollständigen Sie systematisch Review-Historie und Nachweise.',
+      buildReviewHistory: 'Review-Historie aufbauen',
+      isoThreshold: 'ISO-Readiness erreicht den Zielwert',
+      closeGovernanceGaps:
+        'Schließen Sie weitere Lücken bei Review, Dokumentation und Audit-Daten.',
+    } as const;
+  }
+
+  return {
+    levelTitles: {
+      1: 'Level 1 - Documented',
+      2: 'Level 2 - Responsibilities defined',
+      3: 'Level 3 - Reviews structured',
+      4: 'Level 4 - Policies consistently mapped',
+      5: 'Level 5 - Audit-ready',
+    } as const,
+    yes: 'Yes',
+    no: 'No',
+    noHighRiskSystem: 'No high-risk system in the register',
+    systemsDocumented: 'Systems documented in register',
+    documentedSystems: 'documented systems',
+    systems: 'systems',
+    documentAtLeastOne: 'Document at least one use case in the register.',
+    captureUseCase: 'Capture use case',
+    coreDocumentationComplete: 'Core documentation largely complete',
+    addPurposeAndUsageContext:
+      'Add purpose and usage context to incomplete use cases.',
+    openIncompleteUseCase: 'Open incomplete use case',
+    level1Achieved: 'Level 1 fully achieved',
+    completeLevel1Baseline:
+      'Complete the documentation baseline from Level 1.',
+    responsibilitiesAssigned: 'Responsibilities clearly assigned',
+    addOwner: 'Add an owner for systems without one.',
+    addOwnerAction: 'Add owner',
+    level2Achieved: 'Level 2 fully achieved',
+    consolidateResponsibilities: 'Consolidate responsibilities first.',
+    reviewCyclesStructured: 'Review cycles structured',
+    setReviewCycleOrDate: 'Set a review cycle or next review date.',
+    setReviewCycleAction: 'Set review cycle',
+    highRiskOversight: 'High-risk systems covered by oversight',
+    documentOversight:
+      'Document an oversight model for every high-risk system.',
+    setOversightAction: 'Set oversight model',
+    level3Achieved: 'Level 3 fully achieved',
+    stabiliseReviewAndOversight:
+      'Stabilise review structure and high-risk oversight first.',
+    policyMapping: 'Policies consistently mapped to systems',
+    addPolicyLinks: 'Add policy links per use case.',
+    orgPolicyBaseline: 'Organisation-wide policy baseline available',
+    addOrgPolicyBaseline:
+      'Add at least an AI policy or incident process to the register profile.',
+    openGovernanceSettings: 'Open Governance Settings',
+    level4Achieved: 'Level 4 fully achieved',
+    completePolicyAndBaseline:
+      'Complete policy mapping and organisation baseline first.',
+    auditHistoryAvailable: 'Audit history broadly available',
+    completeAuditHistory:
+      'Systematically complete review history and evidence.',
+    buildReviewHistory: 'Build review history',
+    isoThreshold: 'ISO readiness reaches threshold',
+    closeGovernanceGaps:
+      'Continue closing review, documentation and audit data gaps.',
+  } as const;
+}
+
 function hasResponsibleOwner(useCase: UseCaseCard): boolean {
   if (useCase.responsibility.isCurrentlyResponsible) return true;
   return Boolean(useCase.responsibility.responsibleParty?.trim());
@@ -192,19 +315,8 @@ function deriveControlState(
   };
 }
 
-function levelLabel(level: 1 | 2 | 3 | 4 | 5): string {
-  switch (level) {
-    case 1:
-      return 'Level 1 - Documented';
-    case 2:
-      return 'Level 2 - Responsibilities defined';
-    case 3:
-      return 'Level 3 - Reviews structured';
-    case 4:
-      return 'Level 4 - Policies consistently mapped';
-    case 5:
-      return 'Level 5 - Audit-ready';
-  }
+function levelLabel(level: 1 | 2 | 3 | 4 | 5, locale?: string): string {
+  return getControlMaturityCopy(locale).levelTitles[level];
 }
 
 function buildLevel(
@@ -262,7 +374,9 @@ export function calculateControlOverview(
   useCases: UseCaseCard[],
   orgSettings?: OrgSettings | null,
   now: Date = new Date(),
+  locale?: string,
 ): ControlOverview {
+  const copy = getControlMaturityCopy(locale);
   const states = useCases.map((useCase) => deriveControlState(useCase, now));
   const totalSystems = states.length;
 
@@ -333,25 +447,25 @@ export function calculateControlOverview(
   const level1 = buildLevel(1, [
     {
       id: 'systems-documented',
-      label: 'Systems documented in register',
+      label: copy.systemsDocumented,
       fulfilled: hasAnySystems,
-      evidence: `${totalSystems} documented systems`,
-      missing: 'Document at least one use case in the register.',
+      evidence: `${totalSystems} ${copy.documentedSystems}`,
+      missing: copy.documentAtLeastOne,
       actionHref: '/capture',
-      actionLabel: 'Capture use case',
+      actionLabel: copy.captureUseCase,
     },
     {
       id: 'documentation-coverage',
-      label: 'Core documentation largely complete',
+      label: copy.coreDocumentationComplete,
       fulfilled:
         documentationCoverage >=
         CONTROL_MATURITY_THRESHOLDS.documentationCoverage,
-      evidence: `${documentedSystems}/${totalSystems} systems (${documentationCoverage}%)`,
-      missing: 'Add purpose and usage context to incomplete use cases.',
+      evidence: `${documentedSystems}/${totalSystems} ${copy.systems} (${documentationCoverage}%)`,
+      missing: copy.addPurposeAndUsageContext,
       ...buildUseCaseViewAction(
         useCases,
         (useCase) => !isDocumented(useCase),
-        'Open incomplete use case',
+        copy.openIncompleteUseCase,
       ),
     },
   ]);
@@ -359,22 +473,22 @@ export function calculateControlOverview(
   const level2 = buildLevel(2, [
     {
       id: 'level-1-prerequisite',
-      label: 'Level 1 fully achieved',
+      label: copy.level1Achieved,
       fulfilled: level1.fulfilled,
-      evidence: level1.fulfilled ? 'Yes' : 'No',
-      missing: 'Complete the documentation baseline from Level 1.',
+      evidence: level1.fulfilled ? copy.yes : copy.no,
+      missing: copy.completeLevel1Baseline,
     },
     {
       id: 'owner-coverage',
-      label: 'Responsibilities clearly assigned',
+      label: copy.responsibilitiesAssigned,
       fulfilled: ownerCoverage >= CONTROL_MATURITY_THRESHOLDS.ownerCoverage,
-      evidence: `${systemsWithOwner}/${totalSystems} systems (${ownerCoverage}%)`,
-      missing: 'Add an owner for systems without one.',
+      evidence: `${systemsWithOwner}/${totalSystems} ${copy.systems} (${ownerCoverage}%)`,
+      missing: copy.addOwner,
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasResponsibleOwner(useCase),
         'owner',
-        'Add owner',
+        copy.addOwnerAction,
         { edit: true },
       ),
     },
@@ -383,41 +497,41 @@ export function calculateControlOverview(
   const level3 = buildLevel(3, [
     {
       id: 'level-2-prerequisite',
-      label: 'Level 2 fully achieved',
+      label: copy.level2Achieved,
       fulfilled: level2.fulfilled,
-      evidence: level2.fulfilled ? 'Yes' : 'No',
-      missing: 'Consolidate responsibilities first.',
+      evidence: level2.fulfilled ? copy.yes : copy.no,
+      missing: copy.consolidateResponsibilities,
     },
     {
       id: 'review-structure',
-      label: 'Review cycles structured',
+      label: copy.reviewCyclesStructured,
       fulfilled: reviewCoverage >= CONTROL_MATURITY_THRESHOLDS.reviewCoverage,
-      evidence: `${systemsWithReviewStructure}/${totalSystems} systems (${reviewCoverage}%)`,
-      missing: 'Set a review cycle or next review date.',
+      evidence: `${systemsWithReviewStructure}/${totalSystems} ${copy.systems} (${reviewCoverage}%)`,
+      missing: copy.setReviewCycleOrDate,
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasStructuredReview(useCase),
         'governance',
-        'Set review cycle',
+        copy.setReviewCycleAction,
         { edit: true, field: 'reviewCycle' },
       ),
     },
     {
       id: 'high-risk-oversight',
-      label: 'High-risk systems covered by oversight',
+      label: copy.highRiskOversight,
       fulfilled:
         highRiskOversightCoverage >=
         CONTROL_MATURITY_THRESHOLDS.highRiskOversightCoverage,
       evidence:
         highRiskSystems === 0
-          ? 'No high-risk system in the register'
-          : `${highRiskWithOversight}/${highRiskSystems} systems (${highRiskOversightCoverage}%)`,
-      missing: 'Document an oversight model for every high-risk system.',
+          ? copy.noHighRiskSystem
+          : `${highRiskWithOversight}/${highRiskSystems} ${copy.systems} (${highRiskOversightCoverage}%)`,
+      missing: copy.documentOversight,
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => isHighRisk(useCase) && !hasDefinedOversight(useCase),
         'governance',
-        'Set oversight model',
+        copy.setOversightAction,
         { edit: true, field: 'oversight' },
       ),
     },
@@ -426,59 +540,58 @@ export function calculateControlOverview(
   const level4 = buildLevel(4, [
     {
       id: 'level-3-prerequisite',
-      label: 'Level 3 fully achieved',
+      label: copy.level3Achieved,
       fulfilled: level3.fulfilled,
-      evidence: level3.fulfilled ? 'Yes' : 'No',
-      missing: 'Stabilise review structure and high-risk oversight first.',
+      evidence: level3.fulfilled ? copy.yes : copy.no,
+      missing: copy.stabiliseReviewAndOversight,
     },
     {
       id: 'policy-mapping',
-      label: 'Policies consistently mapped to systems',
+      label: copy.policyMapping,
       fulfilled: policyCoverage >= CONTROL_MATURITY_THRESHOLDS.policyCoverage,
-      evidence: `${systemsWithPolicyMapping}/${totalSystems} systems (${policyCoverage}%)`,
-      missing: 'Add policy links per use case.',
+      evidence: `${systemsWithPolicyMapping}/${totalSystems} ${copy.systems} (${policyCoverage}%)`,
+      missing: copy.addPolicyLinks,
     },
     {
       id: 'org-policy-baseline',
-      label: 'Organisation-wide policy baseline available',
+      label: copy.orgPolicyBaseline,
       fulfilled: hasOrgPolicyBaseline,
-      evidence: hasOrgPolicyBaseline ? 'Yes' : 'No',
-      missing:
-        'Add at least an AI policy or incident process to the register profile.',
+      evidence: hasOrgPolicyBaseline ? copy.yes : copy.no,
+      missing: copy.addOrgPolicyBaseline,
       actionHref: ROUTE_HREFS.governanceSettings,
-      actionLabel: 'Open Governance Settings',
+      actionLabel: copy.openGovernanceSettings,
     },
   ]);
 
   const level5 = buildLevel(5, [
     {
       id: 'level-4-prerequisite',
-      label: 'Level 4 fully achieved',
+      label: copy.level4Achieved,
       fulfilled: level4.fulfilled,
-      evidence: level4.fulfilled ? 'Yes' : 'No',
-      missing: 'Complete policy mapping and organisation baseline first.',
+      evidence: level4.fulfilled ? copy.yes : copy.no,
+      missing: copy.completePolicyAndBaseline,
     },
     {
       id: 'audit-history',
-      label: 'Audit history broadly available',
+      label: copy.auditHistoryAvailable,
       fulfilled: auditCoverage >= CONTROL_MATURITY_THRESHOLDS.auditCoverage,
-      evidence: `${systemsWithAuditHistory}/${totalSystems} systems (${auditCoverage}%)`,
-      missing: 'Systematically complete review history and evidence.',
+      evidence: `${systemsWithAuditHistory}/${totalSystems} ${copy.systems} (${auditCoverage}%)`,
+      missing: copy.completeAuditHistory,
       ...buildUseCaseRepairAction(
         useCases,
         (useCase) => !hasAuditHistory(useCase),
         'governance',
-        'Build review history',
+        copy.buildReviewHistory,
         { field: 'history' },
       ),
     },
     {
       id: 'iso-readiness-threshold',
-      label: 'ISO readiness reaches threshold',
+      label: copy.isoThreshold,
       fulfilled:
         isoReadinessPercent >= CONTROL_MATURITY_THRESHOLDS.isoReadiness,
       evidence: `${isoReadinessPercent}%`,
-      missing: 'Continue closing review, documentation and audit data gaps.',
+      missing: copy.closeGovernanceGaps,
     },
   ]);
 
@@ -522,7 +635,7 @@ export function calculateControlOverview(
     },
     maturity: {
       currentLevel,
-      currentLabel: levelLabel(currentLevel),
+      currentLabel: levelLabel(currentLevel, locale),
       levels,
       dataBasis,
     },

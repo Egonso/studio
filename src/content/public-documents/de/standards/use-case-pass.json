@@ -1,0 +1,96 @@
+{
+  "slug": "use-case-pass",
+  "locale": "de",
+  "content_type": "standard",
+  "sector": "cross-industry",
+  "intent": "standard-adoption",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
+  "template_variant": "institutional-report",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Der Use-Case Pass als Standardnachweis für KI-Einsatzfälle",
+  "summary": "Der Use-Case Pass beschreibt nicht ein Tool, sondern einen konkreten KI-Einsatzfall mit Verantwortung, Wirkung, Datenbezug und Nachweislogik. Genau auf dieser Einheit wird in Audits, Lieferketten und Governance-Prüfungen entschieden.",
+  "object_label": "Standard-Dokument",
+  "stance_label": "Referenzformat",
+  "author": "KIRegister",
+  "cta": {
+    "label": "Register starten",
+    "href": "/de",
+    "description": "Der nächste sinnvolle Schritt ist nicht ein Seminar, sondern die Erfassung der realen Einsatzfälle im Register."
+  },
+  "related_links": [
+    {
+      "label": "KI-Governance für Automobil-Zulieferer",
+      "href": "/de/industries/automotive-suppliers",
+      "description": "Branchenspezifischer Einstiegspunkt für Lieferkette, OEM-Druck und Supplier Requests."
+    },
+    {
+      "label": "OEM Supplier Request Kit",
+      "href": "/de/artefacts/oem-supplier-request-kit",
+      "description": "Operatives Dokument für Anfragen entlang der Beschaffungskette."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Warum ist ein Pass pro Einsatzfall wichtiger als eine Tool-Liste?",
+      "a": "Weil Regulierung, Verantwortung und Nachweis an der konkreten Nutzung hängen. Dasselbe Modell kann in einem Fall unkritisch und in einem anderen hochrelevant sein."
+    },
+    {
+      "q": "Ersetzt der Use-Case Pass eine rechtliche Prüfung?",
+      "a": "Nein. Er ersetzt kein Rechtsgutachten, sondern strukturiert die Informationen so, dass interne Prüfung, Aufsicht und Partneranforderungen belastbar bearbeitet werden können."
+    },
+    {
+      "q": "Ist der Pass eher für interne Governance oder für externe Partner gedacht?",
+      "a": "Beides. Intern ist er die kleinste steuerbare Einheit. Extern ist er die kleinste sinnvoll verifizierbare Einheit für Audit, Due Diligence und Lieferkette."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Warum der Markt die falsche Einheit dokumentiert",
+      "paragraphs": [
+        "Viele Unternehmen dokumentieren heute Tools, Anbieter oder allgemeine Richtlinien. Geprüft wird in der Praxis aber fast nie ein Tool im Abstrakten, sondern ein konkreter Einsatzfall mit Zweck, betroffenen Personen, Datenarten, Verantwortlichkeiten und Wirkung.",
+        "Der Use-Case Pass setzt genau auf dieser Ebene an. Er ist kein Marketing-Asset und kein allgemeiner Leitfaden, sondern ein formales Arbeitsdokument für einen einzelnen KI-Einsatzfall."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Was ein belastbarer Use-Case Pass enthalten muss",
+      "items": [
+        "Zweck und Nutzungskontext des Einsatzfalls",
+        "Verantwortliche Person oder Rolle",
+        "Wirkung auf Entscheidungen, Bewertungen oder externe Kommunikation",
+        "Datenkategorien und besondere Schutzbedarfe",
+        "Status der Prüfung und Nachweisfähigkeit",
+        "Verweise auf Richtlinien, Kontrollen, Exporte oder öffentliche Verify-Links"
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Warum das Format strategisch wichtiger ist als die Oberfläche",
+      "rows": [
+        {
+          "label": "Audit",
+          "value": "Auditoren brauchen pro Fall eine klare Evidenzkette, nicht eine Sammlung allgemeiner Absichtserklärungen."
+        },
+        {
+          "label": "Lieferkette",
+          "value": "OEMs und größere Auftraggeber fragen nicht nach Ihrer gesamten Tool-Landschaft, sondern nach dem konkret betroffenen KI-Einsatz."
+        },
+        {
+          "label": "Partnerkanal",
+          "value": "Berater, Auditoren und Trainer können ein klares Artefakt viel leichter verbreiten als eine unscharfe Governance-Plattform."
+        }
+      ]
+    }
+  ]
+}

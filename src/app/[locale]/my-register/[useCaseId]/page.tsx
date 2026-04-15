@@ -51,9 +51,9 @@ import { setActiveWorkspaceId } from '@/lib/workspace-session';
 const aiRegistry = createAiToolsRegistryService();
 
 export default function UseCaseDetailPage() {
-  const params = useParams<{ useCaseId: string }>();
+  const params = useParams<{ useCaseId: string }>() ?? { useCaseId: '' };
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const workspaceScope = useWorkspaceScope();
   const { user, loading: authLoading } = useAuth();
 

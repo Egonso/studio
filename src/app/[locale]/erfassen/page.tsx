@@ -1,5 +1,10 @@
 import { redirect } from 'next/navigation';
 
-export default function ErfassenRedirect() {
-  redirect('/intake');
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function ErfassenRedirect({ params }: Props) {
+  const { locale } = await params;
+  redirect(`/${locale}/intake`);
 }

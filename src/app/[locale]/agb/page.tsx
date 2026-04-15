@@ -1,5 +1,10 @@
 import { redirect } from 'next/navigation';
 
-export default function AgbRedirect() {
-  redirect('/terms');
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function AgbRedirect({ params }: Props) {
+  const { locale } = await params;
+  redirect(`/${locale}/terms`);
 }

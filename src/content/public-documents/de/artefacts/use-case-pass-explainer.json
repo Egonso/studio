@@ -1,0 +1,73 @@
+{
+  "slug": "use-case-pass-explainer",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "partner-channel",
+  "intent": "education",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Use-Case Pass Explainer für Einkauf, Legal und Governance",
+  "summary": "Dieses Dokument ist die kurze, anschlussfähige Erklärung des Use-Case-Pass-Ansatzes für Personen, die kein Tool kaufen wollen, aber verstehen müssen, warum ein einsatzfallbasierter Nachweis sinnvoller ist als allgemeine KI-Statements.",
+  "object_label": "Explainer-Artefakt",
+  "stance_label": "Einordnungsdokument",
+  "author": "KIRegister",
+  "cta": {
+    "label": "Der Use-Case Pass als Standardnachweis",
+    "href": "/de/standards/use-case-pass",
+    "description": "Das Standard-Dokument zeigt die volle Logik hinter dem kurzen Explainer."
+  },
+  "related_links": [
+    {
+      "label": "OEM Supplier Request Kit",
+      "href": "/de/artefacts/oem-supplier-request-kit",
+      "description": "Praktischer Folgefall für Lieferkette und Beschaffung."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Die kurze Erklärung",
+      "paragraphs": [
+        "Ein Use-Case Pass dokumentiert einen einzelnen KI-Einsatzfall so, dass Zweck, Verantwortung, Risiko- und Nachweisbezug in einem Objekt zusammenlaufen.",
+        "Für Einkauf, Legal und Governance ist das hilfreich, weil sich Entscheidungen, Freigaben und Rückfragen auf eine definierte Einheit beziehen lassen. Das reduziert Übersetzungsarbeit zwischen Fachbereich, Compliance und Partnern."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Drei Fragen, die der Explainer beantwortet",
+      "items": [
+        "Warum reicht eine allgemeine KI-Richtlinie allein nicht aus?",
+        "Weshalb ist ein Einsatzfall die richtige Governance-Einheit?",
+        "Wie hängt ein interner Pass mit externer Verifikation oder Supplier Requests zusammen?"
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Typische Lesergruppen",
+      "rows": [
+        {
+          "label": "Einkauf",
+          "value": "Will verstehen, welche Nachweise entlang der Beschaffung sinnvoll und verhältnismäßig sind."
+        },
+        {
+          "label": "Legal",
+          "value": "Will eine saubere Struktur für Prüfung, Haftungsabgrenzung und Eskalation."
+        },
+        {
+          "label": "Governance",
+          "value": "Will ein Format, das intern steuerbar und extern kommunizierbar bleibt."
+        }
+      ]
+    }
+  ]
+}

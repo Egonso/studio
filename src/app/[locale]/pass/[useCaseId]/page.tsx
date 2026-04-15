@@ -38,7 +38,7 @@ const isoReviewCycleLabels: Record<string, string> = {
 export default function UseCasePassPage() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const params = useParams();
+    const params = useParams() ?? {};
     const workspaceScope = useWorkspaceScope();
     const useCaseId = params.useCaseId as string;
     const scopeContext = useMemo(

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ActionQueue } from '@/components/control/action-queue';
 import { ControlKpiHeader } from '@/components/control/control-kpi-header';
 import { ControlMaturityPanel } from '@/components/control/control-maturity-panel';
@@ -47,11 +47,211 @@ interface ControlSnapshot {
   capturedAt: Date;
 }
 
+function getControlPageCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      title: 'Governance-Kontrollzentrum',
+      reportTitle: 'Bericht',
+      loadingFrameDescriptionReport: 'Ihr Bericht wird vorbereitet.',
+      loadingFrameDescriptionControl:
+        'Strukturierte Governance-Ebene für Reviews, Richtlinien, Exporte, Trust Portal und Academy.',
+      loadingNextStepReport: 'Wir bereiten Ihren aktuellen Bericht vor.',
+      loadingNextStepControl: 'Wir bereiten Ihre Governance-Ansicht vor.',
+      loadingPanelTitleReport: 'Bericht wird geladen',
+      loadingPanelTitleControl: 'Governance wird geladen',
+      loadingPanelDescriptionReport:
+        'Kennzahlen, Prioritäten und Reifegrad werden vorbereitet.',
+      loadingPanelDescriptionControl:
+        'Governance-Kennzahlen, Action Queue und Reifegrad werden vorbereitet.',
+      frameDescriptionReportWithOrg:
+        'Der aktuelle Bericht für {organisation}. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.',
+      frameDescriptionControlWithOrg:
+        'Governance steuern für {organisation}. Reviews, Richtlinien, Exporte und Trust-Signale laufen hier zusammen.',
+      frameDescriptionReport:
+        'Ihr aktueller Bericht. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.',
+      frameDescriptionControl:
+        'Governance steuern. Reviews, Richtlinien, Exporte und Trust-Signale laufen hier zusammen.',
+      nextStepWithItemsReport:
+        'Arbeiten Sie zuerst die offenen Punkte in Ihrem Register ab.',
+      nextStepWithItemsControl:
+        'Arbeiten Sie zuerst die priorisierten Governance-Aufgaben ab.',
+      nextStepEmptyReport:
+        'Halten Sie Dokumentation, Verantwortlichkeiten und Governance-Grundlagen aktuell.',
+      nextStepEmptyControl:
+        'Prüfen Sie Richtlinien, Exporte oder das Trust Portal als nächsten Governance-Schritt.',
+      disabledTitleReport: 'Bericht ist noch nicht freigeschaltet',
+      disabledTitleControl: 'Governance ist noch nicht freigeschaltet',
+      disabledDescriptionReport:
+        'Dieser Bericht ist für diesen Workspace noch nicht aktiviert.',
+      disabledDescriptionControl:
+        'Die Governance-Ebene ist für diesen Workspace noch nicht aktiviert.',
+      inheritedContextTitle: 'Kontext aus dem Register übernommen',
+      inheritedContextReport:
+        'Einsatzfall {id} wurde als Kontext in den Bericht übernommen.',
+      inheritedContextControl:
+        'Einsatzfall {id} wurde als Kontext in Governance geöffnet.',
+      loadingDataTitleReport: 'Berichtsdaten werden geladen',
+      loadingDataTitleControl: 'Governance-Daten werden geladen',
+      loadingDataDescription:
+        'Kennzahlen, Aufgaben und Reifegrad werden geladen.',
+      loadFailedTitleReport: 'Bericht konnte nicht geladen werden',
+      loadFailedTitleControl: 'Governance konnte nicht geladen werden',
+      fallbackKpiTitle: 'Kennzahlen',
+      fallbackKpiDescription:
+        'Kennzahlen erscheinen hier, sobald dieser Bereich verfügbar ist.',
+      fallbackMaturityTitle: 'Governance-Reifegradmodell',
+      fallbackMaturityDescription:
+        'Die Reifegradübersicht erscheint hier, sobald dieser Bereich verfügbar ist.',
+      prioritiesFromRegister: 'Prioritäten aus dem Register',
+      reviewsAndQueue: 'Reviews / Action Queue',
+      prioritiesDescription:
+        'Was im Bericht als Nächstes Aufmerksamkeit braucht.',
+      queueDescription:
+        'Priorisierte Governance-Aufgaben und fällige Reviews an einem Ort.',
+      priorities: 'Prioritäten',
+      actionQueue: 'Action Queue',
+      due: 'Fällig',
+      overdue: 'Überfällig',
+      keepReportCurrent: 'Bericht aktuell halten',
+      academyProgress: 'Academy-Fortschritt',
+      keepReportCurrentDescription:
+        'Der Bericht bleibt belastbar, wenn Dokumentation und Zuständigkeiten laufend gepflegt werden.',
+      academyProgressDescription:
+        'Kurs- und Zertifizierungsfortschritt direkt aus der Governance-Ebene.',
+      totalSystems: 'Systeme gesamt',
+      withoutOwner: 'Ohne Owner',
+      highRisk: 'Hochrisiko',
+      completedLearningVideos: 'Abgeschlossene Lernvideos',
+      academyStarted:
+        '{percent}% abgeschlossen. Kurs und Prüfung bleiben aus Governance in einem Klick erreichbar.',
+      academyNotStarted:
+        'Noch kein Kursstart. Academy ist direkt erreichbar, sobald Ihr Team Governance-Training aufnimmt.',
+      fallbackQueueDescription:
+        'Die priorisierte Maßnahmenliste erscheint hier, sobald dieser Bereich verfügbar ist.',
+      formulaTitle: 'Formel und Datengrundlage',
+      formulaDescription:
+        'Transparente, deterministische Berechnung ohne Blackbox.',
+      governanceScoreFormula: 'Governance-Score (0-100)',
+      governanceScoreFormulaDesc:
+        '30% Dokumentation, 20% Owner-Coverage, 20% Review-Struktur, 15% Aufsichtsabdeckung, 15% Policy-Mapping.',
+      isoReadinessFormula: 'ISO-Readiness (0-100)',
+      isoReadinessFormulaDesc:
+        '35% Review-Struktur, 25% Dokumentationslevel, 25% Aufsicht, 15% Audit-Historie.',
+      levelThresholds: 'Level-Schwellenwerte',
+      levelThresholdsLine:
+        'Dokumentation {documentation}%, Owner {owner}%, Review {review}%, Policy {policy}%, Audit {audit}%, ISO-Readiness {iso}%.',
+      currentSnapshot: 'Datengrundlage (aktueller Snapshot)',
+      snapshotLine:
+        'Systeme gesamt: {total}, mit Owner: {owner}, mit Review-Struktur: {review}, mit Policy-Mapping: {policy}, mit Audit-Historie: {audit}.',
+      reviewWindowExplanation:
+        'Review-Logik: "fällig" bedeutet nächstes Review innerhalb von {days} Tagen, "überfällig" bedeutet Datum in der Vergangenheit.',
+    } as const;
+  }
+
+  return {
+    title: 'Governance Control Center',
+    reportTitle: 'Report',
+    loadingFrameDescriptionReport: 'Your report is being prepared.',
+    loadingFrameDescriptionControl:
+      'Structured governance layer for reviews, policies, exports, Trust Portal and Academy.',
+    loadingNextStepReport: 'We are preparing your current report.',
+    loadingNextStepControl: 'We are preparing your governance view.',
+    loadingPanelTitleReport: 'Loading report',
+    loadingPanelTitleControl: 'Loading governance',
+    loadingPanelDescriptionReport:
+      'Metrics, priorities and maturity are being prepared.',
+    loadingPanelDescriptionControl:
+      'Governance metrics, action queue and maturity are being prepared.',
+    frameDescriptionReportWithOrg:
+      'The current report for {organisation}. Metrics, priorities and maturity are based directly on your register.',
+    frameDescriptionControlWithOrg:
+      'Governance for {organisation}. Reviews, policies, exports and trust signals come together here.',
+    frameDescriptionReport:
+      'Your current report. Metrics, priorities and maturity are based directly on your register.',
+    frameDescriptionControl:
+      'Governance in one place. Reviews, policies, exports and trust signals come together here.',
+    nextStepWithItemsReport:
+      'Work through the open points in your register first.',
+    nextStepWithItemsControl:
+      'Handle the prioritised governance tasks first.',
+    nextStepEmptyReport:
+      'Keep documentation, ownership and governance basics up to date.',
+    nextStepEmptyControl:
+      'Review policies, exports or the Trust Portal as your next governance step.',
+    disabledTitleReport: 'Report not enabled yet',
+    disabledTitleControl: 'Governance not enabled yet',
+    disabledDescriptionReport:
+      'This report is not yet enabled for this workspace.',
+    disabledDescriptionControl:
+      'The governance layer is not yet enabled for this workspace.',
+    inheritedContextTitle: 'Context inherited from register',
+    inheritedContextReport:
+      'Use case {id} was carried into the report as context.',
+    inheritedContextControl:
+      'Use case {id} was opened in governance as context.',
+    loadingDataTitleReport: 'Loading report data',
+    loadingDataTitleControl: 'Loading governance data',
+    loadingDataDescription: 'Loading metrics, tasks and maturity.',
+    loadFailedTitleReport: 'Report could not be loaded',
+    loadFailedTitleControl: 'Governance could not be loaded',
+    fallbackKpiTitle: 'KPIs',
+    fallbackKpiDescription:
+      'Metrics will appear here once this section becomes available.',
+    fallbackMaturityTitle: 'Governance Maturity Model',
+    fallbackMaturityDescription:
+      'The maturity overview will appear here once this section becomes available.',
+    prioritiesFromRegister: 'Priorities from register',
+    reviewsAndQueue: 'Reviews / Action Queue',
+    prioritiesDescription: 'What needs attention next in the report.',
+    queueDescription:
+      'Prioritised governance tasks and due reviews in one place.',
+    priorities: 'Priorities',
+    actionQueue: 'Action Queue',
+    due: 'Due',
+    overdue: 'Overdue',
+    keepReportCurrent: 'Keep report current',
+    academyProgress: 'Academy progress',
+    keepReportCurrentDescription:
+      'The report stays reliable when documentation and ownership are maintained continuously.',
+    academyProgressDescription:
+      'Course and certification progress directly from the governance layer.',
+    totalSystems: 'Total systems',
+    withoutOwner: 'Without owner',
+    highRisk: 'High risk',
+    completedLearningVideos: 'Completed learning videos',
+    academyStarted:
+      '{percent}% completed. Course and assessment remain one click away from governance.',
+    academyNotStarted:
+      'No course started yet. The Academy is directly available as soon as your team begins governance training.',
+    fallbackQueueDescription:
+      'The prioritised action list will appear here once this section becomes available.',
+    formulaTitle: 'Formula and data basis',
+    formulaDescription:
+      'Transparent, deterministic calculation without a black box.',
+    governanceScoreFormula: 'Governance Score (0-100)',
+    governanceScoreFormulaDesc:
+      '30% documentation, 20% owner coverage, 20% review structure, 15% oversight coverage, 15% policy mapping.',
+    isoReadinessFormula: 'ISO Readiness (0-100)',
+    isoReadinessFormulaDesc:
+      '35% review structure, 25% documentation level, 25% oversight, 15% audit history.',
+    levelThresholds: 'Level thresholds',
+    levelThresholdsLine:
+      'Documentation {documentation}%, owner {owner}%, review {review}%, policy {policy}%, audit {audit}%, ISO Readiness {iso}%.',
+    currentSnapshot: 'Data basis (current snapshot)',
+    snapshotLine:
+      'Total systems: {total}, with owner: {owner}, with review structure: {review}, with policy mapping: {policy}, with audit history: {audit}.',
+    reviewWindowExplanation:
+      'Review logic: "due" means next review within {days} days, "overdue" means the date is in the past.',
+  } as const;
+}
+
 export default function ControlPage() {
+  const locale = useLocale();
   const t = useTranslations();
+  const copy = useMemo(() => getControlPageCopy(locale), [locale]);
   const { user, loading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams() ?? new URLSearchParams();
   const scopedHrefs = useScopedRouteHrefs();
   const { plan, allowed: canOpenReviews, loading: entitlementLoading } =
     useCapability('reviewWorkflow');
@@ -102,7 +302,7 @@ export default function ControlPage() {
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!loading && user && registerFirstFlags.controlShell) {
@@ -116,8 +316,9 @@ export default function ControlPage() {
       snapshot.useCases,
       snapshot.orgSettings,
       snapshot.capturedAt,
+      locale,
     );
-  }, [snapshot]);
+  }, [locale, snapshot]);
 
   const actionQueue = useMemo(() => {
     if (!snapshot) return [];
@@ -176,26 +377,30 @@ export default function ControlPage() {
       <SignedInAreaFrame
         area={frameArea}
         brandHref={headerBrandHref}
-        title={isReportOnlyMode ? t('nav.report') : t('control.title')}
+        title={isReportOnlyMode ? copy.reportTitle : copy.title}
         description={
           isReportOnlyMode
-            ? 'Ihr Bericht wird vorbereitet.'
-            : 'Strukturierte Governance-Ebene für Reviews, Policies, Exporte, Trust Portal und Academy.'
+            ? copy.loadingFrameDescriptionReport
+            : copy.loadingFrameDescriptionControl
         }
         nextStep={
           isReportOnlyMode
-            ? 'Wir bereiten Ihren aktuellen Bericht vor.'
-            : 'Wir bereiten Ihre Governance-Ansicht vor.'
+            ? copy.loadingNextStepReport
+            : copy.loadingNextStepControl
         }
       >
         <PageStatePanel
           tone="loading"
           area={frameArea}
-          title={isReportOnlyMode ? 'Bericht wird geladen' : 'Control wird geladen'}
+          title={
+            isReportOnlyMode
+              ? copy.loadingPanelTitleReport
+              : copy.loadingPanelTitleControl
+          }
           description={
             isReportOnlyMode
-              ? 'Kennzahlen, Prioritäten und Reifegrad werden vorbereitet.'
-              : 'Governance-Kennzahlen, Action Queue und Reifegrad werden vorbereitet.'
+              ? copy.loadingPanelDescriptionReport
+              : copy.loadingPanelDescriptionControl
           }
         />
       </SignedInAreaFrame>
@@ -208,24 +413,30 @@ export default function ControlPage() {
     <SignedInAreaFrame
       area={frameArea}
       brandHref={headerBrandHref}
-      title={isReportOnlyMode ? t('nav.report') : t('control.title')}
+      title={isReportOnlyMode ? copy.reportTitle : copy.title}
       description={
         snapshot?.organisationName
           ? isReportOnlyMode
-            ? `Der aktuelle Bericht für ${snapshot.organisationName}. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.`
-            : `Governance steuern für ${snapshot.organisationName}. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.`
+            ? copy.frameDescriptionReportWithOrg.replace(
+                '{organisation}',
+                snapshot.organisationName,
+              )
+            : copy.frameDescriptionControlWithOrg.replace(
+                '{organisation}',
+                snapshot.organisationName,
+              )
           : isReportOnlyMode
-            ? 'Ihr aktueller Bericht. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.'
-            : 'Governance steuern. Reviews, Policies, Exporte und Trust-Signale laufen hier zusammen.'
+            ? copy.frameDescriptionReport
+            : copy.frameDescriptionControl
       }
       nextStep={
         actionQueue.length > 0
           ? isReportOnlyMode
-            ? 'Arbeiten Sie zuerst die offenen Punkte in Ihrem Register ab.'
-            : 'Arbeiten Sie zuerst die priorisierten Governance-Aufgaben ab.'
+            ? copy.nextStepWithItemsReport
+            : copy.nextStepWithItemsControl
           : isReportOnlyMode
-            ? 'Halten Sie Dokumentation, Verantwortlichkeiten und Governance-Grundlagen aktuell.'
-            : 'Prüfen Sie Policies, Exporte oder Trust Portal als nächsten Governance-Schritt.'
+            ? copy.nextStepEmptyReport
+            : copy.nextStepEmptyControl
       }
     >
       <div className="space-y-6">
@@ -234,13 +445,13 @@ export default function ControlPage() {
             area={frameArea}
             title={
               isReportOnlyMode
-                ? 'Bericht ist noch nicht freigeschaltet'
-                : 'Control ist noch nicht freigeschaltet'
+                ? copy.disabledTitleReport
+                : copy.disabledTitleControl
             }
             description={
               isReportOnlyMode
-                ? 'Dieser Bericht ist für diesen Workspace noch nicht aktiviert.'
-                : 'Die Governance-Ebene ist für diesen Workspace noch nicht aktiviert.'
+                ? copy.disabledDescriptionReport
+                : copy.disabledDescriptionControl
             }
             actions={
               <Button asChild>
@@ -253,11 +464,17 @@ export default function ControlPage() {
             {focusedUseCaseId && (
               <PageStatePanel
                 area={frameArea}
-                title="Kontext aus dem Register übernommen"
+                title={copy.inheritedContextTitle}
                 description={
                   isReportOnlyMode
-                    ? `Use Case ${focusedUseCaseId} wurde als Kontext in den Bericht übernommen.`
-                    : `Use Case ${focusedUseCaseId} wurde als Kontext in Control geöffnet.`
+                    ? copy.inheritedContextReport.replace(
+                        '{id}',
+                        focusedUseCaseId,
+                      )
+                    : copy.inheritedContextControl.replace(
+                        '{id}',
+                        focusedUseCaseId,
+                      )
                 }
               />
             )}
@@ -268,10 +485,10 @@ export default function ControlPage() {
                 area={frameArea}
                 title={
                   isReportOnlyMode
-                    ? 'Berichtsdaten werden geladen'
-                    : 'Governance-Daten werden geladen'
+                    ? copy.loadingDataTitleReport
+                    : copy.loadingDataTitleControl
                 }
-                description="Kennzahlen, Aufgaben und Reifegrad werden geladen."
+                description={copy.loadingDataDescription}
               />
             )}
 
@@ -281,8 +498,8 @@ export default function ControlPage() {
                 area={frameArea}
                 title={
                   isReportOnlyMode
-                    ? 'Bericht konnte nicht geladen werden'
-                    : 'Control konnte nicht geladen werden'
+                    ? copy.loadFailedTitleReport
+                    : copy.loadFailedTitleControl
                 }
                 description={dataError}
               />
@@ -298,10 +515,9 @@ export default function ControlPage() {
                 ) : (
                   <Card>
                     <CardHeader>
-                      <CardTitle>KPI Header</CardTitle>
+                      <CardTitle>{copy.fallbackKpiTitle}</CardTitle>
                       <CardDescription>
-                        Kennzahlen erscheinen hier, sobald dieser Bereich
-                        verfügbar ist.
+                        {copy.fallbackKpiDescription}
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -312,10 +528,9 @@ export default function ControlPage() {
                 ) : (
                   <Card>
                     <CardHeader>
-                      <CardTitle>Governance Maturity Model</CardTitle>
+                      <CardTitle>{copy.fallbackMaturityTitle}</CardTitle>
                       <CardDescription>
-                        Die Reifegradübersicht erscheint hier, sobald dieser
-                        Bereich verfügbar ist.
+                        {copy.fallbackMaturityDescription}
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -326,20 +541,22 @@ export default function ControlPage() {
                     <CardHeader>
                       <CardTitle>
                         {isReportOnlyMode
-                          ? 'Prioritäten aus dem Register'
-                          : 'Reviews / Action Queue'}
+                          ? copy.prioritiesFromRegister
+                          : copy.reviewsAndQueue}
                       </CardTitle>
                       <CardDescription>
                         {isReportOnlyMode
-                          ? 'Was im Bericht als Nächstes Aufmerksamkeit braucht.'
-                          : 'Priorisierte Governance-Aufgaben und fällige Reviews an einem Ort.'}
+                          ? copy.prioritiesDescription
+                          : copy.queueDescription}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid gap-3 sm:grid-cols-3">
                         <div className="rounded-md border p-3">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            {isReportOnlyMode ? 'Prioritäten' : 'Action Queue'}
+                            {isReportOnlyMode
+                              ? copy.priorities
+                              : copy.actionQueue}
                           </p>
                           <p className="mt-1 text-2xl font-semibold">
                             {actionQueue.length}
@@ -347,7 +564,7 @@ export default function ControlPage() {
                         </div>
                         <div className="rounded-md border p-3">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Fällig
+                            {copy.due}
                           </p>
                           <p className="mt-1 text-2xl font-semibold">
                             {overview.kpis.reviewsDue}
@@ -355,7 +572,7 @@ export default function ControlPage() {
                         </div>
                         <div className="rounded-md border p-3">
                           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                            Überfällig
+                            {copy.overdue}
                           </p>
                           <p className="mt-1 text-2xl font-semibold">
                             {overview.kpis.reviewsOverdue}
@@ -389,13 +606,13 @@ export default function ControlPage() {
                     <CardHeader>
                       <CardTitle>
                         {isReportOnlyMode
-                          ? 'Bericht aktuell halten'
-                          : 'Academy-Fortschritt'}
+                          ? copy.keepReportCurrent
+                          : copy.academyProgress}
                       </CardTitle>
                       <CardDescription>
                         {isReportOnlyMode
-                          ? 'Der Bericht bleibt belastbar, wenn Dokumentation und Zuständigkeiten laufend gepflegt werden.'
-                          : 'Kurs- und Zertifizierungsfortschritt direkt aus der Governance-Ebene.'}
+                          ? copy.keepReportCurrentDescription
+                          : copy.academyProgressDescription}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -403,7 +620,7 @@ export default function ControlPage() {
                         <div className="grid gap-3 sm:grid-cols-3">
                           <div className="rounded-md border p-3">
                             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                              Systeme gesamt
+                              {copy.totalSystems}
                             </p>
                             <p className="mt-1 text-2xl font-semibold">
                               {overview.kpis.totalSystems}
@@ -411,7 +628,7 @@ export default function ControlPage() {
                           </div>
                           <div className="rounded-md border p-3">
                             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                              Ohne Owner
+                              {copy.withoutOwner}
                             </p>
                             <p className="mt-1 text-2xl font-semibold">
                               {overview.kpis.systemsWithoutOwner}
@@ -419,7 +636,7 @@ export default function ControlPage() {
                           </div>
                           <div className="rounded-md border p-3">
                             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                              Hochrisiko
+                              {copy.highRisk}
                             </p>
                             <p className="mt-1 text-2xl font-semibold">
                               {overview.kpis.highRiskCount}
@@ -430,7 +647,7 @@ export default function ControlPage() {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">
-                              Abgeschlossene Lernvideos
+                              {copy.completedLearningVideos}
                             </span>
                             <span className="font-medium">
                               {academyProgress.completedVideos}/
@@ -447,8 +664,11 @@ export default function ControlPage() {
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {academyProgress.started
-                              ? `${academyProgress.completionPercent}% abgeschlossen. Kurs und Prüfung bleiben aus Control in einem Klick erreichbar.`
-                              : 'Noch kein Kursstart. Academy ist direkt erreichbar, sobald Ihr Team Governance-Training aufnimmt.'}
+                              ? copy.academyStarted.replace(
+                                  '{percent}',
+                                  String(academyProgress.completionPercent),
+                                )
+                              : copy.academyNotStarted}
                           </p>
                         </div>
                       )}
@@ -490,11 +710,12 @@ export default function ControlPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>
-                        {isReportOnlyMode ? 'Prioritäten' : 'Action Queue'}
+                        {isReportOnlyMode
+                          ? copy.priorities
+                          : copy.actionQueue}
                       </CardTitle>
                       <CardDescription>
-                        Die priorisierte Maßnahmenliste erscheint hier, sobald
-                        dieser Bereich verfügbar ist.
+                        {copy.fallbackQueueDescription}
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -502,65 +723,104 @@ export default function ControlPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Formel und Datengrundlage</CardTitle>
+                    <CardTitle>{copy.formulaTitle}</CardTitle>
                     <CardDescription>
-                      Transparente, deterministische Berechnung ohne Blackbox.
+                      {copy.formulaDescription}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-3 md:grid-cols-2">
                       <div className="rounded-md border p-3 text-sm">
-                        <p className="font-medium">Governance Score (0-100)</p>
+                        <p className="font-medium">
+                          {copy.governanceScoreFormula}
+                        </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          30% Dokumentation, 20% Owner-Coverage, 20%
-                          Review-Struktur, 15% Aufsichtsabdeckung, 15%
-                          Policy-Mapping.
+                          {copy.governanceScoreFormulaDesc}
                         </p>
                       </div>
                       <div className="rounded-md border p-3 text-sm">
-                        <p className="font-medium">ISO-Readiness (0-100)</p>
+                        <p className="font-medium">
+                          {copy.isoReadinessFormula}
+                        </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          35% Review-Struktur, 25% Dokumentationslevel, 25%
-                          Aufsicht, 15% Audit-Historie.
+                          {copy.isoReadinessFormulaDesc}
                         </p>
                       </div>
                     </div>
 
                     <div className="rounded-md border p-3 text-sm">
-                      <p className="font-medium">Level-Schwellenwerte</p>
+                      <p className="font-medium">{copy.levelThresholds}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Dokumentation{' '}
-                        {CONTROL_MATURITY_THRESHOLDS.documentationCoverage}%,
-                        Owner {CONTROL_MATURITY_THRESHOLDS.ownerCoverage}%,
-                        Review {CONTROL_MATURITY_THRESHOLDS.reviewCoverage}%,
-                        Policy {CONTROL_MATURITY_THRESHOLDS.policyCoverage}%,
-                        Audit {CONTROL_MATURITY_THRESHOLDS.auditCoverage}%,
-                        ISO-Readiness {CONTROL_MATURITY_THRESHOLDS.isoReadiness}
-                        %.
+                        {copy.levelThresholdsLine
+                          .replace(
+                            '{documentation}',
+                            String(
+                              CONTROL_MATURITY_THRESHOLDS.documentationCoverage,
+                            ),
+                          )
+                          .replace(
+                            '{owner}',
+                            String(CONTROL_MATURITY_THRESHOLDS.ownerCoverage),
+                          )
+                          .replace(
+                            '{review}',
+                            String(CONTROL_MATURITY_THRESHOLDS.reviewCoverage),
+                          )
+                          .replace(
+                            '{policy}',
+                            String(CONTROL_MATURITY_THRESHOLDS.policyCoverage),
+                          )
+                          .replace(
+                            '{audit}',
+                            String(CONTROL_MATURITY_THRESHOLDS.auditCoverage),
+                          )
+                          .replace(
+                            '{iso}',
+                            String(CONTROL_MATURITY_THRESHOLDS.isoReadiness),
+                          )}
                       </p>
                     </div>
 
                     <div className="rounded-md border p-3 text-sm">
-                      <p className="font-medium">
-                        Datengrundlage (aktueller Snapshot)
-                      </p>
+                      <p className="font-medium">{copy.currentSnapshot}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Systeme gesamt:{' '}
-                        {overview.maturity.dataBasis.totalSystems}, mit Owner:{' '}
-                        {overview.maturity.dataBasis.systemsWithOwner}, mit
-                        Review-Struktur:{' '}
-                        {overview.maturity.dataBasis.systemsWithReviewStructure}
-                        , mit Policy-Mapping:{' '}
-                        {overview.maturity.dataBasis.systemsWithPolicyMapping},
-                        mit Audit-Historie:{' '}
-                        {overview.maturity.dataBasis.systemsWithAuditHistory}.
+                        {copy.snapshotLine
+                          .replace(
+                            '{total}',
+                            String(overview.maturity.dataBasis.totalSystems),
+                          )
+                          .replace(
+                            '{owner}',
+                            String(overview.maturity.dataBasis.systemsWithOwner),
+                          )
+                          .replace(
+                            '{review}',
+                            String(
+                              overview.maturity.dataBasis
+                                .systemsWithReviewStructure,
+                            ),
+                          )
+                          .replace(
+                            '{policy}',
+                            String(
+                              overview.maturity.dataBasis
+                                .systemsWithPolicyMapping,
+                            ),
+                          )
+                          .replace(
+                            '{audit}',
+                            String(
+                              overview.maturity.dataBasis.systemsWithAuditHistory,
+                            ),
+                          )}
                       </p>
                     </div>
 
                     <p className="text-xs text-muted-foreground">
-                      Review-Logik: "faellig" bedeutet naechstes Review
-                      innerhalb von {CONTROL_REVIEW_DUE_WINDOW_DAYS} Tagen,
-                      "ueberfaellig" bedeutet Datum in der Vergangenheit.
+                      {copy.reviewWindowExplanation.replace(
+                        '{days}',
+                        String(CONTROL_REVIEW_DUE_WINDOW_DAYS),
+                      )}
                     </p>
                   </CardContent>
                 </Card>

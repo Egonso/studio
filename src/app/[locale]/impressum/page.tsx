@@ -1,5 +1,10 @@
 import { redirect } from 'next/navigation';
 
-export default function ImpressumRedirect() {
-  redirect('/legal-notice');
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function ImpressumRedirect({ params }: Props) {
+  const { locale } = await params;
+  redirect(`/${locale}/legal-notice`);
 }

@@ -5,22 +5,188 @@ import {
   LegalSection,
 } from '@/components/legal/legal-page-shell';
 
-export const metadata: Metadata = {
-  title: 'Legal Notice | AI Register',
-  description:
-    'Provider information, contact details and mandatory legal disclosures for the AI Register.',
-};
+interface Props {
+  params: Promise<{ locale: string }>;
+}
 
-export default function LegalNoticePage() {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+
+  if (locale === 'de') {
+    return {
+      title: 'Impressum | KI Register',
+      description:
+        'Anbieterangaben, Kontaktdaten und Pflichtinformationen für das KI Register.',
+    };
+  }
+
+  return {
+    title: 'Legal Notice | AI Registry',
+    description:
+      'Provider information, contact details and mandatory legal disclosures for AI Registry.',
+  };
+}
+
+export default async function LegalNoticePage({ params }: Props) {
+  const { locale } = await params;
+
+  if (locale === 'de') {
+    return (
+      <LegalPageShell
+        title="Impressum"
+        description="Anbieterangaben und gesetzlich vorgeschriebene Offenlegungen für das KI Register gemäß E-Commerce-Richtlinie Art. 5, § 5 DDG und § 25 MedienG. Die nachstehenden Angaben basieren auf den bestehenden Live-Offenlegungen und wurden für die aktuelle Register-Lösung konsolidiert."
+      >
+        <LegalSection title="Angaben gemäß § 5 DDG und § 25 MedienG">
+          <p>Das KI Register wird von zwei gleichberechtigten Partnern betrieben:</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
+              <p>Magazinstrasse 4/Top 5</p>
+              <p>5020 Salzburg</p>
+              <p>Österreich</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">
+                BewusstseinBilden UG (haftungsbeschränkt)
+              </p>
+              <p>Auerfeldstr. 24 Rgb</p>
+              <p>81541 München</p>
+              <p>Deutschland</p>
+            </div>
+          </div>
+        </LegalSection>
+
+        <LegalSection title="Register- und Unternehmensdaten">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
+              <p>Firmenbuchnummer: FN 619238 w</p>
+              <p>Firmenbuchgericht: Landesgericht Salzburg</p>
+              <p>UID: ATU80300513</p>
+              <p>Gründungsdatum: 04.01.2024</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">
+                BewusstseinBilden UG (haftungsbeschränkt)
+              </p>
+              <p>Handelsregister: HRB 304412</p>
+              <p>Registergericht: Amtsgericht München</p>
+              <p>Status: Aktiv</p>
+            </div>
+          </div>
+        </LegalSection>
+
+        <LegalSection title="Vertretungsberechtigte Personen">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
+              <p>Momo Maximilian Feichtinger</p>
+              <p>Einzelvertretungsbefugt</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">
+                BewusstseinBilden UG (haftungsbeschränkt)
+              </p>
+              <p>Alexander Zoltan Gal</p>
+              <p>Geschäftsführer</p>
+            </div>
+          </div>
+        </LegalSection>
+
+        <LegalSection title="Kontakt">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
+              <p>E-Mail: office@momofeichtinger.com</p>
+              <p>Telefon: +43 681 816 55313</p>
+              <p>Adresse: Magazinstrasse 4/Top 5, 5020 Salzburg, Österreich</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
+              <p className="font-medium text-slate-950">
+                BewusstseinBilden UG (haftungsbeschränkt)
+              </p>
+              <p>E-Mail: zoltangal@web.de</p>
+              <p>Telefon: +49 (0) 179 204 4465</p>
+              <p>Adresse: Auerfeldstr. 24 Rgb, 81541 München, Deutschland</p>
+            </div>
+          </div>
+          <p>Website: https://airegist.com</p>
+        </LegalSection>
+
+        <LegalSection title="Unternehmensgegenstand">
+          <p>
+            Das KI Register dient Organisationen als internes Werkzeug zur
+            Dokumentation, Steuerung und Nachweisführung von KI-Einsatzfällen
+            sowie zur Bereitstellung von Trainings-, Export- und
+            Governance-Funktionen.
+          </p>
+          <p>
+            Gegenstand der gemeinsamen Tätigkeit der Anbieter ist die
+            Entwicklung und der Betrieb der Plattform sowie die Bereitstellung
+            von Materialien, Kursen und begleitenden Leistungen in den Bereichen
+            EU AI Act Compliance, Governance-Strukturen und revisionssichere
+            Dokumentation.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="Aufsichtsbehörde, Berufsrecht und Streitbeilegung">
+          <p>Aufsichtsbehörde: Bezirkshauptmannschaft Salzburg-Stadt</p>
+          <p>Es gelten insbesondere folgende Regelwerke:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Gewerbeordnung (GewO), Österreich</li>
+            <li>Unternehmensgesetzbuch (UGB)</li>
+            <li>Datenschutz-Grundverordnung (DSGVO)</li>
+          </ul>
+          <p>
+            Die Europäische Kommission stellt eine Plattform zur
+            Online-Streitbeilegung bereit:{' '}
+            <a
+              href="https://ec.europa.eu/consumers/odr"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              https://ec.europa.eu/consumers/odr
+            </a>
+          </p>
+          <p>
+            Wir sind weder verpflichtet noch bereit, an
+            Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+            teilzunehmen.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="Haftung und Hinweise">
+          <p>
+            Eigene Inhalte unterliegen den jeweils geltenden gesetzlichen
+            Bestimmungen. Für verlinkte externe Inhalte sind ausschließlich die
+            jeweiligen Anbieter verantwortlich.
+          </p>
+          <p>
+            Sämtliche Inhalte dieser Website und der Plattform sind
+            urheberrechtlich geschützt. Downloads und Vervielfältigungen sind
+            nur im gesetzlich zulässigen Umfang gestattet.
+          </p>
+          <p>
+            Keine Rechtsberatung: Das KI Register und die begleitenden Inhalte
+            dienen der Dokumentation, Strukturierung und Wissensvermittlung. Sie
+            stellen keine individuelle Rechtsberatung dar und ersetzen diese
+            nicht.
+          </p>
+        </LegalSection>
+
+        <p className="text-xs text-slate-500">Stand: 12. März 2026</p>
+      </LegalPageShell>
+    );
+  }
+
   return (
     <LegalPageShell
       title="Legal Notice"
-      description="Provider information and mandatory disclosures for the AI Register pursuant to E-Commerce Directive Art. 5, Section 5 DDG and Section 25 MedienG (Austrian Media Act). The details below are based on the existing live disclosures and have been consolidated for the current register solution."
+      description="Provider information and mandatory disclosures for AI Registry pursuant to E-Commerce Directive Art. 5, Section 5 DDG and Section 25 MedienG (Austrian Media Act). The details below are based on the existing live disclosures and have been consolidated for the current register solution."
     >
       <LegalSection title="Information pursuant to Section 5 DDG and Section 25 MedienG">
-        <p>
-          The AI Register is jointly operated by two equal partners:
-        </p>
+        <p>AI Registry is jointly operated by two equal partners:</p>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
@@ -34,7 +200,7 @@ export default function LegalNoticePage() {
             </p>
             <p>Auerfeldstr. 24 Rgb</p>
             <p>81541 Muenchen</p>
-            <p>Deutschland</p>
+            <p>Germany</p>
           </div>
         </div>
       </LegalSection>
@@ -90,7 +256,7 @@ export default function LegalNoticePage() {
             </p>
             <p>Email: zoltangal@web.de</p>
             <p>Telephone: +49 (0) 179 204 4465</p>
-            <p>Address: Auerfeldstr. 24 Rgb, 81541 Muenchen, Deutschland</p>
+            <p>Address: Auerfeldstr. 24 Rgb, 81541 Muenchen, Germany</p>
           </div>
         </div>
         <p>Website: https://airegist.com</p>
@@ -98,9 +264,9 @@ export default function LegalNoticePage() {
 
       <LegalSection title="Business Purpose">
         <p>
-          The AI Register serves as an internal tool for organisations to
-          document, manage and evidence AI use cases, and to provide training,
-          export and governance features for businesses and organisations.
+          AI Registry serves as an internal tool for organisations to document,
+          manage and evidence AI use cases, and to provide training, export and
+          governance features for businesses and organisations.
         </p>
         <p>
           The joint activity of the providers is the development and operation
@@ -120,8 +286,7 @@ export default function LegalNoticePage() {
         </ul>
         <p>
           The European Commission provides a platform for online dispute
-          resolution:
-          {' '}
+          resolution:{' '}
           <a
             href="https://ec.europa.eu/consumers/odr"
             target="_blank"
@@ -149,10 +314,10 @@ export default function LegalNoticePage() {
           allowed by law.
         </p>
         <p>
-          No legal advice: The AI Register and accompanying content are
-          intended for documentation, structuring and knowledge sharing. They
-          do not constitute and are no substitute for individual legal advice
-          from a qualified legal professional.
+          No legal advice: AI Registry and accompanying content are intended for
+          documentation, structuring and knowledge sharing. They do not
+          constitute and are no substitute for individual legal advice from a
+          qualified legal professional.
         </p>
       </LegalSection>
 

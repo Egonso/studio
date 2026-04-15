@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, Eye, AlertCircle, CopyPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import type { PortalSystemEntry } from "@/lib/register-first/trust-portal-aggregator";
 import {
-  DATA_CATEGORY_LABELS,
+  getDataCategoryLabel,
   type RegisterUseCaseStatus,
 } from "@/lib/register-first/types";
 import { buildLoginPath } from "@/lib/auth/login-routing";
@@ -17,38 +18,71 @@ interface PortalSystemsTableProps {
   organizationName?: string | null;
 }
 
-const statusConfig: Record<
+function getStatusConfig(locale: string): Record<
   RegisterUseCaseStatus,
   { label: string; color: string; bgColor: string; icon: React.ElementType }
-> = {
-  UNREVIEWED: {
-    label: "Erfasst",
-    color: "text-slate-600",
-    bgColor: "bg-slate-100",
-    icon: Clock,
-  },
-  REVIEW_RECOMMENDED: {
-    label: "In Prüfung",
-    color: "text-yellow-700",
-    bgColor: "bg-yellow-100",
-    icon: AlertCircle,
-  },
-  REVIEWED: {
-    label: "Geprüft",
-    color: "text-gray-700",
-    bgColor: "bg-gray-100",
-    icon: Eye,
-  },
-  PROOF_READY: {
-    label: "Nachweisfähig",
-    color: "text-gray-700",
-    bgColor: "bg-gray-100",
-    icon: CheckCircle2,
-  },
-};
+> {
+  if (locale === "de") {
+    return {
+      UNREVIEWED: {
+        label: "Erfasst",
+        color: "text-slate-600",
+        bgColor: "bg-slate-100",
+        icon: Clock,
+      },
+      REVIEW_RECOMMENDED: {
+        label: "In Prüfung",
+        color: "text-yellow-700",
+        bgColor: "bg-yellow-100",
+        icon: AlertCircle,
+      },
+      REVIEWED: {
+        label: "Geprüft",
+        color: "text-gray-700",
+        bgColor: "bg-gray-100",
+        icon: Eye,
+      },
+      PROOF_READY: {
+        label: "Nachweisfähig",
+        color: "text-gray-700",
+        bgColor: "bg-gray-100",
+        icon: CheckCircle2,
+      },
+    };
+  }
+
+  return {
+    UNREVIEWED: {
+      label: "Captured",
+      color: "text-slate-600",
+      bgColor: "bg-slate-100",
+      icon: Clock,
+    },
+    REVIEW_RECOMMENDED: {
+      label: "Under review",
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+      icon: AlertCircle,
+    },
+    REVIEWED: {
+      label: "Reviewed",
+      color: "text-gray-700",
+      bgColor: "bg-gray-100",
+      icon: Eye,
+    },
+    PROOF_READY: {
+      label: "Evidence-ready",
+      color: "text-gray-700",
+      bgColor: "bg-gray-100",
+      icon: CheckCircle2,
+    },
+  };
+}
 
 export function PortalSystemsTable({ systems, organizationName }: PortalSystemsTableProps) {
+  const locale = useLocale();
   const router = useRouter();
+  const statusConfig = getStatusConfig(locale);
 
   if (systems.length === 0) {
     return (
@@ -110,7 +144,7 @@ export function PortalSystemsTable({ systems, organizationName }: PortalSystemsT
                   variant="secondary"
                   className="text-xs bg-slate-100 text-slate-600"
                 >
-                  {DATA_CATEGORY_LABELS[system.dataCategory as keyof typeof DATA_CATEGORY_LABELS] ||
+                  {getDataCategoryLabel(system.dataCategory as any, locale) ||
                     system.dataCategory}
                 </Badge>
                 <Badge
