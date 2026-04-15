@@ -53,10 +53,12 @@ function handleRegisterRouteError(error: unknown) {
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
 
-  console.error('Register external submissions route failed:', error);
+  logWarn('register_external_submissions_degraded_unexpected', {
+    errorMessage: error instanceof Error ? error.message : 'unknown',
+  });
   return NextResponse.json(
-    { error: 'Externe Einreichungen konnten nicht geladen werden.' },
-    { status: 500 },
+    { submissions: [], degraded: true },
+    { status: 200 },
   );
 }
 

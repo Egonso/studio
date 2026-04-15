@@ -152,14 +152,19 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    logWarn('supplier_invite_list_degraded_unexpected', {
+      registerId: req.nextUrl.searchParams.get('registerId') ?? undefined,
+      errorMessage: error instanceof Error ? error.message : 'unknown',
+    });
     captureException(error, {
       boundary: 'app',
       component: 'supplier-invite-list',
       route: '/api/supplier-invite/list',
     });
-    return NextResponse.json(
-      { error: 'Lieferantenanfragen konnten nicht geladen werden.' },
-      { status: 500 },
-    );
+    return NextResponse.json({
+      invites: [],
+      campaigns: [],
+      degraded: true,
+    });
   }
 }
