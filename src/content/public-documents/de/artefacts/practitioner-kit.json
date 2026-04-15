@@ -23,16 +23,22 @@
   "author": "KIRegister",
   "downloads": [
     {
-      "label": "Practitioner Kit / Workshopleitfaden",
-      "href": "/downloads/artefacts/ki-register-practitioner-kit-workshopleitfaden.pdf",
-      "description": "Kompakter PDF-Leitfaden fuer Workshops, Audits und Starttermine mit Fachbereichen.",
+      "label": "Handout: Workshop-Integration fuer KI-Governance",
+      "href": "/resources/handouts/ki-register-handout-workshop-integration.pdf",
+      "description": "Ausgearbeitetes Schulungs-Handout mit Workshop-Ablauf, Quick-Capture-Fragen, Governance-Deliverable und Sprint-Struktur.",
       "format": "PDF"
     },
     {
-      "label": "Beispiel Registerauszug fuer Workshops",
-      "href": "/downloads/artefacts/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Excel-Beispiel mit mehreren Use Cases, Owner-Zuordnung, Kategorie und Verify-Referenz.",
+      "label": "Practitioner Workshop Kit",
+      "href": "/resources/workbooks/ki-register-practitioner-workshop-kit.xlsx",
+      "description": "Professionelles Workbook mit Workshop-Canvas, Capture-Template und Delivery-Checklist fuer Berater und Trainer.",
       "format": "XLSX"
+    },
+    {
+      "label": "Handout: Von der KI-Einfuehrung zur nachweisbaren KI-Nutzung",
+      "href": "/resources/handouts/ki-register-handout-ki-einfuehrung-zu-governance.pdf",
+      "description": "Trainingstext fuer die Positionierung des Registers als Governance-Deliverable nach Workshops und Einfuehrungsprojekten.",
+      "format": "PDF"
     }
   ],
   "cta": {

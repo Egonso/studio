@@ -23,15 +23,15 @@
   "author": "KIRegister",
   "downloads": [
     {
-      "label": "Use-Case Pass Explainer / One-Pager",
-      "href": "/downloads/artefacts/ki-register-use-case-pass-explainer-one-pager.pdf",
-      "description": "Kurzer PDF-Einstieg fuer Einkauf, Legal und Governance mit der Kernaussage des Formats.",
+      "label": "Handout: Von der KI-Einfuehrung zur nachweisbaren KI-Nutzung",
+      "href": "/resources/handouts/ki-register-handout-ki-einfuehrung-zu-governance.pdf",
+      "description": "Substanzieller Schulungstext, der zeigt, warum Governance als zweiter Schritt nach Einfuehrung und Training entsteht.",
       "format": "PDF"
     },
     {
-      "label": "Beispiel Use-Case Pass",
-      "href": "/downloads/artefacts/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Direktes Beispiel eines ausgefuellten Passes fuer einen dokumentierten KI-Einsatzfall.",
+      "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
+      "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
+      "description": "Vertiefendes Handout fuer Einkauf, Legal und Governance zur Struktur, Statuslogik und Exportfaehigkeit des Passes.",
       "format": "PDF"
     }
   ],

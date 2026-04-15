@@ -179,7 +179,7 @@ function buildPlainText(doc) {
   const lines = [doc.title, '', doc.summary];
 
   if (Array.isArray(doc.downloads) && doc.downloads.length > 0) {
-    lines.push('', doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples');
+    lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');
     for (const download of doc.downloads) {
       lines.push(`${download.label} (${download.format}): ${download.href}`);
       if (typeof download.description === 'string' && download.description.trim().length > 0) {
@@ -474,7 +474,7 @@ function collectVerificationTargets(validationResults) {
       addTarget(routePath, {
         kind: 'document-download-section',
         source,
-        expectedText: result.doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples',
+        expectedText: result.doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples',
       });
     }
 

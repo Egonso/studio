@@ -208,7 +208,7 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
             {document.downloads.length > 0 ? (
               <section className="space-y-4 border-b border-slate-200 pb-8">
                 <h2 className="text-xl font-semibold tracking-tight text-slate-950">
-                  {isGerman ? 'Downloads und Beispiele' : 'Downloads and examples'}
+                  {isGerman ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples'}
                 </h2>
                 <div className="space-y-3">
                   {document.downloads.map((download) => renderDownload(download, document.locale))}

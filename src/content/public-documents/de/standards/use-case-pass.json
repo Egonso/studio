@@ -25,15 +25,21 @@
   "downloads": [
     {
       "label": "Beispiel Use-Case Pass",
-      "href": "/downloads/artefacts/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Ausgefuelltes PDF-Beispiel fuer einen dokumentierten KI-Einsatzfall mit Owner, Kategorie und Nachweislogik.",
+      "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Professionell ausgearbeitetes Referenzdokument fuer einen einzelnen KI-Einsatzfall mit Owner, Review-Stand, Kontrollen und Evidenzkette.",
       "format": "PDF"
     },
     {
-      "label": "Beispiel Use-Case-Register",
-      "href": "/downloads/artefacts/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Excel-Beispiel fuer mehrere Pass-Eintraege mit Verify-Referenzen und Review-Status.",
+      "label": "Register- und Review-Matrix",
+      "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Mehrblaettriges Workbook mit Beispielregister, Review-Matrix und Feldleitfaden fuer Governance- und Audit-Teams.",
       "format": "XLSX"
+    },
+    {
+      "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
+      "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
+      "description": "Substanzielles Schulungs-Handout zur Pass-Struktur, Statuslogik und rechtlichen Verankerung des Formats.",
+      "format": "PDF"
     }
   ],
   "cta": {

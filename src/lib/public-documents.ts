@@ -217,7 +217,7 @@ export function getPublicDocumentPlainText(doc: PublicDocument): string {
   const lines: string[] = [doc.title, '', doc.summary];
 
   if (doc.downloads.length > 0) {
-    lines.push('', doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples');
+    lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');
     for (const download of doc.downloads) {
       lines.push(`${download.label} (${download.format}): ${download.href}`);
       if (download.description) {

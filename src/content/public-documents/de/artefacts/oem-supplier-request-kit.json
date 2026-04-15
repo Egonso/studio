@@ -23,15 +23,21 @@
   "author": "KIRegister",
   "downloads": [
     {
-      "label": "Supplier Request Template",
-      "href": "/downloads/artefacts/ki-register-supplier-request-template.xlsx",
-      "description": "Excel-Vorlage fuer strukturierte Lieferkettenanfragen mit Pflichtfeldern und Beispielantwort.",
+      "label": "Supplier Request & Response Kit",
+      "href": "/resources/workbooks/ki-register-supplier-request-template.xlsx",
+      "description": "Mehrblaettriges Workbook mit Blanko-Anfrage, Beispielantwort und Evidence-Checklist fuer Lieferketten- und OEM-Rueckfragen.",
       "format": "XLSX"
     },
     {
-      "label": "Beispielantwort fuer OEM-Anfragen",
-      "href": "/downloads/artefacts/ki-register-supplier-response-beispiel.pdf",
-      "description": "Ausgefuelltes PDF-Beispiel fuer eine belastbare Supplier-Response auf Use-Case-Ebene.",
+      "label": "Supplier Response Dossier",
+      "href": "/resources/examples/ki-register-supplier-response-beispiel.pdf",
+      "description": "Formal aufgebaute Beispielantwort mit Scope, Kernaussagen, Evidenzbezug und klaren Grenzen der Aussage.",
+      "format": "PDF"
+    },
+    {
+      "label": "Handout: DSB-Workflow mit KI Register",
+      "href": "/resources/handouts/ki-register-handout-dsb-workflow-arbeitsblatt.pdf",
+      "description": "Praxis-Handout fuer Review-Trigger, DSB-Ergaenzungen und den operativen Ablauf zwischen Register, Review und Export.",
       "format": "PDF"
     }
   ],
