@@ -29,6 +29,8 @@ const BANNED_TITLE_PATTERNS = [
   },
 ];
 
+const QUESTION_LED_HEADING_PATTERN = /\b(?:fragen|questions|beantwortet|answered)\b/i;
+
 function walkJsonFiles(dirPath) {
   const files = [];
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -84,6 +86,29 @@ function validateDownloads(doc, errors) {
 
     if (!VALID_DOWNLOAD_FORMATS.has(download.format)) {
       errors.push(`Download ${index} uses unsupported format "${download.format}".`);
+    }
+  }
+}
+
+function validateExpectationDelivery(doc, errors) {
+  for (const [index, section] of doc.sections.entries()) {
+    if (!section || typeof section !== 'object') {
+      continue;
+    }
+
+    if (!QUESTION_LED_HEADING_PATTERN.test(section.heading || '')) {
+      continue;
+    }
+
+    if (
+      section.kind === 'bullets' &&
+      Array.isArray(section.items) &&
+      section.items.length > 0 &&
+      section.items.every((item) => typeof item === 'string' && item.trim().endsWith('?'))
+    ) {
+      errors.push(
+        `Section ${index} promises answers but only lists teaser questions. Replace it with actual answers on the same page.`,
+      );
     }
   }
 }
@@ -243,6 +268,7 @@ function validateDocument(doc, filePath) {
   }
 
   validateDownloads(doc, errors);
+  validateExpectationDelivery(doc, errors);
 
   if (doc.content_type === 'update' && doc.template_variant !== 'authority-update') {
     errors.push('Updates must use the authority-update template.');
@@ -336,25 +362,198 @@ function buildManifest(validationResults) {
   };
 }
 
-const command = process.argv[2] || 'validate';
-const validationResults = loadDocuments();
-const hasErrors = printErrors(validationResults);
+function normalizeInternalHref(href) {
+  if (typeof href !== 'string' || !href.startsWith('/')) {
+    return null;
+  }
 
-if (hasErrors) {
+  return href;
+}
+
+function collectVerificationTargets(validationResults) {
+  const targets = new Map();
+
+  function addTarget(urlPath, payload) {
+    const normalizedPath = normalizeInternalHref(urlPath);
+    if (!normalizedPath) {
+      return;
+    }
+
+    const absoluteUrl = `${BASE_URL}${normalizedPath}`;
+    const existing = targets.get(absoluteUrl);
+
+    if (existing) {
+      existing.kinds.add(payload.kind);
+      existing.sources.add(payload.source);
+      if (payload.expectedText) {
+        existing.expectedText.add(payload.expectedText);
+      }
+      return;
+    }
+
+    targets.set(absoluteUrl, {
+      url: absoluteUrl,
+      kinds: new Set([payload.kind]),
+      sources: new Set([payload.source]),
+      expectedText: new Set(payload.expectedText ? [payload.expectedText] : []),
+    });
+  }
+
+  for (const result of validationResults) {
+    const routePath = `/${result.doc.locale}/${getSegment(result.doc.content_type)}/${result.doc.slug}`;
+    const source = path.relative(ROOT, result.filePath);
+
+    addTarget(routePath, { kind: 'document', source, expectedText: result.doc.title });
+
+    for (const section of result.doc.sections ?? []) {
+      if (section.heading) {
+        addTarget(routePath, { kind: 'document-section', source, expectedText: section.heading });
+      }
+
+      if (section.kind === 'paragraphs' && Array.isArray(section.paragraphs) && section.paragraphs[0]) {
+        addTarget(routePath, {
+          kind: 'document-section-content',
+          source,
+          expectedText: section.paragraphs[0],
+        });
+      }
+
+      if (section.kind === 'bullets' && Array.isArray(section.items) && section.items[0]) {
+        addTarget(routePath, {
+          kind: 'document-section-content',
+          source,
+          expectedText: section.items[0],
+        });
+      }
+
+      if (section.kind === 'table' && Array.isArray(section.rows) && section.rows[0]?.label) {
+        addTarget(routePath, {
+          kind: 'document-section-content',
+          source,
+          expectedText: section.rows[0].label,
+        });
+      }
+    }
+
+    for (const item of result.doc.faq ?? []) {
+      if (item.q) {
+        addTarget(routePath, { kind: 'document-faq', source, expectedText: item.q });
+      }
+    }
+
+    if (Array.isArray(result.doc.downloads) && result.doc.downloads.length > 0) {
+      addTarget(routePath, {
+        kind: 'document-download-section',
+        source,
+        expectedText: result.doc.locale === 'de' ? 'Downloads und Beispiele' : 'Downloads and examples',
+      });
+    }
+
+    if (result.doc.cta?.href) {
+      addTarget(result.doc.cta.href, { kind: 'cta', source });
+    }
+
+    for (const link of result.doc.related_links ?? []) {
+      addTarget(link.href, { kind: 'related', source });
+    }
+
+    for (const download of result.doc.downloads ?? []) {
+      addTarget(download.href, { kind: 'download', source });
+    }
+  }
+
+  return [...targets.values()].sort((left, right) => left.url.localeCompare(right.url));
+}
+
+async function verifyTarget(target) {
+  const response = await fetch(target.url, {
+    method: 'GET',
+    redirect: 'follow',
+    headers: {
+      'user-agent': 'KIRegister public content verifier',
+      accept: '*/*',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`returned ${response.status}`);
+  }
+
+  const isHtml = (response.headers.get('content-type') || '').includes('text/html');
+  if (!isHtml) {
+    return {
+      status: response.status,
+      contentType: response.headers.get('content-type') || 'unknown',
+    };
+  }
+
+  const html = await response.text();
+  for (const fragment of target.expectedText) {
+    if (!html.includes(fragment)) {
+      throw new Error(`missing expected fragment "${fragment}"`);
+    }
+  }
+
+  return {
+    status: response.status,
+    contentType: response.headers.get('content-type') || 'text/html',
+  };
+}
+
+async function verifyLinks(validationResults) {
+  const targets = collectVerificationTargets(validationResults);
+  let failures = 0;
+
+  for (const target of targets) {
+    try {
+      const result = await verifyTarget(target);
+      console.log(
+        `OK [${[...target.kinds].join(', ')}] ${target.url} (${result.status} ${result.contentType})`,
+      );
+    } catch (error) {
+      failures += 1;
+      console.error(
+        `FAIL [${[...target.kinds].join(', ')}] ${target.url} :: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      console.error(`  referenced from: ${[...target.sources].join(', ')}`);
+    }
+  }
+
+  if (failures > 0) {
+    process.exit(1);
+  }
+
+  console.log(`Verified ${targets.length} internal public links and downloads against ${BASE_URL}.`);
+}
+
+async function main() {
+  const command = process.argv[2] || 'validate';
+  const validationResults = loadDocuments();
+  const hasErrors = printErrors(validationResults);
+
+  if (hasErrors) {
+    process.exit(1);
+  }
+
+  if (command === 'validate') {
+    console.log(`Validated ${validationResults.length} public content documents.`);
+    return;
+  }
+
+  if (command === 'manifest') {
+    const manifest = buildManifest(validationResults);
+    fs.writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf-8');
+    console.log(`Wrote publish manifest: ${path.relative(ROOT, MANIFEST_PATH)}`);
+    return;
+  }
+
+  if (command === 'verify-links') {
+    await verifyLinks(validationResults);
+    return;
+  }
+
+  console.error(`Unknown command "${command}". Use "validate", "manifest", or "verify-links".`);
   process.exit(1);
 }
 
-if (command === 'validate') {
-  console.log(`Validated ${validationResults.length} public content documents.`);
-  process.exit(0);
-}
-
-if (command === 'manifest') {
-  const manifest = buildManifest(validationResults);
-  fs.writeFileSync(MANIFEST_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf-8');
-  console.log(`Wrote publish manifest: ${path.relative(ROOT, MANIFEST_PATH)}`);
-  process.exit(0);
-}
-
-console.error(`Unknown command "${command}". Use "validate" or "manifest".`);
-process.exit(1);
+await main();
