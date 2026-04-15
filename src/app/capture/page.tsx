@@ -9,9 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DraftAssistPanel } from "@/components/draft-assist/draft-assist-panel";
 import { invalidateEntitlementCache } from "@/lib/compliance-engine/capability/useCapability";
 import { useAuth } from "@/context/auth-context";
 import { QuickCaptureModal } from "@/components/register/quick-capture-modal";
+import type { QuickCaptureFieldsDraft } from "@/components/register/quick-capture-fields";
 import { CoverageAssistEntry } from "@/components/coverage-assist/coverage-assist-entry";
 import {
   trackCoverageAssistCustomPurposeUsed,
@@ -24,6 +26,8 @@ import {
 } from "@/lib/coverage-assist/query-contract";
 import { isCoverageAssistPilotEnabled } from "@/lib/coverage-assist/feature-gate";
 import { resolveCoverageAssistEntryState } from "@/lib/coverage-assist/capture-entry";
+import { buildCaptureInitialDraftFromDraftAssistHandoff } from "@/lib/draft-assist/capture-handoff";
+import type { DraftAssistHandoff } from "@/lib/draft-assist/types";
 import type {
   CaptureAssistContext,
   CoverageAssistSeedSuggestion,
@@ -41,12 +45,7 @@ import {
 } from "@/lib/register-first/register-service";
 
 type OnboardingState = "loading" | "no_register" | "ready";
-type CaptureInitialDraft = Partial<{
-  purpose: string;
-  description: string;
-  toolId: string;
-  toolFreeText: string;
-}>;
+type CaptureInitialDraft = Partial<QuickCaptureFieldsDraft & { description: string }>;
 
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -71,6 +70,7 @@ export default function StandaloneCapturePage() {
   const [createError, setCreateError] = useState<string | null>(null);
   const [syncedEntitlement, setSyncedEntitlement] = useState(false);
   const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
+  const draftAssistCaptureEnabled = registerFirstFlags.draftAssistCapture;
   const defaultInitialDraft = useMemo(
     () => ({
       purpose: prefill.slice(0, 160),
@@ -87,12 +87,19 @@ export default function StandaloneCapturePage() {
       }),
     [coverageAssistPilotEnabled, searchParams]
   );
-  const [captureOpen, setCaptureOpen] = useState(() => assistEntryState === null);
+  const [captureOpen, setCaptureOpen] = useState(
+    () => assistEntryState === null && !draftAssistCaptureEnabled
+  );
   const [assistDraft, setAssistDraft] = useState<CaptureInitialDraft | null>(null);
   const [assistContext, setAssistContext] = useState<CaptureAssistContext | null>(null);
   const assistOpenedSignatureRef = useRef<string | null>(null);
   const initialDraft = assistDraft ?? defaultInitialDraft;
   const shouldShowAssistEntry = assistEntryState !== null && assistDraft === null;
+  const shouldShowDraftAssistEntry =
+    draftAssistCaptureEnabled &&
+    assistEntryState === null &&
+    assistDraft === null &&
+    !captureOpen;
   const isCaptureSurfaceReady = onboardingState === "ready" && (Boolean(user) || guestMode);
 
   // Check if user has a register on mount
@@ -229,6 +236,18 @@ export default function StandaloneCapturePage() {
   ) => {
     setAssistDraft(nextDraft);
     setAssistContext(nextAssistContext);
+    setCaptureOpen(true);
+  };
+
+  const openManualCapture = () => {
+    setAssistDraft(null);
+    setAssistContext(null);
+    setCaptureOpen(true);
+  };
+
+  const handleDraftAssistAccepted = (handoff: DraftAssistHandoff) => {
+    setAssistContext(null);
+    setAssistDraft(buildCaptureInitialDraftFromDraftAssistHandoff(handoff));
     setCaptureOpen(true);
   };
 
@@ -442,6 +461,15 @@ export default function StandaloneCapturePage() {
           onSelectSuggestion={handleAssistSuggestionSelected}
           onSubmitCustomPurpose={handleAssistCustomPurpose}
           onContinueWithoutSuggestion={handleAssistContinueWithoutSuggestion}
+        />
+      ) : null}
+
+      {shouldShowDraftAssistEntry ? (
+        <DraftAssistPanel
+          mode={user ? "register" : "guest"}
+          workspaceId={workspaceScope}
+          onStartManualCapture={openManualCapture}
+          onAcceptHandoff={handleDraftAssistAccepted}
         />
       ) : null}
 
