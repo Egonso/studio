@@ -14,193 +14,18 @@ import {
 } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-
-const PROJECT_ID_KEYS = [
-  'FIREBASE_ADMIN_PROJECT_ID',
-  'FIREBASE_PROJECT_ID',
-  'GCLOUD_PROJECT',
-  'GCP_PROJECT',
-] as const;
-
-const SERVICE_ACCOUNT_JSON_KEYS = [
-  'FIREBASE_SERVICE_ACCOUNT_KEY',
-  'FIREBASE_SERVICE_ACCOUNT_JSON',
-  'FIREBASE_SERVICE_ACCOUNT_KEY_BASE64',
-  'FIREBASE_SERVICE_ACCOUNT_B64',
-  'FIREBASE_ADMIN_SERVICE_ACCOUNT',
-  'FIREBASE_ADMIN_SERVICE_ACCOUNT_B64',
-  'GOOGLE_APPLICATION_CREDENTIALS_JSON',
-  'GOOGLE_APPLICATION_CREDENTIALS_BASE64',
-] as const;
-
-const SERVICE_ACCOUNT_FILE_KEYS = [
-  'GOOGLE_APPLICATION_CREDENTIALS',
-  'FIREBASE_ADMIN_SERVICE_ACCOUNT_PATH',
-] as const;
-
-const CLIENT_EMAIL_KEYS = [
-  'FIREBASE_ADMIN_CLIENT_EMAIL',
-  'FIREBASE_CLIENT_EMAIL',
-  'GOOGLE_CLIENT_EMAIL',
-] as const;
-
-const PRIVATE_KEY_KEYS = [
-  'FIREBASE_ADMIN_PRIVATE_KEY',
-  'FIREBASE_PRIVATE_KEY',
-  'GOOGLE_PRIVATE_KEY',
-] as const;
-
-type ParsedServiceAccount = {
-  project_id?: string;
-  projectId?: string;
-  client_email?: string;
-  clientEmail?: string;
-  private_key?: string;
-  privateKey?: string;
-};
-
-function cleanEnv(value?: string): string | undefined {
-  if (!value) return undefined;
-  return value.trim().replace(/^['"]|['"]$/g, '');
-}
-
-function firstEnv(keys: readonly string[]): { key: string; value: string } | null {
-  for (const key of keys) {
-    const value = cleanEnv(process.env[key]);
-    if (value) {
-      return { key, value };
-    }
-  }
-  return null;
-}
-
-function decodeBase64(value: string): string | undefined {
-  const candidates = [value];
-  const urlSafe = value.replace(/-/g, '+').replace(/_/g, '/');
-  if (urlSafe !== value) {
-    candidates.push(urlSafe);
-  }
-
-  for (const candidate of candidates) {
-    const padLength = candidate.length % 4 === 0 ? 0 : 4 - (candidate.length % 4);
-    const padded = candidate + '='.repeat(padLength);
-    try {
-      const decoded = Buffer.from(padded, 'base64').toString('utf8');
-      if (decoded) {
-        return decoded;
-      }
-    } catch {
-      // Continue trying alternative encodings.
-    }
-  }
-
-  return undefined;
-}
-
-function normalizePrivateKey(value?: string): string | undefined {
-  const cleaned = cleanEnv(value);
-  if (!cleaned) return undefined;
-
-  const normalized = cleaned.replace(/\\n/g, '\n');
-
-  const normalizePemBlock = (candidate: string): string | undefined => {
-    const beginMarker = '-----BEGIN PRIVATE KEY-----';
-    const endMarker = '-----END PRIVATE KEY-----';
-    if (
-      !candidate.includes(beginMarker) ||
-      !candidate.includes(endMarker)
-    ) {
-      return undefined;
-    }
-
-    const body = candidate
-      .replace(beginMarker, '')
-      .replace(endMarker, '')
-      .replace(/\s+/g, '');
-
-    if (!body) {
-      return undefined;
-    }
-
-    const wrappedBody = body.match(/.{1,64}/g)?.join('\n') ?? body;
-    return `${beginMarker}\n${wrappedBody}\n${endMarker}\n`;
-  };
-
-  const normalizedPem = normalizePemBlock(normalized);
-  if (normalizedPem) {
-    return normalizedPem;
-  }
-
-  const maybeDecoded = decodeBase64(normalized);
-  if (maybeDecoded) {
-    const decodedPem = normalizePemBlock(maybeDecoded);
-    if (decodedPem) {
-      return decodedPem;
-    }
-  }
-
-  return normalized;
-}
-
-function parseServiceAccountJson(raw: string): ParsedServiceAccount | null {
-  const cleaned = cleanEnv(raw);
-  if (!cleaned) {
-    return null;
-  }
-
-  function parseCandidate(candidate: string): ParsedServiceAccount | null {
-    try {
-      const parsed = JSON.parse(candidate) as unknown;
-      if (parsed && typeof parsed === 'object') {
-        return parsed as ParsedServiceAccount;
-      }
-      if (typeof parsed === 'string') {
-        const nested = JSON.parse(parsed) as unknown;
-        if (nested && typeof nested === 'object') {
-          return nested as ParsedServiceAccount;
-        }
-      }
-    } catch {
-      // Continue with the next candidate.
-    }
-
-    return null;
-  }
-
-  const candidates: string[] = [cleaned];
-  const decoded = decodeBase64(cleaned);
-  if (decoded) {
-    candidates.push(decoded);
-  }
-
-  try {
-    const decodedUri = decodeURIComponent(cleaned);
-    if (decodedUri !== cleaned) {
-      candidates.push(decodedUri);
-    }
-  } catch {
-    // Ignore invalid URI encoding.
-  }
-
-  const quoteUnescaped = cleaned.replace(/\\"/g, '"');
-  if (quoteUnescaped !== cleaned) {
-    candidates.push(quoteUnescaped);
-  }
-
-  const maybeQuoted = cleaned.replace(/^"+|"+$/g, '');
-  if (maybeQuoted && maybeQuoted !== cleaned) {
-    candidates.push(maybeQuoted);
-  }
-
-  for (const candidate of candidates) {
-    const parsed = parseCandidate(candidate);
-    if (parsed) {
-      return parsed;
-    }
-  }
-
-  return null;
-}
+import {
+  PROJECT_ID_KEYS,
+  SERVICE_ACCOUNT_JSON_KEYS,
+  SERVICE_ACCOUNT_FILE_KEYS,
+  CLIENT_EMAIL_KEYS,
+  PRIVATE_KEY_KEYS,
+  cleanEnv,
+  firstEnv,
+  parseServiceAccountJson,
+  getErrorMessage,
+  validatePrivateKey,
+} from '@/lib/firebase-admin-credentials';
 
 function maskSecret(value: string): string {
   if (value.length <= 8) return '********';
@@ -211,19 +36,61 @@ function hasAnyEnv(keys: readonly string[]): boolean {
   return keys.some((key) => Boolean(cleanEnv(process.env[key])));
 }
 
-function logCredentialResolutionHints(projectId: string): void {
+type FirebaseAdminWarningStore = {
+  seen: Set<string>;
+};
+
+function getWarningStore(): FirebaseAdminWarningStore {
+  const globalKey = '__kiregisterFirebaseAdminWarnings';
+  const globalState = globalThis as typeof globalThis & {
+    [globalKey]?: FirebaseAdminWarningStore;
+  };
+
+  if (!globalState[globalKey]) {
+    globalState[globalKey] = {
+      seen: new Set<string>(),
+    };
+  }
+
+  return globalState[globalKey];
+}
+
+function warnOnce(key: string, message: string): void {
+  const store = getWarningStore();
+  if (store.seen.has(key)) {
+    return;
+  }
+
+  store.seen.add(key);
+  console.warn(message);
+}
+
+function logCredentialResolutionHints(
+  projectId: string,
+  rejectedCredentials: string[] = [],
+): void {
   const jsonPresent = hasAnyEnv(SERVICE_ACCOUNT_JSON_KEYS);
   const splitPresent = hasAnyEnv(CLIENT_EMAIL_KEYS) || hasAnyEnv(PRIVATE_KEY_KEYS);
   const filePresent = hasAnyEnv(SERVICE_ACCOUNT_FILE_KEYS);
-  console.warn(
+  const rejectedSummary =
+    rejectedCredentials.length > 0
+      ? ` rejected=${rejectedCredentials.slice(0, 2).join(' | ')}${
+          rejectedCredentials.length > 2
+            ? ` (+${rejectedCredentials.length - 2} more)`
+            : ''
+        }`
+      : '';
+  warnOnce(
+    `fallback-credentials:${projectId}:${rejectedCredentials.join('|')}`,
     `⚠️ Firebase Admin fallback credentials in use (project: ${projectId}). ` +
-      `jsonEnv=${jsonPresent} splitEnv=${splitPresent} fileEnv=${filePresent}`,
+      `jsonEnv=${jsonPresent} splitEnv=${splitPresent} fileEnv=${filePresent}${rejectedSummary}`,
   );
 
   if (jsonPresent) {
     const selected = firstEnv(SERVICE_ACCOUNT_JSON_KEYS);
     if (selected) {
-      console.warn(
+      warnOnce(
+        `fallback-json-candidate:${selected.key}`,
         `⚠️ Candidate JSON key detected: ${selected.key} (${maskSecret(selected.value)})`,
       );
     }
@@ -280,7 +147,10 @@ function tryInitialize(
     onSuccess?.();
     return app;
   } catch (error) {
-    console.error(`❌ Firebase Admin ${label} init failed`, error);
+    warnOnce(
+      `init-failed:${label}:${getErrorMessage(error)}`,
+      `⚠️ Firebase Admin ${label} init skipped: ${getErrorMessage(error)}`,
+    );
     return null;
   }
 }
@@ -292,39 +162,55 @@ function initializeFirebaseAdminApp(): App {
   }
 
   const projectId = resolveProjectId();
+  const rejectedCredentials: string[] = [];
+  const noteRejectedCredential = (label: string, reason: string): void => {
+    rejectedCredentials.push(`${label}: ${reason}`);
+  };
 
   const serviceAccountConfig = firstEnv(SERVICE_ACCOUNT_JSON_KEYS);
   if (serviceAccountConfig) {
     const parsed = parseServiceAccountJson(serviceAccountConfig.value);
     if (!parsed) {
-      console.error(
-        `❌ Invalid ${serviceAccountConfig.key}: payload could not be parsed as service account JSON`,
+      noteRejectedCredential(
+        serviceAccountConfig.key,
+        'payload could not be parsed as service account JSON',
       );
     } else {
       const clientEmail = cleanEnv(parsed.client_email ?? parsed.clientEmail);
-      const privateKey = normalizePrivateKey(parsed.private_key ?? parsed.privateKey);
       const serviceProjectId =
         cleanEnv(parsed.project_id ?? parsed.projectId) || projectId;
 
-      if (clientEmail && privateKey) {
-        const app = tryInitialize(
-          `service account JSON (${serviceAccountConfig.key})`,
-          () => ({
-            credential: cert({
-              projectId: serviceProjectId,
-              clientEmail,
-              privateKey,
-            }),
-            projectId: serviceProjectId,
-          }),
-          () => {
-            console.log(
-              `✅ Firebase Admin initialized via ${serviceAccountConfig.key} (project: ${serviceProjectId})`,
-            );
-          },
+      if (!clientEmail) {
+        noteRejectedCredential(serviceAccountConfig.key, 'missing client email');
+      } else {
+        const privateKeyResult = validatePrivateKey(
+          parsed.private_key ?? parsed.privateKey,
         );
-        if (app) {
-          return app;
+        if (!privateKeyResult.ok) {
+          noteRejectedCredential(
+            serviceAccountConfig.key,
+            `invalid private key (${privateKeyResult.error})`,
+          );
+        } else {
+          const app = tryInitialize(
+            `service account JSON (${serviceAccountConfig.key})`,
+            () => ({
+              credential: cert({
+                projectId: serviceProjectId,
+                clientEmail,
+                privateKey: privateKeyResult.privateKey,
+              }),
+              projectId: serviceProjectId,
+            }),
+            () => {
+              console.log(
+                `✅ Firebase Admin initialized via ${serviceAccountConfig.key} (project: ${serviceProjectId})`,
+              );
+            },
+          );
+          if (app) {
+            return app;
+          }
         }
       }
     }
@@ -340,24 +226,80 @@ function initializeFirebaseAdminApp(): App {
       }
 
       const clientEmail = cleanEnv(parsed.client_email ?? parsed.clientEmail);
-      const privateKey = normalizePrivateKey(parsed.private_key ?? parsed.privateKey);
       const serviceProjectId =
         cleanEnv(parsed.project_id ?? parsed.projectId) || projectId;
 
-      if (clientEmail && privateKey) {
+      if (!clientEmail) {
+        noteRejectedCredential(
+          `${serviceAccountFileConfig.key} file`,
+          'missing client email',
+        );
+      } else {
+        const privateKeyResult = validatePrivateKey(
+          parsed.private_key ?? parsed.privateKey,
+        );
+        if (!privateKeyResult.ok) {
+          noteRejectedCredential(
+            `${serviceAccountFileConfig.key} file`,
+            `invalid private key (${privateKeyResult.error})`,
+          );
+        } else {
+          const app = tryInitialize(
+            `service account file (${serviceAccountFileConfig.key})`,
+            () => ({
+              credential: cert({
+                projectId: serviceProjectId,
+                clientEmail,
+                privateKey: privateKeyResult.privateKey,
+              }),
+              projectId: serviceProjectId,
+            }),
+            () => {
+              console.log(
+                `✅ Firebase Admin initialized via ${serviceAccountFileConfig.key} file (project: ${serviceProjectId})`,
+              );
+            },
+          );
+          if (app) {
+            return app;
+          }
+        }
+      }
+    } catch (error) {
+      noteRejectedCredential(
+        `${serviceAccountFileConfig.key} file`,
+        getErrorMessage(error),
+      );
+    }
+  }
+
+  const clientEmailConfig = firstEnv(CLIENT_EMAIL_KEYS);
+  const privateKeyConfig = firstEnv(PRIVATE_KEY_KEYS);
+  const clientEmail = cleanEnv(clientEmailConfig?.value);
+  if (clientEmailConfig || privateKeyConfig) {
+    if (!clientEmail) {
+      noteRejectedCredential('split service account vars', 'missing client email');
+    } else {
+      const privateKeyResult = validatePrivateKey(privateKeyConfig?.value);
+      if (!privateKeyResult.ok) {
+        noteRejectedCredential(
+          'split service account vars',
+          `invalid private key (${privateKeyResult.error})`,
+        );
+      } else {
         const app = tryInitialize(
-          `service account file (${serviceAccountFileConfig.key})`,
+          'split service account vars',
           () => ({
             credential: cert({
-              projectId: serviceProjectId,
+              projectId,
               clientEmail,
-              privateKey,
+              privateKey: privateKeyResult.privateKey,
             }),
-            projectId: serviceProjectId,
+            projectId,
           }),
           () => {
             console.log(
-              `✅ Firebase Admin initialized via ${serviceAccountFileConfig.key} file (project: ${serviceProjectId})`,
+              `✅ Firebase Admin initialized with split vars (${clientEmailConfig?.key}, ${privateKeyConfig?.key}) for project ${projectId}`,
             );
           },
         );
@@ -365,34 +307,6 @@ function initializeFirebaseAdminApp(): App {
           return app;
         }
       }
-    } catch (error) {
-      console.error(`❌ Invalid ${serviceAccountFileConfig.key} file`, error);
-    }
-  }
-
-  const clientEmailConfig = firstEnv(CLIENT_EMAIL_KEYS);
-  const privateKeyConfig = firstEnv(PRIVATE_KEY_KEYS);
-  const clientEmail = cleanEnv(clientEmailConfig?.value);
-  const privateKey = normalizePrivateKey(privateKeyConfig?.value);
-  if (clientEmail && privateKey) {
-    const app = tryInitialize(
-      'split service account vars',
-      () => ({
-        credential: cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-        projectId,
-      }),
-      () => {
-        console.log(
-          `✅ Firebase Admin initialized with split vars (${clientEmailConfig?.key}, ${privateKeyConfig?.key}) for project ${projectId}`,
-        );
-      },
-    );
-    if (app) {
-      return app;
     }
   }
 
@@ -404,7 +318,7 @@ function initializeFirebaseAdminApp(): App {
         projectId,
       }),
       () => {
-        logCredentialResolutionHints(projectId);
+        logCredentialResolutionHints(projectId, rejectedCredentials);
       },
     );
     if (adcApp) {
@@ -416,7 +330,13 @@ function initializeFirebaseAdminApp(): App {
     'project-only fallback',
     () => ({ projectId }),
     () => {
-      console.warn('⚠️ Firebase Admin initialized without explicit credentials');
+      logCredentialResolutionHints(projectId, rejectedCredentials);
+      warnOnce(
+        `project-only-fallback:${projectId}:${rejectedCredentials.join('|')}`,
+        rejectedCredentials.length > 0
+          ? '⚠️ Firebase Admin initialized without usable explicit credentials'
+          : '⚠️ Firebase Admin initialized without explicit credentials',
+      );
     },
   );
   if (fallbackApp) {

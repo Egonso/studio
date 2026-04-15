@@ -54,10 +54,14 @@ or
 or
 - `FIREBASE_ADMIN_SERVICE_ACCOUNT`
 
+This is the preferred Netlify setup. A single JSON service-account payload is less fragile than splitting the private key across separate variables.
+
 ### Split credential fallback
 - `FIREBASE_ADMIN_PROJECT_ID`
 - `FIREBASE_ADMIN_CLIENT_EMAIL`
 - `FIREBASE_ADMIN_PRIVATE_KEY`
+
+Only use the split fallback when you cannot store the JSON bundle. The private key must remain a valid PEM, typically with literal `\n` escapes, or Firebase Admin will fall back and log a warning.
 
 ## Webhook runtime variables
 Set these where Stripe webhooks are processed:
@@ -109,4 +113,4 @@ Subscribe the endpoint to:
 
 ## Not a product blocker
 - Local builds can warn about `ENOSPC` when the development machine is nearly full. That is a local disk issue, not a deployment issue.
-- Local builds can warn about Firebase Admin fallback credentials. In production, explicit server credentials should be configured so the warning disappears.
+- If production logs a Firebase Admin fallback warning, first verify that `FIREBASE_SERVICE_ACCOUNT_JSON` is present and parseable. If you are using split vars instead, re-save `FIREBASE_ADMIN_PRIVATE_KEY` as a valid PEM or replace the split setup with the JSON bundle.
