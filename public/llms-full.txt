@@ -1,6 +1,6 @@
 # AI Registry / KI Register — Complete Platform Reference
 
-> This file contains the full reference documentation for AI Registry (airegist.com), a use-case-first AI governance platform for EU AI Act compliance. It is intended for large-context LLMs, AI agents, and automated systems that need complete platform knowledge in a single document.
+> This file contains the full reference documentation for AI Registry / KI Register, a use-case-first AI governance platform for EU AI Act compliance. English platform: airegist.com — German/DACH platform: kiregister.com. Intended for large-context LLMs, AI agents, and automated systems that need complete platform knowledge in a single document.
 
 ---
 
@@ -10,7 +10,8 @@
 
 The platform is built on a "use-case-first" approach: every AI system is registered as a concrete use case with structured attributes, rather than abstract policy documents. Governance, risk assessment, and evidence management are layered on top of this inventory.
 
-**Domain:** https://airegist.com
+**English domain:** https://airegist.com
+**German / DACH domain:** https://kiregister.com
 **Languages:** German (/de/) and English (/en/) — automatic browser language detection
 **Data residency:** European Union (GDPR compliant)
 **Legal controllers:** ZukunftBilden GmbH + BewusstseinBilden UG (haftungsbeschränkt), Austria — joint controllers per GDPR Art. 26
@@ -357,7 +358,8 @@ Specific categories where significant documentation and human oversight are lega
 AI Registry provides a REST API for programmatic access to register data.
 
 **Authentication:** Bearer token (Firebase Auth JWT or API key from Agent Kit)
-**Base URL:** https://airegist.com/api
+**Base URL (EN):** https://airegist.com/api
+**Base URL (DE/DACH):** https://kiregister.com/api
 
 ### Key Endpoints
 
@@ -444,8 +446,9 @@ The Agent Kit provides structured access for AI agents:
 
 ## 10. Contact
 
-- Website: https://airegist.com
-- Privacy / data protection: see https://airegist.com/en/privacy
-- Legal notice: see https://airegist.com/en/legal-notice
-- Terms: see https://airegist.com/en/terms
+- English website: https://airegist.com
+- German / DACH website: https://kiregister.com
+- Privacy (EN): https://airegist.com/en/privacy | Privacy (DE): https://kiregister.com/de/datenschutz
+- Legal notice (EN): https://airegist.com/en/legal-notice | Impressum (DE): https://kiregister.com/de/impressum
+- Terms (EN): https://airegist.com/en/terms | AGB (DE): https://kiregister.com/de/agb
 - Copyright: © 2025 AI Register – ZukunftBilden GmbH & BewusstseinBilden UG (haftungsbeschränkt)

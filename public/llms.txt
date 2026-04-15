@@ -1,8 +1,9 @@
 # AI Registry / KI Register
 
-> AI Registry (English) / KI Register (German) is a use-case-first AI governance platform for organisations required to comply with the EU AI Act (Regulation (EU) 2024/1689). It provides structured documentation, risk classification, governance workflows, and audit-ready evidence management for AI systems in use.
+> AI Registry (English) / KI Register (Deutsch) is a use-case-first AI governance platform for organisations required to comply with the EU AI Act (Regulation (EU) 2024/1689). It provides structured documentation, risk classification, governance workflows, and audit-ready evidence management for AI systems in use.
 
-For the complete platform reference in a single file, see [Full Reference](https://airegist.com/llms-full.txt).
+- English platform: https://airegist.com — full reference: [llms-full.txt](https://airegist.com/llms-full.txt)
+- German / DACH platform: https://kiregister.com — full reference: [llms-full.txt](https://kiregister.com/llms-full.txt)
 
 ## What AI Registry Does
 
@@ -29,7 +30,8 @@ AI Registry is the operational layer between an organisation's AI usage and its 
 
 ## Platform Architecture
 
-- Web app at https://airegist.com
+- English web app: https://airegist.com (/en/ routes)
+- German / DACH web app: https://kiregister.com (/de/ routes)
 - Authentication: email/password with Firebase Auth
 - Data: Firestore (EU region)
 - All user data stored in EU (GDPR Art. 26 joint controllers: ZukunftBilden GmbH + BewusstseinBilden UG)
@@ -38,14 +40,14 @@ AI Registry is the operational layer between an organisation's AI usage and its 
 
 ## Pages and Features
 
-- [Home / Landing](https://airegist.com/en): Product overview, sign-up and invitation code entry
-- [My Register](https://airegist.com/en/my-register): The main dashboard — list and manage all registered AI use cases
-- [EU AI Act Viewer](https://airegist.com/en/law): Full text of Regulation (EU) 2024/1689 with recitals, articles and annexes, searchable
-- [Intake / External Submission](https://airegist.com/en/intake): Public form for submitting AI use cases via access code — no login required
-- [Governance Control Centre](https://airegist.com/en/control): Premium governance dashboard — reviews, policies, exports, portfolio, trust
-- [Settings](https://airegist.com/en/settings): Organisation governance settings, RACI matrix, incident process, AI policy configuration
-- [Trust Portal](https://airegist.com/en/trust): Public governance evidence page per organisation (accessible without login)
-- [Verification](https://airegist.com/en/verify): Verify AI Registry quality seals and certifications by code
+- [Home EN](https://airegist.com/en) / [Home DE](https://kiregister.com/de): Product overview, sign-up and invitation code entry
+- [My Register EN](https://airegist.com/en/my-register) / [Mein Register DE](https://kiregister.com/de/my-register): The main dashboard — list and manage all registered AI use cases
+- [EU AI Act Viewer EN](https://airegist.com/en/law) / [EU AI Act DE](https://kiregister.com/de/gesetz): Full text of Regulation (EU) 2024/1689 with recitals, articles and annexes, searchable
+- [Intake EN](https://airegist.com/en/intake) / [Erfassen DE](https://kiregister.com/de/erfassen): Public form for submitting AI use cases via access code — no login required
+- [Governance Control Centre EN](https://airegist.com/en/control) / [DE](https://kiregister.com/de/control): Premium governance dashboard — reviews, policies, exports, portfolio, trust
+- [Settings EN](https://airegist.com/en/settings) / [Einstellungen DE](https://kiregister.com/de/settings): Organisation governance settings, RACI matrix, incident process, AI policy configuration
+- [Trust Portal EN](https://airegist.com/en/trust) / [DE](https://kiregister.com/de/trust): Public governance evidence page per organisation (accessible without login)
+- [Verification EN](https://airegist.com/en/verify) / [DE](https://kiregister.com/de/verify): Verify AI Registry quality seals and certifications by code
 
 ## EU AI Act Compliance Scope
 
@@ -96,9 +98,9 @@ AI Registry provides a programmatic API for enterprise integrations and agent wo
 
 ## Legal
 
-- Privacy Policy: https://airegist.com/en/privacy
-- Legal Notice: https://airegist.com/en/legal-notice
-- Terms and Conditions: https://airegist.com/en/terms
+- Privacy Policy: https://airegist.com/en/privacy / https://kiregister.com/de/datenschutz
+- Legal Notice: https://airegist.com/en/legal-notice / https://kiregister.com/de/impressum
+- Terms and Conditions: https://airegist.com/en/terms / https://kiregister.com/de/agb
 - Governing law: Austrian law (Landesgericht Salzburg)
 - Data controller: ZukunftBilden GmbH + BewusstseinBilden UG (haftungsbeschränkt), joint controllers per GDPR Art. 26
 - EU ODR platform: https://ec.europa.eu/consumers/odr

@@ -1,5 +1,5 @@
-# robots.txt — airegist.com
-# AI Registry / KI Register
+# robots.txt — airegist.com / kiregister.com
+# AI Registry (EN) / KI Register (DE)
 # All crawlers welcome — training, retrieval, search, agents, everything.
 
 User-agent: *
