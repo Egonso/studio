@@ -72,11 +72,30 @@ function isFirebaseAuthProjectPermissionError(error: unknown): boolean {
       : typeof error === 'string'
       ? error
       : '';
+  const code =
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string'
+      ? error.code
+      : '';
+  const lowered = message.toLowerCase();
+  const loweredCode = code.toLowerCase();
 
   return (
     message.includes('serviceusage.services.use') ||
     message.includes('identitytoolkit.googleapis.com') ||
-    message.includes('USER_PROJECT_DENIED')
+    message.includes('USER_PROJECT_DENIED') ||
+    loweredCode.includes('permission-denied') ||
+    loweredCode.includes('insufficient-permission') ||
+    loweredCode.includes('auth/insufficient-permission') ||
+    lowered.includes('the caller does not have permission') ||
+    lowered.includes('permission denied') ||
+    lowered.includes('permission_denied') ||
+    lowered.includes('insufficient permission') ||
+    lowered.includes('insufficient authentication scopes') ||
+    lowered.includes('firebaseauth.users.get') ||
+    lowered.includes('firebaseauth.configs.gethashconfig')
   );
 }
 
