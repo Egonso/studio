@@ -287,7 +287,7 @@ export function GovernanceHeader({
             {register && onQuickCapture && (
               <button
                 onClick={onQuickCapture}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-slate-900 px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-slate-700 sm:w-auto"
               >
                 + Capture AI use case
               </button>

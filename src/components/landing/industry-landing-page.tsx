@@ -43,6 +43,16 @@ export async function IndustryLandingPage({ content, registerHref }: IndustryLan
             {content.heroDescription}
           </p>
 
+          {/* Primary CTA — directly in hero, before the fold */}
+          <div className="mt-6">
+            <Link
+              href={registerHref}
+              className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-slate-700"
+            >
+              {t('register')}
+            </Link>
+          </div>
+
           {/* Risk level — plain bordered block, no color */}
           <div className="mt-8 rounded-md border border-slate-200 bg-white px-4 py-4">
             <p className="text-xs uppercase tracking-[0.08em] text-slate-400">
@@ -112,7 +122,7 @@ export async function IndustryLandingPage({ content, registerHref }: IndustryLan
         </div>
       </section>
 
-      {/* Register CTA — minimal, inline, no colored blocks */}
+      {/* Register CTA — repeated after obligations */}
       <section className="border-b border-slate-100">
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-md border border-slate-200 bg-white px-4 py-5">
@@ -120,7 +130,7 @@ export async function IndustryLandingPage({ content, registerHref }: IndustryLan
             <div className="mt-4">
               <Link
                 href={registerHref}
-                className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-[13px] text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                className="inline-flex items-center rounded-md bg-slate-900 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-slate-700"
               >
                 {t('register')}
               </Link>
