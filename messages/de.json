@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "KI-Register",
-    "appName": "KI-Register",
-    "description": "Use-Case-first KI-Register für Dokumentation, Governance und Nachweisführung nach EU AI Act.",
+    "title": "KI Register",
+    "appName": "KI Register",
+    "description": "Use-Case-first KI Register für Dokumentation, Governance und Nachweisführung nach EU AI Act.",
     "tagline": "KI-Governance für Organisationen",
     "language": "Deutsch"
   },
@@ -96,7 +96,7 @@
     "signUp": "Registrieren",
     "signInTab": "Anmelden",
     "createAccount": "Konto anlegen",
-    "setupRegister": "KI-Register einrichten",
+    "setupRegister": "KI Register einrichten",
     "email": "E-Mail-Adresse",
     "password": "Passwort",
     "confirmPassword": "Passwort bestätigen",
@@ -106,10 +106,10 @@
     "step1": "Schritt 1 von 3 · Zugang",
     "step2": "Schritt 2 von 3 · Organisation",
     "step3": "Schritt 3 von 3 · Weitergabe",
-    "welcomeTitle": "KI-Register",
-    "welcomeSubtitle": "Jede Organisation mit KI-Einsatz führt ein KI-Register.",
-    "welcomeDescription": "Ein KI-Register ist die organisationsinterne Standardstruktur zur Erfassung, Bewertung und Nachweisführung des KI-Einsatzes.",
-    "joinRegister": "KI-Register beitreten",
+    "welcomeTitle": "KI Register",
+    "welcomeSubtitle": "Jede Organisation mit KI-Einsatz führt ein KI Register.",
+    "welcomeDescription": "Ein KI Register ist die organisationsinterne Standardstruktur zur Erfassung, Bewertung und Nachweisführung des KI-Einsatzes.",
+    "joinRegister": "KI Register beitreten",
     "accountCreated": "Konto angelegt",
     "pleaseConfirmEmail": "Bitte E-Mail bestätigen",
     "confirmEmailDescription": "Wir haben Ihnen einen Verifizierungslink an {email} gesendet. Bitte öffnen Sie den Link, um Ihr Konto zu aktivieren.",
@@ -139,7 +139,7 @@
     "governanceControlActivated": "Governance Control Centre wird für dieses Konto freigeschaltet.",
     "setUpRegister": "Register einrichten",
     "useInvitationCode": "Einladungscode verwenden",
-    "joinAiRegister": "KI-Register beitreten",
+    "joinAiRegister": "KI Register beitreten",
     "enterInviteCodeDesc": "Geben Sie den Einladungscode Ihrer Organisation ein.",
     "invitationCodeLabel": "Einladungscode",
     "invitationCodePlaceholder": "AI-XXXXXX",
@@ -170,7 +170,7 @@
     }
   },
   "register": {
-    "title": "KI-Register",
+    "title": "KI Register",
     "description": "Alle KI-Einsatzfälle Ihrer Organisation",
     "noUseCases": "Noch keine Einsatzfälle erfasst",
     "addUseCase": "Einsatzfall hinzufügen",
@@ -571,18 +571,18 @@
   },
   "landing": {
     "setup": {
-      "title": "KI-Register einrichten",
-      "joinTitle": "KI-Register beitreten",
+      "title": "KI Register einrichten",
+      "joinTitle": "KI Register beitreten",
       "ownerRolePlaceholder": "z. B. KI-Verantwortliche/r"
     },
     "hero": {
-      "ctaSetup": "KI-Register einrichten",
-      "ctaJoin": "KI-Register beitreten"
+      "ctaSetup": "KI Register einrichten",
+      "ctaJoin": "KI Register beitreten"
     },
     "setupRegister": "Register einrichten",
     "useInvitationCode": "Einladungscode verwenden",
     "youAreReadyToGo": "Sie sind bereit",
-    "kiSetUpRegister": "KI-Register einrichten",
+    "kiSetUpRegister": "KI Register einrichten",
     "adminStep1": "Account",
     "adminStep2": "Organisation",
     "adminStep3": "Loslegen",
@@ -595,7 +595,7 @@
     "existingRegisterUsed": "Bestehendes Register verwendet",
     "existingRegisterUsedDesc": "Kein Duplikat wurde für \"{orgName}\" erstellt.",
     "registerCreateFailed": "Register konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
-    "joinAiRegister": "KI-Register beitreten",
+    "joinAiRegister": "KI Register beitreten",
     "enterCodeDesc": "Geben Sie den Einladungscode Ihrer Organisation ein.",
     "inviteCodeLabel": "Einladungscode",
     "inviteCodePlaceholder": "AI-XXXXXX",
@@ -678,7 +678,7 @@
     "verificationFailed": "Verifizierung fehlgeschlagen.",
     "verifiedCertificate": "Verifiziertes Zertifikat",
     "verifyCode": "Code {code} prüfen",
-    "qualitySeal": "KI-Register Gütesiegel"
+    "qualitySeal": "KI Register Gütesiegel"
   },
   "intake": {
     "title": "KI-Einsatzfall ohne Login erfassen",
