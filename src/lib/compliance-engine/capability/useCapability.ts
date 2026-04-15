@@ -9,7 +9,6 @@ import {
   normalizeRegisterEntitlement,
   registerService,
   resolveRegisterEntitlement,
-  syncRegisterEntitlement,
   type RegisterEntitlement,
   type SubscriptionPlan,
 } from '@/lib/register-first';
@@ -60,8 +59,6 @@ async function loadWorkspaceEntitlement(): Promise<RegisterEntitlement | null> {
 
 async function resolveCurrentEntitlement(): Promise<EntitlementCacheEntry> {
   try {
-    await syncRegisterEntitlement().catch(() => null);
-
     const registers = await registerService.listRegisters();
     if (registers.length === 0) {
       const entitlement =

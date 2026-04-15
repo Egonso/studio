@@ -66,23 +66,9 @@ export function useUserProfile() {
                 !accessSyncRequestedRef.current
               ) {
                 accessSyncRequestedRef.current = true;
-                import('@/lib/register-first/entitlement-client')
-                  .then(({ syncRegisterEntitlement }) =>
-                    syncRegisterEntitlement().catch((error) => {
-                      accessSyncRequestedRef.current = false;
-                      console.error(
-                        'Failed to backfill workspace access:',
-                        error,
-                      );
-                    }),
-                  )
-                  .catch((error) => {
-                    accessSyncRequestedRef.current = false;
-                    console.error(
-                      'Failed to load workspace access sync helper:',
-                      error,
-                    );
-                  });
+                // Workspace access backfill should only happen in explicit
+                // billing/onboarding flows. Triggering it from the generic
+                // profile hook creates noisy background 500s on normal pages.
               }
             } else {
               setProfile({});
