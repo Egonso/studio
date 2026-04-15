@@ -37,8 +37,6 @@ export default async function IndustryPage({ params }: Props) {
 
   return (
     <IndustryLandingPage
-      locale={locale}
-      icon={industry.icon}
       content={content}
       registerHref={registerHref}
     />

@@ -809,5 +809,24 @@
     "supplyChainDesc": "KI-Governance-Anforderungen in der Lieferkette prüfen.",
     "availableInPro": "Verfügbar im Pro-Plan",
     "availableInEnterprise": "Verfügbar im Enterprise-Plan"
+  },
+  "industries": {
+    "backToHome": "Zur Startseite",
+    "euActRiskLevel": "EU AI Act Risikostufe",
+    "whyAffected": "Warum ist diese Branche betroffen?",
+    "typicalUseCases": "Typische KI-Einsatzfälle",
+    "obligations": "Dokumentationspflichten",
+    "faq": "Häufige Fragen",
+    "register": "Einsatzfall dokumentieren",
+    "freeNote": "Die Dokumentation aller KI-Einsatzfälle ist dauerhaft kostenlos – ohne Kreditkarte, ohne Zeitlimit.",
+    "allTitle": "Branchenübersicht",
+    "allSubtitle": "Der EU AI Act gilt branchenübergreifend. Die konkreten Anforderungen variieren je nach Sektor und Einsatzbereich.",
+    "learnMore": "Details",
+    "riskLabels": {
+      "high": "Hochrisiko",
+      "limited": "Begrenztes Risiko",
+      "minimal": "Minimales Risiko",
+      "prohibited": "Verboten"
+    }
   }
 }

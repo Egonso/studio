@@ -18,9 +18,9 @@ const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
 };
 
-const LOCALE_FLAGS: Record<Locale, string> = {
-  de: "🇩🇪",
-  en: "🇬🇧",
+const LOCALE_CODES: Record<Locale, string> = {
+  de: "DE",
+  en: "EN",
 };
 
 export function LocaleSwitcher() {
@@ -45,8 +45,8 @@ export function LocaleSwitcher() {
           disabled={isPending}
         >
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{LOCALE_FLAGS[locale]} {LOCALE_LABELS[locale]}</span>
-          <span className="sm:hidden">{LOCALE_FLAGS[locale]}</span>
+          <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
+          <span className="sm:hidden">{LOCALE_CODES[locale]}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
@@ -56,7 +56,6 @@ export function LocaleSwitcher() {
             onClick={() => switchLocale(l)}
             className={l === locale ? "font-semibold bg-muted" : ""}
           >
-            <span className="mr-2">{LOCALE_FLAGS[l]}</span>
             {LOCALE_LABELS[l]}
           </DropdownMenuItem>
         ))}

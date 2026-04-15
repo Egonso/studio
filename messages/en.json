@@ -809,5 +809,24 @@
     "supplyChainDesc": "Review AI governance requirements in the supply chain.",
     "availableInPro": "Available on the Pro plan",
     "availableInEnterprise": "Available on the Enterprise plan"
+  },
+  "industries": {
+    "backToHome": "Back to home",
+    "euActRiskLevel": "EU AI Act Risk Level",
+    "whyAffected": "Why is this industry affected?",
+    "typicalUseCases": "Typical AI Use Cases",
+    "obligations": "Documentation Obligations",
+    "faq": "Frequently Asked Questions",
+    "register": "Document use case",
+    "freeNote": "Documenting all AI use cases is permanently free — no credit card, no time limit.",
+    "allTitle": "Industries",
+    "allSubtitle": "The EU AI Act applies across all sectors. The specific requirements vary by industry and use context.",
+    "learnMore": "Details",
+    "riskLabels": {
+      "high": "High-Risk",
+      "limited": "Limited Risk",
+      "minimal": "Minimal Risk",
+      "prohibited": "Prohibited"
+    }
   }
 }

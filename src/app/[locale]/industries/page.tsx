@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { industries } from '@/data/industries';
 
 interface Props {
@@ -8,70 +9,48 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  return locale === 'de'
-    ? {
-        title: 'Branchen – KI Register für EU AI Act Compliance',
-        description:
-          'EU AI Act Dokumentation für alle Branchen. Kostenlos, sofort einsatzbereit. Gesundheit, HR, Finanzen, Bildung, öffentlicher Sektor und mehr.',
-      }
-    : {
-        title: 'Industries – AI Registry for EU AI Act Compliance',
-        description:
-          'EU AI Act documentation for every industry. Free, immediately ready. Healthcare, HR, Finance, Education, Public Sector and more.',
-      };
+  const t = await getTranslations({ locale, namespace: 'industries' });
+  return {
+    title: t('allTitle'),
+    description: t('allSubtitle'),
+  };
 }
 
 export default async function IndustriesIndexPage({ params }: Props) {
   const { locale } = await params;
-  const isDE = locale === 'de';
-
-  const labels = {
-    title: isDE ? 'Ihre Branche. Ihre Pflichten.' : 'Your industry. Your obligations.',
-    subtitle: isDE
-      ? 'Der EU AI Act gilt für alle – aber die Anforderungen variieren je nach Sektor. Wählen Sie Ihre Branche und erfahren Sie genau, was für Sie gilt.'
-      : 'The EU AI Act applies to everyone — but requirements vary by sector. Choose your industry to see exactly what applies to you.',
-    free: isDE
-      ? 'Die gesamte Dokumentation ist dauerhaft kostenlos – keine Kreditkarte, kein Zeitlimit.'
-      : 'All documentation is permanently free — no credit card, no time limit.',
-    cta: isDE ? 'Mehr erfahren →' : 'Learn more →',
-  };
+  const t = await getTranslations('industries');
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <section className="border-b border-slate-100 bg-slate-50/60">
-        <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
-          <h1 className="mb-4 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            {labels.title}
+      <section className="border-b border-slate-100">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+          <h1 className="mb-2 text-2xl font-semibold tracking-tight text-slate-900">
+            {t('allTitle')}
           </h1>
-          <p className="mb-4 max-w-2xl text-base leading-relaxed text-slate-600">{labels.subtitle}</p>
-          <p className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-800">
-            <span className="h-2 w-2 rounded-full bg-green-500" />
-            {labels.free}
+          <p className="max-w-2xl text-[15px] leading-relaxed text-slate-600">
+            {t('allSubtitle')}
           </p>
         </div>
       </section>
 
-      {/* Industry grid */}
-      <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-2">
+      {/* Industry list */}
+      <section className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
           {industries.map((industry) => {
-            const content = isDE ? industry.de : industry.en;
+            const content = locale === 'de' ? industry.de : industry.en;
             const href = `/${locale}/industries/${industry.slug}`;
             return (
               <Link
                 key={industry.slug}
                 href={href}
-                className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-slate-400 hover:shadow-md"
+                className="flex items-center justify-between gap-4 px-4 py-4 transition-colors hover:bg-slate-50"
               >
-                <span className="text-3xl">{industry.icon}</span>
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-900 group-hover:text-slate-700">
-                    {content.name}
-                  </p>
-                  <p className="mt-0.5 text-sm leading-snug text-slate-500">{content.tagline}</p>
-                  <p className="mt-3 text-xs font-medium text-slate-900">{labels.cta}</p>
+                  <p className="text-[14px] font-medium text-slate-900">{content.name}</p>
+                  <p className="mt-0.5 text-[13px] text-slate-500">{content.euActRiskLevel}</p>
                 </div>
+                <span className="shrink-0 text-[12px] text-slate-400">{t('learnMore')}</span>
               </Link>
             );
           })}
