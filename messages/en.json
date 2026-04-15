@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "AI Register",
-    "appName": "AI Register",
-    "description": "Use-case-first AI Register for documentation, governance and evidence management under the EU AI Act.",
+    "title": "AI Registry",
+    "appName": "AI Registry",
+    "description": "Use-case-first AI Registry for documentation, governance and evidence management under the EU AI Act.",
     "tagline": "AI Governance for Organisations",
     "language": "English"
   },
@@ -96,7 +96,7 @@
     "signUp": "Register",
     "signInTab": "Sign in",
     "createAccount": "Create account",
-    "setupRegister": "Set up AI Register",
+    "setupRegister": "Set up AI Registry",
     "email": "Email address",
     "password": "Password",
     "confirmPassword": "Confirm password",
@@ -106,10 +106,10 @@
     "step1": "Step 1 of 3 · Access",
     "step2": "Step 2 of 3 · Organisation",
     "step3": "Step 3 of 3 · Share",
-    "welcomeTitle": "AI Register",
-    "welcomeSubtitle": "Every organisation using AI maintains an AI Register.",
-    "welcomeDescription": "An AI Register is the internal standard structure for capturing, assessing and evidencing AI use within an organisation.",
-    "joinRegister": "Join AI Register",
+    "welcomeTitle": "AI Registry",
+    "welcomeSubtitle": "Every organisation using AI maintains an AI Registry.",
+    "welcomeDescription": "An AI Registry is the internal standard structure for capturing, assessing and evidencing AI use within an organisation.",
+    "joinRegister": "Join AI Registry",
     "accountCreated": "Account created",
     "pleaseConfirmEmail": "Please confirm your email",
     "confirmEmailDescription": "We have sent a verification link to {email}. Please open the link to activate your account.",
@@ -139,7 +139,7 @@
     "governanceControlActivated": "Governance Control Centre is being activated for this account.",
     "setUpRegister": "Set up register",
     "useInvitationCode": "Use invitation code",
-    "joinAiRegister": "Join AI Register",
+    "joinAiRegister": "Join AI Registry",
     "enterInviteCodeDesc": "Enter the invitation code from your organisation.",
     "invitationCodeLabel": "Invitation code",
     "invitationCodePlaceholder": "AI-XXXXXX",
@@ -170,7 +170,7 @@
     }
   },
   "register": {
-    "title": "AI Register",
+    "title": "AI Registry",
     "description": "All AI use cases in your organisation",
     "noUseCases": "No use cases captured yet",
     "addUseCase": "Add use case",
@@ -571,18 +571,18 @@
   },
   "landing": {
     "setup": {
-      "title": "Set up AI Register",
-      "joinTitle": "Join AI Register",
+      "title": "Set up AI Registry",
+      "joinTitle": "Join AI Registry",
       "ownerRolePlaceholder": "e.g. AI Responsible Officer"
     },
     "hero": {
-      "ctaSetup": "Set up AI Register",
-      "ctaJoin": "Join AI Register"
+      "ctaSetup": "Set up AI Registry",
+      "ctaJoin": "Join AI Registry"
     },
     "setupRegister": "Set up register",
     "useInvitationCode": "Use invitation code",
     "youAreReadyToGo": "You are ready to go",
-    "kiSetUpRegister": "Set up AI Register",
+    "kiSetUpRegister": "Set up AI Registry",
     "adminStep1": "Account",
     "adminStep2": "Organisation",
     "adminStep3": "Get started",
@@ -595,7 +595,7 @@
     "existingRegisterUsed": "Existing register used",
     "existingRegisterUsedDesc": "No duplicate was created for \"{orgName}\".",
     "registerCreateFailed": "Register could not be created. Please try again.",
-    "joinAiRegister": "Join AI Register",
+    "joinAiRegister": "Join AI Registry",
     "enterCodeDesc": "Enter the invitation code from your organisation.",
     "inviteCodeLabel": "Invitation code",
     "inviteCodePlaceholder": "AI-XXXXXX",
@@ -678,7 +678,7 @@
     "verificationFailed": "Verification failed.",
     "verifiedCertificate": "Verified certificate",
     "verifyCode": "Verify code {code}",
-    "qualitySeal": "AI Register quality seal"
+    "qualitySeal": "AI Registry quality seal"
   },
   "intake": {
     "title": "Submit AI use case without login",

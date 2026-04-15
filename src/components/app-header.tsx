@@ -88,7 +88,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
               className="h-7 w-auto"
             />
             <div className="truncate text-[15px] font-semibold tracking-tight text-slate-950">
-              AI Register
+              {t('metadata.appName')}
             </div>
           </Link>
 

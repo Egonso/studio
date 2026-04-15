@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "AI Register",
-    "appName": "AI Register",
+    "title": "KI-Register",
+    "appName": "KI-Register",
     "description": "Use-Case-first KI-Register für Dokumentation, Governance und Nachweisführung nach EU AI Act.",
     "tagline": "KI-Governance für Organisationen",
     "language": "Deutsch"
@@ -139,7 +139,7 @@
     "governanceControlActivated": "Governance Control Centre wird für dieses Konto freigeschaltet.",
     "setUpRegister": "Register einrichten",
     "useInvitationCode": "Einladungscode verwenden",
-    "joinAiRegister": "AI Register beitreten",
+    "joinAiRegister": "KI-Register beitreten",
     "enterInviteCodeDesc": "Geben Sie den Einladungscode Ihrer Organisation ein.",
     "invitationCodeLabel": "Einladungscode",
     "invitationCodePlaceholder": "AI-XXXXXX",
@@ -595,7 +595,7 @@
     "existingRegisterUsed": "Bestehendes Register verwendet",
     "existingRegisterUsedDesc": "Kein Duplikat wurde für \"{orgName}\" erstellt.",
     "registerCreateFailed": "Register konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
-    "joinAiRegister": "AI Register beitreten",
+    "joinAiRegister": "KI-Register beitreten",
     "enterCodeDesc": "Geben Sie den Einladungscode Ihrer Organisation ein.",
     "inviteCodeLabel": "Einladungscode",
     "inviteCodePlaceholder": "AI-XXXXXX",
@@ -678,7 +678,7 @@
     "verificationFailed": "Verifizierung fehlgeschlagen.",
     "verifiedCertificate": "Verifiziertes Zertifikat",
     "verifyCode": "Code {code} prüfen",
-    "qualitySeal": "AI Register Gütesiegel"
+    "qualitySeal": "KI-Register Gütesiegel"
   },
   "intake": {
     "title": "KI-Einsatzfall ohne Login erfassen",
