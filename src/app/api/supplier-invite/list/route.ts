@@ -19,6 +19,30 @@ const ListQuerySchema = z.object({
   registerId: safeIdentifierSchema,
 });
 
+function safeParseInviteRecord(
+  rawRecord: unknown,
+  id: string,
+): SupplierInviteRecord | null {
+  try {
+    return parseSupplierInviteRecord(rawRecord);
+  } catch (error) {
+    console.warn('Skipping invalid supplier invite record', { id, error });
+    return null;
+  }
+}
+
+function safeParseCampaignRecord(
+  rawRecord: unknown,
+  id: string,
+): SupplierInviteCampaignRecord | null {
+  try {
+    return parseSupplierInviteCampaignRecord(rawRecord);
+  } catch (error) {
+    console.warn('Skipping invalid supplier invite campaign', { id, error });
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -44,12 +68,12 @@ export async function GET(req: NextRequest) {
         .get(),
     ]);
 
-    const invites: SupplierInviteRecord[] = inviteSnapshot.docs.map((doc) =>
-      parseSupplierInviteRecord(doc.data())
-    );
-    const campaigns: SupplierInviteCampaignRecord[] = campaignSnapshot.docs.map((doc) =>
-      parseSupplierInviteCampaignRecord(doc.data())
-    );
+    const invites: SupplierInviteRecord[] = inviteSnapshot.docs
+      .map((doc) => safeParseInviteRecord(doc.data(), doc.id))
+      .filter((record): record is SupplierInviteRecord => record !== null);
+    const campaigns: SupplierInviteCampaignRecord[] = campaignSnapshot.docs
+      .map((doc) => safeParseCampaignRecord(doc.data(), doc.id))
+      .filter((record): record is SupplierInviteCampaignRecord => record !== null);
 
     // Strip internal security and delivery fields before returning to client.
     const sanitized = invites.map(

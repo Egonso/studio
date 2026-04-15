@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, ExternalLink, Loader2, Search, ShieldAlert, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, Info, Loader2, Search, XCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -211,8 +211,8 @@ export function ExternalSubmissionsInbox({
             <CardDescription>{description}</CardDescription>
           </div>
           {kmuMode ? (
-            <div className="inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-              <ShieldAlert className="h-3.5 w-3.5" />
+            <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+              <Info className="h-3.5 w-3.5 text-slate-500" />
               SME mode active: Approvals from supplier links directly create a
               use case.
             </div>

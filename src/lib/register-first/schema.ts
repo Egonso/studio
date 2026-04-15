@@ -347,11 +347,69 @@ export const externalSubmissionSchema = z.object({
   accessCodeId: z.string().trim().min(1).max(200).optional().nullable(),
   submittedByName: z.string().trim().min(1).max(200).optional().nullable(),
   submittedByEmail: z.string().trim().email().max(320).optional().nullable(),
-  submittedAt: z.string().datetime(),
+  submittedAt: z.preprocess((value) => {
+    if (typeof value === 'string' || value == null) {
+      return value;
+    }
+
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    if (typeof value === 'object') {
+      if ('toDate' in value && typeof value.toDate === 'function') {
+        const date = value.toDate();
+        if (date instanceof Date && !Number.isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
+
+      if ('seconds' in value && typeof value.seconds === 'number') {
+        const nanoseconds =
+          'nanoseconds' in value && typeof value.nanoseconds === 'number'
+            ? value.nanoseconds
+            : 0;
+        return new Date(
+          value.seconds * 1000 + Math.floor(nanoseconds / 1_000_000),
+        ).toISOString();
+      }
+    }
+
+    return value;
+  }, z.string().datetime()),
   rawPayloadSnapshot: z.record(z.string(), z.unknown()),
   status: externalSubmissionStatusSchema,
   linkedUseCaseId: z.string().trim().min(1).max(200).optional().nullable(),
-  reviewedAt: z.string().datetime().optional().nullable(),
+  reviewedAt: z.preprocess((value) => {
+    if (typeof value === 'string' || value == null) {
+      return value;
+    }
+
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    if (typeof value === 'object') {
+      if ('toDate' in value && typeof value.toDate === 'function') {
+        const date = value.toDate();
+        if (date instanceof Date && !Number.isNaN(date.getTime())) {
+          return date.toISOString();
+        }
+      }
+
+      if ('seconds' in value && typeof value.seconds === 'number') {
+        const nanoseconds =
+          'nanoseconds' in value && typeof value.nanoseconds === 'number'
+            ? value.nanoseconds
+            : 0;
+        return new Date(
+          value.seconds * 1000 + Math.floor(nanoseconds / 1_000_000),
+        ).toISOString();
+      }
+    }
+
+    return value;
+  }, z.string().datetime()).optional().nullable(),
   reviewedBy: z.string().trim().min(1).max(200).optional().nullable(),
   reviewNote: z.string().trim().min(1).max(2000).optional().nullable(),
   approvalWorkflow: approvalWorkflowSchema.optional().nullable(),

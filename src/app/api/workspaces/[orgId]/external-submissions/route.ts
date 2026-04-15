@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { db } from '@/lib/firebase-admin';
 import { listWorkspaceRegisters } from '@/lib/register-first/register-admin';
+import { parseExternalSubmission } from '@/lib/register-first/schema';
 import { ServerAuthError, requireWorkspaceMember } from '@/lib/server-auth';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 
@@ -52,11 +53,32 @@ export async function GET(req: NextRequest, context: RouteContext) {
           .collection('externalSubmissions')
           .get();
 
-        return snapshot.docs.map((document) => ({
-          ...(document.data() as ExternalSubmission),
-          registerName: location.register.name,
-          organisationName: location.register.organisationName ?? null,
-        }));
+        return snapshot.docs
+          .map((document) => {
+            try {
+              return {
+                ...parseExternalSubmission(document.data()),
+                registerName: location.register.name,
+                organisationName: location.register.organisationName ?? null,
+              };
+            } catch (error) {
+              console.warn('Skipping invalid workspace external submission', {
+                orgId,
+                registerId: location.registerId,
+                documentId: document.id,
+                error,
+              });
+              return null;
+            }
+          })
+          .filter(
+            (
+              entry,
+            ): entry is ExternalSubmission & {
+              registerName?: string | null;
+              organisationName?: string | null;
+            } => entry !== null,
+          );
       }),
     );
 

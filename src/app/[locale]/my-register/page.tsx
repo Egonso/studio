@@ -242,11 +242,11 @@ export default function MyRegisterPage() {
   }, [authLoading, user, hasChecked, router, onboardingParam, scopeContext]);
 
   useEffect(() => {
-    if (!user || !activeRegister?.registerId) {
+    if (!user || !activeRegister?.registerId || !checkoutSessionId) {
       return;
     }
 
-    const syncKey = `${activeRegister.registerId}:${checkoutSessionId ?? ''}`;
+    const syncKey = `${activeRegister.registerId}:${checkoutSessionId}`;
     if (syncedEntitlementKey === syncKey) {
       return;
     }
@@ -510,7 +510,7 @@ export default function MyRegisterPage() {
           </GovernanceHeader>
           {registerFirstFlags.supplierInviteV2 &&
             activeRegister &&
-            !showingExternalInbox && (
+            showingExternalInbox && (
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="space-y-2">
                 <CardTitle>Lieferantenstatus</CardTitle>
@@ -594,7 +594,7 @@ export default function MyRegisterPage() {
           )}
           {registerFirstFlags.supplierInviteV2 &&
             activeRegister &&
-            !showingExternalInbox && (
+            showingExternalInbox && (
               <SupplierInvitesList
                 registerId={activeRegister.registerId}
                 refreshKey={refreshKey}
@@ -635,8 +635,8 @@ export default function MyRegisterPage() {
               register={activeRegister}
               refreshKey={refreshKey}
               onCountsChange={setExternalInboxCounts}
-              title="Lieferantenanfragen"
-              description="Externe Einreichungen aus Lieferantenlinks, Erfassungslinks und Imports."
+              title="Externe Einreichungen"
+              description="Eingegangene Antworten aus Lieferantenlinks, Erfassungslinks und Imports."
             />
           ) : (
             <RegisterBoard

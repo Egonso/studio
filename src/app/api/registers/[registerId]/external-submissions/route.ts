@@ -5,6 +5,7 @@ import {
   ServerAuthError,
   requireRegisterOwner,
 } from '@/lib/server-auth';
+import { parseExternalSubmission } from '@/lib/register-first/schema';
 import type { ExternalSubmission } from '@/lib/register-first/types';
 
 interface RouteContext {
@@ -79,11 +80,30 @@ export async function GET(req: NextRequest, context: RouteContext) {
       .get();
 
     const submissions = snapshot.docs
-      .map((document) => ({
-        ...(document.data() as ExternalSubmission),
-        registerName: authorization.register.name,
-        organisationName: authorization.register.organisationName ?? null,
-      }))
+      .map((document) => {
+        try {
+          return {
+            ...parseExternalSubmission(document.data()),
+            registerName: authorization.register.name,
+            organisationName: authorization.register.organisationName ?? null,
+          };
+        } catch (error) {
+          console.warn('Skipping invalid register external submission', {
+            registerId,
+            documentId: document.id,
+            error,
+          });
+          return null;
+        }
+      })
+      .filter(
+        (
+          entry,
+        ): entry is ExternalSubmission & {
+          organisationName?: string | null;
+          registerName?: string | null;
+        } => entry !== null,
+      )
       .filter((entry) =>
         statusFilter ? entry.status === statusFilter : true,
       )
