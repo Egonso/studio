@@ -1,0 +1,1351 @@
+{
+  "status": "ok",
+  "generatedAt": "2026-04-12T10:24:13.584Z",
+  "model": "googleai/gemini-2.0-flash",
+  "outputPath": "/Users/zoltangal/Desktop/METAProjekt/Programmieren/studio/src/ai/spikes/draft-assist-v3/eval-results.json",
+  "summary": {
+    "totalCases": 14,
+    "executedCases": 14,
+    "schemaValidCount": 14,
+    "captureMappingValidCount": 14,
+    "reviewableCount": 14,
+    "inventedCriticalFactsCount": 0,
+    "exactRiskMatchCount": 7
+  },
+  "cases": [
+    {
+      "caseId": "support-ticket-prioritization",
+      "title": "Support-Tickets priorisieren",
+      "sourceRefs": [
+        "src/lib/register-first/__tests__/smoke.ts",
+        "src/lib/register-first/__tests__/service-v11.smoke.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Zusammenfassung und Priorisierung von Kundenanfragen mit ChatGPT",
+        "purpose": "Unterstützung des Support-Teams durch Zusammenfassung eingehender Kundenanfragen und Vorschlag einer ersten Priorisierung.",
+        "ownerRole": "Support Lead",
+        "usageContexts": [
+          "CUSTOMERS",
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "ChatGPT",
+            "providerType": "extern"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "decisionInfluence": "PREPARATION",
+        "humansInLoop": [
+          "Mitarbeitende prüfen und bearbeiten jeden Vorschlag."
+        ],
+        "isCurrentlyResponsible": true,
+        "missingFacts": [],
+        "summary": "Das Support-Team nutzt ChatGPT, um Kundenanfragen zusammenzufassen und Priorisierung vorzuschlagen. Mitarbeitende prüfen die Vorschläge.",
+        "tags": [
+          "Support",
+          "Kundenservice",
+          "Priorisierung",
+          "Zusammenfassung"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung des Support-Teams durch Zusammenfassung eingehender Kundenanfragen und Vorschlag einer ersten Priorisierung.",
+        "usageContexts": [
+          "CUSTOMERS",
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "ChatGPT",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "organisation": null,
+        "dataCategory": "PERSONAL_DATA",
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "chatgpt",
+        "productName": "ChatGPT",
+        "vendor": "OpenAI",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "high",
+        "reviewRecommended": true,
+        "openQuestions": [],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Der Zweck deutet auf einen Chatbot-, Kommunikations- oder Assistenzfall hin.",
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt.",
+          "Es werden personenbezogene Daten verarbeitet."
+        ],
+        "sourceSignals": [
+          "usage:CUSTOMERS",
+          "usage:INTERNAL_ONLY",
+          "decision:PREPARATION",
+          "data:PERSONAL",
+          "tool-risk:limited",
+          "purpose:TRANSPARENCY_USE"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [
+          "EMPLOYEES"
+        ],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "applicant-scoring-ranking",
+      "title": "Bewerber-Scoring und Ranking",
+      "sourceRefs": [
+        "src/lib/register-first/risk-suggestion-engine.test.ts",
+        "src/lib/policy-engine/sections/level-3/15-hr-recruitment.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "KI-gestützte Bewerbungsvorauswahl",
+        "purpose": "Automatisierte Vorsortierung und Shortlist-Erstellung von Bewerbungen zur Effizienzsteigerung im Recruiting.",
+        "ownerRole": "Recruiting Lead",
+        "usageContexts": [
+          "APPLICANTS"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Nicht spezifiziertes KI-System"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "decisionInfluence": "PREPARATION",
+        "humansInLoop": [
+          "Recruiter prüft und entscheidet über die finale Auswahl der Bewerber."
+        ],
+        "missingFacts": [
+          "Welche konkreten Kriterien werden für das Scoring der Bewerbungen verwendet?",
+          "Welche Datenquellen werden neben Bewerberdaten und Lebensläufen berücksichtigt?"
+        ],
+        "summary": "Ein KI-System wird eingesetzt, um Bewerbungen automatisch zu vorsortieren, ein Score-basiertes Ranking zu erstellen und eine Shortlist für die erste Auswahl zu generieren. Recruiter nutzen diese Informationen, um fundierte Entscheidungen zu treffen.",
+        "tags": [
+          "Recruiting",
+          "Bewerberauswahl",
+          "Shortlist",
+          "KI"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Automatisierte Vorsortierung und Shortlist-Erstellung von Bewerbungen zur Effizienzsteigerung im Recruiting.",
+        "usageContexts": [
+          "APPLICANTS"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "Nicht spezifiziertes KI-System",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "organisation": null,
+        "dataCategory": "PERSONAL_DATA",
+        "affectedParties": []
+      },
+      "matchedTool": null,
+      "riskSuggestion": {
+        "suggestedRiskClass": "HIGH",
+        "signalStrength": "high",
+        "reviewRecommended": true,
+        "openQuestions": [],
+        "reasons": [
+          "Bewerber*innen oder ein erkennbarer Recruiting-Kontext sind betroffen.",
+          "Der Einsatzfall beeinflusst Entscheidungen ueber Personen.",
+          "Der Zweck deutet auf Scoring, Ranking, Auswahl oder aehnliche Entscheidungseffekte hin."
+        ],
+        "sourceSignals": [
+          "usage:APPLICANTS",
+          "decision:PREPARATION",
+          "data:PERSONAL",
+          "purpose:DECISION_EFFECT",
+          "purpose:RECRUITMENT_CONTEXT"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 2,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "marketing-text-drafting",
+      "title": "Marketing-Texte entwerfen",
+      "sourceRefs": [
+        "src/lib/register-first/__tests__/smoke.ts",
+        "src/components/register/capture-form.tsx",
+        "src/data/coverage-assist-seed-library.json"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Newsletter- und Webseitentexte-Entwurf mit ChatGPT",
+        "purpose": "Unterstützung des Marketing-Teams bei der Erstellung von Textentwürfen für Newsletter und Webseiten.",
+        "ownerRole": "Marketing Lead",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "ChatGPT",
+            "providerType": "extern"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Mitarbeiter prüft und passt Tonalität und Aussagen an"
+        ],
+        "isCurrentlyResponsible": true,
+        "risks": [
+          "Unpassende Tonalität oder falsche Aussagen in den Texten",
+          "Verstoss gegen Corporate Language"
+        ],
+        "summary": "Das Marketing-Team nutzt ChatGPT, um erste Entwuerfe fuer Newsletter und Webseiten-Texte zu schreiben. Eine Mitarbeiterin prueft jeden Text vor der Veroeffentlichung und passt Tonalitaet und Aussagen an. Es werden dabei keine sensiblen Personendaten eingegeben.",
+        "tags": [
+          "Textgenerierung",
+          "Marketing",
+          "Newsletter",
+          "Webseite"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung des Marketing-Teams bei der Erstellung von Textentwürfen für Newsletter und Webseiten.",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "ChatGPT",
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "chatgpt",
+        "productName": "ChatGPT",
+        "vendor": "OpenAI",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "medium",
+        "reviewRecommended": true,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?",
+          "Interagieren externe Personen direkt mit KI-Ausgaben oder sehen sie KI-generierte Inhalte?"
+        ],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt."
+        ],
+        "sourceSignals": [
+          "usage:CUSTOMERS",
+          "decision:ASSISTANCE",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "routine-email-preparation",
+      "title": "Routine-E-Mails vorbereiten",
+      "sourceRefs": [
+        "src/lib/register-first/__tests__/smoke.ts",
+        "src/data/coverage-assist-seed-library.json"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Vorbereitung von Kundenmail-Entwuerfen mit Microsoft Copilot",
+        "purpose": "Unterstützung der Mitarbeitenden bei der Erstellung von Antwortentwürfen für Kundenmails.",
+        "ownerRole": "Support Lead",
+        "usageContexts": [
+          "CUSTOMERS",
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Microsoft Copilot",
+            "providerType": "STANDARD"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "PREPARATION",
+        "missingFacts": [
+          "Welche Art von Kundendaten werden in Copilot verarbeitet (Namen, Adressen, etc.)?",
+          "Werden die Inhalte der Kundenmails zum Training des Modells verwendet?",
+          "In welchen Systemen liegen die relevanten Kundeninformationen, die Copilot nutzt?"
+        ],
+        "risks": [
+          "Fehlerhafte oder unpassende Antwortvorschläge können zu Missverständnissen oder Fehlkommunikation mit Kunden führen.",
+          "Unzureichender Datenschutz bei der Verarbeitung von Kundendaten durch Copilot."
+        ],
+        "steps": [
+          "Mitarbeiter erhält Kundenmail.",
+          "Mitarbeiter nutzt Microsoft Copilot zur Vorbereitung eines Antwortentwurfs.",
+          "Mitarbeiter prüft, passt an und versendet den Entwurf."
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung der Mitarbeitenden bei der Erstellung von Antwortentwürfen für Kundenmails.",
+        "usageContexts": [
+          "CUSTOMERS",
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "Microsoft Copilot",
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "microsoft_copilot",
+        "productName": "Microsoft Copilot",
+        "vendor": "Microsoft",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "medium",
+        "reviewRecommended": true,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Der Zweck deutet auf einen Chatbot-, Kommunikations- oder Assistenzfall hin.",
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt."
+        ],
+        "sourceSignals": [
+          "usage:CUSTOMERS",
+          "usage:INTERNAL_ONLY",
+          "decision:PREPARATION",
+          "tool-risk:limited",
+          "purpose:TRANSPARENCY_USE"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 3,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "customer-support-chatbot",
+      "title": "Kundensupport-Chatbot",
+      "sourceRefs": [
+        "src/lib/register-first/risk-suggestion-engine.test.ts",
+        "src/components/register/detail/use-case-assessment-wizard-model.test.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Beantwortung von Kundenanfragen zu Lieferstatus und Standardprozessen per Chatbot",
+        "purpose": "Automatisierte Beantwortung von Kundenanfragen, um das Support-Team zu entlasten und schnelle Antworten zu ermoeglichen.",
+        "ownerRole": "Support Lead",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Nicht spezifiziertes KI-System",
+            "providerType": "Drittanbieter"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Support-Team ueberwacht Antworten und greift bei Bedarf ein.",
+          "Komplexe Faelle werden manuell bearbeitet."
+        ],
+        "missingFacts": [
+          "Welche Kundendaten und Bestellinformationen werden im Detail verarbeitet?",
+          "Welches KI-System wird eingesetzt und wie ist es konfiguriert (z.B. Prompt-Engineering)?"
+        ],
+        "risks": [
+          "Fehlerhafte oder ungenaue Antworten koennen zu Kundenunzufriedenheit fuehren.",
+          "Datenschutzrisiken bei Verarbeitung von Kundendaten."
+        ],
+        "summary": "Ein Chatbot beantwortet haeufige Kundenfragen zu Lieferstatus und Standardprozessen. Das Support-Team ueberwacht die Antworten und greift bei Bedarf ein. In einzelnen Faellen koennen Kundendaten und Bestellinformationen beruehrt werden.",
+        "workflow": {
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Der Chatbot gibt Antworten, die vom Support-Team ueberwacht und bei Bedarf korrigiert werden. Bei komplexen Faellen erfolgt eine Eskalation an das Support-Team."
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Automatisierte Beantwortung von Kundenanfragen, um das Support-Team zu entlasten und schnelle Antworten zu ermoeglichen.",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "Nicht spezifiziertes KI-System",
+        "workflow": {
+          "additionalSystems": [],
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Der Chatbot gibt Antworten, die vom Support-Team ueberwacht und bei Bedarf korrigiert werden. Bei komplexen Faellen erfolgt eine Eskalation an das Support-Team."
+        },
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "organisation": null,
+        "dataCategory": "PERSONAL_DATA",
+        "affectedParties": []
+      },
+      "matchedTool": null,
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "high",
+        "reviewRecommended": true,
+        "openQuestions": [],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Der Zweck deutet auf einen Chatbot-, Kommunikations- oder Assistenzfall hin.",
+          "Es werden personenbezogene Daten verarbeitet."
+        ],
+        "sourceSignals": [
+          "usage:CUSTOMERS",
+          "decision:ASSISTANCE",
+          "data:PERSONAL",
+          "purpose:TRANSPARENCY_USE"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 2,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "applicant-communication-scheduling",
+      "title": "Bewerberkommunikation und Terminabstimmung",
+      "sourceRefs": [
+        "src/lib/register-first/risk-suggestion-engine.test.ts",
+        "src/components/register/detail/risk-class-assist-model.test.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "KI-Unterstützung bei der Bewerberkommunikation und Terminfindung",
+        "purpose": "Unterstützung der Recruiter bei der Formulierung von Antworten an Bewerber und Vorschlag von Interviewterminen, um den Recruiting-Prozess zu beschleunigen und zu verbessern.",
+        "ownerRole": "Recruiting Lead",
+        "usageContexts": [
+          "APPLICANTS"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Nicht spezifiziertes KI-System",
+            "providerType": "Third Party"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "PREPARATION",
+        "humansInLoop": [
+          "Recruiter prüfen und passen die Antwortentwürfe an, bevor sie versendet werden."
+        ],
+        "missingFacts": [],
+        "risks": [
+          "Diskriminierung aufgrund von KI-generierten Inhalten.",
+          "Fehlerhafte oder unpassende Terminvorschläge."
+        ],
+        "summary": "Ein KI-System unterstützt Recruiter bei der Formulierung von Antworten an Bewerber und schlägt Termine für Interviews vor. Recruiter behalten die Kontrolle über die finale Kommunikation.",
+        "tags": [
+          "Recruiting",
+          "Bewerberkommunikation",
+          "Terminfindung"
+        ],
+        "workflow": {
+          "connectionMode": "MANUAL_SEQUENCE",
+          "summary": "KI generiert Antwortentwurf und Terminvorschläge -> Recruiter prüft und editiert -> Recruiter versendet"
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung der Recruiter bei der Formulierung von Antworten an Bewerber und Vorschlag von Interviewterminen, um den Recruiting-Prozess zu beschleunigen und zu verbessern.",
+        "usageContexts": [
+          "APPLICANTS"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "Nicht spezifiziertes KI-System",
+        "workflow": {
+          "additionalSystems": [],
+          "connectionMode": "MANUAL_SEQUENCE",
+          "summary": "KI generiert Antwortentwurf und Terminvorschläge -> Recruiter prüft und editiert -> Recruiter versendet"
+        },
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": null,
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "low",
+        "reviewRecommended": true,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?",
+          "Unterstuetzt der Einsatzfall nur die Kommunikation mit Bewerber*innen oder auch Auswahl, Ranking oder Scoring?"
+        ],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Es gibt Bewerber*innen-Kontext, aber noch keine klaren Signale fuer Scoring oder Auswahl."
+        ],
+        "sourceSignals": [
+          "usage:APPLICANTS",
+          "decision:PREPARATION",
+          "purpose:RECRUITMENT_CONTEXT"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "finance-invoice-triage",
+      "title": "Finance Invoice Triage",
+      "sourceRefs": [
+        "src/lib/dev/studio-agent.test.ts",
+        "src/lib/agent-kit/manifest.test.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "KI-basierte Aufbereitung von Rechnungsabweichungen",
+        "purpose": "Zusammenfassung von Rechnungsabweichungen zur Pruefung durch Finance Analysten",
+        "ownerRole": "Finance Lead",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "SAP",
+            "providerType": "thirdParty"
+          },
+          {
+            "position": 2,
+            "name": "Claude",
+            "providerType": "thirdParty"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "INTERNAL_CONFIDENTIAL"
+        ],
+        "decisionInfluence": "PREPARATION",
+        "humansInLoop": [
+          "Finance Analyst"
+        ],
+        "missingFacts": [],
+        "summary": "Ein KI-System nutzt SAP-Daten und Claude, um Rechnungsabweichungen zusammenzufassen. Ein Finance Analyst prueft jede Zusammenfassung, bevor weitere Schritte unternommen werden.",
+        "tags": [
+          "Rechnungswesen",
+          "Finanzen",
+          "Automatisierung"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Zusammenfassung von Rechnungsabweichungen zur Pruefung durch Finance Analysten",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "SAP",
+        "workflow": {
+          "additionalSystems": [
+            {
+              "entryId": "workflow_2",
+              "position": 2,
+              "toolId": "other",
+              "toolFreeText": "Claude"
+            }
+          ],
+          "summary": "Ein KI-System nutzt SAP-Daten und Claude, um Rechnungsabweichungen zusammenzufassen. Ein Finance Analyst prueft jede Zusammenfassung, bevor weitere Schritte unternommen werden."
+        },
+        "dataCategories": [
+          "INTERNAL_CONFIDENTIAL"
+        ],
+        "organisation": null,
+        "dataCategory": "INTERNAL_CONFIDENTIAL",
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "claude",
+        "productName": "Claude",
+        "vendor": "Anthropic",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "low",
+        "reviewRecommended": false,
+        "openQuestions": [],
+        "reasons": [
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:PREPARATION",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [
+          "EMPLOYEES"
+        ],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "vendor-due-diligence-assistant",
+      "title": "Vendor due diligence assistant",
+      "sourceRefs": [
+        "src/lib/agent-kit/manifest.test.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Zusammenfassung von Lieferantenunterlagen",
+        "purpose": "Unterlagen aus SharePoint zu Lieferanten werden zusammengefasst, um die rechtliche und fachliche Pruefung vorzubereiten.",
+        "ownerRole": "Procurement Lead",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "SharePoint",
+            "providerType": "Third Party"
+          },
+          {
+            "position": 2,
+            "name": "Claude",
+            "providerType": "Third Party"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "PREPARATION",
+        "missingFacts": [],
+        "summary": "Der Einkauf nutzt SharePoint-Unterlagen und Claude, um Lieferantenunterlagen vor einer rechtlichen oder fachlichen Pruefung zusammenzufassen. Die Procurement-Leitung prueft jede Empfehlung und trifft die eigentliche Entscheidung.",
+        "workflow": {
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Dokumente aus SharePoint werden mit Claude zusammengefasst und der Zusammenfassungsentwurf wird von der Procurement-Leitung geprüft."
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterlagen aus SharePoint zu Lieferanten werden zusammengefasst, um die rechtliche und fachliche Pruefung vorzubereiten.",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "SharePoint",
+        "workflow": {
+          "additionalSystems": [
+            {
+              "entryId": "workflow_2",
+              "position": 2,
+              "toolId": "other",
+              "toolFreeText": "Claude"
+            }
+          ],
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Dokumente aus SharePoint werden mit Claude zusammengefasst und der Zusammenfassungsentwurf wird von der Procurement-Leitung geprüft."
+        },
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "claude",
+        "productName": "Claude",
+        "vendor": "Anthropic",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "low",
+        "reviewRecommended": false,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:PREPARATION",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [
+          "EMPLOYEES"
+        ],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "newsletter-content-workflow",
+      "title": "Newsletter-Content mit Recherche, Text und Bild",
+      "sourceRefs": [
+        "src/lib/register-first/__tests__/service-v11.smoke.ts"
+      ],
+      "draft": {
+        "documentationType": "workflow",
+        "title": "Marketing-Workflow zur Themenrecherche, Texterstellung und Bildgenerierung",
+        "purpose": "Unterstützung des Marketing-Teams bei der Themenrecherche, Texterstellung und Bildgenerierung für Marketingkampagnen.",
+        "ownerRole": "Marketing Lead",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Perplexity API",
+            "providerType": "EXTERNAL"
+          },
+          {
+            "position": 2,
+            "name": "Gemini API",
+            "providerType": "EXTERNAL"
+          },
+          {
+            "position": 3,
+            "name": "Sora",
+            "providerType": "EXTERNAL"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "INTERNAL_CONFIDENTIAL"
+        ],
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Marketing Lead prüft Ergebnisse vor Nutzung."
+        ],
+        "isCurrentlyResponsible": true,
+        "missingFacts": [],
+        "workflow": {
+          "connectionMode": "MANUAL_SEQUENCE",
+          "summary": "Der Workflow besteht aus drei Schritten: Themenrecherche mit Perplexity API, Texterstellung mit Gemini API und Bildgenerierung mit Sora. Die Marketing-Leitung prüft die Ergebnisse jedes Schritts."
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung des Marketing-Teams bei der Themenrecherche, Texterstellung und Bildgenerierung für Marketingkampagnen.",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "Perplexity API",
+        "workflow": {
+          "additionalSystems": [
+            {
+              "entryId": "workflow_2",
+              "position": 2,
+              "toolId": "other",
+              "toolFreeText": "Gemini API"
+            },
+            {
+              "entryId": "workflow_3",
+              "position": 3,
+              "toolId": "other",
+              "toolFreeText": "Sora"
+            }
+          ],
+          "connectionMode": "MANUAL_SEQUENCE",
+          "summary": "Der Workflow besteht aus drei Schritten: Themenrecherche mit Perplexity API, Texterstellung mit Gemini API und Bildgenerierung mit Sora. Die Marketing-Leitung prüft die Ergebnisse jedes Schritts."
+        },
+        "dataCategories": [
+          "INTERNAL_CONFIDENTIAL"
+        ],
+        "organisation": null,
+        "dataCategory": "INTERNAL_CONFIDENTIAL",
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "perplexity",
+        "productName": "Perplexity",
+        "vendor": "Perplexity AI",
+        "riskLevel": "minimal"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "MINIMAL",
+        "signalStrength": "medium",
+        "reviewRecommended": false,
+        "openQuestions": [],
+        "reasons": [
+          "Der Einsatzfall wirkt rein intern und assistiv.",
+          "Es gibt keine Signale fuer Auswahl-, Scoring- oder Automatisierungslogik.",
+          "Das hinterlegte Tool ist im Katalog als minimaler Risiko-Fall verzeichnet."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:ASSISTANCE",
+          "tool-risk:minimal",
+          "purpose:TRANSPARENCY_USE"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "internal-knowledge-rag",
+      "title": "Internes Wissensmanagement mit eigener RAG-Pipeline",
+      "sourceRefs": [
+        "src/lib/register-first/__tests__/service-v11.smoke.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Interne Wissenssuche und Antwortvorbereitung per RAG-Pipeline",
+        "purpose": "Schnellere Auffindbarkeit interner Wissensdokumente und Vorbereitung von Antworten auf interne Rückfragen.",
+        "ownerRole": "IT Lead",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Eigenentwicklung RAG-Pipeline"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "PREPARATION",
+        "humansInLoop": [
+          "Fachexperten prüfen Ergebnisse der RAG-Pipeline vor weiterer Nutzung."
+        ],
+        "missingFacts": [],
+        "risks": [
+          "Fehlerhafte oder unvollständige Antworten durch die RAG-Pipeline.",
+          "Offenlegung vertraulicher Informationen durch fehlerhafte Konfiguration der RAG-Pipeline."
+        ],
+        "summary": "Die IT-Abteilung betreibt eine eigene RAG-Pipeline, um interne Wissensdokumente schneller auffindbar zu machen und erste Antworten auf interne Rückfragen vorzubereiten. Die Ergebnisse werden von Fachexperten geprüft.",
+        "tags": [
+          "RAG",
+          "interne Suche",
+          "Wissensmanagement"
+        ],
+        "workflow": {
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "RAG-Pipeline bereitet Antwort vor, Mensch prüft und nutzt diese."
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Schnellere Auffindbarkeit interner Wissensdokumente und Vorbereitung von Antworten auf interne Rückfragen.",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "PREPARATION",
+        "toolId": "other",
+        "toolFreeText": "Eigenentwicklung RAG-Pipeline",
+        "workflow": {
+          "additionalSystems": [],
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "RAG-Pipeline bereitet Antwort vor, Mensch prüft und nutzt diese."
+        },
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": null,
+      "riskSuggestion": {
+        "suggestedRiskClass": "UNASSESSED",
+        "signalStrength": "low",
+        "reviewRecommended": true,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Es liegen noch zu wenige belastbare Signale fuer eine klare Risikorichtung vor."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:PREPARATION"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "github-copilot-code-explanation",
+      "title": "Code erklaeren mit GitHub Copilot",
+      "sourceRefs": [
+        "src/data/coverage-assist-seed-library.json"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Code-Erklaerung mit GitHub Copilot",
+        "purpose": "Entwickler-Assistenz zur schnelleren Einarbeitung in unbekannte Code-Bestandteile",
+        "ownerRole": "IT Lead",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "GitHub Copilot"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Entwickler prueft Erklaerung vor Aenderung"
+        ],
+        "missingFacts": [],
+        "summary": "Entwickler nutzen GitHub Copilot, um Code-Bestandteile zusammenfassen und erklaeren zu lassen. Die Erklaerungen werden nur intern genutzt und vor produktiven Aenderungen immer von einem Entwickler geprueft.",
+        "tags": [
+          "Entwicklung",
+          "Code",
+          "Erklaerung"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Entwickler-Assistenz zur schnelleren Einarbeitung in unbekannte Code-Bestandteile",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "GitHub Copilot",
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "github_copilot",
+        "productName": "GitHub Copilot",
+        "vendor": "GitHub (Microsoft)",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "MINIMAL",
+        "signalStrength": "medium",
+        "reviewRecommended": false,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Der Einsatzfall wirkt rein intern und assistiv.",
+          "Es gibt keine Signale fuer Auswahl-, Scoring- oder Automatisierungslogik.",
+          "Das Tool ist zwar generisch als begrenztes Risiko hinterlegt, der konkrete Einsatz wirkt aber eng und intern."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:ASSISTANCE",
+          "tool-risk:limited",
+          "purpose:TRANSPARENCY_USE"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "gemini-workshop-agenda",
+      "title": "Workshop-Agenda skizzieren",
+      "sourceRefs": [
+        "src/data/coverage-assist-seed-library.json"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Workshop-Agenda und Leitfragen-Entwurf mit Google Gemini",
+        "purpose": "Unterstützung bei der Vorbereitung von Workshop-Agenden und Leitfragen durch KI-gestützte Entwurfserstellung.",
+        "ownerRole": "Unklar / fachliche Leitung",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Google Gemini",
+            "providerType": "SaaS"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "ASSISTANCE",
+        "missingFacts": [
+          "Welches Team nutzt das System?",
+          "Wer ist fachlich verantwortlich?"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung bei der Vorbereitung von Workshop-Agenden und Leitfragen durch KI-gestützte Entwurfserstellung.",
+        "usageContexts": [
+          "INTERNAL_ONLY"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "Google Gemini",
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "google_gemini",
+        "productName": "Google Gemini",
+        "vendor": "Google",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "MINIMAL",
+        "signalStrength": "medium",
+        "reviewRecommended": false,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Der Einsatzfall wirkt rein intern und assistiv.",
+          "Es gibt keine Signale fuer Auswahl-, Scoring- oder Automatisierungslogik.",
+          "Das Tool ist zwar generisch als begrenztes Risiko hinterlegt, der konkrete Einsatz wirkt aber eng und intern."
+        ],
+        "sourceSignals": [
+          "usage:INTERNAL_ONLY",
+          "decision:ASSISTANCE",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 2,
+        "missingExpectedUsageContexts": [
+          "EMPLOYEES"
+        ],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "claude-policy-draft",
+      "title": "Richtlinienentwurf mit Claude",
+      "sourceRefs": [
+        "src/data/coverage-assist-seed-library.json"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Erstellung von Richtlinienentwuerfen mit Claude",
+        "purpose": "Unterstützung bei der Erstellung von internen Arbeitsanweisungen, Richtlinienentwürfen und Prozessbeschreibungen.",
+        "ownerRole": "Unklar / fachliche Leitung",
+        "usageContexts": [
+          "INTERNAL_ONLY",
+          "EMPLOYEES"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Claude",
+            "providerType": "extern"
+          }
+        ],
+        "confidence": "medium",
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Fachbereich prüft und gibt finale Fassung frei"
+        ],
+        "isCurrentlyResponsible": true,
+        "missingFacts": [],
+        "summary": "Claude wird genutzt, um erste Entwürfe für interne Richtlinien und Prozessbeschreibungen zu erstellen. Verantwortliche aus dem Fachbereich prüfen jede Fassung vor Freigabe. Es geht um interne Prozessinformationen und Vorgaben für Mitarbeitende.",
+        "tags": [
+          "Textgenerierung",
+          "Richtlinien",
+          "Prozesse"
+        ]
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Unterstützung bei der Erstellung von internen Arbeitsanweisungen, Richtlinienentwürfen und Prozessbeschreibungen.",
+        "usageContexts": [
+          "INTERNAL_ONLY",
+          "EMPLOYEES"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "Claude",
+        "organisation": null,
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "claude",
+        "productName": "Claude",
+        "vendor": "Anthropic",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "low",
+        "reviewRecommended": false,
+        "openQuestions": [
+          "Werden personenbezogene oder besondere sensible Daten verarbeitet?"
+        ],
+        "reasons": [
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt."
+        ],
+        "sourceSignals": [
+          "usage:EMPLOYEES",
+          "usage:INTERNAL_ONLY",
+          "decision:ASSISTANCE",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 0,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": null,
+        "reviewable": true
+      },
+      "error": null
+    },
+    {
+      "caseId": "support-reply-drafting",
+      "title": "Support-Antworten mit Zendesk und Claude vorbereiten",
+      "sourceRefs": [
+        "src/lib/agent-kit/manifest.test.ts",
+        "src/lib/dev/studio-agent.test.ts"
+      ],
+      "draft": {
+        "documentationType": "application",
+        "title": "Vorbearbeitung von Kundenservice-Tickets mit Claude",
+        "purpose": "Erstellung von Antwortentwuerfen fuer eingehende Kundenanfragen in Zendesk zur Beschleunigung der Bearbeitung durch den Kundenservice.",
+        "ownerRole": "Support Lead",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "systems": [
+          {
+            "position": 1,
+            "name": "Claude",
+            "providerType": "Third Party"
+          },
+          {
+            "position": 2,
+            "name": "Zendesk",
+            "providerType": "Third Party"
+          }
+        ],
+        "confidence": "medium",
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "decisionInfluence": "ASSISTANCE",
+        "humansInLoop": [
+          "Support-Mitarbeitende pruefen und entscheiden ueber die finale Antwort."
+        ],
+        "missingFacts": [
+          "Welche Art von Kundendaten werden in den Tickets verarbeitet (z.B. Namen, Adressen, etc.)?",
+          "Werden die generierten Antwortentwuerfe vor der Pruefung durch die Mitarbeitenden gespeichert?"
+        ],
+        "workflow": {
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Tickets aus Zendesk werden mit Claude vorbearbeitet. Ein Antwortentwurf wird generiert, der von Support-Mitarbeitenden geprueft und angepasst wird."
+        }
+      },
+      "schemaValid": true,
+      "captureMappingValid": true,
+      "capturePreview": {
+        "purpose": "Erstellung von Antwortentwuerfen fuer eingehende Kundenanfragen in Zendesk zur Beschleunigung der Bearbeitung durch den Kundenservice.",
+        "usageContexts": [
+          "CUSTOMERS"
+        ],
+        "isCurrentlyResponsible": true,
+        "responsibleParty": null,
+        "contactPersonName": null,
+        "decisionInfluence": "ASSISTANCE",
+        "toolId": "other",
+        "toolFreeText": "Claude",
+        "workflow": {
+          "additionalSystems": [
+            {
+              "entryId": "workflow_2",
+              "position": 2,
+              "toolId": "other",
+              "toolFreeText": "Zendesk"
+            }
+          ],
+          "connectionMode": "SEMI_AUTOMATED",
+          "summary": "Tickets aus Zendesk werden mit Claude vorbearbeitet. Ein Antwortentwurf wird generiert, der von Support-Mitarbeitenden geprueft und angepasst wird."
+        },
+        "dataCategories": [
+          "PERSONAL_DATA"
+        ],
+        "organisation": null,
+        "dataCategory": "PERSONAL_DATA",
+        "affectedParties": []
+      },
+      "matchedTool": {
+        "toolId": "claude",
+        "productName": "Claude",
+        "vendor": "Anthropic",
+        "riskLevel": "limited"
+      },
+      "riskSuggestion": {
+        "suggestedRiskClass": "LIMITED",
+        "signalStrength": "medium",
+        "reviewRecommended": true,
+        "openQuestions": [
+          "Interagieren externe Personen direkt mit KI-Ausgaben oder sehen sie KI-generierte Inhalte?"
+        ],
+        "reasons": [
+          "Der Einsatzfall betrifft externe Personen, Bewerber*innen oder die Oeffentlichkeit.",
+          "Das hinterlegte Tool ist im Katalog als GPAI-/Transparenzfall mit begrenztem Risiko hinterlegt.",
+          "Es werden personenbezogene Daten verarbeitet."
+        ],
+        "sourceSignals": [
+          "usage:CUSTOMERS",
+          "decision:ASSISTANCE",
+          "data:PERSONAL",
+          "tool-risk:limited"
+        ]
+      },
+      "evaluation": {
+        "missingFactsCount": 2,
+        "missingExpectedUsageContexts": [],
+        "unexpectedSpecificSystems": [],
+        "inventedCriticalFacts": false,
+        "riskMatch": true,
+        "reviewable": true
+      },
+      "error": null
+    }
+  ]
+}

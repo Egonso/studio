@@ -22,6 +22,7 @@ export interface RegisterFirstFeatureFlags {
   coverageAssistPhase1: boolean;
   coverageAssistExtension: boolean;
   coverageAssistSeedLibrary: boolean;
+  draftAssistCapture: boolean;
 }
 
 export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
@@ -49,6 +50,7 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     coverageAssistPhase1: false,
     coverageAssistExtension: false,
     coverageAssistSeedLibrary: false,
+    draftAssistCapture: false,
   });
 
 export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
@@ -138,6 +140,10 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
     "NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY",
     "COVERAGE_ASSIST_SEED_LIBRARY",
   ],
+  draftAssistCapture: [
+    "NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE",
+    "REGISTER_FIRST_DRAFT_ASSIST_CAPTURE",
+  ],
 });
 
 function parseBooleanFlag(value: string | undefined): boolean {
@@ -188,6 +194,7 @@ export function getRegisterFirstFeatureFlags(
       coverageAssistPhase1: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_PHASE1"] ?? env["COVERAGE_ASSIST_PHASE1"]) || registerFirstDefaultFlags.coverageAssistPhase1,
       coverageAssistExtension: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION"] ?? env["COVERAGE_ASSIST_EXTENSION"]) || registerFirstDefaultFlags.coverageAssistExtension,
       coverageAssistSeedLibrary: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY"] ?? env["COVERAGE_ASSIST_SEED_LIBRARY"]) || registerFirstDefaultFlags.coverageAssistSeedLibrary,
+      draftAssistCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE"] ?? env["REGISTER_FIRST_DRAFT_ASSIST_CAPTURE"]) || registerFirstDefaultFlags.draftAssistCapture,
     };
   }
 
@@ -262,6 +269,9 @@ export function getRegisterFirstFeatureFlags(
     coverageAssistSeedLibrary:
       parseBooleanFlag(process.env.NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY) ||
       registerFirstDefaultFlags.coverageAssistSeedLibrary,
+    draftAssistCapture:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE) ||
+      registerFirstDefaultFlags.draftAssistCapture,
   };
 }
 
