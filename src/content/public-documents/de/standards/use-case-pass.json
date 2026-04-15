@@ -37,9 +37,9 @@
     }
   ],
   "cta": {
-    "label": "Register starten",
-    "href": "/de",
-    "description": "Der nächste sinnvolle Schritt ist nicht ein Seminar, sondern die Erfassung der realen Einsatzfälle im Register."
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Der nächste sinnvolle Schritt ist die Registrierung und die direkte Erfassung realer Einsatzfälle im Register."
   },
   "related_links": [
     {

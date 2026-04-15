@@ -22,9 +22,9 @@
   "stance_label": "Standardisierungs-Hinweis",
   "author": "KIRegister",
   "cta": {
-    "label": "OEM Supplier Request Kit ansehen",
-    "href": "/de/artefacts/oem-supplier-request-kit",
-    "description": "Lieferkettenanfragen werden nur belastbar, wenn der Nachweis pro Einsatzfall standardnah strukturiert ist."
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Standardisierung wird erst belastbar, wenn die Einsatzfälle im Register geführt und strukturiert nachweisbar werden."
   },
   "related_links": [
     {

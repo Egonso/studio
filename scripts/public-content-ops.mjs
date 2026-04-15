@@ -113,6 +113,21 @@ function validateExpectationDelivery(doc, errors) {
   }
 }
 
+function validatePrimaryCta(doc, errors) {
+  if (!doc.cta) {
+    return;
+  }
+
+  if (typeof doc.cta.label !== 'string' || typeof doc.cta.href !== 'string') {
+    errors.push('cta must contain label and href when present.');
+    return;
+  }
+
+  if (/^(mailto:|tel:)/i.test(doc.cta.href)) {
+    errors.push('Primary CTA must point to a real product path or workflow, not to an email or phone link.');
+  }
+}
+
 function validateSection(section, errors, index) {
   if (!section || typeof section !== 'object') {
     errors.push(`Section ${index} is missing or invalid.`);
@@ -263,12 +278,9 @@ function validateDocument(doc, filePath) {
     }
   }
 
-  if (doc.cta && (typeof doc.cta.label !== 'string' || typeof doc.cta.href !== 'string')) {
-    errors.push('cta must contain label and href when present.');
-  }
-
   validateDownloads(doc, errors);
   validateExpectationDelivery(doc, errors);
+  validatePrimaryCta(doc, errors);
 
   if (doc.content_type === 'update' && doc.template_variant !== 'authority-update') {
     errors.push('Updates must use the authority-update template.');
@@ -370,6 +382,23 @@ function normalizeInternalHref(href) {
   return href;
 }
 
+function localizeInternalHref(locale, href) {
+  const normalizedHref = normalizeInternalHref(href);
+  if (!normalizedHref) {
+    return null;
+  }
+
+  if (normalizedHref === '/' || normalizedHref === `/${locale}` || normalizedHref.startsWith(`/${locale}/`)) {
+    return normalizedHref === '/' ? `/${locale}` : normalizedHref;
+  }
+
+  if (normalizedHref.startsWith('/downloads/')) {
+    return normalizedHref;
+  }
+
+  return `/${locale}${normalizedHref}`;
+}
+
 function collectVerificationTargets(validationResults) {
   const targets = new Map();
 
@@ -450,11 +479,17 @@ function collectVerificationTargets(validationResults) {
     }
 
     if (result.doc.cta?.href) {
-      addTarget(result.doc.cta.href, { kind: 'cta', source });
+      addTarget(localizeInternalHref(result.doc.locale, result.doc.cta.href) ?? result.doc.cta.href, {
+        kind: 'cta',
+        source,
+      });
     }
 
     for (const link of result.doc.related_links ?? []) {
-      addTarget(link.href, { kind: 'related', source });
+      addTarget(localizeInternalHref(result.doc.locale, link.href) ?? link.href, {
+        kind: 'related',
+        source,
+      });
     }
 
     for (const download of result.doc.downloads ?? []) {

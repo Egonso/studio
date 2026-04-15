@@ -123,6 +123,7 @@ export default function MyRegisterPage() {
   const workspaceScope = useWorkspaceScope();
   const initialFilter = searchParams.get('filter') as string | undefined;
   const onboardingParam = searchParams.get('onboarding');
+  const openParam = searchParams.get('open');
   const checkoutSessionId = searchParams.get('checkout_session_id');
   const scopeContext = useMemo(
     () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
@@ -424,6 +425,7 @@ export default function MyRegisterPage() {
             externalInboxCount={externalInboxCounts.total}
             onQuickCapture={() => setCaptureOpen(true)}
             onSupplierInvitesChanged={() => setRefreshKey((key) => key + 1)}
+            initialSupplierInviteDialogOpen={openParam === 'supplier_invite'}
           >
             {activeRegister && (
               <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">

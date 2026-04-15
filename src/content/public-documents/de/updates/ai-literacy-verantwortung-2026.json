@@ -22,9 +22,9 @@
   "stance_label": "Pflichtbild",
   "author": "KIRegister",
   "cta": {
-    "label": "Practitioner Kit ansehen",
-    "href": "/de/artefacts/practitioner-kit",
-    "description": "Das Practitioner Kit übersetzt AI Literacy in Rollen, Nachweise und konkrete Registerarbeit."
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Rollen, Nachweise und Prüfpfade werden erst belastbar, wenn die Einsatzfälle im Register angelegt sind."
   },
   "related_links": [
     {

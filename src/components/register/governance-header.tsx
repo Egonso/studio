@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
@@ -44,6 +44,7 @@ interface GovernanceHeaderProps {
   onQuickCapture?: () => void;
   onRegisterUpdated?: (partial: Partial<Register>) => void;
   onSupplierInvitesChanged?: () => void;
+  initialSupplierInviteDialogOpen?: boolean;
   children?: React.ReactNode;
 }
 
@@ -152,6 +153,7 @@ export function GovernanceHeader({
   externalInboxCount = 0,
   onQuickCapture,
   onSupplierInvitesChanged,
+  initialSupplierInviteDialogOpen = false,
   children,
 }: GovernanceHeaderProps) {
   const locale = useLocale();
@@ -167,6 +169,12 @@ export function GovernanceHeader({
   const orgName = register?.organisationName;
   const orgUnit = register?.organisationUnit;
   const orgSettings = register?.orgSettings;
+
+  useEffect(() => {
+    if (initialSupplierInviteDialogOpen && registerFirstFlags.supplierInviteV2) {
+      setSupplierInviteDialogOpen(true);
+    }
+  }, [initialSupplierInviteDialogOpen]);
 
   const counts = useMemo(() => {
     const byStatus: Record<RegisterUseCaseStatus, number> = {

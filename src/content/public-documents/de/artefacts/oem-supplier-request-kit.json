@@ -36,9 +36,9 @@
     }
   ],
   "cta": {
-    "label": "Supplier Pass anfordern",
-    "href": "mailto:zoltangal@web.de?subject=Supplier%20Pass%20anfordern",
-    "description": "Die Supplier-Request-Fläche ist der richtige Ort für strukturierte Anfragen entlang der Lieferkette."
+    "label": "Lieferantenanfrage starten",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Ffilter%3Dexternal_inbox%26open%3Dsupplier_invite",
+    "description": "Der Button führt direkt in die Lieferantenanfrage-Funktion des Registers statt in eine lose E-Mail."
   },
   "related_links": [
     {

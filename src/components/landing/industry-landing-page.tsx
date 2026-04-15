@@ -31,6 +31,9 @@ export async function IndustryLandingPage({
     href: registerHref,
   };
   const isExternalCta = !primaryCta.href.startsWith('/');
+  const primaryCtaHref = isExternalCta
+    ? primaryCta.href
+    : localizeHref(locale, primaryCta.href);
   const year = new Date().getFullYear();
 
   return (
@@ -226,15 +229,15 @@ export async function IndustryLandingPage({
             <div className="mt-3 space-y-2">
               {isExternalCta ? (
                 <a
-                  href={primaryCta.href}
-                  className="inline-flex items-center text-[14px] font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+                  href={primaryCtaHref}
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-950 bg-slate-950 px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-slate-800"
                 >
                   {primaryCta.label}
                 </a>
               ) : (
                 <Link
-                  href={primaryCta.href}
-                  className="inline-flex items-center text-[14px] font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+                  href={primaryCtaHref}
+                  className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-950 bg-slate-950 px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-slate-800"
                 >
                   {primaryCta.label}
                 </Link>

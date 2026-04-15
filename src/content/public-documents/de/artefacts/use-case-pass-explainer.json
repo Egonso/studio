@@ -36,9 +36,9 @@
     }
   ],
   "cta": {
-    "label": "Der Use-Case Pass als Standardnachweis",
-    "href": "/de/standards/use-case-pass",
-    "description": "Das Standard-Dokument zeigt die volle Logik hinter dem kurzen Explainer."
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Die Registrierung führt direkt in das Register, damit der Pass nicht nur verstanden, sondern sofort angelegt werden kann."
   },
   "related_links": [
     {

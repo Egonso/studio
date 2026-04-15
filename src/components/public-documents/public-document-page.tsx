@@ -48,6 +48,26 @@ function renderLink(link: PublicDocumentLink, locale: string) {
   );
 }
 
+function renderPrimaryAction(link: PublicDocumentLink, locale: string) {
+  const isInternal = link.href.startsWith('/');
+  const className =
+    'inline-flex min-h-11 items-center justify-center rounded-md border border-slate-950 bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800';
+
+  if (isInternal) {
+    return (
+      <Link href={localizeHref(locale, link.href)} className={className}>
+        {link.label}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={link.href} className={className} rel="noreferrer" target="_blank">
+      {link.label}
+    </a>
+  );
+}
+
 function renderDownload(download: PublicDocumentDownload, locale: string) {
   const isExternal = /^https?:\/\//.test(download.href);
   const openInNewTab = download.format === 'PDF' || isExternal;
@@ -261,7 +281,7 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
                   {isGerman ? 'Nächster Schritt' : 'Next step'}
                 </p>
                 <div className="mt-3 space-y-2">
-                  {renderLink(document.cta, document.locale)}
+                  {renderPrimaryAction(document.cta, document.locale)}
                   {document.cta.description ? (
                     <p className="text-sm leading-7 text-slate-600">{document.cta.description}</p>
                   ) : null}

@@ -47,6 +47,11 @@ export interface Industry {
   en: IndustryLocaleContent;
 }
 
+const SUPPLIER_REQUEST_DEEP_LINK_DE =
+  '/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Ffilter%3Dexternal_inbox%26open%3Dsupplier_invite';
+const SUPPLIER_REQUEST_DEEP_LINK_EN =
+  '/login?mode=signup&intent=create_register&returnTo=%2Fen%2Fmy-register%3Ffilter%3Dexternal_inbox%26open%3Dsupplier_invite';
+
 export const industries: Industry[] = [
   {
     slug: 'automotive-suppliers',
@@ -115,10 +120,10 @@ export const industries: Industry[] = [
         'https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy',
       ],
       cta: {
-        label: 'Supplier Pass anfordern',
-        href: 'mailto:zoltangal@web.de?subject=Supplier%20Pass%20anfordern',
+        label: 'Lieferantenanfrage starten',
+        href: SUPPLIER_REQUEST_DEEP_LINK_DE,
         description:
-          'Für Lieferkettenanfragen sollte der nächste Schritt eine strukturierte Anfrage sein, nicht eine lose E-Mail ohne Falllogik.',
+          'Der Button führt direkt in die Lieferantenanfrage-Funktion des Registers statt in eine lose E-Mail.',
       },
       relatedLinks: [
         {
@@ -196,10 +201,10 @@ export const industries: Industry[] = [
         'https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy',
       ],
       cta: {
-        label: 'Request a supplier pass',
-        href: 'mailto:zoltangal@web.de?subject=Request%20a%20supplier%20pass',
+        label: 'Start supplier request',
+        href: SUPPLIER_REQUEST_DEEP_LINK_EN,
         description:
-          'For supply-chain evidence, the next step should be a structured request rather than an unstructured e-mail chain.',
+          'This button opens the supplier-request function in the register instead of sending people into an email thread.',
       },
       relatedLinks: [
         {

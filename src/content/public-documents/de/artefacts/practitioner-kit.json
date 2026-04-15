@@ -36,9 +36,9 @@
     }
   ],
   "cta": {
-    "label": "Partner werden",
-    "href": "/de/artefacts/use-case-pass-explainer",
-    "description": "Der schnellste Einstieg ist ein gemeinsames Begriffs- und Artefaktverständnis. Danach folgt die operative Nutzung."
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Die Registrierung öffnet direkt das Register, damit aus dem Kit sofort produktive Registerarbeit wird."
   },
   "related_links": [
     {
