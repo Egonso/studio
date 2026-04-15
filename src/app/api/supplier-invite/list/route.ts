@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { captureException } from '@/lib/observability/error-tracking';
+import { logWarn } from '@/lib/observability/logger';
 import { ServerAuthError, requireRegisterOwner } from '@/lib/server-auth';
-import { db } from '@/lib/firebase-admin';
+import { db, hasFirebaseAdminCredentials } from '@/lib/firebase-admin';
 import { parseSupplierInviteCampaignRecord } from '@/lib/register-first/supplier-invite-campaign-schema';
 import { parseSupplierInviteRecord } from '@/lib/register-first/supplier-invite-schema';
 import { safeIdentifierSchema } from '@/lib/security/request-security';
@@ -18,6 +19,36 @@ const CAMPAIGN_COLLECTION = 'registerSupplierInviteCampaigns';
 const ListQuerySchema = z.object({
   registerId: safeIdentifierSchema,
 });
+
+function isRecoverableOverviewError(error: unknown): boolean {
+  const code =
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string'
+      ? error.code.toLowerCase()
+      : '';
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === 'string'
+        ? error.toLowerCase()
+        : '';
+
+  return (
+    code.includes('permission-denied') ||
+    code.includes('insufficient-permission') ||
+    code.includes('failed-precondition') ||
+    message.includes('missing or insufficient permissions') ||
+    message.includes('the caller does not have permission') ||
+    message.includes('insufficient authentication scopes') ||
+    message.includes('query requires an index') ||
+    message.includes('failed precondition') ||
+    message.includes('could not load the default credentials') ||
+    message.includes('default credentials') ||
+    message.includes('7 permission_denied')
+  );
+}
 
 function safeParseInviteRecord(
   rawRecord: unknown,
@@ -52,6 +83,17 @@ export async function GET(req: NextRequest) {
 
     const authorizationHeader = req.headers.get('authorization');
     await requireRegisterOwner(authorizationHeader, query.registerId);
+
+    if (!hasFirebaseAdminCredentials()) {
+      logWarn('supplier_invite_list_degraded_no_admin_credentials', {
+        registerId: query.registerId,
+      });
+      return NextResponse.json({
+        invites: [],
+        campaigns: [],
+        degraded: true,
+      });
+    }
 
     const [inviteSnapshot, campaignSnapshot] = await Promise.all([
       db
@@ -96,6 +138,18 @@ export async function GET(req: NextRequest) {
         { error: 'Ungueltige Anfrage.' },
         { status: 400 },
       );
+    }
+
+    if (isRecoverableOverviewError(error)) {
+      logWarn('supplier_invite_list_degraded', {
+        registerId: req.nextUrl.searchParams.get('registerId') ?? undefined,
+        errorMessage: error instanceof Error ? error.message : 'unknown',
+      });
+      return NextResponse.json({
+        invites: [],
+        campaigns: [],
+        degraded: true,
+      });
     }
 
     captureException(error, {

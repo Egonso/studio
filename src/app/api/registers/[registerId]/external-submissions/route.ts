@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { db } from '@/lib/firebase-admin';
+import { db, hasFirebaseAdminCredentials } from '@/lib/firebase-admin';
+import { logWarn } from '@/lib/observability/logger';
 import {
   ServerAuthError,
   requireRegisterOwner,
@@ -15,6 +16,36 @@ type ExternalSubmissionListEntry = ExternalSubmission & {
 
 interface RouteContext {
   params: Promise<{ registerId: string }>;
+}
+
+function isRecoverableOverviewError(error: unknown): boolean {
+  const code =
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string'
+      ? error.code.toLowerCase()
+      : '';
+  const message =
+    error instanceof Error
+      ? error.message.toLowerCase()
+      : typeof error === 'string'
+        ? error.toLowerCase()
+        : '';
+
+  return (
+    code.includes('permission-denied') ||
+    code.includes('insufficient-permission') ||
+    code.includes('failed-precondition') ||
+    message.includes('missing or insufficient permissions') ||
+    message.includes('the caller does not have permission') ||
+    message.includes('insufficient authentication scopes') ||
+    message.includes('query requires an index') ||
+    message.includes('failed precondition') ||
+    message.includes('could not load the default credentials') ||
+    message.includes('default credentials') ||
+    message.includes('7 permission_denied')
+  );
 }
 
 function handleRegisterRouteError(error: unknown) {
@@ -67,6 +98,19 @@ export async function GET(req: NextRequest, context: RouteContext) {
       req.headers.get('authorization'),
       registerId,
     );
+
+    if (!hasFirebaseAdminCredentials()) {
+      logWarn('register_external_submissions_degraded_no_admin_credentials', {
+        registerId,
+        userId: authorization.user.uid,
+      });
+      return NextResponse.json({
+        submissions: [],
+        registerId,
+        degraded: true,
+      });
+    }
+
     const statusFilter = req.nextUrl.searchParams.get('status');
     const sourceTypeFilter = req.nextUrl.searchParams.get('sourceType');
     const linkedUseCaseIdFilter =
@@ -122,6 +166,18 @@ export async function GET(req: NextRequest, context: RouteContext) {
       registerId,
     });
   } catch (error) {
+    if (isRecoverableOverviewError(error)) {
+      logWarn('register_external_submissions_degraded', {
+        registerId,
+        errorMessage: error instanceof Error ? error.message : 'unknown',
+      });
+      return NextResponse.json({
+        submissions: [],
+        registerId,
+        degraded: true,
+      });
+    }
+
     return handleRegisterRouteError(error);
   }
 }
