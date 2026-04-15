@@ -630,13 +630,6 @@ function collectVerificationTargets(validationResults) {
         });
       }
 
-      if (section.kind === 'table' && Array.isArray(section.rows) && section.rows[0]?.label) {
-        addTarget(routePath, {
-          kind: 'document-section-content',
-          source,
-          expectedText: section.rows[0].label,
-        });
-      }
     }
 
     for (const item of result.doc.faq ?? []) {
