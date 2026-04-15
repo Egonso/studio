@@ -17,10 +17,20 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Standardisierung wird zur Anschlussfrage für jedes KI-Register",
-  "summary": "Je klarer europäische Standards und gemeinsame Spezifikationen werden, desto wichtiger wird ein internes Format, das solche Anforderungen pro Einsatzfall anschlussfähig macht. Genau dort gewinnt oder verliert das Register an Relevanz.",
+  "summary": "Europäische Standardisierung wirkt bereits in der Struktur von Register, Exporten und Nachweisen. Wer KI-Einsatzfälle heute sauber erfasst, legt damit fest, ob spätere Standards ohne Neuaufbau übernommen werden können oder ob Nachweise mühsam nachgezogen werden müssen.",
   "object_label": "Regulatorisches Update",
-  "stance_label": "Standardisierungs-Hinweis",
+  "stance_label": "Operative Standardisierungsfolge",
   "author": "KIRegister",
+  "audiences": [
+    "Governance-Teams, die Register- und Exportlogik festlegen",
+    "Produkt- und Prozessverantwortliche mit dokumentationspflichtigen KI-Einsatzfällen",
+    "Partner, Auditoren und Beschaffer mit Anforderungen an Vergleichbarkeit"
+  ],
+  "delivers": [
+    "eine Einordnung, warum Standardisierung heute schon ein Format- und Datenmodellthema ist",
+    "konkrete Folgen für Register, Export, Verify-Flächen und öffentliche Referenzseiten",
+    "einen priorisierten Arbeitsfokus für die nächsten operativen Ausbauschritte"
+  ],
   "cta": {
     "label": "Jetzt registrieren",
     "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
@@ -31,42 +41,70 @@
       "label": "KI-Governance für Automobil-Zulieferer",
       "href": "/de/industries/automotive-suppliers",
       "description": "Warum die Standardisierungsfrage in der Lieferkette besonders früh praktisch wird."
+    },
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Das Referenzformat, an dem interne Struktur und spätere Anschlussfähigkeit zusammenlaufen."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Warum betrifft Standardisierung auch Unternehmen ohne sofortige Zertifizierungspläne?",
+      "a": "Weil gemeinsame Begriffe, Feldlogiken und Evidenzmuster lange vor einer formalen Zertifizierung in Audits, Kundennachfragen und Beschaffung wirksam werden. Wer die Datenstruktur früh sauber aufsetzt, spart später Umstellungsaufwand."
     }
   ],
   "sections": [
     {
       "kind": "paragraphs",
-      "heading": "Warum das relevant ist",
+      "heading": "Was sich regulatorisch verdichtet",
       "paragraphs": [
-        "Standardisierung klingt nach Fernziel, wirkt aber operativ sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Evidenz oder Struktur entwickeln, wird aus einem internen Dokumentationsproblem ein Formatproblem.",
-        "Das Register braucht deshalb kein beliebiges Notizsystem, sondern ein konsistentes Dokumentmuster, das sich in Export, Verify-Links und Partnerkommunikation wiederholt."
-      ]
-    },
-    {
-      "kind": "bullets",
-      "heading": "Konsequenzen für die Content- und Produktlogik",
-      "items": [
-        "Öffentliche Bildungsinhalte müssen immer an ein echtes Artefakt oder einen echten Workflow andocken.",
-        "Brancheninhalte sollten nicht nur erklären, sondern die spätere Evidenzstruktur vorwegnehmen.",
-        "Partnerkits müssen dieselben Begriffe und Felder verwenden wie das Register selbst."
+        "Standardisierung klingt nach Fernziel, wirkt operativ aber sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Feldnamen oder Evidenz entwickeln, wird aus einer internen Dokumentationsfrage sofort ein Formatproblem.",
+        "Für KI-Register bedeutet das: Inhalt und Konsistenz müssen gemeinsam stimmen. Je sauberer Einsatzfälle beschrieben, aktualisiert und nach außen gezeigt werden, desto weniger Reibung entsteht morgen bei Anpassung, Export und Prüfung."
       ]
     },
     {
       "kind": "table",
-      "heading": "MVP-Standardisierung im KIRegister-Kontext",
+      "heading": "Wo Standardisierung im Register sofort sichtbar wird",
       "rows": [
         {
-          "label": "Format",
-          "value": "Ein Use-Case Pass pro KI-Einsatzfall."
+          "label": "Feldlogik",
+          "value": "Begriffe für Zweck, Owner, Datenbezug, Review und Evidenz müssen über Register, Exporte und Verify-Flächen konsistent bleiben."
         },
         {
-          "label": "Öffentlicher Beleg",
-          "value": "Verify-Link oder strukturiertes Artefakt."
+          "label": "Vergleichbarkeit",
+          "value": "Einsatzfälle müssen so beschrieben sein, dass Partner, Auditoren und interne Teams dieselbe Struktur wiedererkennen."
         },
         {
-          "label": "Lieferkette",
-          "value": "Supplier Request auf derselben Datenlogik wie der interne Pass."
+          "label": "Exportfähigkeit",
+          "value": "Dokumente und Beispiele brauchen eine Form, die sich ohne Neuformulierung in Anfragen, Audits und Beschaffungskontexte übertragen lässt."
         }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Was jetzt im Register vorbereitet sein muss",
+      "items": [
+        "Ein Pass pro realem KI-Einsatzfall statt einer losen Tool- oder Anbieterlogik.",
+        "Einheitliche Benennung von Review-Status, Verantwortlichkeit und Evidenzquellen.",
+        "Öffentliche Inhalte, Verify-Flächen und Downloads auf derselben Begriffswelt wie das Register.",
+        "Partnerkits und Supplier-Workflows, die dieselben Felder verwenden wie die interne Pass-Struktur."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wer zuerst handeln sollte",
+      "paragraphs": [
+        "Priorität haben Teams, die bereits heute zwischen interner Dokumentation und externer Nachfrage vermitteln: Governance, Beschaffung, Audit, Qualitätsmanagement und produktnahe Fachbereiche. Genau dort fällt zuerst auf, ob ein Register als Standardobjekt funktioniert oder nur als interne Liste.",
+        "Für Automotive und andere stark eingebundene Lieferketten gilt das besonders deutlich. Wer dort auf ein fallbezogenes, wiederverwendbares Format setzt, gewinnt früher Anschlussfähigkeit als Unternehmen, die ihre Nachweise erst bei der ersten Anfrage improvisieren."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was wir nicht empfehlen",
+      "paragraphs": [
+        "Nicht sinnvoll ist ein Register, das intern freie Notizen erlaubt und extern mit völlig anderen Begriffen arbeitet. Das erzeugt doppelte Pflege, unklare Verantwortlichkeiten und schwache Anschlussfähigkeit.",
+        "Ebenso wenig hilfreich sind Bildungsseiten oder Kits, die nur erklären, aber keine strukturelle Brücke zum echten Produkt und seinen Exporten schlagen. Standardisierung wird nur wirksam, wenn Inhalt, Workflow und Artefakt dieselbe Sprache sprechen."
       ]
     }
   ]

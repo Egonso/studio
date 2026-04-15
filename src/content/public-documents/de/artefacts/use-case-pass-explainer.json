@@ -17,10 +17,20 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Explainer für Einkauf, Legal und Governance",
-  "summary": "Dieses Dokument ist die kurze, anschlussfähige Erklärung des Use-Case-Pass-Ansatzes für Personen, die kein Tool kaufen wollen, aber verstehen müssen, warum ein einsatzfallbasierter Nachweis sinnvoller ist als allgemeine KI-Statements.",
+  "summary": "Dieses Dokument erklärt den Use-Case-Pass aus Sicht von Einkauf, Legal und Governance. Es zeigt, warum fallbezogene Dokumentation für Freigabe, Prüfung, Beschaffung und externe Rückfragen tragfähiger ist als allgemeine Aussagen über KI im Unternehmen.",
   "object_label": "Explainer-Artefakt",
-  "stance_label": "Einordnungsdokument",
+  "stance_label": "Entscheidungs- und Einordnungsdokument",
   "author": "KIRegister",
+  "audiences": [
+    "Einkaufsteams mit Fragen zu Nachweisen, Beschaffung und Lieferkette",
+    "Legal- und Compliance-Funktionen mit Bedarf an sauberer Fallstruktur",
+    "Governance-Verantwortliche, die interne und externe Nachweislogik verbinden müssen"
+  ],
+  "delivers": [
+    "eine knappe, anschlussfähige Erklärung des Use-Case-Pass für nicht-technische Entscheider",
+    "eine direkte Antwort auf die häufigsten Grundsatzfragen zu Einheit, Richtlinie und Verifikation",
+    "konkrete Handouts und Beispiele, mit denen der Ansatz intern weitergegeben werden kann"
+  ],
   "downloads": [
     {
       "label": "Handout: Von der KI-Einfuehrung zur nachweisbaren KI-Nutzung",
@@ -33,18 +43,29 @@
       "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
       "description": "Vertiefendes Handout fuer Einkauf, Legal und Governance zur Struktur, Statuslogik und Exportfaehigkeit des Passes.",
       "format": "PDF"
+    },
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Ein ausgearbeiteter Referenzfall, mit dem Einkauf, Legal und Governance die Zielstruktur direkt an einem konkreten Einsatzfall sehen können.",
+      "format": "PDF"
     }
   ],
   "cta": {
     "label": "Jetzt registrieren",
     "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
-    "description": "Die Registrierung führt direkt in das Register, damit der Pass nicht nur verstanden, sondern sofort angelegt werden kann."
+    "description": "Die Registrierung führt direkt in das Register, damit der Pass unmittelbar für reale Einsatzfälle angelegt werden kann."
   },
   "related_links": [
     {
       "label": "OEM Supplier Request Kit",
       "href": "/de/artefacts/oem-supplier-request-kit",
       "description": "Praktischer Folgefall für Lieferkette und Beschaffung."
+    },
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Die ausführliche Referenzseite zum Format, zur Evidenzlogik und zur Einführung im Unternehmen."
     }
   ],
   "sections": [
@@ -68,7 +89,7 @@
       "kind": "paragraphs",
       "heading": "Warum der Einsatzfall die richtige Governance-Einheit ist",
       "paragraphs": [
-        "Nicht das Modell oder der Tool-Name, sondern die konkrete Nutzung entscheidet über Risiko, Verantwortung und Prüfbedarf. Dasselbe System kann in einem Fall reine Entwurfsunterstützung sein und in einem anderen Fall nahe an Bewertung, Priorisierung oder externer Kommunikation wirken. Governance muss deshalb an der realen Verwendung ansetzen.",
+        "Über Risiko, Verantwortung und Prüfbedarf entscheidet die konkrete Nutzung. Dasselbe System kann in einem Fall reine Entwurfsunterstützung sein und in einem anderen Fall nahe an Bewertung, Priorisierung oder externer Kommunikation wirken. Governance muss deshalb an der realen Verwendung ansetzen.",
         "Der Einsatzfall ist die kleinste Einheit, auf der Zuständigkeiten sauber zugeordnet, Änderungen nachvollzogen und Nachweise aktualisiert werden können. Er ist damit zugleich steuerbar für interne Teams und verständlich für externe Prüfer oder Auftraggeber. Genau deshalb ist ein Pass pro Einsatzfall belastbarer als eine Produktliste oder eine Sammlung allgemeiner Policies."
       ]
     },
@@ -76,8 +97,34 @@
       "kind": "paragraphs",
       "heading": "Wie interner Pass, Verifikation und Supplier Requests zusammenhängen",
       "paragraphs": [
-        "Der interne Pass ist das Primärobjekt. Dort werden Zweck, Owner, Datenbezug, Wirkungslogik, Review-Status und Belegketten gepflegt. Öffentliche Verifikation ist dann keine zweite, losgelöste Dokumentationswelt, sondern eine kontrollierte Außensicht auf genau diesen Einsatzfall.",
-        "Supplier Requests folgen derselben Logik in Gegenrichtung. Ein OEM oder Auftraggeber fragt nicht abstrakt nach KI im Unternehmen, sondern nach einem bestimmten Einsatzfall in der Lieferkette. Wenn interner Pass, Verify-Fläche und Supplier-Request dieselben Felder und Begriffe verwenden, entfallen Übersetzungsarbeit, E-Mail-Pingpong und doppelte Pflege. Genau daraus entsteht ein Standard, der intern steuerbar und extern anschlussfähig ist."
+        "Der interne Pass ist das Primärobjekt. Dort werden Zweck, Owner, Datenbezug, Wirkungslogik, Review-Status und Belegketten gepflegt. Öffentliche Verifikation ist dann eine kontrollierte Außensicht auf genau diesen Einsatzfall.",
+        "Supplier Requests folgen derselben Logik in Gegenrichtung. Ein OEM oder Auftraggeber fragt nach einem bestimmten Einsatzfall in der Lieferkette. Wenn interner Pass, Verify-Fläche und Supplier-Request dieselben Felder und Begriffe verwenden, entfallen Übersetzungsarbeit, E-Mail-Pingpong und doppelte Pflege. Genau daraus entsteht ein Standard, der intern steuerbar und extern anschlussfähig ist."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Was Besucher im Paket direkt bekommen",
+      "rows": [
+        {
+          "label": "Kurzargumentation",
+          "value": "Eine präzise Erklärung, warum Richtlinie, Pass und Verifikation unterschiedliche Aufgaben haben und gemeinsam gelesen werden sollten."
+        },
+        {
+          "label": "Vertiefung",
+          "value": "Zwei Handouts für Einführung, Struktur und Rechtsbezug des Pass-Ansatzes."
+        },
+        {
+          "label": "Referenzfall",
+          "value": "Ein ausgearbeiteter Beispiel-Pass, der das Zielbild an einem realistischen Einsatzfall sichtbar macht."
+        }
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wie man den Explainer intern verwendet",
+      "paragraphs": [
+        "Der Explainer eignet sich als gemeinsamer Ausgangspunkt für Gespräche zwischen Einkauf, Legal, Governance und Fachbereich. Er schafft eine geteilte Sprache, bevor über konkrete Freigaben, Supplier Requests oder Nachweisanforderungen entschieden wird.",
+        "Am stärksten ist er, wenn direkt im Anschluss ein erster realer Einsatzfall im Register angelegt oder ein bestehender Pass überprüft wird. Dann mündet die Erklärung sofort in eine nachvollziehbare Struktur."
       ]
     },
     {
@@ -111,6 +158,10 @@
     {
       "q": "Wie hängt ein interner Pass mit externer Verifikation oder Supplier Requests zusammen?",
       "a": "Der interne Pass ist die Primärquelle. Verify und Supplier Requests nutzen dieselbe Falllogik nach außen, damit keine zweite, widersprüchliche Dokumentationswelt entsteht."
+    },
+    {
+      "q": "Wie sollte der Explainer intern weiterverwendet werden?",
+      "a": "Am besten als gemeinsamer Einstieg in ein erstes Register- oder Review-Gespräch. Der Nutzen entsteht, wenn die Erklärung direkt an einen realen Einsatzfall angeschlossen wird."
     }
   ]
 }

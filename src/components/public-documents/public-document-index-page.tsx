@@ -35,7 +35,7 @@ export function PublicDocumentIndexPage({
   const isGerman = locale === 'de';
   const appName = isGerman ? 'KI Register' : 'AI Registry';
   const referenceLabel = isGerman ? 'Öffentliche Referenz' : 'Public reference';
-  const statusLabel = isGerman ? 'Dokumentlage' : 'Document status';
+  const relevanceLabel = isGerman ? 'Relevant für' : 'Relevant for';
   const effectiveLabel = isGerman ? 'Stand der Rechtslage' : 'Effective legal position';
   const updatedLabel = isGerman ? 'Aktualisiert' : 'Updated';
   const downloadsLabel = isGerman ? 'Downloads verfügbar' : 'downloads available';
@@ -97,9 +97,12 @@ export function PublicDocumentIndexPage({
 
                   <div className="min-w-[210px] space-y-2 border border-slate-200 px-4 py-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      {statusLabel}
+                      {relevanceLabel}
                     </p>
                     <p className="text-sm text-slate-950">{doc.stance_label}</p>
+                    <p className="text-sm leading-6 text-slate-600">
+                      {doc.audiences.slice(0, 2).join(' · ')}
+                    </p>
                     <p className="text-sm text-slate-600">
                       {effectiveLabel}: {formatDate(doc.effective_date, locale)}
                     </p>

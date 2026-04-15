@@ -72,6 +72,8 @@ const publicDocumentSchema = z.object({
   object_label: z.string().min(1),
   stance_label: z.string().min(1),
   author: z.string().min(1),
+  audiences: z.array(z.string().min(1)).min(2),
+  delivers: z.array(z.string().min(1)).min(2),
   cta: publicDocumentLinkSchema.optional(),
   downloads: z.array(publicDocumentDownloadSchema).optional().default([]),
   related_links: z.array(publicDocumentLinkSchema).optional().default([]),
@@ -215,6 +217,16 @@ export function getPublicDocumentCollectionCopy(
 
 export function getPublicDocumentPlainText(doc: PublicDocument): string {
   const lines: string[] = [doc.title, '', doc.summary];
+
+  if (doc.audiences.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Relevant fuer' : 'Relevant for');
+    lines.push(...doc.audiences);
+  }
+
+  if (doc.delivers.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Diese Seite liefert' : 'This page delivers');
+    lines.push(...doc.delivers);
+  }
 
   if (doc.downloads.length > 0) {
     lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');

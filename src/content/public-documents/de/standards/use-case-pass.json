@@ -18,10 +18,20 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Der Use-Case Pass als Standardnachweis für KI-Einsatzfälle",
-  "summary": "Der Use-Case Pass beschreibt nicht ein Tool, sondern einen konkreten KI-Einsatzfall mit Verantwortung, Wirkung, Datenbezug und Nachweislogik. Genau auf dieser Einheit wird in Audits, Lieferketten und Governance-Prüfungen entschieden.",
+  "summary": "Der Use-Case Pass dokumentiert einen einzelnen KI-Einsatzfall mit Verantwortung, Wirkung, Datenbezug und Nachweislogik. Audits, Lieferkettenabfragen und interne Governance können sich damit auf dieselbe belastbare Einheit beziehen, statt Informationen aus Richtlinien, Tool-Listen und E-Mails zusammenzusuchen.",
   "object_label": "Standard-Dokument",
-  "stance_label": "Referenzformat",
+  "stance_label": "Operativer Referenzstandard",
   "author": "KIRegister",
+  "audiences": [
+    "Governance-Verantwortliche, die Register und Review-Logik aufbauen",
+    "Fachbereiche mit produktiven KI-Einsatzfällen und klaren Ownern",
+    "Auditoren, Auftraggeber und Partner, die fallbezogene Evidenz brauchen"
+  ],
+  "delivers": [
+    "eine belastbare Definition des Use-Case Pass als kleinste Governance-Einheit",
+    "eine Referenzstruktur für Zweck, Verantwortung, Datenbezug, Status und Evidenz",
+    "eine direkte Verbindung zwischen internem Pass, öffentlicher Verifikation und Supplier Requests"
+  ],
   "downloads": [
     {
       "label": "Beispiel Use-Case Pass",
@@ -62,54 +72,85 @@
   "faq": [
     {
       "q": "Warum ist ein Pass pro Einsatzfall wichtiger als eine Tool-Liste?",
-      "a": "Weil Regulierung, Verantwortung und Nachweis an der konkreten Nutzung hängen. Dasselbe Modell kann in einem Fall unkritisch und in einem anderen hochrelevant sein."
+      "a": "Weil Regulierung, Verantwortung und Nachweis an der konkreten Nutzung hängen. Dasselbe Modell kann je nach Zweck, Datenbezug und Entscheidungsnähe völlig unterschiedliche Governance-Folgen haben."
     },
     {
       "q": "Ersetzt der Use-Case Pass eine rechtliche Prüfung?",
-      "a": "Nein. Er ersetzt kein Rechtsgutachten, sondern strukturiert die Informationen so, dass interne Prüfung, Aufsicht und Partneranforderungen belastbar bearbeitet werden können."
+      "a": "Nein. Er strukturiert die Informationen so, dass interne Prüfung, Aufsicht und Partneranforderungen belastbar bearbeitet werden können. Juristische Bewertung, Freigabe und Risikoeinstufung bleiben eigene Arbeitsschritte."
     },
     {
       "q": "Ist der Pass eher für interne Governance oder für externe Partner gedacht?",
       "a": "Beides. Intern ist er die kleinste steuerbare Einheit. Extern ist er die kleinste sinnvoll verifizierbare Einheit für Audit, Due Diligence und Lieferkette."
+    },
+    {
+      "q": "Wie viele Pässe braucht ein Unternehmen?",
+      "a": "So viele, wie es voneinander unterscheidbare KI-Einsatzfälle mit eigener Verantwortung, eigenem Zweck oder eigener Evidenzlage gibt. Ein Pass pro Produkt oder pro Tool reicht in der Regel nicht."
     }
   ],
   "sections": [
     {
       "kind": "paragraphs",
-      "heading": "Warum der Markt die falsche Einheit dokumentiert",
+      "heading": "Warum aktuelle Dokumentation oft nicht ausreicht",
       "paragraphs": [
-        "Viele Unternehmen dokumentieren heute Tools, Anbieter oder allgemeine Richtlinien. Geprüft wird in der Praxis aber fast nie ein Tool im Abstrakten, sondern ein konkreter Einsatzfall mit Zweck, betroffenen Personen, Datenarten, Verantwortlichkeiten und Wirkung.",
-        "Der Use-Case Pass setzt genau auf dieser Ebene an. Er ist kein Marketing-Asset und kein allgemeiner Leitfaden, sondern ein formales Arbeitsdokument für einen einzelnen KI-Einsatzfall."
-      ]
-    },
-    {
-      "kind": "bullets",
-      "heading": "Was ein belastbarer Use-Case Pass enthalten muss",
-      "items": [
-        "Zweck und Nutzungskontext des Einsatzfalls",
-        "Verantwortliche Person oder Rolle",
-        "Wirkung auf Entscheidungen, Bewertungen oder externe Kommunikation",
-        "Datenkategorien und besondere Schutzbedarfe",
-        "Status der Prüfung und Nachweisfähigkeit",
-        "Verweise auf Richtlinien, Kontrollen, Exporte oder öffentliche Verify-Links"
+        "Viele Unternehmen sammeln heute Tool-Namen, Anbieterlisten oder allgemeine Richtlinien. In Audits, Beschaffungsgesprächen und internen Freigaben wird jedoch fast immer nach einem konkreten Einsatzfall gefragt: Wofür wird KI genutzt, wer trägt Verantwortung, welche Daten sind betroffen und welche Evidenz kann vorgelegt werden?",
+        "Genau an dieser Stelle setzt der Use-Case Pass an. Er bündelt die operative Wahrheit eines einzelnen KI-Einsatzfalls in einem klaren Objekt, das intern gepflegt und extern kontrolliert gezeigt werden kann."
       ]
     },
     {
       "kind": "table",
-      "heading": "Warum das Format strategisch wichtiger ist als die Oberfläche",
+      "heading": "Welche Felder ein belastbarer Pass verbindlich abdeckt",
       "rows": [
         {
-          "label": "Audit",
-          "value": "Auditoren brauchen pro Fall eine klare Evidenzkette, nicht eine Sammlung allgemeiner Absichtserklärungen."
+          "label": "Zweck",
+          "value": "Wofür der Einsatzfall im Fachprozess verwendet wird und welche Geschäftsentscheidung oder Arbeitsleistung er unterstützt."
         },
         {
-          "label": "Lieferkette",
-          "value": "OEMs und größere Auftraggeber fragen nicht nach Ihrer gesamten Tool-Landschaft, sondern nach dem konkret betroffenen KI-Einsatz."
+          "label": "Owner",
+          "value": "Welche Person oder Rolle den Einsatzfall verantwortet, Änderungen freigibt und Nachweise aktuell hält."
         },
         {
-          "label": "Partnerkanal",
-          "value": "Berater, Auditoren und Trainer können ein klares Artefakt viel leichter verbreiten als eine unscharfe Governance-Plattform."
+          "label": "Wirkungsprofil",
+          "value": "Ob der Einsatzfall interne Entwürfe unterstützt, Entscheidungen vorbereitet, Kommunikation prägt oder externe Wirkung entfaltet."
+        },
+        {
+          "label": "Datenbezug",
+          "value": "Welche Datenkategorien berührt werden, wo Schutzbedarf entsteht und ob besondere Risiken oder sensible Kontexte vorliegen."
+        },
+        {
+          "label": "Review-Status",
+          "value": "Wie weit Prüfung, Freigabe, Nachweiserstellung und gegebenenfalls Eskalation fortgeschritten sind."
+        },
+        {
+          "label": "Evidenz",
+          "value": "Welche Richtlinien, Kontrollen, Exporte, Verify-Flächen oder ergänzenden Dokumente den Einsatzfall belegen."
         }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Wie der Pass im Unternehmen eingeführt wird",
+      "items": [
+        "Mit den realen Einsatzfällen beginnen, die heute schon produktiv, kundennah oder entscheidungsrelevant sind.",
+        "Für jeden Einsatzfall einen Owner benennen und die minimale Evidenzbasis direkt im Register festhalten.",
+        "Review- und Freigabeschritte an denselben Pass koppeln, statt sie in separaten Listen oder Mailketten zu verteilen.",
+        "Öffentliche Verify-Links und Supplier Requests nur aus derselben Pass-Logik ableiten.",
+        "Den Pass als laufendes Arbeitsobjekt behandeln und bei Änderungen am Einsatzfall aktualisieren."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wie Pass, Verify und Supplier Request zusammenarbeiten",
+      "paragraphs": [
+        "Der interne Pass ist die Primärquelle. Dort werden Zweck, Owner, Datenbezug, Wirkungslogik, Review-Status und Evidenz gepflegt. Öffentliche Verifikation ist dann eine kontrollierte Außensicht auf genau diesen Einsatzfall und kein zweites, davon losgelöstes Dokument.",
+        "Supplier Requests nutzen dieselbe Falllogik in der Beschaffung oder Lieferkette. Wenn interner Pass, Verify-Fläche und externe Anfrage auf denselben Feldern beruhen, sinkt der Übersetzungsaufwand deutlich und der Nachweis bleibt über interne und externe Situationen hinweg konsistent."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was der Pass ausdrücklich nicht ersetzt",
+      "paragraphs": [
+        "Der Pass ersetzt kein Rechtsgutachten, keine tiefe technische Prüfung und keine Managemententscheidung. Er schafft die Grundlage dafür, dass diese Schritte auf einer sauberen und wiederverwendbaren Dokumentation aufsetzen können.",
+        "Gerade deshalb ist er als Standard so wertvoll: Er hält die operative Wahrheit stabil, auch wenn verschiedene Teams mit unterschiedlichen Perspektiven auf denselben Einsatzfall schauen."
       ]
     }
   ]

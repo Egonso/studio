@@ -16,20 +16,43 @@ const VALID_TEMPLATE_VARIANTS = new Set([
   'artefact-sheet',
 ]);
 const VALID_DOWNLOAD_FORMATS = new Set(['PDF', 'XLSX', 'CSV', 'ZIP']);
-const BANNED_TITLE_PATTERNS = [
+const BANNED_CONTRAST_PATTERNS = [
   {
     regex: /\b(?:ist|sind)\s+(?:kein|keine|nicht)\b.{0,120}\bsondern\b/i,
     message:
-      'Title uses the contrast pattern "nicht X, sondern Y", which reads like generic AI copy. Use a direct institutional headline instead.',
+      'Copy uses the contrast pattern "nicht X, sondern Y", which reads like generic AI copy. Use a direct institutional formulation instead.',
   },
   {
     regex: /\bnicht\s+nur\b.{0,120}\bsondern\s+auch\b/i,
     message:
-      'Title uses the pattern "nicht nur X, sondern auch Y". Public headlines should stay direct and non-performative.',
+      'Copy uses the pattern "nicht nur X, sondern auch Y". Public content should stay direct and non-performative.',
   },
 ];
 
 const QUESTION_LED_HEADING_PATTERN = /\b(?:fragen|questions|beantwortet|answered)\b/i;
+const QUALITY_FLOORS = {
+  standard: {
+    minSummaryChars: 160,
+    minSections: 5,
+    minParagraphSections: 3,
+    minTotalChars: 2400,
+    minFaq: 3,
+  },
+  update: {
+    minSummaryChars: 150,
+    minSections: 4,
+    minParagraphSections: 2,
+    minTotalChars: 1500,
+    minFaq: 1,
+  },
+  artefact: {
+    minSummaryChars: 150,
+    minSections: 4,
+    minParagraphSections: 2,
+    minTotalChars: 1800,
+    minFaq: 2,
+  },
+};
 
 function walkJsonFiles(dirPath) {
   const files = [];
@@ -60,6 +83,140 @@ function requiredString(doc, key, errors) {
   }
 }
 
+function requiredStringList(doc, key, errors, minimum = 1) {
+  if (!Array.isArray(doc[key]) || doc[key].length < minimum) {
+    errors.push(`Missing or invalid string array field "${key}".`);
+    return;
+  }
+
+  for (const [index, value] of doc[key].entries()) {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      errors.push(`Field "${key}" entry ${index} must be a non-empty string.`);
+    }
+  }
+}
+
+function getSectionTextItems(section) {
+  if (!section || typeof section !== 'object') {
+    return [];
+  }
+
+  if (section.kind === 'paragraphs') {
+    return section.paragraphs ?? [];
+  }
+
+  if (section.kind === 'bullets') {
+    return section.items ?? [];
+  }
+
+  if (section.kind === 'table') {
+    return (section.rows ?? []).flatMap((row) => [row.label, row.value]);
+  }
+
+  return [];
+}
+
+function getDocumentTextFragments(doc) {
+  const fragments = [
+    { label: 'title', value: doc.title },
+    { label: 'summary', value: doc.summary },
+    { label: 'object_label', value: doc.object_label },
+    { label: 'stance_label', value: doc.stance_label },
+    ...(doc.audiences ?? []).map((value, index) => ({
+      label: `audiences[${index}]`,
+      value,
+    })),
+    ...(doc.delivers ?? []).map((value, index) => ({
+      label: `delivers[${index}]`,
+      value,
+    })),
+  ];
+
+  if (doc.cta?.description) {
+    fragments.push({ label: 'cta.description', value: doc.cta.description });
+  }
+
+  for (const [sectionIndex, section] of (doc.sections ?? []).entries()) {
+    fragments.push({
+      label: `sections[${sectionIndex}].heading`,
+      value: section.heading,
+    });
+    for (const [itemIndex, value] of getSectionTextItems(section).entries()) {
+      fragments.push({
+        label: `sections[${sectionIndex}].item[${itemIndex}]`,
+        value,
+      });
+    }
+  }
+
+  for (const [index, item] of (doc.faq ?? []).entries()) {
+    fragments.push({ label: `faq[${index}].q`, value: item.q });
+    fragments.push({ label: `faq[${index}].a`, value: item.a });
+  }
+
+  return fragments;
+}
+
+function validateWritingQuality(doc, errors) {
+  for (const fragment of getDocumentTextFragments(doc)) {
+    for (const pattern of BANNED_CONTRAST_PATTERNS) {
+      if (pattern.regex.test(fragment.value)) {
+        errors.push(`${fragment.label} uses a banned contrast pattern. ${pattern.message}`);
+      }
+    }
+  }
+}
+
+function validateQualityFloor(doc, errors) {
+  const floor = QUALITY_FLOORS[doc.content_type];
+  if (!floor) {
+    return;
+  }
+
+  const paragraphSections = (doc.sections ?? []).filter((section) => section.kind === 'paragraphs').length;
+  const totalChars = [
+    doc.summary,
+    ...(doc.audiences ?? []),
+    ...(doc.delivers ?? []),
+    ...((doc.sections ?? []).flatMap((section) => getSectionTextItems(section))),
+    ...((doc.faq ?? []).flatMap((item) => [item.q, item.a])),
+  ]
+    .filter((value) => typeof value === 'string')
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim().length;
+
+  if ((doc.summary ?? '').trim().length < floor.minSummaryChars) {
+    errors.push(
+      `Summary is too thin for ${doc.content_type}. Use at least ${floor.minSummaryChars} characters with concrete substance.`,
+    );
+  }
+
+  if ((doc.sections ?? []).length < floor.minSections) {
+    errors.push(
+      `${doc.content_type} documents need at least ${floor.minSections} substantive sections.`,
+    );
+  }
+
+  if (paragraphSections < floor.minParagraphSections) {
+    errors.push(
+      `${doc.content_type} documents need at least ${floor.minParagraphSections} paragraph sections, not just bullets or tables.`,
+    );
+  }
+
+  if (totalChars < floor.minTotalChars) {
+    errors.push(
+      `${doc.content_type} document is too thin (${totalChars} chars). Raise it to at least ${floor.minTotalChars} chars of substantive body text.`,
+    );
+  }
+
+  if ((doc.faq ?? []).length < floor.minFaq) {
+    errors.push(
+      `${doc.content_type} documents need at least ${floor.minFaq} FAQ entries to answer likely follow-up questions directly on-page.`,
+    );
+  }
+}
+
 function validateDownloads(doc, errors) {
   if (doc.downloads == null) {
     return;
@@ -86,6 +243,15 @@ function validateDownloads(doc, errors) {
 
     if (!VALID_DOWNLOAD_FORMATS.has(download.format)) {
       errors.push(`Download ${index} uses unsupported format "${download.format}".`);
+    }
+
+    if (
+      typeof download.description !== 'string' ||
+      download.description.trim().length < 70
+    ) {
+      errors.push(
+        `Download ${index} needs a concrete description that explains what the visitor gets and how to use it.`,
+      );
     }
   }
 }
@@ -178,6 +344,16 @@ function getSegment(contentType) {
 function buildPlainText(doc) {
   const lines = [doc.title, '', doc.summary];
 
+  if (Array.isArray(doc.audiences) && doc.audiences.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Relevant fuer' : 'Relevant for');
+    lines.push(...doc.audiences);
+  }
+
+  if (Array.isArray(doc.delivers) && doc.delivers.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Diese Seite liefert' : 'This page delivers');
+    lines.push(...doc.delivers);
+  }
+
   if (Array.isArray(doc.downloads) && doc.downloads.length > 0) {
     lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');
     for (const download of doc.downloads) {
@@ -236,6 +412,9 @@ function validateDocument(doc, filePath) {
     requiredString(doc, field, errors);
   }
 
+  requiredStringList(doc, 'audiences', errors, 2);
+  requiredStringList(doc, 'delivers', errors, 2);
+
   if (!VALID_LOCALES.has(doc.locale)) {
     errors.push(`Unsupported locale "${doc.locale}".`);
   }
@@ -246,14 +425,6 @@ function validateDocument(doc, filePath) {
 
   if (!VALID_TEMPLATE_VARIANTS.has(doc.template_variant)) {
     errors.push(`Unsupported template variant "${doc.template_variant}".`);
-  }
-
-  if (typeof doc.title === 'string') {
-    for (const pattern of BANNED_TITLE_PATTERNS) {
-      if (pattern.regex.test(doc.title)) {
-        errors.push(pattern.message);
-      }
-    }
   }
 
   if (!Array.isArray(doc.source_urls) || doc.source_urls.length === 0) {
@@ -281,6 +452,8 @@ function validateDocument(doc, filePath) {
   validateDownloads(doc, errors);
   validateExpectationDelivery(doc, errors);
   validatePrimaryCta(doc, errors);
+  validateWritingQuality(doc, errors);
+  validateQualityFloor(doc, errors);
 
   if (doc.content_type === 'update' && doc.template_variant !== 'authority-update') {
     errors.push('Updates must use the authority-update template.');
@@ -365,6 +538,8 @@ function buildManifest(validationResults) {
           deletePath: path.relative(ROOT, result.filePath),
           notificationEmail: result.doc.notification_email,
           sourceUrls: result.doc.source_urls,
+          audiences: result.doc.audiences,
+          delivers: result.doc.delivers,
           downloads: result.doc.downloads ?? [],
           lastSubstantiveUpdate: result.doc.last_substantive_update,
           fullText: buildPlainText(result.doc),

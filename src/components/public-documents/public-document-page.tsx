@@ -118,6 +118,9 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
   const appName = isGerman ? 'KI Register' : 'AI Registry';
   const publicReferenceLabel = isGerman ? 'Öffentliche Referenz' : 'Public reference';
   const reviewerLabel = isGerman ? 'Geprüft durch' : 'Reviewed by';
+  const audiencesLabel = isGerman ? 'Relevant für' : 'Relevant for';
+  const deliversLabel = isGerman ? 'Diese Seite liefert' : 'This page delivers';
+  const systemPathsLabel = isGerman ? 'Direkte Wege im System' : 'Direct routes in the system';
   const collectionHref = `/${document.locale}/${document.content_type === 'standard' ? 'standards' : document.content_type === 'update' ? 'updates' : 'artefacts'}`;
 
   return (
@@ -313,7 +316,7 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
             {document.related_links.length > 0 ? (
               <section className="border border-slate-200 px-4 py-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {isGerman ? 'Verwandte Dokumente' : 'Related documents'}
+                  {isGerman ? 'Verwandte Dokumente' : 'Related documents'}
                 </p>
                 <div className="mt-4 space-y-4">
                   {document.related_links.map((link) => (
@@ -330,15 +333,44 @@ export function PublicDocumentPage({ document }: PublicDocumentPageProps) {
 
             <section className="border border-slate-200 px-4 py-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {isGerman ? 'Sammlungslogik' : 'Collection logic'}
+                {audiencesLabel}
               </p>
-              <p className="mt-3 text-sm leading-7 text-slate-600">{collection.description}</p>
+              <ul className="mt-4 space-y-3">
+                {document.audiences.map((audience) => (
+                  <li key={audience} className="flex items-start gap-3 text-sm leading-7 text-slate-700">
+                    <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-900" />
+                    <span>{audience}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="border border-slate-200 px-4 py-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {deliversLabel}
+              </p>
+              <ul className="mt-4 space-y-3">
+                {document.delivers.map((deliverable) => (
+                  <li key={deliverable} className="flex items-start gap-3 text-sm leading-7 text-slate-700">
+                    <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-900" />
+                    <span>{deliverable}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="border border-slate-200 px-4 py-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {systemPathsLabel}
+              </p>
               <div className="mt-4 space-y-2">
                 <Link
                   href={collectionHref}
                   className="text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
                 >
-                  Alle {collection.title.toLowerCase()} anzeigen
+                  {isGerman
+                    ? `Alle ${collection.title.toLowerCase()} anzeigen`
+                    : `View all ${collection.title.toLowerCase()}`}
                 </Link>
                 <Link
                   href={`/${document.locale}/law`}
