@@ -35,13 +35,13 @@
     {
       "label": "Beispiel Use-Case Pass",
       "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Referenzdokument fuer einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand, Kontrollen und Evidenzkette.",
+      "description": "Referenzdokument für einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand, Kontrollen und Evidenzkette.",
       "format": "PDF"
     },
     {
       "label": "Register- und Review-Matrix",
       "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Workbook mit Beispielregister, Review-Matrix und einer Feldstruktur, die sich fuer Audits, Due Diligence und interne Pruefung wiederverwenden laesst.",
+      "description": "Workbook mit Beispielregister, Review-Matrix und einer Feldstruktur, die sich für Audits, Due Diligence und interne Prüfung wiederverwenden lässt.",
       "format": "XLSX"
     },
     {
@@ -65,7 +65,7 @@
     {
       "label": "OEM Supplier Request Kit",
       "href": "/de/artefacts/oem-supplier-request-kit",
-      "description": "Anschlussartefakt fuer externe Anfragen entlang der Lieferkette."
+      "description": "Anschlussartefakt für externe Anfragen entlang der Lieferkette."
     }
   ],
   "sections": [
@@ -103,7 +103,7 @@
         "Welche Rolle oder Person verantwortet den Einsatzfall und hält die Nachweise aktuell?",
         "Welcher Review- oder Freigabestand liegt vor und welche offenen Punkte bestehen noch?",
         "Welche Evidenzen, Kontrollen oder Begleitdokumente stützen die Aussagen zum Einsatzfall?",
-        "Welche Grenzen der Aussage muessen offen benannt werden, wenn Informationen noch unvollständig sind?"
+        "Welche Grenzen der Aussage müssen offen benannt werden, wenn Informationen noch unvollständig sind?"
       ]
     },
     {

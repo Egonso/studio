@@ -35,37 +35,37 @@
     {
       "label": "Beispiel Use-Case Pass",
       "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Ausgearbeiteter Referenzfall fuer einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand und Evidenzkette als Basis fuer Freigabe- und Beschaffungsfragen.",
+      "description": "Ausgearbeiteter Referenzfall für einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand und Evidenzkette als Basis für Freigabe- und Beschaffungsfragen.",
       "format": "PDF"
     },
     {
       "label": "Register- und Review-Matrix",
       "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Mehrblaettriges Workbook mit Registersicht, Review-Feldern und Arbeitslogik fuer Teams, die mehrere Einsatzfaelle konsistent fuer Governance und Beschaffung vorbereiten muessen.",
+      "description": "Mehrblättriges Workbook mit Registersicht, Review-Feldern und Arbeitslogik für Teams, die mehrere Einsatzfälle konsistent für Governance und Beschaffung vorbereiten müssen.",
       "format": "XLSX"
     },
     {
       "label": "Supplier Request & Response Kit",
       "href": "/resources/workbooks/ki-register-supplier-request-template.xlsx",
-      "description": "Praxisvorlage fuer die Uebersetzung eines vorhandenen Passes in eine formale Anfrage- oder Antwortstruktur gegenueber Auftraggebern, Lieferanten oder internen Beschaffungsstellen.",
+      "description": "Praxisvorlage für die Übersetzung eines vorhandenen Passes in eine formale Anfrage- oder Antwortstruktur gegenüber Auftraggebern, Lieferanten oder internen Beschaffungsstellen.",
       "format": "XLSX"
     }
   ],
   "cta": {
     "label": "Freigabe im Register vorbereiten",
     "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
-    "description": "Der Einstieg fuehrt direkt in das Register, damit ein realer Einsatzfall als Pass angelegt oder fuer die naechste Freigabe vervollstaendigt werden kann."
+    "description": "Der Einstieg führt direkt in das Register, damit ein realer Einsatzfall als Pass angelegt oder für die nächste Freigabe vervollständigt werden kann."
   },
   "related_links": [
     {
       "label": "Der Use-Case Pass als Standardnachweis",
       "href": "/de/standards/use-case-pass",
-      "description": "Referenzseite fuer Struktur, Feldlogik und Einfuehrung des Passes als Standardobjekt."
+      "description": "Referenzseite für Struktur, Feldlogik und Einführung des Passes als Standardobjekt."
     },
     {
       "label": "OEM Supplier Request Kit",
       "href": "/de/artefacts/oem-supplier-request-kit",
-      "description": "Anschlussfall fuer externe Anfragen und Lieferkettenantworten auf derselben Evidenzbasis."
+      "description": "Anschlussfall für externe Anfragen und Lieferkettenantworten auf derselben Evidenzbasis."
     }
   ],
   "faq": [
@@ -75,11 +75,11 @@
     },
     {
       "q": "Warum sollte Beschaffung auf einem einzelnen Einsatzfall statt auf einer Tool-Liste aufsetzen?",
-      "a": "Weil Nachweisbedarf, Risiko und Verantwortlichkeit an der konkreten Nutzung haengen. Ein identisches System kann in zwei Prozessen voellig unterschiedliche Pruef- und Antwortpfade ausloesen."
+      "a": "Weil Nachweisbedarf, Risiko und Verantwortlichkeit an der konkreten Nutzung hängen. Ein identisches System kann in zwei Prozessen völlig unterschiedliche Prüf- und Antwortpfade auslösen."
     },
     {
-      "q": "Wann ist ein Use-Case Pass stark genug fuer eine erste externe Anfrage oder Antwort?",
-      "a": "Wenn Scope, Zweck, verantwortliche Rolle, Status und die wichtigsten Evidenzen bereits gepflegt sind und offene Punkte sichtbar markiert bleiben. Dann laesst sich eine sachliche Erstantwort abgeben, ohne eine zweite Dokumentationswelt aufzubauen."
+      "q": "Wann ist ein Use-Case Pass stark genug für eine erste externe Anfrage oder Antwort?",
+      "a": "Wenn Scope, Zweck, verantwortliche Rolle, Status und die wichtigsten Evidenzen bereits gepflegt sind und offene Punkte sichtbar markiert bleiben. Dann lässt sich eine sachliche Erstantwort abgeben, ohne eine zweite Dokumentationswelt aufzubauen."
     }
   ],
   "sections": [
@@ -105,29 +105,29 @@
         },
         {
           "label": "Request- oder Response-Vorlage",
-          "value": "Uebersetzt den vorhandenen Pass in eine konkrete Anfrage- oder Antwortform, wenn ein Lieferant, Auftraggeber oder internes Gremium eine formale Aussage verlangt."
+          "value": "Übersetzt den vorhandenen Pass in eine konkrete Anfrage- oder Antwortform, wenn ein Lieferant, Auftraggeber oder internes Gremium eine formale Aussage verlangt."
         }
       ]
     },
     {
       "kind": "bullets",
-      "heading": "Was vor einer Freigabe konkret geprueft werden sollte",
+      "heading": "Was vor einer Freigabe konkret geprüft werden sollte",
       "items": [
-        "Ist der Einsatzfall fachlich so beschrieben, dass der Zweck und die reale Nutzung ohne Zusatzgespraech verstanden werden koennen?",
-        "Ist eine verantwortliche Rolle benannt, die Aenderungen, Rueckfragen und Nachweispflege uebernimmt?",
-        "Sind Datenbezug, Entscheidungsnaehe und externe Wirkung so dokumentiert, dass der Review-Bedarf erkennbar wird?",
+        "Ist der Einsatzfall fachlich so beschrieben, dass der Zweck und die reale Nutzung ohne Zusatzgespräch verstanden werden können?",
+        "Ist eine verantwortliche Rolle benannt, die Änderungen, Rückfragen und Nachweispflege übernimmt?",
+        "Sind Datenbezug, Entscheidungsnähe und externe Wirkung so dokumentiert, dass der Review-Bedarf erkennbar wird?",
         "Sind die wichtigsten Evidenzen referenziert und von offenen Punkten getrennt, statt beides im Freitext zu vermischen?",
-        "Laesst sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widerspruechliche Aussagen einzufuehren?"
+        "Lässt sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widersprüchliche Aussagen einzuführen?"
       ]
     },
     {
       "kind": "bullets",
-      "heading": "Welche Fragen in der Praxis haeufig in die falsche Richtung laufen",
+      "heading": "Welche Fragen in der Praxis häufig in die falsche Richtung laufen",
       "items": [
         "Nur nach dem eingesetzten Tool oder Anbieter zu fragen, ohne den konkreten Fachprozess zu benennen.",
-        "Eine pauschale Freigabe fuer alle KI-Nutzungen abzuleiten, obwohl einzelne Einsatzfaelle unterschiedlich wirken.",
-        "Offene Punkte zu verstecken, obwohl sie fuer Audit, Einkauf oder interne Freigabe gerade entscheidend sind.",
-        "Eine externe Antwort aus losen Richtlinien oder Mailketten zusammenzustellen, obwohl bereits ein Pass gepflegt werden koennte."
+        "Eine pauschale Freigabe für alle KI-Nutzungen abzuleiten, obwohl einzelne Einsatzfälle unterschiedlich wirken.",
+        "Offene Punkte zu verstecken, obwohl sie für Audit, Einkauf oder interne Freigabe gerade entscheidend sind.",
+        "Eine externe Antwort aus losen Richtlinien oder Mailketten zusammenzustellen, obwohl bereits ein Pass gepflegt werden könnte."
       ]
     },
     {

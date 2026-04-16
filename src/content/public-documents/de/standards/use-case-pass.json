@@ -36,13 +36,13 @@
     {
       "label": "Beispiel Use-Case Pass",
       "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Professionell ausgearbeitetes Referenzdokument fuer einen einzelnen KI-Einsatzfall mit Owner, Review-Stand, Kontrollen und Evidenzkette.",
+      "description": "Professionell ausgearbeitetes Referenzdokument für einen einzelnen KI-Einsatzfall mit Owner, Review-Stand, Kontrollen und Evidenzkette.",
       "format": "PDF"
     },
     {
       "label": "Register- und Review-Matrix",
       "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Mehrblaettriges Workbook mit Beispielregister, Review-Matrix und Feldleitfaden fuer Governance- und Audit-Teams.",
+      "description": "Mehrblättriges Workbook mit Beispielregister, Review-Matrix und Feldleitfaden für Governance- und Audit-Teams.",
       "format": "XLSX"
     },
     {

@@ -35,7 +35,7 @@
     {
       "label": "Supplier Request & Response Kit",
       "href": "/resources/workbooks/ki-register-supplier-request-template.xlsx",
-      "description": "Mehrblaettriges Workbook mit Blanko-Anfrage, Beispielantwort und Evidence-Checklist fuer Lieferketten- und OEM-Rueckfragen.",
+      "description": "Mehrblättriges Workbook mit Blanko-Anfrage, Beispielantwort und Evidence-Checklist für Lieferketten- und OEM-Rückfragen.",
       "format": "XLSX"
     },
     {
@@ -47,7 +47,7 @@
     {
       "label": "Handout: DSB-Workflow mit KI Register",
       "href": "/resources/handouts/ki-register-handout-dsb-workflow-arbeitsblatt.pdf",
-      "description": "Praxis-Handout fuer Review-Trigger, DSB-Ergaenzungen und den operativen Ablauf zwischen Register, Review und Export.",
+      "description": "Praxis-Handout für Review-Trigger, DSB-Ergänzungen und den operativen Ablauf zwischen Register, Review und Export.",
       "format": "PDF"
     }
   ],

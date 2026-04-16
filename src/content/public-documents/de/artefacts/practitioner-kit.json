@@ -33,7 +33,7 @@
   ],
   "downloads": [
     {
-      "label": "Handout: Workshop-Integration fuer KI-Governance",
+      "label": "Handout: Workshop-Integration für KI-Governance",
       "href": "/resources/handouts/ki-register-handout-workshop-integration.pdf",
       "description": "Ausgearbeitetes Schulungs-Handout mit Workshop-Ablauf, Quick-Capture-Fragen, Governance-Deliverable und Sprint-Struktur.",
       "format": "PDF"
@@ -41,13 +41,13 @@
     {
       "label": "Practitioner Workshop Kit",
       "href": "/resources/workbooks/ki-register-practitioner-workshop-kit.xlsx",
-      "description": "Professionelles Workbook mit Workshop-Canvas, Capture-Template und Delivery-Checklist fuer Berater und Trainer.",
+      "description": "Professionelles Workbook mit Workshop-Canvas, Capture-Template und Delivery-Checklist für Berater und Trainer.",
       "format": "XLSX"
     },
     {
-      "label": "Handout: Von der KI-Einfuehrung zur nachweisbaren KI-Nutzung",
+      "label": "Handout: Von der KI-Einführung zur nachweisbaren KI-Nutzung",
       "href": "/resources/handouts/ki-register-handout-ki-einfuehrung-zu-governance.pdf",
-      "description": "Trainingstext fuer die Positionierung des Registers als Governance-Deliverable nach Workshops und Einfuehrungsprojekten.",
+      "description": "Trainingstext für die Positionierung des Registers als Governance-Deliverable nach Workshops und Einführungsprojekten.",
       "format": "PDF"
     }
   ],
