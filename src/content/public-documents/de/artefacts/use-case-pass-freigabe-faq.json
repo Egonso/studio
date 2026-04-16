@@ -1,0 +1,150 @@
+{
+  "slug": "use-case-pass-freigabe-faq",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "partner-channel",
+  "intent": "procurement-readiness",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-16",
+  "last_substantive_update": "2026-04-16",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Use-Case Pass FAQ für Beschaffung und Governance-Freigaben",
+  "summary": "Dieses Artefakt übersetzt den Use-Case-Pass in einen knappen Freigabe- und Beschaffungskontext. Es zeigt, welche Mindestinformationen Einkauf, Governance, Audit und interne Prüffunktionen vor einer Anfrage, Freigabe oder Lieferkettenantwort auf derselben Fallbasis sehen sollten.",
+  "object_label": "Freigabe-Artefakt",
+  "stance_label": "FAQ für Beschaffung und Governance",
+  "author": "KIRegister",
+  "audiences": [
+    "Beschaffungs- und Vendor-Management-Teams mit Bedarf an klaren KI-Nachweisen",
+    "Governance-Praktiker, die Freigaben und Review-Schritte an reale Einsatzfälle koppeln",
+    "Auditoren, Berater und interne Prüffunktionen mit Bedarf an einer fallbezogenen Mindeststruktur"
+  ],
+  "delivers": [
+    "eine knappe FAQ-Struktur für Freigabe-, Beschaffungs- und Nachweisfragen zum einzelnen KI-Einsatzfall",
+    "eine Mindestlogik für Zweck, Verantwortung, Datenbezug, Status und Evidenz vor jeder externen oder internen Anfrage",
+    "eine direkte Verbindung zwischen Use-Case Pass, Register-Matrix und Supplier-Request-Unterlagen"
+  ],
+  "downloads": [
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Ausgearbeiteter Referenzfall fuer einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand und Evidenzkette als Basis fuer Freigabe- und Beschaffungsfragen.",
+      "format": "PDF"
+    },
+    {
+      "label": "Register- und Review-Matrix",
+      "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Mehrblaettriges Workbook mit Registersicht, Review-Feldern und Arbeitslogik fuer Teams, die mehrere Einsatzfaelle konsistent fuer Governance und Beschaffung vorbereiten muessen.",
+      "format": "XLSX"
+    },
+    {
+      "label": "Supplier Request & Response Kit",
+      "href": "/resources/workbooks/ki-register-supplier-request-template.xlsx",
+      "description": "Praxisvorlage fuer die Uebersetzung eines vorhandenen Passes in eine formale Anfrage- oder Antwortstruktur gegenueber Auftraggebern, Lieferanten oder internen Beschaffungsstellen.",
+      "format": "XLSX"
+    }
+  ],
+  "cta": {
+    "label": "Freigabe im Register vorbereiten",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Der Einstieg fuehrt direkt in das Register, damit ein realer Einsatzfall als Pass angelegt oder fuer die naechste Freigabe vervollstaendigt werden kann."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Referenzseite fuer Struktur, Feldlogik und Einfuehrung des Passes als Standardobjekt."
+    },
+    {
+      "label": "OEM Supplier Request Kit",
+      "href": "/de/artefacts/oem-supplier-request-kit",
+      "description": "Anschlussfall fuer externe Anfragen und Lieferkettenantworten auf derselben Evidenzbasis."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Welche Information sollte vor einer Freigabe oder Beschaffungsentscheidung mindestens vorliegen?",
+      "a": "Mindestens der fachliche Zweck, die verantwortliche Rolle, der Datenbezug, der aktuelle Review-Status und die belastbar referenzierte Evidenz zum konkreten Einsatzfall. Ohne diese Felder bleibt unklar, was eigentlich freigegeben oder angefragt wird."
+    },
+    {
+      "q": "Warum sollte Beschaffung auf einem einzelnen Einsatzfall statt auf einer Tool-Liste aufsetzen?",
+      "a": "Weil Nachweisbedarf, Risiko und Verantwortlichkeit an der konkreten Nutzung haengen. Ein identisches System kann in zwei Prozessen voellig unterschiedliche Pruef- und Antwortpfade ausloesen."
+    },
+    {
+      "q": "Wann ist ein Use-Case Pass stark genug fuer eine erste externe Anfrage oder Antwort?",
+      "a": "Wenn Scope, Zweck, verantwortliche Rolle, Status und die wichtigsten Evidenzen bereits gepflegt sind und offene Punkte sichtbar markiert bleiben. Dann laesst sich eine sachliche Erstantwort abgeben, ohne eine zweite Dokumentationswelt aufzubauen."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Wofür diese FAQ gebaut ist",
+      "paragraphs": [
+        "Diese FAQ richtet sich an Teams, die vor einer Freigabe, Beschaffungsentscheidung oder Partneranfrage schnell klären müssen, ob ein KI-Einsatzfall bereits in einer belastbaren Form beschrieben ist. Der Use-Case Pass wird dabei als Primärobjekt gelesen: ein einzelner Einsatzfall mit Zweck, Verantwortung, Datenbezug, Status und Evidenz.",
+        "Das hilft besonders dort, wo Einkauf, Governance, Audit und Fachbereich auf dieselbe Antwort angewiesen sind, aber unterschiedliche Fragen stellen. Statt mehrere Listen, E-Mails oder Richtlinienausschnitte nebeneinander zu lesen, kann die Prüfung auf eine gemeinsame Fallbasis gestellt werden."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Unterlagen im Mindestpaket zusammengehören",
+      "rows": [
+        {
+          "label": "Use-Case Pass",
+          "value": "Beschreibt den einzelnen Einsatzfall mit Zweck, Owner, Status, Wirkung und referenzierter Evidenz als zentrale Freigabegrundlage."
+        },
+        {
+          "label": "Register- und Review-Matrix",
+          "value": "Zeigt, wie derselbe Fall im organisatorischen Gesamtbestand verortet ist und welche Review- oder Eskalationsschritte offen oder abgeschlossen sind."
+        },
+        {
+          "label": "Request- oder Response-Vorlage",
+          "value": "Uebersetzt den vorhandenen Pass in eine konkrete Anfrage- oder Antwortform, wenn ein Lieferant, Auftraggeber oder internes Gremium eine formale Aussage verlangt."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Was vor einer Freigabe konkret geprueft werden sollte",
+      "items": [
+        "Ist der Einsatzfall fachlich so beschrieben, dass der Zweck und die reale Nutzung ohne Zusatzgespraech verstanden werden koennen?",
+        "Ist eine verantwortliche Rolle benannt, die Aenderungen, Rueckfragen und Nachweispflege uebernimmt?",
+        "Sind Datenbezug, Entscheidungsnaehe und externe Wirkung so dokumentiert, dass der Review-Bedarf erkennbar wird?",
+        "Sind die wichtigsten Evidenzen referenziert und von offenen Punkten getrennt, statt beides im Freitext zu vermischen?",
+        "Laesst sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widerspruechliche Aussagen einzufuehren?"
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Welche Fragen in der Praxis haeufig in die falsche Richtung laufen",
+      "items": [
+        "Nur nach dem eingesetzten Tool oder Anbieter zu fragen, ohne den konkreten Fachprozess zu benennen.",
+        "Eine pauschale Freigabe fuer alle KI-Nutzungen abzuleiten, obwohl einzelne Einsatzfaelle unterschiedlich wirken.",
+        "Offene Punkte zu verstecken, obwohl sie fuer Audit, Einkauf oder interne Freigabe gerade entscheidend sind.",
+        "Eine externe Antwort aus losen Richtlinien oder Mailketten zusammenzustellen, obwohl bereits ein Pass gepflegt werden koennte."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Warum dieses Format für Partner und Prüffunktionen anschlussfähig ist",
+      "paragraphs": [
+        "Berater, Auditoren und Governance-Praktiker brauchen in frühen Phasen selten ein großes Dossier. Häufig genügt eine saubere Mindeststruktur, mit der sich feststellen lässt, ob ein Fall bereits freigabefähig ist, welche Felder fehlen und welche Aussage nach außen vertreten werden kann.",
+        "Genau dafür ist diese FAQ gedacht. Sie schafft einen kleinen gemeinsamen Prüfrahmen, der an reale Registerarbeit anschließt und sich ohne Bruch in Supplier Requests, Review-Schleifen oder Audit-Vorbereitung fortsetzen lässt."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wie die FAQ operativ verwendet wird",
+      "paragraphs": [
+        "In internen Freigaben kann die FAQ als Vorprüfung dienen: Liegen die Mindestfelder vor, wird der Fall weiterbearbeitet; fehlen sie, wird der Pass zuerst vervollständigt. Das verhindert, dass Gremien über unklare Gegenstände entscheiden müssen.",
+        "In Partner- oder Lieferkettenkontexten hilft die gleiche Logik, Anfragen zu verschlanken. Wer den Pass sauber führt, kann gezielt beantworten, welche Aussage bereits belastbar ist und welche Punkte noch im Review stehen."
+      ]
+    }
+  ]
+}

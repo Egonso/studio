@@ -27,6 +27,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/auth-context';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import { academyProgramDefinitions } from '@/lib/academy-programs';
 import { courseData } from '@/lib/course-data';
 import type { Module, Video } from '@/lib/course-data';
 import { buildAcademyProgressSnapshot } from '@/lib/course-progress';
@@ -208,7 +209,7 @@ export default function CoursePage() {
         <PageStatePanel
           area="paid_governance_control"
           title="Academy gehört zu den Premium-Bereichen"
-          description={`${requiredPlanLabel} schaltet Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center frei.`}
+          description={`${requiredPlanLabel} schaltet Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center frei. Promotion-Codes werden im bestehenden Stripe-Checkout unterstützt und können auch für vollständige Einzel-Freischaltungen genutzt werden.`}
           actions={
             <>
               <Button asChild>
@@ -272,6 +273,47 @@ export default function CoursePage() {
                 <Link href={ROUTE_HREFS.controlExports}>Audit / Exports</Link>
               </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-slate-200 bg-white shadow-none">
+        <CardContent className="space-y-4 p-5">
+          <div className="space-y-1.5">
+            <CardTitle className="text-base">Weitere Academy-Programme</CardTitle>
+            <p className="text-sm leading-6 text-slate-600">
+              Der bestehende Zertifizierungskurs bleibt unverändert. Zusätzlich
+              liegen hier neue Tracks für allgemeine Governance-Einführung und
+              juristische Praxis, jeweils mit eingebetteten Videos und
+              kuratierten Materialien.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {academyProgramDefinitions.map((program) => (
+              <div
+                key={program.slug}
+                className="border border-slate-200 px-4 py-4"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {program.strapline}
+                </p>
+                <h2 className="mt-2 text-lg font-semibold text-slate-950">
+                  {program.title}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {program.summary}
+                </p>
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  {program.lessons.length} Module · Promotion-Codes im Checkout
+                  unterstützt
+                </p>
+                <Button asChild className="mt-4">
+                  <Link href={`${ROUTE_HREFS.academy}/${program.slug}`}>
+                    Programm öffnen
+                  </Link>
+                </Button>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

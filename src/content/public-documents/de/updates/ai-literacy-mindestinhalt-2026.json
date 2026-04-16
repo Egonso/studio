@@ -1,0 +1,115 @@
+{
+  "slug": "ai-literacy-mindestinhalt-2026",
+  "locale": "de",
+  "content_type": "update",
+  "sector": "cross-industry",
+  "intent": "regulatory-radar",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-15",
+  "last_substantive_update": "2026-04-15",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/faqs/ai-literacy-questions-answers",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "authority-update",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "AI Literacy: Mindestinhalt und Fristlogik nach dem EU-Q&A",
+  "summary": "Das offizielle EU-Q&A konkretisiert den Mindestinhalt eines AI-Literacy-Programms. Für Unternehmen wird damit klarer, dass Inventar, Rollenbezug, Risikobezug und dokumentierte Maßnahmen zusammengehören und seit dem 2. Februar 2025 vorbereitet sein müssen.",
+  "object_label": "Regulatorisches Update",
+  "stance_label": "Mindestprogramm und Fristlogik",
+  "author": "KIRegister",
+  "audiences": [
+    "Governance- und Compliance-Verantwortliche mit Registerverantwortung",
+    "HR-, Enablement- und Fachbereichsleitungen mit Schulungs- und Einsatzfallbezug",
+    "Partner, Auditoren und Auftraggeber mit Nachweis- und Rückfragebedarf"
+  ],
+  "delivers": [
+    "eine knappe Übersetzung des offiziellen Mindestinhalts aus dem EU-Q&A",
+    "eine klare Einordnung der Fristlogik zwischen Anwendung und Aufsicht",
+    "einen direkten Arbeitsauftrag für Register, Use-Case Pass und Nachweisführung"
+  ],
+  "cta": {
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Ein belastbares AI-Literacy-Programm beginnt mit einem vollständigen Register realer KI-Einsatzfälle."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Warum Mindestprogramm, Rollenbezug und Evidenz erst pro Einsatzfall belastbar werden."
+    },
+    {
+      "label": "AI Literacy im Betrieb",
+      "href": "/de/updates/ai-literacy-verantwortung-2026",
+      "description": "Die breitere Einordnung von Rollenbezug und Nachweisführung im Betrieb."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Reicht eine allgemeine KI-Schulung ohne Register oder Einsatzfallbezug aus?",
+      "a": "Das offizielle Q&A spricht für einen breiteren Ansatz. Mindestinhalt umfasst Klarheit darüber, welche KI im Unternehmen genutzt wird, welche Rolle die Organisation einnimmt, welche Risiken vorliegen und welche Maßnahmen daraus konkret folgen."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Was das offizielle EU-Q&A jetzt praktisch präzisiert",
+      "paragraphs": [
+        "Die Kommission beschreibt für Art. 4 inzwischen einen konkreten Mindestinhalt. Organisationen sollen erstens ein allgemeines Verständnis von KI schaffen, zweitens die eigene Rolle als Anbieter oder Betreiber einordnen, drittens die Risiken der eingesetzten oder bereitgestellten Systeme betrachten und viertens die Literacy-Maßnahmen genau auf diese Analyse aufbauen.",
+        "Damit verschiebt sich AI Literacy von einer allgemeinen Weiterbildungsidee zu einer dokumentierbaren Governance-Aufgabe. Wer nicht sagen kann, welche KI-Systeme im Unternehmen real genutzt werden, welche Rolle das Unternehmen dabei einnimmt und welche Risiken pro Einsatzfall relevant sind, kann auch den Mindestinhalt kaum sauber nachweisen."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welcher Mindestinhalt jetzt explizit erwartet wird",
+      "rows": [
+        {
+          "label": "Inventar",
+          "value": "Es muss klar sein, welche KI im Unternehmen genutzt oder bereitgestellt wird und wo sie operativ relevant ist."
+        },
+        {
+          "label": "Rollenlogik",
+          "value": "Die Organisation muss unterscheiden, ob sie KI-Systeme anbietet oder als Betreiber nutzt, weil sich daraus unterschiedliche Pflicht- und Wissenslagen ergeben."
+        },
+        {
+          "label": "Risikobezug",
+          "value": "Mitarbeitende und beauftragte Dritte müssen die Risiken des konkreten Systems kennen und wissen, welche Begrenzungs- oder Überwachungsmaßnahmen relevant sind."
+        },
+        {
+          "label": "Abgeleitete Maßnahmen",
+          "value": "Trainings, Leitlinien und sonstige Maßnahmen müssen aus Inventar, Rollenlogik und Risikobezug abgeleitet werden und dürfen nicht generisch bleiben."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Warum das den Use-Case Pass stärkt",
+      "items": [
+        "Ein Register wird zum Mindestbaustein, weil ohne Einsatzfallinventar kein belastbares Literacy-Programm beschrieben werden kann.",
+        "Der Use-Case Pass wird zur kleinsten Einheit, auf der Rolle, Risiko, menschliche Aufsicht und zuständige Personen zusammenlaufen.",
+        "Trainingsnachweise werden stärker, wenn sie auf konkrete Pässe, reale Owner und dokumentierte Review-Schritte referenzieren.",
+        "Partner- und Audit-Anfragen lassen sich sauberer beantworten, wenn dieselbe Pass-Struktur auch für Literacy-Nachweise verwendet wird."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Welche Fristlogik Unternehmen jetzt sauber lesen sollten",
+      "paragraphs": [
+        "Die Pflicht, Maßnahmen zur AI Literacy zu ergreifen, gilt laut offiziellem Q&A seit dem 2. Februar 2025. Die Aufsicht und Durchsetzung durch nationale Marktüberwachungsbehörden startet ab dem 3. August 2026, wobei die Behörden laut Kommission ab dem 2. August 2026 mit Überwachung und Enforcement beginnen.",
+        "Praktisch heißt das: Unternehmen sollten die Zeit nicht mit abstrakten Schulungsdebatten verlieren, sondern jetzt ein belastbares Inventar ihrer KI-Einsatzfälle, die Rollenlogik pro Einsatzfall und die daraus abgeleiteten Maßnahmen dokumentieren. Genau dort ist der Use-Case Pass als Standardobjekt anschlussfähig."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was jetzt konkret aufgebaut werden sollte",
+      "paragraphs": [
+        "Zuerst braucht es ein vollständiges Register der realen KI-Einsatzfälle, einschließlich Pilotnutzung, produktiver Nutzung und externer Systeme mit operativem Einfluss. Danach sollte pro Einsatzfall festgehalten werden, ob die Organisation Anbieterin oder Betreiberin ist, welche Personen mit dem System arbeiten und welche Risiken oder Grenzen besonders relevant sind.",
+        "Im nächsten Schritt werden Trainings, Leitfäden, Freigaben und Review-Nachweise an diese Einsatzfallstruktur gekoppelt. So entsteht keine zweite Dokumentationswelt neben dem Register, sondern ein einziges belastbares Nachweisobjekt pro Use Case."
+      ]
+    }
+  ]
+}

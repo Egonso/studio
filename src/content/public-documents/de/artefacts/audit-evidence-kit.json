@@ -1,0 +1,155 @@
+{
+  "slug": "audit-evidence-kit",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "partner-channel",
+  "intent": "audit-evidence",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-16",
+  "last_substantive_update": "2026-04-16",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Audit Evidence Kit für Prüfer, Beschaffung und Governance",
+  "summary": "Das Audit Evidence Kit bündelt die minimalen Arbeitsobjekte, mit denen ein einzelner KI-Einsatzfall für Audit, Beschaffung und Governance nachvollziehbar gemacht werden kann. Es hilft dabei, Rückfragen zu Scope, Verantwortung, Review-Stand und Evidenz auf eine belastbare Pass-Struktur zurückzuführen.",
+  "object_label": "Prüf-Artefakt",
+  "stance_label": "Evidenz- und Anfragepaket",
+  "author": "KIRegister",
+  "audiences": [
+    "Auditoren und interne Revisionsfunktionen mit Bedarf an fallbezogener Evidenz",
+    "Beschaffungs- und Vendor-Management-Teams mit Rückfragen zu KI-Einsatzfällen",
+    "Governance- und Beratungspraktiker, die Nachweisarbeit operativ strukturieren müssen"
+  ],
+  "delivers": [
+    "ein enges Prüfpaket aus Beispielpass, Registermatrix und Feldlogik-Handout",
+    "eine klare Mindeststruktur für Scope, Verantwortung, Review-Stand und Evidenz",
+    "einen neutralen Arbeitsrahmen für Auditgespräche, Beschaffungsrückfragen und Governance-Reviews"
+  ],
+  "downloads": [
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Referenzdokument fuer einen einzelnen KI-Einsatzfall mit Zweck, Owner, Review-Stand, Kontrollen und Evidenzkette.",
+      "format": "PDF"
+    },
+    {
+      "label": "Register- und Review-Matrix",
+      "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Workbook mit Beispielregister, Review-Matrix und einer Feldstruktur, die sich fuer Audits, Due Diligence und interne Pruefung wiederverwenden laesst.",
+      "format": "XLSX"
+    },
+    {
+      "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
+      "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
+      "description": "Begleittext zur Pass-Logik, zu Mindestfeldern und zur Einordnung des Formats als belastbare Governance-Einheit.",
+      "format": "PDF"
+    }
+  ],
+  "cta": {
+    "label": "Einsatzfall im Register anlegen",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Der nächste sachliche Schritt ist ein realer Pass im Register, damit Audit- und Beschaffungsfragen auf ein konkretes Objekt bezogen werden können."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Referenzseite zur Pass-Struktur und zur Rolle des einzelnen Einsatzfalls als Governance-Einheit."
+    },
+    {
+      "label": "OEM Supplier Request Kit",
+      "href": "/de/artefacts/oem-supplier-request-kit",
+      "description": "Anschlussartefakt fuer externe Anfragen entlang der Lieferkette."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Wofür dieses Kit gebaut ist",
+      "paragraphs": [
+        "Das Audit Evidence Kit ist für Situationen gedacht, in denen ein einzelner KI-Einsatzfall schnell und belastbar erklärt werden muss. Typisch sind interne Audits, Beschaffungsprüfungen, Due-Diligence-Rückfragen, Beratungsprojekte oder Governance-Reviews, in denen nicht eine allgemeine KI-Policy, sondern der konkrete Fall im Mittelpunkt steht.",
+        "Das Kit hält diese Gespräche auf einer sauberen Ebene. Statt verstreute Aussagen aus Richtlinien, Tool-Listen und E-Mails zusammenzutragen, wird der Einsatzfall als primäres Objekt mit Scope, Verantwortung, Review-Stand und Evidenz lesbar gemacht."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Was im Prüfpaket direkt enthalten ist",
+      "rows": [
+        {
+          "label": "Beispielpass",
+          "value": "Ein ausgearbeiteter Referenzfall, der zeigt, wie ein einzelner KI-Einsatzfall dokumentiert und für Rückfragen vorbereitet wird."
+        },
+        {
+          "label": "Register- und Review-Matrix",
+          "value": "Eine Arbeitsstruktur, mit der mehrere Einsatzfälle, offene Punkte und Review-Zustände konsistent geführt werden können."
+        },
+        {
+          "label": "Feldlogik-Handout",
+          "value": "Eine knappe Einordnung der Pass-Anatomie, damit Prüfer, Beschaffung und Governance dieselben Begriffe verwenden."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Welche Mindestfragen das Kit sauber abdeckt",
+      "items": [
+        "Welcher konkrete Zweck wird mit dem Einsatzfall verfolgt und in welchem Prozess wird er genutzt?",
+        "Welche Rolle oder Person verantwortet den Einsatzfall und hält die Nachweise aktuell?",
+        "Welcher Review- oder Freigabestand liegt vor und welche offenen Punkte bestehen noch?",
+        "Welche Evidenzen, Kontrollen oder Begleitdokumente stützen die Aussagen zum Einsatzfall?",
+        "Welche Grenzen der Aussage muessen offen benannt werden, wenn Informationen noch unvollständig sind?"
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Warum dieses Format für Prüfer und Beschaffung anschlussfähig ist",
+      "paragraphs": [
+        "Audit- und Beschaffungssituationen scheitern oft nicht an fehlender Aktivität, sondern an fehlender Form. Informationen liegen vor, sind aber auf Richtlinien, Tabellen, E-Mail-Verläufe und mündliche Zuständigkeiten verteilt. Dadurch bleibt unklar, welche Aussage zu welchem Einsatzfall gehört.",
+        "Der Use-Case Pass schafft hier eine belastbare Einheit. Wenn Scope, Owner, Review-Stand und Evidenz je Einsatzfall zusammenlaufen, können Auditoren, Berater und Beschaffungsstellen dieselbe Struktur lesen, ohne eine zweite Dokumentationswelt aufzubauen."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Wie das Kit praktisch eingesetzt wird",
+      "items": [
+        "Einen realen Einsatzfall auswählen, der heute bereits produktiv, kundenrelevant oder intern strittig ist.",
+        "Den Beispielpass als Zielbild nutzen und die eigenen Angaben auf denselben Mindestumfang verdichten.",
+        "Offene Punkte in der Matrix sichtbar lassen, statt Vollständigkeit vorzutäuschen.",
+        "Für externe Rückfragen nur Aussagen verwenden, die durch Pass, Review oder Evidenz abgesichert sind.",
+        "Folgeartefakte wie Supplier Requests oder Verify-Flächen erst aus derselben Pass-Logik ableiten."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wo das Kit bewusst eng bleibt",
+      "paragraphs": [
+        "Dieses Kit ist kein Ersatz für Rechtsgutachten, technische Tiefenprüfungen oder ein vollständiges Kontrollsystem. Es ist ein enges Arbeitsobjekt für die erste belastbare Nachweisführung rund um einen konkreten KI-Einsatzfall.",
+        "Gerade diese Begrenzung macht es für Partner nützlich. Auditoren, Berater, Trainer und Governance-Praktiker können damit strukturiert arbeiten, ohne in generische KI-Kommunikation oder institutionell unklare Versprechen zu rutschen."
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "q": "Wann reicht dieses Kit für ein erstes Audit- oder Beschaffungsgespräch aus?",
+      "a": "Wenn ein konkreter Einsatzfall bereits beschrieben, verantwortet und mit einer minimalen Evidenzbasis versehen ist. Dann kann das Gespräch auf einem klaren Objekt geführt werden, auch wenn Detailprüfungen später folgen."
+    },
+    {
+      "q": "Was tun, wenn Informationen im Einsatzfall noch fehlen?",
+      "a": "Offene Punkte sichtbar lassen und die Grenzen der Aussage klar markieren. Für Audit und Beschaffung ist eine sauber begrenzte Aussage belastbarer als eine scheinbar vollständige, aber schlecht abgesicherte Antwort."
+    },
+    {
+      "q": "Ist das Kit eher für interne Teams oder externe Partner gedacht?",
+      "a": "Für beides. Intern strukturiert es die Vorbereitung, extern macht es Rückfragen und Evidenzanforderungen lesbar, ohne von der internen Pass-Logik abzuweichen."
+    },
+    {
+      "q": "Wie verhält sich das Kit zum Supplier Request Kit?",
+      "a": "Das Audit Evidence Kit ordnet zuerst die interne Fall- und Evidenzbasis. Das Supplier Request Kit ist der anschließende, stärker nach außen gerichtete Arbeitsrahmen für konkrete Anfragen in der Lieferkette."
+    }
+  ]
+}

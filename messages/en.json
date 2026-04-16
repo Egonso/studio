@@ -793,6 +793,10 @@
   "footer": {
     "allDataInEU": "All user data remains within the EU.",
     "home": "Home",
+    "standards": "Standards",
+    "industries": "Industries",
+    "artefacts": "Artefacts",
+    "updates": "Updates",
     "report": "Report",
     "legalNotice": "Legal Notice",
     "privacy": "Privacy",
