@@ -778,6 +778,11 @@ export default function AuthEntryPage() {
         return;
       }
 
+      if (routeContext.returnTo) {
+        router.push(localizeInternalHref(routeContext.returnTo));
+        return;
+      }
+
       setShareInviteCode(result.inviteCode);
       setShareCaptureLink(result.captureLink);
       setCreatedRegisterId(result.registerId);
@@ -919,7 +924,9 @@ export default function AuthEntryPage() {
     if (createdRegisterId) {
       setCreatedRegisterId(createdRegisterId);
     }
-    router.push(localizeInternalHref('/my-register?onboarding=true'));
+    router.push(
+      localizeInternalHref(routeContext.returnTo ?? '/my-register?onboarding=true'),
+    );
   }
 
   const isBusy = (key: string) => busyAction === key;
