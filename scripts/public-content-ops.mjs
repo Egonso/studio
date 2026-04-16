@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 
 const ROOT = process.cwd();
 const CONTENT_ROOT = path.join(ROOT, 'src/content/public-documents');
@@ -27,6 +28,46 @@ const BANNED_CONTRAST_PATTERNS = [
     message:
       'Copy uses the pattern "nicht nur X, sondern auch Y". Public content should stay direct and non-performative.',
   },
+];
+const TRANSLITERATED_GERMAN_PATTERNS = [
+  { regex: /\bfuer\b/, suggestion: 'für' },
+  { regex: /\bFuer\b/, suggestion: 'Für' },
+  { regex: /\bueber\b/, suggestion: 'über' },
+  { regex: /\bUeber\b/, suggestion: 'Über' },
+  { regex: /\bRueck/, suggestion: 'Rück' },
+  { regex: /\brueck/, suggestion: 'rück' },
+  { regex: /\bPruef/, suggestion: 'Prüf' },
+  { regex: /\bpruef/, suggestion: 'prüf' },
+  { regex: /\bgegenueber\b/, suggestion: 'gegenüber' },
+  { regex: /\bGegenueber\b/, suggestion: 'Gegenüber' },
+  { regex: /\bkoenn/, suggestion: 'könn' },
+  { regex: /\bKoenn/, suggestion: 'Könn' },
+  { regex: /\bmuess/, suggestion: 'müss' },
+  { regex: /\bMuess/, suggestion: 'Müss' },
+  { regex: /\bnaech/, suggestion: 'näch' },
+  { regex: /\bNaech/, suggestion: 'Näch' },
+  { regex: /\boeff/, suggestion: 'öff' },
+  { regex: /\bOeff/, suggestion: 'Öff' },
+  { regex: /\bAender/, suggestion: 'Änder' },
+  { regex: /\baender/, suggestion: 'änder' },
+  { regex: /\bverfueg/, suggestion: 'verfüg' },
+  { regex: /\bVerfueg/, suggestion: 'Verfüg' },
+  { regex: /\bEinfuehr/, suggestion: 'Einführ' },
+  { regex: /\beinfuehr/, suggestion: 'einführ' },
+  { regex: /\bAusfuehr/, suggestion: 'Ausführ' },
+  { regex: /\bausfuehr/, suggestion: 'ausführ' },
+  { regex: /\bfaeh/, suggestion: 'fäh' },
+  { regex: /\bFaeh/, suggestion: 'Fäh' },
+  { regex: /\bgemaess\b/, suggestion: 'gemäß' },
+  { regex: /\bGemaess\b/, suggestion: 'Gemäß' },
+  { regex: /\bmehrblaett/, suggestion: 'mehrblätt' },
+  { regex: /\bMehrblaett/, suggestion: 'Mehrblätt' },
+  { regex: /\bgespraech/, suggestion: 'gespräch' },
+  { regex: /\bGespraech/, suggestion: 'Gespräch' },
+  { regex: /\bhaeufig/, suggestion: 'häufig' },
+  { regex: /\bHaeufig/, suggestion: 'Häufig' },
+  { regex: /\bvoellig\b/, suggestion: 'völlig' },
+  { regex: /\bVoellig\b/, suggestion: 'Völlig' },
 ];
 
 const QUESTION_LED_HEADING_PATTERN = /\b(?:fragen|questions|beantwortet|answered)\b/i;
@@ -135,6 +176,33 @@ function getDocumentTextFragments(doc) {
   if (doc.cta?.description) {
     fragments.push({ label: 'cta.description', value: doc.cta.description });
   }
+  if (doc.cta?.label) {
+    fragments.push({ label: 'cta.label', value: doc.cta.label });
+  }
+
+  for (const [index, download] of (doc.downloads ?? []).entries()) {
+    if (download?.label) {
+      fragments.push({ label: `downloads[${index}].label`, value: download.label });
+    }
+    if (download?.description) {
+      fragments.push({
+        label: `downloads[${index}].description`,
+        value: download.description,
+      });
+    }
+  }
+
+  for (const [index, link] of (doc.related_links ?? []).entries()) {
+    if (link?.label) {
+      fragments.push({ label: `related_links[${index}].label`, value: link.label });
+    }
+    if (link?.description) {
+      fragments.push({
+        label: `related_links[${index}].description`,
+        value: link.description,
+      });
+    }
+  }
 
   for (const [sectionIndex, section] of (doc.sections ?? []).entries()) {
     fragments.push({
@@ -162,6 +230,22 @@ function validateWritingQuality(doc, errors) {
     for (const pattern of BANNED_CONTRAST_PATTERNS) {
       if (pattern.regex.test(fragment.value)) {
         errors.push(`${fragment.label} uses a banned contrast pattern. ${pattern.message}`);
+      }
+    }
+  }
+}
+
+function validateGermanUmlauts(doc, errors) {
+  if (doc.locale !== 'de') {
+    return;
+  }
+
+  for (const fragment of getDocumentTextFragments(doc)) {
+    for (const pattern of TRANSLITERATED_GERMAN_PATTERNS) {
+      if (pattern.regex.test(fragment.value)) {
+        errors.push(
+          `${fragment.label} contains ASCII-style German transliteration. Use proper UTF-8 umlauts such as "${pattern.suggestion}" in public DE copy.`,
+        );
       }
     }
   }
@@ -341,11 +425,118 @@ function getSegment(contentType) {
   return 'artefacts';
 }
 
+function normalizeInternalHref(href) {
+  if (typeof href !== 'string' || !href.startsWith('/')) {
+    return null;
+  }
+
+  return href;
+}
+
+function localizeInternalHref(locale, href) {
+  const normalizedHref = normalizeInternalHref(href);
+  if (!normalizedHref) {
+    return null;
+  }
+
+  if (normalizedHref === '/' || normalizedHref === `/${locale}` || normalizedHref.startsWith(`/${locale}/`)) {
+    return normalizedHref === '/' ? `/${locale}` : normalizedHref;
+  }
+
+  if (normalizedHref.startsWith('/downloads/') || normalizedHref.startsWith('/resources/')) {
+    return normalizedHref;
+  }
+
+  return `/${locale}${normalizedHref}`;
+}
+
+function toAbsoluteUrl(locale, href) {
+  if (typeof href !== 'string' || href.trim().length === 0) {
+    return href;
+  }
+
+  if (/^https?:\/\//i.test(href)) {
+    return href;
+  }
+
+  const localizedHref = localizeInternalHref(locale, href) ?? href;
+  return localizedHref.startsWith('/') ? `${BASE_URL}${localizedHref}` : localizedHref;
+}
+
+function tryExec(command) {
+  try {
+    return execSync(command, {
+      cwd: ROOT,
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return '';
+  }
+}
+
+function getRepoWebBase() {
+  const remoteUrl = tryExec('git remote get-url origin');
+  if (!remoteUrl) {
+    return null;
+  }
+
+  if (remoteUrl.startsWith('git@github.com:')) {
+    return `https://github.com/${remoteUrl
+      .slice('git@github.com:'.length)
+      .replace(/\.git$/, '')}`;
+  }
+
+  if (remoteUrl.startsWith('https://github.com/')) {
+    return remoteUrl.replace(/\.git$/, '');
+  }
+
+  return null;
+}
+
+function getRepoDefaultBranch() {
+  const remoteHead = tryExec('git symbolic-ref refs/remotes/origin/HEAD');
+  if (remoteHead) {
+    return remoteHead.split('/').pop();
+  }
+
+  return tryExec('git rev-parse --abbrev-ref HEAD') || 'main';
+}
+
+function encodeGitHubPath(filePath) {
+  return filePath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
+const REPO_WEB_BASE = getRepoWebBase();
+const REPO_DEFAULT_BRANCH = getRepoDefaultBranch();
+
+function buildSourceLinks(relativeFilePath) {
+  if (!REPO_WEB_BASE) {
+    return {
+      sourceFileUrl: null,
+      editFileUrl: null,
+      deleteUrl: null,
+    };
+  }
+
+  const encodedPath = encodeGitHubPath(relativeFilePath);
+  const encodedBranch = encodeURIComponent(REPO_DEFAULT_BRANCH);
+
+  return {
+    sourceFileUrl: `${REPO_WEB_BASE}/blob/${encodedBranch}/${encodedPath}`,
+    editFileUrl: `${REPO_WEB_BASE}/edit/${encodedBranch}/${encodedPath}`,
+    deleteUrl: `${REPO_WEB_BASE}/delete/${encodedBranch}/${encodedPath}`,
+  };
+}
+
 function buildPlainText(doc) {
   const lines = [doc.title, '', doc.summary];
 
   if (Array.isArray(doc.audiences) && doc.audiences.length > 0) {
-    lines.push('', doc.locale === 'de' ? 'Relevant fuer' : 'Relevant for');
+    lines.push('', doc.locale === 'de' ? 'Relevant für' : 'Relevant for');
     lines.push(...doc.audiences);
   }
 
@@ -357,9 +548,27 @@ function buildPlainText(doc) {
   if (Array.isArray(doc.downloads) && doc.downloads.length > 0) {
     lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');
     for (const download of doc.downloads) {
-      lines.push(`${download.label} (${download.format}): ${download.href}`);
+      lines.push(`${download.label} (${download.format}): ${toAbsoluteUrl(doc.locale, download.href)}`);
       if (typeof download.description === 'string' && download.description.trim().length > 0) {
         lines.push(download.description);
+      }
+    }
+  }
+
+  if (doc.cta?.label && doc.cta?.href) {
+    lines.push('', doc.locale === 'de' ? 'Direkter nächster Schritt' : 'Next step');
+    lines.push(`${doc.cta.label}: ${toAbsoluteUrl(doc.locale, doc.cta.href)}`);
+    if (typeof doc.cta.description === 'string' && doc.cta.description.trim().length > 0) {
+      lines.push(doc.cta.description);
+    }
+  }
+
+  if (Array.isArray(doc.related_links) && doc.related_links.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Weiterführende Links' : 'Related links');
+    for (const link of doc.related_links) {
+      lines.push(`${link.label}: ${toAbsoluteUrl(doc.locale, link.href)}`);
+      if (typeof link.description === 'string' && link.description.trim().length > 0) {
+        lines.push(link.description);
       }
     }
   }
@@ -453,6 +662,7 @@ function validateDocument(doc, filePath) {
   validateExpectationDelivery(doc, errors);
   validatePrimaryCta(doc, errors);
   validateWritingQuality(doc, errors);
+  validateGermanUmlauts(doc, errors);
   validateQualityFloor(doc, errors);
 
   if (doc.content_type === 'update' && doc.template_variant !== 'authority-update') {
@@ -691,8 +901,19 @@ async function verifyTarget(target) {
   }
 
   const html = await response.text();
+  const normalizedHtml = html
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\\u0026/g, '&')
+    .replace(/\\u003c/g, '<')
+    .replace(/\\u003e/g, '>')
+    .replace(/\\u0027/g, "'")
+    .replace(/\\u0022/g, '"');
   for (const fragment of target.expectedText) {
-    if (!html.includes(fragment)) {
+    if (!html.includes(fragment) && !normalizedHtml.includes(fragment)) {
       throw new Error(`missing expected fragment "${fragment}"`);
     }
   }
