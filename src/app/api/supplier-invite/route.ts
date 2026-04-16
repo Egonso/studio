@@ -30,6 +30,11 @@ const CreateInviteBodySchema = z
 
 const INVITE_COLLECTION = 'registerSupplierInvites';
 
+type InviteEmailFailureStage =
+  | 'email_send'
+  | 'invite_record_update'
+  | 'invite_record_mark_failed';
+
 export async function POST(req: NextRequest) {
   try {
     if (!registerFirstFlags.supplierInviteV2) {
@@ -93,6 +98,8 @@ export async function POST(req: NextRequest) {
     const organisationName =
       register.organisationName ?? register.name ?? 'Ihre Organisation';
     let inviteEmailSent = false;
+    let inviteEmailFailureReason: string | null = null;
+    let inviteEmailFailureStage: InviteEmailFailureStage | null = null;
 
     try {
       await sendSupplierInviteEmail({
@@ -108,20 +115,58 @@ export async function POST(req: NextRequest) {
         expiresAt: issued.record.expiresAt,
       });
       inviteEmailSent = true;
-      await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
-        deliveryFailed: false,
-        inviteEmailSentAt: new Date().toISOString(),
-      });
     } catch (error) {
-      await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
-        deliveryFailed: true,
-        inviteEmailSentAt: null,
-      });
+      inviteEmailFailureReason =
+        error instanceof Error ? error.message : 'unknown';
+      inviteEmailFailureStage = 'email_send';
+    }
 
+    if (inviteEmailSent) {
+      try {
+        await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
+          deliveryFailed: false,
+          inviteEmailSentAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        inviteEmailFailureReason =
+          error instanceof Error ? error.message : 'unknown';
+        inviteEmailFailureStage = 'invite_record_update';
+
+        logWarn('supplier_invite_email_record_update_failed', {
+          inviteId: issued.inviteId,
+          registerId: body.registerId,
+          reason: inviteEmailFailureReason,
+        });
+      }
+    } else {
+      try {
+        await db.collection(INVITE_COLLECTION).doc(issued.inviteId).update({
+          deliveryFailed: true,
+          inviteEmailSentAt: null,
+        });
+      } catch (error) {
+        const updateReason =
+          error instanceof Error ? error.message : 'unknown';
+
+        inviteEmailFailureReason = inviteEmailFailureReason
+          ? `${inviteEmailFailureReason}; failed to mark invite delivery state: ${updateReason}`
+          : updateReason;
+        inviteEmailFailureStage = 'invite_record_mark_failed';
+
+        logWarn('supplier_invite_email_failure_state_update_failed', {
+          inviteId: issued.inviteId,
+          registerId: body.registerId,
+          reason: updateReason,
+        });
+      }
+    }
+
+    if (!inviteEmailSent) {
       logWarn('supplier_invite_email_failed', {
         inviteId: issued.inviteId,
         registerId: body.registerId,
-        reason: error instanceof Error ? error.message : 'unknown',
+        reason: inviteEmailFailureReason ?? 'unknown',
+        stage: inviteEmailFailureStage ?? 'email_send',
       });
     }
 
@@ -131,6 +176,7 @@ export async function POST(req: NextRequest) {
       inviteId: issued.inviteId,
       intendedDomain: issued.record.intendedDomain,
       inviteEmailSent,
+      inviteEmailFailureStage,
     });
 
     return NextResponse.json({
@@ -140,6 +186,8 @@ export async function POST(req: NextRequest) {
       intendedEmail: issued.record.intendedEmail,
       organisationName: register.organisationName ?? register.name ?? null,
       inviteEmailSent,
+      inviteEmailFailureReason,
+      inviteEmailFailureStage,
     });
   } catch (error) {
     if (error instanceof ServerAuthError) {

@@ -34,6 +34,8 @@ interface SupplierInviteCreateDialogProps {
 interface CreateInviteResponse {
   publicUrl?: string;
   inviteEmailSent?: boolean;
+  inviteEmailFailureReason?: string;
+  inviteEmailFailureStage?: string;
   error?: string;
 }
 
@@ -105,6 +107,27 @@ function parseBatchContacts(raw: string): ParsedBatchInput {
     duplicateCount,
     invalidRows,
   };
+}
+
+function buildInviteEmailFallbackDescription(
+  data: CreateInviteResponse,
+  copied: boolean,
+): string {
+  const base = copied
+    ? 'Die E-Mail konnte nicht versendet werden. Der persoenliche Link wurde in die Zwischenablage kopiert.'
+    : 'Die E-Mail konnte nicht versendet werden. Nutzen Sie den erzeugten persoenlichen Link aus der API-Antwort fuer die manuelle Weitergabe.';
+
+  if (!data.inviteEmailFailureReason) {
+    return base;
+  }
+
+  const normalizedReason = data.inviteEmailFailureReason.replace(/\s+/g, ' ').trim();
+  const clippedReason =
+    normalizedReason.length > 180
+      ? `${normalizedReason.slice(0, 177)}...`
+      : normalizedReason;
+
+  return `${base} Grund: ${clippedReason}`;
 }
 
 async function copyToClipboard(value: string): Promise<boolean> {
@@ -195,10 +218,7 @@ export function SupplierInviteCreateDialog({
         const copied = await copyToClipboard(data.publicUrl);
         toast({
           title: 'Anfrage erstellt',
-          description:
-            copied
-              ? 'Die E-Mail konnte nicht versendet werden. Der persoenliche Link wurde in die Zwischenablage kopiert.'
-              : 'Die E-Mail konnte nicht versendet werden. Nutzen Sie den erzeugten persoenlichen Link aus der API-Antwort fuer die manuelle Weitergabe.',
+          description: buildInviteEmailFallbackDescription(data, copied),
         });
       } else {
         toast({
