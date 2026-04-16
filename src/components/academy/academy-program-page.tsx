@@ -69,7 +69,7 @@ function buildLocalizedLoginHref(
 ): string {
   const authPath = buildAuthPath({
     intent: 'create_register',
-    mode: 'signup',
+    mode: 'login',
     returnTo,
   });
 

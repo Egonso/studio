@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { academyProgramDefinitions } from '@/lib/academy-programs';
 import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import type { SubscriptionPlan } from '@/lib/register-first/types';
 import {
@@ -66,7 +67,61 @@ interface CheckoutReturnContext {
 interface ContextNotice {
   description: string;
   id: string;
+  kicker?: string;
   title: string;
+}
+
+function describeReturnTarget(returnTo: string | null | undefined): {
+  detail: string | null;
+  kicker: string | null;
+  title: string | null;
+} {
+  const normalized = returnTo?.trim();
+  if (!normalized) {
+    return {
+      detail: null,
+      kicker: null,
+      title: null,
+    };
+  }
+
+  const parsed = new URL(normalized, 'https://kiregister.com');
+  const segments = parsed.pathname.split('/').filter(Boolean);
+  const contentSegments =
+    segments.length > 0 && segments[0]?.length === 2 ? segments.slice(1) : segments;
+
+  if (contentSegments[0] === 'academy') {
+    const programSlug = contentSegments[1] ?? null;
+    const lessonSlug = contentSegments[2] ?? null;
+    const program =
+      academyProgramDefinitions.find((entry) => entry.slug === programSlug) ?? null;
+    const lesson =
+      lessonSlug && program
+        ? program.lessons.find((entry) => entry.slug === lessonSlug) ?? null
+        : null;
+
+    if (lesson && program) {
+      return {
+        detail: program.title,
+        kicker: 'Academy Modul',
+        title: lesson.title,
+      };
+    }
+
+    if (program) {
+      return {
+        detail: null,
+        kicker: 'Academy Kurs',
+        title: program.title,
+      };
+    }
+  }
+
+  return {
+    detail: null,
+    kicker: 'Direktlink',
+    title: null,
+  };
 }
 
 export default function AuthEntryPage() {
@@ -338,6 +393,11 @@ export default function AuthEntryPage() {
       return;
     }
 
+    if (routeContext.returnTo) {
+      router.replace(localizeInternalHref(routeContext.returnTo));
+      return;
+    }
+
     if (!hasExplicitAuthContext) {
       router.replace(localizeInternalHref('/my-register'));
       return;
@@ -365,6 +425,29 @@ export default function AuthEntryPage() {
   const contextNotices = useMemo(() => {
     const notices: ContextNotice[] = [];
     void checkoutContext;
+
+    if (routeContext.returnTo) {
+      const target = describeReturnTarget(routeContext.returnTo);
+      notices.push({
+        id: 'return_target',
+        kicker: target.kicker ?? undefined,
+        title: target.title
+          ? t('auth.returnTargetNoticeTitle', {
+              target: target.title,
+            })
+          : t('auth.returnTargetGenericTitle'),
+        description: target.title
+          ? target.detail
+            ? t('auth.returnTargetNoticeDescWithDetail', {
+                detail: target.detail,
+                target: target.title,
+              })
+            : t('auth.returnTargetNoticeDesc', {
+                target: target.title,
+              })
+          : t('auth.returnTargetGenericDesc'),
+      });
+    }
 
     if (routeContext.workspaceInvite) {
       notices.push({
@@ -862,6 +945,17 @@ export default function AuthEntryPage() {
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
             {t('auth.marketing.heroDescription')}
           </p>
+          <div className="max-w-3xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              {t('auth.marketing.heroCommitmentLabel')}
+            </p>
+            <p className="mt-2 text-base font-medium text-slate-950">
+              {t('auth.marketing.heroCommitmentTitle')}
+            </p>
+            <p className="mt-2 text-sm leading-7 text-slate-600">
+              {t('auth.marketing.heroCommitmentDescription')}
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link
               href={localizeInternalHref('/downloads')}
@@ -921,8 +1015,13 @@ export default function AuthEntryPage() {
             {contextNotices.map((notice) => (
               <div
                 key={notice.id}
-                className="rounded-md border border-slate-200 bg-white px-4 py-3"
+                className="border border-slate-200 bg-white px-4 py-4"
               >
+                {notice.kicker ? (
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    {notice.kicker}
+                  </p>
+                ) : null}
                 <p className="text-sm font-medium text-slate-950">{notice.title}</p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">{notice.description}</p>
               </div>
