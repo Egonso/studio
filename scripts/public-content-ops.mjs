@@ -736,6 +736,8 @@ function buildManifest(validationResults) {
       .sort((left, right) => left.doc.title.localeCompare(right.doc.title, left.doc.locale))
       .map((result) => {
         const routePath = `/${result.doc.locale}/${getSegment(result.doc.content_type)}/${result.doc.slug}`;
+        const relativeFilePath = path.relative(ROOT, result.filePath);
+        const sourceLinks = buildSourceLinks(relativeFilePath);
         return {
           slug: result.doc.slug,
           locale: result.doc.locale,
@@ -745,12 +747,29 @@ function buildManifest(validationResults) {
           templateVariant: result.doc.template_variant,
           publishedUrl: `${BASE_URL}${routePath}`,
           routePath,
-          deletePath: path.relative(ROOT, result.filePath),
+          deletePath: relativeFilePath,
+          sourceFilePath: relativeFilePath,
+          sourceFileUrl: sourceLinks.sourceFileUrl,
+          editFileUrl: sourceLinks.editFileUrl,
+          deleteUrl: sourceLinks.deleteUrl,
           notificationEmail: result.doc.notification_email,
           sourceUrls: result.doc.source_urls,
           audiences: result.doc.audiences,
           delivers: result.doc.delivers,
-          downloads: result.doc.downloads ?? [],
+          downloads: (result.doc.downloads ?? []).map((download) => ({
+            ...download,
+            absoluteHref: toAbsoluteUrl(result.doc.locale, download.href),
+          })),
+          cta: result.doc.cta
+            ? {
+                ...result.doc.cta,
+                absoluteHref: toAbsoluteUrl(result.doc.locale, result.doc.cta.href),
+              }
+            : null,
+          relatedLinks: (result.doc.related_links ?? []).map((link) => ({
+            ...link,
+            absoluteHref: toAbsoluteUrl(result.doc.locale, link.href),
+          })),
           lastSubstantiveUpdate: result.doc.last_substantive_update,
           fullText: buildPlainText(result.doc),
           autoPublishEligible: result.doc.content_type !== 'standard',
@@ -759,32 +778,15 @@ function buildManifest(validationResults) {
   };
 }
 
-function normalizeInternalHref(href) {
-  if (typeof href !== 'string' || !href.startsWith('/')) {
-    return null;
+function collectVerificationTargets(validationResults, options = {}) {
+  const scopedResults = options.slug
+    ? validationResults.filter((result) => result.doc.slug === options.slug)
+    : validationResults;
+
+  if (options.slug && scopedResults.length === 0) {
+    throw new Error(`No public document found for slug "${options.slug}".`);
   }
 
-  return href;
-}
-
-function localizeInternalHref(locale, href) {
-  const normalizedHref = normalizeInternalHref(href);
-  if (!normalizedHref) {
-    return null;
-  }
-
-  if (normalizedHref === '/' || normalizedHref === `/${locale}` || normalizedHref.startsWith(`/${locale}/`)) {
-    return normalizedHref === '/' ? `/${locale}` : normalizedHref;
-  }
-
-  if (normalizedHref.startsWith('/downloads/')) {
-    return normalizedHref;
-  }
-
-  return `/${locale}${normalizedHref}`;
-}
-
-function collectVerificationTargets(validationResults) {
   const targets = new Map();
 
   function addTarget(urlPath, payload) {
@@ -813,7 +815,7 @@ function collectVerificationTargets(validationResults) {
     });
   }
 
-  for (const result of validationResults) {
+  for (const result of scopedResults) {
     const routePath = `/${result.doc.locale}/${getSegment(result.doc.content_type)}/${result.doc.slug}`;
     const source = path.relative(ROOT, result.filePath);
 
@@ -924,8 +926,8 @@ async function verifyTarget(target) {
   };
 }
 
-async function verifyLinks(validationResults) {
-  const targets = collectVerificationTargets(validationResults);
+async function verifyLinks(validationResults, options = {}) {
+  const targets = collectVerificationTargets(validationResults, options);
   let failures = 0;
 
   for (const target of targets) {
@@ -947,11 +949,35 @@ async function verifyLinks(validationResults) {
     process.exit(1);
   }
 
-  console.log(`Verified ${targets.length} internal public links and downloads against ${BASE_URL}.`);
+  const scopeLabel = options.slug ? ` for slug "${options.slug}"` : '';
+  console.log(`Verified ${targets.length} internal public links and downloads against ${BASE_URL}${scopeLabel}.`);
+}
+
+function parseCliOptions(argv) {
+  const options = {
+    slug: null,
+  };
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
+    if (arg === '--slug') {
+      options.slug = argv[index + 1] ?? null;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--slug=')) {
+      options.slug = arg.slice('--slug='.length) || null;
+    }
+  }
+
+  return options;
 }
 
 async function main() {
   const command = process.argv[2] || 'validate';
+  const options = parseCliOptions(process.argv.slice(3));
   const validationResults = loadDocuments();
   const hasErrors = printErrors(validationResults);
 
@@ -972,7 +998,7 @@ async function main() {
   }
 
   if (command === 'verify-links') {
-    await verifyLinks(validationResults);
+    await verifyLinks(validationResults, options);
     return;
   }
 
