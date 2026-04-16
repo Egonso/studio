@@ -190,6 +190,8 @@ export default function AuthEntryPage() {
   const [joinPassword, setJoinPassword] = useState('');
 
   const autoValidatedCodeRef = useRef<string | null>(null);
+  const authPanelRef = useRef<HTMLDivElement | null>(null);
+  const loginEmailInputRef = useRef<HTMLInputElement | null>(null);
 
   const hasExplicitAuthContext = Boolean(
     routeContext.mode ||
@@ -527,6 +529,23 @@ export default function AuthEntryPage() {
         ),
       );
     });
+  }
+
+  function focusAuthPanel() {
+    window.setTimeout(() => {
+      authPanelRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+      loginEmailInputRef.current?.focus();
+    }, 32);
+  }
+
+  function handleHeroSignIn() {
+    if (mode !== 'login') {
+      updateAuthRoute('login', intent);
+    }
+    focusAuthPanel();
   }
 
   async function handlePasswordReset() {
@@ -945,6 +964,16 @@ export default function AuthEntryPage() {
           <p className="max-w-3xl text-lg leading-8 text-slate-600">
             {t('auth.marketing.heroDescription')}
           </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              onClick={handleHeroSignIn}
+              aria-controls="auth-access-panel"
+              className="h-11 rounded-none bg-slate-950 px-5 text-sm font-medium text-white hover:bg-slate-800"
+            >
+              {t('auth.signIn')}
+            </Button>
+          </div>
           <div className="max-w-3xl border border-slate-200 bg-slate-50 px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               {t('auth.marketing.heroCommitmentLabel')}
@@ -1029,7 +1058,7 @@ export default function AuthEntryPage() {
           </div>
         ) : null}
 
-        <div className="w-full">
+        <div ref={authPanelRef} id="auth-access-panel" className="w-full">
           <Card className="border-slate-200 bg-white">
             <CardHeader className="space-y-4">
               <Tabs
@@ -1109,6 +1138,7 @@ export default function AuthEntryPage() {
                           {t('auth.email')}
                         </label>
                         <Input
+                          ref={loginEmailInputRef}
                           id="login-email"
                           type="email"
                           value={loginEmail}
