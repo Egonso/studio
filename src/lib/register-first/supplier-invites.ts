@@ -6,6 +6,7 @@ import {
 
 import { db } from '@/lib/firebase-admin';
 import { buildPublicAppUrl } from '@/lib/app-url';
+import { logWarn } from '@/lib/observability/logger';
 
 import { parseSupplierInviteRecord } from './supplier-invite-schema';
 import type {
@@ -287,7 +288,19 @@ export async function revokeActiveInvitesForRegister(input: {
   const normalizedEmail = input.intendedEmail?.trim().toLowerCase() ?? null;
 
   const activeDocs = snapshot.docs.filter((doc) => {
-    const data = parseSupplierInviteRecord(doc.data());
+    let data: SupplierInviteRecord;
+    try {
+      data = parseSupplierInviteRecord(doc.data());
+    } catch (error) {
+      logWarn('supplier_invite_skip_malformed_existing_invite', {
+        inviteId: doc.id,
+        registerId: input.registerId,
+        ownerId: input.ownerId,
+        reason: error instanceof Error ? error.message : 'unknown',
+      });
+      return false;
+    }
+
     const isOpen = data.status === 'active' || data.status === 'verified';
     if (!isOpen) {
       return false;

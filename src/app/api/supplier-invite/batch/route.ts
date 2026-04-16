@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { db } from '@/lib/firebase-admin';
 import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
-import { encryptSupplierInviteAccessUrl } from '@/lib/register-first/supplier-invite-delivery';
+import { tryEncryptSupplierInviteAccessUrl } from '@/lib/register-first/supplier-invite-delivery';
 import { sendSupplierInviteEmail } from '@/lib/register-first/supplier-invite-email';
 import { parseSupplierInviteCampaignRecord } from '@/lib/register-first/supplier-invite-campaign-schema';
 import { registerFirstFlags } from '@/lib/register-first/flags';
@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
         campaignSource: campaign.source,
         now,
       });
-      issued.record.inviteAccessUrlCiphertext = encryptSupplierInviteAccessUrl(
+      issued.record.inviteAccessUrlCiphertext = tryEncryptSupplierInviteAccessUrl(
         issued.publicUrl,
       );
       issuedInvites.push(issued);

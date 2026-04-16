@@ -4,7 +4,7 @@ import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
 import { ServerAuthError, requireRegisterOwner } from '@/lib/server-auth';
 import { db } from '@/lib/firebase-admin';
-import { encryptSupplierInviteAccessUrl } from '@/lib/register-first/supplier-invite-delivery';
+import { tryEncryptSupplierInviteAccessUrl } from '@/lib/register-first/supplier-invite-delivery';
 import { sendSupplierInviteEmail } from '@/lib/register-first/supplier-invite-email';
 import { parseSupplierInviteRecord } from '@/lib/register-first/supplier-invite-schema';
 import {
@@ -66,7 +66,7 @@ export async function POST(
       campaignSource: oldInvite.campaignSource,
       maxSubmissions: oldInvite.maxSubmissions,
     });
-    issued.record.inviteAccessUrlCiphertext = encryptSupplierInviteAccessUrl(
+    issued.record.inviteAccessUrlCiphertext = tryEncryptSupplierInviteAccessUrl(
       issued.publicUrl,
     );
 

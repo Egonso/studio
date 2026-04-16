@@ -53,6 +53,20 @@ export function encryptSupplierInviteAccessUrl(publicUrl: string): string {
   ].join('.');
 }
 
+export function tryEncryptSupplierInviteAccessUrl(
+  publicUrl: string,
+): string | null {
+  try {
+    return encryptSupplierInviteAccessUrl(publicUrl);
+  } catch (error) {
+    console.warn(
+      'Supplier invite access URL encryption skipped:',
+      error instanceof Error ? error.message : error,
+    );
+    return null;
+  }
+}
+
 function decryptWithSecret(ciphertext: string, secret: string): string | null {
   const [version, ivB64, dataB64, tagB64] = ciphertext.split('.');
   if (
