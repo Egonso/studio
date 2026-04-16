@@ -30,7 +30,9 @@ function setQueryParam(
   }
 }
 
-function normalizeReturnToPath(value: string | null | undefined): string | null {
+export function normalizeReturnToPath(
+  value: string | null | undefined,
+): string | null {
   const normalizedValue = value?.trim();
   if (!normalizedValue) {
     return null;

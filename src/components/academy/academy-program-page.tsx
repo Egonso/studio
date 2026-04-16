@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ExternalLink,
   FileText,
+  Loader2,
   PlayCircle,
   ScrollText,
   Sheet as SheetIcon,
@@ -16,6 +17,7 @@ import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
+import { buildAuthPath } from '@/lib/auth/login-routing';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import {
   type AcademyProgramDefinition,
@@ -54,37 +56,183 @@ function ResourceIcon({ format }: { format: AcademyProgramResource['format'] }) 
 interface AcademyProgramPageProps {
   locale: string;
   program: AcademyProgramDefinition;
+  selectedLessonSlug?: string;
+}
+
+type SearchParamsLike = {
+  toString(): string;
+} | null;
+
+function buildLocalizedLoginHref(
+  locale: string,
+  returnTo: string,
+): string {
+  const authPath = buildAuthPath({
+    intent: 'create_register',
+    mode: 'signup',
+    returnTo,
+  });
+
+  return `/${locale}/login${authPath === '/' ? '' : authPath.slice(1)}`;
+}
+
+function buildAcademyProgramHref(
+  locale: string,
+  programSlug: string,
+  lessonSlug?: string,
+  academyGrant?: string | null,
+): string {
+  const basePath = lessonSlug
+    ? `/${locale}/academy/${programSlug}/${lessonSlug}`
+    : `/${locale}/academy/${programSlug}`;
+
+  if (!academyGrant) {
+    return basePath;
+  }
+
+  const params = new URLSearchParams();
+  params.set('academy_grant', academyGrant);
+  return `${basePath}?${params.toString()}`;
+}
+
+function buildPathWithSearch(
+  pathname: string,
+  searchParams: SearchParamsLike,
+): string {
+  const query = searchParams?.toString() ?? '';
+  return query.length > 0 ? `${pathname}?${query}` : pathname;
+}
+
+function buildCheckoutReturnTo(
+  pathname: string,
+  searchParams: SearchParamsLike,
+): string {
+  const params = new URLSearchParams(searchParams?.toString() ?? '');
+  params.delete('academy_grant');
+  const query = params.toString();
+  return query.length > 0 ? `${pathname}?${query}` : pathname;
 }
 
 export function AcademyProgramPage({
   locale,
   program,
+  selectedLessonSlug,
 }: AcademyProgramPageProps) {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const {
     allowed,
     loading: capabilityLoading,
     requiredPlanLabel,
   } = useCapability('competencyMatrix');
-  const [selectedLessonId, setSelectedLessonId] = useState(program.lessons[0]?.id ?? '');
-
-  useEffect(() => {
-    setSelectedLessonId(program.lessons[0]?.id ?? '');
-  }, [program.lessons]);
+  const fallbackPathname = selectedLessonSlug
+    ? `/${locale}/academy/${program.slug}/${selectedLessonSlug}`
+    : `/${locale}/academy/${program.slug}`;
+  const resolvedPathname = pathname ?? fallbackPathname;
+  const [grantActivationState, setGrantActivationState] = useState<
+    'idle' | 'starting' | 'error'
+  >('idle');
+  const [grantError, setGrantError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
+      router.push(
+        buildLocalizedLoginHref(
+          locale,
+          buildPathWithSearch(resolvedPathname, searchParams),
+        ),
+      );
     }
-  }, [authLoading, router, user]);
+  }, [authLoading, locale, resolvedPathname, router, searchParams, user]);
+
+  const academyGrant = useMemo(() => {
+    const rawValue = searchParams?.get('academy_grant')?.trim();
+    return rawValue && rawValue.length > 0 ? rawValue : null;
+  }, [searchParams]);
+
+  const checkoutReturnTo = useMemo(
+    () => buildCheckoutReturnTo(resolvedPathname, searchParams),
+    [resolvedPathname, searchParams],
+  );
 
   const selectedLesson = useMemo(
     () =>
-      program.lessons.find((lesson) => lesson.id === selectedLessonId) ??
+      program.lessons.find((lesson) => lesson.slug === selectedLessonSlug) ??
       program.lessons[0],
-    [program.lessons, selectedLessonId],
+    [program.lessons, selectedLessonSlug],
   );
+
+  const startGrantCheckout = async () => {
+    if (!user || !academyGrant) {
+      return;
+    }
+
+    setGrantActivationState('starting');
+    setGrantError(null);
+
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          billingInterval: 'month',
+          promotionCode: academyGrant,
+          returnTo: checkoutReturnTo,
+          targetPlan: 'pro',
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        url?: string;
+      };
+
+      if (!response.ok || typeof payload.url !== 'string') {
+        throw new Error(
+          typeof payload.error === 'string'
+            ? payload.error
+            : 'Die Freischaltung konnte gerade nicht gestartet werden.',
+        );
+      }
+
+      window.location.assign(payload.url);
+    } catch (error) {
+      setGrantActivationState('error');
+      setGrantError(
+        error instanceof Error
+          ? error.message
+          : 'Die Freischaltung konnte gerade nicht gestartet werden.',
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (
+      authLoading ||
+      capabilityLoading ||
+      !user ||
+      allowed ||
+      !academyGrant ||
+      grantActivationState !== 'idle'
+    ) {
+      return;
+    }
+
+    void startGrantCheckout();
+  }, [
+    academyGrant,
+    allowed,
+    authLoading,
+    capabilityLoading,
+    grantActivationState,
+    user,
+  ]);
 
   if (authLoading || capabilityLoading) {
     return (
@@ -119,12 +267,29 @@ export function AcademyProgramPage({
         <PageStatePanel
           area="paid_governance_control"
           title={`${program.title} ist Teil der Academy`}
-          description={`${requiredPlanLabel} schaltet diesen Kurs in der Governance Academy frei. Promotion-Codes werden im bestehenden Stripe-Checkout bereits unterstützt und können auch für vollständige Einzel-Freischaltungen genutzt werden.`}
+          description={
+            grantError ??
+            (academyGrant
+              ? 'Dieser Link enthält bereits eine Freischaltung für genau diesen Kurskontext. Die Aktivierung wird vorbereitet oder kann unten erneut ausgelöst werden.'
+              : `${requiredPlanLabel} schaltet diesen Kurs in der Governance Academy frei. Promotion-Codes werden im bestehenden Stripe-Checkout bereits unterstützt und können auch für vollständige Einzel-Freischaltungen genutzt werden.`)
+          }
           actions={
             <>
-              <Button asChild>
-                <Link href={ROUTE_HREFS.governanceUpgrade}>Checkout öffnen</Link>
-              </Button>
+              {academyGrant ? (
+                <Button
+                  onClick={() => void startGrantCheckout()}
+                  disabled={grantActivationState === 'starting'}
+                >
+                  {grantActivationState === 'starting' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Gratis freischalten
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href={ROUTE_HREFS.governanceUpgrade}>Checkout öffnen</Link>
+                </Button>
+              )}
               <Button asChild variant="outline">
                 <Link href={ROUTE_HREFS.academy}>Zur Academy</Link>
               </Button>
@@ -201,10 +366,14 @@ export function AcademyProgramPage({
                   {program.lessons.map((lesson, index) => {
                     const isActive = lesson.id === selectedLesson.id;
                     return (
-                      <button
+                      <Link
                         key={lesson.id}
-                        type="button"
-                        onClick={() => setSelectedLessonId(lesson.id)}
+                        href={buildAcademyProgramHref(
+                          locale,
+                          program.slug,
+                          lesson.slug,
+                          academyGrant,
+                        )}
                         className={`w-full border px-4 py-3 text-left transition-colors ${
                           isActive
                             ? 'border-slate-950 bg-slate-950 text-white'
@@ -225,7 +394,7 @@ export function AcademyProgramPage({
                             </p>
                           </div>
                         </div>
-                      </button>
+                      </Link>
                     );
                   })}
                 </div>
@@ -244,6 +413,25 @@ export function AcademyProgramPage({
               <p className="text-sm leading-7 text-slate-600">
                 {selectedLesson.summary}
               </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link href={buildAcademyProgramHref(locale, program.slug)}>
+                    Kurs-Unterseite
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link
+                    href={buildAcademyProgramHref(
+                      locale,
+                      program.slug,
+                      selectedLesson.slug,
+                      academyGrant,
+                    )}
+                  >
+                    Modul-Unterseite
+                  </Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="overflow-hidden border border-slate-200 bg-slate-950">

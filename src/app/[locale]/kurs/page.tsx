@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import {
   CheckCircle,
   Download,
@@ -103,6 +104,7 @@ function ResourceIcon({ type }: { type: string }) {
 }
 
 export default function CoursePage() {
+  const locale = useLocale();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams() ?? new URLSearchParams();
@@ -308,7 +310,7 @@ export default function CoursePage() {
                   unterstützt
                 </p>
                 <Button asChild className="mt-4">
-                  <Link href={`${ROUTE_HREFS.academy}/${program.slug}`}>
+                  <Link href={`/${locale}/academy/${program.slug}`}>
                     Programm öffnen
                   </Link>
                 </Button>

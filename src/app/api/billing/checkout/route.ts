@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { normalizeReturnToPath } from '@/lib/auth/login-routing';
 import {
   parseCheckoutRequestBody,
   type CheckoutRequestBody,
@@ -65,6 +66,27 @@ function toActionLabel(plan: StripeBillingPlan): string {
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized && normalized.length > 0 ? normalized : null;
+}
+
+async function resolvePromotionCodeId(input: {
+  stripe: ReturnType<typeof createStripeServerClient>;
+  promotionCode: string;
+}): Promise<string | null> {
+  const matches = await input.stripe.promotionCodes.list({
+    active: true,
+    code: input.promotionCode,
+    limit: 10,
+  });
+
+  const exactMatch =
+    matches.data.find(
+      (entry) =>
+        entry.active &&
+        entry.code.trim().toLowerCase() ===
+          input.promotionCode.trim().toLowerCase(),
+    ) ?? null;
+
+  return exactMatch?.id ?? null;
 }
 
 async function countUseCasesForRegister(
@@ -259,6 +281,8 @@ export async function POST(request: NextRequest) {
     );
     const targetPlan = resolveTargetPlan(body.targetPlan);
     const billingInterval = resolveBillingInterval(body.billingInterval);
+    const promotionCode = normalizeOptionalText(body.promotionCode);
+    const returnTo = normalizeReturnToPath(body.returnTo ?? null);
     const rateLimit = await enforceRequestRateLimit({
       request,
       namespace: 'billing-checkout',
@@ -319,6 +343,23 @@ export async function POST(request: NextRequest) {
     }
 
     const stripe = createStripeServerClient(config);
+    const promotionCodeId = promotionCode
+      ? await resolvePromotionCodeId({
+          stripe,
+          promotionCode,
+        })
+      : null;
+
+    if (promotionCode && !promotionCodeId) {
+      return NextResponse.json(
+        {
+          error:
+            'Der Freischaltcode ist ungültig oder nicht mehr aktiv. Bitte prüfen Sie den Link oder verwenden Sie einen neuen Code.',
+        },
+        { status: 422 },
+      );
+    }
+
     const governanceCheckout =
       targetPlan === 'pro'
         ? await resolveGovernanceCheckoutPriceId({
@@ -372,11 +413,15 @@ export async function POST(request: NextRequest) {
         targetPlan === 'pro'
           ? String(governanceCheckout?.usage.useCaseCount ?? 0)
           : '',
+      academyPromotionCode: promotionCode ?? '',
+      academyReturnTo: returnTo ?? '',
     };
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      success_url: buildBillingReturnUrl('{CHECKOUT_SESSION_ID}'),
+      success_url: buildBillingReturnUrl('{CHECKOUT_SESSION_ID}', {
+        returnTo,
+      }),
       cancel_url: buildBillingCancelUrl(),
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
@@ -389,6 +434,11 @@ export async function POST(request: NextRequest) {
         ? undefined
         : decoded.email,
       metadata,
+      ...(promotionCodeId
+        ? {
+            discounts: [{ promotion_code: promotionCodeId }],
+          }
+        : {}),
       subscription_data: {
         metadata,
       },

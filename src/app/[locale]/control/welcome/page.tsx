@@ -18,7 +18,7 @@ import { SignedInAreaFrame, PageStatePanel } from '@/components/product-shells';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/auth-context';
-import { buildAuthPath } from '@/lib/auth/login-routing';
+import { buildAuthPath, normalizeReturnToPath } from '@/lib/auth/login-routing';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
@@ -87,6 +87,7 @@ export default function ControlWelcomePage() {
     useCapability('reviewWorkflow');
   const checkoutSessionId = searchParams.get('checkout_session_id');
   const source = searchParams.get('source');
+  const returnTo = normalizeReturnToPath(searchParams.get('returnTo'));
   const [syncState, setSyncState] = useState<'idle' | 'loading' | 'done' | 'error'>(
     checkoutSessionId ? 'loading' : 'idle',
   );
@@ -102,10 +103,11 @@ export default function ControlWelcomePage() {
     router.replace(
       buildAuthPath({
         mode: 'login',
+        returnTo: returnTo ?? undefined,
         sessionId: checkoutSessionId ?? undefined,
       }),
     );
-  }, [authLoading, checkoutSessionId, router, user]);
+  }, [authLoading, checkoutSessionId, returnTo, router, user]);
 
   useEffect(() => {
     if (!user) {
@@ -149,6 +151,7 @@ export default function ControlWelcomePage() {
               mode: 'signup',
               intent: 'create_register',
               email: user.email ?? undefined,
+              returnTo: returnTo ?? undefined,
               sessionId: checkoutSessionId,
             }),
           );
@@ -179,7 +182,7 @@ export default function ControlWelcomePage() {
     return () => {
       cancelled = true;
     };
-  }, [checkoutSessionId, router, syncState, user]);
+  }, [checkoutSessionId, returnTo, router, syncState, user]);
 
   const effectivePlan = activatedPlan ?? plan;
   const hasPaidAccess =
@@ -193,6 +196,14 @@ export default function ControlWelcomePage() {
     : t('control.welcome.nextStepNoAccess');
   const orgLabel = organisationName ?? t('common.unknown');
   const highlightedModules = useMemo(() => WELCOME_MODULES.slice(0, 3), []);
+
+  useEffect(() => {
+    if (!returnTo || !hasPaidAccess || syncState !== 'done') {
+      return;
+    }
+
+    router.replace(returnTo);
+  }, [hasPaidAccess, returnTo, router, syncState]);
 
   if (authLoading || capabilityLoading || syncState === 'loading') {
     return (

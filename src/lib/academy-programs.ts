@@ -9,6 +9,7 @@ export interface AcademyProgramResource {
 
 export interface AcademyProgramLesson {
   id: string;
+  slug: string;
   title: string;
   presenter: string;
   duration: string;
@@ -51,6 +52,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
     lessons: [
       {
         id: 'grundkurs-1',
+        slug: 'das-fehlende-bindeglied',
         title: 'Das fehlende Bindeglied',
         presenter: 'Momo Feichtinger',
         duration: 'ca. 10 Minuten',
@@ -81,6 +83,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       },
       {
         id: 'grundkurs-2',
+        slug: 'das-register-als-deliverable',
         title: 'Das Register als Deliverable',
         presenter: 'Momo Feichtinger',
         duration: 'ca. 10 Minuten',
@@ -111,6 +114,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       },
       {
         id: 'grundkurs-3',
+        slug: 'governance-als-wachstumsmotor',
         title: 'Governance als Wachstumsmotor',
         presenter: 'Momo Feichtinger & Zoltan Gal',
         duration: 'ca. 10 Minuten',
@@ -141,6 +145,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       },
       {
         id: 'grundkurs-4',
+        slug: 'use-case-pass-und-nachweisstruktur',
         title: 'Use-Case Pass und Nachweisstruktur',
         presenter: 'KIRegister',
         duration: 'ca. 10 Minuten',
@@ -192,6 +197,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
     lessons: [
       {
         id: 'juristen-1',
+        slug: 'das-neue-haftungsfeld',
         title: 'Das neue Haftungsfeld',
         presenter: 'Zoltan Gal',
         duration: 'ca. 10 Minuten',
@@ -222,6 +228,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       },
       {
         id: 'juristen-2',
+        slug: 'das-werkzeug-in-der-kanzleipraxis',
         title: 'Das Werkzeug in der Kanzleipraxis',
         presenter: 'Momo Feichtinger',
         duration: 'ca. 10 Minuten',
@@ -252,6 +259,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       },
       {
         id: 'juristen-3',
+        slug: 'neue-mandate-reaktivierte-mandanten',
         title: 'Neue Mandate, reaktivierte Mandanten',
         presenter: 'Zoltan Gal & Momo Feichtinger',
         duration: 'ca. 10 Minuten',
@@ -288,4 +296,16 @@ export function getAcademyProgramDefinition(
   slug: string,
 ): AcademyProgramDefinition | null {
   return academyProgramDefinitions.find((program) => program.slug === slug) ?? null;
+}
+
+export function getAcademyLessonDefinition(
+  programSlug: string,
+  lessonSlug: string,
+): AcademyProgramLesson | null {
+  const program = getAcademyProgramDefinition(programSlug);
+  if (!program) {
+    return null;
+  }
+
+  return program.lessons.find((lesson) => lesson.slug === lessonSlug) ?? null;
 }

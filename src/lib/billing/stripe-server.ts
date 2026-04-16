@@ -111,10 +111,12 @@ export function createStripeServerClient(
 
 export function buildBillingReturnUrl(
   checkoutSessionIdPlaceholder?: string,
+  extras?: Record<string, string | boolean | null | undefined>,
 ): string {
   return buildPublicAppUrl(
     buildBillingWelcomePath(checkoutSessionIdPlaceholder, {
       source: 'checkout',
+      ...extras,
     }),
   );
 }
