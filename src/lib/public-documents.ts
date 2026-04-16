@@ -3,6 +3,7 @@ import 'server-only';
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
+import { getPublicSiteOrigin } from './public-site';
 
 const publicDocumentLinkSchema = z.object({
   label: z.string().min(1),
@@ -166,6 +167,26 @@ export function getPublicDocumentHref(doc: Pick<PublicDocument, 'locale' | 'cont
   return `/${doc.locale}/${getPublicDocumentSegment(doc.content_type)}/${doc.slug}`;
 }
 
+function resolvePublicDocumentHref(locale: string, href: string): string {
+  if (/^https?:\/\//i.test(href)) {
+    return href;
+  }
+
+  if (!href.startsWith('/')) {
+    return href;
+  }
+
+  if (href.startsWith('/resources/') || href.startsWith('/downloads/')) {
+    return `${getPublicSiteOrigin()}${href}`;
+  }
+
+  if (href === '/' || href === `/${locale}` || href.startsWith(`/${locale}/`)) {
+    return `${getPublicSiteOrigin()}${href === '/' ? `/${locale}` : href}`;
+  }
+
+  return `${getPublicSiteOrigin()}/${locale}${href}`;
+}
+
 export function getPublicDocumentTypeLabel(
   contentType: PublicDocument['content_type'],
   locale: string,
@@ -219,7 +240,7 @@ export function getPublicDocumentPlainText(doc: PublicDocument): string {
   const lines: string[] = [doc.title, '', doc.summary];
 
   if (doc.audiences.length > 0) {
-    lines.push('', doc.locale === 'de' ? 'Relevant fuer' : 'Relevant for');
+    lines.push('', doc.locale === 'de' ? 'Relevant für' : 'Relevant for');
     lines.push(...doc.audiences);
   }
 
@@ -231,9 +252,27 @@ export function getPublicDocumentPlainText(doc: PublicDocument): string {
   if (doc.downloads.length > 0) {
     lines.push('', doc.locale === 'de' ? 'Vorlagen, Handouts und Beispiele' : 'Templates, handouts and examples');
     for (const download of doc.downloads) {
-      lines.push(`${download.label} (${download.format}): ${download.href}`);
+      lines.push(`${download.label} (${download.format}): ${resolvePublicDocumentHref(doc.locale, download.href)}`);
       if (download.description) {
         lines.push(download.description);
+      }
+    }
+  }
+
+  if (doc.cta?.label && doc.cta?.href) {
+    lines.push('', doc.locale === 'de' ? 'Direkter nächster Schritt' : 'Next step');
+    lines.push(`${doc.cta.label}: ${resolvePublicDocumentHref(doc.locale, doc.cta.href)}`);
+    if (doc.cta.description) {
+      lines.push(doc.cta.description);
+    }
+  }
+
+  if (doc.related_links.length > 0) {
+    lines.push('', doc.locale === 'de' ? 'Weiterführende Links' : 'Related links');
+    for (const link of doc.related_links) {
+      lines.push(`${link.label}: ${resolvePublicDocumentHref(doc.locale, link.href)}`);
+      if (link.description) {
+        lines.push(link.description);
       }
     }
   }
