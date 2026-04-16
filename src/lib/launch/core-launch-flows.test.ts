@@ -43,7 +43,7 @@ test('free signup/login entry stays focused and direct', () => {
   assert.match(germanMessages, /"createRegister": "Eigenes Register anlegen"/);
   assert.match(
     germanMessages,
-    /"heroTitle": "Die gesamte Dokumentation von KI-Einsatzfällen bleibt im KI Register dauerhaft kostenfrei\."/,
+    /"heroTitle": "Jede Organisation mit KI-Einsatz führt ein KI Register\."/,
   );
   assert.match(
     germanMessages,
