@@ -15,7 +15,6 @@ export interface AcademyProgramLesson {
   summary: string;
   transcriptHighlights: string[];
   embedUrl: string;
-  youtubeReference?: string;
   resources: AcademyProgramResource[];
 }
 
@@ -43,7 +42,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       'Governance-, Compliance- und Operations-Teams, die ein belastbares Arbeitsobjekt brauchen',
     ],
     delivers: [
-      'vier kuratierte Lernschritte mit Killerplayer-Videoeinbindung direkt in der Academy',
+      'vier kuratierte Lernschritte direkt in der Academy',
       'Begleittexte aus den vorhandenen Schulungsskripten und direkte Handouts im Kurskontext',
       'einen klaren Übergang vom allgemeinen KI-Einstieg zur realen Register- und Nachweisarbeit',
     ],
@@ -62,8 +61,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
           'Im Zentrum steht die These, dass der EU AI Act ein Organisationsgesetz ist und dass genau daraus ein neues Beratungs- und Umsetzungsfeld entsteht.',
         ],
         embedUrl:
-          'https://killerplayer.com/watch/video/1fd2b660-e665-4f14-ad78-296aeeebeb07',
-        youtubeReference: 'https://youtu.be/q-nhIDToqNs',
+          'https://killerplayer.com/watch/video/fffcd0b5-b1fb-47dd-a30b-3d876d32d58d',
         resources: [
           {
             label: 'Handout: KI-Einführung zu Governance',
@@ -93,8 +91,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
           'Besonders betont wird der Moment, in dem Use Cases live im Workshop erfasst werden und dadurch ein dauerhaft nutzbares Ergebnis für die Organisation entsteht.',
         ],
         embedUrl:
-          'https://killerplayer.com/watch/video/92b70126-67b7-4efc-8070-4623485686cf',
-        youtubeReference: 'https://youtu.be/i0dned4rTGo',
+          'https://killerplayer.com/watch/video/91add187-23c1-4171-8538-1db632c2ff5c',
         resources: [
           {
             label: 'Handout: Workshop-Integration Template',
@@ -125,7 +122,6 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/92b70126-67b7-4efc-8070-4623485686cf',
-        youtubeReference: 'https://youtu.be/i0dned4rTGo',
         resources: [
           {
             label: 'Handout: Angebotsformate und Reaktivierung',
@@ -156,7 +152,6 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/4eef4186-a6b0-4534-8621-49e81b9bba49',
-        youtubeReference: 'https://youtu.be/BlS_yeDxl0k',
         resources: [
           {
             label: 'Handout: Use-Case Pass Anatomie',
@@ -188,7 +183,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       'Compliance-nahe Berater, die juristische Arbeit mit strukturierten KI-Artefakten verbinden wollen',
     ],
     delivers: [
-      'drei juristisch fokussierte Videomodule mit direkter Killerplayer-Einbindung',
+      'drei juristisch fokussierte Videomodule direkt in der Academy',
       'konkrete Handouts zu Haftungskette, Pass-Struktur und Mandatsreaktivierung',
       'eine saubere Brücke von juristischer Einordnung zur operativen Registerarbeit mit Mandanten',
     ],
@@ -208,7 +203,6 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/bb690c1d-570e-4014-a754-a675c0926912',
-        youtubeReference: 'https://youtu.be/UGdrST3Kc2E',
         resources: [
           {
             label: 'Handout: Haftungskette EU AI Act',
@@ -239,7 +233,6 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/3c4bcba0-71ff-4f19-9f77-703070f01442',
-        youtubeReference: 'https://youtu.be/eHSMW_4QuZI',
         resources: [
           {
             label: 'Handout: Use-Case Pass Anatomie für Kanzleien',
@@ -270,7 +263,6 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/1fd2b660-e665-4f14-ad78-296aeeebeb07',
-        youtubeReference: 'https://youtu.be/0gdkFAnU8Vg',
         resources: [
           {
             label: 'Handout: Reaktivierung und Positionierung',
