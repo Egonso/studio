@@ -22,6 +22,7 @@
     "content:public:validate": "node ./scripts/public-content-ops.mjs validate",
     "content:public:manifest": "node ./scripts/public-content-ops.mjs manifest",
     "content:public:verify-links": "node ./scripts/public-content-ops.mjs verify-links",
+    "content:public:notify-pack": "node ./scripts/public-content-notification-pack.mjs",
     "migrate:legacy-certificates": "npx tsx scripts/migrate-legacy-certificates.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "postinstall": "patch-package"
