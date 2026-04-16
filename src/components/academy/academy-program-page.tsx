@@ -374,7 +374,7 @@ export function AcademyProgramPage({
                           lesson.slug,
                           academyGrant,
                         )}
-                        className={`w-full border px-4 py-3 text-left transition-colors ${
+                        className={`block w-full border px-4 py-3 text-left transition-colors ${
                           isActive
                             ? 'border-slate-950 bg-slate-950 text-white'
                             : 'border-slate-200 bg-white text-slate-950 hover:border-slate-400'
@@ -382,7 +382,7 @@ export function AcademyProgramPage({
                       >
                         <div className="flex items-start gap-3">
                           <PlayCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                          <div className="space-y-1">
+                          <div className="min-w-0 space-y-1">
                             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">
                               Modul {index + 1}
                             </p>
