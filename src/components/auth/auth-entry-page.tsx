@@ -540,16 +540,6 @@ export default function AuthEntryPage() {
     }, 32);
   }
 
-  function handleHeroSignIn() {
-    if (mode !== 'login') {
-      updateAuthRoute('login', intent);
-    }
-    window.setTimeout(() => {
-      loginEmailInputRef.current?.focus();
-    }, 96);
-    focusAuthPanel();
-  }
-
   function handleHeroSetup() {
     if (mode !== 'signup' || intent !== 'create_register') {
       updateAuthRoute('signup', 'create_register');
@@ -1006,15 +996,6 @@ export default function AuthEntryPage() {
               {t('auth.marketing.ctaJoin')}
             </Button>
           </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            <button
-              type="button"
-              onClick={handleHeroSignIn}
-              className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
-            >
-              {t('auth.marketing.existingAccountLink')}
-            </button>
-          </div>
           <div className="max-w-3xl border border-slate-200 bg-slate-50 px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               {t('auth.marketing.heroCommitmentLabel')}
@@ -1027,7 +1008,6 @@ export default function AuthEntryPage() {
             </p>
           </div>
           <div className="max-w-3xl text-sm leading-7 text-slate-600">
-            <p>{t('auth.marketing.heroFundingNote')}</p>
             <Link
               href={localizeInternalHref('/plattform')}
               className="mt-2 inline-block text-slate-950 underline decoration-slate-300 underline-offset-4 hover:text-slate-700"
