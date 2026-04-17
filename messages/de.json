@@ -201,6 +201,9 @@
       "heroCommitmentLabel": "Unser Commitment",
       "heroCommitmentTitle": "Erstellung von Use Case Passes, Verify-Links und Basisdokumentation bleibt dauerhaft gratis.",
       "heroCommitmentDescription": "Damit KI Register zum tatsächlichen Standard werden kann, bleibt die Kernarbeit immer frei zugänglich: Dokumentation, Pass-Erstellung und standardisierte Links für einzelne Einsatzfälle.",
+      "heroFundingNote": "Die Pflichtdokumentation bleibt dauerhaft kostenlos — getragen von Organisationen, die auf derselben Plattform ihre Governance, §4-Fortbildung und Policy-Arbeit bündeln.",
+      "heroFundingLink": "Wie sich das KI-Register trägt",
+      "footerPlattformLink": "Die Plattform",
       "whitepaperDownload": "Whitepaper herunterladen",
       "featureResponsibilityTitle": "Kostenfrei dokumentieren",
       "featureResponsibilityDescription": "Einsatzfälle, Use Case Passes und öffentliche Nachweis-Links können dauerhaft ohne Gebühren erstellt und geteilt werden.",
@@ -809,7 +812,43 @@
     "legalNotice": "Impressum",
     "privacy": "Datenschutz",
     "terms": "AGB",
+    "plattform": "Die Plattform",
     "copyright": "© {year} AI Register – ZukunftBilden GmbH & BewusstseinBilden UG (haftungsbeschränkt)"
+  },
+  "plattform": {
+    "metadata": {
+      "title": "Die Plattform – KI Register",
+      "description": "Wie sich das KI-Register trägt: Register bleibt dauerhaft kostenlos, Governance und §4-Fortbildung tragen den Betrieb."
+    },
+    "title": "Die Plattform",
+    "subtitle": "Wie sich das KI-Register trägt.",
+    "lead": "Die Pflichtdokumentation ist das Fundament. Die Plattform ist das, was darauf steht.",
+    "pillars": {
+      "register": {
+        "title": "Register",
+        "body": "Pflichtdokumentation nach EU AI Act. System-Erfassung, Risikoklassifikation, Register-Export, Nachweisführung.",
+        "bearer": "Getragen von der Plattform. Dauerhaft kostenlos."
+      },
+      "governance": {
+        "title": "Governance",
+        "body": "Policy-Engine, Rollen und Freigabewege, Audit-Workflows, Übersetzung der Register-Einträge in organisationsweite Richtlinien, Export-Formate für Wirtschaftsprüfer und Behörden.",
+        "bearer": "Getragen von der Organisation, die Governance strukturieren will."
+      },
+      "fortbildung": {
+        "title": "Fortbildung",
+        "body": "Die nach §4 EU AI Act geforderte KI-Kompetenz, entwickelt und geprüft mit Prof. Dr. Janine Wendt (TU Darmstadt). Zertifikate, Teilnahmenachweise, Rollen-Zuordnung.",
+        "bearer": "Getragen von der Organisation, die ihre Mitarbeitenden formal qualifizieren muss."
+      }
+    },
+    "closing": {
+      "title": "Warum diese Trennung.",
+      "paragraph1": "Das Gesetz zu erfüllen darf nichts kosten. Die eigene Organisation darüber hinaus reifen zu lassen, ist eine Wahl — und wer diese Wahl trifft, trägt den Betrieb für alle mit.",
+      "paragraph2": "Die meisten Anwender werden das Register kostenlos nutzen und nie mehr. Das ist beabsichtigt. Eine kleinere Zahl von Organisationen bündelt hier ihre Governance — und finanziert damit die Infrastruktur, die den einfachen Fall für alle einfach hält."
+    },
+    "contact": {
+      "prefix": "Für Organisationen, die Governance, Fortbildung und Register auf einer Plattform bündeln wollen:",
+      "link": "Gespräch vereinbaren"
+    }
   },
   "plans": {
     "free": "Free Register",

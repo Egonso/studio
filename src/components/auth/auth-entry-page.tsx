@@ -992,6 +992,15 @@ export default function AuthEntryPage() {
               {t('auth.marketing.heroCommitmentDescription')}
             </p>
           </div>
+          <div className="max-w-3xl text-sm leading-6 text-slate-600">
+            <p>{t('auth.marketing.heroFundingNote')}</p>
+            <Link
+              href={localizeInternalHref('/plattform')}
+              className="mt-2 inline-block text-slate-950 underline underline-offset-4 hover:opacity-75"
+            >
+              {t('auth.marketing.heroFundingLink')}
+            </Link>
+          </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             <Link
               href={localizeInternalHref('/downloads')}
@@ -1544,6 +1553,15 @@ export default function AuthEntryPage() {
           <p className="text-sm leading-6 text-slate-600">
             {t('auth.marketing.shareNote')}
           </p>
+        </section>
+
+        <section className="mt-8 border-t border-slate-200 pt-5">
+          <Link
+            href={localizeInternalHref('/plattform')}
+            className="text-sm leading-6 text-slate-500 underline-offset-4 hover:text-slate-950 hover:underline"
+          >
+            {t('auth.marketing.footerPlattformLink')}
+          </Link>
         </section>
 
       </main>

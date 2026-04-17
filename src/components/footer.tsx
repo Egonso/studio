@@ -22,6 +22,7 @@ export function Footer() {
 
   const publicLinks: FooterLink[] = [
     { href: localizeHref(locale, '/'), label: t('footer.home') },
+    { href: localizeHref(locale, '/plattform'), label: t('footer.plattform') },
     { href: localizeHref(locale, '/standards'), label: t('footer.standards') },
     { href: localizeHref(locale, '/industries'), label: t('footer.industries') },
     { href: localizeHref(locale, '/artefacts'), label: t('footer.artefacts') },
@@ -37,6 +38,7 @@ export function Footer() {
 
   const signedInLinks: FooterLink[] = [
     { href: localizeHref(locale, '/'), label: t('footer.home') },
+    { href: localizeHref(locale, '/plattform'), label: t('footer.plattform') },
     { href: localizeHref(locale, '/academy'), label: t('nav.academy') },
     { href: localizeHref(locale, '/verify'), label: t('common.verify') },
     { href: localizeHref(locale, '/my-register'), label: t('nav.register') },
