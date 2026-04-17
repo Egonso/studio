@@ -537,13 +537,29 @@ export default function AuthEntryPage() {
         behavior: 'smooth',
         block: 'start',
       });
-      loginEmailInputRef.current?.focus();
     }, 32);
   }
 
   function handleHeroSignIn() {
     if (mode !== 'login') {
       updateAuthRoute('login', intent);
+    }
+    window.setTimeout(() => {
+      loginEmailInputRef.current?.focus();
+    }, 96);
+    focusAuthPanel();
+  }
+
+  function handleHeroSetup() {
+    if (mode !== 'signup' || intent !== 'create_register') {
+      updateAuthRoute('signup', 'create_register');
+    }
+    focusAuthPanel();
+  }
+
+  function handleHeroJoin() {
+    if (mode !== 'signup' || intent !== 'join_register') {
+      updateAuthRoute('signup', 'join_register');
     }
     focusAuthPanel();
   }
@@ -974,12 +990,30 @@ export default function AuthEntryPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
-              onClick={handleHeroSignIn}
+              onClick={handleHeroSetup}
               aria-controls="auth-access-panel"
               className="h-11 rounded-none bg-slate-950 px-5 text-sm font-medium text-white hover:bg-slate-800"
             >
-              {t('auth.signIn')}
+              {t('auth.marketing.ctaSetup')}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleHeroJoin}
+              aria-controls="auth-access-panel"
+              className="h-11 rounded-none border-slate-300 px-5 text-sm font-medium text-slate-950 hover:bg-slate-50"
+            >
+              {t('auth.marketing.ctaJoin')}
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <button
+              type="button"
+              onClick={handleHeroSignIn}
+              className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+            >
+              {t('auth.marketing.existingAccountLink')}
+            </button>
           </div>
           <div className="max-w-3xl border border-slate-200 bg-slate-50 px-4 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -992,11 +1026,11 @@ export default function AuthEntryPage() {
               {t('auth.marketing.heroCommitmentDescription')}
             </p>
           </div>
-          <div className="max-w-3xl text-sm leading-6 text-slate-600">
+          <div className="max-w-3xl text-sm leading-7 text-slate-600">
             <p>{t('auth.marketing.heroFundingNote')}</p>
             <Link
               href={localizeInternalHref('/plattform')}
-              className="mt-2 inline-block text-slate-950 underline underline-offset-4 hover:opacity-75"
+              className="mt-2 inline-block text-slate-950 underline decoration-slate-300 underline-offset-4 hover:text-slate-700"
             >
               {t('auth.marketing.heroFundingLink')}
             </Link>

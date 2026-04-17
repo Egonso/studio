@@ -196,21 +196,24 @@
       "role": "e.g. AI Responsible Person"
     },
     "marketing": {
-      "heroTitle": "Every organisation using AI maintains an AI Registry.",
-      "heroDescription": "Any organisation can document AI use cases, create Use Case Passes and share public evidence links without paying for this foundation. That keeps the standard open, usable and easy to adopt.",
-      "heroCommitmentLabel": "Our commitment",
-      "heroCommitmentTitle": "Use Case Passes, verify links and core documentation stay free.",
-      "heroCommitmentDescription": "If AI Registry is meant to become the real standard, the core work must remain openly accessible: documentation, pass creation and standardised links for individual use cases.",
-      "heroFundingNote": "Mandatory documentation stays free, permanently — carried by organisations that also use this platform for their governance, AI Act §4 training, and policy work.",
-      "heroFundingLink": "How the AI Registry is sustained",
+      "heroTitle": "Every organisation using AI needs a reliable AI Registry.",
+      "heroDescription": "Organisations using AI need to document use cases clearly, assign responsibility and keep evidence ready for audits, procurement and partner requests. In AI Registry, a use case can be captured as a Use Case Pass in around 30 seconds, shared in a standardised format and reused for supplier and compliance documentation. The legally necessary baseline documentation should remain accessible to every organisation.",
+      "heroCommitmentLabel": "Why it stays open",
+      "heroCommitmentTitle": "Mandatory documentation stays free.",
+      "heroCommitmentDescription": "Complying with the law should not depend on budget. That is why register entries, Use Case Passes and standardised evidence remain openly accessible. Organisations that also run their governance, Article 4 training and policy work on the same platform support the shared infrastructure for everyone.",
+      "ctaSetup": "Set up AI Registry for free",
+      "ctaJoin": "Join an existing registry",
+      "existingAccountLink": "Already have an account? Sign in",
+      "heroFundingNote": "Mandatory documentation remains free — supported by organisations that also run their governance, Article 4 training and policy work on the same platform.",
+      "heroFundingLink": "How AI Registry stays free",
       "footerPlattformLink": "The Platform",
       "whitepaperDownload": "Download whitepaper",
-      "featureResponsibilityTitle": "Document for free",
-      "featureResponsibilityDescription": "Use cases, Use Case Passes and public evidence links can be created and shared without ongoing fees.",
-      "featureStatusTitle": "Document status and review state",
-      "featureStatusDescription": "From draft to formal review, every state remains traceable.",
-      "featureEvidenceTitle": "Generate and export evidence",
-      "featureEvidenceDescription": "Use Case Pass as PDF and JSON. Standardised. Audit-ready. Shareable.",
+      "featureResponsibilityTitle": "Document without a cost barrier",
+      "featureResponsibilityDescription": "Capture use cases, responsibilities and evidence in a consistent baseline structure.",
+      "featureStatusTitle": "Use Case Pass as the standard",
+      "featureStatusDescription": "A use case becomes a shareable standard record in around 30 seconds and can be used internally and externally in the same logic.",
+      "featureEvidenceTitle": "Connect supplier and compliance evidence",
+      "featureEvidenceDescription": "Reuse the same case basis for supplier requests, procurement and formal evidence questions without building a second documentation world.",
       "privacyNote": "Private and internal to your organisation. Your data stays within your registry instance.",
       "shareNote": "Evidence and register extracts can be shared in a standardised format."
     }
@@ -818,36 +821,42 @@
   "plattform": {
     "metadata": {
       "title": "The Platform – AI Registry",
-      "description": "How the AI Registry is sustained: the Registry stays free, while governance and AI Act §4 training carry operations."
+      "description": "How AI Registry is supported: baseline documentation stays openly accessible, while governance and Article 4 training support the platform."
     },
+    "kicker": "Platform logic",
     "title": "The Platform",
-    "subtitle": "How the AI Registry is sustained.",
-    "lead": "Mandatory documentation is the foundation. The platform is what stands on top of it.",
+    "subtitle": "How AI Registry is supported.",
+    "lead": "AI Registry deliberately separates legally necessary baseline documentation from deeper organisational work. The baseline stays openly accessible. Governance, Article 4 training and policy work build on the same structure and support the platform.",
+    "pillarsLabel": "Three layers, one shared structure",
     "pillars": {
       "register": {
         "title": "Registry",
-        "body": "Mandatory documentation under the EU AI Act. System intake, risk classification, registry export, evidence handling.",
-        "bearer": "Carried by the platform. Free, permanently."
+        "body": "Baseline documentation for the individual AI use case. A Use Case Pass can be created in around 30 seconds, shared in a standardised format and reused for audits, procurement, supplier and compliance documentation.",
+        "bearer": "Remains free by design."
       },
       "governance": {
         "title": "Governance",
-        "body": "Policy engine, roles and approval paths, audit workflows, translation of registry entries into organisation-wide policies, export formats for auditors and authorities.",
-        "bearer": "Carried by the organisation that chooses to structure its governance."
+        "body": "Roles, approvals, policies, reviews, audit workflows and organisation-wide evidence logic. For organisations that want to do more than document and instead steer AI use systematically.",
+        "bearer": "Supported by organisations that bundle their governance on the same structure."
       },
       "fortbildung": {
-        "title": "Training",
-        "body": "The AI literacy required under §4 of the EU AI Act, developed and reviewed with Prof. Dr. Janine Wendt (TU Darmstadt). Certificates, attendance records, role mapping.",
-        "bearer": "Carried by the organisation that needs to formally qualify its people."
+        "title": "Article 4 training",
+        "body": "Formal competence records, role linkage and documented qualification on the same platform. For organisations that need to prove AI competence, not just assume it.",
+        "bearer": "Supported by organisations that want structured and traceable qualification."
       }
     },
     "closing": {
-      "title": "Why this separation.",
+      "label": "Why this split exists",
+      "title": "The duty stays open. Organisational maturity is a choice.",
       "paragraph1": "Complying with the law must not cost anything. Choosing to mature the organisation beyond that is a decision — and those who make it carry operations for everyone.",
-      "paragraph2": "Most users will use the registry for free and never more. That is by design. A smaller number of organisations bundle their governance here — and thereby fund the infrastructure that keeps the simple case simple for everyone."
+      "paragraph2": "Most organisations will use the registry for free and never go further. That is intentional. A smaller group also bundles governance, Article 4 training and policy work on the same platform. That keeps the simple case open while deeper organisational maturity is funded where its real added value exists.",
+      "paragraph3": "This is not only an operating model. It is also an ethical choice: legally necessary baseline documentation should not depend on whether budget for a governance platform already exists."
     },
-    "contact": {
-      "prefix": "For organisations bundling governance, training, and registry on one platform:",
-      "link": "Arrange a conversation"
+    "nextStep": {
+      "label": "Next step",
+      "body": "Teams that need to start with baseline documentation can begin in the registry. Teams that want to combine registry, governance and Article 4 training can build on the same structure.",
+      "primaryCta": "Set up AI Registry for free",
+      "secondaryCta": "Download whitepaper"
     }
   },
   "plans": {

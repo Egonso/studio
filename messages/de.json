@@ -196,21 +196,24 @@
       "role": "z. B. KI-Verantwortliche Person"
     },
     "marketing": {
-      "heroTitle": "Jede Organisation mit KI-Einsatz führt ein KI Register.",
-      "heroDescription": "Jede Organisation kann KI-Einsatzfälle dokumentieren, Use Case Passes erzeugen und öffentliche Nachweis-Links teilen, ohne für diese Basis zahlen zu müssen. So bleibt der Standard offen, anschlussfähig und praktisch nutzbar.",
-      "heroCommitmentLabel": "Unser Commitment",
-      "heroCommitmentTitle": "Erstellung von Use Case Passes, Verify-Links und Basisdokumentation bleibt dauerhaft gratis.",
-      "heroCommitmentDescription": "Damit KI Register zum tatsächlichen Standard werden kann, bleibt die Kernarbeit immer frei zugänglich: Dokumentation, Pass-Erstellung und standardisierte Links für einzelne Einsatzfälle.",
+      "heroTitle": "Jede Organisation mit KI-Einsatz braucht ein belastbares KI Register.",
+      "heroDescription": "Wer KI einsetzt, muss Einsatzfälle nachvollziehbar dokumentieren, Verantwortlichkeiten klären und Nachweise für Prüfung, Beschaffung und Partneranfragen geordnet vorhalten. Im KI Register lässt sich ein Einsatzfall in rund 30 Sekunden als Use Case Pass erfassen, standardisiert teilen und für Lieferanten- und Compliance-Dokumentation weiterverwenden. Die gesetzlich notwendige Grunddokumentation soll für jede Organisation zugänglich bleiben.",
+      "heroCommitmentLabel": "Warum es offen bleibt",
+      "heroCommitmentTitle": "Pflichtdokumentation bleibt dauerhaft kostenlos.",
+      "heroCommitmentDescription": "Das Erfüllen des Gesetzes darf keine Preisfrage sein. Deshalb bleiben Registereintrag, Use Case Pass und standardisierte Nachweise frei zugänglich. Organisationen, die zusätzlich ihre Governance, §4-Fortbildung und Policy-Arbeit auf derselben Plattform bündeln, tragen die Infrastruktur für alle mit.",
+      "ctaSetup": "KI Register kostenfrei einrichten",
+      "ctaJoin": "Bestehendem Register beitreten",
+      "existingAccountLink": "Bereits ein Konto? Anmelden",
       "heroFundingNote": "Die Pflichtdokumentation bleibt dauerhaft kostenlos — getragen von Organisationen, die auf derselben Plattform ihre Governance, §4-Fortbildung und Policy-Arbeit bündeln.",
-      "heroFundingLink": "Wie sich das KI-Register trägt",
+      "heroFundingLink": "Wie sich das KI Register trägt",
       "footerPlattformLink": "Die Plattform",
       "whitepaperDownload": "Whitepaper herunterladen",
       "featureResponsibilityTitle": "Kostenfrei dokumentieren",
-      "featureResponsibilityDescription": "Einsatzfälle, Use Case Passes und öffentliche Nachweis-Links können dauerhaft ohne Gebühren erstellt und geteilt werden.",
-      "featureStatusTitle": "Status und Review-Stand dokumentieren",
-      "featureStatusDescription": "Vom Entwurf bis zur formalen Prüfung bleibt jeder Stand nachvollziehbar.",
-      "featureEvidenceTitle": "Nachweise erzeugen und exportieren",
-      "featureEvidenceDescription": "Use Case Pass als PDF und JSON. Standardisiert. Audit-ready. Teilbar.",
+      "featureResponsibilityDescription": "Einsatzfälle, Verantwortlichkeiten und Nachweise in einer konsistenten Grundstruktur erfassen.",
+      "featureStatusTitle": "Use Case Pass als Standard",
+      "featureStatusDescription": "Ein Einsatzfall wird in rund 30 Sekunden als teilbarer Standardnachweis angelegt und intern wie extern in derselben Logik verwendet.",
+      "featureEvidenceTitle": "Lieferanten- und Compliance-Nachweise anschließen",
+      "featureEvidenceDescription": "Die gleiche Fallbasis lässt sich für Lieferantenanfragen, Beschaffung und formale Nachweisfragen weiterverwenden, ohne eine zweite Dokumentationswelt aufzubauen.",
       "privacyNote": "Privat und organisationsintern. Ihre Daten bleiben in Ihrer Registerinstanz.",
       "shareNote": "Nachweise und Registerauszüge lassen sich in standardisierter Form teilen."
     }
@@ -818,36 +821,42 @@
   "plattform": {
     "metadata": {
       "title": "Die Plattform – KI Register",
-      "description": "Wie sich das KI-Register trägt: Register bleibt dauerhaft kostenlos, Governance und §4-Fortbildung tragen den Betrieb."
+      "description": "Wie sich das KI Register trägt: Pflichtdokumentation bleibt frei zugänglich, Governance und §4-Fortbildung tragen die Plattform."
     },
+    "kicker": "Plattformlogik",
     "title": "Die Plattform",
-    "subtitle": "Wie sich das KI-Register trägt.",
-    "lead": "Die Pflichtdokumentation ist das Fundament. Die Plattform ist das, was darauf steht.",
+    "subtitle": "Wie sich das KI Register trägt.",
+    "lead": "Das KI Register trennt bewusst zwischen gesetzlich notwendiger Pflichtdokumentation und vertiefter Organisationsarbeit. Die Basis bleibt frei zugänglich. Governance, §4-Fortbildung und Policy-Arbeit bauen auf derselben Struktur auf und tragen die Plattform.",
+    "pillarsLabel": "Drei Ebenen, eine gemeinsame Struktur",
     "pillars": {
       "register": {
         "title": "Register",
-        "body": "Pflichtdokumentation nach EU AI Act. System-Erfassung, Risikoklassifikation, Register-Export, Nachweisführung.",
-        "bearer": "Getragen von der Plattform. Dauerhaft kostenlos."
+        "body": "Pflichtdokumentation für den einzelnen KI-Einsatzfall. Ein Use Case Pass lässt sich in rund 30 Sekunden anlegen, standardisiert teilen und für Prüfung, Beschaffung sowie Lieferanten- und Compliance-Dokumentation weiterverwenden.",
+        "bearer": "Bleibt dauerhaft kostenlos."
       },
       "governance": {
         "title": "Governance",
-        "body": "Policy-Engine, Rollen und Freigabewege, Audit-Workflows, Übersetzung der Register-Einträge in organisationsweite Richtlinien, Export-Formate für Wirtschaftsprüfer und Behörden.",
-        "bearer": "Getragen von der Organisation, die Governance strukturieren will."
+        "body": "Rollen, Freigaben, Richtlinien, Reviews, Audit-Workflows und organisationsweite Nachweislogik. Für Organisationen, die nicht nur dokumentieren, sondern KI-Einsatz systematisch steuern wollen.",
+        "bearer": "Getragen von Organisationen, die ihre Governance auf derselben Struktur bündeln."
       },
       "fortbildung": {
-        "title": "Fortbildung",
-        "body": "Die nach §4 EU AI Act geforderte KI-Kompetenz, entwickelt und geprüft mit Prof. Dr. Janine Wendt (TU Darmstadt). Zertifikate, Teilnahmenachweise, Rollen-Zuordnung.",
-        "bearer": "Getragen von der Organisation, die ihre Mitarbeitenden formal qualifizieren muss."
+        "title": "§4-Fortbildung",
+        "body": "Formale Kompetenznachweise, Rollenbezug und dokumentierte Qualifizierung auf derselben Plattform. Für Organisationen, die KI-Kompetenz nicht nur voraussetzen, sondern belegbar aufbauen müssen.",
+        "bearer": "Getragen von Organisationen, die Qualifizierung strukturiert absichern wollen."
       }
     },
     "closing": {
-      "title": "Warum diese Trennung.",
+      "label": "Warum diese Trennung",
+      "title": "Pflicht bleibt offen. Reife ist eine Wahl.",
       "paragraph1": "Das Gesetz zu erfüllen darf nichts kosten. Die eigene Organisation darüber hinaus reifen zu lassen, ist eine Wahl — und wer diese Wahl trifft, trägt den Betrieb für alle mit.",
-      "paragraph2": "Die meisten Anwender werden das Register kostenlos nutzen und nie mehr. Das ist beabsichtigt. Eine kleinere Zahl von Organisationen bündelt hier ihre Governance — und finanziert damit die Infrastruktur, die den einfachen Fall für alle einfach hält."
+      "paragraph2": "Die meisten Organisationen werden das Register kostenlos nutzen und nie mehr. Das ist beabsichtigt. Eine kleinere Zahl bündelt zusätzlich Governance, §4-Fortbildung und Policy-Arbeit auf derselben Plattform. So bleibt der einfache Fall offen, und vertiefte Organisationsreife wird dort finanziert, wo ihr eigentlicher Mehrwert entsteht.",
+      "paragraph3": "Das ist nicht nur ein Betriebsmodell. Es ist auch eine ethische Entscheidung: Die gesetzlich notwendige Grunddokumentation soll nicht davon abhängen, ob bereits Budget für eine Governance-Plattform vorhanden ist."
     },
-    "contact": {
-      "prefix": "Für Organisationen, die Governance, Fortbildung und Register auf einer Plattform bündeln wollen:",
-      "link": "Gespräch vereinbaren"
+    "nextStep": {
+      "label": "Nächster Schritt",
+      "body": "Wer mit der Pflichtdokumentation beginnen will, startet im Register. Wer Register, Governance und §4-Fortbildung auf einer Plattform bündeln will, baut auf derselben Struktur weiter auf.",
+      "primaryCta": "KI Register kostenfrei einrichten",
+      "secondaryCta": "Whitepaper herunterladen"
     }
   },
   "plans": {
