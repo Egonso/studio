@@ -254,7 +254,7 @@ export function UseCaseSystemsComplianceSection({
 }: UseCaseSystemsComplianceSectionProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [activeCheckTarget, setActiveCheckTarget] =
     useState<ActiveCheckTarget>(null);
@@ -285,7 +285,7 @@ export function UseCaseSystemsComplianceSection({
     isEditing,
   });
   const returnToPath = useMemo(() => {
-    const query = searchParams.toString();
+    const query = searchParams?.toString() ?? "";
     return query ? `${pathname}?${query}` : pathname;
   }, [pathname, searchParams]);
 

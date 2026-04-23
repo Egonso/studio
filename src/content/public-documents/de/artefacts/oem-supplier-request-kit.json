@@ -6,8 +6,8 @@
   "intent": "supplier-evidence",
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
-  "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "effective_date": "2026-04-17",
+  "last_substantive_update": "2026-04-17",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
@@ -17,7 +17,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette",
-  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Es liefert Vorlagen, ein Beispiel-Dossier und einen klaren Ablauf, damit Beschaffung, Qualitätsmanagement und Governance auf derselben Evidenzbasis arbeiten können.",
+  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Es liefert Vorlagen, ein Beispiel-Dossier, eine Evidence-Checklist und eine klare Erwartungslogik, damit Beschaffung, Qualitätsmanagement und Compliance auf derselben Fallbasis arbeiten können.",
   "object_label": "Lieferketten-Artefakt",
   "stance_label": "Lieferketten-Toolkit",
   "author": "KIRegister",
@@ -29,7 +29,7 @@
   "delivers": [
     "eine einsatzbereite Anfrage- und Antwortstruktur für konkrete KI-Einsatzfälle",
     "klare Mindestfelder für Scope, Wirkung, Datenbezug, Status und Evidenz",
-    "einen nachvollziehbaren Ablauf vom internen Pass bis zur externen Antwort"
+    "eine gemeinsame Erwartungslogik für Beschaffung, Qualitätsmanagement und Compliance vor jeder externen Aussage"
   ],
   "downloads": [
     {
@@ -76,6 +76,10 @@
     {
       "q": "Wann sollte eine Anfrage intern eskaliert werden?",
       "a": "Sobald Datenbezug, Entscheidungsnähe, Lieferkettenwirkung oder offene Review-Fragen unklar bleiben. Dann braucht es eine vertiefte fachliche oder rechtliche Einordnung, bevor eine Antwort nach außen geht."
+    },
+    {
+      "q": "Welche Evidenz sollten OEMs oder Beschaffungsteams mindestens erwarten?",
+      "a": "Mindestens eine fallbezogene Beschreibung von Zweck, verantwortlicher Rolle, Datenbezug, aktuellem Status und referenzierter Evidenz zum konkreten Einsatzfall. Ohne diese Mindestfelder bleibt unklar, worauf sich die Antwort fachlich überhaupt bezieht."
     }
   ],
   "sections": [
@@ -124,6 +128,43 @@
         "Nur Aussagen machen, die intern durch Pass, Review oder Evidenz abgesichert sind.",
         "Grenzen der Aussage offen markieren, wenn noch Prüfungen laufen oder Informationen fehlen.",
         "Bei Bedarf auf Verify-Fläche, Export oder ergänzendes Dossier verweisen, statt Freitext zu verdoppeln."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Evidenz Automotive-Teams vor einer Antwort sehen sollten",
+      "rows": [
+        {
+          "label": "Beschaffung",
+          "value": "Einen klar abgegrenzten Einsatzfall mit Zweck, Liefergegenstand, verantwortlicher Rolle und Aussagegrenzen. Entscheidend ist, dass die Anfrage nicht nur ein Tool benennt, sondern den realen Fachprozess und den erwarteten Nachweisgegenstand."
+        },
+        {
+          "label": "Qualitätsmanagement",
+          "value": "Eine nachvollziehbare Beschreibung von Datenbezug, Wirkungsprofil, Qualitäts- oder Freigaberelevanz und offenen Review-Punkten. Qualitätsfunktionen müssen erkennen können, ob der Fall nur dokumentiert oder bereits operativ freigegeben ist."
+        },
+        {
+          "label": "Compliance und Recht",
+          "value": "Referenzierbare Evidenz statt bloßer Zusicherungen, zum Beispiel Pass, Export, Verify-Link, Richtlinienbezug oder ergänzendes Dossier. Zusätzlich müssen Grenzen der Aussage sichtbar bleiben, wenn Bewertungen, Freigaben oder Eskalationen noch laufen."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Wann der Use-Case Pass für eine externe Lieferkettenantwort stark genug ist",
+      "items": [
+        "Der Einsatzfall ist fachlich so beschrieben, dass ein OEM oder Auditor ohne Zusatzgespräch versteht, wofür KI konkret eingesetzt wird.",
+        "Eine verantwortliche Rolle ist benannt und kann Rückfragen, Änderungen und Nachweispflege übernehmen.",
+        "Datenbezug, Entscheidungsnähe und externe Wirkung sind so dokumentiert, dass Review-Bedarf und Aussagegrenzen erkennbar werden.",
+        "Die wichtigsten Evidenzen sind referenziert und von offenen Punkten getrennt, statt beides in einer allgemeinen Freitextantwort zu vermischen.",
+        "Die Antwort kann aus demselben Pass, Export oder Verify-Bezug abgeleitet werden, ohne eine zweite Dokumentationswelt aufzubauen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wie Erwartungsabgleich und Eskalation sauber getrennt werden",
+      "paragraphs": [
+        "In Automotive-Anfragen vermischen sich oft zwei unterschiedliche Aufgaben: erstens der Erwartungsabgleich, also welche Mindestinformation der Auftraggeber tatsächlich sehen will, und zweitens die Eskalation, wenn der Fall noch nicht belastbar genug dokumentiert ist. Das Kit hilft, diese Ebenen zu trennen. Zuerst wird geklärt, welcher Einsatzfall gemeint ist und welche Aussage mit vorhandener Evidenz bereits zulässig ist.",
+        "Erst wenn danach noch Lücken bei Datenbezug, Wirkungsprofil, Qualitätsrelevanz oder Freigabestatus sichtbar bleiben, wird intern eskaliert. Dadurch vermeiden Teams, dass jede Anfrage sofort wie ein Sonderprojekt behandelt wird, obwohl oft nur ein sauber gepflegter Use-Case Pass und eine klare Antwortstruktur fehlen."
       ]
     },
     {

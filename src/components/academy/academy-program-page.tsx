@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -164,7 +164,7 @@ export function AcademyProgramPage({
     [program.lessons, selectedLessonSlug],
   );
 
-  const startGrantCheckout = async () => {
+  const startGrantCheckout = useCallback(async () => {
     if (!user || !academyGrant) {
       return;
     }
@@ -210,7 +210,7 @@ export function AcademyProgramPage({
           : 'Die Freischaltung konnte gerade nicht gestartet werden.',
       );
     }
-  };
+  }, [academyGrant, checkoutReturnTo, user]);
 
   useEffect(() => {
     if (
@@ -231,6 +231,7 @@ export function AcademyProgramPage({
     authLoading,
     capabilityLoading,
     grantActivationState,
+    startGrantCheckout,
     user,
   ]);
 

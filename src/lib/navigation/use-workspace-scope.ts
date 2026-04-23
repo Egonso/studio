@@ -10,8 +10,8 @@ import {
 } from './workspace-scope';
 
 export function useWorkspaceScope(): string | null {
-  const searchParams = useSearchParams() ?? new URLSearchParams();
-  const explicitWorkspaceScope = searchParams.get('workspace');
+  const searchParams = useSearchParams();
+  const explicitWorkspaceScope = searchParams?.get('workspace') ?? null;
 
   useEffect(() => {
     if (explicitWorkspaceScope === null) {

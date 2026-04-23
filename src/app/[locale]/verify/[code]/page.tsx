@@ -3,9 +3,17 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { ExternalLink, FileDown, Loader2, ShieldCheck, ShieldX } from 'lucide-react';
+import {
+  ExternalLink,
+  FileDown,
+  Loader2,
+  RefreshCw,
+  ShieldCheck,
+  ShieldX,
+} from 'lucide-react';
 
 import { MarketingShell } from '@/components/product-shells';
+import { CertificateBadgeCard } from '@/components/certification/certificate-badge-card';
 import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 import { localizeHref } from '@/lib/i18n/localize-href';
 
@@ -64,6 +72,24 @@ function getVerificationCopy(locale: string) {
       documentDescription:
         'Dieses Zertifikat ist öffentlich über das KI Register verifizierbar.',
       openPdf: 'Zertifikats-PDF öffnen',
+      regeneratePdf: 'Zertifikat neu generieren',
+      regeneratingPdf: 'PDF wird neu generiert…',
+      regenerateDescription:
+        'Falls der gespeicherte Link leer oder abgelaufen ist, können Sie hier jederzeit eine neue PDF-Version erzeugen.',
+      regenerateSuccess:
+        'Das Zertifikat wurde neu generiert. Der aktuelle PDF-Link ist jetzt wieder verfügbar.',
+      regenerateFailed:
+        'Das Zertifikat konnte gerade nicht neu generiert werden. Bitte versuchen Sie es erneut.',
+      badge: {
+        title: 'HTML/CSS-Badge',
+        copy: 'Embed-Code kopieren',
+        copied: 'Badge kopiert',
+        openVerification: 'Verifikation öffnen',
+        showQr: 'QR anzeigen',
+        left: 'Links',
+        center: 'Mitte',
+        right: 'Rechts',
+      },
       verifyAnother: 'Anderen Code prüfen',
       notSet: 'Nicht gesetzt',
       errors: {
@@ -113,6 +139,24 @@ function getVerificationCopy(locale: string) {
     documentDescription:
       'This certificate can be verified publicly through AI Registry.',
     openPdf: 'Open certificate PDF',
+    regeneratePdf: 'Regenerate certificate',
+    regeneratingPdf: 'Regenerating PDF…',
+    regenerateDescription:
+      'If the stored link has expired or gone blank, you can create a fresh PDF here at any time.',
+    regenerateSuccess:
+      'The certificate was regenerated. The current PDF link is available again.',
+    regenerateFailed:
+      'The certificate could not be regenerated right now. Please try again.',
+    badge: {
+      title: 'HTML/CSS badge',
+      copy: 'Copy embed code',
+      copied: 'Badge copied',
+      openVerification: 'Open verification',
+      showQr: 'Show QR',
+      left: 'Left',
+      center: 'Center',
+      right: 'Right',
+    },
     verifyAnother: 'Verify another code',
     notSet: 'Not set',
     errors: {
@@ -151,6 +195,9 @@ export default function VerificationPage() {
   const [loading, setLoading] = useState(true);
   const [certificate, setCertificate] = useState<PublicCertificate | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [documentNotice, setDocumentNotice] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!code) {
@@ -197,6 +244,42 @@ export default function VerificationPage() {
 
   const homeHref = localizeHref(locale, '/');
   const verifyHref = localizeHref(locale, '/verify');
+
+  const handleRegenerate = async () => {
+    if (!code || isRegenerating) {
+      return;
+    }
+
+    setIsRegenerating(true);
+    setDocumentNotice(null);
+    setDocumentError(null);
+
+    try {
+      const response = await fetch(
+        `/api/certification/public/${encodeURIComponent(code)}`,
+        {
+          method: 'POST',
+        },
+      );
+      const payload = (await response.json()) as PublicCertificate & { error?: string };
+
+      if (!response.ok) {
+        throw new Error(payload.error || copy.regenerateFailed);
+      }
+
+      setCertificate(payload);
+      setDocumentNotice(copy.regenerateSuccess);
+    } catch (regenerateError) {
+      console.error('Certificate regeneration error:', regenerateError);
+      setDocumentError(
+        regenerateError instanceof Error
+          ? regenerateError.message
+          : copy.regenerateFailed,
+      );
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   return (
     <MarketingShell>
@@ -270,8 +353,9 @@ export default function VerificationPage() {
               </div>
             </div>
 
-            <div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_260px]">
-              <div className="space-y-8">
+            <div className="space-y-8 px-6 py-8 sm:px-8">
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
+                <div className="space-y-8">
                 <div className="space-y-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                     {copy.certifiedFor}
@@ -349,35 +433,68 @@ export default function VerificationPage() {
                     ))}
                   </ul>
                 </div>
+                </div>
+
+                <aside className="space-y-4 border border-slate-200 px-5 py-5">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      {copy.document}
+                    </p>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {copy.documentDescription}
+                    </p>
+                  </div>
+                  {certificate.latestDocumentUrl ? (
+                    <a
+                      href={certificate.latestDocumentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+                    >
+                      <FileDown className="mr-2 h-4 w-4" />
+                      {copy.openPdf}
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleRegenerate();
+                    }}
+                    disabled={isRegenerating}
+                    className="inline-flex items-center justify-center border border-slate-950 px-4 py-2 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-950 hover:text-white disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                  >
+                    {isRegenerating ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    {isRegenerating ? copy.regeneratingPdf : copy.regeneratePdf}
+                  </button>
+                  <p className="text-sm leading-7 text-slate-600">
+                    {copy.regenerateDescription}
+                  </p>
+                  {documentNotice ? (
+                    <p className="text-sm leading-7 text-emerald-700">{documentNotice}</p>
+                  ) : null}
+                  {documentError ? (
+                    <p className="text-sm leading-7 text-rose-700">{documentError}</p>
+                  ) : null}
+                  <Link
+                    href={verifyHref}
+                    className="block text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+                  >
+                    {copy.verifyAnother}
+                  </Link>
+                </aside>
               </div>
 
-              <aside className="space-y-4 border border-slate-200 px-5 py-5">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    {copy.document}
-                  </p>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">
-                    {copy.documentDescription}
-                  </p>
-                </div>
-                {certificate.latestDocumentUrl ? (
-                  <a
-                    href={certificate.latestDocumentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
-                  >
-                    <FileDown className="mr-2 h-4 w-4" />
-                    {copy.openPdf}
-                  </a>
-                ) : null}
-                <Link
-                  href={verifyHref}
-                  className="block text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
-                >
-                  {copy.verifyAnother}
-                </Link>
-              </aside>
+              {certificate.status === 'active' ? (
+                <CertificateBadgeCard
+                  certificateCode={certificate.certificateCode}
+                  holderName={certificate.holderName}
+                  labels={copy.badge}
+                />
+              ) : null}
             </div>
           </section>
         )}

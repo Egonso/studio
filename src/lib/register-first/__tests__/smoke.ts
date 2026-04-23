@@ -40,6 +40,7 @@ import {
   type CaptureFormDraft,
   validateCaptureDraft,
 } from "../capture-flow";
+import type { UseCaseCard } from "../types";
 
 export async function runFoundationSmoke() {
   const parsed = parseCaptureInput({
@@ -171,6 +172,8 @@ export async function runFoundationSmoke() {
           iso: {
             oversightModel: "HITL",
             reviewCycle: "quarterly",
+            documentationLevel: "standard",
+            lifecycleStatus: "active",
           },
         },
       },
@@ -185,7 +188,7 @@ export async function runFoundationSmoke() {
   assert.equal(unassessedRiskReadiness.nextStep?.key, "groundProofs");
   assert.equal(unassessedRiskReadiness.nextItem?.target.focus, "governance");
 
-  const readyForReviewCard = {
+  const readyForReviewCard: UseCaseCard = {
     ...card,
     toolId: "chatgpt_openai",
     responsibility: {
@@ -227,7 +230,7 @@ export async function runFoundationSmoke() {
         },
       },
     },
-  } as const;
+  };
   const reviewPendingReadiness = computeUseCaseReadiness(readyForReviewCard, null);
   assert.equal(reviewPendingReadiness.phase, "review_pending");
   assert.equal(reviewPendingReadiness.missingItems.length, 0);

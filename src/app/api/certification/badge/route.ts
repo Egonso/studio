@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
 
 import { getBadgePreviewData } from '@/lib/certification/server';
+import type { BadgeAlignment } from '@/lib/certification/types';
 import { buildRateLimitKey, enforceRequestRateLimit } from '@/lib/security/request-security';
+
+function parseAlignment(value: string | null): BadgeAlignment {
+  if (value === 'left' || value === 'right') {
+    return value;
+  }
+
+  return 'center';
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code')?.trim();
+  const alignment = parseAlignment(url.searchParams.get('alignment'));
 
   if (!code) {
     return NextResponse.json(
@@ -28,7 +38,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await getBadgePreviewData(code);
+  const result = await getBadgePreviewData(code, alignment);
   if (!result.html) {
     return NextResponse.json(
       { error: 'Badge is only available for active certificates.' },

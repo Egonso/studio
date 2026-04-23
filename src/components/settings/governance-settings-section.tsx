@@ -375,6 +375,7 @@ export function GovernanceSettingsSection() {
     register?.registerId,
     router,
     syncedCheckoutSessionId,
+    t,
     toast,
   ]);
 

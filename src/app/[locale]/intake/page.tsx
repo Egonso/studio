@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, CheckCircle2 } from "lucide-react";
@@ -127,17 +127,7 @@ export default function IntakePage() {
     );
   }, [form, hasFieldErrors, multisystemEnabled]);
 
-  // Validate code from URL param on mount
-  useEffect(() => {
-    if (!codeParam || validatedCodeRef.current === codeParam) {
-      return;
-    }
-
-    validatedCodeRef.current = codeParam;
-    void validateCode(codeParam);
-  }, [codeParam]);
-
-  async function validateCode(c: string) {
+  const validateCode = useCallback(async (c: string) => {
     setPageState("loading");
     setErrorTitle(t('common.error'));
     setErrorMsg(null);
@@ -194,7 +184,17 @@ export default function IntakePage() {
       setErrorMsg(t('intake.errors.connectionError'));
       setPageState("invalid");
     }
-  }
+  }, [t]);
+
+  // Validate code from URL param on mount
+  useEffect(() => {
+    if (!codeParam || validatedCodeRef.current === codeParam) {
+      return;
+    }
+
+    validatedCodeRef.current = codeParam;
+    void validateCode(codeParam);
+  }, [codeParam, validateCode]);
 
   async function handleSubmit() {
     setErrorTitle(t('common.error'));

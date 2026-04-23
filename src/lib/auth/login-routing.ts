@@ -6,6 +6,10 @@ interface SearchParamsReader {
   get(name: string): string | null;
 }
 
+const emptySearchParams: SearchParamsReader = {
+  get: () => null,
+};
+
 export interface AuthRouteOptions {
   mode?: AuthMode | null;
   intent?: AuthIntent | null;
@@ -46,24 +50,25 @@ export function normalizeReturnToPath(
 }
 
 export function readLoginRouteOptions(
-  searchParams: SearchParamsReader
+  searchParams: SearchParamsReader | null | undefined
 ): AuthRouteOptions {
-  const rawIntent = searchParams.get("intent");
+  const params = searchParams ?? emptySearchParams;
+  const rawIntent = params.get("intent");
 
   return {
-    mode: searchParams.get("mode") as AuthMode | null,
+    mode: params.get("mode") as AuthMode | null,
     intent:
       rawIntent === "create_register" || rawIntent === "join_register"
         ? rawIntent
         : null,
-    email: searchParams.get("email"),
-    code: searchParams.get("code"),
-    returnTo: normalizeReturnToPath(searchParams.get("returnTo")),
-    workspaceInvite: searchParams.get("workspaceInvite"),
-    importUseCase: searchParams.get("importUseCase"),
+    email: params.get("email"),
+    code: params.get("code"),
+    returnTo: normalizeReturnToPath(params.get("returnTo")),
+    workspaceInvite: params.get("workspaceInvite"),
+    importUseCase: params.get("importUseCase"),
     sessionId:
-      searchParams.get("session_id") ??
-      searchParams.get("checkout_session_id"),
+      params.get("session_id") ??
+      params.get("checkout_session_id"),
   };
 }
 

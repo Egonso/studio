@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "last_substantive_update": "2026-04-23",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
@@ -16,20 +16,21 @@
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
-  "title": "Practitioner Kit für Berater, Auditoren und Trainer",
-  "summary": "Das Practitioner Kit macht den Use-Case-Pass für Workshops, Audits und Enablement-Formate einsetzbar. Es richtet sich an Personen, die Beratung, Registerarbeit, Nachweislogik und operative Umsetzung in einem sauberen Delivery-Pfad zusammenführen wollen.",
+  "title": "Partner-Arbeitskit für Audit, Training und Beratung mit dem Use-Case Pass",
+  "summary": "Dieses Artefakt bündelt die minimalen Arbeitsunterlagen, mit denen Berater, Auditoren, Trainer und Governance-Praktiker einen konkreten KI-Einsatzfall in eine belastbare Pass-Struktur überführen können. Es stellt einen neutralen institutionellen Rahmen für Workshops, Vorprüfungen, Auditgespräche und Umsetzungsformate bereit, ohne den Gegenstand in Marketing- oder Toolsprache aufzulösen.",
   "object_label": "Partner-Artefakt",
-  "stance_label": "Delivery-Kit für Partner",
+  "stance_label": "Arbeitskit für Partnerformate",
   "author": "KIRegister",
   "audiences": [
-    "Berater und Interim-Governance-Leads mit Umsetzungsverantwortung",
-    "Auditoren und interne Revisionsfunktionen mit Bedarf an Falllogik",
-    "Trainer und Workshop-Moderatoren, die von Schulung in operative Registerarbeit überführen"
+    "Berater und Interim-Governance-Leads mit Verantwortung für Fallaufnahme und Nachweisstruktur",
+    "Auditoren und interne Prüffunktionen mit Bedarf an einem sauberen Prüfobjekt pro Einsatzfall",
+    "Trainer und Moderatoren, die aus Schulung oder Workshop unmittelbar arbeitsfähige Registerobjekte ableiten müssen",
+    "Governance-Praktiker in Beschaffung, Compliance oder Fachbereichen mit Bedarf an einer gemeinsamen Fallsprache"
   ],
   "delivers": [
-    "ein workshopfähiges Materialset mit klarer Output-Orientierung",
-    "einen Delivery-Pfad vom ersten Termin in ein belastbares Register",
-    "eine saubere Abgrenzung zwischen Schulung, Auditvorbereitung und Implementierung"
+    "ein enges Materialset für die Überführung eines realen KI-Einsatzfalls in einen belastbaren Use-Case Pass",
+    "eine gemeinsame Arbeitslogik für Audit, Training, Beratung und vorbereitende Governance-Gespräche",
+    "eine klare Trennung zwischen Fallaufnahme, Review-Bedarf und weiterführender Umsetzung"
   ],
   "downloads": [
     {
@@ -52,85 +53,111 @@
     }
   ],
   "cta": {
-    "label": "Jetzt registrieren",
+    "label": "Use-Case Pass im Register vorbereiten",
     "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
-    "description": "Die Registrierung öffnet direkt das Register, damit aus dem Kit sofort produktive Registerarbeit wird."
+    "description": "Der sachliche nächste Schritt ist ein realer Pass im Register, damit Audit-, Trainings- und Beratungsarbeit auf ein konkretes Objekt bezogen bleibt."
   },
   "related_links": [
     {
       "label": "AI Literacy ist eine Nachweispflicht im Betrieb",
       "href": "/de/updates/ai-literacy-verantwortung-2026",
-      "description": "Regulatorischer Kontext für rollenbezogene Kompetenz und operative Umsetzung."
+      "description": "Regulatorischer Kontext für rollenbezogene Kompetenz, Schulungsbezug und operative Nachweisführung."
+    },
+    {
+      "label": "Audit Evidence Kit",
+      "href": "/de/artefacts/audit-evidence-kit",
+      "description": "Anschlussartefakt für engere Prüf- und Evidenzsituationen rund um denselben Einsatzfall."
     },
     {
       "label": "Use-Case Pass Explainer",
       "href": "/de/artefacts/use-case-pass-explainer",
-      "description": "Das anschlussfähige Kurzformat für Einkauf, Legal und Governance im Umfeld von Workshops."
+      "description": "Kurzformat für Personen, die vor dem operativen Einsatz erst die Grundlogik des Passes einordnen müssen."
     }
   ],
   "faq": [
     {
-      "q": "Für welche Formate ist das Kit besonders geeignet?",
-      "a": "Für Governance-Workshops, Audit-Vorbereitungen, Enablement-Sprints und Kick-off-Formate, in denen reale Einsatzfälle direkt strukturiert erfasst werden sollen."
+      "q": "Für welche Formate ist dieses Arbeitskit besonders geeignet?",
+      "a": "Für Auditvorbereitungen, Governance-Workshops, Trainingsformate, Due-Diligence-Gespräche und Beratungsprojekte, in denen ein konkreter KI-Einsatzfall unmittelbar als Pass strukturiert oder überprüft werden soll."
     },
     {
       "q": "Was ist der wichtigste Deliverable nach einem Termin?",
-      "a": "Ein Register mit klar benannten Einsatzfällen, Ownern, offenen Punkten und nächstem Review-Schritt. Genau daran sollte sich jede Session messen lassen."
+      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten und nächstem Review-Schritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
+    },
+    {
+      "q": "Wann reicht das Kit allein nicht mehr aus?",
+      "a": "Wenn der Fall rechtlich, technisch oder organisatorisch vertieft geprüft werden muss. Dann bleibt das Kit die saubere Eingangsstruktur, ersetzt aber keine vertiefte Fach- oder Rechtsprüfung."
     }
   ],
   "sections": [
     {
       "kind": "paragraphs",
-      "heading": "Wofür das Kit gedacht ist",
+      "heading": "Wofür dieses Arbeitskit gedacht ist",
       "paragraphs": [
-        "Das Kit ist für Partnerformate gebaut, in denen aus Gesprächen, Workshops oder Audits direkt belastbare Registerarbeit entstehen soll. Es hilft dabei, die Diskussion auf reale Einsatzfälle, Verantwortungen und nächste Nachweisschritte zu lenken.",
-        "Dadurch endet ein Termin mit einem konkreten Arbeitsobjekt: einem Register, das der Kunde weiterpflegen und für Reviews, Exporte oder Follow-up-Projekte nutzen kann."
+        "Dieses Arbeitskit ist für Partnerformate gebaut, in denen nicht über KI im Allgemeinen gesprochen werden soll, sondern über einen konkreten Einsatzfall mit Zweck, Verantwortung, Status und Evidenz. Es hält Audit-, Trainings- und Beratungssituationen auf einer dokumentierbaren Ebene und vermeidet, dass der Gegenstand in lose Tool-Listen oder allgemeine Richtlinienerklärungen zerfällt.",
+        "Damit endet ein Termin nicht bei einer abstrakten Empfehlung, sondern bei einem belastbaren Arbeitsobjekt: einem Use-Case Pass im Register oder einer klaren Lücke, die vor dem nächsten Schritt geschlossen werden muss."
       ]
     },
     {
       "kind": "table",
-      "heading": "Was im Kit enthalten ist",
+      "heading": "Welche Unterlagen im Paket enthalten sind",
       "rows": [
         {
           "label": "Workshop-Integration-Handout",
-          "value": "Ein klarer Ablauf für Moderation, Quick-Capture-Fragen, Governance-Deliverables und die Übersetzung in das Register."
+          "value": "Ein strukturierter Ablauf für Moderation, Quick-Capture-Fragen, Rollenklärung und die Übersetzung eines Gesprächs in ein belastbares Registerobjekt."
         },
         {
           "label": "Practitioner Workshop Kit",
-          "value": "Ein professionelles Workbook mit Canvas, Capture-Struktur, Feldern für offene Punkte und einer Delivery-Checklist für Nachbereitung."
+          "value": "Ein mehrblättriges Workbook mit Capture-Struktur, Feldern für offene Punkte und einer Arbeitslogik für Übergabe, Review und Nachbereitung."
         },
         {
           "label": "Governance-Handout zur KI-Einführung",
-          "value": "Ein Schulungstext, der den Schritt von allgemeiner Einführung zu dokumentierter, nachweisbarer Nutzung fachlich begründet."
+          "value": "Ein Begleittext, der den Übergang von allgemeiner Einführung zu dokumentierter, nachweisbarer Nutzung fachlich einordnet."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Wie unterschiedliche Partnerrollen dasselbe Kit verwenden",
+      "rows": [
+        {
+          "label": "Audit und Revision",
+          "value": "Nutzen das Paket als Vorstruktur für Scope, verantwortliche Rolle, Review-Stand und Evidenzlage des einzelnen Einsatzfalls."
+        },
+        {
+          "label": "Training und Moderation",
+          "value": "Nutzen die Unterlagen, um aus Einführung oder Workshop direkt in eine dokumentierte Fallaufnahme mit sichtbaren offenen Punkten überzugehen."
+        },
+        {
+          "label": "Beratung und Governance",
+          "value": "Nutzen das Workbook, um Mindestfelder, nächste Nachweisschritte und Übergaben in die laufende Registerarbeit sauber festzuhalten."
         }
       ]
     },
     {
       "kind": "bullets",
-      "heading": "Wie ein starker Termin damit abläuft",
+      "heading": "Wie ein belastbarer Termin mit dem Kit abläuft",
       "items": [
-        "Vor dem Termin Scope, betroffene Rollen, Systeme und vorhandene Evidenzen klären.",
-        "Im Termin reale Einsatzfälle live erfassen und offene Risikopunkte sichtbar machen.",
-        "Verantwortungen, Review-Bedarf und nächste Arbeitsschritte direkt im Register verankern.",
-        "Nach dem Termin die Registerstruktur so übergeben, dass der Kunde ohne Parallelwelt weiterarbeiten kann."
-      ]
-    },
-    {
-      "kind": "bullets",
-      "heading": "Worauf ein Practitioner besonders achten sollte",
-      "items": [
-        "Keine abstrakten Beispielwelten aufbauen, wenn reale Einsatzfälle bereits verfügbar sind.",
-        "Rollen benennen und zugleich konkrete Owner und Review-Pfade festhalten.",
-        "Offene Punkte sichtbar lassen, statt zu früh Vollständigkeit vorzutäuschen.",
-        "Jedes Deliverable so formulieren, dass der Kunde es nach dem Termin intern weiterverwenden kann."
+        "Vor dem Termin den realen Einsatzfall, die betroffenen Rollen und bereits vorhandene Evidenzen bestimmen.",
+        "Im Termin Zweck, Verantwortung, Datenbezug und offene Fragen entlang derselben Pass-Logik erfassen.",
+        "Offene Punkte sichtbar lassen, statt Vollständigkeit zu behaupten, wenn Review oder Nachweise noch fehlen.",
+        "Nur Aussagen festhalten, die intern als Pass, Review-Hinweis oder nächster Arbeitsschritt weiterverwendbar sind.",
+        "Nach dem Termin den Fall so übergeben, dass keine zweite Dokumentationswelt aus Folien, E-Mails oder Workshop-Protokollen entsteht."
       ]
     },
     {
       "kind": "paragraphs",
-      "heading": "Was dieses Kit bewusst nicht ist",
+      "heading": "Warum dieses Format für Partner institutionell anschlussfähig ist",
       "paragraphs": [
-        "Es ist kein Zertifikat und kein Schnellversprechen für automatische Compliance. Das Kit ist ein Arbeitsgerüst, das Partner in die Lage versetzt, Registerlogik, Rollenklärung und Nachweisschritte sauber aufzusetzen.",
-        "Gerade deshalb ist es für den Partnerkanal stark: Es reduziert Reibung, ohne operative oder juristische Überversprechen zu machen, und schafft einen klaren Übergang von Training zu dokumentierter Arbeit."
+        "Partnerformate scheitern häufig nicht an fehlender Aktivität, sondern an fehlender Form. Es wird diskutiert, geschult und geprüft, aber der konkrete Einsatzfall bleibt unscharf. Dieses Arbeitskit setzt genau dort an und führt verschiedene Rollen auf eine gemeinsame Fallstruktur zurück.",
+        "Das ist für Auditoren, Trainer, Berater und Governance-Praktiker anschlussfähig, weil das Kit keine werbliche Kurzlogik braucht. Es liefert eine sachliche Mindestordnung für den einzelnen KI-Einsatzfall und hält offen auseinander, was bereits dokumentiert ist, was noch geprüft werden muss und was erst später entschieden werden kann."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wo das Arbeitskit bewusst eng bleibt",
+      "paragraphs": [
+        "Dieses Artefakt ist kein Zertifikat, keine pauschale Freigabe und kein Ersatz für Rechtsgutachten oder technische Tiefenprüfung. Es ist eine operative Eingangsstruktur für den einzelnen KI-Einsatzfall.",
+        "Gerade diese Begrenzung macht das Kit belastbar. Es schafft einen klaren Übergang von Schulung, Audit oder Beratung in nachvollziehbare Registerarbeit, ohne Vollständigkeit vorzutäuschen oder institutionell zu viel zu versprechen."
       ]
     }
   ]

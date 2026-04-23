@@ -70,19 +70,57 @@ test.describe.serial('certification flows', () => {
     expect(badgePayload.html).toContain(`https://kiregister.com/verify/${certificateCode}`);
 
     await page.goto(`/verify/${certificateCode}`);
-    await expect(page.getByText('Gültiges Zertifikat').first()).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Gültiges Zertifikat|Valid certificate/ }),
+    ).toBeVisible();
     await expect(page.getByText('Playwright QA GmbH')).toBeVisible();
-    await expect(page.getByText(certificateCode)).toBeVisible();
+    await expect(page.getByText(certificateCode, { exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByText(/HTML\/CSS-Badge|HTML\/CSS badge/),
+    ).toBeVisible();
+    const regenerateResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        response.url().includes(`/api/certification/public/${certificateCode}`),
+    );
+    await page
+      .getByRole('button', {
+        name: /Zertifikat neu generieren|Regenerate certificate/,
+      })
+      .click();
+    const regenerateResponse = await regenerateResponsePromise;
+    expect(regenerateResponse.ok()).toBeTruthy();
+    await expect(
+      page.getByText(
+        /Das Zertifikat wurde neu generiert|The certificate was regenerated/,
+      ),
+    ).toBeVisible();
   });
 
   test('shows a not-found verification state for invalid codes', async ({ page }) => {
     await page.goto('/verify/KI-REG-1999-0000');
-    await expect(page.getByText('Verifizierung fehlgeschlagen').first()).toBeVisible();
-    await expect(page.getByText('Zertifikat nicht gefunden oder ungültig.')).toBeVisible();
-    await page.getByRole('link', { name: 'Neuen Zertifikatscode eingeben' }).click();
-    await expect(page).toHaveURL('/verify');
-    await expect(page.getByRole('heading', { name: 'Zertifikat prüfen' })).toBeVisible();
-    await expect(page.getByText('Zertifikate direkt im KI-Register prüfen')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Verifizierung fehlgeschlagen|Verification failed/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        /Zertifikat nicht gefunden oder ungültig.|Certificate not found or invalid./,
+      ),
+    ).toBeVisible();
+    await page
+      .getByRole('link', {
+        name: /Neuen Zertifikatscode eingeben|Enter a new certificate code/,
+      })
+      .click();
+    await expect(page).toHaveURL(/\/(en\/)?verify$/);
+    await expect(
+      page.getByRole('heading', { name: /Zertifikat prüfen|Verify certificate/ }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(
+        /Zertifikate direkt im KI-Register prüfen|Verify certificates directly in AI Registry/,
+      ),
+    ).toBeVisible();
   });
 
   test('supports dev-only admin certificate issue, regeneration and revocation', async ({
@@ -124,6 +162,7 @@ test.describe.serial('certification flows', () => {
       latestDocumentUrl: string | null;
     };
     expect(regenerated.latestDocumentUrl).toContain('data:application/pdf');
+    expect(regenerated.latestDocumentUrl).toBe(issued.latestDocumentUrl);
 
     const updateResponse = await request.post('/api/certification/admin/dev/update', {
       headers: adminHeaders,
@@ -141,7 +180,9 @@ test.describe.serial('certification flows', () => {
     expect(badgeResponse.status()).toBe(404);
 
     await page.goto(`/verify/${issued.certificateCode}`);
-    await expect(page.getByText('Widerrufenes Zertifikat').first()).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /Widerrufenes Zertifikat|Revoked certificate/ }),
+    ).toBeVisible();
     await expect(page.getByText('Admin QA GmbH')).toBeVisible();
   });
 });

@@ -71,6 +71,30 @@ export interface CertificateAuditEvent {
   note: string;
 }
 
+export interface CertificateDocumentSourceSnapshot {
+  certificateCode: string;
+  holderName: string;
+  company: string | null;
+  issuedAt: string;
+  validUntil: string | null;
+  status: CertificateStatus;
+  examVersion: string;
+  modules: string[];
+  publicUrl: string;
+}
+
+export interface CertificateDocumentRenderSnapshot {
+  provider: CertificateDocumentProvider;
+  templateId: string | null;
+  badgeAssetUrl?: string | null;
+}
+
+export interface CertificateDocumentSnapshot {
+  version: 1;
+  source: CertificateDocumentSourceSnapshot;
+  render: CertificateDocumentRenderSnapshot;
+}
+
 export interface CertificateDocumentRecord {
   documentId: string;
   certificateId: string;
@@ -78,6 +102,7 @@ export interface CertificateDocumentRecord {
   url: string;
   provider: CertificateDocumentProvider;
   generatedBy: string;
+  snapshot?: CertificateDocumentSnapshot | null;
 }
 
 export interface PersonCertificateRecord {

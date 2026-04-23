@@ -1,0 +1,169 @@
+{
+  "slug": "use-case-pass-uebergabekit",
+  "locale": "de",
+  "content_type": "artefact",
+  "sector": "partner-channel",
+  "intent": "partner-handover",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-23",
+  "last_substantive_update": "2026-04-23",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+  ],
+  "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
+  "template_variant": "artefact-sheet",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Use-Case Pass Übergabekit für Audit, Training und Beschaffung",
+  "summary": "Dieses Übergabekit zeigt, wie ein einzelner Use-Case-Pass von Workshop, Beratung oder Schulung in eine belastbare Prüf-, Freigabe- und Anfragegrundlage überführt wird. Es richtet sich an Partner und interne Praktiker, die Rollenübergaben, offene Punkte und Nachweise ohne zweite Dokumentationswelt organisieren müssen.",
+  "object_label": "Partner-Artefakt",
+  "stance_label": "Übergabekit für Fallarbeit",
+  "author": "KIRegister",
+  "audiences": [
+    "Berater und Projektverantwortliche, die aus Discovery oder Workshops eine belastbare Fallstruktur übergeben müssen",
+    "Trainer und Moderatoren, die Lernformate in reale Register- und Nachweisarbeit überführen",
+    "Auditoren, Beschaffung und Governance-Praktiker, die einen einzelnen KI-Einsatzfall entlang derselben Struktur prüfen oder weiterverwenden"
+  ],
+  "delivers": [
+    "eine klare Übergabelogik zwischen Erfassung, Review, Audit, Beschaffung und Governance",
+    "ein sofort nutzbares Materialpaket aus Beispielpass, Registermatrix und Pass-Handout",
+    "einen neutralen Bezugsrahmen, damit Partnerformate auf demselben Arbeitsobjekt enden statt in Freitext, E-Mails oder Einmalfolien"
+  ],
+  "downloads": [
+    {
+      "label": "Beispiel Use-Case Pass",
+      "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
+      "description": "Referenzdokument für einen einzelnen KI-Einsatzfall mit Zweck, verantwortlicher Rolle, Review-Stand und Evidenzkette als stabiles Übergabeobjekt.",
+      "format": "PDF"
+    },
+    {
+      "label": "Register- und Review-Matrix",
+      "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
+      "description": "Arbeitsmatrix für offene Punkte, Zuständigkeiten und Review-Übergänge, damit Partner und interne Stellen denselben Fallbestand fortführen können.",
+      "format": "XLSX"
+    },
+    {
+      "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
+      "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
+      "description": "Knappe Einordnung der Pass-Felder, damit Training, Audit, Einkauf und Governance dieselben Begriffe und Mindestangaben verwenden.",
+      "format": "PDF"
+    }
+  ],
+  "cta": {
+    "label": "Use-Case Pass im Register anlegen",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Der sachliche nächste Schritt ist ein realer Pass im Register, damit Übergaben, Reviews und Anfragen auf ein konkretes Objekt bezogen bleiben."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Referenzseite zur Struktur des Passes und zur Rolle des einzelnen Einsatzfalls als belastbare Einheit."
+    },
+    {
+      "label": "Audit Evidence Kit",
+      "href": "/de/artefacts/audit-evidence-kit",
+      "description": "Anschlussartefakt für vertiefte Prüf- und Evidenzgespräche auf derselben Pass-Basis."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Wofür dieses Übergabekit gedacht ist",
+      "paragraphs": [
+        "Viele Partnerformate beginnen sauber und enden dennoch unscharf. In Workshops, Trainings, Beratungsmandaten oder Erstprüfungen werden Rollen, Risiken und offene Punkte besprochen, aber das Ergebnis bleibt oft in Folien, Notizen oder E-Mail-Zusammenfassungen stehen. Dieses Übergabekit hält den einzelnen KI-Einsatzfall als primäres Arbeitsobjekt fest und zeigt, wie daraus ein belastbarer Use-Case-Pass wird.",
+        "Gerade für Auditoren, Berater, Trainer, Beschaffung und Governance ist diese Engführung nützlich. Sie schafft eine gemeinsame Form für Übergaben, ohne den fachlichen Kontext zu verflachen. Der Pass bleibt derselbe, auch wenn sich die Rolle ändert, die ihn gerade liest, ergänzt oder gegenzeichnet."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Arbeitsobjekte im Kit direkt verfügbar sind",
+      "rows": [
+        {
+          "label": "Beispielpass",
+          "value": "Zeigt, wie ein einzelner Einsatzfall so beschrieben wird, dass Zweck, verantwortliche Rolle, Review-Stand und Evidenz in einer belastbaren Einheit zusammenlaufen."
+        },
+        {
+          "label": "Register- und Review-Matrix",
+          "value": "Dient als Übergabefläche für offene Punkte, Zuständigkeiten, Review-Bedarf und den aktuellen Stand mehrerer Fälle, ohne zusätzliche Schattenlisten aufzubauen."
+        },
+        {
+          "label": "Pass-Handout",
+          "value": "Ordnet die Feldlogik knapp ein, damit Partner, interne Prüfer und Beschaffung denselben Mindestwortschatz verwenden."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Wie die Rollen am selben Pass arbeiten",
+      "rows": [
+        {
+          "label": "Training und Moderation",
+          "value": "Verdichten Gesprächsinhalte in einen ersten belastbaren Fallzuschnitt, benennen Owner, markieren Lücken und halten fest, welche Aussagen bereits tragfähig sind."
+        },
+        {
+          "label": "Beratung und Projektarbeit",
+          "value": "Ergänzen Nachweisfelder, priorisieren offene Punkte und sorgen dafür, dass aus Workshop-Ergebnissen ein fortführbarer Registereintrag statt eines Einmal-Deliverables entsteht."
+        },
+        {
+          "label": "Audit, Beschaffung und Governance",
+          "value": "Nutzen denselben Pass, um Scope, Verantwortlichkeit, Review-Stand, Evidenzlage und Aussagegrenzen fallbezogen zu prüfen oder für Anfragen weiterzuverwenden."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Woran eine saubere Übergabe erkennbar ist",
+      "items": [
+        "Der Einsatzfall ist fachlich so beschrieben, dass Dritte Zweck, Kontext und betroffene Wirkung ohne Zusatzgespräch verstehen.",
+        "Eine verantwortliche Rolle ist benannt und kann Änderungen, Rückfragen und Nachweispflege übernehmen.",
+        "Offene Punkte sind sichtbar markiert, statt im Übergabemoment sprachlich geglättet zu werden.",
+        "Review-Stand und Evidenz sind getrennt von Annahmen, Erwartungen oder nächsten Arbeitsschritten dokumentiert.",
+        "Partner, Audit und Beschaffung greifen auf dasselbe Objekt zu, statt jeweils eine eigene Abfragestruktur aufzubauen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Warum diese Form für Partnerformate institutionell tragfähig ist",
+      "paragraphs": [
+        "Das Übergabekit vermeidet die typische Reibung zwischen Lernformat und Nachweisformat. Schulung, Discovery oder Beratung dürfen offen und explorativ beginnen, aber sie brauchen ein Ende in dokumentierter Form. Der Use-Case-Pass ist dafür stark, weil er weder reine Präsentation noch juristische Vollbewertung ist, sondern ein präzises Objekt für den konkreten Einsatzfall.",
+        "Damit entsteht ein neutraler institutioneller Rahmen. Auditoren sehen den Fallzuschnitt und die Evidenzlage, Beschaffung erkennt Mindestangaben und Aussagegrenzen, Governance kann Review-Pfade anschließen, und Berater oder Trainer müssen keine zweite Dokumentationswelt pflegen, um anschlussfähig zu bleiben."
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Wie das Kit praktisch eingesetzt wird",
+      "items": [
+        "Einen realen KI-Einsatzfall auswählen, der bereits im Betrieb, in Vorbereitung oder im Freigabeprozess relevant ist.",
+        "Den Beispielpass als Zielbild verwenden und die eigenen Informationen entlang derselben Feldlogik verdichten.",
+        "In der Matrix festhalten, welche Punkte belastbar sind, welche Review brauchen und welche Rolle den nächsten Schritt trägt.",
+        "Für Audit-, Freigabe- oder Beschaffungsrückfragen nur Aussagen nutzen, die im Pass oder in referenzierter Evidenz gestützt sind.",
+        "Anschlussartefakte wie Supplier Requests, Verify-Flächen oder interne Freigaben erst aus dieser stabilen Fallbasis ableiten."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Wo das Übergabekit bewusst eng bleibt",
+      "paragraphs": [
+        "Dieses Artefakt ersetzt weder Rechtsberatung noch technische Tiefenprüfung. Es soll die Stelle schließen, an der Partnerformate oft operativ ausfransen: zwischen erster strukturierter Erfassung und belastbarer Weitergabe in Prüfung, Freigabe oder externe Anfrage.",
+        "Seine Stärke liegt genau in dieser Begrenzung. Wer den einzelnen Einsatzfall sauber übergeben kann, schafft die Voraussetzung für weitergehende Prüfung, ohne schon im Erstschritt Vollständigkeit zu behaupten."
+      ]
+    }
+  ],
+  "faq": [
+    {
+      "q": "Wann ist ein Workshop-Ergebnis stark genug für die Übergabe an Audit oder Governance?",
+      "a": "Wenn der konkrete Einsatzfall, seine verantwortliche Rolle, der aktuelle Review-Stand und die wichtigsten Evidenzen oder Lücken in einem Pass lesbar sind. Dann kann die nächste Funktion auf demselben Objekt weiterarbeiten, ohne die Grundstruktur neu aufbauen zu müssen."
+    },
+    {
+      "q": "Wozu braucht es zusätzlich eine Matrix, wenn schon ein Pass vorliegt?",
+      "a": "Der Pass hält den einzelnen Fall zusammen. Die Matrix macht sichtbar, welche offenen Punkte, Zuständigkeiten und Review-Schritte über mehrere Fälle hinweg noch bearbeitet werden müssen. Beides ergänzt sich, ohne dieselben Informationen doppelt zu pflegen."
+    },
+    {
+      "q": "Ist das Kit eher für externe Partner oder interne Teams gedacht?",
+      "a": "Für beide Seiten, solange sie am selben Fallobjekt arbeiten. Externe Partner nutzen es für saubere Übergaben aus Training oder Beratung, interne Teams für Review, Freigabe, Beschaffung und anschließende Nachweispflege."
+    }
+  ]
+}

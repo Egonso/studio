@@ -107,7 +107,9 @@ export default function CoursePage() {
   const locale = useLocale();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const searchParams = useSearchParams();
+  const selectedVideoId = searchParams?.get('videoId') ?? null;
+  const selectedModuleId = searchParams?.get('moduleId') ?? null;
   const {
     allowed,
     loading: capabilityLoading,
@@ -143,12 +145,7 @@ export default function CoursePage() {
         }
 
         setCompletedVideos(new Set(progress));
-        setSelectedItem(
-          resolveSelection(
-            searchParams.get('videoId'),
-            searchParams.get('moduleId'),
-          ),
-        );
+        setSelectedItem(resolveSelection(selectedVideoId, selectedModuleId));
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -161,7 +158,7 @@ export default function CoursePage() {
     return () => {
       isCancelled = true;
     };
-  }, [allowed, searchParams, user]);
+  }, [allowed, selectedModuleId, selectedVideoId, user]);
 
   const progress = useMemo(
     () => buildAcademyProgressSnapshot(Array.from(completedVideos)),

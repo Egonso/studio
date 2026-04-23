@@ -111,44 +111,53 @@ export function UserCertificationStatus({ status, loading }: UserCertificationSt
     // --- State 2: Personenzertifikat (Exam Passed) ---
     if (passed && status.certificate) {
         return (
-            <Card className="border-gray-200 bg-gray-50/30 shadow-sm mb-8 relative overflow-hidden transition-all duration-500 ease-in-out">
-                <div className="absolute top-0 left-0 w-1 h-full bg-gray-900" />
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900">
-                            <Award className="h-5 w-5" />
-                            Personenzertifikat
-                        </CardTitle>
-                        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none px-3 py-1">Bestanden</Badge>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                        <div className="space-y-4">
-                            <p className="text-sm text-gray-800">
-                                Herzlichen Glückwunsch! Sie haben die Prüfung erfolgreich bestanden.
-                            </p>
-                            <div className="bg-white/60 p-3 rounded-lg border border-gray-100 space-y-1 text-sm text-slate-700">
-                                <p><span className="font-semibold text-gray-900">Zertifikat:</span> {certificateStatusLabel}</p>
-                                <p><span className="font-semibold text-gray-900">Code:</span> {status.certificate.code}</p>
+            <div className="space-y-6 mb-8">
+                <Card className="border-gray-200 bg-gray-50/30 shadow-sm relative overflow-hidden transition-all duration-500 ease-in-out">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gray-900" />
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg font-bold flex items-center gap-2 text-gray-900">
+                                <Award className="h-5 w-5" />
+                                Personenzertifikat
+                            </CardTitle>
+                            <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-none px-3 py-1">Bestanden</Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            <div className="space-y-4">
+                                <p className="text-sm text-gray-800">
+                                    Herzlichen Glückwunsch! Sie haben die Prüfung erfolgreich bestanden.
+                                </p>
+                                <div className="bg-white/60 p-3 rounded-lg border border-gray-100 space-y-1 text-sm text-slate-700">
+                                    <p><span className="font-semibold text-gray-900">Zertifikat:</span> {certificateStatusLabel}</p>
+                                    <p><span className="font-semibold text-gray-900">Code:</span> {status.certificate.code}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                <h4 className="font-semibold text-sm mb-2 text-gray-900">Nächster Schritt: Sichtbarkeit</h4>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    {isCertificateActive
+                                        ? 'Veröffentlichen Sie Ihr Zertifikat im AI Trust Portal, um Ihren Expertenstatus für Kunden und Partner sichtbar zu machen.'
+                                        : 'Badge und öffentliche Aktivierung bleiben nur für aktuell gültige Zertifikate verfügbar.'}
+                                </p>
+                                <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" onClick={() => setIsPublished(true)} disabled={!isCertificateActive}>
+                                    <ShieldCheck className="mr-2 h-4 w-4" />
+                                    Zertifikat veröffentlichen & aktivieren
+                                </Button>
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
 
-                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                            <h4 className="font-semibold text-sm mb-2 text-gray-900">Nächster Schritt: Sichtbarkeit</h4>
-                            <p className="text-xs text-muted-foreground mb-4">
-                                {isCertificateActive
-                                    ? 'Veröffentlichen Sie Ihr Zertifikat im AI Trust Portal, um Ihren Expertenstatus für Kunden und Partner sichtbar zu machen.'
-                                    : 'Badge und öffentliche Aktivierung bleiben nur für aktuell gültige Zertifikate verfügbar.'}
-                            </p>
-                            <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white" onClick={() => setIsPublished(true)} disabled={!isCertificateActive}>
-                                <ShieldCheck className="mr-2 h-4 w-4" />
-                                Zertifikat veröffentlichen & aktivieren
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                {isCertificateActive ? (
+                    <CertificateBadgeCard
+                        certificateCode={status.certificate.code}
+                        holderName={status.certificate.holderName}
+                    />
+                ) : null}
+            </div>
         );
     }
 

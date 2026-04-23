@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 
 import {
   createSupplierSessionCookie,
@@ -10,7 +11,7 @@ import {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 const TEST_SECRET = 'test-session-secret-32bytes-ok!!';
-const TEST_SECRET_PREVIOUS = 'old-session-secret-32bytes-ok!!!';
+const TEST_SECRET_ROTATED = 'old-session-secret-32bytes-ok!!!';
 
 function setEnv(key: string, value: string | undefined) {
   if (value === undefined) {
@@ -94,7 +95,6 @@ describe('SupplierInviteSession', () => {
     const expiredB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
 
     // Re-sign with correct secret
-    const { createHmac } = require('node:crypto');
     const sig = createHmac('sha256', TEST_SECRET).update(expiredB64).digest('base64url');
     const expiredCookie = `${expiredB64}.${sig}`;
 
@@ -115,7 +115,7 @@ describe('SupplierInviteSession', () => {
     const cookie = createSupplierSessionCookie('inv_123', 'test@example.com');
 
     // Rotate: current becomes previous, new secret is set
-    setEnv('SUPPLIER_SESSION_SECRET', 'brand-new-secret-32bytes-ok!!!!');
+    setEnv('SUPPLIER_SESSION_SECRET', TEST_SECRET_ROTATED);
     setEnv('SUPPLIER_SESSION_SECRET_PREVIOUS', TEST_SECRET);
 
     // Old cookie should still validate via previous secret

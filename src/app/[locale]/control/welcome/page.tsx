@@ -36,58 +36,61 @@ interface WelcomeModule {
 export default function ControlWelcomePage() {
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const searchParams = useSearchParams();
 
-  const WELCOME_MODULES: WelcomeModule[] = [
-    {
-      href: ROUTE_HREFS.control,
-      icon: CheckCircle2,
-      title: t('control.overview'),
-      description: t('control.overviewDesc'),
-    },
-    {
-      href: ROUTE_HREFS.controlReviews,
-      icon: ClipboardCheck,
-      title: t('control.reviews'),
-      description: t('control.welcome.reviewsDescription'),
-    },
-    {
-      href: ROUTE_HREFS.governanceSettings,
-      icon: Shield,
-      title: t('governance.settings'),
-      description: t('control.welcome.settingsDescription'),
-    },
-    {
-      href: ROUTE_HREFS.controlPolicies,
-      icon: FileText,
-      title: t('control.policies'),
-      description: t('control.welcome.policiesDescription'),
-    },
-    {
-      href: ROUTE_HREFS.controlExports,
-      icon: Users,
-      title: t('control.exports'),
-      description: t('control.exportsDesc'),
-    },
-    {
-      href: ROUTE_HREFS.controlTrust,
-      icon: Globe,
-      title: t('control.trustPortal'),
-      description: t('control.welcome.trustDescription'),
-    },
-    {
-      href: ROUTE_HREFS.academy,
-      icon: GraduationCap,
-      title: t('control.academy'),
-      description: t('control.academyDesc'),
-    },
-  ];
+  const welcomeModules = useMemo<WelcomeModule[]>(
+    () => [
+      {
+        href: ROUTE_HREFS.control,
+        icon: CheckCircle2,
+        title: t('control.overview'),
+        description: t('control.overviewDesc'),
+      },
+      {
+        href: ROUTE_HREFS.controlReviews,
+        icon: ClipboardCheck,
+        title: t('control.reviews'),
+        description: t('control.welcome.reviewsDescription'),
+      },
+      {
+        href: ROUTE_HREFS.governanceSettings,
+        icon: Shield,
+        title: t('governance.settings'),
+        description: t('control.welcome.settingsDescription'),
+      },
+      {
+        href: ROUTE_HREFS.controlPolicies,
+        icon: FileText,
+        title: t('control.policies'),
+        description: t('control.welcome.policiesDescription'),
+      },
+      {
+        href: ROUTE_HREFS.controlExports,
+        icon: Users,
+        title: t('control.exports'),
+        description: t('control.exportsDesc'),
+      },
+      {
+        href: ROUTE_HREFS.controlTrust,
+        icon: Globe,
+        title: t('control.trustPortal'),
+        description: t('control.welcome.trustDescription'),
+      },
+      {
+        href: ROUTE_HREFS.academy,
+        icon: GraduationCap,
+        title: t('control.academy'),
+        description: t('control.academyDesc'),
+      },
+    ],
+    [t],
+  );
   const { user, loading: authLoading } = useAuth();
   const { allowed, loading: capabilityLoading, plan } =
     useCapability('reviewWorkflow');
-  const checkoutSessionId = searchParams.get('checkout_session_id');
-  const source = searchParams.get('source');
-  const returnTo = normalizeReturnToPath(searchParams.get('returnTo'));
+  const checkoutSessionId = searchParams?.get('checkout_session_id') ?? null;
+  const source = searchParams?.get('source') ?? null;
+  const returnTo = normalizeReturnToPath(searchParams?.get('returnTo') ?? null);
   const [syncState, setSyncState] = useState<'idle' | 'loading' | 'done' | 'error'>(
     checkoutSessionId ? 'loading' : 'idle',
   );
@@ -182,7 +185,7 @@ export default function ControlWelcomePage() {
     return () => {
       cancelled = true;
     };
-  }, [checkoutSessionId, returnTo, router, syncState, user]);
+  }, [checkoutSessionId, returnTo, router, syncState, t, user]);
 
   const effectivePlan = activatedPlan ?? plan;
   const hasPaidAccess =
@@ -195,7 +198,9 @@ export default function ControlWelcomePage() {
     ? t('control.welcome.nextStep')
     : t('control.welcome.nextStepNoAccess');
   const orgLabel = organisationName ?? t('common.unknown');
-  const highlightedModules = useMemo(() => WELCOME_MODULES.slice(0, 3), []);
+  const highlightedModules = useMemo(() => welcomeModules.slice(0, 3), [
+    welcomeModules,
+  ]);
 
   useEffect(() => {
     if (!returnTo || !hasPaidAccess || syncState !== 'done') {
@@ -304,7 +309,7 @@ export default function ControlWelcomePage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {WELCOME_MODULES.map((module) => {
+        {welcomeModules.map((module) => {
           const Icon = module.icon;
           return (
             <Card key={module.title} className="border-slate-200">

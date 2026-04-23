@@ -32,11 +32,8 @@ import {
   createAiToolsRegistryService,
   computeUseCaseReadiness,
   getUseCaseSystemSectionMode,
-  getUseCaseSystemsSummary,
-  type UseCaseReadinessResult,
   type UseCaseReadinessStepKey,
 } from '@/lib/register-first';
-import { cn } from '@/lib/utils';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
 import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
 import { registerService } from '@/lib/register-first/register-service';
@@ -396,7 +393,7 @@ export default function UseCaseDetailPage() {
                     </div>
                   )
                 : undefined,
-              systemEvidence: ({ onCollapse }) => (
+              systemEvidence: () => (
                 <div
                   id="usecase-focus-systems"
                   className={

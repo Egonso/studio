@@ -251,7 +251,7 @@ export default function ControlPage() {
   const copy = useMemo(() => getControlPageCopy(locale), [locale]);
   const { user, loading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const searchParams = useSearchParams();
   const scopedHrefs = useScopedRouteHrefs();
   const { plan, allowed: canOpenReviews, loading: entitlementLoading } =
     useCapability('reviewWorkflow');
@@ -325,10 +325,10 @@ export default function ControlPage() {
     return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt);
   }, [snapshot]);
 
-  const focusedUseCaseId = searchParams.get('useCaseId');
-  const entry = searchParams.get('entry') ?? 'direct';
+  const focusedUseCaseId = searchParams?.get('useCaseId') ?? null;
+  const entry = searchParams?.get('entry') ?? 'direct';
   const triggerIds = useMemo(() => {
-    const value = searchParams.get('triggerIds');
+    const value = searchParams?.get('triggerIds');
     if (!value) return [];
     return value
       .split(',')

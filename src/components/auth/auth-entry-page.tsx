@@ -128,7 +128,7 @@ export default function AuthEntryPage() {
   const locale = useLocale();
   const t = useTranslations();
   const router = useRouter();
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { loading: authLoading, user } = useAuth();
   const localizeInternalHref = useCallback(
@@ -137,7 +137,7 @@ export default function AuthEntryPage() {
   );
 
   const routeContext = useMemo(
-    () => readLoginRouteOptions(searchParams ?? new URLSearchParams()),
+    () => readLoginRouteOptions(searchParams),
     [searchParams],
   );
 

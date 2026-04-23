@@ -1,6 +1,6 @@
 import '@/lib/server-only-guard';
 
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 
 import { getPublicAppOrigin } from '@/lib/app-url';
 import {
@@ -22,6 +22,8 @@ import type {
   CertificateAuditEvent,
   CertificateDocumentRecord,
   CertificateDocumentProvider,
+  CertificateDocumentRenderSnapshot,
+  CertificateDocumentSnapshot,
   CertificateStatus,
   CertificationSettings,
   ExamAttemptRecord,
@@ -114,6 +116,12 @@ type LegacyCertificateDocumentRecord = {
   certificateId?: string;
   url?: string;
   generatedAt?: string;
+};
+
+type LegacyCertificateLookup = {
+  legacyCertificateId: string;
+  data: LegacyCertificateRecord;
+  latestDocumentUrl: string | null;
 };
 
 type StoredExamAnswerSection = {
@@ -254,11 +262,120 @@ function resolveCertificateStatus(
   return certificate.status;
 }
 
+function resolveDocumentRenderSnapshot(
+  settings: Pick<
+    CertificationSettings,
+    'documentProvider' | 'documentTemplateId' | 'badgeAssetUrl'
+  >,
+): CertificateDocumentRenderSnapshot {
+  if (isFakeDocumentModeEnabled()) {
+    return {
+      provider: 'native',
+      templateId: null,
+      badgeAssetUrl: null,
+    };
+  }
+
+  const templateId = settings.documentTemplateId.trim() || null;
+  const badgeAssetUrl = settings.badgeAssetUrl.trim() || null;
+  const canUseDocumentero =
+    settings.documentProvider === 'documentero' &&
+    isExternalCertificatePdfsEnabled() &&
+    Boolean(resolveDocumenteroApiKey()) &&
+    Boolean(templateId);
+
+  return canUseDocumentero
+    ? {
+        provider: 'documentero',
+        templateId,
+        badgeAssetUrl,
+      }
+    : {
+        provider: 'native',
+        templateId: null,
+        badgeAssetUrl: null,
+      };
+}
+
+function buildCertificateDocumentSnapshot(
+  certificate: PersonCertificateRecord,
+  settings: Pick<
+    CertificationSettings,
+    'documentProvider' | 'documentTemplateId' | 'badgeAssetUrl'
+  >,
+): CertificateDocumentSnapshot {
+  return {
+    version: 1,
+    source: {
+      certificateCode: certificate.certificateCode,
+      holderName: certificate.holderName,
+      company: certificate.company,
+      issuedAt: certificate.issuedAt,
+      validUntil: certificate.validUntil,
+      status: certificate.status,
+      examVersion: certificate.examVersion,
+      modules: [...certificate.modules],
+      publicUrl: certificate.publicUrl,
+    },
+    render: resolveDocumentRenderSnapshot(settings),
+  };
+}
+
+function getCertificateSnapshotVerifyUrl(snapshot: CertificateDocumentSnapshot): string {
+  return (
+    snapshot.source.publicUrl?.trim() ||
+    buildCertificateVerifyUrl(snapshot.source.certificateCode)
+  );
+}
+
+function buildStablePdfFileId(snapshot: CertificateDocumentSnapshot): string {
+  return createHash('md5')
+    .update(
+      [
+        snapshot.version.toString(),
+        snapshot.source.certificateCode,
+        snapshot.source.holderName,
+        snapshot.source.company ?? '',
+        snapshot.source.issuedAt,
+        snapshot.source.validUntil ?? '',
+        snapshot.source.status,
+        snapshot.source.examVersion,
+        snapshot.source.modules.join('|'),
+        snapshot.source.publicUrl,
+        snapshot.render.provider,
+        snapshot.render.templateId ?? '',
+        snapshot.render.badgeAssetUrl ?? '',
+      ].join('\n'),
+    )
+    .digest('hex')
+    .toUpperCase();
+}
+
+function parseStablePdfDate(value: string): Date {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? new Date('2000-01-01T00:00:00.000Z') : parsed;
+}
+
+function getReusableArchivedDocument(
+  document: CertificateDocumentRecord | null,
+): GeneratedDocument | null {
+  const url = document?.url?.trim();
+  if (!document || !url?.startsWith('data:application/pdf')) {
+    return null;
+  }
+
+  return {
+    url,
+    provider: document.provider,
+  };
+}
+
 function escapePdfText(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 }
 
-function buildFakePdfDataUri(certificate: PersonCertificateRecord, verifyUrl: string): string {
+function buildFakePdfDataUri(snapshot: CertificateDocumentSnapshot, verifyUrl: string): string {
+  const certificate = snapshot.source;
   const stream = [
     'BT',
     '/F1 20 Tf',
@@ -270,9 +387,9 @@ function buildFakePdfDataUri(certificate: PersonCertificateRecord, verifyUrl: st
     '0 -18 Td',
     `(Code: ${escapePdfText(certificate.certificateCode)}) Tj`,
     '0 -18 Td',
-    `(Verification: ${escapePdfText(verifyUrl)}) Tj`,
+    `(Issued: ${escapePdfText(formatCertificateDate(certificate.issuedAt))}) Tj`,
     '0 -18 Td',
-    `(Generated: ${escapePdfText(new Date().toISOString())}) Tj`,
+    `(Verification: ${escapePdfText(verifyUrl)}) Tj`,
     'ET',
   ].join('\n');
 
@@ -320,19 +437,163 @@ function formatCertificateDate(value: string | null | undefined): string {
   });
 }
 
+function formatCertificateDateDots(value: string | null | undefined): string {
+  return formatCertificateDate(value).replace(/\//g, '.');
+}
+
+function buildCertificateStatusLabel(status: CertificateStatus): {
+  de: string;
+  en: string;
+} {
+  switch (status) {
+    case 'expired':
+      return { de: 'Abgelaufen', en: 'Expired' };
+    case 'revoked':
+      return { de: 'Widerrufen', en: 'Revoked' };
+    default:
+      return { de: 'Aktiv', en: 'Active' };
+  }
+}
+
+function buildCertificateTemplateData(
+  snapshot: CertificateDocumentSnapshot,
+  verifyUrl: string,
+): Record<string, string> {
+  const certificate = snapshot.source;
+  const issuedDate = certificate.issuedAt
+    ? formatCertificateDate(certificate.issuedAt)
+    : '';
+  const issuedDateDots = certificate.issuedAt
+    ? formatCertificateDateDots(certificate.issuedAt)
+    : '';
+  const validUntil = certificate.validUntil
+    ? formatCertificateDate(certificate.validUntil)
+    : '';
+  const validUntilDots = certificate.validUntil
+    ? formatCertificateDateDots(certificate.validUntil)
+    : '';
+  const statusLabel = buildCertificateStatusLabel(certificate.status);
+  const modulesInline = certificate.modules.join(', ');
+  const modulesMultiline = certificate.modules.join('\n');
+  const companyLine = certificate.company?.trim() || '';
+  const holderWithCompany = companyLine
+    ? `${certificate.holderName} · ${companyLine}`
+    : certificate.holderName;
+  const qrcode = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`;
+  const stableDocumentId = buildStablePdfFileId(snapshot);
+  const templateData: Record<string, string> = {
+    qrcode,
+    qrCode: qrcode,
+    verifyUrl,
+    verificationUrl: verifyUrl,
+    publicUrl: verifyUrl,
+    Zert_Nr: certificate.certificateCode,
+    certificateCode: certificate.certificateCode,
+    certificate_code: certificate.certificateCode,
+    Vorname_Nachname: certificate.holderName,
+    holderName: certificate.holderName,
+    holder_name: certificate.holderName,
+    company: companyLine,
+    firma: companyLine,
+    organisation: companyLine,
+    holderWithCompany,
+    datum: issuedDate,
+    issueDate: issuedDate,
+    issuedDate,
+    issued_date: issuedDate,
+    datum_de: issuedDateDots,
+    gueltig_bis: validUntil,
+    validUntil,
+    valid_until: validUntil,
+    gueltig_bis_de: validUntilDots,
+    status: certificate.status,
+    statusLabel: statusLabel.en,
+    status_label: statusLabel.en,
+    statusLabelDe: statusLabel.de,
+    examVersion: certificate.examVersion,
+    exam_version: certificate.examVersion,
+    modules: modulesMultiline,
+    moduleList: modulesInline,
+    module_list: modulesInline,
+    scope: modulesMultiline,
+    badgeAssetUrl: snapshot.render.badgeAssetUrl?.trim() || '',
+    badge_asset_url: snapshot.render.badgeAssetUrl?.trim() || '',
+    documentId: stableDocumentId,
+    document_id: stableDocumentId,
+  };
+
+  for (let index = 0; index < 12; index += 1) {
+    const value = certificate.modules[index] ?? '';
+    templateData[`module_${index + 1}`] = value;
+    templateData[`modul_${index + 1}`] = value;
+  }
+
+  return templateData;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function archiveRemotePdfDataUri(url: string): Promise<string | null> {
+  const normalizedUrl = url.trim();
+  if (!normalizedUrl) {
+    return null;
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (attempt > 0) {
+      await delay(400 * attempt);
+    }
+
+    try {
+      const response = await fetch(normalizedUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/pdf',
+        },
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const contentType = response.headers.get('content-type')?.toLowerCase() ?? '';
+      const hasPdfHeader = buffer.subarray(0, 5).toString('utf8') === '%PDF-';
+      if (!buffer.length || (!contentType.includes('pdf') && !hasPdfHeader)) {
+        continue;
+      }
+
+      return `data:application/pdf;base64,${buffer.toString('base64')}`;
+    } catch (error) {
+      if (attempt === 2) {
+        console.error('Archiving Documentero PDF failed:', error);
+      }
+    }
+  }
+
+  return null;
+}
+
 async function buildNativePdfDataUri(
-  certificate: PersonCertificateRecord,
+  snapshot: CertificateDocumentSnapshot,
   verifyUrl: string,
 ): Promise<string> {
+  const certificate = snapshot.source;
   const jspdfModule = await import('jspdf');
   const JsPdfConstructor = jspdfModule.jsPDF ?? (jspdfModule.default as typeof jspdfModule.jsPDF);
   const pdf = new JsPdfConstructor({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  pdf.setCreationDate(parseStablePdfDate(certificate.issuedAt));
+  pdf.setFileId(buildStablePdfFileId(snapshot));
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const left = 18;
   const right = pageWidth - 18;
   let y = 24;
-  const effectiveStatus = resolveCertificateStatus(certificate);
+  const effectiveStatus = certificate.status;
   const subtitleLines = pdf.splitTextToSize(
     'Publicly verifiable competency certificate for successful internal review in the AI Register.',
     right - left,
@@ -461,7 +722,7 @@ async function buildNativePdfDataUri(
   pdf.setFont('courier', 'normal');
   pdf.setFontSize(8);
   pdf.text('AI Register · Public Verification Record', left, pageHeight - 22);
-  pdf.text(formatCertificateDate(new Date().toISOString()), right, pageHeight - 22, {
+  pdf.text(formatCertificateDate(certificate.issuedAt), right, pageHeight - 22, {
     align: 'right',
   });
 
@@ -927,6 +1188,35 @@ async function getPublicCertificate(
     : null;
 }
 
+async function findCertificateByCode(
+  certificateCode: string,
+): Promise<PersonCertificateRecord | null> {
+  const normalizedCode = certificateCode.trim();
+  if (!normalizedCode) {
+    return null;
+  }
+
+  if (!hasFirebaseAdminCredentials()) {
+    return (
+      Array.from(getMemoryStore().certificates.values()).find(
+        (certificate) => certificate.certificateCode === normalizedCode,
+      ) ?? null
+    );
+  }
+
+  const snapshot = await getAdminDb()
+    .collection('person_certificates')
+    .where('certificateCode', '==', normalizedCode)
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) {
+    return null;
+  }
+
+  return (snapshot.docs[0]?.data() as PersonCertificateRecord) ?? null;
+}
+
 async function getLegacyCertificateDocumentUrl(
   certificateId: string,
 ): Promise<string | null> {
@@ -953,16 +1243,17 @@ async function getLegacyCertificateDocumentUrl(
   return documents[0]?.url?.trim() || null;
 }
 
-async function getLegacyPublicCertificate(
+async function getLegacyCertificateByCode(
   certificateCode: string,
-): Promise<PublicCertificateRecord | null> {
-  if (!hasFirebaseAdminCredentials()) {
+): Promise<LegacyCertificateLookup | null> {
+  const normalizedCode = certificateCode.trim();
+  if (!normalizedCode || !hasFirebaseAdminCredentials()) {
     return null;
   }
 
   const snapshot = await getAdminDb()
     .collection('zertifikatspruefung')
-    .where('code', '==', certificateCode)
+    .where('code', '==', normalizedCode)
     .limit(1)
     .get();
 
@@ -971,11 +1262,66 @@ async function getLegacyPublicCertificate(
   }
 
   const legacyDoc = snapshot.docs[0];
-  const latestDocumentUrl = await getLegacyCertificateDocumentUrl(legacyDoc.id);
-  return mapLegacyCertificateToPublicRecord({
-    certificateId: legacyDoc.id,
+  return {
+    legacyCertificateId: legacyDoc.id,
     data: legacyDoc.data() as LegacyCertificateRecord,
-    latestDocumentUrl,
+    latestDocumentUrl: await getLegacyCertificateDocumentUrl(legacyDoc.id),
+  };
+}
+
+function buildCertificateFromLegacyRecord(
+  legacy: LegacyCertificateLookup,
+): PersonCertificateRecord | null {
+  const publicRecord = mapLegacyCertificateToPublicRecord({
+    certificateId: legacy.legacyCertificateId,
+    data: legacy.data,
+    latestDocumentUrl: legacy.latestDocumentUrl,
+  });
+
+  if (!publicRecord) {
+    return null;
+  }
+
+  return {
+    certificateId: `legacy:${legacy.legacyCertificateId}`,
+    certificateCode: publicRecord.certificateCode,
+    userId: `legacy:${legacy.legacyCertificateId}`,
+    email: normalizeEmail(
+      legacy.data.holder?.email?.trim() ||
+        `legacy-${legacy.legacyCertificateId}@kiregister.local`,
+    ),
+    holderName: publicRecord.holderName,
+    company: publicRecord.company,
+    issuedAt: publicRecord.issuedDate,
+    validUntil: publicRecord.validUntil,
+    status: publicRecord.status,
+    examVersion: 'legacy',
+    modules: publicRecord.modules,
+    latestDocumentUrl: legacy.latestDocumentUrl,
+    latestDocumentGeneratedAt: null,
+    publicUrl: publicRecord.verifyUrl,
+    auditTrail: [
+      buildAuditEvent(
+        'legacy-import@kiregister.com',
+        'manual_issue',
+        'Legacy certificate imported for reliable public regeneration.',
+      ),
+    ],
+  };
+}
+
+async function getLegacyPublicCertificate(
+  certificateCode: string,
+): Promise<PublicCertificateRecord | null> {
+  const legacy = await getLegacyCertificateByCode(certificateCode);
+  if (!legacy) {
+    return null;
+  }
+
+  return mapLegacyCertificateToPublicRecord({
+    certificateId: legacy.legacyCertificateId,
+    data: legacy.data,
+    latestDocumentUrl: legacy.latestDocumentUrl,
   });
 }
 
@@ -1010,26 +1356,29 @@ function createCertificateRecord(
 }
 
 async function generateDocumentUrl(
-  certificate: PersonCertificateRecord,
-  settings: CertificationSettings,
+  snapshot: CertificateDocumentSnapshot,
 ): Promise<GeneratedDocument> {
-  const verifyUrl = buildCertificateVerifyUrl(certificate.certificateCode);
+  const verifyUrl = getCertificateSnapshotVerifyUrl(snapshot);
+  const certificate = snapshot.source;
 
   if (isFakeDocumentModeEnabled()) {
     return {
-      url: buildFakePdfDataUri(certificate, verifyUrl),
+      url: buildFakePdfDataUri(snapshot, verifyUrl),
       provider: 'native',
     };
   }
 
   const documenteroApiKey = resolveDocumenteroApiKey();
 
-  if (
-    isExternalCertificatePdfsEnabled() &&
-    settings.documentProvider === 'documentero' &&
-    documenteroApiKey &&
-    settings.documentTemplateId
-  ) {
+  if (snapshot.render.provider === 'documentero') {
+    if (
+      !isExternalCertificatePdfsEnabled() ||
+      !documenteroApiKey ||
+      !snapshot.render.templateId
+    ) {
+      throw new Error('The stored Documentero template is not available for regeneration.');
+    }
+
     const filename = `${
       certificate.holderName.replace(/[^a-zA-Z0-9]+/g, '_') || 'certificate'
     }_${certificate.certificateCode}.pdf`;
@@ -1041,15 +1390,10 @@ async function generateDocumentUrl(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        document: settings.documentTemplateId,
+        document: snapshot.render.templateId,
         format: 'pdf',
         filename,
-        data: {
-          qrcode: `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(verifyUrl)}`,
-          Zert_Nr: certificate.certificateCode,
-          Vorname_Nachname: certificate.holderName,
-          datum: new Date(certificate.issuedAt).toLocaleDateString('en-GB'),
-        },
+        data: buildCertificateTemplateData(snapshot, verifyUrl),
       }),
     });
 
@@ -1068,13 +1412,13 @@ async function generateDocumentUrl(
     }
 
     return {
-      url: payload.data,
+      url: (await archiveRemotePdfDataUri(payload.data)) ?? payload.data,
       provider: 'documentero',
     };
   }
 
   return {
-    url: await buildNativePdfDataUri(certificate, verifyUrl),
+    url: await buildNativePdfDataUri(snapshot, verifyUrl),
     provider: 'native',
   };
 }
@@ -1198,7 +1542,8 @@ export async function submitExamAttempt(
   }
 
   try {
-    const document = await generateDocumentUrl(certificate, settings);
+    const snapshot = buildCertificateDocumentSnapshot(certificate, settings);
+    const document = await generateDocumentUrl(snapshot);
     certificateDocument = {
       documentId: randomUUID(),
       certificateId: certificate.certificateId,
@@ -1206,6 +1551,7 @@ export async function submitExamAttempt(
       url: document.url,
       provider: document.provider,
       generatedBy: actor.email,
+      snapshot,
     };
     await saveCertificateDocument(certificateDocument);
     certificate = {
@@ -1236,7 +1582,11 @@ export async function regenerateCertificateDocument(
   }
 
   const settings = await getSettings();
-  const generatedDocument = await generateDocumentUrl(certificate, settings);
+  const latestDocument = (await listCertificateDocuments(certificate.certificateId))[0] ?? null;
+  const snapshot =
+    latestDocument?.snapshot ?? buildCertificateDocumentSnapshot(certificate, settings);
+  const generatedDocument =
+    getReusableArchivedDocument(latestDocument) ?? (await generateDocumentUrl(snapshot));
 
   const document: CertificateDocumentRecord = {
     documentId: randomUUID(),
@@ -1245,6 +1595,7 @@ export async function regenerateCertificateDocument(
     url: generatedDocument.url,
     provider: generatedDocument.provider,
     generatedBy: actor.email,
+    snapshot,
   };
 
   await saveCertificateDocument(document);
@@ -1254,13 +1605,49 @@ export async function regenerateCertificateDocument(
     latestDocumentUrl: document.url,
     latestDocumentGeneratedAt: document.generatedAt,
     auditTrail: [
-      buildAuditEvent(actor.email, 'regenerated', 'Certificate PDF regenerated.'),
+      buildAuditEvent(
+        actor.email,
+        'regenerated',
+        'Certificate PDF regenerated from the saved render snapshot.',
+      ),
       ...certificate.auditTrail,
     ],
   };
 
   await saveCertificate(updatedCertificate);
   return updatedCertificate;
+}
+
+export async function regeneratePublicCertificateDocument(
+  certificateCode: string,
+): Promise<PublicCertificateRecord> {
+  const normalizedCode = certificateCode.trim();
+  if (!normalizedCode) {
+    throw new Error('Certificate code is required.');
+  }
+
+  let certificate = await findCertificateByCode(normalizedCode);
+  if (!certificate) {
+    const legacy = await getLegacyCertificateByCode(normalizedCode);
+    const migrated = legacy ? buildCertificateFromLegacyRecord(legacy) : null;
+    if (!migrated) {
+      throw new Error('Certificate not found.');
+    }
+
+    certificate = migrated;
+    await saveCertificate(certificate);
+  }
+
+  const regenerated = await regenerateCertificateDocument(
+    {
+      uid: 'public-verification',
+      email: 'public-verify@kiregister.com',
+      displayName: 'Public Verification',
+    },
+    certificate.certificateId,
+  );
+
+  return buildPublicRecord(regenerated);
 }
 
 export async function updateCertificateByAdmin(
@@ -1401,11 +1788,12 @@ export async function getCertificateWithDocuments(
 
 export async function getBadgePreviewData(
   certificateCode: string,
+  alignment: 'left' | 'center' | 'right' = 'center',
 ): Promise<{
   html: string | null;
   origin: string;
 }> {
-  const html = await getCertificateBadgeMarkup(certificateCode);
+  const html = await getCertificateBadgeMarkup(certificateCode, alignment);
   return {
     html,
     origin: getPublicAppOrigin(),

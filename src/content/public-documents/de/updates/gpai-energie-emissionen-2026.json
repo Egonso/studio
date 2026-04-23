@@ -6,21 +6,21 @@
   "intent": "regulatory-radar",
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
-  "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "effective_date": "2026-04-20",
+  "last_substantive_update": "2026-04-20",
   "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/faqs/navigating-ai-act",
     "https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-measuring-energy-consumption-and-emissions-ai-models-and-systems",
-    "https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai",
-    "https://digital-strategy.ec.europa.eu/en/faqs/questions-and-answers-code-practice-general-purpose-ai"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
   ],
   "schema_types": ["Article", "BreadcrumbList", "Organization"],
   "template_variant": "authority-update",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
-  "title": "Energie- und Emissionsangaben werden zur Modellfrage im Use-Case Pass",
-  "summary": "Die neue EU-Konsultation zu Energieverbrauch und Emissionen von KI-Modellen macht ein bereits angelegtes Dokumentationsthema operativ sichtbar. Für den Use-Case Pass heißt das: Bei GPAI-gestützten Einsatzfällen sollte der Anbieter benannt werden. Ebenso sollte die Evidenzlage zu Energieverbrauch, Emissionen sowie zu den zugrunde liegenden Datenquellen für Training und Inferenz festgehalten werden.",
+  "title": "Ressourcenleistung wird zum dokumentierbaren Objekt im Use-Case Pass",
+  "summary": "Die Kommission verknüpft Ressourcenleistung jetzt ausdrücklich mit künftigen Berichts- und Dokumentationsprozessen für AI-Systeme. Zusammen mit der laufenden Konsultation zu Energieverbrauch und Emissionen folgt daraus für KIRegister ein enger Standard: GPAI-bezogene Einsatzfälle sollten Anbieter, Lebenszyklus-Stufe, verfügbare Energie- und Emissionsdaten, Messbasis und Datenlücken als eigenes Evidenzobjekt führen.",
   "object_label": "Regulatorisches Update",
-  "stance_label": "GPAI-Evidenzfolge",
+  "stance_label": "Ressourcenleistungs-Nachweis",
   "author": "KIRegister",
   "audiences": [
     "Governance- und Compliance-Teams mit GPAI-basierten Einsatzfällen",
@@ -28,9 +28,9 @@
     "Partner, Auditoren und Beschaffer mit Bedarf an belastbarer Modell-Evidenz"
   ],
   "delivers": [
-    "eine enge Einordnung der neuen EU-Konsultation zu Energie- und Emissionsmessung",
+    "eine enge Einordnung der offiziellen Ressourcenleistungs- und Dokumentationslinie",
     "eine direkte Übersetzung in Pass-, Supplier- und Evidenzarbeit",
-    "einen pragmatischen Mindeststandard für GPAI-bezogene Modellangaben im Register"
+    "einen pragmatischen Mindeststandard für GPAI-bezogene Ressourcenleistungs-Nachweise im Register"
   ],
   "cta": {
     "label": "Jetzt registrieren",
@@ -52,7 +52,7 @@
   "faq": [
     {
       "q": "Muss jedes Unternehmen Energie- und Emissionsdaten jetzt selbst berechnen?",
-      "a": "Nicht zwingend. Praktisch entscheidend ist zunächst, ob für den verwendeten GPAI-Baustein belastbare Anbieterangaben, Schätzungen oder dokumentierte Nichtverfügbarkeit vorliegen. Der Use-Case Pass sollte diese Evidenzlage pro Einsatzfall sichtbar machen, statt sie offen zu lassen."
+      "a": "Nicht zwingend. Die offiziellen Quellen machen vor allem zweierlei praktisch sichtbar: Erstens werden Berichts- und Dokumentationsprozesse zur Ressourcenleistung vorbereitet. Zweitens sollen Daten zu Energieverbrauch und Effizienz über Training und Inferenz besser messbar werden. Der Use-Case Pass sollte deshalb zunächst sauber festhalten, welche Anbieterangaben, Schätzungen oder dokumentierten Lücken pro Einsatzfall vorliegen."
     }
   ],
   "sections": [
@@ -60,33 +60,37 @@
       "kind": "paragraphs",
       "heading": "Was sich jetzt operativ verdichtet",
       "paragraphs": [
-        "Die Europäische Kommission hat am 7. April 2026 eine gezielte Konsultation zur Messung von Energieverbrauch und Emissionen von KI-Modellen und -Systemen gestartet. Sie knüpft ausdrücklich an energiebezogene Ziele des AI Act an und soll einen praktischen Messrahmen sowie die Grundlage für ein mögliches Energie- und Emissionslabel vorbereiten.",
-        "Damit wird ein Thema konkret, das für GPAI-Modelle nicht mehr nur abstrakt ist. Die offizielle Beschreibung verweist darauf, dass Anbieter von GPAI-Modellen den bekannten oder geschätzten Energieverbrauch ihrer Modelle im Rahmen der technischen Dokumentation nach Anhang XI dokumentieren müssen. Für KIRegister ist das keine Randnotiz, sondern eine neue Evidenzfrage am einzelnen Einsatzfall."
+        "Die AI-Act-FAQ der Kommission nennt Ressourcenleistung jetzt ausdrücklich als Gegenstand künftiger Berichts- und Dokumentationsprozesse. Für 2026 ist ein Standardisierungs-Deliverable angekündigt, das die Ressourcenleistung von AI-Systemen verbessern soll, einschließlich des Energie- und Ressourcenverbrauchs über den Lebenszyklus sowie der energieeffizienten Entwicklung von GPAI-Modellen.",
+        "Parallel dazu hat die Kommission am 7. April 2026 eine gezielte Konsultation zu Energieverbrauch und Emissionen von KI-Modellen und -Systemen gestartet. Sie soll einen praktischen Messrahmen vorbereiten und macht deutlich, dass belastbare Daten zu Training, Inferenz, Hardware und Stromverbrauch künftig kein Nebenthema mehr sind. Für KIRegister wird daraus ein enger Arbeitsauftrag: Ressourcenleistung muss als eigenes Nachweisobjekt pro Einsatzfall sichtbar werden."
       ]
     },
     {
       "kind": "table",
-      "heading": "Welche Modellangaben im Pass jetzt vorbereitet sein sollten",
+      "heading": "Welche Nachweisfelder zur Ressourcenleistung jetzt vorbereitet sein sollten",
       "rows": [
         {
           "label": "Modellanbieter",
           "value": "Welcher GPAI-Anbieter oder welche Plattform den verwendeten Modellbaustein bereitstellt und auf welcher Vertrags- oder Produktbasis er genutzt wird."
         },
         {
-          "label": "Energieangabe",
-          "value": "Ob dokumentierte oder geschätzte Angaben zum Energieverbrauch vorliegen und auf welche Quelle sie sich stützen."
-        },
-        {
-          "label": "Emissionsbezug",
-          "value": "Ob Emissions- oder Effizienzangaben vorhanden sind, in welchem Umfang sie nutzbar sind und ob nur Teilinformationen vorliegen."
-        },
-        {
           "label": "Lebenszyklus-Stufe",
-          "value": "Ob sich die Evidenz auf Training, Inferenz oder beide Stufen bezieht, damit Rückfragen nicht auf unscharfen Sammelangaben enden."
+          "value": "Ob die Evidenz Training, Inferenz oder beide Stufen betrifft, damit Ressourcenleistung nicht als unscharfer Sammelbegriff dokumentiert wird."
         },
         {
-          "label": "Datenverfügbarkeit",
-          "value": "Ob die Angaben vom Anbieter direkt geliefert wurden, aus öffentlich verfügbaren Unterlagen stammen oder derzeit nicht verfügbar sind."
+          "label": "Energie- und Emissionsangaben",
+          "value": "Ob dokumentierte oder geschätzte Angaben zu Energieverbrauch, Emissionen oder Effizienz vorliegen und auf welche Quelle sie sich stützen."
+        },
+        {
+          "label": "Messbasis",
+          "value": "Welche Datenbasis genutzt wird, etwa Anbieterunterlagen, öffentliche Dokumentation, Vertragsauskünfte oder interne Schätzungen."
+        },
+        {
+          "label": "Ressourcen- und Hardwarebezug",
+          "value": "Ob Angaben zu Rechenressourcen, Hardware oder Strombezug vorhanden sind, weil die offizielle Konsultation genau diese Ebenen für die Messbarkeit hervorhebt."
+        },
+        {
+          "label": "Dokumentierte Lücken",
+          "value": "Welche Daten derzeit fehlen, wer für die Klärung zuständig ist und bis wann die Lücke erneut geprüft werden soll."
         }
       ]
     },
@@ -94,26 +98,26 @@
       "kind": "bullets",
       "heading": "Was das für den Use-Case Pass bedeutet",
       "items": [
-        "GPAI-gestützte Einsatzfälle sollten einen expliziten Modell- oder Plattformbezug erhalten, nicht nur einen allgemeinen Tool-Namen.",
-        "Die Evidenzsektion sollte festhalten, ob Energie- und Emissionsangaben vorliegen, geschätzt werden oder aktuell fehlen.",
-        "Supplier- und Beschaffungsanfragen sollten dieselbe Modellfrage nutzen wie der interne Pass, damit keine zweite Nachweiswelt entsteht.",
-        "Wenn keine belastbaren Angaben verfügbar sind, sollte genau diese Lücke dokumentiert und einem Owner zugeordnet werden."
+        "GPAI-gestützte Einsatzfälle sollten ein eigenes Evidenzfeld für Ressourcenleistung erhalten, nicht nur einen allgemeinen Tool-Namen.",
+        "Die Pass-Logik sollte sauber zwischen Training, Inferenz und dokumentierter Nichtverfügbarkeit unterscheiden.",
+        "Supplier- und Beschaffungsanfragen sollten dieselbe Ressourcenleistungsfrage nutzen wie der interne Pass, damit keine zweite Nachweiswelt entsteht.",
+        "Wenn belastbare Angaben fehlen, sollte genau diese Lücke dokumentiert und einem Owner zugeordnet werden, statt das Thema implizit offen zu lassen."
       ]
     },
     {
       "kind": "paragraphs",
       "heading": "Wo die Nachfrage zuerst praktisch wird",
       "paragraphs": [
-        "Am schnellsten relevant wird das Thema dort, wo Unternehmen Modelle nicht selbst entwickeln, aber ihre Nutzung gegenüber Kunden, Auditoren, internen Gremien oder Lieferkettenpartnern erklären müssen. Dann reicht es nicht mehr, nur Funktionsumfang, Datenschutz oder allgemeine Anbieterinformationen zu nennen.",
-        "Besonders in Beschaffung, Qualitätsmanagement und Automotive-Lieferketten wird daraus eine konkrete Anschlussfrage: Kann der eingesetzte Modellbaustein mit belastbaren Umwelt- und Transparenzangaben beschrieben werden oder endet die Dokumentation beim Produktnamen?"
+        "Am schnellsten relevant wird das Thema dort, wo Unternehmen Modelle nicht selbst entwickeln, ihre Nutzung aber gegenüber Kunden, Auditoren, internen Gremien oder Lieferkettenpartnern erklären müssen. Dann reicht es nicht mehr, nur Funktionsumfang, Datenschutz oder allgemeine Anbieterinformationen zu nennen.",
+        "Besonders in Beschaffung, Qualitätsmanagement und Automotive-Lieferketten wird daraus eine konkrete Anschlussfrage: Kann der eingesetzte Modellbaustein mit belastbaren Angaben zu Ressourcenleistung beschrieben werden oder endet die Dokumentation weiterhin beim Produktnamen?"
       ]
     },
     {
       "kind": "paragraphs",
       "heading": "Was wir nicht empfehlen",
       "paragraphs": [
-        "Nicht sinnvoll ist es, die neue Anforderung mit freien Notizen oder verstreuten Vendor-PDFs zu beantworten. Dadurch bleibt unklar, welcher Einsatzfall auf welches Modell verweist und welche Evidenz dazu tatsächlich geprüft wurde.",
-        "Ebenso schwach ist ein Register, das GPAI-Nutzung nur als generisches Tool-Thema behandelt. Sobald Energie-, Emissions- oder Transparenzfragen auftauchen, fehlt dann die Brücke zwischen realem Einsatzfall, Anbieterangabe und verantwortlicher Stelle."
+        "Nicht sinnvoll ist es, die neue Dokumentationslinie mit freien Notizen oder verstreuten Vendor-PDFs zu beantworten. Dadurch bleibt unklar, welcher Einsatzfall auf welches Modell verweist und welche Evidenz zur Ressourcenleistung tatsächlich geprüft wurde.",
+        "Ebenso schwach ist ein Register, das GPAI-Nutzung nur als generisches Tool-Thema behandelt. Sobald Energie-, Emissions-, Effizienz- oder Ressourcenfragen auftauchen, fehlt dann die Brücke zwischen realem Einsatzfall, Anbieterangabe und verantwortlicher Stelle."
       ]
     }
   ]

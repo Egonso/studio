@@ -1,0 +1,128 @@
+{
+  "slug": "ai-act-nachweisfelder-standardisierung-2026",
+  "locale": "de",
+  "content_type": "update",
+  "sector": "cross-industry",
+  "intent": "regulatory-radar",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-19",
+  "last_substantive_update": "2026-04-19",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/faqs/understanding-standardisation-ai-act",
+    "https://digital-strategy.ec.europa.eu/en/faqs/navigating-ai-act",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "authority-update",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Die Standardisierungs-FAQ macht Nachweisfelder im Use-Case Pass konkret",
+  "summary": "Die Kommission beschreibt jetzt präziser, welche Themen künftige harmonisierte Standards abdecken und dass diese später per Annex auf Anforderungen des AI Act gemappt werden. Für KIRegister folgt daraus ein enger Standard: Use-Case-Pässe sollten Nachweisfelder für Risikomanagement, Datensatz-Governance, Logging, Nutzerinformation, Human Oversight, Genauigkeit, Robustheit, Cybersicherheit und Qualitätsmanagement sauber trennen.",
+  "object_label": "Regulatorisches Update",
+  "stance_label": "Nachweisfelder und Standardmapping",
+  "author": "KIRegister",
+  "audiences": [
+    "Governance- und Compliance-Teams mit KI-Einsatzfällen im Prüf- oder Lieferkettenkontext",
+    "Produkt-, Qualitäts- und Dokumentationsverantwortliche mit anschlussfähigen Exportanforderungen",
+    "Partner, Auditoren und Beschaffer mit Bedarf an strukturierter Nachweisführung"
+  ],
+  "delivers": [
+    "eine enge Einordnung der offiziellen Standardisierungs-FAQ für die Pass-Struktur",
+    "eine konkrete Liste von Nachweisfeldern, die heute schon getrennt geführt werden sollten",
+    "einen pragmatischen Maßstab für standardisierungsfähige Register- und Exportlogik"
+  ],
+  "cta": {
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Standardisierungsfähige Nachweise werden erst belastbar, wenn der einzelne Einsatzfall mit getrennten Feldern im Register geführt wird."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Die Referenzstruktur, an die standardisierungsfähige Nachweisfelder angeschlossen werden sollten."
+    },
+    {
+      "label": "KI-Governance für Automobil-Zulieferer",
+      "href": "/de/industries/automotive-suppliers",
+      "description": "Warum saubere Nachweisfelder besonders früh in Beschaffung und Lieferkette relevant werden."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Bedeutet das schon, dass jeder Use Case ein formales Hochrisiko-System ist?",
+      "a": "Nein. Die Quellen sagen nicht, dass jeder Einsatzfall unter die Hochrisiko-Regeln fällt. Sie machen aber klar, welche Nachweisthemen künftige harmonisierte Standards für hochriskante Systeme abdecken sollen. Genau deshalb ist es sinnvoll, diese Felder schon heute getrennt zu führen, damit Prüf- und Lieferkettenfragen nicht erst später in freie Texte ausgelagert werden."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Was sich jetzt praktisch verdichtet",
+      "paragraphs": [
+        "Die Standardisierungs-FAQ der Kommission benennt jetzt deutlich konkreter, welche Themen harmonisierte Standards für den AI Act abdecken sollen: Risikomanagement, Governance und Qualität von Datensätzen, Logging, Transparenz und Information für Nutzer, Human Oversight, Genauigkeit, Robustheit, Cybersicherheit, Qualitätsmanagement und Konformitätsbewertung.",
+        "Neu praktisch wird das durch einen zweiten Punkt: Wenn harmonisierte Standards später im Amtsblatt referenziert werden, sollen sie mit einem Annex erscheinen, der die rechtlichen Anforderungen des AI Act auf die Klauseln des Standards abbildet. Für KIRegister heißt das nicht, heute schon Normtexte zu simulieren. Es heißt aber, den Use-Case Pass so zu strukturieren, dass diese Nachweisthemen nicht in einer einzigen Freitextbeschreibung verschwinden."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Nachweisfelder der Use-Case Pass jetzt getrennt führen sollte",
+      "rows": [
+        {
+          "label": "Risikomanagement",
+          "value": "Welche Risiken für Zweck, Betrieb und betroffene Personen beschrieben sind und wo die aktuelle Bewertung dokumentiert wird."
+        },
+        {
+          "label": "Datensatz-Governance",
+          "value": "Welche Datenquellen, Qualitätsannahmen, Einschränkungen oder Repräsentativitätsfragen für Training, Konfiguration oder Betrieb relevant sind."
+        },
+        {
+          "label": "Logging und Nachvollziehbarkeit",
+          "value": "Welche Protokolle, Ereignisse oder Exportspuren den Einsatzfall nachvollziehbar machen und wo sie eingesehen werden können."
+        },
+        {
+          "label": "Nutzerinformation und Transparenz",
+          "value": "Welche Informationen Nutzer, interne Owner oder nachgelagerte Stellen zum Zweck, zu Grenzen und zum richtigen Einsatz erhalten."
+        },
+        {
+          "label": "Human Oversight und Betriebsverantwortung",
+          "value": "Wer die menschliche Aufsicht ausübt, wann eingegriffen wird und wie Eskalation oder Freigabe organisiert sind."
+        },
+        {
+          "label": "Leistungs- und Sicherheitsmerkmale",
+          "value": "Wie Genauigkeit, Robustheit und Cybersicherheit beschrieben, gemessen oder durch Evidenz gestützt werden."
+        },
+        {
+          "label": "Qualitätsmanagement",
+          "value": "Welche wiederkehrenden Review-, Änderungs- und Korrekturprozesse den Einsatzfall über den Lebenszyklus stabil halten."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Warum das den Use-Case Pass stärkt",
+      "items": [
+        "Der Pass wird von einer allgemeinen Beschreibung zu einem nach Themen trennbaren Nachweisobjekt.",
+        "Spätere Standard- oder Annex-Zuordnungen lassen sich auf vorhandene Felder beziehen statt auf unstrukturierte Fließtexte.",
+        "Audit-, Lieferketten- und Beschaffungsfragen können mit denselben Pass-Feldern beantwortet werden.",
+        "Register, Export und Verify-Fläche bleiben auf derselben Nachweislogik statt drei verschiedene Dokumentationswelten zu erzeugen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was daraus nicht abgeleitet werden sollte",
+      "paragraphs": [
+        "Die offiziellen Seiten sagen nicht, dass Unternehmen auf die Veröffentlichung harmonisierter Standards warten sollten. Ebenso wenig sagen sie, dass jede Organisation heute schon dieselbe Tiefe wie eine spätere Konformitätsbewertung braucht.",
+        "Nicht sinnvoll ist deshalb ein überladener Pass, der Normkapitel nachahmt oder Formalismen ohne echten Einsatzfallbezug sammelt. Sinnvoll ist eine schlanke, aber klar getrennte Feldlogik, die bei Bedarf verdichtet werden kann, ohne das Grundobjekt neu zu bauen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was jetzt konkret aufgebaut werden sollte",
+      "paragraphs": [
+        "Für relevante oder potenziell sensible KI-Einsatzfälle sollte der Pass nicht nur Zweck, Owner und Status führen, sondern die Nachweisthemen aus der FAQ als eigene Bereiche sichtbar machen. Das betrifft besonders Fälle mit Partnerprüfung, Beschaffung, Qualitätsmanagement oder möglicher Hochrisiko-Nähe.",
+        "Im nächsten Schritt sollten dieselben Felder in Exporte, Supplier Requests und interne Review-Routinen übernommen werden. So entsteht ein dokumentenzentrierter Standard, der mit künftigen Standardisierungs- und OJEU-Mappings anschlussfähig bleibt, ohne heute mehr zu versprechen als die Quellen tragen."
+      ]
+    }
+  ]
+}

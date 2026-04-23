@@ -1,0 +1,121 @@
+{
+  "slug": "gpai-trainingsinhalt-zusammenfassung-2026",
+  "locale": "de",
+  "content_type": "update",
+  "sector": "cross-industry",
+  "intent": "regulatory-radar",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-04-17",
+  "last_substantive_update": "2026-04-17",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/policies/guidelines-gpai-providers",
+    "https://digital-strategy.ec.europa.eu/en/faqs/guidelines-obligations-general-purpose-ai-providers",
+    "https://digital-strategy.ec.europa.eu/en/library/explanatory-notice-and-template-public-summary-training-content-general-purpose-ai-models",
+    "https://digital-strategy.ec.europa.eu/en/faqs/template-general-purpose-ai-model-providers-summarise-their-training-content"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "authority-update",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Die öffentliche Trainingsinhalts-Zusammenfassung wird zum Evidenzlink im Use-Case Pass",
+  "summary": "Die Kommission hat die GPAI-Leitlinien, das Erläuterungsdokument und das Template für die öffentliche Zusammenfassung der Trainingsinhalte konkretisiert. Für KIRegister folgt daraus ein enger Standard: GPAI-gestützte Einsatzfälle sollten den Modellanbieter, das konkrete Modell, den öffentlichen Summary-Link und erkennbare Informationsgrenzen im Use-Case Pass mitführen.",
+  "object_label": "Regulatorisches Update",
+  "stance_label": "Trainingsinhalts-Evidenz",
+  "author": "KIRegister",
+  "audiences": [
+    "Governance- und Compliance-Teams mit GPAI-gestützten Einsatzfällen",
+    "Einkauf, Qualität und Lieferantenmanagement mit Modell- und Transparenzfragen",
+    "Partner, Auditoren und Beschaffer mit Bedarf an belastbarer Modell-Evidenz"
+  ],
+  "delivers": [
+    "eine enge Einordnung der neuen GPAI-Leitlinien samt Summary-Template",
+    "eine direkte Übersetzung in Pass-, Supplier- und Evidenzarbeit",
+    "einen pragmatischen Mindeststandard für öffentlich belegbare Trainingsinhalts-Angaben im Register"
+  ],
+  "cta": {
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Die Modelltransparenz wird erst belastbar, wenn der konkrete Einsatzfall im Register mit einem evidenzfähigen Pass geführt wird."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Die Referenzstruktur, an die neue modellbezogene Evidenz sauber angeschlossen werden sollte."
+    },
+    {
+      "label": "OEM Supplier Request Kit",
+      "href": "/de/artefacts/oem-supplier-request-kit",
+      "description": "Warum die neue Summary-Frage schnell in Lieferketten und Beschaffung auftaucht."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Reicht es aus, nur einen allgemeinen Anbieternamen im Register zu nennen?",
+      "a": "Nein. Praktisch belastbar wird die Angabe erst, wenn der konkrete Modellbezug und der öffentliche Summary-Link festgehalten werden. Wenn eine Zusammenfassung fehlt oder nur Teilinformationen enthält, sollte genau diese Lücke als Evidenzstatus im Use-Case Pass sichtbar sein."
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Was sich jetzt praktisch verändert hat",
+      "paragraphs": [
+        "Die Europäische Kommission hat am 26. März 2026 Leitlinien zum Umfang der Pflichten für GPAI-Anbieter veröffentlicht und zugleich ein Erläuterungsdokument mit Template für die öffentliche Zusammenfassung der Trainingsinhalte bereitgestellt. Damit ist nicht mehr nur abstrakt beschrieben, dass Anbieter eine ausreichend detaillierte Summary veröffentlichen sollen. Es gibt jetzt auch einen offiziellen Einreichungs- und Strukturpfad.",
+        "Für KIRegister ist das relevant, weil GPAI-gestützte Einsatzfälle häufig an einer zu groben Modellbeschreibung leiden. Ein bloßer Produktname beantwortet weder, welches Modell tatsächlich genutzt wird, noch welche öffentliche Trainingsinhalts-Zusammenfassung, welcher Stand und welche offenkundigen Informationsgrenzen dazu vorliegen."
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Angabe im Use-Case Pass jetzt ergänzt werden sollte",
+      "rows": [
+        {
+          "label": "Modellbezug",
+          "value": "Welcher GPAI-Anbieter und welches konkrete Modell oder welche Modellfamilie dem Einsatzfall zugrunde liegt."
+        },
+        {
+          "label": "Öffentlicher Summary-Link",
+          "value": "Unter welcher offiziellen URL die veröffentlichte Zusammenfassung der Trainingsinhalte abrufbar ist."
+        },
+        {
+          "label": "Summary-Stand",
+          "value": "Welcher Veröffentlichungs- oder Aktualisierungsstand der öffentlichen Zusammenfassung für den Einsatzfall herangezogen wurde."
+        },
+        {
+          "label": "Informationsgrenzen",
+          "value": "Ob die Zusammenfassung nur Kategorien, Teilmengen, Ausschlüsse oder sonstige erkennbare Begrenzungen nennt und wie diese im Register vermerkt werden."
+        },
+        {
+          "label": "Evidenzstatus",
+          "value": "Ob ein belastbarer öffentlicher Link vorliegt, nur indirekte Anbieterangaben vorhanden sind oder die Summary derzeit nicht auffindbar ist."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Warum das den Use-Case Pass stärkt",
+      "items": [
+        "Der Pass bekommt einen prüfbaren Modell-Evidenzlink statt einer bloßen Tool-Nennung.",
+        "Beschaffung und Audit sehen schneller, ob ein Anbieter seine öffentliche Trainingsinhalts-Zusammenfassung tatsächlich bereitstellt.",
+        "Informationslücken werden als dokumentierter Status sichtbar, statt in Freitext oder Lieferantenpostfächern zu verschwinden.",
+        "Supplier-Anfragen und interne Registerarbeit können dieselbe Modellreferenz und denselben Summary-Link verwenden."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was daraus nicht gemacht werden sollte",
+      "paragraphs": [
+        "Nicht sinnvoll ist es, aus der öffentlichen Zusammenfassung eine Vollprüfung des Trainingsdatensatzes abzuleiten. Das offizielle Format ist ein Transparenz- und Nachweispfad, kein Ersatz für tiefergehende Vertrags-, Risiko- oder Lieferantenprüfungen.",
+        "Ebenso schwach wäre ein Register, das zwar den Anbieter nennt, aber nicht festhält, ob überhaupt eine öffentliche Zusammenfassung gefunden wurde und welche Aussagegrenzen sie hat. Genau dann endet die Dokumentation im entscheidenden Moment an einer unklaren Modellreferenz."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was jetzt konkret aufgebaut werden sollte",
+      "paragraphs": [
+        "Für jeden GPAI-gestützten Einsatzfall sollte der verantwortliche Owner zunächst den konkreten Modellanbieter und die offizielle Summary-URL dokumentieren. Danach sollte im Pass markiert werden, auf welchen Stand der Zusammenfassung sich der Eintrag stützt und ob erkennbare Informationsgrenzen vorliegen.",
+        "Im nächsten Schritt sollte dieselbe Angabe in Supplier- und Beschaffungsanfragen wiederverwendet werden. So entsteht kein zweiter Transparenzpfad neben dem Register, sondern ein einheitlicher Nachweisweg pro Use Case."
+      ]
+    }
+  ]
+}
