@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -60,6 +59,7 @@ import {
   buildScopedUseCasePassHref,
 } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
+import { useRouter } from "@/i18n/navigation";
 import type { EditableMetadataField } from "./use-case-metadata-section";
 
 interface UseCaseHeaderProps {
@@ -70,10 +70,16 @@ interface UseCaseHeaderProps {
 }
 
 const aiRegistry = createAiToolsRegistryService();
-const legacyDecisionImpactLabels = {
+const legacyDecisionImpactLabelsDe = {
   YES: "Ja",
   NO: "Nein",
   UNSURE: "Unsicher",
+} as const;
+
+const legacyDecisionImpactLabelsEn = {
+  YES: "Yes",
+  NO: "No",
+  UNSURE: "Unsure",
 } as const;
 
 function downloadFile(content: string, filename: string, mimeType: string) {
@@ -93,6 +99,55 @@ export function UseCaseHeader({
   onEditField,
 }: UseCaseHeaderProps) {
   const locale = useLocale();
+  const isGerman = locale === "de";
+  const copy = {
+    noSystem: isGerman ? "Kein System" : "No system",
+    notSpecified: isGerman ? "Nicht angegeben" : "Not specified",
+    notAssigned: isGerman ? "Nicht zugewiesen" : "Not assigned",
+    internalTeam: isGerman ? "Internes Team" : "Internal team",
+    currentCapturer: isGerman ? "Erfasser:in (selbst)" : "Captured by current user",
+    capturedBy: isGerman ? "Erfasst von" : "Captured by",
+    submittedBy: isGerman ? "Eingereicht von" : "Submitted by",
+    source: isGerman ? "Herkunft" : "Source",
+    reference: isGerman ? "Referenz" : "Reference",
+    systemSingular: isGerman ? "System" : "system",
+    systemPlural: isGerman ? "Systeme" : "systems",
+    unknownDate: isGerman ? "unbekannt" : "unknown",
+    openEukiId: isGerman ? "EUKI-ID offen" : "EUKI ID pending",
+    updated: isGerman ? "Aktualisiert" : "Updated",
+    sealedSuccessTitle: isGerman ? "Erfolgreich besiegelt" : "Successfully sealed",
+    sealedSuccessDescription: isGerman
+      ? "Der Einsatzfall wurde kryptografisch versiegelt."
+      : "The use case has been cryptographically sealed.",
+    errorTitle: isGerman ? "Fehler" : "Error",
+    sealFailed: isGerman ? "Versiegeln fehlgeschlagen." : "Sealing failed.",
+    signedBy: isGerman ? "Gezeichnet von" : "Signed by",
+    back: isGerman ? "Zurück" : "Back",
+    proofReadyLine: isGerman
+      ? "Dieser Einsatzfall ist formal geprüft und nachweisfähig dokumentiert."
+      : "This use case has been formally reviewed and documented as evidence-ready.",
+    openPass: isGerman ? "Use-Case-Pass öffnen" : "Open use case pass",
+    moreActionsTitle: isGerman ? "Weitere Aktionen" : "More actions",
+    more: isGerman ? "Mehr" : "More",
+    exportPdf: isGerman ? "PDF exportieren" : "Export PDF",
+    exportJson: isGerman ? "JSON exportieren" : "Export JSON",
+    sealing: isGerman ? "Formal signieren..." : "Signing...",
+    seal: isGerman ? "Formal signieren" : "Formally sign",
+    delete: isGerman ? "Loeschen" : "Delete",
+    ownerRole: isGerman ? "Owner-Rolle" : "Owner role",
+    decisionRelevance: isGerman
+      ? "Entscheidungsrelevanz"
+      : "Decision relevance",
+    riskClass: isGerman ? "Risikoklasse" : "Risk class",
+    impactScope: isGerman ? "Wirkungsbereich" : "Scope",
+    deleteTitle: isGerman ? "Einsatzfall loeschen?" : "Delete use case?",
+    deleteDescription: isGerman
+      ? "Diese Aktion kann nicht rueckgaengig gemacht werden. Der Einsatzfall wird unwiderruflich geloescht."
+      : "This action cannot be undone. The use case will be permanently deleted.",
+    cancel: isGerman ? "Abbrechen" : "Cancel",
+    deleting: isGerman ? "Loeschen..." : "Deleting...",
+    deleteConfirm: isGerman ? "Endgueltig loeschen" : "Delete permanently",
+  };
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
   const { toast } = useToast();
@@ -106,9 +161,11 @@ export function UseCaseHeader({
   const toolEntry = card.toolId ? aiRegistry.getById(card.toolId) : null;
   const toolDisplayName = getUseCaseSystemsSummary(card, {
     resolveToolName: (toolId) => aiRegistry.getById(toolId)?.productName ?? null,
-    emptyLabel: "Kein System",
+    emptyLabel: copy.noSystem,
+    locale,
   });
   const workflowBadge = getUseCaseWorkflowBadge(card, {
+    locale,
     resolveToolName: (toolId) => aiRegistry.getById(toolId)?.productName ?? null,
   });
   const systemCount = (card.toolId || card.toolFreeText ? 1 : 0) +
@@ -118,31 +175,34 @@ export function UseCaseHeader({
     aiActCategory: card.governanceAssessment?.core?.aiActCategory,
     toolRiskLevel: toolEntry?.riskLevel ?? null,
     short: true,
+    locale,
   });
   const usageScope = card.usageContexts.length
     ? card.usageContexts
         .map((ctx) => getUsageContextLabel(ctx, locale))
         .join(", ")
-    : "Nicht angegeben";
+    : copy.notSpecified;
   const decisionInfluence = resolveDecisionInfluence(card);
   const decisionLabel = decisionInfluence
     ? getDecisionInfluenceLabel(decisionInfluence, locale)
-    : legacyDecisionImpactLabels[card.decisionImpact];
+    : (isGerman ? legacyDecisionImpactLabelsDe : legacyDecisionImpactLabelsEn)[
+        card.decisionImpact
+      ];
   const dataCategories = resolveDataCategories(card);
   const dataCategoryLabel = dataCategories.length
     ? dataCategories
         .map((cat) => getDataCategoryLabel(cat, locale) ?? cat)
         .join(", ")
-    : "Nicht angegeben";
+    : copy.notSpecified;
   const ownerLabel = card.responsibility.isCurrentlyResponsible
-    ? "Erfasser:in (selbst)"
-    : card.responsibility.responsibleParty || "Nicht zugewiesen";
+    ? copy.currentCapturer
+    : card.responsibility.responsibleParty || copy.notAssigned;
   const source = getUseCaseSource(card);
-  const sourceBadges = getUseCaseSourceBadges(card);
+  const sourceBadges = getUseCaseSourceBadges(card, locale);
   const visibleSourceBadges = sourceBadges.filter((badge) => badge.key !== "MANUELL");
   const submitterIdentity = getUseCaseSubmitterIdentity(card);
   const displaySubmitterIdentity =
-    submitterIdentity ?? (source === "manual" ? "Internes Team" : null);
+    submitterIdentity ?? (source === "manual" ? copy.internalTeam : null);
   const sourceReference =
     card.origin?.sourceRequestId ??
     card.externalIntake?.submissionId ??
@@ -150,13 +210,13 @@ export function UseCaseHeader({
     card.externalIntake?.accessCodeId ??
     null;
   const provenanceLine = [
-    `Herkunft: ${getUseCaseSourceLabel(source)}`,
+    `${copy.source}: ${getUseCaseSourceLabel(source, locale)}`,
     displaySubmitterIdentity
       ? source === "manual"
-        ? `Erfasst von ${displaySubmitterIdentity}`
-        : `Eingereicht von ${displaySubmitterIdentity}`
+        ? `${copy.capturedBy} ${displaySubmitterIdentity}`
+        : `${copy.submittedBy} ${displaySubmitterIdentity}`
       : null,
-    sourceReference ? `Referenz ${sourceReference}` : null,
+    sourceReference ? `${copy.reference} ${sourceReference}` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -183,11 +243,18 @@ export function UseCaseHeader({
         officerId: user.uid,
         officerName: user.displayName || user.email || "EUKI Officer",
       });
-      toast({ title: "Erfolgreich besiegelt", description: "Der Einsatzfall wurde kryptografisch versiegelt." });
+      toast({
+        title: copy.sealedSuccessTitle,
+        description: copy.sealedSuccessDescription,
+      });
       if (onRefresh) await onRefresh();
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Fehler", description: "Versiegeln fehlgeschlagen." });
+      toast({
+        variant: "destructive",
+        title: copy.errorTitle,
+        description: copy.sealFailed,
+      });
     } finally {
       setIsSealing(false);
     }
@@ -223,10 +290,10 @@ export function UseCaseHeader({
   };
 
   const subline = [
-    card.globalUseCaseId ?? "EUKI-ID offen",
+    card.globalUseCaseId ?? copy.openEukiId,
     `v${card.cardVersion}`,
     provenanceLine,
-    `Aktualisiert ${formatDate(card.updatedAt, locale)}`,
+    `${copy.updated} ${formatDate(card.updatedAt, locale, copy.unknownDate)}`,
   ].join(" · ");
 
   return (
@@ -234,9 +301,13 @@ export function UseCaseHeader({
       {card.sealedAt && (
         <div className="hidden print:flex flex-col items-center absolute top-12 right-12 transform rotate-[-15deg] opacity-20 border-8 border-emerald-600 text-emerald-600 rounded-2xl p-6 max-w-[400px] text-center pointer-events-none z-50">
           <p className="font-black text-4xl uppercase mb-2 tracking-widest">EUKI CERTIFIED</p>
-          <p className="text-lg font-bold">Gezeichnet von {card.sealedByName}</p>
+          <p className="text-lg font-bold">
+            {copy.signedBy} {card.sealedByName}
+          </p>
           <p className="text-sm font-mono mt-3">Hash: {card.sealHash}</p>
-          <p className="text-sm mt-1">{formatDate(card.sealedAt, locale)}</p>
+          <p className="text-sm mt-1">
+            {formatDate(card.sealedAt, locale, copy.unknownDate)}
+          </p>
         </div>
       )}
       <div
@@ -256,7 +327,7 @@ export function UseCaseHeader({
             }}
           >
             <ArrowLeft className="h-4 w-4" />
-            Zurück
+            {copy.back}
           </Button>
         </div>
 
@@ -287,7 +358,9 @@ export function UseCaseHeader({
 
             <div className="flex flex-wrap items-center gap-2">
               {systemCount > 0 ? (
-                <HeaderSignalPill>{`${systemCount} ${systemCount === 1 ? "System" : "Systeme"}`}</HeaderSignalPill>
+                <HeaderSignalPill>
+                  {`${systemCount} ${systemCount === 1 ? copy.systemSingular : copy.systemPlural}`}
+                </HeaderSignalPill>
               ) : null}
               <HeaderSignalPill>{usageScope}</HeaderSignalPill>
               <HeaderSignalPill>{dataCategoryLabel}</HeaderSignalPill>
@@ -305,7 +378,7 @@ export function UseCaseHeader({
             <p className="text-xs text-slate-500">{subline}</p>
             {isProofReady ? (
               <p className="text-xs text-emerald-700">
-                Dieser Einsatzfall ist formal geprüft und nachweisfähig dokumentiert.
+                {copy.proofReadyLine}
               </p>
             ) : null}
           </div>
@@ -317,25 +390,25 @@ export function UseCaseHeader({
               onClick={() =>
                 router.push(buildScopedUseCasePassHref(card.useCaseId, workspaceScope))
               }
-              title="Use-Case-Pass öffnen"
+              title={copy.openPass}
             >
-              Use-Case-Pass öffnen
+              {copy.openPass}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" title="Weitere Aktionen">
+                <Button variant="outline" size="sm" title={copy.moreActionsTitle}>
                   <MoreHorizontal className="mr-1.5 h-3.5 w-3.5" />
-                  Mehr
+                  {copy.more}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem onSelect={() => window.print()}>
                   <Download className="h-4 w-4" />
-                  PDF exportieren
+                  {copy.exportPdf}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={handleExportJSON}>
                   <FileJson className="h-4 w-4" />
-                  JSON exportieren
+                  {copy.exportJson}
                 </DropdownMenuItem>
                 {(!card.sealedAt && profile?.isOfficer) || onDelete ? (
                   <DropdownMenuSeparator />
@@ -346,7 +419,7 @@ export function UseCaseHeader({
                     disabled={isSealing}
                   >
                     <ShieldCheck className="h-4 w-4" />
-                    {isSealing ? "Formal signieren..." : "Formal signieren"}
+                    {isSealing ? copy.sealing : copy.seal}
                   </DropdownMenuItem>
                 ) : null}
                 {onDelete ? (
@@ -355,7 +428,7 @@ export function UseCaseHeader({
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Loeschen
+                    {copy.delete}
                   </DropdownMenuItem>
                 ) : null}
               </DropdownMenuContent>
@@ -366,29 +439,31 @@ export function UseCaseHeader({
         {card.sealedAt ? (
           <div className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800" title={`Siegel (${card.sealHash})`}>
             <ShieldCheck className="h-4 w-4" />
-            <span>Gezeichnet von {card.sealedByName || "Officer"}</span>
+            <span>
+              {copy.signedBy} {card.sealedByName || "Officer"}
+            </span>
           </div>
         ) : null}
 
         <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             <MetaItem
-              label="Owner-Rolle"
+              label={copy.ownerRole}
               value={ownerLabel}
               onEdit={onEditField ? () => onEditField("responsibleParty") : undefined}
             />
             <MetaItem
-              label="Entscheidungsrelevanz"
+              label={copy.decisionRelevance}
               value={decisionLabel}
               onEdit={onEditField ? () => onEditField("decisionInfluence") : undefined}
             />
             <MetaItem
-              label="Risikoklasse"
+              label={copy.riskClass}
               value={riskClass}
               onEdit={onEditField ? () => onEditField("aiActCategory") : undefined}
             />
             <MetaItem
-              label="Wirkungsbereich"
+              label={copy.impactScope}
               value={usageScope}
               onEdit={onEditField ? () => onEditField("usageContexts") : undefined}
             />
@@ -399,20 +474,19 @@ export function UseCaseHeader({
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Einsatzfall loeschen?</AlertDialogTitle>
+            <AlertDialogTitle>{copy.deleteTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              Diese Aktion kann nicht rueckgaengig gemacht werden. Der Einsatzfall
-              wird unwiderruflich geloescht.
+              {copy.deleteDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>{copy.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDelete()}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Loeschen..." : "Endgueltig loeschen"}
+              {isDeleting ? copy.deleting : copy.deleteConfirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -471,9 +545,13 @@ function HeaderSignalPill({ children }: { children: string }) {
   );
 }
 
-function formatDate(isoDate: string, locale: string): string {
+function formatDate(
+  isoDate: string,
+  locale: string,
+  unknownLabel: string,
+): string {
   const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "unbekannt";
+  if (Number.isNaN(date.getTime())) return unknownLabel;
   return date.toLocaleString(locale === "de" ? "de-DE" : "en-GB", {
     day: "2-digit",
     month: "2-digit",

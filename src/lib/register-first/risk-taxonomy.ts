@@ -11,7 +11,13 @@ export const CANONICAL_AI_ACT_RISK_CLASSES = [
 export type CanonicalAiActRiskClass =
   (typeof CANONICAL_AI_ACT_RISK_CLASSES)[number];
 
-const RISK_CLASS_DISPLAY_LABELS: Record<CanonicalAiActRiskClass, string> = {
+type RiskDisplayLocale = "de" | "en";
+
+function resolveRiskDisplayLocale(locale?: string): RiskDisplayLocale {
+  return locale?.toLowerCase().startsWith("en") ? "en" : "de";
+}
+
+const RISK_CLASS_DISPLAY_LABELS_DE: Record<CanonicalAiActRiskClass, string> = {
   UNASSESSED: "Noch nicht eingestuft",
   MINIMAL: "Minimales Risiko",
   LIMITED: "Begrenztes Risiko (Transparenzpflichten)",
@@ -19,12 +25,28 @@ const RISK_CLASS_DISPLAY_LABELS: Record<CanonicalAiActRiskClass, string> = {
   PROHIBITED: "Verboten",
 };
 
-const RISK_CLASS_SHORT_LABELS: Record<CanonicalAiActRiskClass, string> = {
+const RISK_CLASS_DISPLAY_LABELS_EN: Record<CanonicalAiActRiskClass, string> = {
+  UNASSESSED: "Not yet assessed",
+  MINIMAL: "Minimal risk",
+  LIMITED: "Limited risk (transparency obligations)",
+  HIGH: "High-risk",
+  PROHIBITED: "Prohibited",
+};
+
+const RISK_CLASS_SHORT_LABELS_DE: Record<CanonicalAiActRiskClass, string> = {
   UNASSESSED: "Noch nicht eingestuft",
   MINIMAL: "Minimales Risiko",
   LIMITED: "Begrenztes Risiko",
   HIGH: "Hochrisiko",
   PROHIBITED: "Verboten",
+};
+
+const RISK_CLASS_SHORT_LABELS_EN: Record<CanonicalAiActRiskClass, string> = {
+  UNASSESSED: "Not yet assessed",
+  MINIMAL: "Minimal risk",
+  LIMITED: "Limited risk",
+  HIGH: "High-risk",
+  PROHIBITED: "Prohibited",
 };
 
 const RISK_CLASS_STORED_LABELS: Record<
@@ -114,15 +136,21 @@ export function hasDocumentedAiActCategory(
 }
 
 export function getRiskClassDisplayLabel(
-  riskClass: CanonicalAiActRiskClass
+  riskClass: CanonicalAiActRiskClass,
+  locale?: string
 ): string {
-  return RISK_CLASS_DISPLAY_LABELS[riskClass];
+  return resolveRiskDisplayLocale(locale) === "en"
+    ? RISK_CLASS_DISPLAY_LABELS_EN[riskClass]
+    : RISK_CLASS_DISPLAY_LABELS_DE[riskClass];
 }
 
 export function getRiskClassShortLabel(
-  riskClass: CanonicalAiActRiskClass
+  riskClass: CanonicalAiActRiskClass,
+  locale?: string
 ): string {
-  return RISK_CLASS_SHORT_LABELS[riskClass];
+  return resolveRiskDisplayLocale(locale) === "en"
+    ? RISK_CLASS_SHORT_LABELS_EN[riskClass]
+    : RISK_CLASS_SHORT_LABELS_DE[riskClass];
 }
 
 export function getRiskClassStoredLabel(
@@ -187,14 +215,15 @@ export function getDisplayedRiskClassLabel(input: {
   aiActCategory?: string | null;
   toolRiskLevel?: EuAiActRiskLevel | null;
   short?: boolean;
+  locale?: string;
 }): string {
-  const { aiActCategory, toolRiskLevel, short = false } = input;
+  const { aiActCategory, toolRiskLevel, short = false, locale } = input;
   const mappedRiskClass = findMappedRiskClass(aiActCategory);
 
   if (mappedRiskClass) {
     return short
-      ? getRiskClassShortLabel(mappedRiskClass)
-      : getRiskClassDisplayLabel(mappedRiskClass);
+      ? getRiskClassShortLabel(mappedRiskClass, locale)
+      : getRiskClassDisplayLabel(mappedRiskClass, locale);
   }
 
   if (typeof aiActCategory === "string" && aiActCategory.trim().length > 0) {
@@ -203,8 +232,8 @@ export function getDisplayedRiskClassLabel(input: {
 
   const fallbackRiskClass = getCanonicalClassFromToolRiskLevel(toolRiskLevel);
   return short
-    ? getRiskClassShortLabel(fallbackRiskClass)
-    : getRiskClassDisplayLabel(fallbackRiskClass);
+    ? getRiskClassShortLabel(fallbackRiskClass, locale)
+    : getRiskClassDisplayLabel(fallbackRiskClass, locale);
 }
 
 export function getRiskClassEditorValue(

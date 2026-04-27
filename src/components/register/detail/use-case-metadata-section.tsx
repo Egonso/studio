@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "@/i18n/navigation";
 import {
   Collapsible,
   CollapsibleContent,
@@ -74,10 +74,16 @@ export type EditableMetadataField =
 
 const aiRegistry = createAiToolsRegistryService();
 
-const decisionImpactLabels: Record<DecisionImpact, string> = {
+const decisionImpactLabelsDe: Record<DecisionImpact, string> = {
   YES: "Ja",
   NO: "Nein",
   UNSURE: "Unsicher",
+};
+
+const decisionImpactLabelsEn: Record<DecisionImpact, string> = {
+  YES: "Yes",
+  NO: "No",
+  UNSURE: "Unsure",
 };
 
 function mapDecisionInfluenceToImpact(
@@ -141,6 +147,87 @@ export function UseCaseMetadataSection({
   onEditFieldConsumed,
 }: UseCaseMetadataSectionProps) {
   const locale = useLocale();
+  const isGerman = locale === "de";
+  const copy = {
+    notSpecified: isGerman ? "Nicht angegeben" : "Not specified",
+    notAssigned: isGerman ? "Nicht zugewiesen" : "Not assigned",
+    notRecorded: isGerman ? "Nicht hinterlegt" : "Not recorded",
+    currentCapturer: isGerman ? "Erfasser:in (selbst)" : "Captured by current user",
+    edit: isGerman ? "Bearbeiten" : "Edit",
+    saving: isGerman ? "Speichern..." : "Saving...",
+    save: isGerman ? "Speichern" : "Save",
+    cancel: isGerman ? "Abbrechen" : "Cancel",
+    title: isGerman ? "Details & Stammdaten" : "Details & master data",
+    description: isGerman
+      ? "Nachrangige Stammdaten zum Einsatzfall."
+      : "Secondary master data for the use case.",
+    hideMasterData: isGerman ? "Stammdaten ausblenden" : "Hide master data",
+    showMasterData: isGerman ? "Stammdaten anzeigen" : "Show master data",
+    purpose: isGerman ? "Zweck" : "Purpose",
+    dataCategories: isGerman ? "Datenkategorien" : "Data categories",
+    contactOptional: isGerman
+      ? "Kontaktperson (optional)"
+      : "Contact person (optional)",
+    organisationOptional: isGerman
+      ? "Organisation (optional)"
+      : "Organisation (optional)",
+    contextRisk: isGerman ? "Kontext & Risiko" : "Context & risk",
+    scope: isGerman ? "Wirkungsbereich" : "Scope",
+    decisionInfluence: isGerman
+      ? "Einfluss auf Entscheidungen"
+      : "Influence on decisions",
+    riskClass: isGerman ? "Risikoklasse" : "Risk class",
+    riskPlaceholder: isGerman
+      ? "z. B. Begrenztes Risiko oder Hochrisiko"
+      : "e.g. limited risk or high risk",
+    existingCustomRisk: isGerman
+      ? "Bestehende Freitext-Einstufung"
+      : "Existing free-text classification",
+    customRiskDescription: (value: string) =>
+      isGerman
+        ? `Aktuell ist "${value}" hinterlegt. Eine neue Auswahl ersetzt diesen Wert durch eine kanonische Klasse.`
+        : `Currently "${value}" is recorded. A new selection replaces this value with a canonical class.`,
+    finalVisibleClassification: isGerman
+      ? "Finale sichtbare Einstufung"
+      : "Final visible classification",
+    finalClassificationDescription: isGerman
+      ? "Nur Vorschlag. Die finale Einstufung bleibt eine menschliche Entscheidung."
+      : "Suggestion only. The final classification remains a human decision.",
+    storedFieldNotice: isGerman
+      ? "Gespeichert wird weiter im bestehenden Feld"
+      : "The value is still stored in the existing field",
+    storedFieldSuffix: isGerman
+      ? ", aber normalisiert auf die kanonische Darstellung."
+      : ", normalized to the canonical representation.",
+    hideSubcategories: isGerman
+      ? "Unterkategorien ausblenden"
+      : "Hide subcategories",
+    editSubcategories: isGerman
+      ? "Unterkategorien bearbeiten"
+      : "Edit subcategories",
+    ownerOrganisation: isGerman
+      ? "Owner & Organisation"
+      : "Owner & organisation",
+    ownerFunctional: isGerman
+      ? "Owner-Rolle (funktional)"
+      : "Owner role (functional)",
+    ownerPlaceholder: isGerman
+      ? "z. B. Head of Marketing / HR Lead / IT Security"
+      : "e.g. Head of Marketing / HR Lead / IT Security",
+    contactPlaceholder: isGerman ? "z. B. Max Mustermann" : "e.g. Jane Doe",
+    organisationPlaceholder: isGerman
+      ? "z. B. KI-Register GmbH"
+      : "e.g. AI Registry Ltd.",
+    governanceTitle: isGerman
+      ? "Organisation KI-gerecht steuern"
+      : "Manage organisation-level AI governance",
+    governanceDescription: isGerman
+      ? "Zustaendigkeiten, Pruefmodelle und Policies werden in der Organisationssteuerung verwaltet."
+      : "Responsibilities, review models, and policies are managed in organisation control.",
+    governanceLink: isGerman
+      ? "Im AI Governance Control anzeigen"
+      : "Show in AI Governance Control",
+  };
   const router = useRouter();
   const riskSelectionRef = useRef<HTMLDivElement | null>(null);
 
@@ -164,44 +251,49 @@ export function UseCaseMetadataSection({
     aiActCategory: card.governanceAssessment?.core?.aiActCategory,
     toolRiskLevel: toolEntry?.riskLevel ?? null,
     short: true,
+    locale,
   });
   const usageScope = card.usageContexts.length
     ? card.usageContexts
         .map((ctx) => getUsageContextLabel(ctx, locale))
         .join(", ")
-    : "Nicht angegeben";
+    : copy.notSpecified;
   const dataCategories = resolveDataCategories(card);
   const dataCategoryLabel = dataCategories.length
     ? dataCategories
         .map((cat) => getDataCategoryLabel(cat, locale) ?? cat)
         .join(", ")
-    : "Nicht angegeben";
+    : copy.notSpecified;
 
   const decisionInfluence = resolveDecisionInfluence(card);
   const decisionLabel = decisionInfluence
     ? getDecisionInfluenceLabel(decisionInfluence, locale)
-    : decisionImpactLabels[card.decisionImpact];
+    : (isGerman ? decisionImpactLabelsDe : decisionImpactLabelsEn)[
+        card.decisionImpact
+      ];
   const ownerLabel = card.responsibility.isCurrentlyResponsible
-    ? "Erfasser:in (selbst)"
-    : card.responsibility.responsibleParty || "Nicht zugewiesen";
+    ? copy.currentCapturer
+    : card.responsibility.responsibleParty || copy.notAssigned;
   const contactPersonLabel =
-    card.responsibility.contactPersonName?.trim() || "Nicht hinterlegt";
-  const organisationLabel = card.organisation?.trim() || "Nicht hinterlegt";
+    card.responsibility.contactPersonName?.trim() || copy.notRecorded;
+  const organisationLabel = card.organisation?.trim() || copy.notRecorded;
   const focusClassName = "border-l-2 border-slate-300 pl-3";
   const riskSuggestion = useMemo(
     () =>
       buildRiskSuggestionForEditDraft(
         editDraft,
-        draftToolEntry?.riskLevel ?? null
+        draftToolEntry?.riskLevel ?? null,
+        locale,
       ),
-    [draftToolEntry?.riskLevel, editDraft]
+    [draftToolEntry?.riskLevel, editDraft, locale]
   );
   const manualRiskSelectionValue = getRiskManualSelectionValue(
     editDraft.aiActCategory
   );
   const hasCustomRiskValue = hasCustomRiskSelection(editDraft.aiActCategory);
   const currentRiskDisplayLabel = getRiskAssistCurrentDisplayLabel(
-    editDraft.aiActCategory
+    editDraft.aiActCategory,
+    locale,
   );
   const currentRiskClassForAssist =
     manualRiskSelectionValue !== CUSTOM_RISK_SELECTION
@@ -283,10 +375,11 @@ export function UseCaseMetadataSection({
     onOpenRiskReview?.(
       buildRiskReviewLaunchContext(
         editDraft,
-        draftToolEntry?.riskLevel ?? null
+        draftToolEntry?.riskLevel ?? null,
+        locale,
       )
     );
-  }, [draftToolEntry?.riskLevel, editDraft, onOpenRiskReview]);
+  }, [draftToolEntry?.riskLevel, editDraft, locale, onOpenRiskReview]);
 
   const handleSaveField = async () => {
     if (isSaving || !editingField) return;
@@ -371,7 +464,7 @@ export function UseCaseMetadataSection({
       type="button"
       onClick={() => startEditing(field)}
       className="ml-auto shrink-0 rounded p-1 text-slate-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-slate-700 hover:bg-slate-100"
-      title="Bearbeiten"
+      title={copy.edit}
     >
       <Pencil className="h-3.5 w-3.5" />
     </button>
@@ -384,10 +477,10 @@ export function UseCaseMetadataSection({
         onClick={() => void handleSaveField()}
         disabled={isSaving}
       >
-        {isSaving ? "Speichern..." : "Speichern"}
+        {isSaving ? copy.saving : copy.save}
       </Button>
       <Button size="sm" variant="outline" onClick={cancelEditing}>
-        Abbrechen
+        {copy.cancel}
       </Button>
     </div>
   );
@@ -406,10 +499,10 @@ export function UseCaseMetadataSection({
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-1">
             <h2 className="text-[18px] font-semibold tracking-tight">
-              Details & Stammdaten
+              {copy.title}
             </h2>
             <p className="text-sm text-slate-600">
-              Nachrangige Stammdaten zum Einsatzfall.
+              {copy.description}
             </p>
           </div>
           <CollapsibleTrigger asChild>
@@ -421,12 +514,12 @@ export function UseCaseMetadataSection({
             >
               {metadataOpen ? (
                 <>
-                  Stammdaten ausblenden
+                  {copy.hideMasterData}
                   <ChevronUp className="h-4 w-4" />
                 </>
               ) : (
                 <>
-                  Stammdaten anzeigen
+                  {copy.showMasterData}
                   <ChevronDown className="h-4 w-4" />
                 </>
               )}
@@ -435,17 +528,17 @@ export function UseCaseMetadataSection({
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <MetadataSummaryItem label="Zweck" value={card.purpose} />
+          <MetadataSummaryItem label={copy.purpose} value={card.purpose} />
           <MetadataSummaryItem
-            label="Datenkategorien"
+            label={copy.dataCategories}
             value={dataCategoryLabel}
           />
           <MetadataSummaryItem
-            label="Kontaktperson (optional)"
+            label={copy.contactOptional}
             value={contactPersonLabel}
           />
           <MetadataSummaryItem
-            label="Organisation (optional)"
+            label={copy.organisationOptional}
             value={organisationLabel}
           />
         </div>
@@ -455,7 +548,7 @@ export function UseCaseMetadataSection({
         <div className="space-y-8 p-5 md:p-6">
           <section className="rounded-lg border border-slate-200 bg-slate-50/40 p-5 md:p-6">
             <h2 className="text-[18px] font-semibold tracking-tight">
-              Kontext & Risiko
+              {copy.contextRisk}
             </h2>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {/* Zweck */}
@@ -464,7 +557,7 @@ export function UseCaseMetadataSection({
                 className="group rounded-md border border-slate-200 bg-white px-4 py-3 space-y-1.5"
               >
                 <div className="flex items-center">
-                  <p className="text-xs text-muted-foreground">Zweck</p>
+                  <p className="text-xs text-muted-foreground">{copy.purpose}</p>
                   {!isFieldEditing("purpose") && fieldEditTrigger("purpose")}
                 </div>
                 {isFieldEditing("purpose") ? (
@@ -496,7 +589,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">
-                    Wirkungsbereich
+                    {copy.scope}
                   </p>
                   {!isFieldEditing("usageContexts") &&
                     fieldEditTrigger("usageContexts")}
@@ -541,7 +634,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">
-                    Einfluss auf Entscheidungen
+                    {copy.decisionInfluence}
                   </p>
                   {!isFieldEditing("decisionInfluence") &&
                     fieldEditTrigger("decisionInfluence")}
@@ -585,7 +678,7 @@ export function UseCaseMetadataSection({
                 className="group rounded-md border border-slate-200 bg-white px-4 py-3 space-y-1.5"
               >
                 <div className="flex items-center">
-                  <p className="text-xs text-muted-foreground">Risikoklasse</p>
+                  <p className="text-xs text-muted-foreground">{copy.riskClass}</p>
                   {!isFieldEditing("aiActCategory") &&
                     fieldEditTrigger("aiActCategory")}
                 </div>
@@ -600,7 +693,7 @@ export function UseCaseMetadataSection({
                             aiActCategory: event.target.value,
                           }))
                         }
-                        placeholder="z. B. Begrenztes Risiko oder Hochrisiko"
+                        placeholder={copy.riskPlaceholder}
                         autoFocus
                       />
                     ) : (
@@ -610,6 +703,7 @@ export function UseCaseMetadataSection({
                           currentDisplayLabel={currentRiskDisplayLabel}
                           isHumanConfirmed={Boolean(currentRiskDisplayLabel)}
                           suggestion={riskSuggestion}
+                          locale={locale}
                           onAdoptSuggestion={handleAdoptRiskSuggestion}
                           onStartManualSelection={focusManualSelection}
                           onOpenReview={handleOpenRiskReview}
@@ -618,12 +712,12 @@ export function UseCaseMetadataSection({
                         {hasCustomRiskValue && (
                           <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                             <p className="font-medium text-slate-900">
-                              Bestehende Freitext-Einstufung
+                              {copy.existingCustomRisk}
                             </p>
                             <p className="mt-1">
-                              Aktuell ist &quot;{editDraft.aiActCategory.trim()}
-                              &quot; hinterlegt. Eine neue Auswahl ersetzt
-                              diesen Wert durch eine kanonische Klasse.
+                              {copy.customRiskDescription(
+                                editDraft.aiActCategory.trim(),
+                              )}
                             </p>
                           </div>
                         )}
@@ -634,11 +728,10 @@ export function UseCaseMetadataSection({
                         >
                           <div className="space-y-1">
                             <p className="text-sm font-medium text-slate-800">
-                              Finale sichtbare Einstufung
+                              {copy.finalVisibleClassification}
                             </p>
                             <p className="text-sm text-slate-600">
-                              Nur Vorschlag. Die finale Einstufung bleibt eine
-                              menschliche Entscheidung.
+                              {copy.finalClassificationDescription}
                             </p>
                           </div>
 
@@ -672,12 +765,15 @@ export function UseCaseMetadataSection({
                                   />
                                   <div className="space-y-1">
                                     <p className="text-sm font-medium text-slate-900">
-                                      {option === "UNASSESSED"
-                                        ? getRiskClassShortLabel(option)
-                                        : getRiskManualOptionLabel(option)}
+                                     {option === "UNASSESSED"
+                                        ? getRiskClassShortLabel(option, locale)
+                                        : getRiskManualOptionLabel(option, locale)}
                                     </p>
                                     <p className="text-sm text-slate-600">
-                                      {getRiskManualOptionDescription(option)}
+                                      {getRiskManualOptionDescription(
+                                        option,
+                                        locale,
+                                      )}
                                     </p>
                                   </div>
                                 </Label>
@@ -686,11 +782,11 @@ export function UseCaseMetadataSection({
                           </RadioGroup>
 
                           <p className="mt-4 text-xs text-slate-500">
-                            Gespeichert wird weiter im bestehenden Feld{" "}
+                            {copy.storedFieldNotice}{" "}
                             <code>
                               governanceAssessment.core.aiActCategory
                             </code>
-                            , aber normalisiert auf die kanonische Darstellung.
+                            {copy.storedFieldSuffix}
                           </p>
                         </div>
                       </div>
@@ -711,7 +807,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">
-                    Datenkategorien
+                    {copy.dataCategories}
                   </p>
                   {!isFieldEditing("dataCategories") &&
                     fieldEditTrigger("dataCategories")}
@@ -752,8 +848,8 @@ export function UseCaseMetadataSection({
                                   }
                                 >
                                   {specialOpen
-                                    ? "Unterkategorien ausblenden"
-                                    : "Unterkategorien bearbeiten"}
+                                    ? copy.hideSubcategories
+                                    : copy.editSubcategories}
                                 </button>
 
                                 {specialOpen &&
@@ -798,7 +894,7 @@ export function UseCaseMetadataSection({
 
           <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
             <h2 className="text-[18px] font-semibold tracking-tight">
-              Owner & Organisation
+              {copy.ownerOrganisation}
             </h2>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {/* Owner-Rolle */}
@@ -811,7 +907,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center" id="usecase-focus-owner">
                   <p className="text-xs text-muted-foreground">
-                    Owner-Rolle (funktional)
+                    {copy.ownerFunctional}
                   </p>
                   {!isFieldEditing("responsibleParty") &&
                     fieldEditTrigger("responsibleParty")}
@@ -826,7 +922,7 @@ export function UseCaseMetadataSection({
                           responsibleParty: event.target.value,
                         }))
                       }
-                      placeholder="z. B. Head of Marketing / HR Lead / IT Security"
+                      placeholder={copy.ownerPlaceholder}
                       autoFocus
                     />
                     {fieldSaveCancel}
@@ -845,7 +941,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">
-                    Kontaktperson (optional)
+                    {copy.contactOptional}
                   </p>
                   {!isFieldEditing("contactPersonName") &&
                     fieldEditTrigger("contactPersonName")}
@@ -860,7 +956,7 @@ export function UseCaseMetadataSection({
                           contactPersonName: event.target.value,
                         }))
                       }
-                      placeholder="z. B. Max Mustermann"
+                      placeholder={copy.contactPlaceholder}
                       autoFocus
                     />
                     {fieldSaveCancel}
@@ -881,7 +977,7 @@ export function UseCaseMetadataSection({
               >
                 <div className="flex items-center">
                   <p className="text-xs text-muted-foreground">
-                    Organisation (optional)
+                    {copy.organisationOptional}
                   </p>
                   {!isFieldEditing("organisation") &&
                     fieldEditTrigger("organisation")}
@@ -896,7 +992,7 @@ export function UseCaseMetadataSection({
                           organisation: event.target.value,
                         }))
                       }
-                      placeholder="z. B. KI-Register GmbH"
+                      placeholder={copy.organisationPlaceholder}
                       autoFocus
                     />
                     {fieldSaveCancel}
@@ -919,11 +1015,10 @@ export function UseCaseMetadataSection({
             >
               <div id="usecase-focus-policy" className="h-px w-px" />
               <p className="font-medium text-slate-600">
-                Organisation KI-gerecht steuern
+                {copy.governanceTitle}
               </p>
               <p>
-                Zustaendigkeiten, Pruefmodelle und Policies werden in der
-                Organisationssteuerung verwaltet.
+                {copy.governanceDescription}
               </p>
               <button
                 type="button"
@@ -932,7 +1027,7 @@ export function UseCaseMetadataSection({
                   router.push(`/control?useCaseId=${card.useCaseId}`)
                 }
               >
-                Im AI Governance Control anzeigen
+                {copy.governanceLink}
               </button>
             </div>
           </section>

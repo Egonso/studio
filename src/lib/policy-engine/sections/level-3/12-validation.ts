@@ -9,6 +9,7 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import { resolveGovernanceCopyLocale } from '@/lib/i18n/governance-copy';
 
 export const validationSection: SectionDefinition = {
     sectionId: 'l3-validation',
@@ -19,8 +20,43 @@ export const validationSection: SectionDefinition = {
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Company Name]';
+        const locale = resolveGovernanceCopyLocale(context.locale);
+        const isGerman = locale === 'de';
+        const orgName =
+            context.orgSettings.organisationName ||
+            (isGerman ? '[Firmenname]' : '[Company Name]');
         const totalSystems = context.useCases.length;
+
+        if (isGerman) {
+            return [
+                `${orgName} sollte einen strukturierten Validierungs- und Testprozess ` +
+                `für alle KI-Systeme einrichten. Dies gilt insbesondere vor dem Ersteinsatz ` +
+                `und nach wesentlichen Änderungen am System.`,
+                ``,
+                `### Testanforderungen`,
+                ``,
+                `Für die derzeit ${totalSystems} dokumentierten KI-Systeme sollten insbesondere ` +
+                `folgende Testaspekte berücksichtigt werden:`,
+                ``,
+                `1. **Funktionale Validierung:** Prüfung, ob das System seine vorgesehene Funktion korrekt und zuverlässig erfüllt.`,
+                `2. **Bias- und Fairness-Tests:** Analyse systematischer Verzerrungen, insbesondere bei Systemen mit Einfluss auf Entscheidungen über natürliche Personen.`,
+                `3. **Robustheitstests:** Bewertung des Systemverhaltens bei unerwarteten, fehlerhaften oder adversarialen Eingaben.`,
+                `4. **Performance-Monitoring:** Laufende Überwachung der Systemleistung im Betrieb (Model-Drift-Erkennung).`,
+                `5. **Integrationstests:** Validierung der korrekten Einbindung in bestehende Geschäftsprozesse und IT-Systeme.`,
+                ``,
+                `### Dokumentation`,
+                ``,
+                `Testergebnisse sollten nachvollziehbar dokumentiert werden, einschließlich:`,
+                ``,
+                `- Testdatum und testende Person`,
+                `- Testmethodik und Testdaten`,
+                `- Ergebnisse und festgestellte Abweichungen`,
+                `- Empfohlene Maßnahmen und Umsetzungsstand`,
+                ``,
+                `Bei Hochrisiko-Systemen sollte die Testdokumentation Bestandteil der technischen ` +
+                `Dokumentation nach Art. 11 AI Act sein.`,
+            ].join('\n');
+        }
 
         const lines: string[] = [
             `${orgName} should implement a structured validation and testing process ` +

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import { ChevronDown, ChevronRight, Info, Printer, Sparkles, Loader2, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useCapability } from "@/lib/compliance-engine/capability/useCapability"
 import type { PolicyDocument, PolicySection } from "@/lib/policy-engine/types";
 import { generatePolicyPdf, downloadBlob } from "@/lib/policy-engine/export/policy-pdf";
 import { renderPolicyMarkdown } from "@/lib/policy-engine/render-policy-markdown";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 
 interface PolicyPreviewProps {
     sections: PolicySection[];
@@ -26,6 +28,7 @@ export function PolicyPreview({
     showPrintButton = true,
     onSectionsChange,
 }: PolicyPreviewProps) {
+    const locale = useLocale();
     const { toast } = useToast();
     const { allowed: aiAllowed } = useCapability("policyEngine"); // Reusing policyEngine or could add specific 'aiSchreibhilfe'
     const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -35,6 +38,56 @@ export function PolicyPreview({
     const [improvingSections, setImprovingSections] = useState<Set<string>>(new Set());
     const [proposals, setProposals] = useState<Record<string, string>>({});
     const [localSections, setLocalSections] = useState<PolicySection[]>(sections);
+    const copy =
+        resolveGovernanceCopyLocale(locale) === "de"
+            ? {
+                proFeature: "Pro-Feature",
+                aiUnavailable: "Die KI-Schreibhilfe ist im Pro-Plan verfügbar.",
+                authRequired: "Anmeldung erforderlich.",
+                industryFallback: "Wirtschaft",
+                aiFailed: "KI-Verbesserung fehlgeschlagen",
+                proposalGenerated: "Vorschlag generiert",
+                proposalGeneratedDescription:
+                    "Die KI hat eine defensivere Formulierung erstellt.",
+                error: "Fehler",
+                serviceUnavailable: "KI-Dienst nicht erreichbar.",
+                applied: "Übernommen",
+                appliedDescription:
+                    "Der KI-Vorschlag wurde in das Dokument übernommen.",
+                empty: "Keine Abschnitte vorhanden.",
+                generating: "Generiere...",
+                exportPdf: "PDF exportieren",
+                print: "Drucken",
+                aiTitle: "KI-Schreibhilfe: Defensiver formulieren",
+                proposal: "KI-Vorschlag",
+                apply: "Übernehmen",
+                discard: "Verwerfen",
+                originalDraft: "Originaler Entwurf:",
+            }
+            : {
+                proFeature: "Pro feature",
+                aiUnavailable: "The AI writing assistant is available on the Pro plan.",
+                authRequired: "Sign-in required.",
+                industryFallback: "General business",
+                aiFailed: "AI improvement failed",
+                proposalGenerated: "Proposal generated",
+                proposalGeneratedDescription:
+                    "The AI assistant created a more defensible wording.",
+                error: "Error",
+                serviceUnavailable: "AI service unavailable.",
+                applied: "Applied",
+                appliedDescription:
+                    "The AI proposal was applied to the document.",
+                empty: "No sections available.",
+                generating: "Generating...",
+                exportPdf: "Export PDF",
+                print: "Print",
+                aiTitle: "AI writing assistant: make more defensible",
+                proposal: "AI proposal",
+                apply: "Apply",
+                discard: "Discard",
+                originalDraft: "Original draft:",
+            };
 
     useEffect(() => {
         setLocalSections(sections);
@@ -57,7 +110,7 @@ export function PolicyPreview({
         if (!document) return;
         try {
             setIsExporting(true);
-            const { blob, filename } = await generatePolicyPdf(document);
+            const { blob, filename } = await generatePolicyPdf(document, locale);
             downloadBlob(blob, filename);
         } catch (err) {
             console.error("Failed to generate PDF", err);
@@ -69,8 +122,8 @@ export function PolicyPreview({
     const handleImproveSection = async (section: PolicySection) => {
         if (!aiAllowed) {
             toast({
-                title: "Pro-Feature",
-                description: "Die KI-Schreibhilfe ist im Pro-Plan verfügbar.",
+                title: copy.proFeature,
+                description: copy.aiUnavailable,
                 variant: "destructive"
             });
             return;
@@ -83,7 +136,7 @@ export function PolicyPreview({
             const token = await auth.currentUser?.getIdToken();
 
             if (!token) {
-                throw new Error("Anmeldung erforderlich.");
+                throw new Error(copy.authRequired);
             }
 
             const res = await fetch("/api/policy/improve", {
@@ -96,13 +149,14 @@ export function PolicyPreview({
                     section,
                     registerId: document?.registerId,
                     orgName: document?.orgContextSnapshot?.organisationName,
-                    industry: "Wirtschaft" // Fallback, could be fetched from orgSettings
+                    industry: copy.industryFallback,
+                    locale,
                 })
             });
 
             const data = await res.json();
 
-            if (!res.ok) throw new Error(data.error || "AI improvement failed");
+            if (!res.ok) throw new Error(data.error || copy.aiFailed);
 
             setProposals(prev => ({ ...prev, [section.sectionId]: data.improvedContent }));
 
@@ -112,14 +166,14 @@ export function PolicyPreview({
             }
 
             toast({
-                title: "Vorschlag generiert",
-                description: "Die KI hat eine defensivere Formulierung erstellt."
+                title: copy.proposalGenerated,
+                description: copy.proposalGeneratedDescription
             });
 
         } catch (err: any) {
             toast({
-                title: "Fehler",
-                description: err.message || "KI-Dienst nicht erreichbar.",
+                title: copy.error,
+                description: err.message || copy.serviceUnavailable,
                 variant: "destructive"
             });
         } finally {
@@ -149,8 +203,8 @@ export function PolicyPreview({
         });
 
         toast({
-            title: "Übernommen",
-            description: "Der KI-Vorschlag wurde in das Dokument übernommen."
+            title: copy.applied,
+            description: copy.appliedDescription
         });
     };
 
@@ -165,7 +219,7 @@ export function PolicyPreview({
     if (localSections.length === 0) {
         return (
             <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground text-sm">
-                Keine Abschnitte vorhanden.
+                {copy.empty}
             </div>
         );
     }
@@ -182,13 +236,13 @@ export function PolicyPreview({
                         onClick={() => void handlePdfExport()}
                         disabled={isExporting}
                     >
-                        {isExporting ? "Generiere..." : "PDF exportieren"}
+                        {isExporting ? copy.generating : copy.exportPdf}
                     </Button>
                 )}
                 {showPrintButton && (
                     <Button variant="outline" size="sm" onClick={handlePrint}>
                         <Printer className="mr-2 h-3.5 w-3.5" />
-                        Drucken
+                        {copy.print}
                     </Button>
                 )}
             </div>
@@ -237,7 +291,7 @@ export function PolicyPreview({
                                             className="h-7 w-7 p-0"
                                             onClick={() => void handleImproveSection(section)}
                                             disabled={isImproving}
-                                            title="KI-Schreibhilfe: Defensiver formulieren"
+                                            title={copy.aiTitle}
                                         >
                                             {isImproving ? (
                                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -256,7 +310,7 @@ export function PolicyPreview({
                                         <div className="space-y-4">
                                             <div className="rounded bg-muted/50 p-3 text-xs italic border-l-2 border-primary">
                                                 <div className="flex items-center justify-between mb-2 not-italic">
-                                                    <span className="font-semibold text-[10px] uppercase tracking-wider text-primary">KI-Vorschlag</span>
+                                                    <span className="font-semibold text-[10px] uppercase tracking-wider text-primary">{copy.proposal}</span>
                                                     <div className="flex items-center gap-2">
                                                         <Button
                                                             variant="default"
@@ -264,7 +318,7 @@ export function PolicyPreview({
                                                             className="h-6 px-2 text-[10px] bg-primary text-primary-foreground"
                                                             onClick={() => applyProposal(section.sectionId)}
                                                         >
-                                                            <Check className="mr-1 h-3 w-3" /> Übernehmen
+                                                            <Check className="mr-1 h-3 w-3" /> {copy.apply}
                                                         </Button>
                                                         <Button
                                                             variant="outline"
@@ -272,7 +326,7 @@ export function PolicyPreview({
                                                             className="h-6 px-2 text-[10px]"
                                                             onClick={() => discardProposal(section.sectionId)}
                                                         >
-                                                            <X className="mr-1 h-3 w-3" /> Verwerfen
+                                                            <X className="mr-1 h-3 w-3" /> {copy.discard}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -283,7 +337,7 @@ export function PolicyPreview({
                                                     }}
                                                 />
                                             </div>
-                                            <div className="text-[10px] text-muted-foreground"> Originaler Entwurf: </div>
+                                            <div className="text-[10px] text-muted-foreground"> {copy.originalDraft} </div>
                                             <div
                                                 className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert opacity-50"
                                                 dangerouslySetInnerHTML={{

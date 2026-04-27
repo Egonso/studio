@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowDownIcon, ArrowUpIcon, ClipboardCopy, ExternalLink, Loader2, MoreVertical, RefreshCw, Search, Trash2, Undo2, X } from "lucide-react";
 import {
   AlertDialog,
@@ -74,6 +73,10 @@ import {
   getUseCaseWorkflowBadge,
 } from "@/lib/register-first/systems";
 import {
+  getDisplayedRiskClassLabel,
+  parseStoredAiActCategory,
+} from "@/lib/register-first/risk-taxonomy";
+import {
   matchesUseCaseSourceFilter,
   type UseCaseSourceFilter,
 } from "@/lib/register-first/source";
@@ -88,6 +91,7 @@ import { parseRegisterScopeFromWorkspaceValue } from "@/lib/register-first/regis
 import { registerService } from "@/lib/register-first/register-service";
 import { buildScopedUseCaseDetailHref } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
+import { useRouter } from "@/i18n/navigation";
 
 const toolRegistry = createStaticToolRegistryService();
 const aiToolsRegistry = createAiToolsRegistryService();
@@ -107,7 +111,7 @@ type StatusFilter = RegisterUseCaseStatus | "ALL";
 type SortField = "updatedAt" | "createdAt" | "purpose" | "owner" | "status" | "tool";
 type ViewMode = "ALL" | "BY_OWNER" | "BY_ORG" | "BY_STATUS";
 type ProofBooleanChoice = "YES" | "NO";
-type RiskFilter = "ALL" | "MINIMAL" | "HIGH" | "PROHIBITED" | "UNKNOWN";
+type RiskFilter = "ALL" | "MINIMAL" | "LIMITED" | "HIGH" | "PROHIBITED" | "UNKNOWN";
 
 interface ProofMetaDraft {
   verifyUrl: string;
@@ -176,6 +180,7 @@ function getRegisterBoardCopy(locale: string) {
       allStatuses: 'Alle Status',
       allRiskClasses: 'Alle Risikoklassen',
       minimalRisk: 'Minimales Risiko',
+      limitedRisk: 'Begrenztes Risiko',
       highRisk: 'Hochrisiko',
       prohibitedRisk: 'Verboten',
       activity: 'Aktivität',
@@ -269,6 +274,7 @@ function getRegisterBoardCopy(locale: string) {
     allStatuses: 'All statuses',
     allRiskClasses: 'All risk classes',
     minimalRisk: 'Minimal risk',
+    limitedRisk: 'Limited risk',
     highRisk: 'High-risk',
     prohibitedRisk: 'Prohibited',
     activity: 'Activity',
@@ -466,6 +472,17 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     ],
     [copy.allStatuses, statusLabel],
   );
+  const riskClassLabel = useCallback(
+    (card: UseCaseCard) =>
+      getDisplayedRiskClassLabel({
+        aiActCategory: card.governanceAssessment?.core?.aiActCategory,
+        toolRiskLevel: card.toolId
+          ? aiToolsRegistry.getById(card.toolId)?.riskLevel ?? null
+          : null,
+        locale,
+      }),
+    [locale],
+  );
 
   const loadUseCases = useCallback(async () => {
     setIsLoading(true);
@@ -488,18 +505,21 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
       if (riskFilter !== "ALL") {
         items = items.filter((uc) => {
-          const category = (uc.governanceAssessment?.core?.aiActCategory || "").toLowerCase();
-          if (!category) return riskFilter === "UNKNOWN";
+          const category = parseStoredAiActCategory(
+            uc.governanceAssessment?.core?.aiActCategory,
+          );
 
           switch (riskFilter) {
             case "MINIMAL":
-              return category.includes("minimal");
+              return category === "MINIMAL";
+            case "LIMITED":
+              return category === "LIMITED";
             case "HIGH":
-              return category.includes("high") || category.includes("hoch");
+              return category === "HIGH";
             case "PROHIBITED":
-              return category.includes("unacceptable") || category.includes("verbot");
+              return category === "PROHIBITED";
             case "UNKNOWN":
-              return category.includes("unknown") || category.includes("unbekannt");
+              return category === "UNASSESSED";
             default:
               return true;
           }
@@ -1134,6 +1154,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           <SelectContent>
             <SelectItem value="ALL">{copy.allRiskClasses}</SelectItem>
             <SelectItem value="MINIMAL">{copy.minimalRisk}</SelectItem>
+            <SelectItem value="LIMITED">{copy.limitedRisk}</SelectItem>
             <SelectItem value="HIGH">{copy.highRisk}</SelectItem>
             <SelectItem value="PROHIBITED">{copy.prohibitedRisk}</SelectItem>
             <SelectItem value="UNKNOWN">{copy.unknown}</SelectItem>
@@ -1287,6 +1308,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                 const nextStatuses = getNextManualStatuses(card.status);
                 const toolDisplayName = getCardToolDisplayName(card, copy.noSystem);
                 const workflowBadge = getUseCaseWorkflowBadge(card, {
+                  locale,
                   resolveToolName: (toolId) =>
                     aiToolsRegistry.getById(toolId)?.productName ?? null,
                 });
@@ -1370,7 +1392,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                               {t('register.riskClass.label')}
                             </div>
                             <div>
-                              {card.governanceAssessment?.core?.aiActCategory || copy.unknown}
+                              {riskClassLabel(card)}
                             </div>
                           </div>
                         </div>
@@ -1436,6 +1458,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   const nextStatuses = getNextManualStatuses(card.status);
                   const toolDisplayName = getCardToolDisplayName(card, copy.noSystem);
                   const workflowBadge = getUseCaseWorkflowBadge(card, {
+                    locale,
                     resolveToolName: (toolId) =>
                       aiToolsRegistry.getById(toolId)?.productName ?? null,
                   });
@@ -1498,7 +1521,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
 
                         <TableCell>
                           <span className="text-sm text-slate-700">
-                            {card.governanceAssessment?.core?.aiActCategory || <span className="text-muted-foreground">{copy.unknown}</span>}
+                            {riskClassLabel(card)}
                           </span>
                         </TableCell>
 

@@ -15,12 +15,12 @@
  */
 
 import {
-    DATA_CATEGORY_LABELS,
+    getDataCategoryLabel as getRegisterDataCategoryLabel,
     resolvePrimaryDataCategory,
     type UseCaseCard,
     type OrgSettings,
 } from '@/lib/register-first/types';
-import { registerUseCaseStatusLabels } from '@/lib/register-first/status-flow';
+import { getRegisterUseCaseStatusLabel } from '@/lib/register-first/status-flow';
 import {
     calculateGovernanceQuality,
     getGovernanceQualityLabel,
@@ -29,8 +29,12 @@ import {
 } from '../scores';
 import {
     calculateReviewDeadline,
-    getDeadlineStatusLabel,
+    type DeadlineStatus,
 } from '../reminders/review-deadline';
+import {
+    formatGovernanceDate,
+    resolveGovernanceCopyLocale,
+} from '@/lib/i18n/governance-copy';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,8 +79,52 @@ export interface GovernanceReportData {
 
 // ── German Labels ───────────────────────────────────────────────────────────
 
-function getDataCategoryLabel(category: string | undefined): string {
-    return DATA_CATEGORY_LABELS[(category ?? 'INTERNAL_CONFIDENTIAL') as keyof typeof DATA_CATEGORY_LABELS] ?? category ?? '–';
+function getDataCategoryLabel(category: string | undefined, locale?: string): string {
+    return getRegisterDataCategoryLabel(
+        (category ?? 'INTERNAL_CONFIDENTIAL') as Parameters<typeof getRegisterDataCategoryLabel>[0],
+        locale,
+    ) ?? category ?? '–';
+}
+
+function getLocalizedExposureLabel(level: ReturnType<typeof calculateExposure>, locale?: string): string {
+    const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
+    if (!isGerman) {
+        switch (level) {
+            case 'critical': return 'Critical';
+            case 'high': return 'High';
+            case 'medium': return 'Medium';
+            case 'low': return 'Low';
+        }
+    }
+    return getExposureLabel(level);
+}
+
+function getLocalizedGovernanceQualityLabel(score: number, locale?: string): string {
+    const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
+    if (!isGerman) return getGovernanceQualityLabel(score);
+    if (score >= 80) return 'Stark';
+    if (score >= 60) return 'Solide';
+    if (score >= 40) return 'Im Aufbau';
+    if (score >= 20) return 'Unvollständig';
+    return 'Nicht bewertet';
+}
+
+function getLocalizedDeadlineStatusLabel(status: DeadlineStatus, locale?: string): string {
+    const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
+    if (!isGerman) {
+        switch (status) {
+            case 'overdue': return 'Overdue';
+            case 'due_soon': return 'Due soon';
+            case 'on_track': return 'On track';
+            case 'no_deadline': return 'No deadline';
+        }
+    }
+    switch (status) {
+        case 'overdue': return 'Überfällig';
+        case 'due_soon': return 'Bald fällig';
+        case 'on_track': return 'Im Zeitplan';
+        case 'no_deadline': return 'Keine Frist';
+    }
 }
 
 // ── Generator ───────────────────────────────────────────────────────────────
@@ -104,6 +152,7 @@ export function generateGovernanceReport(
     useCases: UseCaseCard[],
     orgSettings: OrgSettings,
     now: Date = new Date(),
+    locale?: string,
 ): GovernanceReportData {
     const orgContext = orgSettings.scope
         ? { scope: orgSettings.scope }
@@ -152,21 +201,23 @@ export function generateGovernanceReport(
 
         // Responsible party
         const responsible = uc.responsibility?.responsibleParty
-            || (uc.responsibility?.isCurrentlyResponsible ? 'Selbst verantwortlich' : '–');
+            || (uc.responsibility?.isCurrentlyResponsible
+                ? (resolveGovernanceCopyLocale(locale) === 'de' ? 'Selbst verantwortlich' : 'Self responsible')
+                : '–');
 
         useCaseDetails.push({
             name: uc.purpose,
             status: uc.status,
-            statusLabel: registerUseCaseStatusLabels[uc.status] ?? uc.status,
-            riskCategory: getExposureLabel(exposure),
-            lastReviewDate: lastReview ? formatDateDE(lastReview) : null,
-            nextDueDate: deadline.nextReviewAt ? formatDateDE(deadline.nextReviewAt) : null,
-            deadlineStatus: getDeadlineStatusLabel(deadline.status),
+            statusLabel: getRegisterUseCaseStatusLabel(uc.status, locale) ?? uc.status,
+            riskCategory: getLocalizedExposureLabel(exposure, locale),
+            lastReviewDate: lastReview ? formatReportDate(lastReview, locale) : null,
+            nextDueDate: deadline.nextReviewAt ? formatReportDate(deadline.nextReviewAt, locale) : null,
+            deadlineStatus: getLocalizedDeadlineStatusLabel(deadline.status, locale),
             reviewCount: uc.reviews.length,
             qualityScore: quality,
-            qualityLabel: getGovernanceQualityLabel(quality),
+            qualityLabel: getLocalizedGovernanceQualityLabel(quality, locale),
             responsibleParty: responsible,
-            dataCategory: getDataCategoryLabel(resolvePrimaryDataCategory(uc)),
+            dataCategory: getDataCategoryLabel(resolvePrimaryDataCategory(uc), locale),
             toolName: uc.toolFreeText || uc.toolId || '–',
         });
     }
@@ -185,8 +236,8 @@ export function generateGovernanceReport(
             unreviewedCount,
             overdueCount,
             avgQuality,
-            avgQualityLabel: getGovernanceQualityLabel(avgQuality),
-            maxExposure: getExposureLabel(maxExposureLevel),
+            avgQualityLabel: getLocalizedGovernanceQualityLabel(avgQuality, locale),
+            maxExposure: getLocalizedExposureLabel(maxExposureLevel, locale),
         },
         useCaseDetails,
     };
@@ -197,7 +248,7 @@ export function generateGovernanceReport(
 /** UTF-8 BOM for Excel compatibility */
 const UTF8_BOM = '\uFEFF';
 
-const REPORT_CSV_HEADERS = [
+const REPORT_CSV_HEADERS_DE = [
     'Use-Case Name',
     'Status',
     'Risikokategorie',
@@ -209,6 +260,21 @@ const REPORT_CSV_HEADERS = [
     'Qualitäts-Label',
     'Verantwortlich',
     'Datenkategorie',
+    'Tool',
+];
+
+const REPORT_CSV_HEADERS_EN = [
+    'Use case name',
+    'Status',
+    'Risk category',
+    'Last review',
+    'Next deadline',
+    'Deadline status',
+    'Review count',
+    'Governance quality',
+    'Quality label',
+    'Responsible',
+    'Data category',
     'Tool',
 ];
 
@@ -230,14 +296,11 @@ function escapeCSVSemicolon(value: string): string {
  *   formatDateDE('2026-02-23T10:00:00Z'); // → '23.02.2026'
  *   formatDateDE('invalid');               // → '–'
  */
-function formatDateDE(isoDate: string): string {
+function formatReportDate(isoDate: string, locale?: string): string {
     try {
         const d = new Date(isoDate);
         if (isNaN(d.getTime())) return '–';
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}.${month}.${year}`;
+        return formatGovernanceDate(d, locale);
     } catch {
         return '–';
     }
@@ -261,18 +324,29 @@ function formatDateDE(isoDate: string): string {
  *   // csv uses semicolon as delimiter
  *   // csv has German headers
  */
-export function governanceReportToCSV(report: GovernanceReportData): string {
+export function governanceReportToCSV(
+    report: GovernanceReportData,
+    locale?: string,
+): string {
+    const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
+    const headers = isGerman ? REPORT_CSV_HEADERS_DE : REPORT_CSV_HEADERS_EN;
     const lines: string[] = [
-        `# Governance-Stichtagsreport – ${report.organisationName}`,
-        `# Erstellt am: ${formatDateDE(report.generatedAt)}`,
-        `# Branche: ${report.industry}`,
-        `# Gesamtanzahl Use Cases: ${report.summary.totalUseCases}`,
-        `# Davon geprüft: ${report.summary.reviewedCount} | Ungeprüft: ${report.summary.unreviewedCount} | Überfällig: ${report.summary.overdueCount}`,
-        `# Durchschnittliche Governance-Qualität: ${report.summary.avgQuality}% (${report.summary.avgQualityLabel})`,
-        `# Maximale Risikokategorie: ${report.summary.maxExposure}`,
-        `# HINWEIS: Dieser Report dokumentiert den IST-Zustand zum Stichtag. Er stellt keine Compliance-Bestätigung dar.`,
+        isGerman
+            ? `# Governance-Stichtagsreport - ${report.organisationName}`
+            : `# Governance Point-in-Time Report - ${report.organisationName}`,
+        `# ${isGerman ? 'Erstellt am' : 'Generated at'}: ${formatReportDate(report.generatedAt, locale)}`,
+        `# ${isGerman ? 'Branche' : 'Industry'}: ${report.industry}`,
+        `# ${isGerman ? 'Gesamtanzahl Use Cases' : 'Total use cases'}: ${report.summary.totalUseCases}`,
+        isGerman
+            ? `# Davon geprüft: ${report.summary.reviewedCount} | Ungeprüft: ${report.summary.unreviewedCount} | Überfällig: ${report.summary.overdueCount}`
+            : `# Reviewed: ${report.summary.reviewedCount} | Unreviewed: ${report.summary.unreviewedCount} | Overdue: ${report.summary.overdueCount}`,
+        `# ${isGerman ? 'Durchschnittliche Governance-Qualität' : 'Average governance quality'}: ${report.summary.avgQuality}% (${report.summary.avgQualityLabel})`,
+        `# ${isGerman ? 'Maximale Risikokategorie' : 'Maximum risk category'}: ${report.summary.maxExposure}`,
+        isGerman
+            ? `# HINWEIS: Dieser Report dokumentiert den IST-Zustand zum Stichtag. Er stellt keine Compliance-Bestätigung dar.`
+            : `# NOTE: This report documents the point-in-time state. It is not a compliance confirmation.`,
         '',
-        REPORT_CSV_HEADERS.map(escapeCSVSemicolon).join(';'),
+        headers.map(escapeCSVSemicolon).join(';'),
     ];
 
     for (const detail of report.useCaseDetails) {

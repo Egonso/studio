@@ -28,6 +28,7 @@ interface RiskClassAssistProps {
   currentDisplayLabel?: string | null;
   isHumanConfirmed?: boolean;
   suggestion?: RiskSuggestionResult | null;
+  locale?: string;
   expanded?: boolean;
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
@@ -37,13 +38,22 @@ interface RiskClassAssistProps {
   className?: string;
 }
 
-const signalStrengthLabel: Record<
+const signalStrengthLabelDe: Record<
   RiskSuggestionResult["signalStrength"],
   string
 > = {
   low: "wenige Signale",
   medium: "mehrere Signale",
   high: "starke Signale",
+};
+
+const signalStrengthLabelEn: Record<
+  RiskSuggestionResult["signalStrength"],
+  string
+> = {
+  low: "few signals",
+  medium: "several signals",
+  high: "strong signals",
 };
 
 const signalStrengthClassName: Record<
@@ -58,6 +68,7 @@ const signalStrengthClassName: Record<
 function resolveCurrentLabel(
   currentRiskClass: CanonicalAiActRiskClass | null | undefined,
   currentDisplayLabel: string | null | undefined,
+  locale?: string,
 ): string | null {
   if (typeof currentDisplayLabel === "string" && currentDisplayLabel.trim()) {
     return currentDisplayLabel.trim();
@@ -67,7 +78,7 @@ function resolveCurrentLabel(
     return null;
   }
 
-  return getRiskClassShortLabel(currentRiskClass);
+  return getRiskClassShortLabel(currentRiskClass, locale);
 }
 
 export function RiskClassAssist({
@@ -75,6 +86,7 @@ export function RiskClassAssist({
   currentDisplayLabel = null,
   isHumanConfirmed = false,
   suggestion = null,
+  locale,
   expanded,
   defaultExpanded = false,
   onExpandedChange,
@@ -83,6 +95,52 @@ export function RiskClassAssist({
   onOpenReview,
   className,
 }: RiskClassAssistProps) {
+  const isGerman = !(locale?.toLowerCase().startsWith("en") ?? false);
+  const signalStrengthLabel = isGerman
+    ? signalStrengthLabelDe
+    : signalStrengthLabelEn;
+  const copy = {
+    humanConfirmed: isGerman ? "Menschlich bestaetigt" : "Human confirmed",
+    openClassification: isGerman ? "Einstufung offen" : "Classification open",
+    suggestionAvailable: isGerman
+      ? "Ein begruendeter Vorschlag ist verfuegbar. Die finale Einstufung bleibt menschlich."
+      : "A reasoned suggestion is available. Final classification remains human.",
+    noSuggestion: isGerman
+      ? "Noch kein Vorschlag sichtbar. Die Einstufung kann manuell oder spaeter mit Assistenz erfolgen."
+      : "No suggestion visible yet. Classification can be completed manually or later with assistance.",
+    suggestion: isGerman ? "Vorschlag" : "Suggestion",
+    signalStrength: isGerman ? "Signalstaerke" : "Signal strength",
+    shortReviewRecommended: isGerman
+      ? "Kurze Pruefung empfohlen"
+      : "Short review recommended",
+    hideSuggestion: isGerman ? "Vorschlag ausblenden" : "Hide suggestion",
+    showSuggestion: isGerman ? "Vorschlag ansehen" : "View suggestion",
+    startReview: isGerman ? "Kurze Pruefung starten" : "Start short review",
+    direction: isGerman ? "Richtung" : "Direction",
+    noSuggestionAvailable: isGerman
+      ? "Noch kein Vorschlag verfuegbar"
+      : "No suggestion available yet",
+    shortReviewOptional: isGerman
+      ? "Kurze Pruefung optional."
+      : "Short review optional.",
+    proposalOnly: isGerman
+      ? "Nur Vorschlag. Keine automatische Einstufung."
+      : "Suggestion only. No automatic classification.",
+    whyDirection: isGerman
+      ? "Warum diese Richtung naheliegt"
+      : "Why this direction is plausible",
+    noSignalBasis: isGerman
+      ? "Noch keine gruendende Signalbasis sichtbar."
+      : "No supporting signal basis visible yet.",
+    openQuestion: isGerman
+      ? "Welche Frage noch offen ist"
+      : "Which question is still open",
+    noOpenQuestions: isGerman
+      ? "Aktuell sind keine offenen Rueckfragen markiert."
+      : "No open follow-up questions are currently marked.",
+    adoptDraft: isGerman ? "Als Entwurf uebernehmen" : "Adopt as draft",
+    classifySelf: isGerman ? "Selbst einstufen" : "Classify manually",
+  };
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
   const isControlled = typeof expanded === "boolean";
   const isOpen = isControlled ? expanded : internalExpanded;
@@ -94,15 +152,19 @@ export function RiskClassAssist({
     onExpandedChange?.(nextValue);
   };
 
-  const currentLabel = resolveCurrentLabel(currentRiskClass, currentDisplayLabel);
+  const currentLabel = resolveCurrentLabel(
+    currentRiskClass,
+    currentDisplayLabel,
+    locale,
+  );
   const statusLabel = currentLabel
     ? isHumanConfirmed
-      ? `Menschlich bestaetigt: ${currentLabel}`
+      ? `${copy.humanConfirmed}: ${currentLabel}`
       : currentLabel
-    : "Einstufung offen";
+    : copy.openClassification;
 
   const suggestedLabel = suggestion
-    ? getRiskClassDisplayLabel(suggestion.suggestedRiskClass)
+    ? getRiskClassDisplayLabel(suggestion.suggestedRiskClass, locale)
     : null;
   const canAdoptSuggestion = Boolean(
     suggestion && suggestion.suggestedRiskClass !== "UNASSESSED",
@@ -129,23 +191,25 @@ export function RiskClassAssist({
               <p className="text-sm font-semibold text-slate-950">{statusLabel}</p>
               <p className="text-sm text-slate-600">
                 {suggestion
-                  ? "Ein begruendeter Vorschlag ist verfuegbar. Die finale Einstufung bleibt menschlich."
-                  : "Noch kein Vorschlag sichtbar. Die Einstufung kann manuell oder spaeter mit Assistenz erfolgen."}
+                  ? copy.suggestionAvailable
+                  : copy.noSuggestion}
               </p>
             </div>
           </div>
 
           <div className="space-y-1 pl-6 text-xs text-slate-600">
             {suggestion && suggestedLabel && (
-              <p>Vorschlag: {suggestedLabel}</p>
+              <p>
+                {copy.suggestion}: {suggestedLabel}
+              </p>
             )}
             {suggestion && (
               <p className={cn(signalStrengthClassName[suggestion.signalStrength])}>
-                Signalstaerke: {signalStrengthLabel[suggestion.signalStrength]}
+                {copy.signalStrength}: {signalStrengthLabel[suggestion.signalStrength]}
               </p>
             )}
             {suggestion?.reviewRecommended && (
-              <p>Kurze Pruefung empfohlen</p>
+              <p>{copy.shortReviewRecommended}</p>
             )}
           </div>
         </div>
@@ -153,7 +217,7 @@ export function RiskClassAssist({
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="text-slate-700">
-              {isOpen ? "Vorschlag ausblenden" : "Vorschlag ansehen"}
+              {isOpen ? copy.hideSuggestion : copy.showSuggestion}
               {isOpen ? <ChevronUp /> : <ChevronDown />}
             </Button>
           </CollapsibleTrigger>
@@ -164,7 +228,7 @@ export function RiskClassAssist({
             className="text-slate-700"
             onClick={onOpenReview}
           >
-            Kurze Pruefung starten
+            {copy.startReview}
           </Button>
         </div>
       </div>
@@ -174,11 +238,13 @@ export function RiskClassAssist({
           <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium text-slate-700">Richtung</p>
+                <p className="text-sm font-medium text-slate-700">
+                  {copy.direction}
+                </p>
                 <p className="text-base font-semibold text-slate-950">
                   {suggestedLabel
-                    ? `Vorschlag: ${suggestedLabel}`
-                    : "Noch kein Vorschlag verfuegbar"}
+                    ? `${copy.suggestion}: ${suggestedLabel}`
+                    : copy.noSuggestionAvailable}
                 </p>
                 {suggestion ? (
                   <p
@@ -187,17 +253,17 @@ export function RiskClassAssist({
                       signalStrengthClassName[suggestion.signalStrength],
                     )}
                   >
-                    Signalstaerke: {signalStrengthLabel[suggestion.signalStrength]}.{" "}
+                    {copy.signalStrength}: {signalStrengthLabel[suggestion.signalStrength]}.{" "}
                     {suggestion.reviewRecommended
-                      ? "Kurze Pruefung empfohlen."
-                      : "Kurze Pruefung optional."}
+                      ? `${copy.shortReviewRecommended}.`
+                      : copy.shortReviewOptional}
                   </p>
                 ) : null}
               </div>
             </div>
 
             <p className="mt-3 text-sm text-slate-600">
-              Nur Vorschlag. Keine automatische Einstufung.
+              {copy.proposalOnly}
             </p>
           </div>
 
@@ -206,7 +272,7 @@ export function RiskClassAssist({
               <div className="flex items-center gap-2">
                 <FileSearch className="h-4 w-4 text-slate-600" />
                 <p className="text-sm font-medium text-slate-800">
-                  Warum diese Richtung naheliegt
+                  {copy.whyDirection}
                 </p>
               </div>
               {suggestion?.reasons.length ? (
@@ -219,7 +285,7 @@ export function RiskClassAssist({
                 </ul>
               ) : (
                 <p className="mt-3 text-sm text-slate-600">
-                  Noch keine gruendende Signalbasis sichtbar.
+                  {copy.noSignalBasis}
                 </p>
               )}
             </div>
@@ -228,7 +294,7 @@ export function RiskClassAssist({
               <div className="flex items-center gap-2">
                 <PencilLine className="h-4 w-4 text-slate-600" />
                 <p className="text-sm font-medium text-slate-800">
-                  Welche Frage noch offen ist
+                  {copy.openQuestion}
                 </p>
               </div>
               {suggestion?.openQuestions.length ? (
@@ -241,7 +307,7 @@ export function RiskClassAssist({
                 </ul>
               ) : (
                 <p className="mt-3 text-sm text-slate-600">
-                  Aktuell sind keine offenen Rueckfragen markiert.
+                  {copy.noOpenQuestions}
                 </p>
               )}
             </div>
@@ -254,7 +320,7 @@ export function RiskClassAssist({
               onClick={onAdoptSuggestion}
               disabled={!canAdoptSuggestion}
             >
-              Als Entwurf uebernehmen
+              {copy.adoptDraft}
             </Button>
             <Button
               type="button"
@@ -262,7 +328,7 @@ export function RiskClassAssist({
               size="sm"
               onClick={onStartManualSelection}
             >
-              Selbst einstufen
+              {copy.classifySelf}
             </Button>
             <Button
               type="button"
@@ -271,7 +337,7 @@ export function RiskClassAssist({
               className="text-slate-700"
               onClick={onOpenReview}
             >
-              Kurze Pruefung starten
+              {copy.startReview}
             </Button>
           </div>
         </div>

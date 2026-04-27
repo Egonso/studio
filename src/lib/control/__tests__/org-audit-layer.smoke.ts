@@ -132,6 +132,28 @@ export function runOrgAuditLayerSmoke() {
   assert.ok(snapshot.gapAnalysis.some((item) => item.id === "owner-coverage"));
   assert.ok(snapshot.gapAnalysis.some((item) => item.id === "high-risk-oversight"));
 
+  const englishSnapshot = buildOrgAuditLayer(useCases, createOrgSettings(), now, "en");
+  assert.ok(
+    englishSnapshot.gapAnalysis.some(
+      (item) => item.title === "Complete owner assignments"
+    )
+  );
+  assert.ok(
+    englishSnapshot.isoClauseProgress.some(
+      (entry) => entry.title === "Leadership and roles"
+    )
+  );
+  assert.ok(
+    englishSnapshot.immutableReviewHistory.some((entry) =>
+      entry.details.startsWith("Status documented:")
+    )
+  );
+  assert.ok(
+    englishSnapshot.gapAnalysis.every(
+      (item) => !/Verantwortlichkeiten|Aufsichtsmodell/.test(item.title)
+    )
+  );
+
   assert.ok(snapshot.immutableReviewHistory.length >= 2);
   for (const entry of snapshot.immutableReviewHistory) {
     assert.match(entry.immutableReference, /^IMM-[A-F0-9]{8}$/);

@@ -1,15 +1,16 @@
 import type { PolicyDocument } from "../types";
-import { POLICY_LEVEL_LABELS, POLICY_STATUS_LABELS } from "../types";
+import {
+    formatGovernanceDate,
+    getPolicyLevelLabel,
+    getPolicyStatusLabel,
+    resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale?: string): string {
     try {
-        return new Date(iso).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
+        return formatGovernanceDate(iso, locale);
     } catch {
         return iso;
     }
@@ -24,15 +25,18 @@ function stripMarkdown(md: string): string {
         .replace(/^- /gm, "• ");
 }
 
-function generateFilename(doc: PolicyDocument): string {
-    const date = formatDate(doc.metadata.updatedAt).replace(/\//g, "-");
-    return `AI-Policy_Level${doc.level}_v${doc.metadata.version}_${date}.pdf`;
+function generateFilename(doc: PolicyDocument, locale?: string): string {
+    const date = formatDate(doc.metadata.updatedAt, locale).replace(/[/.]/g, "-");
+    const prefix =
+        resolveGovernanceCopyLocale(locale) === "de" ? "KI-Richtlinie" : "AI-Policy";
+    return `${prefix}_Level${doc.level}_v${doc.metadata.version}_${date}.pdf`;
 }
 
 // ── PDF Generation ──────────────────────────────────────────────────────────
 
 export async function generatePolicyPdf(
     doc: PolicyDocument,
+    locale?: string,
 ): Promise<{ blob: Blob; filename: string }> {
     const { default: jsPDF } = await import("jspdf");
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -53,7 +57,7 @@ export async function generatePolicyPdf(
     pdf.setFontSize(14);
     pdf.setFont("helvetica", "normal");
     pdf.text(
-        `Level ${doc.level}: ${POLICY_LEVEL_LABELS[doc.level]}`,
+        `Level ${doc.level}: ${getPolicyLevelLabel(doc.level, locale)}`,
         pageWidth / 2,
         y,
         { align: "center" },
@@ -72,7 +76,7 @@ export async function generatePolicyPdf(
     pdf.setFontSize(10);
     pdf.setTextColor(100);
     pdf.text(
-        `Version ${doc.metadata.version} • Status: ${POLICY_STATUS_LABELS[doc.status]} • ${formatDate(doc.metadata.updatedAt)}`,
+        `Version ${doc.metadata.version} - Status: ${getPolicyStatusLabel(doc.status, locale)} - ${formatDate(doc.metadata.updatedAt, locale)}`,
         pageWidth / 2,
         y,
         { align: "center" },
@@ -84,7 +88,7 @@ export async function generatePolicyPdf(
     y = margin;
     pdf.setFontSize(16);
     pdf.setFont("helvetica", "bold");
-    pdf.text("Table of Contents", margin, y);
+    pdf.text(resolveGovernanceCopyLocale(locale) === "de" ? "Inhaltsverzeichnis" : "Table of Contents", margin, y);
     y += 10;
 
     const sorted = [...doc.sections].sort((a, b) => a.order - b.order);
@@ -144,7 +148,11 @@ export async function generatePolicyPdf(
         pdf.setFontSize(8);
         pdf.setTextColor(150);
         pdf.text(
-            `${doc.orgContextSnapshot.organisationName || "AI Policy"} \u2022 Page ${i} of ${totalPages}`,
+            `${doc.orgContextSnapshot.organisationName || "AI Policy"} - ${
+                resolveGovernanceCopyLocale(locale) === "de" ? "Seite" : "Page"
+            } ${i} ${
+                resolveGovernanceCopyLocale(locale) === "de" ? "von" : "of"
+            } ${totalPages}`,
             pageWidth / 2,
             290,
             { align: "center" },
@@ -152,7 +160,7 @@ export async function generatePolicyPdf(
         pdf.setTextColor(0);
     }
 
-    const filename = generateFilename(doc);
+    const filename = generateFilename(doc, locale);
     const blob = pdf.output("blob");
     return { blob, filename };
 }

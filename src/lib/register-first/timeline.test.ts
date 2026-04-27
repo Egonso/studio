@@ -211,6 +211,59 @@ test("manual edit labels stay customer-friendly and deduplicated", () => {
   );
 });
 
+test("buildUseCaseTimeline localizes timeline labels for English views", () => {
+  const beforeEdit = createBaseCard();
+  const afterEdit = createBaseCard({
+    ...beforeEdit,
+    updatedAt: "2026-03-10T10:00:00.000Z",
+    purpose: "Contract analysis with AI pre-check",
+  });
+  const manualEdit = createManualEditEvent({
+    before: beforeEdit,
+    after: afterEdit,
+    editedAt: "2026-03-10T10:00:00.000Z",
+    editedBy: "user_editor",
+  });
+
+  const timeline = buildUseCaseTimeline({
+    card: createBaseCard({
+      ...afterEdit,
+      manualEdits: manualEdit ? [manualEdit] : [],
+      reviews: [
+        {
+          reviewId: "review_en",
+          reviewedAt: "2026-03-10T11:00:00.000Z",
+          reviewedBy: "HUMAN",
+          nextStatus: "REVIEWED",
+          notes: undefined,
+        },
+      ],
+    }),
+    locale: "en",
+  });
+
+  assert.equal(
+    timeline.find((event) => event.kind === "created")?.title,
+    "Use case created",
+  );
+  assert.equal(
+    timeline.find((event) => event.kind === "origin")?.title,
+    "Manually captured",
+  );
+  assert.equal(
+    timeline.find((event) => event.kind === "manual_edit")?.title,
+    "Master data updated",
+  );
+  assert.equal(
+    timeline.find((event) => event.kind === "manual_edit")?.description,
+    "Purpose",
+  );
+  assert.equal(
+    timeline.find((event) => event.kind === "review")?.title,
+    "Review documented: Review completed",
+  );
+});
+
 test("createManualEditEvent summarizes workflow changes as Ablauf & Systeme", () => {
   const beforeEdit = createBaseCard({
     toolId: "other",

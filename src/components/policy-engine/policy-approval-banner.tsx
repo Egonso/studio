@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import {
     FileEdit,
     Send,
@@ -13,7 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import type { PolicyStatus, PolicyDocument } from "@/lib/policy-engine/types";
-import { POLICY_STATUS_LABELS } from "@/lib/policy-engine/types";
+import {
+    getPolicyStatusLabel,
+    resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 
 interface PolicyApprovalBannerProps {
     policy: PolicyDocument;
@@ -26,7 +30,40 @@ export function PolicyApprovalBanner({
     onStatusChange,
     isAuthorised = true,
 }: PolicyApprovalBannerProps) {
+    const locale = useLocale();
     const [isUpdating, setIsUpdating] = useState(false);
+    const copy =
+        resolveGovernanceCopyLocale(locale) === "de"
+            ? {
+                status: "Status",
+                draftDescription:
+                    "Dies ist Ihr aktueller Entwurf. Sobald der Text fertig ist, reichen Sie ihn zur internen Prüfung ein.",
+                submitReview: "Zur Prüfung einreichen",
+                waitingApproval: "Warten auf Genehmigung",
+                reviewDescription:
+                    "Die Richtlinie wird aktuell geprüft. Sie kann genehmigt werden, um sie als finalen Standard zu setzen.",
+                revise: "Überarbeiten",
+                approve: "Final genehmigen",
+                active: "Operativ gültig",
+                approvedDescription:
+                    "Diese Richtlinie ist genehmigt und dient als Grundlage für die KI-Governance in Ihrer Organisation.",
+                newVersion: "Neue Version entwerfen",
+            }
+            : {
+                status: "Status",
+                draftDescription:
+                    "This is your current draft. Once the text is ready, submit it for internal review.",
+                submitReview: "Submit for review",
+                waitingApproval: "Waiting for approval",
+                reviewDescription:
+                    "The policy is currently under review. It can be approved to set it as the final standard.",
+                revise: "Revise",
+                approve: "Approve final",
+                active: "Operationally valid",
+                approvedDescription:
+                    "This policy is approved and serves as the basis for AI governance in your organisation.",
+                newVersion: "Draft new version",
+            };
 
     const handleAction = async (nextStatus: PolicyStatus) => {
         try {
@@ -48,11 +85,11 @@ export function PolicyApprovalBanner({
                             <FileEdit className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div>
                                 <AlertTitle className="text-sm font-semibold flex items-center gap-2">
-                                    Status: {POLICY_STATUS_LABELS[status]}
+                                    {copy.status}: {getPolicyStatusLabel(status, locale)}
                                     <Badge variant="outline" className="font-normal text-[10px]">v{policy.metadata.version}</Badge>
                                 </AlertTitle>
                                 <AlertDescription className="text-xs text-muted-foreground">
-                                    Dies ist Ihr aktueller Entwurf. Sobald der Text fertig ist, reichen Sie ihn zur internen Prüfung ein.
+                                    {copy.draftDescription}
                                 </AlertDescription>
                             </div>
                         </div>
@@ -63,7 +100,7 @@ export function PolicyApprovalBanner({
                             disabled={isUpdating}
                         >
                             {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                            Zur Prüfung einreichen
+                            {copy.submitReview}
                         </Button>
                     </Alert>
                 );
@@ -75,11 +112,11 @@ export function PolicyApprovalBanner({
                             <Clock className="h-5 w-5 text-amber-600 mt-0.5" />
                             <div>
                                 <AlertTitle className="text-sm font-semibold text-amber-900 dark:text-amber-100 flex items-center gap-2">
-                                    Status: {POLICY_STATUS_LABELS[status]}
-                                    <Badge variant="outline" className="border-amber-300 text-amber-700 font-normal text-[10px]">Warten auf Genehmigung</Badge>
+                                    {copy.status}: {getPolicyStatusLabel(status, locale)}
+                                    <Badge variant="outline" className="border-amber-300 text-amber-700 font-normal text-[10px]">{copy.waitingApproval}</Badge>
                                 </AlertTitle>
                                 <AlertDescription className="text-xs text-amber-800/80 dark:text-amber-200/70">
-                                    Die Richtlinie wird aktuell geprüft. Sie kann genehmigt werden, um sie als finalen Standard zu setzen.
+                                    {copy.reviewDescription}
                                 </AlertDescription>
                             </div>
                         </div>
@@ -92,7 +129,7 @@ export function PolicyApprovalBanner({
                                 onClick={() => handleAction("draft")}
                                 disabled={isUpdating}
                             >
-                                Überarbeiten
+                                {copy.revise}
                             </Button>
                             <Button
                                 size="sm"
@@ -101,7 +138,7 @@ export function PolicyApprovalBanner({
                                 disabled={isUpdating || !isAuthorised}
                             >
                                 {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3.5 w-3.5" />}
-                                Final Genehmigen
+                                {copy.approve}
                             </Button>
                         </div>
                     </Alert>
@@ -114,11 +151,11 @@ export function PolicyApprovalBanner({
                             <CheckCircle className="h-5 w-5 text-gray-600 mt-0.5" />
                             <div>
                                 <AlertTitle className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                    Status: {POLICY_STATUS_LABELS[status]}
-                                    <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal text-[10px]">Operativ Gültig</Badge>
+                                    {copy.status}: {getPolicyStatusLabel(status, locale)}
+                                    <Badge variant="outline" className="border-gray-300 text-gray-700 font-normal text-[10px]">{copy.active}</Badge>
                                 </AlertTitle>
                                 <AlertDescription className="text-xs text-gray-800/80 dark:text-gray-200/70">
-                                    Diese Richtlinie ist genehmigt und dient als Grundlage für die KI-Governance in Ihrer Organisation.
+                                    {copy.approvedDescription}
                                 </AlertDescription>
                             </div>
                         </div>
@@ -129,7 +166,7 @@ export function PolicyApprovalBanner({
                             onClick={() => handleAction("draft")}
                             disabled={isUpdating}
                         >
-                            Neue Version entwerfen
+                            {copy.newVersion}
                         </Button>
                     </Alert>
                 );

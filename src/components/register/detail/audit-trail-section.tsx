@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { APP_LOCALE } from '@/lib/locale';
+import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   buildUseCaseTimeline,
-  USE_CASE_BADGE_META,
+  getUseCaseBadgeMeta,
   type ExternalSubmission,
   type RegisterTimelineEvent,
   type UseCaseCard,
@@ -18,10 +18,10 @@ interface AuditTrailSectionProps {
   submission?: ExternalSubmission | null;
 }
 
-function formatDate(isoDate: string): string {
+function formatDate(isoDate: string, locale: string): string {
   const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "unbekannt";
-  return date.toLocaleString(APP_LOCALE, {
+  if (Number.isNaN(date.getTime())) return locale === "de" ? "unbekannt" : "unknown";
+  return date.toLocaleString(locale === "de" ? "de-DE" : "en-GB", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -67,7 +67,18 @@ export function AuditTrailSection({
   card,
   submission = null,
 }: AuditTrailSectionProps) {
-  const timeline = buildUseCaseTimeline({ card, submission });
+  const locale = useLocale();
+  const isGerman = locale === "de";
+  const copy = {
+    title: isGerman ? "Verlauf" : "Timeline",
+    subtitle: isGerman ? "Neueste Ereignisse zuerst." : "Newest events first.",
+    documentedBy: isGerman ? "Dokumentiert von" : "Documented by",
+    less: isGerman ? "Weniger" : "Less",
+    allEntries: (count: number) =>
+      isGerman ? `Alle ${count} Eintraege` : `All ${count} entries`,
+  };
+  const timeline = buildUseCaseTimeline({ card, submission, locale });
+  const badgeMeta = getUseCaseBadgeMeta(locale);
   const [showAll, setShowAll] = useState(false);
   const visibleTimeline = showAll ? timeline : timeline.slice(0, 3);
   const hasHiddenEvents = timeline.length > 3;
@@ -79,8 +90,10 @@ export function AuditTrailSection({
   return (
     <section className="border-t border-slate-200 pt-8">
       <div className="flex flex-col gap-1">
-        <h2 className="text-[16px] font-semibold tracking-tight text-slate-800">Verlauf</h2>
-        <p className="text-sm text-muted-foreground">Neueste Ereignisse zuerst.</p>
+        <h2 className="text-[16px] font-semibold tracking-tight text-slate-800">
+          {copy.title}
+        </h2>
+        <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
       </div>
 
       <div className="mt-6 space-y-4">
@@ -112,7 +125,7 @@ export function AuditTrailSection({
                       </h3>
                       {showSourceBadges
                         ? event.badges.map((badgeKey) => {
-                            const badge = USE_CASE_BADGE_META[badgeKey];
+                            const badge = badgeMeta[badgeKey];
                             return (
                               <Badge
                                 key={`${event.id}_${badge.key}`}
@@ -130,12 +143,12 @@ export function AuditTrailSection({
                     ) : null}
                   </div>
                   <p className="shrink-0 text-xs text-muted-foreground">
-                    {formatDate(event.timestamp)}
+                    {formatDate(event.timestamp, locale)}
                   </p>
                 </div>
                 {event.actor ? (
                   <p className="text-xs text-muted-foreground">
-                    Dokumentiert von {event.actor}
+                    {copy.documentedBy} {event.actor}
                   </p>
                 ) : null}
               </div>
@@ -152,7 +165,7 @@ export function AuditTrailSection({
             size="sm"
             onClick={() => setShowAll((current) => !current)}
           >
-            {showAll ? "Weniger" : `Alle ${timeline.length} Eintraege`}
+            {showAll ? copy.less : copy.allEntries(timeline.length)}
           </Button>
         </div>
       ) : null}

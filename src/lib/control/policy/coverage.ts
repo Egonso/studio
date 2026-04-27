@@ -4,12 +4,11 @@ import {
   isHighRiskClass,
   parseStoredAiActCategory,
 } from "@/lib/register-first/risk-taxonomy";
+import type { PolicyDocument, PolicyLevel } from "@/lib/policy-engine/types";
 import {
-  POLICY_LEVEL_LABELS,
-  POLICY_STATUS_LABELS,
-  type PolicyDocument,
-  type PolicyLevel,
-} from "@/lib/policy-engine/types";
+  getPolicyLevelLabel as getLocalizedPolicyLevelLabel,
+  getPolicyStatusLabel as getLocalizedPolicyStatusLabel,
+} from "@/lib/i18n/governance-copy";
 import type { OrgSettings, Register, UseCaseCard } from "@/lib/register-first/types";
 
 export interface PolicyCoverageRow {
@@ -92,7 +91,8 @@ function isHighRisk(useCase: UseCaseCard): boolean {
 
 export function buildControlPolicyCoverage(
   useCases: UseCaseCard[],
-  policies: PolicyDocument[]
+  policies: PolicyDocument[],
+  locale?: string
 ): ControlPolicyCoverageSnapshot {
   const policyIdSet = new Set(policies.map((policy) => normalizePolicyReference(policy.policyId)));
 
@@ -133,8 +133,8 @@ export function buildControlPolicyCoverage(
       return {
         policyId: policy.policyId,
         title: policy.title,
-        status: POLICY_STATUS_LABELS[policy.status],
-        level: POLICY_LEVEL_LABELS[policy.level],
+        status: getLocalizedPolicyStatusLabel(policy.status, locale),
+        level: getLocalizedPolicyLevelLabel(policy.level, locale),
         version: policy.metadata.version,
         linkedUseCases,
       } satisfies PolicyCoverageRow;
@@ -166,13 +166,15 @@ export function buildDeterministicPolicyPreview(
   useCases: UseCaseCard[],
   orgSettings: OrgSettings,
   level: PolicyLevel,
-  now: Date = new Date()
+  now: Date = new Date(),
+  locale?: string
 ): DeterministicPolicyPreview {
   const sections = assemblePolicy({
     register,
     useCases,
     orgSettings,
     level,
+    locale,
   });
 
   const markdown = assemblePolicyMarkdown({
@@ -180,6 +182,7 @@ export function buildDeterministicPolicyPreview(
     useCases,
     orgSettings,
     level,
+    locale,
   });
 
   const mappedUseCases = useCases.filter((useCase) => getPolicyReferences(useCase).length > 0).length;
@@ -188,7 +191,7 @@ export function buildDeterministicPolicyPreview(
 
   return {
     level,
-    levelLabel: POLICY_LEVEL_LABELS[level],
+    levelLabel: getLocalizedPolicyLevelLabel(level, locale),
     markdown,
     sectionCount: sections.length,
     sectionIds: sections.map((section) => section.sectionId),

@@ -102,6 +102,7 @@ test("manual and access-code records resolve distinct source labels and filters"
   });
 
   assert.equal(getUseCaseSourceLabel(getUseCaseSource(manualCard)), "Manuell");
+  assert.equal(getUseCaseSourceLabel(getUseCaseSource(manualCard), "en"), "Manual");
   assert.equal(getUseCaseSubmitterIdentity(manualCard), "Anna Team");
   assert.equal(matchesUseCaseSourceFilter(manualCard, "MANUELL"), true);
 
@@ -118,6 +119,14 @@ test("manual and access-code records resolve distinct source labels and filters"
   assert.equal(getUseCaseSubmitterIdentity(opaqueManualCard), null);
 
   assert.equal(getUseCaseSourceLabel(getUseCaseSource(accessCodeCard)), "Zugangscode");
+  assert.equal(
+    getUseCaseSourceLabel(getUseCaseSource(accessCodeCard), "en"),
+    "Access code"
+  );
+  assert.deepEqual(
+    getUseCaseSourceBadges(accessCodeCard, "en").map((badge) => badge.label),
+    ["External", "Access code"]
+  );
   assert.equal(
     getUseCaseSubmitterIdentity(accessCodeCard),
     "Max Mustermann <max@example.com>"

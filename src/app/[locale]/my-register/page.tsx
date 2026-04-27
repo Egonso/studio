@@ -2,7 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
 import { PageStatePanel } from '@/components/product-shells';
@@ -57,6 +58,7 @@ import {
   buildScopedUseCaseDetailHref,
 } from '@/lib/navigation/workspace-scope';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
+import { useRouter } from '@/i18n/navigation';
 
 const RegisterBoard = dynamic(
   () =>
@@ -106,6 +108,86 @@ interface SupplierInviteDashboardSummary {
 type OnboardingState = 'loading' | 'no_register' | 'ready';
 const CREATE_REGISTER_VALUE = '__create_register__';
 
+function getMyRegisterPageCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      defaultOrganisation: 'Meine Organisation',
+      loadingTitle: 'Register wird geladen',
+      loadingDesc:
+        'Use Cases, External Inbox und Registerkontext werden vorbereitet.',
+      noRegisterTitle: 'Starten Sie mit Ihrem ersten Register',
+      noRegisterDesc:
+        'Ein Register ist Ihr Arbeitsbereich zum Dokumentieren, Prüfen und Einsammeln externer Angaben. Danach sind Register, Use Cases, External Inbox und Settings direkt verfügbar.',
+      selectRegister: 'Register auswählen',
+      createRegister: 'Neues Register anlegen',
+      report: 'Bericht',
+      options: 'Optionen',
+      deleteRegister: 'Register löschen',
+      supplierStatusTitle: 'Lieferantenstatus',
+      supplierStatusDesc:
+        'Ruhiger Ueberblick ueber Anfragegruppen, Nachfassbedarf und eingegangene externe Antworten fuer dieses Register.',
+      campaigns: 'Anfragegruppen',
+      totalContacts: (count: number) =>
+        `${count} Kontakt${count === 1 ? '' : 'e'} insgesamt`,
+      open: 'Offen',
+      verified: (count: number) =>
+        `${count} davon bereits verifiziert`,
+      submitted: 'Eingereicht',
+      internalOpen: (count: number) =>
+        `${count} Eingang${count === 1 ? '' : 'e'} intern noch offen`,
+      followUp: 'Nachfassen',
+      deliveryIssues: (count: number) =>
+        `${count} Zustellproblem${count === 1 ? '' : 'e'}`,
+      remindersStopped: 'Weitere Erinnerungen beendet',
+      externalSubmissionsTotal: 'Externe Einreichungen gesamt',
+      internalReviewLoad: 'Interne Review-Last',
+      allDocuments: 'Alle Dokumente',
+      supplierRequests: 'Lieferantenanfragen',
+      externalInboxTitle: 'Externe Einreichungen',
+      externalInboxDesc:
+        'Eingegangene Antworten aus Lieferantenlinks, Erfassungslinks und Imports.',
+    } as const;
+  }
+
+  return {
+    defaultOrganisation: 'My organisation',
+    loadingTitle: 'Loading registry',
+    loadingDesc:
+      'Use cases, external inbox and registry context are being prepared.',
+    noRegisterTitle: 'Start with your first registry',
+    noRegisterDesc:
+      'A registry is your workspace for documenting, reviewing and collecting external information. Use cases, external inbox and settings are available directly afterwards.',
+    selectRegister: 'Select registry',
+    createRegister: 'Create new registry',
+    report: 'Report',
+    options: 'Options',
+    deleteRegister: 'Delete registry',
+    supplierStatusTitle: 'Supplier status',
+    supplierStatusDesc:
+      'Calm overview of request groups, follow-up needs and incoming external responses for this registry.',
+    campaigns: 'Request groups',
+    totalContacts: (count: number) =>
+      `${count} contact${count === 1 ? '' : 's'} total`,
+    open: 'Open',
+    verified: (count: number) =>
+      `${count} already verified`,
+    submitted: 'Submitted',
+    internalOpen: (count: number) =>
+      `${count} incoming response${count === 1 ? '' : 's'} still open internally`,
+    followUp: 'Follow-up',
+    deliveryIssues: (count: number) =>
+      `${count} delivery issue${count === 1 ? '' : 's'}`,
+    remindersStopped: 'Further reminders stopped',
+    externalSubmissionsTotal: 'External submissions total',
+    internalReviewLoad: 'Internal review load',
+    allDocuments: 'All documents',
+    supplierRequests: 'Supplier requests',
+    externalInboxTitle: 'External submissions',
+    externalInboxDesc:
+      'Incoming responses from supplier links, capture links and imports.',
+  } as const;
+}
+
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === 'object' && 'code' in error) {
     return String(
@@ -116,6 +198,8 @@ function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
 }
 
 export default function MyRegisterPage() {
+  const locale = useLocale();
+  const copy = useMemo(() => getMyRegisterPageCopy(locale), [locale]);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams() ?? new URLSearchParams();
@@ -209,13 +293,13 @@ export default function MyRegisterPage() {
         }
 
         registerService
-          .createRegister('Meine Organisation', null, { scopeContext })
+          .createRegister(copy.defaultOrganisation, null, { scopeContext })
           .then((reg) => {
             return registerService
               .updateRegisterProfile(reg.registerId, {
-                organisationName: 'Meine Organisation',
+                organisationName: copy.defaultOrganisation,
                 orgSettings: {
-                  organisationName: 'Meine Organisation',
+                  organisationName: copy.defaultOrganisation,
                   industry: '',
                   contactPerson: { name: '', email: '' },
                 },
@@ -240,7 +324,7 @@ export default function MyRegisterPage() {
           setOnboardingState('no_register');
         }
       });
-  }, [authLoading, user, hasChecked, router, onboardingParam, scopeContext]);
+  }, [authLoading, user, hasChecked, router, onboardingParam, scopeContext, copy.defaultOrganisation]);
 
   useEffect(() => {
     if (!user || !activeRegister?.registerId || !checkoutSessionId) {
@@ -379,8 +463,8 @@ export default function MyRegisterPage() {
             <PageStatePanel
               tone="loading"
               area="signed_in_free_register"
-              title="Register wird geladen"
-              description="Use Cases, External Inbox und Registerkontext werden vorbereitet."
+              title={copy.loadingTitle}
+              description={copy.loadingDesc}
             />
           </div>
         </main>
@@ -396,8 +480,8 @@ export default function MyRegisterPage() {
           <div className="mx-auto max-w-5xl space-y-6">
             <PageStatePanel
               area="signed_in_free_register"
-              title="Starten Sie mit Ihrem ersten Register"
-              description="Ein Register ist Ihr Arbeitsbereich zum Dokumentieren, Prüfen und Einsammeln externer Angaben. Danach sind Register, Use Cases, External Inbox und Settings direkt verfügbar."
+              title={copy.noRegisterTitle}
+              description={copy.noRegisterDesc}
             />
             <div className="flex justify-center">
               <CompanyOnboardingWizard
@@ -441,7 +525,7 @@ export default function MyRegisterPage() {
                   }}
                 >
                   <SelectTrigger className="w-full sm:w-[280px]">
-                    <SelectValue placeholder="Register auswählen" />
+                    <SelectValue placeholder={copy.selectRegister} />
                   </SelectTrigger>
                   <SelectContent>
                     {registers.map((r) => (
@@ -451,7 +535,7 @@ export default function MyRegisterPage() {
                     ))}
                     <SelectSeparator />
                     <SelectItem value={CREATE_REGISTER_VALUE}>
-                      Neues Register anlegen
+                      {copy.createRegister}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -465,7 +549,7 @@ export default function MyRegisterPage() {
                       )
                     }
                   >
-                    Bericht
+                    {copy.report}
                   </Button>
                 )}
                 {(controlMenuItems.length > 0 ||
@@ -476,7 +560,7 @@ export default function MyRegisterPage() {
                         variant="outline"
                         className="h-10 w-full justify-between gap-1.5 border-slate-300 px-3 text-[13px] text-slate-700 hover:bg-slate-50 hover:text-slate-950 sm:w-auto sm:justify-center"
                       >
-                        Optionen
+                        {copy.options}
                         <ChevronDown className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -500,7 +584,7 @@ export default function MyRegisterPage() {
                             className="text-destructive focus:text-destructive"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Register löschen
+                            {copy.deleteRegister}
                           </DropdownMenuItem>
                         </>
                       )}
@@ -515,77 +599,74 @@ export default function MyRegisterPage() {
             showingExternalInbox && (
             <Card className="border-slate-200 shadow-sm">
               <CardHeader className="space-y-2">
-                <CardTitle>Lieferantenstatus</CardTitle>
+                <CardTitle>{copy.supplierStatusTitle}</CardTitle>
                 <CardDescription>
-                  Ruhiger Ueberblick ueber Anfragegruppen, Nachfassbedarf und eingegangene externe Antworten fuer dieses Register.
+                  {copy.supplierStatusDesc}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="space-y-1">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                      Anfragegruppen
+                      {copy.campaigns}
                     </p>
                     <p className="text-2xl font-semibold tracking-tight text-slate-950">
                       {supplierInviteSummary.campaignCount}
                     </p>
                     <p className="text-xs text-slate-600">
-                      {supplierInviteSummary.inviteCount} Kontakt
-                      {supplierInviteSummary.inviteCount === 1 ? "" : "e"} insgesamt
+                      {copy.totalContacts(supplierInviteSummary.inviteCount)}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                      Offen
+                      {copy.open}
                     </p>
                     <p className="text-2xl font-semibold tracking-tight text-slate-950">
                       {supplierInviteSummary.openCount}
                     </p>
                     <p className="text-xs text-slate-600">
-                      {supplierInviteSummary.verifiedCount} davon bereits verifiziert
+                      {copy.verified(supplierInviteSummary.verifiedCount)}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                      Eingereicht
+                      {copy.submitted}
                     </p>
                     <p className="text-2xl font-semibold tracking-tight text-slate-950">
                       {supplierInviteSummary.submittedCount}
                     </p>
                     <p className="text-xs text-slate-600">
-                      {externalInboxCounts.open} Eingang
-                      {externalInboxCounts.open === 1 ? "" : "e"} intern noch offen
+                      {copy.internalOpen(externalInboxCounts.open)}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                      Nachfassen
+                      {copy.followUp}
                     </p>
                     <p className="text-2xl font-semibold tracking-tight text-slate-950">
                       {supplierInviteSummary.followUpDueCount}
                     </p>
                     <p className="text-xs text-slate-600">
-                      {supplierInviteSummary.deliveryIssueCount} Zustellproblem
-                      {supplierInviteSummary.deliveryIssueCount === 1 ? "" : "e"}
+                      {copy.deliveryIssues(supplierInviteSummary.deliveryIssueCount)}
                     </p>
                   </div>
                 </div>
 
                 <div className="grid gap-3 border-t border-slate-200 pt-4 text-sm text-slate-700 sm:grid-cols-3">
                   <div className="flex items-center justify-between gap-4">
-                    <span>Weitere Erinnerungen beendet</span>
+                    <span>{copy.remindersStopped}</span>
                     <span className="font-medium text-slate-950">
                       {supplierInviteSummary.optOutCount}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span>Externe Einreichungen gesamt</span>
+                    <span>{copy.externalSubmissionsTotal}</span>
                     <span className="font-medium text-slate-950">
                       {externalInboxCounts.total}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-4">
-                    <span>Interne Review-Last</span>
+                    <span>{copy.internalReviewLoad}</span>
                     <span className="font-medium text-slate-950">
                       {externalInboxCounts.open}
                     </span>
@@ -614,7 +695,7 @@ export default function MyRegisterPage() {
                     : 'bg-slate-100 text-slate-950'
                 }`}
               >
-                Alle Dokumente
+                {copy.allDocuments}
               </button>
               <button
                 type="button"
@@ -625,7 +706,7 @@ export default function MyRegisterPage() {
                     : 'text-slate-600 hover:text-slate-950'
                 }`}
               >
-                Lieferantenanfragen
+                {copy.supplierRequests}
                 <span className="ml-1.5 text-slate-500">
                   {externalInboxCounts.total}
                 </span>
@@ -637,8 +718,8 @@ export default function MyRegisterPage() {
               register={activeRegister}
               refreshKey={refreshKey}
               onCountsChange={setExternalInboxCounts}
-              title="Externe Einreichungen"
-              description="Eingegangene Antworten aus Lieferantenlinks, Erfassungslinks und Imports."
+              title={copy.externalInboxTitle}
+              description={copy.externalInboxDesc}
             />
           ) : (
             <RegisterBoard

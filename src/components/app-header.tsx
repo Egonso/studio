@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { LocaleSwitcher } from './locale-switcher';
 import { BookOpen, Bot, Link2, LogOut, Settings, UserCircle } from 'lucide-react';
@@ -33,6 +33,8 @@ import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { useIsAffiliate } from '@/lib/affiliate/use-is-affiliate';
 import { localizeHref } from '@/lib/i18n/localize-href';
+import { getPremiumControlNavCopy } from '@/lib/i18n/governance-copy';
+import { usePathname } from '@/i18n/navigation';
 
 interface AppHeaderProps {
   brandHref?: string;
@@ -186,6 +188,7 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                 pathname,
                 searchParams,
               );
+              const navCopy = getPremiumControlNavCopy(item.id, locale);
 
               return (
                 <Link
@@ -201,9 +204,9 @@ export function AppHeader({ brandHref: brandHrefOverride }: AppHeaderProps = {})
                       ? 'border-slate-950 text-slate-950'
                       : 'border-transparent text-slate-600 hover:text-slate-950',
                   )}
-                  title={item.description}
+                  title={navCopy.description}
                 >
-                  {item.id === 'overview' ? 'Control' : item.label}
+                  {navCopy.headerLabel ?? navCopy.label}
                 </Link>
               );
             })}

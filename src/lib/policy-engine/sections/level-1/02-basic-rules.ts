@@ -12,6 +12,7 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import { resolveGovernanceCopyLocale } from '@/lib/i18n/governance-copy';
 
 export const basicRulesSection: SectionDefinition = {
     sectionId: 'l1-basic-rules',
@@ -22,7 +23,44 @@ export const basicRulesSection: SectionDefinition = {
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Company Name]';
+        const locale = resolveGovernanceCopyLocale(context.locale);
+        const orgName =
+            context.orgSettings.organisationName ||
+            (locale === 'de' ? '[Firmenname]' : '[Company Name]');
+
+        if (locale === 'de') {
+            return [
+                `**Abschnitt A: Grundprinzipien (für alle Mitarbeitenden)**`,
+                ``,
+                `Die folgenden Grundprinzipien gelten für alle Mitarbeitenden von ${orgName}, ` +
+                `die KI-Systeme nutzen oder an KI-gestützten Prozessen beteiligt sind:`,
+                ``,
+                `1. KI-Systeme sollten nur eingesetzt werden, wenn sie nicht gegen verbotene ` +
+                `Praktiken nach Art. 5 des AI Act verstoßen (z. B. Manipulation, Social ` +
+                `Scoring oder unterschiedslose biometrische Massenüberwachung).`,
+                ``,
+                `2. Mitarbeitende sollten KI-Tools mit Bewusstsein für Datenschutz und ` +
+                `Sicherheit nutzen. Die Eingabe sensibler personenbezogener Daten in ` +
+                `öffentliche KI-Dienste sollte vermieden werden, sofern keine ausdrückliche ` +
+                `Freigabe vorliegt.`,
+                ``,
+                `3. KI-basierte Entscheidungen mit möglicher Auswirkung auf natürliche ` +
+                `Personen sollten durch menschliche Überprüfung ergänzt werden.`,
+                ``,
+                `4. Mitarbeitende sollten sich über interne Leitlinien, Updates und ` +
+                `organisationsspezifische Anforderungen zur KI-Nutzung informiert halten.`,
+                ``,
+                `---`,
+                ``,
+                `**Abschnitt B: Schulung und Sensibilisierung**`,
+                ``,
+                `- Mitarbeitende, die regelmäßig mit KI-Tools arbeiten, sollten an einer ` +
+                `Sensibilisierungsschulung teilnehmen.`,
+                `- Personen, die KI-Systeme verantworten oder einführen, sollten eine ` +
+                `vertiefte Schulung absolvieren (intern oder extern).`,
+                `- Schulungsnachweise sollten dokumentiert werden.`,
+            ].join('\n');
+        }
 
         return [
             `**Section A: Core Principles (for all employees)**`,

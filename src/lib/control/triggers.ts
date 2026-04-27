@@ -1,5 +1,6 @@
 import { calculateReviewDeadline } from "@/lib/compliance-engine/reminders/review-deadline";
 import { calculateControlOverview } from "@/lib/control/maturity-calculator";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 import {
   isHighRiskClass,
   parseStoredAiActCategory,
@@ -9,6 +10,9 @@ import type { OrgSettings, UseCaseCard } from "@/lib/register-first/types";
 export const CONTROL_UPGRADE_MESSAGE =
   "Sie dokumentieren. Jetzt sollten Sie steuern.";
 export const CONTROL_UPGRADE_CTA_LABEL = "Governance professionalisieren";
+export const CONTROL_UPGRADE_MESSAGE_EN =
+  "You are documenting. Now you should govern.";
+export const CONTROL_UPGRADE_CTA_LABEL_EN = "Professionalise governance";
 export const CONTROL_UPGRADE_ISO_THRESHOLD = 70;
 
 export type ControlUpgradeTriggerId =
@@ -62,19 +66,71 @@ function hasVerifiedProof(useCase: UseCaseCard): boolean {
   );
 }
 
+function getControlUpgradeCopy(locale?: string | null) {
+  if (resolveGovernanceCopyLocale(locale) === "en") {
+    return {
+      message: CONTROL_UPGRADE_MESSAGE_EN,
+      ctaLabel: CONTROL_UPGRADE_CTA_LABEL_EN,
+      useCasesOverTen: (count: number) =>
+        `More than 10 use cases documented (${count})`,
+      useCasesOverTenEvidence:
+        "The register size requires organisation-wide control.",
+      reviewsOverdue: (count: number) => `${count} reviews overdue`,
+      reviewsOverdueEvidence: "Review deadlines are in the past.",
+      highRiskWithoutOversight: (count: number) =>
+        `${count} high-risk system${count === 1 ? "" : "s"} without oversight`,
+      highRiskWithoutOversightEvidence:
+        "The oversight model is not fully documented for high-risk systems.",
+      isoReadinessBelowThreshold: (threshold: number, value: number) =>
+        `ISO readiness below ${threshold}% (${value}%)`,
+      isoReadinessEvidence:
+        "ISO-related evidence is still incomplete across the organisation.",
+      externalProofNeeded: (count: number) =>
+        `${count} system${count === 1 ? "" : "s"} with external stakeholder evidence needs`,
+      externalProofEvidence:
+        "External impact areas without verified evidence.",
+    } as const;
+  }
+
+  return {
+    message: CONTROL_UPGRADE_MESSAGE,
+    ctaLabel: CONTROL_UPGRADE_CTA_LABEL,
+    useCasesOverTen: (count: number) =>
+      `Mehr als 10 Einsatzfälle dokumentiert (${count})`,
+    useCasesOverTenEvidence:
+      "Die Registergröße erfordert organisationsweite Steuerung.",
+    reviewsOverdue: (count: number) => `${count} Reviews überfällig`,
+    reviewsOverdueEvidence: "Review-Fristen liegen in der Vergangenheit.",
+    highRiskWithoutOversight: (count: number) =>
+      `${count} Hochrisiko-Systeme ohne Aufsicht`,
+    highRiskWithoutOversightEvidence:
+      "Aufsichtsmodell ist für Hochrisiko-Systeme nicht vollständig dokumentiert.",
+    isoReadinessBelowThreshold: (threshold: number, value: number) =>
+      `ISO-Readiness unter ${threshold}% (${value}%)`,
+    isoReadinessEvidence:
+      "ISO-bezogene Nachweise sind organisationsweit noch unvollständig.",
+    externalProofNeeded: (count: number) =>
+      `${count} Systeme mit externem Stakeholder-Nachweisbedarf`,
+    externalProofEvidence:
+      "Externe Wirkungsbereiche ohne verifizierten Nachweis.",
+  } as const;
+}
+
 export function evaluateControlUpgradeTriggers(
   useCases: UseCaseCard[],
   orgSettings?: OrgSettings | null,
-  now: Date = new Date()
+  now: Date = new Date(),
+  locale?: string | null
 ): ControlUpgradeDecision {
   const triggers: ControlUpgradeTrigger[] = [];
+  const copy = getControlUpgradeCopy(locale);
 
   if (useCases.length > 10) {
     triggers.push({
       id: "use_cases_over_ten",
-      label: `Mehr als 10 Einsatzfaelle dokumentiert (${useCases.length})`,
+      label: copy.useCasesOverTen(useCases.length),
       value: useCases.length,
-      evidence: "Die Registergroesse erfordert organisationsweite Steuerung.",
+      evidence: copy.useCasesOverTenEvidence,
     });
   }
 
@@ -84,9 +140,9 @@ export function evaluateControlUpgradeTriggers(
   if (overdueReviews > 0) {
     triggers.push({
       id: "review_overdue",
-      label: `${overdueReviews} Reviews ueberfaellig`,
+      label: copy.reviewsOverdue(overdueReviews),
       value: overdueReviews,
-      evidence: "Review-Fristen liegen in der Vergangenheit.",
+      evidence: copy.reviewsOverdueEvidence,
     });
   }
 
@@ -96,19 +152,27 @@ export function evaluateControlUpgradeTriggers(
   if (highRiskWithoutOversight > 0) {
     triggers.push({
       id: "high_risk_without_oversight",
-      label: `${highRiskWithoutOversight} Hochrisiko-Systeme ohne Aufsicht`,
+      label: copy.highRiskWithoutOversight(highRiskWithoutOversight),
       value: highRiskWithoutOversight,
-      evidence: "Aufsichtsmodell ist fuer Hochrisiko-Systeme nicht vollstaendig dokumentiert.",
+      evidence: copy.highRiskWithoutOversightEvidence,
     });
   }
 
-  const overview = calculateControlOverview(useCases, orgSettings, now);
+  const overview = calculateControlOverview(
+    useCases,
+    orgSettings,
+    now,
+    locale ?? undefined
+  );
   if (overview.kpis.isoReadinessPercent < CONTROL_UPGRADE_ISO_THRESHOLD) {
     triggers.push({
       id: "iso_readiness_below_70",
-      label: `ISO-Readiness unter ${CONTROL_UPGRADE_ISO_THRESHOLD}% (${overview.kpis.isoReadinessPercent}%)`,
+      label: copy.isoReadinessBelowThreshold(
+        CONTROL_UPGRADE_ISO_THRESHOLD,
+        overview.kpis.isoReadinessPercent
+      ),
       value: overview.kpis.isoReadinessPercent,
-      evidence: "ISO-bezogene Nachweise sind organisationsweit noch unvollstaendig.",
+      evidence: copy.isoReadinessEvidence,
     });
   }
 
@@ -118,16 +182,16 @@ export function evaluateControlUpgradeTriggers(
   if (externalProofNeeded > 0) {
     triggers.push({
       id: "external_stakeholder_proof_needed",
-      label: `${externalProofNeeded} Systeme mit externem Stakeholder-Nachweisbedarf`,
+      label: copy.externalProofNeeded(externalProofNeeded),
       value: externalProofNeeded,
-      evidence: "Externe Wirkungsbereiche ohne verifizierten Nachweis.",
+      evidence: copy.externalProofEvidence,
     });
   }
 
   return {
     shouldPrompt: triggers.length > 0,
-    message: CONTROL_UPGRADE_MESSAGE,
-    ctaLabel: CONTROL_UPGRADE_CTA_LABEL,
+    message: copy.message,
+    ctaLabel: copy.ctaLabel,
     triggers,
   };
 }

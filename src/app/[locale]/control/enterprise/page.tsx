@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { APP_LOCALE } from '@/lib/locale';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import {
   Copy,
   Download,
@@ -37,6 +37,10 @@ import { useAuth } from '@/context/auth-context';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import {
+  getGovernanceDateLocale,
+  resolveGovernanceCopyLocale,
+} from '@/lib/i18n/governance-copy';
 import type { GovernanceSignOffRecord } from '@/lib/enterprise/governance-signoff';
 import {
   getWorkspaceRoleLabel,
@@ -111,23 +115,530 @@ interface WorkspaceAgentKitKeysResponse {
   submitEndpoint: string;
 }
 
-function formatDate(value: string | null | undefined): string {
+function getEnterpriseCopy(locale?: string | null) {
+  const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
+
+  if (!isGerman) {
+    return {
+      unknown: 'Unknown',
+      noSystem: 'No system',
+      retry: 'Please try again.',
+      none: 'none',
+      active: 'active',
+      revoked: 'revoked',
+      copy: 'Copy',
+      remove: 'Remove',
+      approve: 'Approve',
+      reject: 'Reject',
+      merge: 'Merge',
+      status: {
+        approved: 'approved',
+        rejected: 'rejected',
+        merged: 'merged',
+        submitted: 'submitted',
+        pending: 'pending',
+        invited: 'invited',
+      },
+      roleLabels: {
+        OWNER: 'Owner',
+        ADMIN: 'Admin',
+        REVIEWER: 'Reviewer',
+        EXTERNAL_OFFICER: 'External Officer',
+        MEMBER: 'Member',
+      },
+      errors: {
+        workspaceLoad:
+          'Organisation data could not be loaded. Please check the active workspace context.',
+        saveFailed: 'Saving failed',
+        inviteFailed: 'Invitation failed',
+        copyFailed: 'Copy failed',
+        copyManual: 'Please select and copy the text manually.',
+        createKeyFailed: 'API key could not be created',
+        revokeKeyFailed: 'API key could not be revoked',
+        roleFailed: 'Role could not be updated',
+        removeFailed: 'Member could not be removed',
+        requestSignOffFailed: 'Sign-off could not be requested',
+        decideSignOffFailed: 'Sign-off could not be decided',
+        submissionFailed: 'Submission could not be updated',
+        reviewHooksFailed: 'Review hooks failed',
+        auditExportFailed: 'Audit export failed',
+      },
+      toast: {
+        settingsSavedTitle: 'Organisation settings saved',
+        settingsSavedDescription:
+          'Identity, approvals, retention, webhooks and procurement data were updated.',
+        inviteProcessedTitle: 'Invitation processed',
+        inviteProcessedDescription: 'The workspace member was invited.',
+        copiedTitle: (label: string) => `${label} copied`,
+        copiedDescription: 'You can now reuse the content directly.',
+        keyCreatedTitle: 'Agent Kit API key created',
+        keyCreatedDescription:
+          'Copy the full key now. After this, only the preview will remain visible.',
+        keyRevokedTitle: 'Agent Kit API key revoked',
+        keyRevokedDescription:
+          'New submissions using this key are blocked immediately.',
+        signOffRequestedTitle: 'Governance sign-off requested',
+        signOffRequestedDescription:
+          'The current organisation state was submitted for formal approval.',
+        reviewHooksDeliveredTitle: 'Review hooks delivered',
+        reviewHooksDeliveredDescription:
+          'Current review due events were sent to the configured webhooks.',
+      },
+      frame: {
+        loadingTitle: 'Organisation',
+        loadingDescription:
+          'Workspace administration, procurement and formal approvals are being prepared.',
+        loadingNextStep:
+          'Loading roles, settings and approval queues.',
+        loadingPanelTitle: 'Loading organisation',
+        loadingPanelDescription:
+          'Members, identity, approvals and audit export are being prepared.',
+        title: 'Organisation',
+        descriptionWithWorkspace: (workspace: string) =>
+          `Organisation controls for ${workspace}. Roles, procurement, identity and approvals come together here.`,
+        description:
+          'Organisation controls for roles, procurement, identity and approvals.',
+        nextStep:
+          'Maintain roles, approval policy and procurement documents for the active workspace first.',
+      },
+      gated: {
+        title:
+          'This area is not available for the active workspace',
+        description:
+          'Role model, SSO/SCIM, procurement settings and formal workspace approvals are managed in organisation controls.',
+        controlOverview: 'Control overview',
+        exportsAudit: 'Exports / Audit',
+        noWorkspaceTitle: 'No workspace selected',
+        noWorkspaceDescription:
+          'Use the workspace switcher to select a workspace before managing members and settings.',
+        openRegister: 'Open register',
+      },
+      state: {
+        loadingTitle: 'Loading organisation data',
+        loadingDescription:
+          'Members, settings, sign-offs and external approvals are being loaded.',
+        errorTitle: 'Organisation could not be loaded',
+        reload: 'Reload',
+      },
+      kpis: {
+        activeRole: 'Active role',
+        members: 'Members',
+        openApprovals: 'Open approvals',
+        openSignOffs: 'Open governance sign-offs',
+      },
+      agentKit: {
+        title: 'Agent Kit API Keys',
+        description:
+          'Let Codex, Claude Code, OpenClaw or other agents submit confirmed documentation directly into this workspace’s AI register.',
+        linkedRegisters: (count: number) => `${count} registers linked`,
+        step1Title: '1. Create API key',
+        step1Description:
+          'Each person can create their own key. Owners and admins see all workspace keys and can revoke them if needed.',
+        step2Title: '2. Give it to the agent',
+        step2Description:
+          'The key is used as an environment variable in the agent workflow. The manifest.json is then submitted directly through the CLI.',
+        step3Title: '3. Team lead sees the result',
+        step3Description:
+          'After successful submission, a real use case is created in the AI register. Team leads see it there instead of working with files.',
+        labelPlaceholder: 'For example: Codex on MacBook Pro',
+        registerPlaceholder: 'Choose target register',
+        createKey: 'Create API key',
+        noRegisters:
+          'Link at least one register with this workspace first. Only then can the Agent Kit make direct submissions visible to team leads.',
+        newKeyTitle: 'New API key',
+        newKeyDescription:
+          'This full key is shown only now. After this, only the preview remains visible in the list.',
+        copyKey: 'Copy key',
+        apiKeyLabel: 'API key',
+        commandTitle: 'Example command for the technical team',
+        commandDescription:
+          'This command submits a confirmed manifest file directly into the selected register.',
+        commandLabel: 'Command',
+        promptTitle: 'Example prompt for an agent',
+        promptDescription:
+          'This helps even a not-perfectly-prepared agent understand what to do.',
+        promptLabel: 'Prompt',
+        fallbackRegister: 'Link a register first.',
+        noKeys: 'No Agent Kit API key has been created for this workspace yet.',
+        revoke: 'Revoke',
+      },
+      members: {
+        title: 'Members and roles',
+        description:
+          'Owner, Admin, Reviewer, Member and External Officer are managed centrally in the workspace.',
+        pendingInvites: (count: number) => `${count} open invitations`,
+        invite: 'Invite',
+        person: 'Person',
+        role: 'Role',
+        status: 'Status',
+        source: 'Source',
+        action: 'Action',
+        ownerImmutable: 'Owner remains immutable.',
+        pendingInvitesTitle: 'Pending invitations',
+        validUntil: 'valid until',
+      },
+      identity: {
+        title: 'Identity, SCIM and procurement',
+        description:
+          'SSO/SAML/OIDC, SCIM provisioning, retention, webhooks and procurement-ready documents in one place.',
+        identityProviderMode: 'Identity provider mode',
+        providerName: 'Provider name',
+        metadataUrl: 'Metadata URL',
+        ssoUrl: 'SSO URL / issuer',
+        groupsAttribute: 'Groups attribute',
+        disabled: 'Disabled',
+        documentationPortal: 'Documentation portal',
+        retentionSummary: 'Retention summary',
+        retentionPlaceholder:
+          'Short summary for procurement and security review',
+        scimSync: 'Enable SCIM user and group sync',
+      },
+      approval: {
+        title: 'Approval policy',
+        description:
+          'Controls external submissions and formal governance sign-offs.',
+        externalSubmissions: 'External submissions',
+        governanceSignOff: 'Governance sign-off',
+        noFormalApproval: 'No formal approval',
+        autoCreateUseCase:
+          'Automatically create a use case after supplier approval',
+      },
+      retention: {
+        title: 'Retention',
+        immutableAuditExportsDays: 'Immutable audit exports (days)',
+        externalSubmissionsDays: 'External submissions (days)',
+        reviewArtifactsDays: 'Review artifacts (days)',
+        incidentLogsDays: 'Incident logs (days)',
+        legalHold: 'Enable legal hold',
+      },
+      hooks: {
+        title: 'Notification hooks',
+        description:
+          'Hooks for submission received, review due and approval needed.',
+        hook: 'Hook',
+        noHooks: 'No webhooks configured yet.',
+      },
+      subprocessors: {
+        title: 'Subprocessors',
+        description:
+          'Procurement-visible subprocessors for DPA, SCC and security review.',
+        add: 'Add',
+        provider: 'Provider',
+        region: 'Region',
+        purpose: 'Purpose',
+        url: 'URL',
+      },
+      actions: {
+        saveSettings: 'Save organisation settings',
+        sendReviewDue: 'Send review due',
+        immutableAuditExport: 'Immutable audit export',
+      },
+      signOff: {
+        title: 'Governance sign-off',
+        description:
+          'Formal approvals for governance state and organisation settings.',
+        placeholder: 'For example: Q2 governance baseline',
+        request: 'Request sign-off',
+        empty: 'No governance sign-off has been created yet.',
+        requestedAtBy: (date: string, actor: string) =>
+          `Requested on ${date} by ${actor}`,
+        requiredRoles: 'Required roles',
+      },
+      externalQueue: {
+        title: 'External approval queue',
+        description:
+          'Supplier and access-code submissions remain traceable with origin and approval status.',
+        empty: 'No external submissions in the active workspace yet.',
+        approvals: 'Approvals',
+      },
+      tables: {
+        label: 'Label',
+        createdBy: 'Created by',
+        createdAt: 'Created at',
+        lastUsed: 'Last used',
+        status: 'Status',
+        action: 'Action',
+      },
+    } as const;
+  }
+
+  return {
+    unknown: 'Unbekannt',
+    noSystem: 'Ohne System',
+    retry: 'Bitte erneut versuchen.',
+    none: 'keine',
+    active: 'aktiv',
+    revoked: 'widerrufen',
+    copy: 'Kopieren',
+    remove: 'Entfernen',
+    approve: 'Freigeben',
+    reject: 'Ablehnen',
+    merge: 'Übernehmen',
+    status: {
+      approved: 'freigegeben',
+      rejected: 'abgelehnt',
+      merged: 'übernommen',
+      submitted: 'eingereicht',
+      pending: 'offen',
+      invited: 'eingeladen',
+    },
+    roleLabels: {
+      OWNER: 'Owner',
+      ADMIN: 'Admin',
+      REVIEWER: 'Reviewer',
+      EXTERNAL_OFFICER: 'External Officer',
+      MEMBER: 'Member',
+    },
+    errors: {
+      workspaceLoad:
+        'Organisationsdaten konnten nicht geladen werden. Bitte prüfen Sie den aktiven Workspace-Kontext.',
+      saveFailed: 'Speichern fehlgeschlagen',
+      inviteFailed: 'Einladung fehlgeschlagen',
+      copyFailed: 'Kopieren fehlgeschlagen',
+      copyManual: 'Bitte den Text manuell markieren und kopieren.',
+      createKeyFailed: 'API-Key konnte nicht erstellt werden',
+      revokeKeyFailed: 'API-Key konnte nicht widerrufen werden',
+      roleFailed: 'Rolle konnte nicht aktualisiert werden',
+      removeFailed: 'Mitglied konnte nicht entfernt werden',
+      requestSignOffFailed: 'Sign-off konnte nicht angefordert werden',
+      decideSignOffFailed: 'Sign-off konnte nicht entschieden werden',
+      submissionFailed: 'Einreichung konnte nicht aktualisiert werden',
+      reviewHooksFailed: 'Review-Hooks fehlgeschlagen',
+      auditExportFailed: 'Audit-Export fehlgeschlagen',
+    },
+    toast: {
+      settingsSavedTitle: 'Organisationseinstellungen gespeichert',
+      settingsSavedDescription:
+        'Identity, Approvals, Retention, Webhooks und Procurement-Daten wurden aktualisiert.',
+      inviteProcessedTitle: 'Einladung verarbeitet',
+      inviteProcessedDescription: 'Das Workspace-Mitglied wurde eingeladen.',
+      copiedTitle: (label: string) => `${label} kopiert`,
+      copiedDescription: 'Sie können den Inhalt jetzt direkt weiterverwenden.',
+      keyCreatedTitle: 'Agent-Kit-API-Key erstellt',
+      keyCreatedDescription:
+        'Kopieren Sie den Key jetzt einmalig. Danach wird nur noch die Vorschau angezeigt.',
+      keyRevokedTitle: 'Agent-Kit-API-Key widerrufen',
+      keyRevokedDescription:
+        'Neue Einreichungen mit diesem Key werden sofort blockiert.',
+      signOffRequestedTitle: 'Governance-Sign-off angefordert',
+      signOffRequestedDescription:
+        'Der aktuelle Organisationsstand wurde als formale Freigabe eingereicht.',
+      reviewHooksDeliveredTitle: 'Review-Hooks ausgeliefert',
+      reviewHooksDeliveredDescription:
+        'Aktuelle Review-Fälligkeiten wurden an konfigurierte Webhooks gesendet.',
+    },
+    frame: {
+      loadingTitle: 'Organisation',
+      loadingDescription:
+        'Workspace-Administration, Beschaffung und formale Freigaben werden vorbereitet.',
+      loadingNextStep:
+        'Wir laden Rollen, Settings und Freigabe-Queues.',
+      loadingPanelTitle: 'Organisation wird geladen',
+      loadingPanelDescription:
+        'Mitglieder, Identity, Approvals und Audit-Export werden vorbereitet.',
+      title: 'Organisation',
+      descriptionWithWorkspace: (workspace: string) =>
+        `Organisationssteuerung für ${workspace}. Rollen, Beschaffung, Identity und Freigaben laufen hier zusammen.`,
+      description:
+        'Organisationssteuerung für Rollen, Beschaffung, Identity und Freigaben.',
+      nextStep:
+        'Pflegen Sie zuerst Rollen, Approval-Policy und Procurement-Unterlagen für den aktiven Workspace.',
+    },
+    gated: {
+      title:
+        'Dieser Bereich ist für den aktiven Arbeitsbereich nicht verfügbar',
+      description:
+        'Rollenmodell, SSO/SCIM, Procurement-Settings und formale Workspace-Freigaben werden in der Organisationssteuerung verwaltet.',
+      controlOverview: 'Control Overview',
+      exportsAudit: 'Exports / Audit',
+      noWorkspaceTitle: 'Kein Workspace ausgewählt',
+      noWorkspaceDescription:
+        'Wählen Sie über den Workspace-Switcher einen Workspace aus, um Mitglieder und Einstellungen zu verwalten.',
+      openRegister: 'Zum Register',
+    },
+    state: {
+      loadingTitle: 'Organisationsdaten werden geladen',
+      loadingDescription:
+        'Mitglieder, Settings, Sign-offs und externe Freigaben werden geladen.',
+      errorTitle: 'Organisation konnte nicht geladen werden',
+      reload: 'Neu laden',
+    },
+    kpis: {
+      activeRole: 'Aktive Rolle',
+      members: 'Mitglieder',
+      openApprovals: 'Freigaben offen',
+      openSignOffs: 'Governance-Sign-offs offen',
+    },
+    agentKit: {
+      title: 'Agent Kit API Keys',
+      description:
+        'Lassen Sie Codex, Claude Code, OpenClaw oder andere Agenten bestätigte Dokumentationen direkt in das KI-Register dieses Workspaces einreichen.',
+      linkedRegisters: (count: number) => `${count} Register verknüpft`,
+      step1Title: '1. API-Key erzeugen',
+      step1Description:
+        'Jede Person kann ihren eigenen Key anlegen. Owner und Admins sehen alle Keys im Workspace und können sie bei Bedarf widerrufen.',
+      step2Title: '2. Dem Agenten geben',
+      step2Description:
+        'Der Key kommt als Umgebungsvariable in den Agent-Workflow. Das manifest.json wird danach über das CLI direkt eingereicht.',
+      step3Title: '3. Teamlead sieht das Ergebnis',
+      step3Description:
+        'Nach der erfolgreichen Einreichung entsteht ein echter Use Case im KI-Register. Teamleads sehen ihn dort, statt mit Dateien arbeiten zu müssen.',
+      labelPlaceholder: 'Zum Beispiel: Codex auf MacBook Pro',
+      registerPlaceholder: 'Ziel-Register wählen',
+      createKey: 'API-Key erstellen',
+      noRegisters:
+        'Verknüpfen Sie zuerst mindestens ein Register mit diesem Workspace. Erst dann kann das Agent Kit direkte Einreichungen für Teamleads sichtbar machen.',
+      newKeyTitle: 'Neuer API-Key',
+      newKeyDescription:
+        'Dieser komplette Key wird nur jetzt angezeigt. Danach bleibt in der Liste nur noch die Vorschau sichtbar.',
+      copyKey: 'Key kopieren',
+      apiKeyLabel: 'API-Key',
+      commandTitle: 'Beispielbefehl für das technische Team',
+      commandDescription:
+        'Dieser Befehl reicht eine bestätigte Manifest-Datei direkt in das gewählte Register ein.',
+      commandLabel: 'Befehl',
+      promptTitle: 'Beispiel-Prompt für einen Agenten',
+      promptDescription:
+        'So versteht auch ein nicht perfekt vorbereiteter Agent, was er tun soll.',
+      promptLabel: 'Prompt',
+      fallbackRegister: 'Verknüpfen Sie zuerst ein Register.',
+      noKeys: 'Noch kein Agent-Kit-API-Key für diesen Workspace angelegt.',
+      revoke: 'Widerrufen',
+    },
+    members: {
+      title: 'Mitglieder und Rollen',
+      description:
+        'Owner, Admin, Reviewer, Member und External Officer werden zentral im Workspace verwaltet.',
+      pendingInvites: (count: number) => `${count} Einladungen offen`,
+      invite: 'Einladen',
+      person: 'Person',
+      role: 'Rolle',
+      status: 'Status',
+      source: 'Quelle',
+      action: 'Aktion',
+      ownerImmutable: 'Owner bleibt unveränderlich.',
+      pendingInvitesTitle: 'Ausstehende Einladungen',
+      validUntil: 'gültig bis',
+    },
+    identity: {
+      title: 'Identity, SCIM und Procurement',
+      description:
+        'SSO/SAML/OIDC, SCIM-Provisioning, Retention, Webhooks und procurement-fähige Unterlagen an einer Stelle.',
+      identityProviderMode: 'Identity Provider Modus',
+      providerName: 'Provider Name',
+      metadataUrl: 'Metadata URL',
+      ssoUrl: 'SSO URL / Issuer',
+      groupsAttribute: 'Groups Attribut',
+      disabled: 'Deaktiviert',
+      documentationPortal: 'Dokumentationsportal',
+      retentionSummary: 'Retention Summary',
+      retentionPlaceholder:
+        'Kurze Zusammenfassung für Procurement und Security Review',
+      scimSync: 'SCIM-User- und Group-Sync aktivieren',
+    },
+    approval: {
+      title: 'Approval Policy',
+      description:
+        'Steuert externe Einreichungen und formale Governance-Sign-offs.',
+      externalSubmissions: 'Externe Einreichungen',
+      governanceSignOff: 'Governance-Sign-off',
+      noFormalApproval: 'Keine formale Freigabe',
+      autoCreateUseCase:
+        'Bei Lieferantenfreigabe automatisch einen Use Case anlegen',
+    },
+    retention: {
+      title: 'Retention',
+      immutableAuditExportsDays: 'Immutable Audit Exports (Tage)',
+      externalSubmissionsDays: 'External Submissions (Tage)',
+      reviewArtifactsDays: 'Review Artefakte (Tage)',
+      incidentLogsDays: 'Incident Logs (Tage)',
+      legalHold: 'Legal Hold aktivieren',
+    },
+    hooks: {
+      title: 'Notification Hooks',
+      description:
+        'Hooks für submission received, review due und approval needed.',
+      hook: 'Hook',
+      noHooks: 'Noch keine Webhooks konfiguriert.',
+    },
+    subprocessors: {
+      title: 'Subprocessors',
+      description:
+        'Procurement-sichtbare Unterauftragsverarbeiter für DPA, SCC und Security Review.',
+      add: 'Hinzufügen',
+      provider: 'Anbieter',
+      region: 'Region',
+      purpose: 'Zweck',
+      url: 'URL',
+    },
+    actions: {
+      saveSettings: 'Organisationseinstellungen speichern',
+      sendReviewDue: 'Review due senden',
+      immutableAuditExport: 'Immutable Audit Export',
+    },
+    signOff: {
+      title: 'Governance-Sign-off',
+      description:
+        'Formale Freigaben für Governance-Stand und Organisationseinstellungen.',
+      placeholder: 'Zum Beispiel: Q2 Governance Baseline',
+      request: 'Sign-off anfordern',
+      empty: 'Noch kein Governance-Sign-off angelegt.',
+      requestedAtBy: (date: string, actor: string) =>
+        `Angefordert am ${date} von ${actor}`,
+      requiredRoles: 'Erforderliche Rollen',
+    },
+    externalQueue: {
+      title: 'Externe Freigabe-Queue',
+      description:
+        'Lieferanten- und Zugangscode-Einreichungen bleiben mit Herkunft und Freigabestatus nachvollziehbar.',
+      empty: 'Noch keine externen Einreichungen im aktiven Workspace.',
+      approvals: 'Freigaben',
+    },
+    tables: {
+      label: 'Label',
+      createdBy: 'Erstellt von',
+      createdAt: 'Erstellt am',
+      lastUsed: 'Zuletzt genutzt',
+      status: 'Status',
+      action: 'Aktion',
+    },
+  } as const;
+}
+
+function formatDate(
+  value: string | null | undefined,
+  locale?: string | null,
+  unknownLabel = 'unknown',
+): string {
   if (!value) {
-    return 'unbekannt';
+    return unknownLabel;
   }
 
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
-    return 'unbekannt';
+    return unknownLabel;
   }
 
-  return parsed.toLocaleString(APP_LOCALE, {
+  return parsed.toLocaleString(getGovernanceDateLocale(locale), {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function formatRole(role: WorkspaceRole, locale?: string | null): string {
+  const copy = getEnterpriseCopy(locale);
+  return copy.roleLabels[role] ?? getWorkspaceRoleLabel(role);
+}
+
+function formatStatusLabel(
+  value: string,
+  locale?: string | null,
+): string {
+  const copy = getEnterpriseCopy(locale);
+  return copy.status[value as keyof typeof copy.status] ?? value;
 }
 
 function normalizeOptionalText(value: string): string | null {
@@ -183,7 +694,10 @@ function getSignOffStatusBadgeClass(status: GovernanceSignOffRecord['status']) {
   }
 }
 
-function getSubmissionHeadline(submission: WorkspaceExternalSubmissionRow): string {
+function getSubmissionHeadline(
+  submission: WorkspaceExternalSubmissionRow,
+  locale?: string | null,
+): string {
   const systemSummary = getExternalSubmissionSystemSummary(submission);
   if (systemSummary !== 'Ohne System') {
     return systemSummary;
@@ -194,12 +708,14 @@ function getSubmissionHeadline(submission: WorkspaceExternalSubmissionRow): stri
     return purpose;
   }
 
-  return submission.submissionId;
+  return getEnterpriseCopy(locale).noSystem || submission.submissionId;
 }
 
 export default function ControlEnterprisePage() {
   const { user, loading } = useAuth();
   const { profile } = useUserProfile();
+  const locale = useLocale();
+  const copy = useMemo(() => getEnterpriseCopy(locale), [locale]);
   const router = useRouter();
   const scopedHrefs = useScopedRouteHrefs();
   const { toast } = useToast();
@@ -332,13 +848,11 @@ export default function ControlEnterprisePage() {
       );
     } catch (loadError) {
       console.error('Failed to load enterprise workspace data', loadError);
-      setError(
-        'Organisationsdaten konnten nicht geladen werden. Bitte pruefen Sie das aktive Workspace-Kontext.',
-      );
+      setError(copy.errors.workspaceLoad);
     } finally {
       setIsLoadingData(false);
     }
-  }, [authFetch, workspaceId]);
+  }, [authFetch, copy.errors.workspaceLoad, workspaceId]);
 
   useEffect(() => {
     if (!loading && !capabilityLoading && user && workspaceId && allowed) {
@@ -423,18 +937,17 @@ export default function ControlEnterprisePage() {
         body: JSON.stringify(settingsDraft),
       });
       toast({
-        title: 'Organisationseinstellungen gespeichert',
-        description:
-          'Identity, Approvals, Retention, Webhooks und Procurement-Daten wurden aktualisiert.',
+        title: copy.toast.settingsSavedTitle,
+        description: copy.toast.settingsSavedDescription,
       });
       await loadWorkspaceData();
     } catch (saveError) {
       console.error('Failed to save enterprise settings', saveError);
       toast({
         variant: 'destructive',
-        title: 'Speichern fehlgeschlagen',
+        title: copy.errors.saveFailed,
         description:
-          saveError instanceof Error ? saveError.message : 'Bitte erneut versuchen.',
+          saveError instanceof Error ? saveError.message : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -460,9 +973,9 @@ export default function ControlEnterprisePage() {
 
       const payload = (await response.json()) as { message?: string };
       toast({
-        title: 'Einladung verarbeitet',
+        title: copy.toast.inviteProcessedTitle,
         description:
-          payload.message ?? 'Das Workspace-Mitglied wurde eingeladen.',
+          payload.message ?? copy.toast.inviteProcessedDescription,
       });
       setInviteEmail('');
       setInviteRole('MEMBER');
@@ -471,9 +984,9 @@ export default function ControlEnterprisePage() {
       console.error('Failed to invite workspace member', inviteError);
       toast({
         variant: 'destructive',
-        title: 'Einladung fehlgeschlagen',
+        title: copy.errors.inviteFailed,
         description:
-          inviteError instanceof Error ? inviteError.message : 'Bitte erneut versuchen.',
+          inviteError instanceof Error ? inviteError.message : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -484,15 +997,15 @@ export default function ControlEnterprisePage() {
     try {
       await navigator.clipboard.writeText(value);
       toast({
-        title: `${label} kopiert`,
-        description: 'Sie koennen den Inhalt jetzt direkt weiterverwenden.',
+        title: copy.toast.copiedTitle(label),
+        description: copy.toast.copiedDescription,
       });
     } catch (copyError) {
       console.error(`Failed to copy ${label}`, copyError);
       toast({
         variant: 'destructive',
-        title: 'Kopieren fehlgeschlagen',
-        description: 'Bitte den Text manuell markieren und kopieren.',
+        title: copy.errors.copyFailed,
+        description: copy.errors.copyManual,
       });
     }
   };
@@ -519,19 +1032,18 @@ export default function ControlEnterprisePage() {
       setAgentKitLabel('');
       await loadWorkspaceData();
       toast({
-        title: 'Agent-Kit-API-Key erstellt',
-        description:
-          'Kopieren Sie den Key jetzt einmalig. Danach wird nur noch die Vorschau angezeigt.',
+        title: copy.toast.keyCreatedTitle,
+        description: copy.toast.keyCreatedDescription,
       });
     } catch (agentKitError) {
       console.error('Failed to create Agent Kit API key', agentKitError);
       toast({
         variant: 'destructive',
-        title: 'API-Key konnte nicht erstellt werden',
+        title: copy.errors.createKeyFailed,
         description:
           agentKitError instanceof Error
             ? agentKitError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -553,19 +1065,18 @@ export default function ControlEnterprisePage() {
       }
       await loadWorkspaceData();
       toast({
-        title: 'Agent-Kit-API-Key widerrufen',
-        description:
-          'Neue Einreichungen mit diesem Key werden sofort blockiert.',
+        title: copy.toast.keyRevokedTitle,
+        description: copy.toast.keyRevokedDescription,
       });
     } catch (agentKitError) {
       console.error('Failed to revoke Agent Kit API key', agentKitError);
       toast({
         variant: 'destructive',
-        title: 'API-Key konnte nicht widerrufen werden',
+        title: copy.errors.revokeKeyFailed,
         description:
           agentKitError instanceof Error
             ? agentKitError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -591,9 +1102,9 @@ export default function ControlEnterprisePage() {
       console.error('Failed to update member role', memberError);
       toast({
         variant: 'destructive',
-        title: 'Rolle konnte nicht aktualisiert werden',
+        title: copy.errors.roleFailed,
         description:
-          memberError instanceof Error ? memberError.message : 'Bitte erneut versuchen.',
+          memberError instanceof Error ? memberError.message : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -615,9 +1126,9 @@ export default function ControlEnterprisePage() {
       console.error('Failed to remove workspace member', memberError);
       toast({
         variant: 'destructive',
-        title: 'Mitglied konnte nicht entfernt werden',
+        title: copy.errors.removeFailed,
         description:
-          memberError instanceof Error ? memberError.message : 'Bitte erneut versuchen.',
+          memberError instanceof Error ? memberError.message : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -640,19 +1151,18 @@ export default function ControlEnterprisePage() {
       setSignOffSummary('');
       await loadWorkspaceData();
       toast({
-        title: 'Governance-Sign-off angefordert',
-        description:
-          'Der aktuelle Organisationsstand wurde als formale Freigabe eingereicht.',
+        title: copy.toast.signOffRequestedTitle,
+        description: copy.toast.signOffRequestedDescription,
       });
     } catch (signOffError) {
       console.error('Failed to request governance sign-off', signOffError);
       toast({
         variant: 'destructive',
-        title: 'Sign-off konnte nicht angefordert werden',
+        title: copy.errors.requestSignOffFailed,
         description:
           signOffError instanceof Error
             ? signOffError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -681,11 +1191,11 @@ export default function ControlEnterprisePage() {
       console.error('Failed to decide governance sign-off', decisionError);
       toast({
         variant: 'destructive',
-        title: 'Sign-off konnte nicht entschieden werden',
+        title: copy.errors.decideSignOffFailed,
         description:
           decisionError instanceof Error
             ? decisionError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -714,9 +1224,9 @@ export default function ControlEnterprisePage() {
       console.error('Failed to review workspace submission', reviewError);
       toast({
         variant: 'destructive',
-        title: 'Einreichung konnte nicht aktualisiert werden',
+        title: copy.errors.submissionFailed,
         description:
-          reviewError instanceof Error ? reviewError.message : 'Bitte erneut versuchen.',
+          reviewError instanceof Error ? reviewError.message : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -741,19 +1251,18 @@ export default function ControlEnterprisePage() {
         }),
       });
       toast({
-        title: 'Review-Hooks ausgeliefert',
-        description:
-          'Aktuelle Review-Faelligkeiten wurden an konfigurierte Webhooks gesendet.',
+        title: copy.toast.reviewHooksDeliveredTitle,
+        description: copy.toast.reviewHooksDeliveredDescription,
       });
     } catch (dispatchError) {
       console.error('Failed to dispatch review due notification', dispatchError);
       toast({
         variant: 'destructive',
-        title: 'Review-Hooks fehlgeschlagen',
+        title: copy.errors.reviewHooksFailed,
         description:
           dispatchError instanceof Error
             ? dispatchError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -782,11 +1291,11 @@ export default function ControlEnterprisePage() {
       console.error('Failed to download immutable audit export', downloadError);
       toast({
         variant: 'destructive',
-        title: 'Audit-Export fehlgeschlagen',
+        title: copy.errors.auditExportFailed,
         description:
           downloadError instanceof Error
             ? downloadError.message
-            : 'Bitte erneut versuchen.',
+            : copy.retry,
       });
     } finally {
       setBusyAction(null);
@@ -797,15 +1306,15 @@ export default function ControlEnterprisePage() {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
-        title="Organisation"
-        description="Workspace-Administration, Beschaffung und formale Freigaben werden vorbereitet."
-        nextStep="Wir laden Rollen, Settings und Freigabe-Queues."
+        title={copy.frame.loadingTitle}
+        description={copy.frame.loadingDescription}
+        nextStep={copy.frame.loadingNextStep}
       >
         <PageStatePanel
           tone="loading"
           area="paid_governance_control"
-          title="Organisation wird geladen"
-          description="Mitglieder, Identity, Approvals und Audit-Export werden vorbereitet."
+          title={copy.frame.loadingPanelTitle}
+          description={copy.frame.loadingPanelDescription}
         />
       </SignedInAreaFrame>
     );
@@ -818,27 +1327,27 @@ export default function ControlEnterprisePage() {
   return (
     <SignedInAreaFrame
       area="paid_governance_control"
-      title="Organisation"
+      title={copy.frame.title}
       description={
         workspaceName
-          ? `Organisationssteuerung fuer ${workspaceName}. Rollen, Beschaffung, Identity und Freigaben laufen hier zusammen.`
-          : 'Organisationssteuerung fuer Rollen, Beschaffung, Identity und Freigaben.'
+          ? copy.frame.descriptionWithWorkspace(workspaceName)
+          : copy.frame.description
       }
-      nextStep="Pflegen Sie zuerst Rollen, Approval-Policy und Procurement-Unterlagen fuer den aktiven Workspace."
+      nextStep={copy.frame.nextStep}
     >
       <div className="space-y-6">
         {!allowed ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Dieser Bereich ist fuer den aktiven Arbeitsbereich nicht verfuegbar"
-            description="Rollenmodell, SSO/SCIM, Procurement-Settings und formale Workspace-Freigaben werden in der Organisationssteuerung verwaltet."
+            title={copy.gated.title}
+            description={copy.gated.description}
             actions={
               <>
                 <Button asChild>
-                  <Link href={scopedHrefs.control}>Control Overview</Link>
+                  <Link href={scopedHrefs.control}>{copy.gated.controlOverview}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={scopedHrefs.controlExports}>Exports / Audit</Link>
+                  <Link href={scopedHrefs.controlExports}>{copy.gated.exportsAudit}</Link>
                 </Button>
               </>
             }
@@ -846,11 +1355,11 @@ export default function ControlEnterprisePage() {
         ) : !workspaceId ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Kein Workspace ausgewaehlt"
-            description="Waehlen Sie ueber den Workspace-Switcher einen Workspace aus, um Mitglieder und Einstellungen zu verwalten."
+            title={copy.gated.noWorkspaceTitle}
+            description={copy.gated.noWorkspaceDescription}
             actions={
               <Button asChild>
-                <Link href={scopedHrefs.register}>Zum Register</Link>
+                <Link href={scopedHrefs.register}>{copy.gated.openRegister}</Link>
               </Button>
             }
           />
@@ -860,8 +1369,8 @@ export default function ControlEnterprisePage() {
               <PageStatePanel
                 tone="loading"
                 area="paid_governance_control"
-                title="Organisationsdaten werden geladen"
-                description="Mitglieder, Settings, Sign-offs und externe Freigaben werden geladen."
+                title={copy.state.loadingTitle}
+                description={copy.state.loadingDescription}
               />
             )}
 
@@ -869,7 +1378,7 @@ export default function ControlEnterprisePage() {
               <PageStatePanel
                 tone="error"
                 area="paid_governance_control"
-                title="Organisation konnte nicht geladen werden"
+                title={copy.state.errorTitle}
                 description={error}
                 actions={
                   <Button
@@ -878,7 +1387,7 @@ export default function ControlEnterprisePage() {
                     disabled={isLoadingData}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Neu laden
+                    {copy.state.reload}
                   </Button>
                 }
               />
@@ -889,27 +1398,27 @@ export default function ControlEnterprisePage() {
                 <div className="grid gap-4 lg:grid-cols-4">
                   <Card className="lg:col-span-1">
                     <CardHeader className="pb-2">
-                      <CardDescription>Aktive Rolle</CardDescription>
+                      <CardDescription>{copy.kpis.activeRole}</CardDescription>
                       <CardTitle className="text-2xl">
-                        {actorRole ? getWorkspaceRoleLabel(actorRole) : 'Unbekannt'}
+                        {actorRole ? formatRole(actorRole, locale) : copy.unknown}
                       </CardTitle>
                     </CardHeader>
                   </Card>
                   <Card className="lg:col-span-1">
                     <CardHeader className="pb-2">
-                      <CardDescription>Mitglieder</CardDescription>
+                      <CardDescription>{copy.kpis.members}</CardDescription>
                       <CardTitle className="text-2xl">{members.length}</CardTitle>
                     </CardHeader>
                   </Card>
                   <Card className="lg:col-span-1">
                     <CardHeader className="pb-2">
-                      <CardDescription>Freigaben offen</CardDescription>
+                      <CardDescription>{copy.kpis.openApprovals}</CardDescription>
                       <CardTitle className="text-2xl">{approvalPendingCount}</CardTitle>
                     </CardHeader>
                   </Card>
                   <Card className="lg:col-span-1">
                     <CardHeader className="pb-2">
-                      <CardDescription>Governance-Sign-offs offen</CardDescription>
+                      <CardDescription>{copy.kpis.openSignOffs}</CardDescription>
                       <CardTitle className="text-2xl">{pendingSignOffCount}</CardTitle>
                     </CardHeader>
                   </Card>
@@ -921,40 +1430,41 @@ export default function ControlEnterprisePage() {
                       <div>
                         <CardTitle className="flex items-center gap-2">
                           <KeyRound className="h-5 w-5" />
-                          Agent Kit API Keys
+                          {copy.agentKit.title}
                         </CardTitle>
                         <CardDescription>
-                          Lassen Sie Codex, Claude Code, OpenClaw oder andere Agenten bestaetigte
-                          Dokumentationen direkt in das KI-Register dieses Workspaces einreichen.
+                          {copy.agentKit.description}
                         </CardDescription>
                       </div>
                       <Badge variant="outline">
-                        {agentKitRegisters.length} Register verknuepft
+                        {copy.agentKit.linkedRegisters(agentKitRegisters.length)}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-4 lg:grid-cols-3">
                       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <div className="text-sm font-medium text-slate-900">1. API-Key erzeugen</div>
+                        <div className="text-sm font-medium text-slate-900">
+                          {copy.agentKit.step1Title}
+                        </div>
                         <p className="mt-2 text-sm text-slate-600">
-                          Jede Person kann ihren eigenen Key anlegen. Owner und Admins sehen alle
-                          Keys im Workspace und koennen sie bei Bedarf widerrufen.
+                          {copy.agentKit.step1Description}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <div className="text-sm font-medium text-slate-900">2. Dem Agenten geben</div>
+                        <div className="text-sm font-medium text-slate-900">
+                          {copy.agentKit.step2Title}
+                        </div>
                         <p className="mt-2 text-sm text-slate-600">
-                          Der Key kommt als Umgebungsvariable in den Agent-Workflow. Das
-                          `manifest.json` wird danach ueber das CLI direkt eingereicht.
+                          {copy.agentKit.step2Description}
                         </p>
                       </div>
                       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <div className="text-sm font-medium text-slate-900">3. Teamlead sieht das Ergebnis</div>
+                        <div className="text-sm font-medium text-slate-900">
+                          {copy.agentKit.step3Title}
+                        </div>
                         <p className="mt-2 text-sm text-slate-600">
-                          Nach der erfolgreichen Einreichung entsteht ein echter Use Case im
-                          KI-Register. Teamleads sehen ihn dort, statt mit Dateien arbeiten zu
-                          muessen.
+                          {copy.agentKit.step3Description}
                         </p>
                       </div>
                     </div>
@@ -963,7 +1473,7 @@ export default function ControlEnterprisePage() {
                       <Input
                         value={agentKitLabel}
                         onChange={(event) => setAgentKitLabel(event.target.value)}
-                        placeholder="Zum Beispiel: Codex auf MacBook Pro"
+                        placeholder={copy.agentKit.labelPlaceholder}
                       />
                       <Select
                         value={agentKitSelectedRegisterId ?? undefined}
@@ -971,7 +1481,7 @@ export default function ControlEnterprisePage() {
                         disabled={agentKitRegisters.length === 0}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Ziel-Register waehlen" />
+                          <SelectValue placeholder={copy.agentKit.registerPlaceholder} />
                         </SelectTrigger>
                         <SelectContent>
                           {agentKitRegisters.map((register) => (
@@ -990,15 +1500,13 @@ export default function ControlEnterprisePage() {
                         }
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        API-Key erstellen
+                        {copy.agentKit.createKey}
                       </Button>
                     </div>
 
                     {agentKitRegisters.length === 0 ? (
                       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                        Verknuepfen Sie zuerst mindestens ein Register mit diesem Workspace. Erst
-                        dann kann das Agent Kit direkte Einreichungen fuer Teamleads sichtbar
-                        machen.
+                        {copy.agentKit.noRegisters}
                       </div>
                     ) : null}
 
@@ -1006,18 +1514,24 @@ export default function ControlEnterprisePage() {
                       <div className="rounded-2xl border border-slate-900 bg-slate-950 p-5 text-white">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
-                            <div className="text-sm font-medium">Neuer API-Key</div>
+                            <div className="text-sm font-medium">
+                              {copy.agentKit.newKeyTitle}
+                            </div>
                             <p className="mt-1 text-sm text-slate-300">
-                              Dieser komplette Key wird nur jetzt angezeigt. Danach bleibt in der
-                              Liste nur noch die Vorschau sichtbar.
+                              {copy.agentKit.newKeyDescription}
                             </p>
                           </div>
                           <Button
                             variant="secondary"
-                            onClick={() => void copyToClipboard(latestAgentKitApiKey, 'API-Key')}
+                            onClick={() =>
+                              void copyToClipboard(
+                                latestAgentKitApiKey,
+                                copy.agentKit.apiKeyLabel,
+                              )
+                            }
                           >
                             <Copy className="mr-2 h-4 w-4" />
-                            Key kopieren
+                            {copy.agentKit.copyKey}
                           </Button>
                         </div>
                         <div className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-4 font-mono text-sm">
@@ -1030,50 +1544,64 @@ export default function ControlEnterprisePage() {
                       <div className="rounded-xl border border-slate-200 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <div className="text-sm font-medium text-slate-900">Beispielbefehl fuer das technische Team</div>
+                            <div className="text-sm font-medium text-slate-900">
+                              {copy.agentKit.commandTitle}
+                            </div>
                             <div className="mt-1 text-sm text-slate-600">
-                              Dieser Befehl reicht eine bestaetigte Manifest-Datei direkt in das
-                              gewaehlte Register ein.
+                              {copy.agentKit.commandDescription}
                             </div>
                           </div>
                           {agentKitCommandSnippet ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => void copyToClipboard(agentKitCommandSnippet, 'Befehl')}
+                              onClick={() =>
+                                void copyToClipboard(
+                                  agentKitCommandSnippet,
+                                  copy.agentKit.commandLabel,
+                                )
+                              }
                             >
                               <Copy className="mr-2 h-4 w-4" />
-                              Kopieren
+                              {copy.copy}
                             </Button>
                           ) : null}
                         </div>
                         <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-sm text-slate-100">
-                          <code>{agentKitCommandSnippet ?? 'Verknuepfen Sie zuerst ein Register.'}</code>
+                          <code>
+                            {agentKitCommandSnippet ?? copy.agentKit.fallbackRegister}
+                          </code>
                         </pre>
                       </div>
 
                       <div className="rounded-xl border border-slate-200 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
-                            <div className="text-sm font-medium text-slate-900">Beispiel-Prompt fuer einen Agenten</div>
+                            <div className="text-sm font-medium text-slate-900">
+                              {copy.agentKit.promptTitle}
+                            </div>
                             <div className="mt-1 text-sm text-slate-600">
-                              So versteht auch ein nicht perfekt vorbereiteter Agent, was er tun
-                              soll.
+                              {copy.agentKit.promptDescription}
                             </div>
                           </div>
                           {agentKitPromptSnippet ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => void copyToClipboard(agentKitPromptSnippet, 'Prompt')}
+                              onClick={() =>
+                                void copyToClipboard(
+                                  agentKitPromptSnippet,
+                                  copy.agentKit.promptLabel,
+                                )
+                              }
                             >
                               <Copy className="mr-2 h-4 w-4" />
-                              Kopieren
+                              {copy.copy}
                             </Button>
                           ) : null}
                         </div>
                         <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-                          {agentKitPromptSnippet ?? 'Verknuepfen Sie zuerst ein Register.'}
+                          {agentKitPromptSnippet ?? copy.agentKit.fallbackRegister}
                         </div>
                       </div>
                     </div>
@@ -1081,19 +1609,19 @@ export default function ControlEnterprisePage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Label</TableHead>
-                          <TableHead>Erstellt von</TableHead>
-                          <TableHead>Erstellt am</TableHead>
-                          <TableHead>Zuletzt genutzt</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Aktion</TableHead>
+                          <TableHead>{copy.tables.label}</TableHead>
+                          <TableHead>{copy.tables.createdBy}</TableHead>
+                          <TableHead>{copy.tables.createdAt}</TableHead>
+                          <TableHead>{copy.tables.lastUsed}</TableHead>
+                          <TableHead>{copy.tables.status}</TableHead>
+                          <TableHead>{copy.tables.action}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {agentKitKeys.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                              Noch kein Agent-Kit-API-Key fuer diesen Workspace angelegt.
+                              {copy.agentKit.noKeys}
                             </TableCell>
                           </TableRow>
                         ) : (
@@ -1106,8 +1634,12 @@ export default function ControlEnterprisePage() {
                                 </div>
                               </TableCell>
                               <TableCell>{key.createdByEmail ?? key.createdByUserId}</TableCell>
-                              <TableCell>{formatDate(key.createdAt)}</TableCell>
-                              <TableCell>{formatDate(key.lastUsedAt)}</TableCell>
+                              <TableCell>
+                                {formatDate(key.createdAt, locale, copy.unknown)}
+                              </TableCell>
+                              <TableCell>
+                                {formatDate(key.lastUsedAt, locale, copy.unknown)}
+                              </TableCell>
                               <TableCell>
                                 <Badge
                                   variant="outline"
@@ -1117,7 +1649,7 @@ export default function ControlEnterprisePage() {
                                       : 'border-gray-200 bg-gray-50 text-gray-800'
                                   }
                                 >
-                                  {key.revokedAt ? 'widerrufen' : 'aktiv'}
+                                  {key.revokedAt ? copy.revoked : copy.active}
                                 </Badge>
                               </TableCell>
                               <TableCell>
@@ -1131,7 +1663,7 @@ export default function ControlEnterprisePage() {
                                   }
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Widerrufen
+                                  {copy.agentKit.revoke}
                                 </Button>
                               </TableCell>
                             </TableRow>
@@ -1148,14 +1680,14 @@ export default function ControlEnterprisePage() {
                       <div>
                         <CardTitle className="flex items-center gap-2">
                           <Users className="h-5 w-5" />
-                          Mitglieder und Rollen
+                          {copy.members.title}
                         </CardTitle>
                         <CardDescription>
-                          Owner, Admin, Reviewer, Member und External Officer werden zentral im Workspace verwaltet.
+                          {copy.members.description}
                         </CardDescription>
                       </div>
                       <Badge variant="outline">
-                        {pendingInvites.length} Einladungen offen
+                        {copy.members.pendingInvites(pendingInvites.length)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -1190,18 +1722,18 @@ export default function ControlEnterprisePage() {
                         disabled={!canManageMembers || busyAction === 'invite_member'}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Einladen
+                        {copy.members.invite}
                       </Button>
                     </div>
 
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Person</TableHead>
-                          <TableHead>Rolle</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Quelle</TableHead>
-                          <TableHead>Aktion</TableHead>
+                          <TableHead>{copy.members.person}</TableHead>
+                          <TableHead>{copy.members.role}</TableHead>
+                          <TableHead>{copy.members.status}</TableHead>
+                          <TableHead>{copy.members.source}</TableHead>
+                          <TableHead>{copy.members.action}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1242,11 +1774,11 @@ export default function ControlEnterprisePage() {
                               </Select>
                               {member.role === 'OWNER' ? (
                                 <div className="pt-1 text-xs text-muted-foreground">
-                                  Owner bleibt unveraenderlich.
+                                  {copy.members.ownerImmutable}
                                 </div>
                               ) : null}
                             </TableCell>
-                            <TableCell>{member.status}</TableCell>
+                            <TableCell>{formatStatusLabel(member.status, locale)}</TableCell>
                             <TableCell>{member.source}</TableCell>
                             <TableCell>
                               <Button
@@ -1260,7 +1792,7 @@ export default function ControlEnterprisePage() {
                                 }
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Entfernen
+                                {copy.remove}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -1271,7 +1803,7 @@ export default function ControlEnterprisePage() {
                     {pendingInvites.length > 0 ? (
                       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
                         <div className="text-sm font-medium text-slate-900">
-                          Ausstehende Einladungen
+                          {copy.members.pendingInvitesTitle}
                         </div>
                         <div className="mt-2 space-y-2 text-sm text-slate-600">
                           {pendingInvites.map((invite) => (
@@ -1281,7 +1813,10 @@ export default function ControlEnterprisePage() {
                             >
                               <span>{invite.email}</span>
                               <Badge variant="outline">{invite.role}</Badge>
-                              <span>gueltig bis {formatDate(invite.expiresAt)}</span>
+                              <span>
+                                {copy.members.validUntil}{' '}
+                                {formatDate(invite.expiresAt, locale, copy.unknown)}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -1294,17 +1829,17 @@ export default function ControlEnterprisePage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5" />
-                      Identity, SCIM und Procurement
+                      {copy.identity.title}
                     </CardTitle>
                     <CardDescription>
-                      SSO/SAML/OIDC, SCIM-Provisioning, Retention, Webhooks und procurement-faehige Unterlagen an einer Stelle.
+                      {copy.identity.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="grid gap-6 xl:grid-cols-2">
                       <div className="space-y-4">
                         <div className="space-y-2">
-                          <Label>Identity Provider Modus</Label>
+                          <Label>{copy.identity.identityProviderMode}</Label>
                           <Select
                             value={settingsDraft.identityProvider.mode}
                             onValueChange={(value) =>
@@ -1321,7 +1856,7 @@ export default function ControlEnterprisePage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="disabled">Deaktiviert</SelectItem>
+                              <SelectItem value="disabled">{copy.identity.disabled}</SelectItem>
                               <SelectItem value="saml">SAML</SelectItem>
                               <SelectItem value="oidc">OIDC</SelectItem>
                             </SelectContent>
@@ -1329,7 +1864,7 @@ export default function ControlEnterprisePage() {
                         </div>
                         <div className="grid gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Provider Name</Label>
+                            <Label>{copy.identity.providerName}</Label>
                             <Input
                               value={settingsDraft.identityProvider.displayName ?? ''}
                               onChange={(event) =>
@@ -1345,7 +1880,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Metadata URL</Label>
+                            <Label>{copy.identity.metadataUrl}</Label>
                             <Input
                               value={settingsDraft.identityProvider.metadataUrl ?? ''}
                               onChange={(event) =>
@@ -1361,7 +1896,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>SSO URL / Issuer</Label>
+                            <Label>{copy.identity.ssoUrl}</Label>
                             <Input
                               value={settingsDraft.identityProvider.ssoUrl ?? ''}
                               onChange={(event) =>
@@ -1377,7 +1912,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Groups Attribut</Label>
+                            <Label>{copy.identity.groupsAttribute}</Label>
                             <Input
                               value={settingsDraft.identityProvider.groupsAttribute ?? ''}
                               onChange={(event) =>
@@ -1458,9 +1993,9 @@ export default function ControlEnterprisePage() {
                                 }))
                               }
                             />
-                            <span className="text-sm text-muted-foreground">
-                              SCIM-User- und Group-Sync aktivieren
-                            </span>
+                          <span className="text-sm text-muted-foreground">
+                              {copy.identity.scimSync}
+                          </span>
                           </div>
                         </div>
                       </div>
@@ -1548,7 +2083,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Dokumentationsportal</Label>
+                            <Label>{copy.identity.documentationPortal}</Label>
                             <Input
                               value={settingsDraft.procurement.documentationPortalUrl ?? ''}
                               onChange={(event) =>
@@ -1565,7 +2100,7 @@ export default function ControlEnterprisePage() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label>Retention Summary</Label>
+                          <Label>{copy.identity.retentionSummary}</Label>
                           <Textarea
                             value={settingsDraft.procurement.retentionSummary ?? ''}
                             onChange={(event) =>
@@ -1577,7 +2112,7 @@ export default function ControlEnterprisePage() {
                                 },
                               }))
                             }
-                            placeholder="Kurze Zusammenfassung fuer Procurement und Security Review"
+                            placeholder={copy.identity.retentionPlaceholder}
                           />
                         </div>
                       </div>
@@ -1587,16 +2122,16 @@ export default function ControlEnterprisePage() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between gap-4">
                           <div>
-                            <div className="text-sm font-medium">Approval Policy</div>
+                            <div className="text-sm font-medium">{copy.approval.title}</div>
                             <div className="text-sm text-muted-foreground">
-                              Steuert externe Einreichungen und formale Governance-Sign-offs.
+                              {copy.approval.description}
                             </div>
                           </div>
                           <Workflow className="h-5 w-5 text-muted-foreground" />
                         </div>
                         <div className="grid gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Externe Einreichungen</Label>
+                            <Label>{copy.approval.externalSubmissions}</Label>
                             <Select
                               value={settingsDraft.approvalPolicy.externalSubmissions}
                               onValueChange={(value) =>
@@ -1614,7 +2149,7 @@ export default function ControlEnterprisePage() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="none">Keine formale Freigabe</SelectItem>
+                                <SelectItem value="none">{copy.approval.noFormalApproval}</SelectItem>
                                 <SelectItem value="reviewer">Reviewer</SelectItem>
                                 <SelectItem value="reviewer_plus_officer">Reviewer + External Officer</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
@@ -1622,7 +2157,7 @@ export default function ControlEnterprisePage() {
                             </Select>
                           </div>
                           <div className="space-y-2">
-                            <Label>Governance-Sign-off</Label>
+                            <Label>{copy.approval.governanceSignOff}</Label>
                             <Select
                               value={settingsDraft.approvalPolicy.governanceSignOff}
                               onValueChange={(value) =>
@@ -1640,7 +2175,7 @@ export default function ControlEnterprisePage() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="none">Keine formale Freigabe</SelectItem>
+                                <SelectItem value="none">{copy.approval.noFormalApproval}</SelectItem>
                                 <SelectItem value="admin">Admin</SelectItem>
                                 <SelectItem value="external_officer">External Officer</SelectItem>
                               </SelectContent>
@@ -1661,16 +2196,16 @@ export default function ControlEnterprisePage() {
                             }
                           />
                           <span className="text-sm text-muted-foreground">
-                            Bei Lieferantenfreigabe automatisch einen Use Case anlegen
+                            {copy.approval.autoCreateUseCase}
                           </span>
                         </div>
                       </div>
 
                       <div className="space-y-4">
-                        <div className="text-sm font-medium">Retention</div>
+                        <div className="text-sm font-medium">{copy.retention.title}</div>
                         <div className="grid gap-3 md:grid-cols-2">
                           <div className="space-y-2">
-                            <Label>Immutable Audit Exports (Tage)</Label>
+                            <Label>{copy.retention.immutableAuditExportsDays}</Label>
                             <Input
                               type="number"
                               value={settingsDraft.retentionPolicy.immutableAuditExportsDays}
@@ -1686,7 +2221,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>External Submissions (Tage)</Label>
+                            <Label>{copy.retention.externalSubmissionsDays}</Label>
                             <Input
                               type="number"
                               value={settingsDraft.retentionPolicy.externalSubmissionDays}
@@ -1702,7 +2237,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Review Artefakte (Tage)</Label>
+                            <Label>{copy.retention.reviewArtifactsDays}</Label>
                             <Input
                               type="number"
                               value={settingsDraft.retentionPolicy.reviewArtifactsDays}
@@ -1718,7 +2253,7 @@ export default function ControlEnterprisePage() {
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label>Incident Logs (Tage)</Label>
+                            <Label>{copy.retention.incidentLogsDays}</Label>
                             <Input
                               type="number"
                               value={settingsDraft.retentionPolicy.incidentLogDays}
@@ -1748,7 +2283,7 @@ export default function ControlEnterprisePage() {
                             }
                           />
                           <span className="text-sm text-muted-foreground">
-                            Legal Hold aktivieren
+                            {copy.retention.legalHold}
                           </span>
                         </div>
                       </div>
@@ -1756,10 +2291,10 @@ export default function ControlEnterprisePage() {
 
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-sm font-medium">Notification Hooks</div>
+                          <div>
+                          <div className="text-sm font-medium">{copy.hooks.title}</div>
                           <div className="text-sm text-muted-foreground">
-                            Hooks fuer submission received, review due und approval needed.
+                            {copy.hooks.description}
                           </div>
                         </div>
                         <Button
@@ -1779,7 +2314,7 @@ export default function ControlEnterprisePage() {
                           }
                         >
                           <Plus className="mr-2 h-4 w-4" />
-                          Hook
+                          {copy.hooks.hook}
                         </Button>
                       </div>
                       <div className="space-y-3">
@@ -1893,7 +2428,7 @@ export default function ControlEnterprisePage() {
                         ))}
                         {settingsDraft.notifications.hooks.length === 0 ? (
                           <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                            Noch keine Webhooks konfiguriert.
+                            {copy.hooks.noHooks}
                           </div>
                         ) : null}
                       </div>
@@ -1902,9 +2437,11 @@ export default function ControlEnterprisePage() {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <div className="text-sm font-medium">Subprocessors</div>
+                          <div className="text-sm font-medium">
+                            {copy.subprocessors.title}
+                          </div>
                           <div className="text-sm text-muted-foreground">
-                            Procurement-sichtbare Unterauftragsverarbeiter fuer DPA, SCC und Security Review.
+                            {copy.subprocessors.description}
                           </div>
                         </div>
                         <Button
@@ -1938,7 +2475,7 @@ export default function ControlEnterprisePage() {
                           }}
                         >
                           <Plus className="mr-2 h-4 w-4" />
-                          Hinzufuegen
+                          {copy.subprocessors.add}
                         </Button>
                       </div>
                       <div className="grid gap-3 md:grid-cols-4">
@@ -1950,7 +2487,7 @@ export default function ControlEnterprisePage() {
                               name: event.target.value,
                             }))
                           }
-                          placeholder="Anbieter"
+                          placeholder={copy.subprocessors.provider}
                         />
                         <Input
                           value={newSubprocessor.region}
@@ -1960,7 +2497,7 @@ export default function ControlEnterprisePage() {
                               region: event.target.value,
                             }))
                           }
-                          placeholder="Region"
+                          placeholder={copy.subprocessors.region}
                         />
                         <Input
                           value={newSubprocessor.purpose}
@@ -1970,7 +2507,7 @@ export default function ControlEnterprisePage() {
                               purpose: event.target.value,
                             }))
                           }
-                          placeholder="Zweck"
+                          placeholder={copy.subprocessors.purpose}
                         />
                         <Input
                           value={newSubprocessor.url}
@@ -2013,7 +2550,7 @@ export default function ControlEnterprisePage() {
                               }
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Entfernen
+                              {copy.remove}
                             </Button>
                           </div>
                         ))}
@@ -2025,7 +2562,7 @@ export default function ControlEnterprisePage() {
                         onClick={() => void saveSettings()}
                         disabled={!canManageMembers || busyAction === 'save_settings'}
                       >
-                        Organisationseinstellungen speichern
+                        {copy.actions.saveSettings}
                       </Button>
                       <Button
                         variant="outline"
@@ -2033,7 +2570,7 @@ export default function ControlEnterprisePage() {
                         disabled={!canManageMembers || busyAction === 'dispatch_review_due'}
                       >
                         <Send className="mr-2 h-4 w-4" />
-                        Review due senden
+                        {copy.actions.sendReviewDue}
                       </Button>
                       <Button
                         variant="outline"
@@ -2041,7 +2578,7 @@ export default function ControlEnterprisePage() {
                         disabled={busyAction === 'download_audit_export'}
                       >
                         <Download className="mr-2 h-4 w-4" />
-                        Immutable Audit Export
+                        {copy.actions.immutableAuditExport}
                       </Button>
                     </div>
                   </CardContent>
@@ -2050,9 +2587,9 @@ export default function ControlEnterprisePage() {
                 <div className="grid gap-6 xl:grid-cols-2">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Governance-Sign-off</CardTitle>
+                      <CardTitle>{copy.signOff.title}</CardTitle>
                       <CardDescription>
-                        Formale Freigaben fuer Governance-Stand und Organisationseinstellungen.
+                        {copy.signOff.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -2060,20 +2597,20 @@ export default function ControlEnterprisePage() {
                         <Input
                           value={signOffSummary}
                           onChange={(event) => setSignOffSummary(event.target.value)}
-                          placeholder="Zum Beispiel: Q2 Governance Baseline"
+                          placeholder={copy.signOff.placeholder}
                         />
                         <Button
                           onClick={() => void requestGovernanceSignOff()}
                           disabled={!canManageMembers || busyAction === 'request_signoff'}
                         >
-                          Sign-off anfordern
+                          {copy.signOff.request}
                         </Button>
                       </div>
 
                       <div className="space-y-3">
                         {signOffs.length === 0 ? (
                           <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                            Noch kein Governance-Sign-off angelegt.
+                            {copy.signOff.empty}
                           </div>
                         ) : (
                           signOffs.map((signOff) => (
@@ -2085,13 +2622,15 @@ export default function ControlEnterprisePage() {
                                 <div className="space-y-1">
                                   <div className="font-medium">{signOff.summary}</div>
                                   <div className="text-sm text-muted-foreground">
-                                    Angefordert am {formatDate(signOff.requestedAt)} von{' '}
-                                    {signOff.requestedByEmail ?? signOff.requestedByUserId}
+                                    {copy.signOff.requestedAtBy(
+                                      formatDate(signOff.requestedAt, locale, copy.unknown),
+                                      signOff.requestedByEmail ?? signOff.requestedByUserId,
+                                    )}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                    Erforderliche Rollen:{' '}
+                                    {copy.signOff.requiredRoles}:{' '}
                                     {signOff.approvalWorkflow?.requiredRoles.join(', ') ||
-                                      'keine'}
+                                      copy.none}
                                   </div>
                                 </div>
                                 <Badge
@@ -2101,7 +2640,7 @@ export default function ControlEnterprisePage() {
                                     getSignOffStatusBadgeClass(signOff.status),
                                   )}
                                 >
-                                  {signOff.status}
+                                  {formatStatusLabel(signOff.status, locale)}
                                 </Badge>
                               </div>
                               {signOff.status === 'pending' && canApprove ? (
@@ -2119,7 +2658,7 @@ export default function ControlEnterprisePage() {
                                       `signoff_${signOff.signOffId}_approved`
                                     }
                                   >
-                                    Freigeben
+                                    {copy.approve}
                                   </Button>
                                   <Button
                                     size="sm"
@@ -2135,7 +2674,7 @@ export default function ControlEnterprisePage() {
                                       `signoff_${signOff.signOffId}_rejected`
                                     }
                                   >
-                                    Ablehnen
+                                    {copy.reject}
                                   </Button>
                                 </div>
                               ) : null}
@@ -2148,15 +2687,15 @@ export default function ControlEnterprisePage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Externe Freigabe-Queue</CardTitle>
+                      <CardTitle>{copy.externalQueue.title}</CardTitle>
                       <CardDescription>
-                        Lieferanten- und Zugangscode-Einreichungen bleiben mit Herkunft und Freigabestatus nachvollziehbar.
+                        {copy.externalQueue.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {submissions.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                          Noch keine externen Einreichungen im aktiven Workspace.
+                          {copy.externalQueue.empty}
                         </div>
                       ) : (
                         submissions.map((submission) => (
@@ -2167,11 +2706,13 @@ export default function ControlEnterprisePage() {
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="space-y-1">
                                 <div className="font-medium">
-                                  {getSubmissionHeadline(submission)}
+                                  {getSubmissionHeadline(submission, locale)}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {submission.submittedByName ?? submission.submittedByEmail ?? 'Unbekannt'} ·{' '}
-                                  {formatDate(submission.submittedAt)}
+                                  {submission.submittedByName ??
+                                    submission.submittedByEmail ??
+                                    copy.unknown}{' '}
+                                  · {formatDate(submission.submittedAt, locale, copy.unknown)}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
                                   {submission.registerName || submission.registerId} ·{' '}
@@ -2179,8 +2720,12 @@ export default function ControlEnterprisePage() {
                                 </div>
                                 {submission.approvalWorkflow ? (
                                   <div className="text-xs text-muted-foreground">
-                                    Freigaben: {submission.approvalWorkflow.requiredRoles.join(', ')} ·{' '}
-                                    {submission.approvalWorkflow.status}
+                                    {copy.externalQueue.approvals}:{' '}
+                                    {submission.approvalWorkflow.requiredRoles.join(', ')} ·{' '}
+                                    {formatStatusLabel(
+                                      submission.approvalWorkflow.status,
+                                      locale,
+                                    )}
                                   </div>
                                 ) : null}
                               </div>
@@ -2188,7 +2733,7 @@ export default function ControlEnterprisePage() {
                                 variant="outline"
                                 className={getSubmissionStatusBadgeClass(submission.status)}
                               >
-                                {submission.status}
+                                {formatStatusLabel(submission.status, locale)}
                               </Badge>
                             </div>
 
@@ -2200,7 +2745,7 @@ export default function ControlEnterprisePage() {
                                 }
                                 disabled={!canApprove}
                               >
-                                Freigeben
+                                {copy.approve}
                               </Button>
                               <Button
                                 size="sm"
@@ -2210,7 +2755,7 @@ export default function ControlEnterprisePage() {
                                 }
                                 disabled={!canApprove}
                               >
-                                Ablehnen
+                                {copy.reject}
                               </Button>
                               <Button
                                 size="sm"
@@ -2220,7 +2765,7 @@ export default function ControlEnterprisePage() {
                                 }
                                 disabled={!canApprove || submission.status === 'rejected'}
                               >
-                                Uebernehmen
+                                {copy.merge}
                               </Button>
                             </div>
                           </div>

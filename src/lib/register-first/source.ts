@@ -23,6 +23,14 @@ export const USE_CASE_SOURCE_LABELS: Record<UseCaseOriginSource, string> =
     import: "Import",
   });
 
+const USE_CASE_SOURCE_LABELS_EN: Record<UseCaseOriginSource, string> =
+  Object.freeze({
+    manual: "Manual",
+    supplier_request: "Supplier",
+    access_code: "Access code",
+    import: "Import",
+  });
+
 const SOURCE_LABEL_KEY = "source";
 const SOURCE_LABEL_SUPPLIER_REQUEST = "supplier_request";
 const SUPPLIER_EMAIL_LABEL_KEY = "supplier_email";
@@ -60,6 +68,40 @@ export const USE_CASE_BADGE_META: Record<UseCaseBadgeKey, UseCaseBadgeSpec> =
         "border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-50",
     },
   });
+
+const USE_CASE_BADGE_META_EN: Record<UseCaseBadgeKey, UseCaseBadgeSpec> =
+  Object.freeze({
+    EXTERN: {
+      ...USE_CASE_BADGE_META.EXTERN,
+      label: "External",
+    },
+    LIEFERANT: {
+      ...USE_CASE_BADGE_META.LIEFERANT,
+      label: "Supplier",
+    },
+    ZUGANGSCODE: {
+      ...USE_CASE_BADGE_META.ZUGANGSCODE,
+      label: "Access code",
+    },
+    MANUELL: {
+      ...USE_CASE_BADGE_META.MANUELL,
+      label: "Manual",
+    },
+    REVIEW_NOETIG: {
+      ...USE_CASE_BADGE_META.REVIEW_NOETIG,
+      label: "Review needed",
+    },
+  });
+
+function isEnglishLocale(locale: string | null | undefined): boolean {
+  return locale?.toLowerCase().startsWith("en") ?? false;
+}
+
+export function getUseCaseBadgeMeta(
+  locale?: string
+): Record<UseCaseBadgeKey, UseCaseBadgeSpec> {
+  return isEnglishLocale(locale) ? USE_CASE_BADGE_META_EN : USE_CASE_BADGE_META;
+}
 
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
@@ -146,8 +188,13 @@ export function isExternalUseCase(
   return getUseCaseSource(card) !== "manual";
 }
 
-export function getUseCaseSourceLabel(source: UseCaseOriginSource): string {
-  return USE_CASE_SOURCE_LABELS[source];
+export function getUseCaseSourceLabel(
+  source: UseCaseOriginSource,
+  locale?: string
+): string {
+  return isEnglishLocale(locale)
+    ? USE_CASE_SOURCE_LABELS_EN[source]
+    : USE_CASE_SOURCE_LABELS[source];
 }
 
 export function getUseCaseSubmitterIdentity(
@@ -195,27 +242,29 @@ export function getUseCaseSourceBadges(
     | "capturedViaCode"
     | "capturedBy"
     | "labels"
-  >
+  >,
+  locale?: string
 ): UseCaseBadgeSpec[] {
   const source = getUseCaseSource(card);
+  const badgeMeta = getUseCaseBadgeMeta(locale);
   const badges: UseCaseBadgeSpec[] = [];
 
   if (source === "manual") {
-    badges.push(USE_CASE_BADGE_META.MANUELL);
+    badges.push(badgeMeta.MANUELL);
   } else {
-    badges.push(USE_CASE_BADGE_META.EXTERN);
+    badges.push(badgeMeta.EXTERN);
   }
 
   if (source === "supplier_request") {
-    badges.push(USE_CASE_BADGE_META.LIEFERANT);
+    badges.push(badgeMeta.LIEFERANT);
   }
 
   if (source === "access_code") {
-    badges.push(USE_CASE_BADGE_META.ZUGANGSCODE);
+    badges.push(badgeMeta.ZUGANGSCODE);
   }
 
   if (card.status === "REVIEW_RECOMMENDED") {
-    badges.push(USE_CASE_BADGE_META.REVIEW_NOETIG);
+    badges.push(badgeMeta.REVIEW_NOETIG);
   }
 
   return badges;
@@ -240,10 +289,13 @@ export function matchesUseCaseSourceFilter(
   return getUseCaseSourceBadges(card).some((badge) => badge.key === filter);
 }
 
-export function getUseCaseSourceFilterLabel(filter: UseCaseSourceFilter): string {
+export function getUseCaseSourceFilterLabel(
+  filter: UseCaseSourceFilter,
+  locale?: string
+): string {
   if (filter === "ALL") {
-    return "Alle Quellen";
+    return isEnglishLocale(locale) ? "All sources" : "Alle Quellen";
   }
 
-  return USE_CASE_BADGE_META[filter].label;
+  return getUseCaseBadgeMeta(locale)[filter].label;
 }

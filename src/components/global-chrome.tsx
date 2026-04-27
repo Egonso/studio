@@ -3,7 +3,7 @@
 import { Footer } from "@/components/footer";
 import { SiteChatbotWidget } from "@/components/site-chatbot-widget";
 import { CommandPalette } from "@/components/register/command-palette";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import {
   getProductAreaForPathname,
   isSignedInProductArea,

@@ -69,6 +69,20 @@ export function runTriggersSmoke() {
   assert.equal(decision.message, "Sie dokumentieren. Jetzt sollten Sie steuern.");
   assert.equal(decision.ctaLabel, "Governance professionalisieren");
 
+  const englishDecision = evaluateControlUpgradeTriggers(
+    useCases,
+    createOrgSettings(),
+    now,
+    "en"
+  );
+  assert.equal(englishDecision.message, "You are documenting. Now you should govern.");
+  assert.equal(englishDecision.ctaLabel, "Professionalise governance");
+  assert.ok(
+    englishDecision.triggers.some(
+      (trigger) => trigger.label === "1 high-risk system without oversight"
+    )
+  );
+
   const ids = decision.triggers.map((trigger) => trigger.id);
   assert.ok(ids.includes("use_cases_over_ten"));
   assert.ok(ids.includes("review_overdue"));

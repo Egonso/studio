@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
   computeLiveTrustScore,
 } from "@/lib/register-first/trust-portal-aggregator";
 import { EukiBadge } from "@/components/trust-portal/euki-badge";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 
 interface TrustPortalTileProps {
   projectId: string;
@@ -28,6 +30,40 @@ interface TrustPortalTileProps {
   ownerId?: string;
 }
 
+function getTrustPortalTileCopy(locale?: string) {
+  if (resolveGovernanceCopyLocale(locale) === "en") {
+    return {
+      online: "Online",
+      description: "Live transparency based on your AI register.",
+      publicUseCases: (count: number) =>
+        `${count} public use case${count !== 1 ? "s" : ""}.`,
+      trustReadiness: "Trust Readiness",
+      scoreDescription:
+        "Live score from review coverage, evidence readiness and documentation.",
+      managePortal: "Manage portal",
+      preparePortal: "Prepare portal",
+      publicPortal: "Open public portal",
+      publicPortalTitlePublished: "View public portal",
+      publicPortalTitleDraft: "Publish first to view",
+    } as const;
+  }
+
+  return {
+    online: "Online",
+    description: "Live-Transparenz basierend auf Ihrem KI-Register.",
+    publicUseCases: (count: number) =>
+      `${count} öffentliche Use Case${count !== 1 ? "s" : ""}.`,
+    trustReadiness: "Trust Readiness",
+    scoreDescription:
+      "Live-Score aus Review-Abdeckung, Nachweisfähigkeit und Dokumentation.",
+    managePortal: "Portal verwalten",
+    preparePortal: "Portal vorbereiten",
+    publicPortal: "Zum öffentlichen Portal",
+    publicPortalTitlePublished: "Öffentliches Portal ansehen",
+    publicPortalTitleDraft: "Erst veröffentlichen um anzusehen",
+  } as const;
+}
+
 export function TrustPortalTile({
   projectId,
   projectName,
@@ -35,6 +71,8 @@ export function TrustPortalTile({
   onConfigUpdate,
   ownerId,
 }: TrustPortalTileProps) {
+  const locale = useLocale();
+  const copy = getTrustPortalTileCopy(locale);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [liveTrustScore, setLiveTrustScore] = useState<number | null>(null);
   const [liveSystemCount, setLiveSystemCount] = useState<number>(0);
@@ -85,10 +123,10 @@ export function TrustPortalTile({
               <div className="flex items-center gap-2">
                 <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide">
                   Trust Portal
-                </span>
+              </span>
                 {config?.isPublished && (
                   <span className="bg-gray-100 text-gray-700 dark:bg-gray-900/50 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
-                    <Globe className="w-3 h-3" /> Online
+                    <Globe className="w-3 h-3" /> {copy.online}
                   </span>
                 )}
                 <EukiBadge
@@ -102,11 +140,10 @@ export function TrustPortalTile({
                 AI Trust & Accountability Portal
               </CardTitle>
               <CardDescription className="text-gray-900/70 dark:text-gray-300/70 max-w-2xl">
-                Live-Transparenz basierend auf Ihrem KI-Register.{" "}
+                {copy.description}{" "}
                 {liveSystemCount > 0 && (
                   <span className="font-medium">
-                    {liveSystemCount} öffentliche Use Case
-                    {liveSystemCount !== 1 ? "s" : ""}.
+                    {copy.publicUseCases(liveSystemCount)}
                   </span>
                 )}
               </CardDescription>
@@ -114,7 +151,7 @@ export function TrustPortalTile({
 
             <div className="text-right hidden sm:block z-10">
               <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                Trust Readiness
+                {copy.trustReadiness}
               </span>
               <div className="flex items-end justify-end gap-1">
                 {scoreLoading ? (
@@ -126,8 +163,7 @@ export function TrustPortalTile({
                 )}
               </div>
               <p className="text-[10px] text-muted-foreground mt-1 max-w-[150px] leading-tight text-right ml-auto">
-                Live-Score aus Review-Abdeckung, Nachweisfähigkeit und
-                Dokumentation.
+                {copy.scoreDescription}
               </p>
             </div>
           </div>
@@ -141,7 +177,7 @@ export function TrustPortalTile({
               onClick={() => setDialogOpen(true)}
             >
               <Globe className="mr-2 h-4 w-4" />
-              {config?.isPublished ? "Portal verwalten" : "Portal vorbereiten"}
+              {config?.isPublished ? copy.managePortal : copy.preparePortal}
             </Button>
             <Button
               variant="outline"
@@ -151,12 +187,12 @@ export function TrustPortalTile({
               onClick={() => window.open(`/trust/${projectId}`, "_blank")}
               title={
                 config?.isPublished
-                  ? "Öffentliches Portal ansehen"
-                  : "Erst veröffentlichen um anzusehen"
+                  ? copy.publicPortalTitlePublished
+                  : copy.publicPortalTitleDraft
               }
             >
               <ExternalLink className="mr-2 h-4 w-4" />
-              Zum öffentlichen Portal
+              {copy.publicPortal}
             </Button>
           </div>
         </CardContent>

@@ -19,6 +19,10 @@
 
 import type { PolicyContext, PolicySection } from './types';
 import { getLevelSections } from './sections';
+import {
+    getConditionalPolicySectionLabel,
+    getPolicySectionTitle,
+} from '@/lib/i18n/governance-copy';
 
 // ── Public API ──────────────────────────────────────────────────────────────
 
@@ -58,7 +62,11 @@ export function assemblePolicy(context: PolicyContext): PolicySection[] {
 
             sections.push({
                 sectionId: def.sectionId,
-                title: def.title,
+                title: getPolicySectionTitle(
+                    def.sectionId,
+                    def.title,
+                    context.locale,
+                ),
                 content,
                 order: def.order,
                 isConditional,
@@ -94,13 +102,22 @@ export function assemblePolicyMarkdown(context: PolicyContext): string {
     const lines: string[] = [];
 
     // Document title based on level
-    const levelTitles: Record<1 | 2 | 3, string> = {
-        1: 'AI-Commitment Statement',
-        2: 'AI Governance & Usage Policy',
-        3: 'Technical & Developer Policy',
-    };
+    const isGerman = context.locale?.toLowerCase().startsWith('de');
+    const levelTitles: Record<1 | 2 | 3, string> = isGerman
+        ? {
+            1: 'KI-Commitment-Erklärung',
+            2: 'KI-Governance- und Nutzungsrichtlinie',
+            3: 'Technische und Entwickler-Richtlinie',
+        }
+        : {
+            1: 'AI Commitment Statement',
+            2: 'AI Governance & Usage Policy',
+            3: 'Technical & Developer Policy',
+        };
 
-    const orgName = context.orgSettings.organisationName || '[Organisation name]';
+    const orgName =
+        context.orgSettings.organisationName ||
+        (isGerman ? '[Organisationsname]' : '[Organisation name]');
     lines.push(`# ${levelTitles[context.level]}`);
     lines.push(`**${orgName}**`);
     lines.push('');
@@ -146,9 +163,9 @@ function isAlwaysIncluded(
  */
 function deriveConditionLabel(
     def: { sectionId: string },
-    _context: PolicyContext,
+    context: PolicyContext,
 ): string | undefined {
     // Future: map sectionId patterns to condition descriptions
     // e.g., "l2-data-protection" → "Applies to systems processing personal data"
-    return `Conditionally included: ${def.sectionId}`;
+    return getConditionalPolicySectionLabel(def.sectionId, context.locale);
 }

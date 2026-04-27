@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from 'zod';
 
 import { generateSectionImprovement } from "@/lib/policy-engine/ai-assistant";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 import { db } from "@/lib/firebase-admin";
 import { logError } from '@/lib/observability/logger';
 import { resolveRegisterPlan } from "@/lib/register-first/entitlement";
@@ -32,7 +33,24 @@ const PolicyImproveSchema = z.object({
   orgName: safePlainTextSchema('Organisationsname', { max: 160 }).optional(),
   industry: safePlainTextSchema('Branche', { max: 160 }).optional(),
   registerId: safeIdentifierSchema.optional(),
+  locale: z.enum(['de', 'en']).optional(),
 });
+
+function getPolicyImproveErrorCopy(locale?: string | null) {
+  return resolveGovernanceCopyLocale(locale) === 'de'
+    ? {
+        aiUnavailable:
+          'KI-Schreibhilfe ist im Governance Control Center verfügbar.',
+        rateLimit: 'Tageslimit für KI-Verbesserungen erreicht (5/Tag).',
+        invalidInput: 'Ungültige Eingabe.',
+      }
+    : {
+        aiUnavailable:
+          'The AI writing assistant is available in the Governance Control Center.',
+        rateLimit: 'Daily limit for AI improvements reached (5/day).',
+        invalidInput: 'Invalid input.',
+      };
+}
 
 async function resolveRegisterForUser(
   userId: string,
@@ -60,8 +78,9 @@ export async function POST(req: NextRequest) {
   try {
     const authorizationHeader = req.headers.get("authorization");
     const decoded = await requireUser(authorizationHeader);
-    const { section, orgName, industry, registerId } =
+    const { section, orgName, industry, registerId, locale } =
       PolicyImproveSchema.parse(await req.json());
+    const copy = getPolicyImproveErrorCopy(locale);
 
     const activeRegister = registerId
       ? (await requireRegisterOwner(authorizationHeader, registerId)).register
@@ -74,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     if (plan === "free") {
       return NextResponse.json(
-        { error: "AI Schreibhilfe ist im Governance Control Center verfügbar." },
+        { error: copy.aiUnavailable },
         { status: 403 }
       );
     }
@@ -99,13 +118,13 @@ export async function POST(req: NextRequest) {
 
       if (!rateLimit.ok) {
         return NextResponse.json(
-          { error: "Tageslimit für KI-Verbesserungen erreicht (5/Tag)." },
+          { error: copy.rateLimit },
           { status: 429 }
         );
       }
     }
 
-    const improvedText = await generateSectionImprovement(section, { orgName, industry });
+    const improvedText = await generateSectionImprovement(section, { orgName, industry, locale });
 
     return NextResponse.json({
       success: true,
@@ -116,8 +135,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     if (error instanceof z.ZodError) {
+      const acceptLanguage = req.headers.get('accept-language');
+      const copy = getPolicyImproveErrorCopy(acceptLanguage);
       return NextResponse.json(
-        { error: error.issues[0]?.message ?? 'Ungültige Eingabe.' },
+        { error: error.issues[0]?.message ?? copy.invalidInput },
         { status: 400 },
       );
     }

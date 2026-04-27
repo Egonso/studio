@@ -23,6 +23,10 @@ import {
   saveGlobalSettings as saveAffiliateGlobalSettingsData,
   updateAffiliate as updateAffiliateRecord,
 } from '@/lib/affiliate/server';
+import {
+  getEmptyLandingPageAnalyticsSnapshot,
+  getLandingPageAnalyticsSnapshot,
+} from '@/lib/admin/landing-page-analytics';
 import type { AffiliateGlobalSettings, AffiliateRecord, AffiliateCommission } from '@/lib/affiliate/types';
 import { requireAdmin } from '@/lib/server-auth';
 
@@ -147,6 +151,17 @@ export async function getPlatformUsers(idToken: string, limit: number = 20) {
   } catch (error) {
     console.error('Error fetching users:', error);
     return [];
+  }
+}
+
+export async function getLandingPageAnalytics(idToken: string) {
+  await verifyAdmin(idToken);
+
+  try {
+    return getLandingPageAnalyticsSnapshot();
+  } catch (error) {
+    console.error('Error fetching landing page analytics:', error);
+    return getEmptyLandingPageAnalyticsSnapshot(new Date(), false);
   }
 }
 

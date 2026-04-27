@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import {
   ArrowDown,
   ArrowUp,
@@ -39,13 +40,22 @@ import type {
 
 const aiRegistry = createAiToolsRegistryService();
 
-const CONNECTION_MODE_OPTIONS: Array<{
+const CONNECTION_MODE_OPTIONS_DE: Array<{
   value: WorkflowConnectionMode;
   label: string;
 }> = [
   { value: "MANUAL_SEQUENCE", label: "Manuell nacheinander" },
   { value: "SEMI_AUTOMATED", label: "Teilweise automatisiert" },
   { value: "FULLY_AUTOMATED", label: "Weitgehend automatisiert" },
+];
+
+const CONNECTION_MODE_OPTIONS_EN: Array<{
+  value: WorkflowConnectionMode;
+  label: string;
+}> = [
+  { value: "MANUAL_SEQUENCE", label: "Manual sequence" },
+  { value: "SEMI_AUTOMATED", label: "Semi-automated" },
+  { value: "FULLY_AUTOMATED", label: "Mostly automated" },
 ];
 
 interface WorkflowDraftSystem extends OrderedUseCaseSystem {
@@ -124,17 +134,75 @@ export function UseCaseWorkflowSection({
   mode,
   layout = "standalone",
 }: UseCaseWorkflowSectionProps) {
+  const locale = useLocale();
+  const isGerman = locale === "de";
+  const copy = {
+    systemTitle: isGerman ? "System" : "System",
+    workflowTitle: isGerman ? "Ablauf & Systeme" : "Workflow & systems",
+    singleDescription: isGerman
+      ? "Dokumentiert das aktuell beteiligte System. Sie koennen spaeter weitere Systeme ergaenzen."
+      : "Documents the currently involved system. Additional systems can be added later.",
+    multiDescription: isGerman
+      ? "Dokumentiert die beteiligten Systeme in Reihenfolge, inklusive APIs und optionalem Ablaufhinweis."
+      : "Documents involved systems in sequence, including APIs and optional workflow context.",
+    expandToWorkflow: isGerman
+      ? "Zu mehrstufigem Ablauf erweitern"
+      : "Expand to multi-step workflow",
+    editWorkflow: isGerman ? "Ablauf bearbeiten" : "Edit workflow",
+    localChanges: isGerman
+      ? "Änderungen bleiben lokal, bis Sie diesen Abschnitt speichern."
+      : "Changes remain local until this section is saved.",
+    systemPlaceholder: isGerman
+      ? "z. B. ChatGPT, Perplexity API, Gemini API"
+      : "e.g. ChatGPT, Perplexity API, Gemini API",
+    moveUp: isGerman ? "nach oben verschieben" : "move up",
+    moveDown: isGerman ? "nach unten verschieben" : "move down",
+    remove: isGerman ? "entfernen" : "remove",
+    addSystem: isGerman ? "System hinzufügen" : "Add system",
+    connectionLabel: isGerman
+      ? "Wie hängen die Systeme zusammen?"
+      : "How are the systems connected?",
+    optionalSelect: isGerman
+      ? "Optional auswählen..."
+      : "Select optional value...",
+    noWorkflowHint: isGerman ? "Kein Ablaufhinweis" : "No workflow note",
+    summaryLabel: isGerman
+      ? "Kurze Ablaufbeschreibung (optional)"
+      : "Short workflow description (optional)",
+    summaryPlaceholder: isGerman
+      ? "z. B. Recherche -> Entwurf -> Bild -> Freigabe"
+      : "e.g. research -> draft -> image -> approval",
+    save: isGerman ? "Speichern" : "Save",
+    cancel: isGerman ? "Abbrechen" : "Cancel",
+    reset: isGerman ? "Zurücksetzen" : "Reset",
+    reference: isGerman ? "Referenz" : "Reference",
+    noSystem: isGerman
+      ? "Noch kein System dokumentiert."
+      : "No system documented yet.",
+    noSystems: isGerman
+      ? "Noch keine beteiligten Systeme dokumentiert."
+      : "No involved systems documented yet.",
+    connectionType: isGerman ? "Ablaufart" : "Workflow type",
+    summaryTitle: isGerman
+      ? "Kurze Ablaufbeschreibung"
+      : "Short workflow description",
+  };
+  const connectionModeOptions = isGerman
+    ? CONNECTION_MODE_OPTIONS_DE
+    : CONNECTION_MODE_OPTIONS_EN;
   const workflow = useMemo(
     () =>
       resolveUseCaseWorkflowDisplay(card, {
         resolveToolName: resolveToolDisplay,
+        locale,
       }),
-    [card]
+    [card, locale]
   );
   const resolvedMode =
     mode ??
     getUseCaseSystemSectionMode(card, {
       resolveToolName: resolveToolDisplay,
+      locale,
     });
   const isSingleMode = resolvedMode === "single";
   const sectionClassName =
@@ -275,12 +343,10 @@ export function UseCaseWorkflowSection({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h2 className="text-[18px] font-semibold tracking-tight">
-            {isSingleMode ? "System" : "Ablauf & Systeme"}
+            {isSingleMode ? copy.systemTitle : copy.workflowTitle}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {isSingleMode
-              ? "Dokumentiert das aktuell beteiligte System. Sie koennen spaeter weitere Systeme ergaenzen."
-              : "Dokumentiert die beteiligten Systeme in Reihenfolge, inklusive APIs und optionalem Ablaufhinweis."}
+            {isSingleMode ? copy.singleDescription : copy.multiDescription}
           </p>
         </div>
 
@@ -288,8 +354,8 @@ export function UseCaseWorkflowSection({
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
             {isSingleMode
-              ? "Zu mehrstufigem Ablauf erweitern"
-              : "Ablauf bearbeiten"}
+              ? copy.expandToWorkflow
+              : copy.editWorkflow}
           </Button>
         ) : null}
       </div>
@@ -297,7 +363,7 @@ export function UseCaseWorkflowSection({
       {isEditing ? (
         <div className="mt-5 space-y-4">
           <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Änderungen bleiben lokal, bis Sie diesen Abschnitt speichern.
+            {copy.localChanges}
           </div>
 
           <div className="space-y-3">
@@ -314,7 +380,7 @@ export function UseCaseWorkflowSection({
                     <ToolAutocomplete
                       inputId={`workflow-system-${system.entryId}`}
                       value={system.inputValue}
-                      placeholder="z. B. ChatGPT, Perplexity API, Gemini API"
+                      placeholder={copy.systemPlaceholder}
                       onChange={(value, toolData) => {
                         if (toolData?.name) {
                           updateSystem(index, {
@@ -343,7 +409,7 @@ export function UseCaseWorkflowSection({
                       size="icon"
                       onClick={() => moveSystem(index, -1)}
                       disabled={index === 0}
-                      aria-label={`System ${index + 1} nach oben verschieben`}
+                      aria-label={`System ${index + 1} ${copy.moveUp}`}
                     >
                       <ArrowUp className="h-4 w-4" />
                     </Button>
@@ -353,7 +419,7 @@ export function UseCaseWorkflowSection({
                       size="icon"
                       onClick={() => moveSystem(index, 1)}
                       disabled={index === draftSystems.length - 1}
-                      aria-label={`System ${index + 1} nach unten verschieben`}
+                      aria-label={`System ${index + 1} ${copy.moveDown}`}
                     >
                       <ArrowDown className="h-4 w-4" />
                     </Button>
@@ -362,7 +428,7 @@ export function UseCaseWorkflowSection({
                       variant="ghost"
                       size="icon"
                       onClick={() => removeSystem(index)}
-                      aria-label={`System ${index + 1} entfernen`}
+                      aria-label={`System ${index + 1} ${copy.remove}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -374,7 +440,7 @@ export function UseCaseWorkflowSection({
 
           <Button type="button" variant="outline" size="sm" onClick={addSystem}>
             <Plus className="mr-2 h-4 w-4" />
-            System hinzufügen
+            {copy.addSystem}
           </Button>
 
           {(draftSystems.filter((system) => system.inputValue.trim().length > 0)
@@ -383,7 +449,7 @@ export function UseCaseWorkflowSection({
             draftSummary.trim().length > 0) && (
             <div className="grid gap-4 rounded-md border border-slate-200 bg-slate-50/40 p-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Wie hängen die Systeme zusammen?</Label>
+                <Label>{copy.connectionLabel}</Label>
                 <Select
                   value={draftConnectionMode || "__none__"}
                   onValueChange={(value) =>
@@ -393,11 +459,11 @@ export function UseCaseWorkflowSection({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Optional auswählen..." />
+                    <SelectValue placeholder={copy.optionalSelect} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Kein Ablaufhinweis</SelectItem>
-                    {CONNECTION_MODE_OPTIONS.map((option) => (
+                    <SelectItem value="__none__">{copy.noWorkflowHint}</SelectItem>
+                    {connectionModeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
                       </SelectItem>
@@ -406,14 +472,14 @@ export function UseCaseWorkflowSection({
                 </Select>
               </div>
               <div className="space-y-2 md:col-span-2">
-                <Label>Kurze Ablaufbeschreibung (optional)</Label>
+                <Label>{copy.summaryLabel}</Label>
                 <Textarea
                   value={draftSummary}
                   onChange={(event) =>
                     setDraftSummary(event.target.value.slice(0, 300))
                   }
                   rows={3}
-                  placeholder="z. B. Recherche -> Entwurf -> Bild -> Freigabe"
+                  placeholder={copy.summaryPlaceholder}
                 />
                 <p className="text-right text-xs text-muted-foreground">
                   {draftSummary.length}/300
@@ -427,9 +493,9 @@ export function UseCaseWorkflowSection({
               {isSaving ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Check className="mr-2 h-4 w-4" />
+              <Check className="mr-2 h-4 w-4" />
               )}
-              Speichern
+              {copy.save}
             </Button>
             <Button
               type="button"
@@ -438,7 +504,7 @@ export function UseCaseWorkflowSection({
               disabled={isSaving}
             >
               <X className="mr-2 h-4 w-4" />
-              Abbrechen
+              {copy.cancel}
             </Button>
             <Button
               type="button"
@@ -447,7 +513,7 @@ export function UseCaseWorkflowSection({
               disabled={isSaving}
             >
               <RotateCcw className="mr-2 h-4 w-4" />
-              Zurücksetzen
+              {copy.reset}
             </Button>
           </div>
         </div>
@@ -462,7 +528,7 @@ export function UseCaseWorkflowSection({
                 {workflow.systems[0]?.toolId &&
                 workflow.systems[0]?.toolId !== "other" ? (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Referenz: {workflow.systems[0]?.toolId}
+                    {copy.reference}: {workflow.systems[0]?.toolId}
                   </p>
                 ) : null}
               </div>
@@ -482,7 +548,7 @@ export function UseCaseWorkflowSection({
                       </p>
                       {system.toolId && system.toolId !== "other" ? (
                         <p className="text-xs text-muted-foreground">
-                          Referenz: {system.toolId}
+                          {copy.reference}: {system.toolId}
                         </p>
                       ) : null}
                     </div>
@@ -492,9 +558,7 @@ export function UseCaseWorkflowSection({
             )
           ) : (
             <div className="rounded-md border border-dashed border-slate-200 px-4 py-6 text-sm text-muted-foreground">
-              {isSingleMode
-                ? "Noch kein System dokumentiert."
-                : "Noch keine beteiligten Systeme dokumentiert."}
+              {isSingleMode ? copy.noSystem : copy.noSystems}
             </div>
           )}
 
@@ -502,7 +566,9 @@ export function UseCaseWorkflowSection({
             <div className="grid gap-3 md:grid-cols-2">
               {workflow.connectionModeLabel ? (
                 <div className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3">
-                  <p className="text-xs text-muted-foreground">Ablaufart</p>
+                  <p className="text-xs text-muted-foreground">
+                    {copy.connectionType}
+                  </p>
                   <p className="mt-1 text-sm font-medium text-slate-900">
                     {workflow.connectionModeLabel}
                   </p>
@@ -511,7 +577,7 @@ export function UseCaseWorkflowSection({
               {workflow.summary ? (
                 <div className="rounded-md border border-slate-200 bg-slate-50/30 px-4 py-3 md:col-span-2">
                   <p className="text-xs text-muted-foreground">
-                    Kurze Ablaufbeschreibung
+                    {copy.summaryTitle}
                   </p>
                   <p className="mt-1 text-sm text-slate-900">
                     {workflow.summary}

@@ -12,6 +12,10 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import {
+    formatGovernanceDate,
+    resolveGovernanceCopyLocale,
+} from '@/lib/i18n/governance-copy';
 
 export const signatureSection: SectionDefinition = {
     sectionId: 'l1-signature',
@@ -22,13 +26,36 @@ export const signatureSection: SectionDefinition = {
     shouldInclude: () => true,
 
     buildContent(context) {
-        const contactName = context.orgSettings.contactPerson?.name || '[Responsible Person]';
-        const orgName = context.orgSettings.organisationName || '[Company Name]';
-        const today = new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+        const locale = resolveGovernanceCopyLocale(context.locale);
+        const contactName =
+            context.orgSettings.contactPerson?.name ||
+            (locale === 'de' ? '[Verantwortliche Person]' : '[Responsible Person]');
+        const orgName =
+            context.orgSettings.organisationName ||
+            (locale === 'de' ? '[Firmenname]' : '[Company Name]');
+        const today = formatGovernanceDate(new Date(), locale);
+
+        if (locale === 'de') {
+            return [
+                `*Diese Erklärung dokumentiert den aktuellen Stand der KI-Governance-` +
+                `Grundsätze von ${orgName}. Sie ersetzt keine Rechtsberatung und stellt ` +
+                `keine Compliance-Zertifizierung dar.*`,
+                ``,
+                `---`,
+                ``,
+                `**Organisation:** ${orgName}`,
+                ``,
+                `**Verantwortliche Person:** ${contactName}`,
+                ``,
+                `**Datum:** ${today}`,
+                ``,
+                `**Ort:** ____________________`,
+                ``,
+                `**Unterschrift (verantwortliche Person):** ____________________`,
+                ``,
+                `**Unterschrift (Mitarbeitende/r):** ____________________`,
+            ].join('\n');
+        }
 
         return [
             `*This statement documents the current state of the AI governance principles ` +

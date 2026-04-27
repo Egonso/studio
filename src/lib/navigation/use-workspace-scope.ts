@@ -22,7 +22,8 @@ export function useWorkspaceScope(): string | null {
   }, [explicitWorkspaceScope]);
 
   return useMemo(
-    () => resolveWorkspaceScope(searchParams, getActiveWorkspaceScope()),
+    () =>
+      resolveWorkspaceScope(searchParams ?? new URLSearchParams(), getActiveWorkspaceScope()),
     [searchParams],
   );
 }
