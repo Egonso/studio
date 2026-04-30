@@ -548,6 +548,7 @@ export interface RegisterEntitlement {
   status: RegisterEntitlementStatus;
   source: RegisterEntitlementSource;
   updatedAt: string;
+  accessExpiresAt?: string | null;
   customerEmail?: string | null;
   productId?: string | null;
   billingProductKey?: BillingProductKey | null;

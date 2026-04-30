@@ -1,0 +1,50 @@
+<svg width="1180" height="760" viewBox="0 0 1180 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Projektansicht im KI Register</title>
+  <desc id="desc">Screenshotartige Vorschau eines dokumentierten KI-Einsatzfalls im KI Register mit Zweck, Risikoklasse, Verantwortlichkeit und Nachweisstatus.</desc>
+  <rect width="1180" height="760" fill="#f8fafc"/>
+  <rect x="54" y="46" width="1072" height="668" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="54" y="46" width="1072" height="64" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="86" y="86" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">KI Register</text>
+  <text x="936" y="86" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Projekt 01</text>
+
+  <text x="86" y="158" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">ERSTER KI-EINSATZFALL</text>
+  <text x="86" y="198" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700">Kundenservice-Chatbot mit Wissensdatenbank</text>
+  <text x="86" y="232" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="17">Ein begrenzter Organisationskontext wird aus dem Kurs heraus als Nachweisobjekt geführt.</text>
+
+  <g transform="translate(86 280)">
+    <rect x="0" y="0" width="216" height="112" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="22" y="36" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Zweck</text>
+    <text x="22" y="72" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Support-Antworten</text>
+    <rect x="242" y="0" width="216" height="112" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="264" y="36" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Risikoklasse</text>
+    <circle cx="278" cy="70" r="7" fill="#2563eb"/>
+    <text x="294" y="76" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Limited Risk</text>
+    <rect x="484" y="0" width="216" height="112" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="506" y="36" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Owner</text>
+    <text x="506" y="72" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Verantwortliche Person</text>
+    <rect x="726" y="0" width="216" height="112" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="748" y="36" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Status</text>
+    <circle cx="762" cy="70" r="7" fill="#16a34a"/>
+    <text x="778" y="76" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Nachweisbereit</text>
+  </g>
+
+  <rect x="86" y="438" width="610" height="198" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="116" y="480" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">PRÜFPFAD</text>
+  <g transform="translate(116 512)">
+    <circle cx="10" cy="10" r="10" fill="#0f172a"/>
+    <path d="M10 20V54" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="10" cy="64" r="10" fill="#0f172a"/>
+    <path d="M10 74V108" stroke="#0f172a" stroke-width="2"/>
+    <circle cx="10" cy="118" r="10" fill="#2563eb"/>
+    <text x="34" y="16" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Anwendbarkeit geprüft</text>
+    <text x="34" y="70" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Risikoklasse begründet</text>
+    <text x="34" y="124" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Transparenzpflichten dokumentiert</text>
+  </g>
+
+  <rect x="738" y="438" width="302" height="198" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="768" y="480" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">EXPORT</text>
+  <text x="768" y="526" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">Use Case Pass</text>
+  <text x="768" y="562" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16">Projektdefinition, Rolle, Risiko, Prüfpfad und Kompetenzspur.</text>
+  <path d="M768 604H1010" stroke="#0f172a" stroke-width="2"/>
+  <text x="768" y="630" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">PDF / Registerexport vorbereiten</text>
+</svg>

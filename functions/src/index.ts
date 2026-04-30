@@ -69,6 +69,37 @@ function toLineItemHints(
   });
 }
 
+function readCheckoutTextField(
+  session: Stripe.Checkout.Session,
+  key: string,
+): string | null {
+  const field = session.custom_fields?.find((entry) => entry.key === key);
+  const value =
+    field && 'text' in field ? field.text?.value?.trim() : undefined;
+  return value && value.length > 0 ? value : null;
+}
+
+function addMonths(date: Date, months: number): Date {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function resolveSessionAccessExpiresAt(
+  session: Stripe.Checkout.Session,
+): string | null {
+  const metadataExpiry = session.metadata?.accessExpiresAt?.trim();
+  if (metadataExpiry && Number.isFinite(Date.parse(metadataExpiry))) {
+    return new Date(metadataExpiry).toISOString();
+  }
+
+  if (session.metadata?.sourceFlow === 'fortbildung_neulaunch_checkout') {
+    return addMonths(new Date(session.created * 1000), 12).toISOString();
+  }
+
+  return null;
+}
+
 export const stripeWebhook = onRequest(
   {
     cors: true,
@@ -147,6 +178,19 @@ export const stripeWebhook = onRequest(
       // Handle checkout.session.completed event
       if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session;
+        const isFortbildungCheckout =
+          session.metadata?.sourceFlow === 'fortbildung_neulaunch_checkout';
+        const checkoutOrganisation = readCheckoutTextField(
+          session,
+          'organisation',
+        );
+        const checkoutProjectContext = readCheckoutTextField(
+          session,
+          'projektkontext',
+        );
+        const checkoutAccessExpiresAt = isFortbildungCheckout
+          ? resolveSessionAccessExpiresAt(session)
+          : null;
 
         // Get customer email
         let email = '';
@@ -182,7 +226,8 @@ export const stripeWebhook = onRequest(
           await customerRef.set(
             {
               email: email,
-              name: session.customer_details?.name || null,
+              name:
+                checkoutOrganisation || session.customer_details?.name || null,
               stripeId: session.customer || null,
               status: 'active',
               purchaseAmount: session.amount_total,
@@ -190,6 +235,13 @@ export const stripeWebhook = onRequest(
                 session.metadata?.productId || 'eu-ai-act-certification',
               entitlementPlan: plan,
               canRegister: true,
+              sourceFlow: session.metadata?.sourceFlow || null,
+              projectContext: checkoutProjectContext,
+              accessExpiresAt: checkoutAccessExpiresAt,
+              checkoutCustomFields: {
+                organisation: checkoutOrganisation,
+                projektkontext: checkoutProjectContext,
+              },
               created: admin.firestore.FieldValue.serverTimestamp(),
               source: 'stripe-webhook-v2',
             },
@@ -207,6 +259,7 @@ export const stripeWebhook = onRequest(
                 billingProductKey:
                   resolvedEntitlement?.billingProductKey ?? null,
                 checkoutSessionId: session.id,
+                accessExpiresAt: checkoutAccessExpiresAt,
                 stripeCustomerId:
                   typeof session.customer === 'string'
                     ? session.customer
@@ -238,6 +291,9 @@ export const stripeWebhook = onRequest(
               sessionId: session.id,
               amountPaid: session.amount_total ? session.amount_total / 100 : 0,
               currency: session.currency || 'eur',
+              sourceFlow: session.metadata?.sourceFlow || null,
+              projectContext: checkoutProjectContext,
+              accessExpiresAt: checkoutAccessExpiresAt,
               purchases: admin.firestore.FieldValue.arrayUnion({
                 type: 'checkout',
                 id: session.id,

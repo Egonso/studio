@@ -30,6 +30,7 @@ export interface BillingEntitlementRecord {
   status: RegisterEntitlementStatus;
   source: BillingEntitlementSource;
   updatedAt: string;
+  accessExpiresAt?: string | null;
   customerEmail?: string | null;
   productId?: string | null;
   billingProductKey?: BillingProductKey | null;
@@ -234,7 +235,7 @@ export function inferCheckoutEntitlement(input: {
 
 export function getEntitlementAccessPlan(
   entitlement:
-    | Pick<BillingEntitlementRecord, 'plan' | 'status'>
+    | Pick<BillingEntitlementRecord, 'plan' | 'status' | 'accessExpiresAt'>
     | null
     | undefined,
 ): SubscriptionPlan {
@@ -242,7 +243,18 @@ export function getEntitlementAccessPlan(
     return 'free';
   }
 
-  return entitlement.status === 'active' ? entitlement.plan : 'free';
+  if (entitlement.status !== 'active') {
+    return 'free';
+  }
+
+  if (
+    entitlement.accessExpiresAt &&
+    Date.parse(entitlement.accessExpiresAt) <= Date.now()
+  ) {
+    return 'free';
+  }
+
+  return entitlement.plan;
 }
 
 function planPriority(plan: SubscriptionPlan): number {
@@ -269,6 +281,7 @@ export function buildCustomerEntitlementRecord(input: {
   status?: RegisterEntitlementStatus;
   source: BillingEntitlementSource;
   updatedAt?: string;
+  accessExpiresAt?: string | null;
   productId?: string | null;
   billingProductKey?: BillingProductKey | null;
   checkoutSessionId?: string | null;
@@ -281,6 +294,7 @@ export function buildCustomerEntitlementRecord(input: {
     status: input.status ?? 'active',
     source: input.source,
     updatedAt: input.updatedAt ?? new Date().toISOString(),
+    accessExpiresAt: input.accessExpiresAt ?? null,
     productId: input.productId ?? null,
     billingProductKey: input.billingProductKey ?? null,
     checkoutSessionId: input.checkoutSessionId ?? null,
@@ -352,6 +366,10 @@ export function parseCustomerEntitlementRecord(
       typeof value?.updatedAt === 'string'
         ? value.updatedAt
         : new Date(0).toISOString(),
+    accessExpiresAt:
+      typeof value?.accessExpiresAt === 'string'
+        ? value.accessExpiresAt
+        : null,
     customerEmail:
       typeof value?.customerEmail === 'string'
         ? value.customerEmail

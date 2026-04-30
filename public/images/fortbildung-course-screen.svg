@@ -1,0 +1,55 @@
+<svg width="1180" height="760" viewBox="0 0 1180 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Kursoberfläche des EU-AI-Act-Hauptkurses</title>
+  <desc id="desc">Screenshotartige Vorschau einer Kursoberfläche mit Lernpfad, geöffnetem Hauptkursmodul und Arbeitsmaterialien.</desc>
+  <rect width="1180" height="760" fill="#f8fafc"/>
+  <rect x="54" y="46" width="1072" height="668" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="54" y="46" width="1072" height="64" fill="#0f172a"/>
+  <text x="86" y="86" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">KI Register Fortbildung</text>
+  <text x="912" y="86" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">1 Person · 1 Projekt</text>
+
+  <rect x="54" y="110" width="258" height="604" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="86" y="154" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">LERNPFAD</text>
+
+  <g transform="translate(82 182)">
+    <rect x="0" y="0" width="202" height="44" fill="#020617"/>
+    <text x="16" y="28" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Hauptkurs</text>
+    <rect x="0" y="60" width="202" height="44" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="16" y="88" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="14">Modul 0 · Einstieg</text>
+    <rect x="0" y="120" width="202" height="44" fill="#dbeafe" stroke="#93c5fd"/>
+    <text x="16" y="148" fill="#1e3a8a" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Modul 1 · Technik</text>
+    <rect x="0" y="180" width="202" height="44" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="16" y="208" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="14">Modul 2 · Recht</text>
+    <rect x="0" y="240" width="202" height="44" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="16" y="268" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="14">Modul 3 · Ethik</text>
+    <rect x="0" y="300" width="202" height="44" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="16" y="328" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="14">Modul 4 · Praxis</text>
+  </g>
+
+  <text x="340" y="156" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">HAUPTKURS · MODUL 1</text>
+  <text x="340" y="196" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700">Technische Grundlagen von KI-Systemen</text>
+  <text x="340" y="230" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="17">Modelle, Prompts, RAG, Datenschutz und typische Fehlannahmen als Arbeitsgrundlage.</text>
+
+  <rect x="340" y="270" width="480" height="278" fill="#0f172a"/>
+  <rect x="372" y="306" width="416" height="206" fill="#111827" stroke="#334155"/>
+  <circle cx="580" cy="410" r="42" fill="#ffffff"/>
+  <path d="M568 386L604 410L568 434V386Z" fill="#0f172a"/>
+  <text x="372" y="585" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">Lektion: RAG und unternehmensspezifische Antworten</text>
+  <rect x="372" y="610" width="416" height="10" fill="#e2e8f0"/>
+  <rect x="372" y="610" width="246" height="10" fill="#2563eb"/>
+  <text x="372" y="650" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14">Fortschritt: 59% · nächster Schritt: Datenschutz-Checkliste</text>
+
+  <rect x="850" y="270" width="226" height="380" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="878" y="310" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">MATERIALIEN</text>
+  <g transform="translate(878 342)">
+    <rect x="0" y="0" width="170" height="42" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="14" y="27" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="14">Prompt-Checkliste</text>
+    <rect x="0" y="58" width="170" height="42" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="14" y="85" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="14">RAG-Template</text>
+    <rect x="0" y="116" width="170" height="42" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="14" y="143" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="14">Token-Rechner</text>
+    <rect x="0" y="174" width="170" height="42" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="14" y="201" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="14">Bias-Prüfung</text>
+  </g>
+  <path d="M878 596H1048" stroke="#0f172a" stroke-width="2"/>
+  <text x="878" y="626" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Direkt in Projekt übernehmen</text>
+</svg>

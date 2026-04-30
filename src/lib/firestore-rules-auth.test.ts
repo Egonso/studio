@@ -53,6 +53,12 @@ test("firestore rules block client entitlement escalation and legacy global proj
   assert.match(rules, /match \/projects\/\{projectId\} \{[\s\S]*allow read, write: if false;/);
 });
 
+test("firestore rules keep billing writes server-only", () => {
+  assert.match(rules, /match \/allowlist\/\{email\} \{[\s\S]*allow write: if false;/);
+  assert.match(rules, /match \/customerEntitlements\/\{email\} \{[\s\S]*allow read, write: if false;/);
+  assert.match(rules, /match \/_stripe_events\/\{eventId\} \{[\s\S]*allow read, write: if false;/);
+});
+
 test("firestore rules resolve org access through parent aiSystems", () => {
   assert.match(rules, /function hasAiSystemOrgAccess\(systemId\)/);
   assert.match(rules, /function hasAiSystemOrgEditAccess\(systemId\)/);

@@ -840,7 +840,8 @@
       "fortbildung": {
         "title": "Article 4 training",
         "body": "Formal competence records, role linkage and documented qualification on the same platform. For organisations that need to prove AI competence, not just assume it.",
-        "bearer": "Supported by organisations that want structured and traceable qualification."
+        "bearer": "Supported by organisations that want structured and traceable qualification.",
+        "cta": "View training package"
       }
     },
     "closing": {

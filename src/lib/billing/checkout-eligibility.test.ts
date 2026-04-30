@@ -52,6 +52,19 @@ test('zero-cost checkout remains claimable without payment method', () => {
   );
 });
 
+test('eligible one-time payment checkout can be claimed without subscription', () => {
+  assert.deepEqual(
+    getCheckoutEligibility({
+      session: createSession({
+        mode: 'payment',
+        subscription: null,
+      }),
+      subscription: null,
+    }),
+    { ok: true, reason: null },
+  );
+});
+
 test('incomplete or unpaid sessions are rejected', () => {
   assert.deepEqual(
     getCheckoutEligibility({

@@ -1,0 +1,66 @@
+<svg width="1280" height="820" viewBox="0 0 1280 820" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Fortbildungspfad vom Hauptkurs zum Use Case Pass</title>
+  <desc id="desc">Dokumentarische KI-Register-Illustration mit Hauptkurs, Bonuskursen, Registerarbeit und Use Case Pass.</desc>
+  <rect width="1280" height="820" fill="#f8fafc"/>
+  <path d="M116 118H1164" stroke="#cbd5e1" stroke-width="2"/>
+  <path d="M116 700H1164" stroke="#cbd5e1" stroke-width="2"/>
+
+  <text x="116" y="88" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">KI Register Fortbildung</text>
+  <text x="116" y="728" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="17">Hauptkurs zuerst. Bonuskurse als Neulaunch-Zugabe. Ergebnis: ein dokumentierter KI-Einsatzfall.</text>
+
+  <g transform="translate(116 164)">
+    <rect x="0" y="0" width="286" height="420" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+    <rect x="22" y="26" width="242" height="54" fill="#020617"/>
+    <text x="42" y="61" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="700">HAUPTKURS</text>
+    <text x="22" y="122" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="700">EU AI Act für KMU</text>
+    <path d="M22 154H264" stroke="#cbd5e1"/>
+    <text x="22" y="196" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Technik</text>
+    <text x="22" y="236" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Recht</text>
+    <text x="22" y="276" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Risiko</text>
+    <text x="22" y="316" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Ethik</text>
+    <text x="22" y="356" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="18">Praxis &amp; Prüfung</text>
+    <circle cx="240" cy="188" r="6" fill="#0f172a"/>
+    <circle cx="240" cy="228" r="6" fill="#0f172a"/>
+    <circle cx="240" cy="268" r="6" fill="#0f172a"/>
+    <circle cx="240" cy="308" r="6" fill="#0f172a"/>
+    <circle cx="240" cy="348" r="6" fill="#0f172a"/>
+  </g>
+
+  <path d="M432 374H522" stroke="#0f172a" stroke-width="3"/>
+  <path d="M522 374L504 362V386L522 374Z" fill="#0f172a"/>
+
+  <g transform="translate(546 164)">
+    <rect x="0" y="0" width="250" height="188" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <text x="22" y="42" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3">BONUS 1</text>
+    <text x="22" y="82" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Governance</text>
+    <text x="22" y="111" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Grundkurs</text>
+    <path d="M22 136H228" stroke="#cbd5e1"/>
+    <text x="22" y="166" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="15">Registerlogik · Pass · Nachweis</text>
+
+    <rect x="0" y="232" width="250" height="188" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <text x="22" y="274" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3">BONUS 2</text>
+    <text x="22" y="314" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Juristische</text>
+    <text x="22" y="343" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Lesbarkeit</text>
+    <path d="M22 368H228" stroke="#cbd5e1"/>
+    <text x="22" y="398" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="15">Haftung · Mandat · Review</text>
+  </g>
+
+  <path d="M820 374H910" stroke="#0f172a" stroke-width="3"/>
+  <path d="M910 374L892 362V386L910 374Z" fill="#0f172a"/>
+
+  <g transform="translate(936 150)">
+    <rect x="0" y="0" width="228" height="456" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+    <rect x="26" y="32" width="176" height="42" fill="#e2e8f0"/>
+    <text x="44" y="60" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">Use Case Pass</text>
+    <path d="M26 114H202" stroke="#cbd5e1"/>
+    <text x="26" y="148" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Zweck</text>
+    <rect x="26" y="166" width="176" height="28" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="26" y="232" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Risikoklasse</text>
+    <rect x="26" y="250" width="78" height="28" fill="#dbeafe" stroke="#93c5fd"/>
+    <text x="40" y="270" fill="#1e3a8a" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Limited</text>
+    <text x="26" y="318" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Owner</text>
+    <rect x="26" y="336" width="176" height="28" fill="#f8fafc" stroke="#cbd5e1"/>
+    <path d="M26 404H202" stroke="#0f172a" stroke-width="2"/>
+    <text x="26" y="430" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Nachweis exportierbar</text>
+  </g>
+</svg>

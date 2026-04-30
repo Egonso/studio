@@ -73,3 +73,28 @@ test('inactive paid entitlements do not unlock paid access', () => {
     'free',
   );
 });
+
+test('expired paid entitlements do not unlock paid access', () => {
+  const entitlement = resolveRegisterEntitlement({
+    createdAt: '2026-03-12T10:00:00.000Z',
+    plan: 'pro',
+    entitlement: {
+      plan: 'pro',
+      status: 'active',
+      source: 'stripe_webhook',
+      updatedAt: '2026-03-12T11:00:00.000Z',
+      accessExpiresAt: '2000-01-01T00:00:00.000Z',
+    },
+  });
+
+  assert.equal(entitlement.plan, 'pro');
+  assert.equal(getEntitlementAccessPlan(entitlement), 'free');
+  assert.equal(
+    resolveRegisterPlan({
+      createdAt: '2026-03-12T10:00:00.000Z',
+      plan: 'pro',
+      entitlement,
+    }),
+    'free',
+  );
+});

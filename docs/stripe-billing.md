@@ -53,6 +53,11 @@ Checkout metadata writes the canonical billing hints:
   Optional explicit price IDs. The app can otherwise discover active prices by Stripe `lookup_key`.
 - `STRIPE_PRICE_ENTERPRISE`
   Enables a direct enterprise checkout. Without it, enterprise stays sales-led.
+- `STRIPE_PRICE_FORTBILDUNG_NEULAUNCH`
+  Optional explicit one-time price ID for the 495€ Neulaunch-Fortbildungspaket.
+  The checkout route can also discover the active price by lookup key.
+- `STRIPE_PRICE_FORTBILDUNG_PACKAGE`
+  Compatibility alias for the Fortbildung price ID.
 - `STRIPE_BILLING_PORTAL_CONFIGURATION_ID`
   Uses a specific Stripe Customer Portal configuration when present.
 - `STRIPE_WEBHOOK_SECRET`
@@ -75,6 +80,7 @@ Use these exact variable names in Netlify:
 - `STRIPE_PRICE_GOVERNANCE_PRO_200_020_MONTHLY`
 - `STRIPE_PRICE_GOVERNANCE_PRO_200_020_YEARLY`
 - `STRIPE_PRICE_ENTERPRISE`
+- `STRIPE_PRICE_FORTBILDUNG_NEULAUNCH`
 - `STRIPE_BILLING_PORTAL_CONFIGURATION_ID`
 - `NEXT_PUBLIC_APP_ORIGIN`
 
@@ -89,9 +95,12 @@ Add `STRIPE_WEBHOOK_SECRET` in the Functions/runtime environment that receives S
 - `governance-control-15-users-150-usecases-yearly`
 - `governance-control-20-users-200-usecases-monthly`
 - `governance-control-20-users-200-usecases-yearly`
+- `ki-register-fortbildung-neulaunch-2026-one-year`
 
 ## Safe provisioning
 - Use `node ./scripts/sync-stripe-governance-pricing.mjs` to create or verify the canonical Governance Control Center product and all recurring prices.
+- Use `node ./scripts/sync-stripe-fortbildung-pricing.mjs` to create or verify
+  the 495€ one-time Fortbildung product and price for 12 months of access.
 - The script is idempotent for matching prices.
 - If an existing price with the same lookup key has a mismatched amount or interval, the script stops and asks for manual review instead of silently mutating live billing objects.
 - Free product CTAs should route to `/settings?section=governance#upgrade-panel`, not directly to an external payment link.

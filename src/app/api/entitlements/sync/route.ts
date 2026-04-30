@@ -71,6 +71,27 @@ function toLineItemHints(
   });
 }
 
+function addMonths(date: Date, months: number): Date {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+function resolveSessionAccessExpiresAt(
+  session: Stripe.Checkout.Session,
+): string | null {
+  const metadataExpiry = session.metadata?.accessExpiresAt?.trim();
+  if (metadataExpiry && Number.isFinite(Date.parse(metadataExpiry))) {
+    return new Date(metadataExpiry).toISOString();
+  }
+
+  if (session.metadata?.sourceFlow === 'fortbildung_neulaunch_checkout') {
+    return addMonths(new Date(session.created * 1000), 12).toISOString();
+  }
+
+  return null;
+}
+
 async function getCheckoutEntitlementFromSession(
   sessionId: string,
   expectedEmail: string,
@@ -135,6 +156,7 @@ async function getCheckoutEntitlementFromSession(
     productId: session.metadata?.productId ?? null,
     billingProductKey: resolvedBillingProduct.billingProductKey,
     checkoutSessionId: session.id,
+    accessExpiresAt: resolveSessionAccessExpiresAt(session),
     stripeCustomerId:
       typeof session.customer === 'string' ? session.customer : null,
     subscriptionId:

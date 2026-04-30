@@ -1,0 +1,48 @@
+<svg width="1180" height="760" viewBox="0 0 1180 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Materialien und Nachweise im Fortbildungspaket</title>
+  <desc id="desc">Screenshotartige Vorschau einer Material- und Exportansicht mit Checklisten, Matrix, Entscheidungsbaum und Use Case Pass.</desc>
+  <rect width="1180" height="760" fill="#f8fafc"/>
+  <rect x="54" y="46" width="1072" height="668" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <rect x="54" y="46" width="1072" height="64" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="86" y="86" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="19" font-weight="700">Arbeitsmaterialien</text>
+  <text x="890" y="86" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Hauptkurs + Boni</text>
+
+  <text x="86" y="158" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">NACHWEISSTRUKTUR</text>
+  <text x="86" y="198" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700">Vom Kursmaterial zum prüfbaren Dokument</text>
+  <text x="86" y="232" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="17">Die Materialien führen die Kursentscheidung direkt in den Projektkontext.</text>
+
+  <g transform="translate(86 282)">
+    <rect x="0" y="0" width="302" height="118" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="24" y="38" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">CHECKLISTE</text>
+    <text x="24" y="78" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Art. 4 Kompetenzspur</text>
+    <rect x="330" y="0" width="302" height="118" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="354" y="38" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">MATRIX</text>
+    <text x="354" y="78" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">Rollen und RACI</text>
+    <rect x="660" y="0" width="302" height="118" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="684" y="38" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">ENTSCHEIDUNG</text>
+    <text x="684" y="78" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">AI-Act-Prüfpfad</text>
+  </g>
+
+  <rect x="86" y="452" width="506" height="166" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="116" y="494" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">ENTSCHEIDUNGSBAUM</text>
+  <g transform="translate(116 524)">
+    <rect x="0" y="0" width="130" height="40" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="16" y="26" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">KI-System?</text>
+    <path d="M130 20H190" stroke="#0f172a" stroke-width="2"/>
+    <rect x="190" y="0" width="130" height="40" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="206" y="26" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Risiko?</text>
+    <path d="M320 20H380" stroke="#0f172a" stroke-width="2"/>
+    <rect x="380" y="0" width="84" height="40" fill="#dbeafe" stroke="#93c5fd"/>
+    <text x="398" y="26" fill="#1e3a8a" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Pass</text>
+    <path d="M255 40V82" stroke="#0f172a" stroke-width="2"/>
+    <rect x="190" y="82" width="130" height="40" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="206" y="108" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">Pflichten?</text>
+  </g>
+
+  <rect x="628" y="452" width="412" height="166" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="658" y="494" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2.5">EXPORTPAKET</text>
+  <text x="658" y="536" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">Use Case Pass + Anlagen</text>
+  <text x="658" y="572" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="16">Checklisten, Begründungen, Review-Status und Projektdefinition.</text>
+  <path d="M658 604H1008" stroke="#0f172a" stroke-width="2"/>
+  <text x="658" y="630" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700">Für interne Ablage oder Mandatsübergabe</text>
+</svg>

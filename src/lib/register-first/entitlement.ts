@@ -19,6 +19,7 @@ export function createFreeRegisterEntitlement(
     status: 'active',
     source: 'default_free',
     updatedAt,
+    accessExpiresAt: null,
     billingProductKey: null,
   };
 }
@@ -66,6 +67,7 @@ export function normalizeRegisterEntitlement(
     source: normalizeEntitlementSource(entitlement.source),
     updatedAt:
       entitlement.updatedAt ?? fallbackUpdatedAt ?? new Date(0).toISOString(),
+    accessExpiresAt: entitlement.accessExpiresAt ?? null,
     customerEmail: entitlement.customerEmail ?? null,
     productId: entitlement.productId ?? null,
     billingProductKey: entitlement.billingProductKey ?? null,
@@ -76,13 +78,27 @@ export function normalizeRegisterEntitlement(
 }
 
 export function getEntitlementAccessPlan(
-  entitlement: Pick<RegisterEntitlement, 'plan' | 'status'> | null | undefined,
+  entitlement:
+    | Pick<RegisterEntitlement, 'plan' | 'status' | 'accessExpiresAt'>
+    | null
+    | undefined,
 ): SubscriptionPlan {
   if (!entitlement) {
     return 'free';
   }
 
-  return entitlement.status === 'active' ? entitlement.plan : 'free';
+  if (entitlement.status !== 'active') {
+    return 'free';
+  }
+
+  if (
+    entitlement.accessExpiresAt &&
+    Date.parse(entitlement.accessExpiresAt) <= Date.now()
+  ) {
+    return 'free';
+  }
+
+  return entitlement.plan;
 }
 
 export function resolveRegisterEntitlement(
@@ -105,6 +121,7 @@ export function resolveRegisterEntitlement(
       status: 'active',
       source: 'legacy_plan_field',
       updatedAt: register?.createdAt ?? new Date(0).toISOString(),
+      accessExpiresAt: null,
       customerEmail: null,
       productId: null,
       billingProductKey: null,

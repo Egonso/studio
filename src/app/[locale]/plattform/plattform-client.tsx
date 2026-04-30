@@ -13,7 +13,14 @@ export default function PlattformPageClient() {
   const locale = useLocale();
   const t = useTranslations();
 
-  const pillars: Array<{ id: string; titleKey: string; bodyKey: string; bearerKey: string }> = [
+  const pillars: Array<{
+    id: string;
+    titleKey: string;
+    bodyKey: string;
+    bearerKey: string;
+    href?: string;
+    ctaKey?: string;
+  }> = [
     {
       id: 'register',
       titleKey: 'plattform.pillars.register.title',
@@ -31,6 +38,8 @@ export default function PlattformPageClient() {
       titleKey: 'plattform.pillars.fortbildung.title',
       bodyKey: 'plattform.pillars.fortbildung.body',
       bearerKey: 'plattform.pillars.fortbildung.bearer',
+      href: '/fortbildung',
+      ctaKey: 'plattform.pillars.fortbildung.cta',
     },
   ];
 
@@ -101,6 +110,14 @@ export default function PlattformPageClient() {
                   <p className="mt-3 text-sm font-medium text-slate-950">
                     {t(pillar.bearerKey as any)}
                   </p>
+                  {pillar.href && pillar.ctaKey ? (
+                    <Link
+                      href={localizeHref(locale, pillar.href)}
+                      className="mt-4 inline-flex text-sm font-medium text-slate-950 underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-700"
+                    >
+                      {t(pillar.ctaKey as any)}
+                    </Link>
+                  ) : null}
                 </article>
               ))}
             </div>

@@ -407,6 +407,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /allowlist/{email} {
+      allow read: if isSignedIn() &&
+        request.auth.token.email.lower() == email.lower();
+      allow write: if false;
+    }
+
     match /customerEntitlements/{email} {
       allow read, write: if false;
     }
@@ -429,6 +435,10 @@ service cloud.firestore {
     }
 
     match /stripe_events/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /_stripe_events/{eventId} {
       allow read, write: if false;
     }
 

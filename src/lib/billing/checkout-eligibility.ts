@@ -24,16 +24,20 @@ export function getCheckoutEligibility(input: {
 } {
   const { session, subscription } = input;
 
-  if (session.mode !== 'subscription') {
-    return { ok: false, reason: 'invalid_mode' };
-  }
-
   if (session.status !== 'complete') {
     return { ok: false, reason: 'status_incomplete' };
   }
 
   if (!CLAIMABLE_PAYMENT_STATUSES.has(session.payment_status)) {
     return { ok: false, reason: 'payment_status_unpaid' };
+  }
+
+  if (session.mode === 'payment') {
+    return { ok: true, reason: null };
+  }
+
+  if (session.mode !== 'subscription') {
+    return { ok: false, reason: 'invalid_mode' };
   }
 
   if (typeof session.subscription !== 'string') {
@@ -56,7 +60,7 @@ export function getCheckoutEligibilityErrorMessage(
 ): string {
   switch (reason) {
     case 'invalid_mode':
-      return 'Checkout session does not represent a subscription purchase.';
+      return 'Checkout session does not represent a claimable purchase.';
     case 'status_incomplete':
       return 'Checkout session not completed.';
     case 'payment_status_unpaid':

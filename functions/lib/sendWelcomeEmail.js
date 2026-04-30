@@ -37,14 +37,17 @@ exports.sendWelcomeEmailOnPurchase = void 0;
 const functions = __importStar(require("firebase-functions/v1"));
 const admin = __importStar(require("firebase-admin"));
 const emailit_1 = require("./emailit");
+const runtimeParams_1 = require("./runtimeParams");
 function resolveTemplateId() {
-    return ((0, emailit_1.resolveFunctionsEmailitTemplate)('EMAILIT_WELCOME_TEMPLATE', 'welcome_template') || 'welcome');
+    return (0, emailit_1.resolveFunctionsWelcomeTemplate)() || 'welcome';
 }
 function resolveSenderEmail() {
     return ((0, emailit_1.resolveFunctionsEmailitFromEmail)() ||
         'ki-eu-akt@momofeichtinger.com');
 }
-exports.sendWelcomeEmailOnPurchase = functions.firestore
+exports.sendWelcomeEmailOnPurchase = functions.runWith({
+    secrets: [runtimeParams_1.emailitApiKeySecret],
+}).firestore
     .document('stripe_events/{eventId}')
     .onCreate(async (snap) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j;

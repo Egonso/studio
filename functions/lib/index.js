@@ -92,12 +92,34 @@ function toLineItemHints(lineItems) {
         };
     });
 }
+function readCheckoutTextField(session, key) {
+    var _a, _b, _c;
+    const field = (_a = session.custom_fields) === null || _a === void 0 ? void 0 : _a.find((entry) => entry.key === key);
+    const value = field && 'text' in field ? (_c = (_b = field.text) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.trim() : undefined;
+    return value && value.length > 0 ? value : null;
+}
+function addMonths(date, months) {
+    const next = new Date(date);
+    next.setMonth(next.getMonth() + months);
+    return next;
+}
+function resolveSessionAccessExpiresAt(session) {
+    var _a, _b, _c;
+    const metadataExpiry = (_b = (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.accessExpiresAt) === null || _b === void 0 ? void 0 : _b.trim();
+    if (metadataExpiry && Number.isFinite(Date.parse(metadataExpiry))) {
+        return new Date(metadataExpiry).toISOString();
+    }
+    if (((_c = session.metadata) === null || _c === void 0 ? void 0 : _c.sourceFlow) === 'fortbildung_neulaunch_checkout') {
+        return addMonths(new Date(session.created * 1000), 12).toISOString();
+    }
+    return null;
+}
 exports.stripeWebhook = (0, https_1.onRequest)({
     cors: true,
     region: 'europe-west1',
     secrets: [stripeSecretKey, stripeApiKeyLegacy, stripeWebhookSecret],
 }, async (req, res) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33;
     const db = admin.firestore();
     const resolvedStripeSecretKey = resolveStripeSecretKey();
     const resolvedWebhookSecret = resolveStripeWebhookSecret();
@@ -154,9 +176,15 @@ exports.stripeWebhook = (0, https_1.onRequest)({
         // Handle checkout.session.completed event
         if (event.type === 'checkout.session.completed') {
             const session = event.data.object;
+            const isFortbildungCheckout = ((_a = session.metadata) === null || _a === void 0 ? void 0 : _a.sourceFlow) === 'fortbildung_neulaunch_checkout';
+            const checkoutOrganisation = readCheckoutTextField(session, 'organisation');
+            const checkoutProjectContext = readCheckoutTextField(session, 'projektkontext');
+            const checkoutAccessExpiresAt = isFortbildungCheckout
+                ? resolveSessionAccessExpiresAt(session)
+                : null;
             // Get customer email
             let email = '';
-            if ((_a = session.customer_details) === null || _a === void 0 ? void 0 : _a.email) {
+            if ((_b = session.customer_details) === null || _b === void 0 ? void 0 : _b.email) {
                 email = session.customer_details.email.toLowerCase();
             }
             else if (session.customer_email) {
@@ -176,21 +204,28 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                 });
                 const resolvedEntitlement = (0, billing_entitlements_1.inferCheckoutEntitlement)({
                     metadata: session.metadata,
-                    productId: (_c = (_b = session.metadata) === null || _b === void 0 ? void 0 : _b.productId) !== null && _c !== void 0 ? _c : null,
+                    productId: (_d = (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.productId) !== null && _d !== void 0 ? _d : null,
                     lineItems: toLineItemHints(lineItems),
                 });
-                const plan = (_d = resolvedEntitlement === null || resolvedEntitlement === void 0 ? void 0 : resolvedEntitlement.plan) !== null && _d !== void 0 ? _d : null;
+                const plan = (_e = resolvedEntitlement === null || resolvedEntitlement === void 0 ? void 0 : resolvedEntitlement.plan) !== null && _e !== void 0 ? _e : null;
                 // Parallel update: Studio 'customers' collection
                 const customerRef = db.collection('customers').doc(email);
                 await customerRef.set({
                     email: email,
-                    name: ((_e = session.customer_details) === null || _e === void 0 ? void 0 : _e.name) || null,
+                    name: checkoutOrganisation || ((_f = session.customer_details) === null || _f === void 0 ? void 0 : _f.name) || null,
                     stripeId: session.customer || null,
                     status: 'active',
                     purchaseAmount: session.amount_total,
-                    productId: ((_f = session.metadata) === null || _f === void 0 ? void 0 : _f.productId) || 'eu-ai-act-certification',
+                    productId: ((_g = session.metadata) === null || _g === void 0 ? void 0 : _g.productId) || 'eu-ai-act-certification',
                     entitlementPlan: plan,
                     canRegister: true,
+                    sourceFlow: ((_h = session.metadata) === null || _h === void 0 ? void 0 : _h.sourceFlow) || null,
+                    projectContext: checkoutProjectContext,
+                    accessExpiresAt: checkoutAccessExpiresAt,
+                    checkoutCustomFields: {
+                        organisation: checkoutOrganisation,
+                        projektkontext: checkoutProjectContext,
+                    },
                     created: admin.firestore.FieldValue.serverTimestamp(),
                     source: 'stripe-webhook-v2',
                 }, { merge: true });
@@ -199,9 +234,10 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                         email,
                         plan,
                         source: 'stripe_checkout',
-                        productId: ((_g = session.metadata) === null || _g === void 0 ? void 0 : _g.productId) || null,
-                        billingProductKey: (_h = resolvedEntitlement === null || resolvedEntitlement === void 0 ? void 0 : resolvedEntitlement.billingProductKey) !== null && _h !== void 0 ? _h : null,
+                        productId: ((_j = session.metadata) === null || _j === void 0 ? void 0 : _j.productId) || null,
+                        billingProductKey: (_k = resolvedEntitlement === null || resolvedEntitlement === void 0 ? void 0 : resolvedEntitlement.billingProductKey) !== null && _k !== void 0 ? _k : null,
                         checkoutSessionId: session.id,
+                        accessExpiresAt: checkoutAccessExpiresAt,
                         stripeCustomerId: typeof session.customer === 'string'
                             ? session.customer
                             : null,
@@ -222,6 +258,9 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                     sessionId: session.id,
                     amountPaid: session.amount_total ? session.amount_total / 100 : 0,
                     currency: session.currency || 'eur',
+                    sourceFlow: ((_l = session.metadata) === null || _l === void 0 ? void 0 : _l.sourceFlow) || null,
+                    projectContext: checkoutProjectContext,
+                    accessExpiresAt: checkoutAccessExpiresAt,
                     purchases: admin.firestore.FieldValue.arrayUnion({
                         type: 'checkout',
                         id: session.id,
@@ -233,7 +272,7 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                 // Affiliate commission processing
                 await (0, affiliate_commission_1.processAffiliateCommission)(db, stripe, {
                     email,
-                    grossAmount: (_j = session.amount_total) !== null && _j !== void 0 ? _j : 0,
+                    grossAmount: (_m = session.amount_total) !== null && _m !== void 0 ? _m : 0,
                     currency: session.currency || 'eur',
                     stripeEventId: event.id,
                     stripeEventType: event.type,
@@ -260,11 +299,11 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                 }
             }
             if (email) {
-                const invoiceParent = (_k = invoice.parent) !== null && _k !== void 0 ? _k : null;
+                const invoiceParent = (_o = invoice.parent) !== null && _o !== void 0 ? _o : null;
                 const plan = (0, billing_entitlements_1.inferEntitlementPlanFromHints)([
-                    (_o = (_m = (_l = invoiceParent === null || invoiceParent === void 0 ? void 0 : invoiceParent.subscription_details) === null || _l === void 0 ? void 0 : _l.metadata) === null || _m === void 0 ? void 0 : _m.plan) !== null && _o !== void 0 ? _o : null,
-                    (_t = (_s = (_r = (_q = (_p = invoice.lines) === null || _p === void 0 ? void 0 : _p.data) === null || _q === void 0 ? void 0 : _q[0]) === null || _r === void 0 ? void 0 : _r.price) === null || _s === void 0 ? void 0 : _s.lookup_key) !== null && _t !== void 0 ? _t : null,
-                    (_y = (_x = (_w = (_v = (_u = invoice.lines) === null || _u === void 0 ? void 0 : _u.data) === null || _v === void 0 ? void 0 : _v[0]) === null || _w === void 0 ? void 0 : _w.price) === null || _x === void 0 ? void 0 : _x.id) !== null && _y !== void 0 ? _y : null,
+                    (_r = (_q = (_p = invoiceParent === null || invoiceParent === void 0 ? void 0 : invoiceParent.subscription_details) === null || _p === void 0 ? void 0 : _p.metadata) === null || _q === void 0 ? void 0 : _q.plan) !== null && _r !== void 0 ? _r : null,
+                    (_w = (_v = (_u = (_t = (_s = invoice.lines) === null || _s === void 0 ? void 0 : _s.data) === null || _t === void 0 ? void 0 : _t[0]) === null || _u === void 0 ? void 0 : _u.price) === null || _v === void 0 ? void 0 : _v.lookup_key) !== null && _w !== void 0 ? _w : null,
+                    (_1 = (_0 = (_z = (_y = (_x = invoice.lines) === null || _x === void 0 ? void 0 : _x.data) === null || _y === void 0 ? void 0 : _y[0]) === null || _z === void 0 ? void 0 : _z.price) === null || _0 === void 0 ? void 0 : _0.id) !== null && _1 !== void 0 ? _1 : null,
                 ]);
                 const allowlistRef = db.collection('allowlist').doc(email);
                 await allowlistRef.set({
@@ -305,9 +344,9 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                             ? invoice.subscription
                             : null,
                         fallbackPlanHints: [
-                            (_1 = (_0 = (_z = invoiceParent === null || invoiceParent === void 0 ? void 0 : invoiceParent.subscription_details) === null || _z === void 0 ? void 0 : _z.metadata) === null || _0 === void 0 ? void 0 : _0.plan) !== null && _1 !== void 0 ? _1 : null,
-                            (_6 = (_5 = (_4 = (_3 = (_2 = invoice.lines) === null || _2 === void 0 ? void 0 : _2.data) === null || _3 === void 0 ? void 0 : _3[0]) === null || _4 === void 0 ? void 0 : _4.price) === null || _5 === void 0 ? void 0 : _5.lookup_key) !== null && _6 !== void 0 ? _6 : null,
-                            (_11 = (_10 = (_9 = (_8 = (_7 = invoice.lines) === null || _7 === void 0 ? void 0 : _7.data) === null || _8 === void 0 ? void 0 : _8[0]) === null || _9 === void 0 ? void 0 : _9.price) === null || _10 === void 0 ? void 0 : _10.id) !== null && _11 !== void 0 ? _11 : null,
+                            (_4 = (_3 = (_2 = invoiceParent === null || invoiceParent === void 0 ? void 0 : invoiceParent.subscription_details) === null || _2 === void 0 ? void 0 : _2.metadata) === null || _3 === void 0 ? void 0 : _3.plan) !== null && _4 !== void 0 ? _4 : null,
+                            (_9 = (_8 = (_7 = (_6 = (_5 = invoice.lines) === null || _5 === void 0 ? void 0 : _5.data) === null || _6 === void 0 ? void 0 : _6[0]) === null || _7 === void 0 ? void 0 : _7.price) === null || _8 === void 0 ? void 0 : _8.lookup_key) !== null && _9 !== void 0 ? _9 : null,
+                            (_14 = (_13 = (_12 = (_11 = (_10 = invoice.lines) === null || _10 === void 0 ? void 0 : _10.data) === null || _11 === void 0 ? void 0 : _11[0]) === null || _12 === void 0 ? void 0 : _12.price) === null || _13 === void 0 ? void 0 : _13.id) !== null && _14 !== void 0 ? _14 : null,
                         ],
                     });
                 }
@@ -315,7 +354,7 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                 // Affiliate commission processing
                 await (0, affiliate_commission_1.processAffiliateCommission)(db, stripe, {
                     email,
-                    grossAmount: (_12 = invoice.amount_paid) !== null && _12 !== void 0 ? _12 : 0,
+                    grossAmount: (_15 = invoice.amount_paid) !== null && _15 !== void 0 ? _15 : 0,
                     currency: invoice.currency || 'eur',
                     stripeEventId: event.id,
                     stripeEventType: event.type,
@@ -362,9 +401,9 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                         stripeCustomerId: subscription.customer,
                         subscriptionId: subscription.id,
                         fallbackPlanHints: [
-                            (_14 = (_13 = subscription.metadata) === null || _13 === void 0 ? void 0 : _13.plan) !== null && _14 !== void 0 ? _14 : null,
-                            (_16 = (_15 = subscription.items.data[0]) === null || _15 === void 0 ? void 0 : _15.price.lookup_key) !== null && _16 !== void 0 ? _16 : null,
-                            (_18 = (_17 = subscription.items.data[0]) === null || _17 === void 0 ? void 0 : _17.price.id) !== null && _18 !== void 0 ? _18 : null,
+                            (_17 = (_16 = subscription.metadata) === null || _16 === void 0 ? void 0 : _16.plan) !== null && _17 !== void 0 ? _17 : null,
+                            (_19 = (_18 = subscription.items.data[0]) === null || _18 === void 0 ? void 0 : _18.price.lookup_key) !== null && _19 !== void 0 ? _19 : null,
+                            (_21 = (_20 = subscription.items.data[0]) === null || _20 === void 0 ? void 0 : _20.price.id) !== null && _21 !== void 0 ? _21 : null,
                         ],
                     });
                 }
@@ -387,9 +426,9 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                             stripeCustomerId: subscription.customer,
                             subscriptionId: subscription.id,
                             fallbackPlanHints: [
-                                (_20 = (_19 = subscription.metadata) === null || _19 === void 0 ? void 0 : _19.plan) !== null && _20 !== void 0 ? _20 : null,
-                                (_22 = (_21 = subscription.items.data[0]) === null || _21 === void 0 ? void 0 : _21.price.lookup_key) !== null && _22 !== void 0 ? _22 : null,
-                                (_24 = (_23 = subscription.items.data[0]) === null || _23 === void 0 ? void 0 : _23.price.id) !== null && _24 !== void 0 ? _24 : null,
+                                (_23 = (_22 = subscription.metadata) === null || _22 === void 0 ? void 0 : _22.plan) !== null && _23 !== void 0 ? _23 : null,
+                                (_25 = (_24 = subscription.items.data[0]) === null || _24 === void 0 ? void 0 : _24.price.lookup_key) !== null && _25 !== void 0 ? _25 : null,
+                                (_27 = (_26 = subscription.items.data[0]) === null || _26 === void 0 ? void 0 : _26.price.id) !== null && _27 !== void 0 ? _27 : null,
                             ],
                         });
                     }
@@ -404,9 +443,9 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                             stripeCustomerId: subscription.customer,
                             subscriptionId: subscription.id,
                             fallbackPlanHints: [
-                                (_26 = (_25 = subscription.metadata) === null || _25 === void 0 ? void 0 : _25.plan) !== null && _26 !== void 0 ? _26 : null,
-                                (_28 = (_27 = subscription.items.data[0]) === null || _27 === void 0 ? void 0 : _27.price.lookup_key) !== null && _28 !== void 0 ? _28 : null,
-                                (_30 = (_29 = subscription.items.data[0]) === null || _29 === void 0 ? void 0 : _29.price.id) !== null && _30 !== void 0 ? _30 : null,
+                                (_29 = (_28 = subscription.metadata) === null || _28 === void 0 ? void 0 : _28.plan) !== null && _29 !== void 0 ? _29 : null,
+                                (_31 = (_30 = subscription.items.data[0]) === null || _30 === void 0 ? void 0 : _30.price.lookup_key) !== null && _31 !== void 0 ? _31 : null,
+                                (_33 = (_32 = subscription.items.data[0]) === null || _32 === void 0 ? void 0 : _32.price.id) !== null && _33 !== void 0 ? _33 : null,
                             ],
                         });
                     }

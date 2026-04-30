@@ -1,0 +1,50 @@
+<svg width="1040" height="760" viewBox="0 0 1040 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Use Case Pass Vorschau</title>
+  <desc id="desc">Minimalistische Dokumentvorschau eines KI-Register Use Case Passes mit Projektdefinition, Kompetenzspur und Review-Status.</desc>
+  <rect width="1040" height="760" fill="#f8fafc"/>
+  <rect x="108" y="64" width="824" height="632" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <path d="M108 152H932" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="146" y="118" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700">Use Case Pass</text>
+  <text x="748" y="114" fill="#334155" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Projekt 01</text>
+
+  <g transform="translate(146 194)">
+    <text x="0" y="0" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="3">ERSTER KI-EINSATZFALL</text>
+    <text x="0" y="48" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700">Kundenservice-Chatbot mit Wissensdatenbank</text>
+    <text x="0" y="88" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="18">Ein abgegrenzter Projektkontext wird als prüfbares Organisationsobjekt dokumentiert.</text>
+
+    <g transform="translate(0 136)">
+      <rect x="0" y="0" width="220" height="104" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="20" y="34" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Zweck</text>
+      <text x="20" y="68" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17">Support-Antworten</text>
+    </g>
+    <g transform="translate(250 136)">
+      <rect x="0" y="0" width="220" height="104" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="20" y="34" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Risikoklasse</text>
+      <circle cx="32" cy="67" r="6" fill="#2563eb"/>
+      <text x="50" y="73" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17">Limited Risk</text>
+    </g>
+    <g transform="translate(500 136)">
+      <rect x="0" y="0" width="220" height="104" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="20" y="34" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700">Owner</text>
+      <text x="20" y="68" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17">KI-Verantwortliche Person</text>
+    </g>
+
+    <path d="M0 288H720" stroke="#cbd5e1"/>
+    <g transform="translate(0 330)">
+      <text x="0" y="0" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="3">KOMPETENZSPUR</text>
+      <rect x="0" y="28" width="720" height="72" fill="#ffffff" stroke="#cbd5e1"/>
+      <circle cx="36" cy="64" r="8" fill="#0f172a"/>
+      <text x="60" y="70" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">Art. 4 Lernpfad abgeschlossen</text>
+      <text x="388" y="70" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="15">Hauptkurs + Projektanwendung</text>
+    </g>
+
+    <g transform="translate(0 460)">
+      <text x="0" y="0" fill="#64748b" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="3">REVIEW</text>
+      <rect x="0" y="28" width="346" height="72" fill="#ffffff" stroke="#cbd5e1"/>
+      <circle cx="36" cy="64" r="8" fill="#16a34a"/>
+      <text x="60" y="70" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17">Nachweisbereit</text>
+      <rect x="374" y="28" width="346" height="72" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="410" y="70" fill="#020617" font-family="Inter, Arial, sans-serif" font-size="17">PDF / Registerexport</text>
+    </g>
+  </g>
+</svg>

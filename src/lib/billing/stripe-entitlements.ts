@@ -66,6 +66,7 @@ export function buildCustomerEntitlementRecord(input: {
   status?: RegisterEntitlement['status'];
   source: RegisterEntitlement['source'];
   updatedAt?: string;
+  accessExpiresAt?: string | null;
   productId?: string | null;
   billingProductKey?: BillingProductKey | null;
   checkoutSessionId?: string | null;
