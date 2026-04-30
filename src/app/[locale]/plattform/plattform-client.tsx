@@ -24,7 +24,7 @@ const GOVERNANCE_COPY = {
     title: 'Vom Register zur steuerbaren Governance-Ebene.',
     body:
       'Das Register bleibt der Record of Truth für einzelne KI-Einsatzfälle. Das Governance Control Center verdichtet diese Daten zu Reviews, Richtlinien, Portfolios, Audit-Lücken und exportierbaren Nachweisen auf Organisationsebene.',
-    primaryCta: 'Governance Control öffnen',
+    primaryCta: 'Governance-Angebot ansehen',
     secondaryCta: 'Fortbildungspaket ansehen',
     modelLabel: 'Arbeitsmodell',
     modelTitle: 'Vier Ebenen, dieselbe Datenbasis',
@@ -93,7 +93,7 @@ const GOVERNANCE_COPY = {
     title: 'From registry to controllable governance layer.',
     body:
       'The registry remains the record of truth for individual AI use cases. The Governance Control Center turns those records into reviews, policies, portfolios, audit gaps and exportable organisation-level evidence.',
-    primaryCta: 'Open Governance Control',
+    primaryCta: 'View governance offer',
     secondaryCta: 'View training package',
     modelLabel: 'Operating model',
     modelTitle: 'Four layers, one data foundation',
@@ -193,7 +193,7 @@ export default function PlattformPageClient() {
       titleKey: 'plattform.pillars.governance.title',
       bodyKey: 'plattform.pillars.governance.body',
       bearerKey: 'plattform.pillars.governance.bearer',
-      href: '/plattform#governance',
+      href: '/governance',
       ctaKey: 'plattform.pillars.governance.cta',
     },
     {
@@ -274,7 +274,7 @@ export default function PlattformPageClient() {
                 </p>
                 <div className="flex flex-wrap gap-3 pt-2">
                   <Link
-                    href={localizeHref(locale, '/control')}
+                    href={localizeHref(locale, '/governance')}
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-none border border-slate-950 bg-slate-950 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
                   >
                     {governanceCopy.primaryCta}

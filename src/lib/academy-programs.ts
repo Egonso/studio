@@ -36,7 +36,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
     title: 'KI Governance Grundkurs',
     strapline: 'Allgemeiner Academy-Track',
     summary:
-      'Dieser Track verbindet KI-Einführung, Registerlogik, Use-Case-Pass und operative Nachweisführung. Er richtet sich an Personen, die KI-Nutzung nicht nur erklären, sondern strukturiert dokumentieren und im Unternehmen verankern wollen.',
+      'Dieser Track verbindet KI-Einführung, Registerlogik, Use-Case-Pass und operative Nachweisführung. Er richtet sich an Personen, die KI-Nutzung erklären, strukturiert dokumentieren und im Unternehmen verankern wollen.',
     targetAudience: [
       'Führungskräfte und Projektverantwortliche, die KI-Nutzung organisatorisch absichern wollen',
       'AI-Berater, Coaches und interne Enabler mit Fokus auf Einführung und Rollout',
@@ -267,7 +267,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
           'Wie bestehende DSGVO- oder Compliance-Beziehungen in ein neues Governance-Mandat überführt werden und welche Triggerereignisse heute die stärksten Anknüpfungspunkte liefern.',
         transcriptHighlights: [
           'Das Modul zeigt, warum ruhende Bestandsmandate, Lieferkettenanfragen und Auditdruck die natürlichsten Startpunkte für juristische Governance-Arbeit sind.',
-          'Dazu kommt die klare Positionierungsfrage: nicht als Tool-Nutzer auftreten, sondern als EU AI Act Compliance Partner mit strukturiertem Arbeitsobjekt.',
+          'Dazu kommt die klare Positionierungsfrage: als EU AI Act Compliance Partner mit strukturiertem Arbeitsobjekt auftreten.',
         ],
         embedUrl:
           'https://killerplayer.com/watch/video/1fd2b660-e665-4f14-ad78-296aeeebeb07',

@@ -26,11 +26,11 @@ interface CourseModuleBreakdown {
   items: string[];
 }
 
-const HERO_IMAGE_SRC = '/images/fortbildung-real-use-case-detail-card.png';
-const PASS_PREVIEW_SRC = '/images/fortbildung-real-use-case-pass-card.png';
-const COURSE_SCREEN_SRC = '/images/fortbildung-real-register-overview-card.png';
-const REGISTER_SCREEN_SRC = '/images/fortbildung-real-use-case-detail-card.png';
-const MATERIALS_SCREEN_SRC = '/images/fortbildung-real-use-case-pass-card.png';
+const HERO_IMAGE_SRC = '/images/fortbildung-academy-main-course.png';
+const SIDE_PREVIEW_SRC = '/images/fortbildung-academy-bonus-track.png';
+const COURSE_SCREEN_SRC = '/images/fortbildung-academy-overview.png';
+const REGISTER_SCREEN_SRC = '/images/fortbildung-academy-main-course.png';
+const MATERIALS_SCREEN_SRC = '/images/fortbildung-academy-bonus-track.png';
 
 const MAIN_COURSE_MODULES_DE: CourseModuleBreakdown[] = [
   {
@@ -265,24 +265,24 @@ export default async function FortbildungPage({ params }: Props) {
         productTruthBody:
           'Der Hauptkurs baut die fachliche Grundlage auf. Das KI Register übersetzt diese Grundlage anschließend in ein reales Arbeitsobjekt: einen Use Case Pass für den ersten abgegrenzten KI-Einsatzfall.',
         screenshotsLabel: 'Einblick',
-        screenshotsTitle: 'So sieht die Arbeit im Paket aus',
+        screenshotsTitle: 'So sieht der Kurs in der Academy aus',
         screenshotsIntro:
-          'Die Screenshots stammen aus der echten App: Ein Projekt wird erfasst, fachlich eingeordnet und als Use-Case-Pass dokumentiert.',
+          'Die Screenshots stammen aus der Academy: Modulnavigation, Lernvideo, Kursmaterialien und Praxisfälle liegen in derselben Arbeitsoberfläche.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Registerübersicht',
-            body: 'Der erste KI-Einsatzfall landet in einer strukturierten Übersicht mit Status, Owner-Rolle, Risikoklasse und Aktivität.',
+            title: 'Hauptkurs: Risk Pyramid',
+            body: 'Die Lernmodule führen durch die Risikoklassen des EU AI Act und verknüpfen Video, Modulstruktur und begleitende Materialien.',
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Einsatzfall-Detail',
-            body: 'Im Projekt werden Zweck, Systeme, Wirkungsbereich, Risikoklasse und Nachweisstatus an einem Ort geführt.',
+            title: 'Hauptkurs: Compliance Roadmap',
+            body: 'Der Kurs zeigt die zeitliche Umsetzung bis 2026 und hält das passende Arbeitsmaterial direkt am Video bereit.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
-            title: 'Use-Case-Pass',
-            body: 'Der Registerauszug bündelt Identifikation, beteiligte Systeme und regulatorische Basiswerte als prüfbares Dokument.',
+            title: 'Praxisfall: Healthcare',
+            body: 'Anwendungsfälle übersetzen die Kurslogik in konkrete Entscheidungssituationen, Risikobewertung und Prüfungsvorbereitung.',
           },
         ],
         article4Title: 'Art. 4 / AI Literacy',
@@ -366,24 +366,24 @@ export default async function FortbildungPage({ params }: Props) {
         productTruthBody:
           'The main course builds the knowledge foundation. AI Registry then turns that foundation into one real working object: a Use Case Pass for the first defined AI use case.',
         screenshotsLabel: 'Preview',
-        screenshotsTitle: 'What working inside the package looks like',
+        screenshotsTitle: 'What the Academy course looks like',
         screenshotsIntro:
-          'The screenshots come from the actual app: one project is captured, assessed and documented as a Use Case Pass.',
+          'The screenshots come from the Academy: module navigation, learning video, course materials and practical cases are held in the same workspace.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Registry overview',
-            body: 'The first AI use case is visible in a structured overview with status, owner role, risk class and activity.',
+            title: 'Main course: Risk Pyramid',
+            body: 'The modules guide participants through EU AI Act risk classes and connect video, course structure and materials.',
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Use case detail',
-            body: 'Purpose, systems, impact scope, risk class and evidence status are managed in one project view.',
+            title: 'Main course: Compliance Roadmap',
+            body: 'The course shows the implementation path up to 2026 and keeps the matching working material next to the video.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
-            title: 'Use Case Pass',
-            body: 'The register extract combines identification, involved systems and regulatory baseline values into an auditable document.',
+            title: 'Practice case: Healthcare',
+            body: 'Application cases translate the course logic into decisions, risk assessment and exam preparation.',
           },
         ],
         article4Title: 'Article 4 / AI Literacy',
@@ -708,7 +708,7 @@ export default async function FortbildungPage({ params }: Props) {
             </div>
             <div className="overflow-hidden border border-slate-200 bg-slate-50">
               <Image
-                src={PASS_PREVIEW_SRC}
+                src={SIDE_PREVIEW_SRC}
                 alt=""
                 width={1040}
                 height={760}
