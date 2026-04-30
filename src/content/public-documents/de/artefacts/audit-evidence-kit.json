@@ -7,10 +7,11 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-16",
-  "last_substantive_update": "2026-04-21",
+  "last_substantive_update": "2026-04-30",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
@@ -30,7 +31,8 @@
   "delivers": [
     "ein enges Prüfpaket aus Beispielpass, Registermatrix und Feldlogik-Handout",
     "eine klare Mindeststruktur für Scope, Verantwortung, Review-Stand und Evidenz je Einsatzfall",
-    "einen neutralen Arbeitsrahmen für Auditgespräche, Beratungsmandate, Trainingsformate, Beschaffungsrückfragen und Governance-Reviews"
+    "einen neutralen Arbeitsrahmen für Auditgespräche, Beratungsmandate, Trainingsformate, Beschaffungsrückfragen und Governance-Reviews",
+    "eine Übergabelogik, mit der Partner aus einem Termin unmittelbar einen prüfbaren Pass-Stand oder eine begrenzte Nachforderung ableiten können"
   ],
   "downloads": [
     {
@@ -75,7 +77,8 @@
       "heading": "Wofür dieses Kit gebaut ist",
       "paragraphs": [
         "Das Audit Evidence Kit ist für Situationen gedacht, in denen ein einzelner KI-Einsatzfall schnell und belastbar erklärt werden muss. Typisch sind interne Audits, Beschaffungsprüfungen, Due-Diligence-Rückfragen, Beratungsprojekte, Schulungsformate oder Governance-Reviews, in denen nicht eine allgemeine KI-Policy, sondern der konkrete Fall im Mittelpunkt steht.",
-        "Das Kit hält diese Gespräche auf einer sauberen Ebene. Statt verstreute Aussagen aus Richtlinien, Tool-Listen und E-Mails zusammenzutragen, wird der Einsatzfall als primäres Objekt mit Scope, Verantwortung, Review-Stand und Evidenz lesbar gemacht. Genau dadurch kann der Use-Case Pass in Partnerformaten als Arbeitsobjekt genutzt werden, ohne ihn in Marketing- oder Freitextsprache aufzulösen."
+        "Das Kit hält diese Gespräche auf einer sauberen Ebene. Statt verstreute Aussagen aus Richtlinien, Tool-Listen und E-Mails zusammenzutragen, wird der Einsatzfall als primäres Objekt mit Scope, Verantwortung, Review-Stand und Evidenz lesbar gemacht. Genau dadurch kann der Use-Case Pass in Partnerformaten als Arbeitsobjekt genutzt werden, ohne ihn in Marketing- oder Freitextsprache aufzulösen.",
+        "Für Partner ist die Leitfrage bewusst eng: Welche Aussage kann heute aus dem Pass getragen werden, welche Evidenz stützt sie und welche Nachforderung bleibt offen? Diese Trennung macht das Artefakt in Workshops, Prüfgesprächen und Beschaffungsrunden nutzbar, ohne eine zweite Dokumentationslogik neben dem Register aufzubauen."
       ]
     },
     {
@@ -93,6 +96,10 @@
         {
           "label": "Feldlogik-Handout",
           "value": "Eine knappe Einordnung der Pass-Anatomie, damit Prüfer, Beschaffung und Governance dieselben Begriffe verwenden."
+        },
+        {
+          "label": "Übergabe- und Nachforderungslogik",
+          "value": "Eine Arbeitslogik für Partner, um am Ende eines Termins zwischen belastbarem Pass-Stand, offener Evidenz und nächster Nachforderung zu unterscheiden."
         }
       ]
     },
@@ -130,6 +137,14 @@
         {
           "label": "Beschaffung und Governance",
           "value": "Nutzen die Feldlogik, um Mindestangaben für Rückfragen, Freigaben, Lieferkettenanforderungen oder interne Eskalationen auf dieselbe Fallstruktur zu beziehen."
+        },
+        {
+          "label": "Trainer und Moderatoren",
+          "value": "Nutzen das Kit, um Schulungs- oder Workshopbeiträge sofort in Scope, verantwortliche Rolle, offene Punkte und nächste Nachweisschritte zu übersetzen."
+        },
+        {
+          "label": "Procurement-Stakeholder",
+          "value": "Nutzen den Pass als Mindestobjekt, bevor externe Fragen, Lieferantenantworten oder Freigabeempfehlungen formuliert werden."
         }
       ]
     },
@@ -142,6 +157,8 @@
         "Im Gespräch zuerst Scope, Zweck und verantwortliche Rolle festziehen, bevor Spezialfragen zu Regulierung, Technik oder Freigabe diskutiert werden.",
         "Offene Punkte in der Matrix sichtbar lassen, statt Vollständigkeit vorzutäuschen.",
         "Für externe Rückfragen, Trainingsunterlagen oder interne Freigaben nur Aussagen verwenden, die durch Pass, Review oder Evidenz abgesichert sind.",
+        "Am Terminende ausdrücklich festhalten, ob der Fall bereits prüffähig übergeben werden kann oder ob eine begrenzte Nachforderung an Owner, Lieferant oder Fachbereich nötig bleibt.",
+        "Für Partnerunterlagen nur die Pass-Felder weiterverwenden, die im Gespräch bestätigt wurden; Annahmen bleiben als offene Punkte in der Matrix stehen.",
         "Folgeartefakte wie Supplier Requests, Verify-Flächen oder Workshop-Dokumentation erst aus derselben Pass-Logik ableiten."
       ]
     },
