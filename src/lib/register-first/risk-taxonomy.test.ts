@@ -65,6 +65,21 @@ test("display helpers favor mapped labels, preserve unknown custom strings, and 
     getDisplayedRiskClassLabel({ toolRiskLevel: "minimal" }),
     "Minimales Risiko"
   );
+  assert.equal(
+    getDisplayedRiskClassLabel({
+      aiActCategory: "Transparenzpflichten",
+      locale: "en",
+    }),
+    "Limited risk (transparency obligations)"
+  );
+  assert.equal(
+    getDisplayedRiskClassLabel({
+      toolRiskLevel: "high",
+      short: true,
+      locale: "en",
+    }),
+    "High-risk"
+  );
 });
 
 test("editor values normalize known stored labels but leave unknown custom labels untouched", () => {

@@ -322,8 +322,10 @@ export default function ControlPage() {
 
   const actionQueue = useMemo(() => {
     if (!snapshot) return [];
-    return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt);
-  }, [snapshot]);
+    return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt, {
+      locale,
+    });
+  }, [locale, snapshot]);
 
   const focusedUseCaseId = searchParams?.get('useCaseId') ?? null;
   const entry = searchParams?.get('entry') ?? 'direct';

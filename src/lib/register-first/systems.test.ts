@@ -68,6 +68,10 @@ test("getUseCaseSystemsSummary and badge stay compact", () => {
     getUseCaseWorkflowBadge(card),
     "Mehrsystemig · 3 Systeme · Weitgehend automatisiert"
   );
+  assert.equal(
+    getUseCaseWorkflowBadge(card, { locale: "en" }),
+    "Multi-system · 3 systems · Mostly automated"
+  );
 });
 
 test("buildUseCaseWorkflowUpdates splits primary and additional systems for storage", () => {

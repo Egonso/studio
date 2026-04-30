@@ -9,12 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail, Bot, Link2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, MessageSquare, ListTodo, Users, Copy, RefreshCw, Mail, Bot, Link2, BarChart3 } from "lucide-react";
 import {
     getAdminStats,
     getCertificationCertificateDetail,
     getCertificationAdminData,
     getFeedbackList,
+    getLandingPageAnalytics,
     getPlatformUsers,
     issueManualCertification,
     repairBillingEntitlement,
@@ -41,6 +42,36 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 
+interface LandingPageAnalyticsState {
+    available: boolean;
+    last30Days: Array<{ date: string; views: number }>;
+    last30DaysTotal: number;
+    today: { date: string; views: number };
+    currentMonth: { month: string; views: number };
+    previousMonth: { month: string; views: number };
+    monthlyOverview: Array<{ month: string; views: number }>;
+}
+
+const EMPTY_LANDING_ANALYTICS: LandingPageAnalyticsState = {
+    available: false,
+    last30Days: [],
+    last30DaysTotal: 0,
+    today: { date: '', views: 0 },
+    currentMonth: { month: '', views: 0 },
+    previousMonth: { month: '', views: 0 },
+    monthlyOverview: [],
+};
+
+function formatLandingDate(dateKey: string): string {
+    if (!dateKey) return '—';
+    return format(new Date(`${dateKey}T12:00:00`), 'dd.MM.yyyy', { locale: de });
+}
+
+function formatLandingMonth(monthKey: string): string {
+    if (!monthKey) return '—';
+    return format(new Date(`${monthKey}-15T12:00:00`), 'MMMM yyyy', { locale: de });
+}
+
 export default function AdminPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -54,6 +85,7 @@ export default function AdminPage() {
     const [certificationOverview, setCertificationOverview] = useState<AdminCertificationOverview | null>(null);
     const [affiliateList, setAffiliateList] = useState<AffiliateRecord[]>([]);
     const [affiliateSettings, setAffiliateSettings] = useState<AffiliateGlobalSettingsType | null>(null);
+    const [landingAnalytics, setLandingAnalytics] = useState<LandingPageAnalyticsState>(EMPTY_LANDING_ANALYTICS);
     const [isLoadingData, setIsLoadingData] = useState(false);
     const [billingRepairState, setBillingRepairState] = useState<{
         email: string;
@@ -88,13 +120,14 @@ export default function AdminPage() {
         setIsLoadingData(true);
         try {
             const idToken = await getAdminIdToken();
-            const [statsData, feedbackData, usersData, certificationData, affiliateData, affiliateSettingsData] = await Promise.all([
+            const [statsData, feedbackData, usersData, certificationData, affiliateData, affiliateSettingsData, landingAnalyticsData] = await Promise.all([
                 getAdminStats(idToken),
                 getFeedbackList(idToken, feedbackFilter),
                 getPlatformUsers(idToken, 50),
                 getCertificationAdminData(idToken),
                 getAffiliateAdminData(idToken),
                 getAffiliateGlobalSettings(idToken),
+                getLandingPageAnalytics(idToken),
             ]);
 
             setStats(statsData);
@@ -103,6 +136,7 @@ export default function AdminPage() {
             setCertificationOverview(certificationData);
             setAffiliateList(affiliateData.affiliates);
             setAffiliateSettings(affiliateSettingsData);
+            setLandingAnalytics(landingAnalyticsData);
         } catch (error) {
             console.error("Failed to load admin data", error);
         } finally {
@@ -339,7 +373,17 @@ export default function AdminPage() {
                     </CardHeader>
                 </Card>
 
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Landing-Aufrufe</CardTitle>
+                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{landingAnalytics.last30DaysTotal}</div>
+                            <p className="text-xs text-muted-foreground">letzte 30 Tage</p>
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Offene Bugs</CardTitle>
@@ -385,6 +429,10 @@ export default function AdminPage() {
                 <Tabs defaultValue="certification" className="space-y-4">
                     <TabsList className="flex h-auto flex-wrap justify-start gap-2 bg-transparent p-0">
                         <TabsTrigger value="certification">Zertifizierung</TabsTrigger>
+                        <TabsTrigger value="landing" className="gap-1.5">
+                            <BarChart3 className="h-4 w-4" />
+                            Landing-Aufrufe
+                        </TabsTrigger>
                         <TabsTrigger value="feedback">Feedback Inbox</TabsTrigger>
                         <TabsTrigger value="users">User Management</TabsTrigger>
                         <TabsTrigger value="features">Feature-Radar</TabsTrigger>
@@ -405,6 +453,111 @@ export default function AdminPage() {
                             onLoadDetail={handleLoadCertificateDetail}
                             onSaveSettings={handleSaveCertificationSettings}
                         />
+                    </TabsContent>
+
+                    <TabsContent value="landing" className="space-y-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Landing-Page-Aufrufe</CardTitle>
+                                <CardDescription>
+                                    Aggregierte Tages- und Monatszählung der öffentlichen Startseite. Es werden keine IPs,
+                                    Referrer oder User-Agent-Details gespeichert.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {!landingAnalytics.available ? (
+                                    <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                        Analytics-Daten sind erst verfügbar, wenn Firebase Admin Credentials konfiguriert sind.
+                                    </div>
+                                ) : null}
+                                <div className="grid gap-3 md:grid-cols-4">
+                                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Heute</p>
+                                        <p className="mt-2 text-2xl font-semibold">{landingAnalytics.today.views}</p>
+                                    </div>
+                                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Letzte 30 Tage</p>
+                                        <p className="mt-2 text-2xl font-semibold">{landingAnalytics.last30DaysTotal}</p>
+                                    </div>
+                                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Aktueller Monat</p>
+                                        <p className="mt-2 text-2xl font-semibold">{landingAnalytics.currentMonth.views}</p>
+                                    </div>
+                                    <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                                        <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Vorheriger Monat</p>
+                                        <p className="mt-2 text-2xl font-semibold">{landingAnalytics.previousMonth.views}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Letzte 30 Tage</CardTitle>
+                                    <CardDescription>Tageswerte, neueste Einträge zuerst.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Datum</TableHead>
+                                                <TableHead className="text-right">Aufrufe</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {landingAnalytics.last30Days.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
+                                                        Noch keine Tagesdaten geladen.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                landingAnalytics.last30Days.slice().reverse().map((entry) => (
+                                                    <TableRow key={entry.date}>
+                                                        <TableCell>{formatLandingDate(entry.date)}</TableCell>
+                                                        <TableCell className="text-right tabular-nums">{entry.views}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Monatsübersicht</CardTitle>
+                                    <CardDescription>Die letzten 12 Monate.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Monat</TableHead>
+                                                <TableHead className="text-right">Aufrufe</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {landingAnalytics.monthlyOverview.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={2} className="py-8 text-center text-muted-foreground">
+                                                        Noch keine Monatsdaten geladen.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                landingAnalytics.monthlyOverview.slice().reverse().map((entry) => (
+                                                    <TableRow key={entry.month}>
+                                                        <TableCell>{formatLandingMonth(entry.month)}</TableCell>
+                                                        <TableCell className="text-right tabular-nums">{entry.views}</TableCell>
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="feedback" className="space-y-4">

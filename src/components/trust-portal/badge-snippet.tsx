@@ -5,14 +5,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Copy } from "lucide-react";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 
 interface BadgeSnippetProps {
     projectId: string;
     level: "Basis" | "Erweitert" | "Audit-Ready" | "Ungeprüft";
+    locale?: string;
 }
 
-export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
+export function BadgeSnippet({ projectId, level, locale }: BadgeSnippetProps) {
     const [copied, setCopied] = useState(false);
+    const isGerman = resolveGovernanceCopyLocale(locale) === "de";
+    const displayLevel =
+        level === "Ungeprüft"
+            ? isGerman
+                ? "ausstehend"
+                : "pending"
+            : level === "Basis"
+                ? isGerman
+                    ? "Basis"
+                    : "Basic"
+                : level === "Erweitert"
+                    ? isGerman
+                        ? "Erweitert"
+                        : "Advanced"
+                    : level;
+    const copy = isGerman
+        ? {
+            label: "HTML Snippet (Für Ihre Website)",
+            description:
+                "Fügen Sie diesen Code in den Footer Ihrer Website ein. Er verlinkt automatisch auf Ihr Trust Portal.",
+        }
+        : {
+            label: "HTML snippet (for your website)",
+            description:
+                "Add this code to your website footer. It links automatically to your Trust Portal.",
+        };
 
     // The base URL should be determined by the environment, hardcoding for now or using window.location.origin
     // In a real app we'd injectNEXT_PUBLIC_APP_URL.
@@ -27,7 +55,7 @@ export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
     <span>EUKI-GOV-1.0</span>
     <span style="opacity: 0.4;">|</span>
-    <span>Level ${level === 'Ungeprüft' ? 'ausstehend' : level}</span>
+    <span>Level ${displayLevel}</span>
   </div>
 </a>
   `.trim();
@@ -40,7 +68,7 @@ export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
 
     return (
         <div className="space-y-3">
-            <Label className="text-sm text-slate-500">HTML Snippet (Für Ihre Website)</Label>
+            <Label className="text-sm text-slate-500">{copy.label}</Label>
             <div className="relative">
                 <Input
                     readOnly
@@ -58,7 +86,7 @@ export function BadgeSnippet({ projectId, level }: BadgeSnippetProps) {
                 </Button>
             </div>
             <p className="text-xs text-slate-400">
-                Fügen Sie diesen Code in den Footer Ihrer Website ein. Er verlinkt automatisch auf Ihr Trust Portal.
+                {copy.description}
             </p>
         </div>
     );

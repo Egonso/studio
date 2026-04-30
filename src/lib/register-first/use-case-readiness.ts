@@ -52,6 +52,48 @@ export interface UseCaseReadinessResult {
   nextStatusActionAvailable: boolean;
 }
 
+function isGermanLocale(locale: string | null | undefined): boolean {
+  return locale?.toLowerCase().startsWith("de") ?? false;
+}
+
+function getUseCaseReadinessCopy(locale?: string) {
+  if (!isGermanLocale(locale)) {
+    return {
+      ownerItem: "Assign responsible role",
+      oversightItem: "Define oversight model",
+      reviewCycleItem: "Define review cycle",
+      riskItem: "Review risk class",
+      noSystem: "No system",
+      groundProofs: "Ground evidence",
+      systemEvidence: "System evidence",
+      formalReview: "Formal review",
+      documented: "documented",
+      noSystemDocumented: "No system documented",
+      systemsClassified: "systems classified for evidence",
+      systemClassified: "system classified for evidence",
+      formallyComplete: "Formally completed",
+      finalStepOpen: "Final step still open",
+    };
+  }
+
+  return {
+    ownerItem: "Verantwortliche Rolle festlegen",
+    oversightItem: "Aufsichtsmodell festlegen",
+    reviewCycleItem: "Review-Zyklus festlegen",
+    riskItem: "Risikoklasse pruefen",
+    noSystem: "Kein System",
+    groundProofs: "Grundnachweise",
+    systemEvidence: "Systemnachweis",
+    formalReview: "Formale Pruefung",
+    documented: "dokumentiert",
+    noSystemDocumented: "Noch kein System dokumentiert",
+    systemsClassified: "Systemen fuer den Nachweis eingeordnet",
+    systemClassified: "System fuer den Nachweis eingeordnet",
+    formallyComplete: "Formal abgeschlossen",
+    finalStepOpen: "Letzter Baustein noch offen",
+  };
+}
+
 function isProofReady(status: RegisterUseCaseStatus): boolean {
   return status === "PROOF_READY";
 }
@@ -59,13 +101,15 @@ function isProofReady(status: RegisterUseCaseStatus): boolean {
 export function computeUseCaseReadiness(
   card: UseCaseCard,
   orgSettings: OrgSettings | null = null,
+  locale?: string,
 ): UseCaseReadinessResult {
+  const copy = getUseCaseReadinessCopy(locale);
   const iso = card.governanceAssessment?.flex?.iso;
 
   const items: Array<UseCaseReadinessItem & { complete: boolean }> = [
     {
       key: "owner",
-      label: "Verantwortliche Rolle festlegen",
+      label: copy.ownerItem,
       target: {
         focus: "owner",
         edit: true,
@@ -76,7 +120,7 @@ export function computeUseCaseReadiness(
     },
     {
       key: "oversight",
-      label: "Aufsichtsmodell festlegen",
+      label: copy.oversightItem,
       target: {
         focus: "governance",
         edit: true,
@@ -87,7 +131,7 @@ export function computeUseCaseReadiness(
     },
     {
       key: "reviewCycle",
-      label: "Review-Zyklus festlegen",
+      label: copy.reviewCycleItem,
       target: {
         focus: "governance",
         edit: true,
@@ -99,7 +143,7 @@ export function computeUseCaseReadiness(
     },
     {
       key: "risk",
-      label: "Risikoklasse pruefen",
+      label: copy.riskItem,
       target: {
         focus: "governance",
       },
@@ -113,7 +157,7 @@ export function computeUseCaseReadiness(
   const completedItems = items.filter((item) => item.complete);
   const groundProofsComplete = missingItems.length === 0;
   const uniqueSystems = resolveUniqueSystemsForCompliance(card, {
-    emptyLabel: "Kein System",
+    emptyLabel: copy.noSystem,
   });
   const hasDocumentedSystem = uniqueSystems.some(
     (system) => Boolean(system.toolId) || Boolean(system.toolFreeText),
@@ -135,10 +179,10 @@ export function computeUseCaseReadiness(
   const steps: UseCaseReadinessStep[] = [
     {
       key: "groundProofs",
-      label: "Grundnachweise",
+      label: copy.groundProofs,
       detail:
         groundProofsComplete
-          ? `${completedItems.length} von ${items.length} dokumentiert`
+          ? `${completedItems.length} von ${items.length} ${copy.documented}`
           : missingItems.map((item) => item.label).join(", "),
       complete: groundProofsComplete,
       target: {
@@ -147,10 +191,14 @@ export function computeUseCaseReadiness(
     },
     {
       key: "systemEvidence",
-      label: "Systemnachweis",
+      label: copy.systemEvidence,
       detail: !hasDocumentedSystem
-        ? "Noch kein System dokumentiert"
-        : `${systemsReadyCount} von ${uniqueSystems.length} Systemen fuer den Nachweis eingeordnet`,
+        ? copy.noSystemDocumented
+        : `${systemsReadyCount} von ${uniqueSystems.length} ${
+            uniqueSystems.length === 1
+              ? copy.systemClassified
+              : copy.systemsClassified
+          }`,
       complete: systemEvidenceComplete,
       target: {
         focus: "systems",
@@ -158,10 +206,10 @@ export function computeUseCaseReadiness(
     },
     {
       key: "formalReview",
-      label: "Formale Pruefung",
+      label: copy.formalReview,
       detail: isProofReady(card.status)
-        ? "Formal abgeschlossen"
-        : "Letzter Baustein noch offen",
+        ? copy.formallyComplete
+        : copy.finalStepOpen,
       complete: isProofReady(card.status),
       target: {
         focus: "review",

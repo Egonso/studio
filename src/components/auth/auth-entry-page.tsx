@@ -191,6 +191,7 @@ export default function AuthEntryPage() {
 
   const autoValidatedCodeRef = useRef<string | null>(null);
   const authPanelRef = useRef<HTMLDivElement | null>(null);
+  const landingViewTrackedRef = useRef(false);
   const loginEmailInputRef = useRef<HTMLInputElement | null>(null);
 
   const hasExplicitAuthContext = Boolean(
@@ -211,6 +212,38 @@ export default function AuthEntryPage() {
     }),
     [intent, mode, routeContext],
   );
+
+  useEffect(() => {
+    if (landingViewTrackedRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+    const dedupeKey = `landing-page-view:${pathname}${search}`;
+    const now = Date.now();
+
+    try {
+      const lastTracked = Number(
+        window.sessionStorage.getItem(dedupeKey) ?? '0',
+      );
+      if (lastTracked && now - lastTracked < 10_000) {
+        landingViewTrackedRef.current = true;
+        return;
+      }
+      window.sessionStorage.setItem(dedupeKey, String(now));
+    } catch {
+      // Analytics must never block the entry flow.
+    }
+
+    landingViewTrackedRef.current = true;
+    void fetch('/api/analytics/landing-page-view', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ locale }),
+      keepalive: true,
+    }).catch(() => {});
+  }, [locale]);
 
   useEffect(() => {
     let cancelled = false;

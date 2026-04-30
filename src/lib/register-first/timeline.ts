@@ -1,4 +1,4 @@
-import { registerUseCaseStatusLabels } from "./status-flow";
+import { getRegisterUseCaseStatusLabel } from "./status-flow";
 import {
   getUseCaseSource,
   getUseCaseSourceBadges,
@@ -78,6 +78,97 @@ const FIELD_LABELS: Record<string, string> = {
   systemPublicInfo: "System-Compliance",
 };
 
+const FIELD_LABELS_EN: Record<string, string> = {
+  purpose: "Purpose",
+  usageContexts: "Scope",
+  "responsibility.responsibleParty": "Owner role",
+  "responsibility.contactPersonName": "Contact person",
+  organisation: "Organisation",
+  toolId: "System",
+  toolFreeText: "System name",
+  workflow: "Workflow & systems",
+  "workflow.additionalSystems": "Workflow & systems",
+  "workflow.connectionMode": "Workflow type",
+  "workflow.summary": "Workflow description",
+  dataCategory: "Data category",
+  dataCategories: "Data categories",
+  decisionImpact: "Decision relevance",
+  decisionInfluence: "Decision influence",
+  governanceAssessment: "Governance settings",
+  "governanceAssessment.core.aiActCategory": "AI risk class",
+  "governanceAssessment.flex.iso.reviewCycle": "Review cycle",
+  "governanceAssessment.flex.iso.oversightModel": "Oversight model",
+  "governanceAssessment.flex.iso.documentationLevel": "Documentation level",
+  "governanceAssessment.flex.iso.lifecycleStatus": "Lifecycle status",
+  isPublicVisible: "Visibility",
+  publicInfo: "Tool research",
+  systemPublicInfo: "System compliance",
+};
+
+function isEnglishLocale(locale: string | null | undefined): boolean {
+  return locale?.toLowerCase().startsWith("en") ?? false;
+}
+
+function getTimelineCopy(locale?: string) {
+  if (isEnglishLocale(locale)) {
+    return {
+      supplierSubmission: "Supplier submission",
+      accessCodeCapture: "Capture via access code",
+      import: "Import",
+      publicSubmission: "Public submission",
+      internalTeam: "Internal team",
+      useCaseUpdated: "Use case updated",
+      governanceUpdated: "Governance information updated",
+      visibilityUpdated: "Visibility updated",
+      complianceUpdated: "Compliance information updated",
+      masterDataUpdated: "Master data updated",
+      statusChanged: "Status changed",
+      manualCaptured: "Manually captured",
+      supplierReceived: "Supplier submission received",
+      accessCodeCaptured: "Captured via access code",
+      importAdopted: "Import adopted",
+      from: "From",
+      reference: "Reference",
+      externalApproved: "External submission approved",
+      externalRejected: "External submission rejected",
+      externalMerged: "External submission adopted",
+      useCaseCreated: "Use case created",
+      reviewDocumented: "Review documented",
+      proofUpdated: "Verification and proof data updated",
+      useCaseSealed: "Use case signed and sealed",
+    };
+  }
+
+  return {
+    supplierSubmission: "Lieferanteneinreichung",
+    accessCodeCapture: "Erfassung über Zugangscode",
+    import: "Import",
+    publicSubmission: "Öffentliche Einreichung",
+    internalTeam: "Internes Team",
+    useCaseUpdated: "Use Case aktualisiert",
+    governanceUpdated: "Governance-Angaben aktualisiert",
+    visibilityUpdated: "Sichtbarkeit aktualisiert",
+    complianceUpdated: "Compliance-Informationen aktualisiert",
+    masterDataUpdated: "Stammdaten aktualisiert",
+    statusChanged: "Status geändert",
+    manualCaptured: "Manuell erfasst",
+    supplierReceived: "Lieferanteneinreichung erhalten",
+    accessCodeCaptured: "Über Zugangscode erfasst",
+    importAdopted: "Import übernommen",
+    from: "Von",
+    reference: "Referenz",
+    externalApproved: "Externe Einreichung freigegeben",
+    externalRejected: "Externe Einreichung abgelehnt",
+    externalMerged: "Externe Einreichung übernommen",
+    useCaseCreated: "Use Case erstellt",
+    reviewDocumented: "Review dokumentiert",
+    proofUpdated: "Verify- und Proof-Daten aktualisiert",
+    useCaseSealed: "Use Case gezeichnet und versiegelt",
+  };
+}
+
+type TimelineCopy = ReturnType<typeof getTimelineCopy>;
+
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -93,7 +184,8 @@ function looksLikeOpaqueActorId(value: string): boolean {
 
 function formatTimelineActor(
   value: string | null | undefined,
-  fallback: string | null
+  fallback: string | null,
+  copy: TimelineCopy = getTimelineCopy(),
 ): string | null {
   const normalized = normalizeOptionalText(value);
   if (!normalized) {
@@ -105,11 +197,11 @@ function formatTimelineActor(
     uppercased === "SUPPLIER_REQUEST" ||
     uppercased === "SUPPLIER_REQUEST_LINK"
   ) {
-    return "Lieferanteneinreichung";
+    return copy.supplierSubmission;
   }
 
   if (uppercased === "ACCESS_CODE" || uppercased === "ACCESS_CODE_CAPTURE") {
-    return "Erfassung über Zugangscode";
+    return copy.accessCodeCapture;
   }
 
   if (uppercased === "IMPORT" || uppercased === "IMPORTED") {
@@ -117,11 +209,11 @@ function formatTimelineActor(
   }
 
   if (uppercased === "ANONYMOUS") {
-    return "Öffentliche Einreichung";
+    return copy.publicSubmission;
   }
 
   if (uppercased === "HUMAN") {
-    return "Internes Team";
+    return copy.internalTeam;
   }
 
   if (uppercased === "AUTOMATION" || uppercased === "SYSTEM") {
@@ -242,13 +334,30 @@ function summarizeManualEdit(changedFields: string[]): string {
   return "Use Case aktualisiert";
 }
 
-export function formatChangedFieldLabel(path: string): string {
-  return FIELD_LABELS[path] ?? path;
+export function formatChangedFieldLabel(path: string, locale?: string): string {
+  return (isEnglishLocale(locale) ? FIELD_LABELS_EN : FIELD_LABELS)[path] ?? path;
 }
 
-function formatChangedFieldLabels(paths: string[]): string[] {
-  const labels = paths.map(formatChangedFieldLabel);
+function formatChangedFieldLabels(paths: string[], locale?: string): string[] {
+  const labels = paths.map((path) => formatChangedFieldLabel(path, locale));
   return Array.from(new Set(labels));
+}
+
+function localizeManualEditSummary(summary: string, copy: TimelineCopy): string {
+  switch (summary) {
+    case "Governance-Angaben aktualisiert":
+      return copy.governanceUpdated;
+    case "Sichtbarkeit aktualisiert":
+      return copy.visibilityUpdated;
+    case "Compliance-Informationen aktualisiert":
+      return copy.complianceUpdated;
+    case "Stammdaten aktualisiert":
+      return copy.masterDataUpdated;
+    case "Use Case aktualisiert":
+      return copy.useCaseUpdated;
+    default:
+      return summary;
+  }
 }
 
 export function createManualEditEvent(input: {
@@ -280,7 +389,9 @@ export function createManualEditEvent(input: {
 function buildStatusChangeEvent(
   change: StatusChange,
   reviewKeys: Set<string>,
-  badges: UseCaseBadgeKey[]
+  badges: UseCaseBadgeKey[],
+  locale: string | undefined,
+  copy: TimelineCopy,
 ): RegisterTimelineEvent | null {
   const key = `${change.changedAt}:${change.changedBy}:${change.to}`;
   if (reviewKeys.has(key)) {
@@ -291,19 +402,27 @@ function buildStatusChangeEvent(
     id: `status_${change.changedAt}_${change.to}`,
     kind: "status_change",
     timestamp: change.changedAt,
-    title: `Status geändert: ${registerUseCaseStatusLabels[change.from]} → ${registerUseCaseStatusLabels[change.to]}`,
+    title: `${copy.statusChanged}: ${getRegisterUseCaseStatusLabel(
+      change.from,
+      locale,
+    )} → ${getRegisterUseCaseStatusLabel(change.to, locale)}`,
     description: normalizeOptionalText(change.reason),
     actor: formatTimelineActor(
       normalizeOptionalText(change.changedByName) ??
         normalizeOptionalText(change.changedBy),
-      "Internes Team"
+      copy.internalTeam,
+      copy,
     ),
     badges,
     tone: change.to === "PROOF_READY" ? "success" : "default",
   };
 }
 
-function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): RegisterTimelineEvent {
+function buildOriginEvent(
+  card: UseCaseCard,
+  badges: UseCaseBadgeKey[],
+  copy: TimelineCopy,
+): RegisterTimelineEvent {
   const source = getUseCaseSource(card);
   const submitter = getUseCaseSubmitterIdentity(card);
   const requestId =
@@ -315,29 +434,29 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
 
   const title =
     source === "supplier_request"
-      ? "Lieferanteneinreichung erhalten"
+      ? copy.supplierReceived
       : source === "access_code"
-        ? "Über Zugangscode erfasst"
+        ? copy.accessCodeCaptured
         : source === "import"
-          ? "Import übernommen"
-          : "Manuell erfasst";
+          ? copy.importAdopted
+          : copy.manualCaptured;
 
   const tone: RegisterTimelineEvent["tone"] =
     source === "manual" ? "default" : "warning";
   const actorFallback =
     source === "supplier_request"
-      ? "Lieferanteneinreichung"
+      ? copy.supplierSubmission
       : source === "access_code"
-        ? "Erfassung über Zugangscode"
+        ? copy.accessCodeCapture
         : source === "import"
-        ? "Import"
-          : "Internes Team";
-  const actor = formatTimelineActor(submitter, actorFallback);
+        ? copy.import
+          : copy.internalTeam;
+  const actor = formatTimelineActor(submitter, actorFallback, copy);
   const descriptionParts = [
-    actor && (source !== "manual" || actor !== "Internes Team")
-      ? `Von ${actor}`
+    actor && (source !== "manual" || actor !== copy.internalTeam)
+      ? `${copy.from} ${actor}`
       : null,
-    requestId ? `Referenz ${requestId}` : null,
+    requestId ? `${copy.reference} ${requestId}` : null,
   ].filter(Boolean);
 
   return {
@@ -354,7 +473,8 @@ function buildOriginEvent(card: UseCaseCard, badges: UseCaseBadgeKey[]): Registe
 
 function buildExternalSubmissionDecisionEvent(
   submission: ExternalSubmission,
-  badges: UseCaseBadgeKey[]
+  badges: UseCaseBadgeKey[],
+  copy: TimelineCopy,
 ): RegisterTimelineEvent | null {
   if (!submission.reviewedAt || submission.status === "submitted") {
     return null;
@@ -362,10 +482,10 @@ function buildExternalSubmissionDecisionEvent(
 
   const title =
     submission.status === "approved"
-      ? "Externe Einreichung freigegeben"
+      ? copy.externalApproved
       : submission.status === "rejected"
-        ? "Externe Einreichung abgelehnt"
-        : "Externe Einreichung übernommen";
+        ? copy.externalRejected
+        : copy.externalMerged;
 
   const details = [
     normalizeOptionalText(submission.reviewNote),
@@ -388,7 +508,8 @@ function buildExternalSubmissionDecisionEvent(
     description: details.join(" · ") || null,
     actor: formatTimelineActor(
       normalizeOptionalText(submission.reviewedBy),
-      "Internes Team"
+      copy.internalTeam,
+      copy,
     ),
     badges,
     tone,
@@ -398,8 +519,12 @@ function buildExternalSubmissionDecisionEvent(
 export function buildUseCaseTimeline(input: {
   card: UseCaseCard;
   submission?: ExternalSubmission | null;
+  locale?: string;
 }): RegisterTimelineEvent[] {
-  const badges = getUseCaseSourceBadges(input.card).map((badge) => badge.key);
+  const copy = getTimelineCopy(input.locale);
+  const badges = getUseCaseSourceBadges(input.card, input.locale).map(
+    (badge) => badge.key,
+  );
   const reviewKeys = new Set(
     input.card.reviews.map(
       (review) => `${review.reviewedAt}:${review.reviewedBy}:${review.nextStatus}`
@@ -411,7 +536,7 @@ export function buildUseCaseTimeline(input: {
       id: `created_${input.card.useCaseId}`,
       kind: "created",
       timestamp: input.card.createdAt,
-      title: "Use Case erstellt",
+      title: copy.useCaseCreated,
       description: normalizeOptionalText(input.card.globalUseCaseId)
         ? `ID ${input.card.globalUseCaseId}`
         : null,
@@ -419,36 +544,38 @@ export function buildUseCaseTimeline(input: {
         normalizeOptionalText(input.card.origin?.capturedByUserId) ??
           normalizeOptionalText(input.card.capturedBy),
         getUseCaseSource(input.card) === "supplier_request"
-          ? "Lieferanteneinreichung"
+          ? copy.supplierSubmission
           : getUseCaseSource(input.card) === "access_code"
-            ? "Erfassung über Zugangscode"
+            ? copy.accessCodeCapture
             : getUseCaseSource(input.card) === "import"
-              ? "Import"
-              : "Internes Team"
+              ? copy.import
+              : copy.internalTeam,
+        copy,
       ),
       badges,
       tone: "default",
     },
-    buildOriginEvent(input.card, badges),
+    buildOriginEvent(input.card, badges, copy),
     ...(input.card.manualEdits ?? []).map((edit) => ({
       id: `edit_${edit.editId}`,
       kind: "manual_edit" as const,
       timestamp: edit.editedAt,
-      title: edit.summary,
+      title: localizeManualEditSummary(edit.summary, copy),
       description:
         edit.changedFields.length > 0
-          ? formatChangedFieldLabels(edit.changedFields).join(", ")
+          ? formatChangedFieldLabels(edit.changedFields, input.locale).join(", ")
           : null,
       actor: formatTimelineActor(
         normalizeOptionalText(edit.editedByName) ??
           normalizeOptionalText(edit.editedBy),
-        "Internes Team"
+        copy.internalTeam,
+        copy,
       ),
       badges,
       tone: "default" as const,
     })),
     ...(input.card.statusHistory ?? []).map((change) =>
-      buildStatusChangeEvent(change, reviewKeys, badges)
+      buildStatusChangeEvent(change, reviewKeys, badges, input.locale, copy)
     ),
     ...input.card.reviews.map((review): RegisterTimelineEvent => {
       const tone: RegisterTimelineEvent["tone"] =
@@ -462,11 +589,15 @@ export function buildUseCaseTimeline(input: {
         id: `review_${review.reviewId}`,
         kind: "review",
         timestamp: review.reviewedAt,
-        title: `Review dokumentiert: ${registerUseCaseStatusLabels[review.nextStatus]}`,
+        title: `${copy.reviewDocumented}: ${getRegisterUseCaseStatusLabel(
+          review.nextStatus,
+          input.locale,
+        )}`,
         description: normalizeOptionalText(review.notes),
         actor: formatTimelineActor(
           normalizeOptionalText(review.reviewedBy),
-          "Internes Team"
+          copy.internalTeam,
+          copy,
         ),
         badges,
         tone,
@@ -477,7 +608,7 @@ export function buildUseCaseTimeline(input: {
           id: `proof_${input.card.useCaseId}`,
           kind: "proof" as const,
           timestamp: input.card.proof.generatedAt,
-          title: "Verify- und Proof-Daten aktualisiert",
+          title: copy.proofUpdated,
           description: normalizeOptionalText(input.card.proof.verification.scope),
           actor: null,
           badges,
@@ -489,19 +620,20 @@ export function buildUseCaseTimeline(input: {
           id: `seal_${input.card.useCaseId}`,
           kind: "seal" as const,
           timestamp: input.card.sealedAt,
-          title: "Use Case gezeichnet und versiegelt",
+          title: copy.useCaseSealed,
           description: normalizeOptionalText(input.card.sealHash),
           actor: formatTimelineActor(
             normalizeOptionalText(input.card.sealedByName) ??
               normalizeOptionalText(input.card.sealedBy),
-            "EUKI Officer"
+            "EUKI Officer",
+            copy,
           ),
           badges,
           tone: "success" as const,
         }
       : null,
     input.submission
-      ? buildExternalSubmissionDecisionEvent(input.submission, badges)
+      ? buildExternalSubmissionDecisionEvent(input.submission, badges, copy)
       : null,
   ];
 

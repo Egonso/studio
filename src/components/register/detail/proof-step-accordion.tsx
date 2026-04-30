@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import { useLocale } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import type {
   UseCaseReadinessResult,
@@ -27,35 +28,58 @@ function getStepHint(
   readiness: UseCaseReadinessResult,
   stepKey: UseCaseReadinessStepKey,
   presentation: StepPresentation,
+  locale?: string,
 ): string {
+  const isGerman = locale === "de";
   if (stepKey === "groundProofs") {
-    if (presentation === "completed") return "Bei Bedarf einsehbar.";
-    return "Erster Baustein des Nachweisstatus.";
+    if (presentation === "completed") {
+      return isGerman ? "Bei Bedarf einsehbar." : "Available when needed.";
+    }
+    return isGerman
+      ? "Erster Baustein des Nachweisstatus."
+      : "First evidence-status block.";
   }
 
   if (stepKey === "systemEvidence") {
     if (presentation === "upcoming")
-      return "Wird aktiv, sobald Schritt 1 abgeschlossen ist.";
-    if (presentation === "completed") return "Bei Bedarf einsehbar.";
-    return "Dokumentiert beteiligte Systeme und ihren Nachweisstand.";
+      return isGerman
+        ? "Wird aktiv, sobald Schritt 1 abgeschlossen ist."
+        : "Becomes active once step 1 is complete.";
+    if (presentation === "completed") {
+      return isGerman ? "Bei Bedarf einsehbar." : "Available when needed.";
+    }
+    return isGerman
+      ? "Dokumentiert beteiligte Systeme und ihren Nachweisstand."
+      : "Documents involved systems and their evidence status.";
   }
 
   // formalReview
   if (presentation === "upcoming") {
     if (readiness.nextStep?.key === "groundProofs")
-      return "Voraussetzung: zuerst Grundnachweise und danach Systemnachweis abschliessen.";
+      return isGerman
+        ? "Voraussetzung: zuerst Grundnachweise und danach Systemnachweis abschliessen."
+        : "Requirement: complete ground evidence first, then system evidence.";
     if (readiness.nextStep?.key === "systemEvidence")
-      return "Voraussetzung: Systemnachweis abschliessen.";
-    return "Dieser Schritt wird verfuegbar, sobald die fehlenden Nachweise abgeschlossen sind.";
+      return isGerman
+        ? "Voraussetzung: Systemnachweis abschliessen."
+        : "Requirement: complete system evidence.";
+    return isGerman
+      ? "Dieser Schritt wird verfuegbar, sobald die fehlenden Nachweise abgeschlossen sind."
+      : "This step becomes available once the missing evidence blocks are complete.";
   }
-  if (presentation === "completed") return "Bei Bedarf neu bewertbar.";
-  return "Letzter Baustein zur Nachweisfaehigkeit.";
+  if (presentation === "completed") {
+    return isGerman ? "Bei Bedarf neu bewertbar." : "Can be reassessed when needed.";
+  }
+  return isGerman
+    ? "Letzter Baustein zur Nachweisfaehigkeit."
+    : "Final block for evidence readiness.";
 }
 
-function getStatusLabel(presentation: StepPresentation): string {
-  if (presentation === "completed") return "abgeschlossen";
-  if (presentation === "active") return "aktiv";
-  return "noch nicht verfuegbar";
+function getStatusLabel(presentation: StepPresentation, locale?: string): string {
+  const isGerman = locale === "de";
+  if (presentation === "completed") return isGerman ? "abgeschlossen" : "complete";
+  if (presentation === "active") return isGerman ? "aktiv" : "active";
+  return isGerman ? "noch nicht verfuegbar" : "not yet available";
 }
 
 interface ProofStepAccordionProps {
@@ -71,6 +95,7 @@ export function ProofStepAccordion({
   focusExpandedStep,
   renderStep,
 }: ProofStepAccordionProps) {
+  const locale = useLocale();
   const [manualExpand, setManualExpand] = useState<
     Partial<Record<UseCaseReadinessStepKey, boolean>>
   >({});
@@ -79,8 +104,8 @@ export function ProofStepAccordion({
     <div className="space-y-3">
       {readiness.steps.map((step, index) => {
         const presentation = resolvePresentation(readiness, step.key);
-        const hint = getStepHint(readiness, step.key, presentation);
-        const statusLabel = getStatusLabel(presentation);
+        const hint = getStepHint(readiness, step.key, presentation, locale);
+        const statusLabel = getStatusLabel(presentation, locale);
         const renderer = renderStep[step.key];
 
         const isFocusForced = focusExpandedStep === step.key;

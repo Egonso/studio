@@ -3,13 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { ControlPolicyEngine } from '@/components/control/control-policy-engine';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { trackControlOpened } from '@/lib/analytics/control-events';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import {
   buildControlPolicyCoverage,
   buildDeterministicPolicyPreview,
@@ -60,6 +61,7 @@ function fallbackOrgSettings(register: Register): OrgSettings {
 
 export default function ControlPoliciesPage() {
   const t = useTranslations();
+  const locale = useLocale();
   const { user, loading } = useAuth();
   const router = useRouter();
   const {
@@ -71,6 +73,9 @@ export default function ControlPoliciesPage() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<PolicyLevel>(2);
+  const registerHref = localizeHref(locale, ROUTE_HREFS.register);
+  const controlHref = localizeHref(locale, ROUTE_HREFS.control);
+  const governanceUpgradeHref = localizeHref(locale, ROUTE_HREFS.governanceUpgrade);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -119,12 +124,14 @@ export default function ControlPoliciesPage() {
     } catch (error) {
       console.error('Failed to load control policy data', error);
       setDataError(
-        'Policy-Daten konnten nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut.',
+        locale === 'de'
+          ? 'Policy-Daten konnten nicht geladen werden. Bitte öffnen Sie ein Register und versuchen Sie es erneut.'
+          : 'Policy data could not be loaded. Please open a register and try again.',
       );
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (
@@ -140,8 +147,8 @@ export default function ControlPoliciesPage() {
 
   const coverage = useMemo(() => {
     if (!snapshot) return null;
-    return buildControlPolicyCoverage(snapshot.useCases, snapshot.policies);
-  }, [snapshot]);
+    return buildControlPolicyCoverage(snapshot.useCases, snapshot.policies, locale);
+  }, [snapshot, locale]);
 
   const preview = useMemo(() => {
     if (!snapshot) return null;
@@ -151,22 +158,35 @@ export default function ControlPoliciesPage() {
       snapshot.orgSettings,
       selectedLevel,
       snapshot.capturedAt,
+      locale,
     );
-  }, [snapshot, selectedLevel]);
+  }, [snapshot, selectedLevel, locale]);
 
   if (loading || capabilityLoading) {
     return (
       <SignedInAreaFrame
         area="paid_governance_control"
         title={t('policy.title')}
-        description="Policy Engine für Richtlinien, Versionen und Governance-Baselines."
-        nextStep="Die Policy-Abdeckung wird vorbereitet."
+        description={
+          locale === 'de'
+            ? 'Policy Engine für Richtlinien, Versionen und Governance-Baselines.'
+            : 'Policy Engine for policies, versions and governance baselines.'
+        }
+        nextStep={
+          locale === 'de'
+            ? 'Die Policy-Abdeckung wird vorbereitet.'
+            : 'Policy coverage is being prepared.'
+        }
       >
         <PageStatePanel
           tone="loading"
           area="paid_governance_control"
-          title="Policies werden geladen"
-          description="Richtlinien, Use Cases und Organisationsdaten werden vorbereitet."
+          title={locale === 'de' ? 'Policies werden geladen' : 'Loading policies'}
+          description={
+            locale === 'de'
+              ? 'Richtlinien, Use Cases und Organisationsdaten werden vorbereitet.'
+              : 'Policies, use cases and organisation data are being prepared.'
+          }
         />
       </SignedInAreaFrame>
     );
@@ -180,40 +200,56 @@ export default function ControlPoliciesPage() {
       title={t('policy.title')}
       description={
         snapshot?.register.organisationName
-          ? `Richtlinien und Governance-Baselines für ${snapshot.register.organisationName}.`
-          : 'Richtlinien und Governance-Baselines auf Organisationsebene.'
+          ? locale === 'de'
+            ? `Richtlinien und Governance-Baselines für ${snapshot.register.organisationName}.`
+            : `Policies and governance baselines for ${snapshot.register.organisationName}.`
+          : locale === 'de'
+            ? 'Richtlinien und Governance-Baselines auf Organisationsebene.'
+            : 'Policies and governance baselines at organisation level.'
       }
       nextStep={
         preview
-          ? `Prüfen Sie zuerst die Policy-Abdeckung für Level ${selectedLevel}.`
-          : 'Öffnen Sie Policies, Exports oder kehren Sie ins Register zurück.'
+          ? locale === 'de'
+            ? `Prüfen Sie zuerst die Policy-Abdeckung für Level ${selectedLevel}.`
+            : `Review policy coverage for Level ${selectedLevel} first.`
+          : locale === 'de'
+            ? 'Öffnen Sie Policies, Exports oder kehren Sie ins Register zurück.'
+            : 'Open policies, exports or return to the register.'
       }
     >
       <div className="space-y-6">
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Policies sind noch nicht freigeschaltet"
-            description="Die Policy Engine ist für diesen Workspace noch nicht aktiviert."
+            title={locale === 'de' ? 'Policies sind noch nicht freigeschaltet' : 'Policies are not enabled yet'}
+            description={
+              locale === 'de'
+                ? 'Die Policy Engine ist für diesen Workspace noch nicht aktiviert.'
+                : 'The Policy Engine is not enabled for this workspace yet.'
+            }
             actions={
               <Button asChild>
-                <Link href={ROUTE_HREFS.register}>Register öffnen</Link>
+                <Link href={registerHref}>{locale === 'de' ? 'Register öffnen' : 'Open register'}</Link>
               </Button>
             }
           />
         ) : !policyAllowed ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Policy Engine gehört zur Governance-Stufe"
-            description="Richtlinien, Versionen und Governance-Baselines werden über das bezahlte Entitlement freigeschaltet."
+            title={locale === 'de' ? 'Policy Engine gehört zur Governance-Stufe' : 'Policy Engine belongs to the governance tier'}
+            description={
+              locale === 'de'
+                ? 'Richtlinien, Versionen und Governance-Baselines werden über das bezahlte Entitlement freigeschaltet.'
+                : 'Policies, versions and governance baselines are unlocked through the paid entitlement.'
+            }
             actions={
               <>
                 <Button asChild>
-                  <Link href={ROUTE_HREFS.control}>Control öffnen</Link>
+                  <Link href={controlHref}>{locale === 'de' ? 'Control öffnen' : 'Open Control'}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.governanceUpgrade}>
-                    Upgrade-Optionen
+                  <Link href={governanceUpgradeHref}>
+                    {locale === 'de' ? 'Upgrade-Optionen' : 'Upgrade options'}
                   </Link>
                 </Button>
               </>
@@ -222,15 +258,19 @@ export default function ControlPoliciesPage() {
         ) : !registerFirstFlags.controlPolicyEngine ? (
           <PageStatePanel
             area="paid_governance_control"
-            title="Policy Engine folgt in Kürze"
-            description="Dieser Bereich wird aktuell erweitert und steht bald bereit."
+            title={locale === 'de' ? 'Policy Engine folgt in Kürze' : 'Policy Engine coming soon'}
+            description={
+              locale === 'de'
+                ? 'Dieser Bereich wird aktuell erweitert und steht bald bereit.'
+                : 'This area is being extended and will be available soon.'
+            }
             actions={
               <>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.control}>Zu Control</Link>
+                  <Link href={controlHref}>{locale === 'de' ? 'Zu Control' : 'To Control'}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={ROUTE_HREFS.register}>Zum Register</Link>
+                  <Link href={registerHref}>{locale === 'de' ? 'Zum Register' : 'To register'}</Link>
                 </Button>
               </>
             }
@@ -241,8 +281,12 @@ export default function ControlPoliciesPage() {
               <PageStatePanel
                 tone="loading"
                 area="paid_governance_control"
-                title="Policy-Daten werden geladen"
-                description="Policy-Abdeckung, Richtlinien und Registerdaten werden vorbereitet."
+                title={locale === 'de' ? 'Policy-Daten werden geladen' : 'Loading policy data'}
+                description={
+                  locale === 'de'
+                    ? 'Policy-Abdeckung, Richtlinien und Registerdaten werden vorbereitet.'
+                    : 'Policy coverage, policies and register data are being prepared.'
+                }
               />
             )}
 
@@ -250,7 +294,7 @@ export default function ControlPoliciesPage() {
               <PageStatePanel
                 tone="error"
                 area="paid_governance_control"
-                title="Policies konnten nicht geladen werden"
+                title={locale === 'de' ? 'Policies konnten nicht geladen werden' : 'Policies could not be loaded'}
                 description={dataError}
               />
             )}

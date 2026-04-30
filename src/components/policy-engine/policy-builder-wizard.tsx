@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useLocale } from "next-intl";
 import {
     Check,
     ChevronRight,
@@ -28,11 +29,13 @@ import type {
     PolicyContext,
     PolicyOrgSnapshot,
 } from "@/lib/policy-engine/types";
-import {
-    POLICY_LEVEL_LABELS,
-} from "@/lib/policy-engine/types";
 import { assemblePolicy } from "@/lib/policy-engine/assembler";
 import { PolicyPreview } from "./policy-preview";
+import {
+    getPolicyDocumentTitle,
+    getPolicyStatusLabel,
+    resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -55,13 +58,13 @@ interface PolicyBuilderWizardProps {
 // ── Step Definitions ──────────────────────────────────────────────────────────
 
 const STEPS = [
-    { icon: FileText, label: "Level wählen" },
-    { icon: Settings2, label: "Daten prüfen" },
-    { icon: Eye, label: "Vorschau" },
-    { icon: Save, label: "Speichern" },
+    { icon: FileText, key: "level" },
+    { icon: Settings2, key: "data" },
+    { icon: Eye, key: "preview" },
+    { icon: Save, key: "save" },
 ] as const;
 
-const LEVEL_DETAILS: Record<
+const LEVEL_DETAILS_DE: Record<
     PolicyLevel,
     { title: string; pages: string; description: string; sections: string[] }
 > = {
@@ -107,24 +110,69 @@ const LEVEL_DETAILS: Record<
     },
 };
 
+const LEVEL_DETAILS_EN: typeof LEVEL_DETAILS_DE = {
+    1: {
+        title: "Commitment",
+        pages: "~1 page",
+        description:
+            "Simple AI commitment statement for SMEs. Suitable as a quick starting point.",
+        sections: [
+            "AI commitment statement",
+            "Basic rules for AI use",
+            "Signature block",
+        ],
+    },
+    2: {
+        title: "Framework",
+        pages: "3-5 pages",
+        description:
+            "Complete AI framework with roles, risk management and training requirements.",
+        sections: [
+            "Everything from Level 1",
+            "Roles and responsibilities",
+            "Risk-based use",
+            "Incident management",
+            "Training and qualification",
+            "Monitoring and audit",
+        ],
+    },
+    3: {
+        title: "Advanced",
+        pages: "8-10 pages",
+        description:
+            "Advanced policy with data governance, high-risk sections and logging.",
+        sections: [
+            "Everything from Level 1 + 2",
+            "Data governance (where personal data is processed)",
+            "High-risk systems (where AI Act high-risk applies)",
+            "Transparency obligations",
+            "Validation and testing",
+            "Logging and alerting",
+            "HR recruitment (where applicant use cases exist)",
+        ],
+    },
+};
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function getAutoFilledFields(
     orgSnapshot: PolicyOrgSnapshot,
+    locale?: string,
 ): { label: string; value: string; filled: boolean }[] {
+    const isGerman = resolveGovernanceCopyLocale(locale) === "de";
     return [
         {
-            label: "Firmenname",
+            label: isGerman ? "Firmenname" : "Company name",
             value: orgSnapshot.organisationName || "",
             filled: Boolean(orgSnapshot.organisationName),
         },
         {
-            label: "Branche",
+            label: isGerman ? "Branche" : "Industry",
             value: orgSnapshot.industry || "",
             filled: Boolean(orgSnapshot.industry),
         },
         {
-            label: "Ansprechpartner",
+            label: isGerman ? "Ansprechpartner" : "Contact person",
             value: orgSnapshot.contactPerson || "",
             filled: Boolean(orgSnapshot.contactPerson),
         },
@@ -141,15 +189,81 @@ export function PolicyBuilderWizard({
     onSave,
     onCancel,
 }: PolicyBuilderWizardProps) {
+    const locale = useLocale();
+    const resolvedLocale = resolveGovernanceCopyLocale(locale);
+    const isGerman = resolvedLocale === "de";
     const [step, setStep] = useState<WizardStep>(1);
     const [selectedLevel, setSelectedLevel] = useState<PolicyLevel | null>(null);
     const [localSections, setLocalSections] = useState<PolicySection[]>([]);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const levelDetails = isGerman ? LEVEL_DETAILS_DE : LEVEL_DETAILS_EN;
+    const stepLabels = isGerman
+        ? {
+            level: "Level wählen",
+            data: "Daten prüfen",
+            preview: "Vorschau",
+            save: "Speichern",
+        }
+        : {
+            level: "Choose level",
+            data: "Review data",
+            preview: "Preview",
+            save: "Save",
+        };
+    const copy = isGerman
+        ? {
+            title: "Smart Policy Engine",
+            step: "Schritt",
+            of: "von",
+            chooseDescription:
+                "Wählen Sie den Umfang Ihrer KI-Richtlinie. Sie können später ein höheres Level erstellen.",
+            proPlan: "Pro-Plan",
+            continue: "Weiter",
+            filled: "Feldern befüllt",
+            missing: "Bitte ergänzen",
+            missingDescription:
+                "Fehlende Felder können Sie in den Governance-Einstellungen ergänzen. Die Richtlinie wird trotzdem erstellt.",
+            back: "Zurück",
+            generatedPlaceholder:
+                "Section-Inhalte werden durch den Assembler generiert",
+            generatedPlaceholderDescription:
+                "Sobald PE-2 Sections zur Verfügung stehen, erscheint hier die vollständige Richtlinie.",
+            sections: "Abschnitte",
+            organisation: "Organisation",
+            status: "Status",
+            saveDraft: "Als Entwurf speichern",
+            cancel: "Abbrechen",
+            saveError: "Fehler beim Speichern. Bitte versuchen Sie es erneut.",
+        }
+        : {
+            title: "Smart Policy Engine",
+            step: "Step",
+            of: "of",
+            chooseDescription:
+                "Choose the scope of your AI policy. You can create a higher level later.",
+            proPlan: "Pro plan",
+            continue: "Continue",
+            filled: "fields filled",
+            missing: "Please add",
+            missingDescription:
+                "Missing fields can be completed in Governance Settings. The policy will still be created.",
+            back: "Back",
+            generatedPlaceholder:
+                "Section contents are generated by the assembler",
+            generatedPlaceholderDescription:
+                "Once PE-2 sections are available, the complete policy will appear here.",
+            sections: "Sections",
+            organisation: "Organisation",
+            status: "Status",
+            saveDraft: "Save as draft",
+            cancel: "Cancel",
+            saveError: "Could not save. Please try again.",
+        };
 
     const autoFields = useMemo(
-        () => getAutoFilledFields(orgSnapshot),
-        [orgSnapshot],
+        () => getAutoFilledFields(orgSnapshot, locale),
+        [orgSnapshot, locale],
     );
     const filledCount = autoFields.filter((f) => f.filled).length;
 
@@ -160,13 +274,14 @@ export function PolicyBuilderWizard({
                 const assem = assemblePolicy({
                     ...context,
                     level: selectedLevel,
+                    locale,
                 });
                 setLocalSections(assem);
             } catch (err) {
                 console.error("Assembly failed", err);
             }
         }
-    }, [selectedLevel, context]);
+    }, [selectedLevel, context, locale]);
 
     const sections = localSections.length > 0 ? localSections : assembledSections;
 
@@ -182,12 +297,12 @@ export function PolicyBuilderWizard({
                 registerId: context?.register?.registerId || "",
                 level: selectedLevel,
                 status: "draft",
-                title: `KI-Richtlinie – ${POLICY_LEVEL_LABELS[selectedLevel]}`,
+                title: getPolicyDocumentTitle(selectedLevel, locale),
                 sections,
                 orgContextSnapshot: orgSnapshot,
             });
         } catch {
-            setError("Fehler beim Speichern. Bitte versuchen Sie es erneut.");
+            setError(copy.saveError);
         } finally {
             setIsSaving(false);
         }
@@ -198,7 +313,7 @@ export function PolicyBuilderWizard({
             <CardHeader>
                 <CardTitle>Smart Policy Engine</CardTitle>
                 <CardDescription>
-                    Schritt {step} von 4 — {STEPS[step - 1].label}
+                    {copy.step} {step} {copy.of} 4 - {stepLabels[STEPS[step - 1].key]}
                 </CardDescription>
                 {/* Step indicator */}
                 <div className="flex gap-1 pt-2">
@@ -225,7 +340,7 @@ export function PolicyBuilderWizard({
                                     ) : (
                                         <Icon className="h-2.5 w-2.5" />
                                     )}
-                                    <span className="hidden sm:inline">{s.label}</span>
+                                    <span className="hidden sm:inline">{stepLabels[s.key]}</span>
                                 </div>
                             </div>
                         );
@@ -244,12 +359,11 @@ export function PolicyBuilderWizard({
                 {step === 1 && (
                     <>
                         <p className="text-sm text-muted-foreground">
-                            Wählen Sie den Umfang Ihrer KI-Richtlinie. Sie können später
-                            ein höheres Level erstellen.
+                            {copy.chooseDescription}
                         </p>
                         <div className="grid gap-3">
                             {([1, 2, 3] as PolicyLevel[]).map((level) => {
-                                const detail = LEVEL_DETAILS[level];
+                                const detail = levelDetails[level];
                                 const isSelected = selectedLevel === level;
                                 const isLocked = level === 3 && !canAccessLevel3;
 
@@ -278,7 +392,7 @@ export function PolicyBuilderWizard({
                                             {isLocked && (
                                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                                     <Lock className="h-3 w-3" />
-                                                    <span>Pro-Plan</span>
+                                                    <span>{copy.proPlan}</span>
                                                 </div>
                                             )}
                                             {isSelected && (
@@ -308,7 +422,7 @@ export function PolicyBuilderWizard({
                             disabled={!selectedLevel}
                             className="w-full mt-4"
                         >
-                            Weiter
+                            {copy.continue}
                             <ChevronRight className="ml-2 h-4 w-4" />
                         </Button>
                     </>
@@ -319,7 +433,7 @@ export function PolicyBuilderWizard({
                     <>
                         <div className="flex items-center gap-2">
                             <Badge variant="secondary">
-                                {filledCount} von {autoFields.length} Feldern befüllt
+                                {filledCount} {copy.of} {autoFields.length} {copy.filled}
                             </Badge>
                         </div>
                         <div className="space-y-2">
@@ -339,22 +453,21 @@ export function PolicyBuilderWizard({
                                         </span>
                                     ) : (
                                         <span className="text-amber-700 dark:text-amber-400">
-                                            Bitte ergänzen
+                                            {copy.missing}
                                         </span>
                                     )}
                                 </div>
                             ))}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            Fehlende Felder können Sie in den Governance-Einstellungen
-                            ergänzen. Die Richtlinie wird trotzdem erstellt.
+                            {copy.missingDescription}
                         </p>
                         <div className="flex gap-2 mt-4">
                             <Button variant="outline" onClick={back} className="flex-1">
-                                Zurück
+                                {copy.back}
                             </Button>
                             <Button onClick={next} className="flex-1">
-                                Weiter
+                                {copy.continue}
                                 <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
@@ -370,20 +483,19 @@ export function PolicyBuilderWizard({
                             <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
                                 <FileText className="mx-auto h-8 w-8 mb-2 opacity-50" />
                                 <p className="text-sm font-medium">
-                                    Section-Inhalte werden durch den Assembler generiert
+                                    {copy.generatedPlaceholder}
                                 </p>
                                 <p className="text-xs mt-1">
-                                    Sobald PE-2 Sections zur Verfügung stehen, erscheint hier die
-                                    vollständige Richtlinie.
+                                    {copy.generatedPlaceholderDescription}
                                 </p>
                             </div>
                         )}
                         <div className="flex gap-2 mt-4">
                             <Button variant="outline" onClick={back} className="flex-1">
-                                Zurück
+                                {copy.back}
                             </Button>
                             <Button onClick={next} className="flex-1">
-                                Weiter
+                                {copy.continue}
                                 <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
@@ -397,27 +509,27 @@ export function PolicyBuilderWizard({
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">Level</span>
                                 <span className="font-medium">
-                                    {selectedLevel}: {LEVEL_DETAILS[selectedLevel].title}
+                                    {selectedLevel}: {levelDetails[selectedLevel].title}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Abschnitte</span>
+                                <span className="text-muted-foreground">{copy.sections}</span>
                                 <span className="font-medium">{sections.length}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Organisation</span>
+                                <span className="text-muted-foreground">{copy.organisation}</span>
                                 <span className="font-medium">
                                     {orgSnapshot.organisationName || "–"}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Status</span>
-                                <Badge variant="secondary">Entwurf</Badge>
+                                <span className="text-muted-foreground">{copy.status}</span>
+                                <Badge variant="secondary">{getPolicyStatusLabel("draft", locale)}</Badge>
                             </div>
                         </div>
                         <div className="flex gap-2 mt-4">
                             <Button variant="outline" onClick={back} className="flex-1">
-                                Zurück
+                                {copy.back}
                             </Button>
                             <Button
                                 onClick={() => void handleSave()}
@@ -425,7 +537,7 @@ export function PolicyBuilderWizard({
                                 className="flex-1"
                             >
                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Als Entwurf speichern
+                                {copy.saveDraft}
                             </Button>
                         </div>
                         {onCancel && (
@@ -434,7 +546,7 @@ export function PolicyBuilderWizard({
                                 onClick={onCancel}
                                 className="w-full text-muted-foreground"
                             >
-                                Abbrechen
+                                {copy.cancel}
                             </Button>
                         )}
                     </>

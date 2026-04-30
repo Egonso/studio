@@ -2,10 +2,14 @@ import { calculateReviewDeadline } from "@/lib/compliance-engine/reminders/revie
 import { buildUseCaseFocusLink } from "@/lib/control/deep-link";
 import { calculateControlOverview } from "@/lib/control/maturity-calculator";
 import {
+  resolveGovernanceCopyLocale,
+  type GovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
+import {
   isHighRiskClass,
   parseStoredAiActCategory,
 } from "@/lib/register-first/risk-taxonomy";
-import { registerUseCaseStatusLabels } from "@/lib/register-first/status-flow";
+import { getRegisterUseCaseStatusLabel } from "@/lib/register-first/status-flow";
 import type {
   OrgSettings,
   RegisterUseCaseStatus,
@@ -74,6 +78,206 @@ function percentage(part: number, total: number): number {
   return Math.round((part / total) * 100);
 }
 
+const ORG_AUDIT_LAYER_COPY: Record<
+  GovernanceCopyLocale,
+  {
+    history: {
+      statusDocumented: string;
+      statusChanged: string;
+    };
+    gaps: Record<
+      string,
+      {
+        title: string;
+        impact: string;
+        recommendedAction: string;
+      }
+    >;
+    iso: {
+      contextTitle: string;
+      contextComplete: string;
+      contextIncomplete: string;
+      leadershipTitle: string;
+      policyPresent: string;
+      policyMissing: string;
+      rolesDocumented: string;
+      rolesOpen: string;
+      planningTitle: string;
+      planningEvidence: (withOwner: number, total: number, withOversight: number) => string;
+      operationTitle: string;
+      operationEvidence: (withReviewCycle: number, total: number) => string;
+      monitoringTitle: string;
+      monitoringEvidence: (
+        withAuditHistory: number,
+        total: number,
+        dueOrOverdue: number
+      ) => string;
+      improvementTitle: string;
+      incidentDocumented: string;
+      incidentMissing: string;
+    };
+  }
+> = {
+  de: {
+    history: {
+      statusDocumented: "Status dokumentiert",
+      statusChanged: "Statuswechsel",
+    },
+    gaps: {
+      "owner-coverage": {
+        title: "Verantwortlichkeiten nachziehen",
+        impact: "Systeme ohne Owner erschweren die Nachweisführung im Audit.",
+        recommendedAction: "Owner für offene Einsatzfälle dokumentieren.",
+      },
+      "review-coverage": {
+        title: "Review-Zyklen strukturieren",
+        impact: "Ohne Review-Zyklus fehlt ein formaler Lifecycle-Nachweis.",
+        recommendedAction: "Review-Frequenz und nächsten Review-Termin erfassen.",
+      },
+      "high-risk-oversight": {
+        title: "Aufsichtsmodell für Hochrisiko-Fälle vervollständigen",
+        impact: "Hochrisiko-Einsatzfälle ohne Aufsicht erzeugen Audit-Lücken.",
+        recommendedAction: "Aufsichtsmodell pro Hochrisiko-Einsatzfall festlegen.",
+      },
+      "policy-coverage": {
+        title: "Policy-Zuordnung erweitern",
+        impact: "Ohne Policy-Mapping sind organisationsweite Nachweise unvollständig.",
+        recommendedAction: "Policy-Links in der Governance-Bewertung pflegen.",
+      },
+      "audit-history": {
+        title: "Immutable Historie ausbauen",
+        impact: "Fehlende Review-/Statushistorie reduziert Audit-Transparenz.",
+        recommendedAction: "Reviews und Statuswechsel begründet dokumentieren.",
+      },
+      "documentation-level": {
+        title: "Dokumentationsniveau harmonisieren",
+        impact: "Uneinheitliche Dokumentation erschwert org-weite Lifecycle-Steuerung.",
+        recommendedAction:
+          "Dokumentationslevel je Einsatzfall auf minimal, standard oder extended festlegen.",
+      },
+      "org-policy-baseline": {
+        title: "Org-Richtlinie dokumentieren",
+        impact: "Ohne Organisationsrichtlinie bleibt Clause 5 unvollständig.",
+        recommendedAction:
+          "Org-Einstellungen um eine gültige KI-Richtlinie ergänzen.",
+      },
+      "incident-process-baseline": {
+        title: "Incident-Prozess hinterlegen",
+        impact: "Fehlende Verbesserungsprozesse reduzieren Audit-Readiness.",
+        recommendedAction:
+          "Incident-Prozess in den Org-Einstellungen dokumentieren.",
+      },
+    },
+    iso: {
+      contextTitle: "Kontext der Organisation",
+      contextComplete: "Organisation und Scope sind dokumentiert.",
+      contextIncomplete:
+        "Organisation/Scope in Org-Einstellungen unvollständig.",
+      leadershipTitle: "Führung und Rollen",
+      policyPresent: "KI-Richtlinie vorhanden",
+      policyMissing: "KI-Richtlinie fehlt",
+      rolesDocumented: "Rollenrahmen dokumentiert",
+      rolesOpen: "Rollenrahmen offen",
+      planningTitle: "Planung und Risikobeherrschung",
+      planningEvidence: (withOwner, total, withOversight) =>
+        `${withOwner}/${total} Systeme mit Owner, ${withOversight}/${total} mit Aufsicht.`,
+      operationTitle: "Operation und Lifecycle",
+      operationEvidence: (withReviewCycle, total) =>
+        `${withReviewCycle}/${total} Systeme mit Review-Zyklus.`,
+      monitoringTitle: "Leistungsbewertung",
+      monitoringEvidence: (withAuditHistory, total, dueOrOverdue) =>
+        `${withAuditHistory}/${total} Systeme mit Historie; ${dueOrOverdue} mit kurzfristigem Review-Bedarf.`,
+      improvementTitle: "Verbesserung",
+      incidentDocumented: "Incident-Prozess dokumentiert.",
+      incidentMissing: "Incident-Prozess nicht dokumentiert.",
+    },
+  },
+  en: {
+    history: {
+      statusDocumented: "Status documented",
+      statusChanged: "Status changed",
+    },
+    gaps: {
+      "owner-coverage": {
+        title: "Complete owner assignments",
+        impact: "Systems without owners make audit evidence harder to provide.",
+        recommendedAction: "Document owners for open use cases.",
+      },
+      "review-coverage": {
+        title: "Structure review cycles",
+        impact: "Without a review cycle, formal lifecycle evidence is missing.",
+        recommendedAction:
+          "Record the review frequency and next review date.",
+      },
+      "high-risk-oversight": {
+        title: "Complete oversight model for high-risk cases",
+        impact: "High-risk use cases without oversight create audit gaps.",
+        recommendedAction:
+          "Define the oversight model for each high-risk use case.",
+      },
+      "policy-coverage": {
+        title: "Extend policy mapping",
+        impact:
+          "Organisation-wide evidence remains incomplete without policy mapping.",
+        recommendedAction:
+          "Maintain policy links in the governance assessment.",
+      },
+      "audit-history": {
+        title: "Expand immutable history",
+        impact: "Missing review/status history reduces audit transparency.",
+        recommendedAction:
+          "Document reviews and status changes with clear rationale.",
+      },
+      "documentation-level": {
+        title: "Harmonise documentation levels",
+        impact:
+          "Inconsistent documentation makes organisation-wide lifecycle control harder.",
+        recommendedAction:
+          "Set the documentation level for each use case to minimal, standard or extended.",
+      },
+      "org-policy-baseline": {
+        title: "Document organisation policy",
+        impact: "Without an organisation policy, Clause 5 remains incomplete.",
+        recommendedAction:
+          "Add a valid AI policy in the organisation settings.",
+      },
+      "incident-process-baseline": {
+        title: "Store incident process",
+        impact: "Missing improvement processes reduce audit readiness.",
+        recommendedAction:
+          "Document the incident process in the organisation settings.",
+      },
+    },
+    iso: {
+      contextTitle: "Context of the organisation",
+      contextComplete: "Organisation and scope are documented.",
+      contextIncomplete:
+        "Organisation/scope is incomplete in organisation settings.",
+      leadershipTitle: "Leadership and roles",
+      policyPresent: "AI policy available",
+      policyMissing: "AI policy missing",
+      rolesDocumented: "Role framework documented",
+      rolesOpen: "Role framework open",
+      planningTitle: "Planning and risk control",
+      planningEvidence: (withOwner, total, withOversight) =>
+        `${withOwner}/${total} systems with owner, ${withOversight}/${total} with oversight.`,
+      operationTitle: "Operation and lifecycle",
+      operationEvidence: (withReviewCycle, total) =>
+        `${withReviewCycle}/${total} systems with review cycle.`,
+      monitoringTitle: "Performance evaluation",
+      monitoringEvidence: (withAuditHistory, total, dueOrOverdue) =>
+        `${withAuditHistory}/${total} systems with history; ${dueOrOverdue} with short-term review need.`,
+      improvementTitle: "Improvement",
+      incidentDocumented: "Incident process documented.",
+      incidentMissing: "Incident process not documented.",
+    },
+  },
+};
+
+function getOrgAuditLayerCopy(locale?: string | null) {
+  return ORG_AUDIT_LAYER_COPY[resolveGovernanceCopyLocale(locale)];
+}
+
 function hasOwner(useCase: UseCaseCard): boolean {
   if (useCase.responsibility.isCurrentlyResponsible) return true;
   return Boolean(useCase.responsibility.responsibleParty?.trim());
@@ -136,8 +340,12 @@ function createImmutableReference(payload: string): string {
   return `IMM-${fnv1aHash(payload).toUpperCase()}`;
 }
 
-function buildImmutableHistoryEntries(useCases: UseCaseCard[]): ImmutableHistoryEntry[] {
+function buildImmutableHistoryEntries(
+  useCases: UseCaseCard[],
+  locale?: string | null
+): ImmutableHistoryEntry[] {
   const entries: ImmutableHistoryEntry[] = [];
+  const copy = getOrgAuditLayerCopy(locale);
 
   for (const useCase of useCases) {
     for (const review of useCase.reviews) {
@@ -160,8 +368,9 @@ function buildImmutableHistoryEntries(useCases: UseCaseCard[]): ImmutableHistory
         actor: review.reviewedBy,
         useCaseId: useCase.useCaseId,
         useCasePurpose: useCase.purpose,
-        details: `Status dokumentiert: ${
-          registerUseCaseStatusLabels[review.nextStatus] ?? review.nextStatus
+        details: `${copy.history.statusDocumented}: ${
+          getRegisterUseCaseStatusLabel(review.nextStatus, locale ?? undefined) ??
+          review.nextStatus
         }${review.notes ? ` (${review.notes})` : ""}`,
         deepLink: buildUseCaseFocusLink(useCase.useCaseId, "audit"),
       });
@@ -179,8 +388,12 @@ function buildImmutableHistoryEntries(useCases: UseCaseCard[]): ImmutableHistory
         change.reason ?? "",
       ].join("|");
 
-      const fromLabel = registerUseCaseStatusLabels[change.from] ?? change.from;
-      const toLabel = registerUseCaseStatusLabels[change.to] ?? change.to;
+      const fromLabel =
+        getRegisterUseCaseStatusLabel(change.from, locale ?? undefined) ??
+        change.from;
+      const toLabel =
+        getRegisterUseCaseStatusLabel(change.to, locale ?? undefined) ??
+        change.to;
 
       entries.push({
         eventId: `${useCase.useCaseId}:status:${index}`,
@@ -191,7 +404,7 @@ function buildImmutableHistoryEntries(useCases: UseCaseCard[]): ImmutableHistory
         actor: change.changedByName || change.changedBy,
         useCaseId: useCase.useCaseId,
         useCasePurpose: useCase.purpose,
-        details: `Statuswechsel: ${fromLabel} -> ${toLabel}${
+        details: `${copy.history.statusChanged}: ${fromLabel} -> ${toLabel}${
           change.reason ? ` (${change.reason})` : ""
         }`,
         deepLink: buildUseCaseFocusLink(useCase.useCaseId, "audit"),
@@ -212,20 +425,28 @@ function buildImmutableHistoryEntries(useCases: UseCaseCard[]): ImmutableHistory
 function buildGapAnalysis(
   useCases: UseCaseCard[],
   orgSettings: OrgSettings | null | undefined,
-  now: Date
+  now: Date,
+  locale?: string | null
 ): AuditGapItem[] {
-  const overview = calculateControlOverview(useCases, orgSettings, now);
+  const overview = calculateControlOverview(
+    useCases,
+    orgSettings,
+    now,
+    locale ?? undefined
+  );
   const dataBasis = overview.maturity.dataBasis;
   const totalSystems = Math.max(dataBasis.totalSystems, 0);
+  const copy = getOrgAuditLayerCopy(locale);
   const items: AuditGapItem[] = [];
 
   const ownerCoverage = percentage(dataBasis.systemsWithOwner, totalSystems);
   if (dataBasis.systemsWithOwner < totalSystems) {
+    const gap = copy.gaps["owner-coverage"];
     items.push({
       id: "owner-coverage",
-      title: "Verantwortlichkeiten nachziehen",
-      impact: "Systeme ohne Owner erschweren die Nachweisfuehrung im Audit.",
-      recommendedAction: "Owner fuer offene Einsatzfaelle dokumentieren.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems - dataBasis.systemsWithOwner,
       coveragePercent: ownerCoverage,
       deepLink: pickDeepLink(useCases, (useCase) => !hasOwner(useCase), "owner"),
@@ -234,11 +455,12 @@ function buildGapAnalysis(
 
   const reviewCoverage = percentage(dataBasis.systemsWithReviewStructure, totalSystems);
   if (dataBasis.systemsWithReviewStructure < totalSystems) {
+    const gap = copy.gaps["review-coverage"];
     items.push({
       id: "review-coverage",
-      title: "Review-Zyklen strukturieren",
-      impact: "Ohne Review-Zyklus fehlt ein formaler Lifecycle-Nachweis.",
-      recommendedAction: "Review-Frequenz und naechsten Review-Termin erfassen.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems - dataBasis.systemsWithReviewStructure,
       coveragePercent: reviewCoverage,
       deepLink: pickDeepLink(
@@ -254,11 +476,12 @@ function buildGapAnalysis(
     dataBasis.highRiskSystems
   );
   if (dataBasis.highRiskSystems > dataBasis.highRiskWithOversight) {
+    const gap = copy.gaps["high-risk-oversight"];
     items.push({
       id: "high-risk-oversight",
-      title: "Aufsichtsmodell fuer Hochrisiko faelle vervollstaendigen",
-      impact: "Hochrisiko-Einsatzfaelle ohne Aufsicht erzeugen Audit-Luecken.",
-      recommendedAction: "Aufsichtsmodell pro Hochrisiko-Einsatzfall festlegen.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: dataBasis.highRiskSystems - dataBasis.highRiskWithOversight,
       coveragePercent: highRiskCoverage,
       deepLink: pickDeepLink(
@@ -271,11 +494,12 @@ function buildGapAnalysis(
 
   const policyCoverage = percentage(dataBasis.systemsWithPolicyMapping, totalSystems);
   if (dataBasis.systemsWithPolicyMapping < totalSystems) {
+    const gap = copy.gaps["policy-coverage"];
     items.push({
       id: "policy-coverage",
-      title: "Policy-Zuordnung erweitern",
-      impact: "Ohne Policy-Mapping sind organisationsweite Nachweise unvollstaendig.",
-      recommendedAction: "Policy-Links in der Governance-Bewertung pflegen.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems - dataBasis.systemsWithPolicyMapping,
       coveragePercent: policyCoverage,
       deepLink: pickDeepLink(
@@ -288,11 +512,12 @@ function buildGapAnalysis(
 
   const auditCoverage = percentage(dataBasis.systemsWithAuditHistory, totalSystems);
   if (dataBasis.systemsWithAuditHistory < totalSystems) {
+    const gap = copy.gaps["audit-history"];
     items.push({
       id: "audit-history",
-      title: "Immutable Historie ausbauen",
-      impact: "Fehlende Review-/Statushistorie reduziert Audit-Transparenz.",
-      recommendedAction: "Reviews und Statuswechsel begruendet dokumentieren.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems - dataBasis.systemsWithAuditHistory,
       coveragePercent: auditCoverage,
       deepLink: pickDeepLink(
@@ -308,11 +533,12 @@ function buildGapAnalysis(
     totalSystems
   );
   if (dataBasis.systemsWithDocumentationLevel < totalSystems) {
+    const gap = copy.gaps["documentation-level"];
     items.push({
       id: "documentation-level",
-      title: "Dokumentationsniveau harmonisieren",
-      impact: "Uneinheitliche Dokumentation erschwert org-weite Lifecycle-Steuerung.",
-      recommendedAction: "Dokumentationslevel je Einsatzfall auf minimal/standard/extended festlegen.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems - dataBasis.systemsWithDocumentationLevel,
       coveragePercent: documentationCoverage,
       deepLink: pickDeepLink(
@@ -324,11 +550,12 @@ function buildGapAnalysis(
   }
 
   if (!orgSettings?.aiPolicy?.url?.trim()) {
+    const gap = copy.gaps["org-policy-baseline"];
     items.push({
       id: "org-policy-baseline",
-      title: "Org-Richtlinie dokumentieren",
-      impact: "Ohne Organisationsrichtlinie bleibt Clause 5 unvollstaendig.",
-      recommendedAction: "Org-Einstellungen um eine gueltige KI-Richtlinie ergaenzen.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems,
       coveragePercent: 0,
       deepLink: null,
@@ -336,11 +563,12 @@ function buildGapAnalysis(
   }
 
   if (!orgSettings?.incidentProcess?.url?.trim()) {
+    const gap = copy.gaps["incident-process-baseline"];
     items.push({
       id: "incident-process-baseline",
-      title: "Incident-Prozess hinterlegen",
-      impact: "Fehlende Verbesserungsprozesse reduzieren Audit-Readiness.",
-      recommendedAction: "Incident-Prozess in den Org-Einstellungen dokumentieren.",
+      title: gap.title,
+      impact: gap.impact,
+      recommendedAction: gap.recommendedAction,
       affectedSystems: totalSystems,
       coveragePercent: 0,
       deepLink: null,
@@ -353,9 +581,11 @@ function buildGapAnalysis(
 function buildIsoClauseProgress(
   useCases: UseCaseCard[],
   orgSettings: OrgSettings | null | undefined,
-  now: Date
+  now: Date,
+  locale?: string | null
 ): AuditIsoClauseProgress[] {
   const totalSystems = useCases.length;
+  const copy = getOrgAuditLayerCopy(locale);
   const withOwner = useCases.filter((useCase) => hasOwner(useCase)).length;
   const withReviewCycle = useCases.filter((useCase) => hasReviewStructure(useCase)).length;
   const withOversight = useCases.filter((useCase) => hasOversightModel(useCase)).length;
@@ -407,54 +637,58 @@ function buildIsoClauseProgress(
   return [
     {
       clause: "4",
-      title: "Kontext der Organisation",
+      title: copy.iso.contextTitle,
       documented: contextCoverage >= 100,
       coveragePercent: contextCoverage,
       evidence:
         contextCoverage >= 100
-          ? "Organisation und Scope sind dokumentiert."
-          : "Organisation/Scope in Org-Einstellungen unvollstaendig.",
+          ? copy.iso.contextComplete
+          : copy.iso.contextIncomplete,
     },
     {
       clause: "5",
-      title: "Fuehrung und Rollen",
+      title: copy.iso.leadershipTitle,
       documented: leadershipCoverage >= 100,
       coveragePercent: leadershipCoverage,
-      evidence: `${orgSettings?.aiPolicy?.url ? "KI-Richtlinie vorhanden" : "KI-Richtlinie fehlt"}; ${
+      evidence: `${orgSettings?.aiPolicy?.url ? copy.iso.policyPresent : copy.iso.policyMissing}; ${
         orgSettings?.rolesFramework?.booleanDefined
-          ? "Rollenrahmen dokumentiert"
-          : "Rollenrahmen offen"
+          ? copy.iso.rolesDocumented
+          : copy.iso.rolesOpen
       }`,
     },
     {
       clause: "6",
-      title: "Planung und Risikobeherrschung",
+      title: copy.iso.planningTitle,
       documented: planningCoverage >= 80,
       coveragePercent: planningCoverage,
-      evidence: `${withOwner}/${totalSystems} Systeme mit Owner, ${withOversight}/${totalSystems} mit Aufsicht.`,
+      evidence: copy.iso.planningEvidence(withOwner, totalSystems, withOversight),
     },
     {
       clause: "8",
-      title: "Operation und Lifecycle",
+      title: copy.iso.operationTitle,
       documented: operationCoverage >= 80,
       coveragePercent: operationCoverage,
-      evidence: `${withReviewCycle}/${totalSystems} Systeme mit Review-Zyklus.`,
+      evidence: copy.iso.operationEvidence(withReviewCycle, totalSystems),
     },
     {
       clause: "9",
-      title: "Leistungsbewertung",
+      title: copy.iso.monitoringTitle,
       documented: monitoringCoverage >= 80,
       coveragePercent: monitoringCoverage,
-      evidence: `${withAuditHistory}/${totalSystems} Systeme mit Historie; ${dueOrOverdue} mit kurzfristigem Review-Bedarf.`,
+      evidence: copy.iso.monitoringEvidence(
+        withAuditHistory,
+        totalSystems,
+        dueOrOverdue
+      ),
     },
     {
       clause: "10",
-      title: "Verbesserung",
+      title: copy.iso.improvementTitle,
       documented: improvementCoverage >= 100,
       coveragePercent: improvementCoverage,
       evidence: orgSettings?.incidentProcess?.url
-        ? "Incident-Prozess dokumentiert."
-        : "Incident-Prozess nicht dokumentiert.",
+        ? copy.iso.incidentDocumented
+        : copy.iso.incidentMissing,
     },
   ];
 }
@@ -518,9 +752,15 @@ function buildLifecycleSummary(useCases: UseCaseCard[], now: Date): AuditIsoLife
 export function buildOrgAuditLayer(
   useCases: UseCaseCard[],
   orgSettings?: OrgSettings | null,
-  now: Date = new Date()
+  now: Date = new Date(),
+  locale?: string | null
 ): OrgAuditLayerSnapshot {
-  const overview = calculateControlOverview(useCases, orgSettings, now);
+  const overview = calculateControlOverview(
+    useCases,
+    orgSettings,
+    now,
+    locale ?? undefined
+  );
   const lifecycle = buildLifecycleSummary(useCases, now);
 
   const statusDistribution: Record<RegisterUseCaseStatus, number> = {
@@ -541,8 +781,8 @@ export function buildOrgAuditLayer(
     maturityLevel: overview.maturity.currentLevel,
     statusDistribution,
     lifecycle,
-    isoClauseProgress: buildIsoClauseProgress(useCases, orgSettings, now),
-    gapAnalysis: buildGapAnalysis(useCases, orgSettings, now),
-    immutableReviewHistory: buildImmutableHistoryEntries(useCases),
+    isoClauseProgress: buildIsoClauseProgress(useCases, orgSettings, now, locale),
+    gapAnalysis: buildGapAnalysis(useCases, orgSettings, now, locale),
+    immutableReviewHistory: buildImmutableHistoryEntries(useCases, locale),
   };
 }

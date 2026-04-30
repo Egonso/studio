@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { PortfolioIntelligence } from "@/components/control/portfolio-intelligence";
@@ -24,6 +25,7 @@ interface PortfolioSnapshot {
 
 export default function ControlPortfolioPage() {
   const { user, loading } = useAuth();
+  const locale = useLocale();
   const router = useRouter();
   const scopedHrefs = useScopedRouteHrefs();
 
@@ -63,12 +65,14 @@ export default function ControlPortfolioPage() {
     } catch (error) {
       console.error("Failed to load portfolio intelligence data", error);
       setDataError(
-        "Portfolio Intelligence konnte nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut."
+        locale === "de"
+          ? "Portfolio Intelligence konnte nicht geladen werden. Bitte öffnen Sie ein Register und versuchen Sie es erneut."
+          : "Portfolio Intelligence could not be loaded. Please open a register and try again."
       );
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (!loading && user && registerFirstFlags.controlShell) {
@@ -78,8 +82,8 @@ export default function ControlPortfolioPage() {
 
   const metrics = useMemo(() => {
     if (!snapshot) return null;
-    return buildPortfolioMetrics(snapshot.useCases, snapshot.capturedAt);
-  }, [snapshot]);
+    return buildPortfolioMetrics(snapshot.useCases, snapshot.capturedAt, locale);
+  }, [snapshot, locale]);
 
   if (loading) {
     return (
@@ -102,31 +106,35 @@ export default function ControlPortfolioPage() {
           {!registerFirstFlags.controlShell ? (
             <Card>
               <CardHeader>
-                <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
+                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht freigeschaltet" : "AI Governance Control is not enabled"}</CardTitle>
                 <CardDescription>
-                  Die Portfolio-Ansicht ist für diesen Workspace noch nicht freigeschaltet.
+                  {locale === "de"
+                    ? "Die Portfolio-Ansicht ist für diesen Workspace noch nicht freigeschaltet."
+                    : "The portfolio view is not enabled for this workspace yet."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                 </Button>
               </CardContent>
             </Card>
           ) : !registerFirstFlags.controlPortfolioIntelligence ? (
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Intelligence folgt in Kürze</CardTitle>
+                <CardTitle>{locale === "de" ? "Portfolio Intelligence folgt in Kürze" : "Portfolio Intelligence coming soon"}</CardTitle>
                 <CardDescription>
-                  Die Portfolio-Ansicht wird aktuell erweitert und steht bald bereit.
+                  {locale === "de"
+                    ? "Die Portfolio-Ansicht wird aktuell erweitert und steht bald bereit."
+                    : "The portfolio view is being extended and will be available soon."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild variant="outline">
-                  <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
+                  <Link href={scopedHrefs.control}>{locale === "de" ? "Zurück zu Control" : "Back to Control"}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -135,19 +143,23 @@ export default function ControlPortfolioPage() {
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <CardTitle>Control Bereich: Portfolio Intelligence</CardTitle>
+                    <CardTitle>{locale === "de" ? "Control Bereich: Portfolio Intelligence" : "Control Area: Portfolio Intelligence"}</CardTitle>
                     <CardDescription>
                       {snapshot?.organisationName
-                        ? `Org-weite Analyse fuer ${snapshot.organisationName}.`
-                        : "Org-weite Risiko-, Owner- und Statusanalyse."}
+                        ? locale === "de"
+                          ? `Org-weite Analyse für ${snapshot.organisationName}.`
+                          : `Organisation-wide analysis for ${snapshot.organisationName}.`
+                        : locale === "de"
+                          ? "Org-weite Risiko-, Owner- und Statusanalyse."
+                          : "Organisation-wide risk, owner and status analysis."}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
+                      <Link href={scopedHrefs.control}>{locale === "de" ? "Zurück zu Control" : "Back to Control"}</Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                      <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                     </Button>
                   </div>
                 </CardHeader>
@@ -157,7 +169,7 @@ export default function ControlPortfolioPage() {
                 <Card>
                   <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Portfolio-Daten werden geladen.
+                    {locale === "de" ? "Portfolio-Daten werden geladen." : "Loading portfolio data."}
                   </CardContent>
                 </Card>
               )}

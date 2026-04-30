@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "@/i18n/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { hasDocumentedAiActCategory } from "@/lib/register-first";
 import { cn } from "@/lib/utils";
@@ -105,6 +106,34 @@ const OVERSIGHT_OPTIONS: DecisionOption<Exclude<OversightValue, "unknown">>[] = 
   },
 ];
 
+const OVERSIGHT_OPTIONS_EN: DecisionOption<Exclude<OversightValue, "unknown">>[] =
+  [
+    {
+      value: "HITL",
+      title: "Human-in-the-loop",
+      description:
+        "A person confirms each critical step before final use.",
+    },
+    {
+      value: "HOTL",
+      title: "Human-on-the-loop",
+      description:
+        "Use is continuously monitored and corrected by a person when needed.",
+    },
+    {
+      value: "HUMAN_REVIEW",
+      title: "Human review",
+      description:
+        "Outputs are checked selectively before or after release.",
+    },
+    {
+      value: "NO_HUMAN",
+      title: "No human intervention",
+      description:
+        "There is no ongoing human review in the operational workflow.",
+    },
+  ];
+
 const REVIEW_CYCLE_OPTIONS: DecisionOption<
   Exclude<ReviewCycleValue, "unknown" | "ad_hoc">
 >[] = [
@@ -130,14 +159,232 @@ const REVIEW_CYCLE_OPTIONS: DecisionOption<
   },
 ];
 
-function formatDateDE(isoDate: string): string {
+const REVIEW_CYCLE_OPTIONS_EN: DecisionOption<
+  Exclude<ReviewCycleValue, "unknown" | "ad_hoc">
+>[] = [
+  {
+    value: "monthly",
+    title: "Monthly",
+    description:
+      "Suitable for frequently used or closely monitored use cases.",
+  },
+  {
+    value: "quarterly",
+    title: "Quarterly",
+    description:
+      "Suitable for regular use with standard governance needs.",
+  },
+  {
+    value: "semiannual",
+    title: "Semiannual",
+    description:
+      "Suitable for stable use cases with limited change dynamics.",
+  },
+  {
+    value: "annual",
+    title: "Annual",
+    description:
+      "Suitable for rarely changed or clearly bounded use scenarios.",
+  },
+];
+
+function getGovernanceLiabilityCopy(locale: string) {
+  if (locale === "de") {
+    return {
+      organisationStandard: "Organisationstandard",
+      riskBasedOrgStandard: "Risikobasiert (Organisationstandard)",
+      adHoc: "Anlassbezogen",
+      oversightDecision: "Aufsichtsmodell festlegen",
+      reviewCycleDecision: "Review-Zyklus festlegen",
+      upcomingAfterOversight:
+        "Wird aktiv, sobald das Aufsichtsmodell dokumentiert ist.",
+      upcomingAfterReviewCycle:
+        "Wird aktiv, sobald der Review-Zyklus dokumentiert ist.",
+      upcomingFallback: "Dieser Entscheidungspunkt folgt als naechstes.",
+      riskDocumented: "Risikoklasse dokumentiert",
+      ownerDocumented: "Verantwortliche Rolle dokumentiert",
+      oversightDocumented: "Aufsichtsmodell dokumentiert",
+      reviewCycleDocumented: "Review-Zyklus dokumentiert",
+      change: "Aendern",
+      defineOverride: "Override festlegen",
+      ownerMissing: "Verantwortliche Rolle dokumentieren",
+      inMasterData: "In Stammdaten.",
+      riskReview: "Risikoklasse pruefen",
+      riskDocument: "Risikoklasse dokumentieren",
+      riskNextDetail: "Als naechster Schritt nach Aufsicht und Review-Zyklus.",
+      startShortReview: "Kurze Pruefung starten",
+      nextOversight: "Jetzt Aufsichtsmodell dokumentieren.",
+      nextReviewCycle: "Jetzt Review-Zyklus dokumentieren.",
+      nextRiskReview: "Jetzt kurze Pruefung zur Risikoklasse starten.",
+      nextRiskMetadata: "Jetzt Risikoklasse in den Stammdaten dokumentieren.",
+      nextOpenProofs: "Offene Grundnachweise dokumentieren.",
+      nextSystemEvidence: "Weiter zu 2. Systemnachweis.",
+      trustActivatedTitle: "Trust Portal aktiviert",
+      trustActivatedDescription: (url: string) =>
+        `Oeffentlicher Governance-Nachweis ist jetzt unter ${url} erreichbar.`,
+      errorTitle: "Fehler",
+      trustFailed: "Trust Portal konnte nicht aktiviert werden.",
+      reportDownloadedTitle: "Report heruntergeladen",
+      reportDownloadedDescription:
+        "Governance-Stichtagsreport als CSV gespeichert.",
+      reportFailed: "Report konnte nicht generiert werden.",
+      savedTitle: "Gespeichert",
+      savedNext:
+        "Nachweis aktualisiert. Der naechste offene Entscheidungspunkt wurde geoeffnet.",
+      savedDescription: "Nachweis aktualisiert.",
+      saveFailed: "Aenderung konnte nicht gespeichert werden.",
+      sectionTitle: "1. Grundnachweise",
+      sectionDescription: "Risikoklasse, Rolle, Aufsicht und Review-Zyklus.",
+      hideDetails: "Details ausblenden",
+      statusTitle: "Stand",
+      statusDescription: "Vier Grundangaben fuer den Nachweis.",
+      completedCount: (done: number, total: number) =>
+        `${done} von ${total} abgeschlossen`,
+      alreadyDocumented: "Bereits dokumentiert",
+      noGroundProofs: "Noch keine Grundnachweise dokumentiert.",
+      stillOpen: "Noch offen",
+      allGroundProofs: "Alle Grundnachweise sind dokumentiert.",
+      next: "Als Naechstes",
+      oversightPanelDescription:
+        "Wie wird dieser Einsatzfall menschlich begleitet oder kontrolliert?",
+      reviewCyclePanelDescription:
+        "In welchem Rhythmus wird dieser Einsatzfall erneut geprueft?",
+      currentlyDocumented: (value: string) => `Aktuell dokumentiert: ${value}`,
+      noOversight: "Noch kein Aufsichtsmodell dokumentiert.",
+      noReviewCycle: "Noch kein Review-Zyklus dokumentiert.",
+      saveAndContinue: "Speichern und weiter",
+      save: "Speichern",
+      saving: "Speichert...",
+      cancel: "Abbrechen",
+      after: "Danach",
+      reviewHistoryTitle: "Review-Verlauf",
+      reviewHistoryDescription: "Reviews, Fristen und Verlauf.",
+      deadlineMonitoring: "Fristueberwachung",
+      reviewHistory: "Review-Historie",
+      reviewsDocumented: (count: number) =>
+        `${count} ${count === 1 ? "Review" : "Reviews"} dokumentiert`,
+      noReviewDocumented: "Noch kein Review dokumentiert.",
+      documentReviewNow: "Jetzt Review dokumentieren",
+      governanceReport: "Governance-Report",
+      reportDescription: "CSV fuer dokumentierte Reviews.",
+      evidenceExport: "Nachweisexport",
+      evidenceExportDescription: "Externe Nachweise und Audit-Dokumente.",
+      auditDossier: "ISO 42001 Audit-Dossier",
+      auditDossierDescription: "Organisationsweiter Audit-Nachweis.",
+      governanceEvidence: "Governance-Nachweis",
+      governanceEvidenceDescription: "Oeffentlich verifizierbarer Nachweis.",
+      activating: "Wird aktiviert...",
+      activateTrustPortal: "Trust Portal aktivieren",
+      activateEvidence: "Jetzt Nachweise aktivieren",
+      overdue: (days: number) =>
+        `Ueberfaellig seit ${days} ${days === 1 ? "Tag" : "Tagen"}`,
+      dueSoon: (days: number) =>
+        `Faellig in ${days} ${days === 1 ? "Tag" : "Tagen"}`,
+      nextReview: (date: string) => `Naechste Pruefung: ${date}`,
+    };
+  }
+
+  return {
+    organisationStandard: "organisation standard",
+    riskBasedOrgStandard: "Risk-based (organisation standard)",
+    adHoc: "Event-based",
+    oversightDecision: "Define oversight model",
+    reviewCycleDecision: "Define review cycle",
+    upcomingAfterOversight:
+      "Becomes active once the oversight model is documented.",
+    upcomingAfterReviewCycle:
+      "Becomes active once the review cycle is documented.",
+    upcomingFallback: "This decision point follows next.",
+    riskDocumented: "Risk class documented",
+    ownerDocumented: "Responsible role documented",
+    oversightDocumented: "Oversight model documented",
+    reviewCycleDocumented: "Review cycle documented",
+    change: "Change",
+    defineOverride: "Define override",
+    ownerMissing: "Document responsible role",
+    inMasterData: "In master data.",
+    riskReview: "Review risk class",
+    riskDocument: "Document risk class",
+    riskNextDetail: "As the next step after oversight and review cycle.",
+    startShortReview: "Start short review",
+    nextOversight: "Document oversight model now.",
+    nextReviewCycle: "Document review cycle now.",
+    nextRiskReview: "Start short risk-class review now.",
+    nextRiskMetadata: "Document risk class in master data now.",
+    nextOpenProofs: "Document open ground evidence.",
+    nextSystemEvidence: "Continue to 2. System evidence.",
+    trustActivatedTitle: "Trust Portal activated",
+    trustActivatedDescription: (url: string) =>
+      `Public governance evidence is now available at ${url}.`,
+    errorTitle: "Error",
+    trustFailed: "Trust Portal could not be activated.",
+    reportDownloadedTitle: "Report downloaded",
+    reportDownloadedDescription:
+      "Governance point-in-time report saved as CSV.",
+    reportFailed: "Report could not be generated.",
+    savedTitle: "Saved",
+    savedNext:
+      "Evidence updated. The next open decision point has been opened.",
+    savedDescription: "Evidence updated.",
+    saveFailed: "Change could not be saved.",
+    sectionTitle: "1. Ground evidence",
+    sectionDescription: "Risk class, role, oversight, and review cycle.",
+    hideDetails: "Hide details",
+    statusTitle: "Status",
+    statusDescription: "Four basic entries for evidence.",
+    completedCount: (done: number, total: number) =>
+      `${done} of ${total} complete`,
+    alreadyDocumented: "Already documented",
+    noGroundProofs: "No ground evidence documented yet.",
+    stillOpen: "Still open",
+    allGroundProofs: "All ground evidence is documented.",
+    next: "Next",
+    oversightPanelDescription:
+      "How is this use case accompanied or controlled by humans?",
+    reviewCyclePanelDescription:
+      "At what interval is this use case reviewed again?",
+    currentlyDocumented: (value: string) => `Currently documented: ${value}`,
+    noOversight: "No oversight model documented yet.",
+    noReviewCycle: "No review cycle documented yet.",
+    saveAndContinue: "Save and continue",
+    save: "Save",
+    saving: "Saving...",
+    cancel: "Cancel",
+    after: "Afterwards",
+    reviewHistoryTitle: "Review history",
+    reviewHistoryDescription: "Reviews, deadlines, and history.",
+    deadlineMonitoring: "Deadline monitoring",
+    reviewHistory: "Review history",
+    reviewsDocumented: (count: number) =>
+      `${count} ${count === 1 ? "review" : "reviews"} documented`,
+    noReviewDocumented: "No review documented yet.",
+    documentReviewNow: "Document review now",
+    governanceReport: "Governance report",
+    reportDescription: "CSV for documented reviews.",
+    evidenceExport: "Evidence export",
+    evidenceExportDescription: "External evidence and audit documents.",
+    auditDossier: "ISO 42001 audit dossier",
+    auditDossierDescription: "Organisation-wide audit evidence.",
+    governanceEvidence: "Governance evidence",
+    governanceEvidenceDescription: "Publicly verifiable evidence.",
+    activating: "Activating...",
+    activateTrustPortal: "Activate Trust Portal",
+    activateEvidence: "Activate evidence",
+    overdue: (days: number) =>
+      `Overdue by ${days} ${days === 1 ? "day" : "days"}`,
+    dueSoon: (days: number) =>
+      `Due in ${days} ${days === 1 ? "day" : "days"}`,
+    nextReview: (date: string) => `Next review: ${date}`,
+  };
+}
+
+type GovernanceLiabilityCopy = ReturnType<typeof getGovernanceLiabilityCopy>;
+
+function formatDateForLocale(isoDate: string, locale: string): string {
   try {
     const d = new Date(isoDate);
     if (isNaN(d.getTime())) return "–";
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}.${month}.${year}`;
+    return d.toLocaleDateString(locale === "de" ? "de-DE" : "en-GB");
   } catch {
     return "–";
   }
@@ -180,35 +427,44 @@ function normalizeReviewCycleValue(value: string | null | undefined): ReviewCycl
   return "unknown";
 }
 
-function getOversightLabel(value: OversightValue | null | undefined): string | null {
+function getOversightLabel(
+  value: OversightValue | null | undefined,
+  options: DecisionOption<Exclude<OversightValue, "unknown">>[],
+): string | null {
   const normalized = normalizeOversightValue(value);
   if (normalized === "unknown") {
     return null;
   }
 
-  const match = OVERSIGHT_OPTIONS.find((option) => option.value === normalized);
+  const match = options.find((option) => option.value === normalized);
   return match?.title ?? normalized;
 }
 
-function getReviewCycleLabel(value: ReviewCycleValue | null | undefined): string | null {
+function getReviewCycleLabel(
+  value: ReviewCycleValue | null | undefined,
+  options: DecisionOption<Exclude<ReviewCycleValue, "unknown" | "ad_hoc">>[],
+  copy: GovernanceLiabilityCopy,
+): string | null {
   const normalized = normalizeReviewCycleValue(value);
   if (normalized === "unknown") {
     return null;
   }
 
   if (normalized === "ad_hoc") {
-    return "Anlassbezogen";
+    return copy.adHoc;
   }
 
-  const match = REVIEW_CYCLE_OPTIONS.find((option) => option.value === normalized);
+  const match = options.find((option) => option.value === normalized);
   return match?.title ?? normalized;
 }
 
 function getEffectiveReviewCycleDetail(
   reviewCycle: ReviewCycleValue | null | undefined,
   orgSettings: OrgSettings | null | undefined,
+  options: DecisionOption<Exclude<ReviewCycleValue, "unknown" | "ad_hoc">>[],
+  copy: GovernanceLiabilityCopy,
 ): { label: string; source: "use_case" | "org" } | null {
-  const directLabel = getReviewCycleLabel(reviewCycle);
+  const directLabel = getReviewCycleLabel(reviewCycle, options, copy);
   if (directLabel) {
     return {
       label: directLabel,
@@ -218,13 +474,15 @@ function getEffectiveReviewCycleDetail(
 
   if (orgSettings?.reviewStandard === "risk-based") {
     return {
-      label: "Risikobasiert (Organisationstandard)",
+      label: copy.riskBasedOrgStandard,
       source: "org",
     };
   }
 
   const inheritedLabel = getReviewCycleLabel(
     orgSettings?.reviewStandard ?? "unknown",
+    options,
+    copy,
   );
 
   if (!inheritedLabel) {
@@ -232,7 +490,7 @@ function getEffectiveReviewCycleDetail(
   }
 
   return {
-    label: `${inheritedLabel} (Organisationstandard)`,
+    label: `${inheritedLabel} (${copy.organisationStandard})`,
     source: "org",
   };
 }
@@ -259,29 +517,32 @@ function getNextOpenDecisionField(input: {
   return null;
 }
 
-function getDecisionTitle(field: EditableField): string {
+function getDecisionTitle(
+  field: EditableField,
+  copy: GovernanceLiabilityCopy,
+): string {
   return field === "oversight"
-    ? "Aufsichtsmodell festlegen"
-    : "Review-Zyklus festlegen";
+    ? copy.oversightDecision
+    : copy.reviewCycleDecision;
 }
 
 function getUpcomingDecisionHint(input: {
   activeField: EditableField | null;
   nextField: EditableField | null;
-}): string | null {
+}, copy: GovernanceLiabilityCopy): string | null {
   if (!input.nextField) {
     return null;
   }
 
   if (input.activeField === "oversight" && input.nextField === "reviewCycle") {
-    return "Wird aktiv, sobald das Aufsichtsmodell dokumentiert ist.";
+    return copy.upcomingAfterOversight;
   }
 
   if (input.activeField === "reviewCycle" && input.nextField === "oversight") {
-    return "Wird aktiv, sobald der Review-Zyklus dokumentiert ist.";
+    return copy.upcomingAfterReviewCycle;
   }
 
-  return "Dieser Entscheidungspunkt folgt als naechstes.";
+  return copy.upcomingFallback;
 }
 
 function focusDecisionField(field: EditableField) {
@@ -304,6 +565,11 @@ export function GovernanceLiabilitySection({
   autoOpenField = null,
   onToggleDetails = null,
 }: GovernanceLiabilitySectionProps) {
+  const locale = useLocale();
+  const copy = getGovernanceLiabilityCopy(locale);
+  const oversightOptions = locale === "de" ? OVERSIGHT_OPTIONS : OVERSIGHT_OPTIONS_EN;
+  const reviewCycleOptions =
+    locale === "de" ? REVIEW_CYCLE_OPTIONS : REVIEW_CYCLE_OPTIONS_EN;
   const router = useRouter();
   const { toast } = useToast();
   const [isActivatingPortal, setIsActivatingPortal] = useState(false);
@@ -333,6 +599,8 @@ export function GovernanceLiabilitySection({
   const reviewCycleDetail = getEffectiveReviewCycleDetail(
     normalizeReviewCycleValue(iso?.reviewCycle),
     orgSettings,
+    reviewCycleOptions,
+    copy,
   );
   const hasReviewCycle = Boolean(reviewCycleDetail);
 
@@ -360,6 +628,7 @@ export function GovernanceLiabilitySection({
   const verifyUrl = getVerifyUrl(card);
   const documentedOversightLabel = getOversightLabel(
     normalizeOversightValue(iso?.oversightModel),
+    oversightOptions,
   );
 
   const openEditor = useCallback((field: EditableField) => {
@@ -371,31 +640,31 @@ export function GovernanceLiabilitySection({
     hasRiskClass
       ? {
           key: "risk",
-          label: "Risikoklasse dokumentiert",
+          label: copy.riskDocumented,
         }
       : null,
     hasOwner
       ? {
           key: "owner",
-          label: "Verantwortliche Rolle dokumentiert",
+          label: copy.ownerDocumented,
         }
       : null,
     hasOversight
       ? {
           key: "oversight",
-          label: "Aufsichtsmodell dokumentiert",
+          label: copy.oversightDocumented,
           detail: documentedOversightLabel,
-          actionLabel: "Aendern",
+          actionLabel: copy.change,
           onAction: () => openEditor("oversight"),
         }
       : null,
     hasReviewCycle
       ? {
           key: "reviewCycle",
-          label: "Review-Zyklus dokumentiert",
+          label: copy.reviewCycleDocumented,
           detail: reviewCycleDetail?.label ?? null,
           actionLabel:
-            reviewCycleDetail?.source === "org" ? "Override festlegen" : "Aendern",
+            reviewCycleDetail?.source === "org" ? copy.defineOverride : copy.change,
           onAction: () => openEditor("reviewCycle"),
         }
       : null,
@@ -423,28 +692,28 @@ export function GovernanceLiabilitySection({
   const upcomingDecisionHint = getUpcomingDecisionHint({
     activeField: activeDecisionField,
     nextField: nextDecisionField,
-  });
+  }, copy);
   const canLaunchRiskReview =
     !hasRiskClass && !activeDecisionField && Boolean(onOpenRiskReview);
   const missingRequirements = compactRequirements([
     !hasOwner
       ? {
           key: "owner",
-          label: "Verantwortliche Rolle dokumentieren",
-          detail: "In Stammdaten.",
+          label: copy.ownerMissing,
+          detail: copy.inMasterData,
         }
       : null,
     !hasOversight
       ? {
           key: "oversight",
-          label: "Aufsichtsmodell festlegen",
+          label: copy.oversightDecision,
           detail: null,
         }
       : null,
     !hasReviewCycle
       ? {
           key: "reviewCycle",
-          label: "Review-Zyklus festlegen",
+          label: copy.reviewCycleDecision,
           detail: null,
         }
       : null,
@@ -452,28 +721,28 @@ export function GovernanceLiabilitySection({
       ? {
           key: "risk",
           label: canLaunchRiskReview
-            ? "Risikoklasse pruefen"
-            : "Risikoklasse dokumentieren",
+            ? copy.riskReview
+            : copy.riskDocument,
           detail: canLaunchRiskReview
-            ? "Als naechster Schritt nach Aufsicht und Review-Zyklus."
-            : "In Stammdaten.",
-          actionLabel: canLaunchRiskReview ? "Kurze Pruefung starten" : null,
+            ? copy.riskNextDetail
+            : copy.inMasterData,
+          actionLabel: canLaunchRiskReview ? copy.startShortReview : null,
           onAction: canLaunchRiskReview ? () => onOpenRiskReview?.() : null,
         }
       : null,
   ]);
   const groundProofsNextHint =
     activeDecisionField === "oversight"
-      ? "Jetzt Aufsichtsmodell dokumentieren."
+      ? copy.nextOversight
       : activeDecisionField === "reviewCycle"
-        ? "Jetzt Review-Zyklus dokumentieren."
+        ? copy.nextReviewCycle
         : canLaunchRiskReview
-          ? "Jetzt kurze Pruefung zur Risikoklasse starten."
+          ? copy.nextRiskReview
           : !hasRiskClass
-            ? "Jetzt Risikoklasse in den Stammdaten dokumentieren."
+            ? copy.nextRiskMetadata
         : missingRequirements.length > 0
-          ? "Offene Grundnachweise dokumentieren."
-          : "Weiter zu 2. Systemnachweis.";
+          ? copy.nextOpenProofs
+          : copy.nextSystemEvidence;
 
   const handleActivateReviewWorkflow = useCallback(() => {
     if (!reviewCap.allowed) {
@@ -494,20 +763,20 @@ export function GovernanceLiabilitySection({
       const result = await activatePublicVisibility(card.useCaseId);
       onCardUpdate?.(result.card);
       toast({
-        title: "Trust Portal aktiviert",
-        description: `Oeffentlicher Governance-Nachweis ist jetzt unter ${result.verifyUrl} erreichbar.`,
+        title: copy.trustActivatedTitle,
+        description: copy.trustActivatedDescription(result.verifyUrl),
       });
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "Fehler",
-        description: "Trust Portal konnte nicht aktiviert werden.",
+        title: copy.errorTitle,
+        description: copy.trustFailed,
       });
       console.error("Trust Portal activation failed:", err);
     } finally {
       setIsActivatingPortal(false);
     }
-  }, [card.useCaseId, onCardUpdate, router, toast, trustCap.allowed]);
+  }, [card.useCaseId, copy, onCardUpdate, router, toast, trustCap.allowed]);
 
   const handleDownloadReport = useCallback(() => {
     if (!orgSettings) return;
@@ -524,18 +793,18 @@ export function GovernanceLiabilitySection({
         "text/csv;charset=utf-8",
       );
       toast({
-        title: "Report heruntergeladen",
-        description: "Governance-Stichtagsreport als CSV gespeichert.",
+        title: copy.reportDownloadedTitle,
+        description: copy.reportDownloadedDescription,
       });
     } catch (err) {
       toast({
         variant: "destructive",
-        title: "Fehler",
-        description: "Report konnte nicht generiert werden.",
+        title: copy.errorTitle,
+        description: copy.reportFailed,
       });
       console.error("Report generation failed:", err);
     }
-  }, [card, useCases, orgSettings, toast]);
+  }, [card, copy, useCases, orgSettings, toast]);
 
   useEffect(() => {
     setDraftValues({
@@ -641,22 +910,22 @@ export function GovernanceLiabilitySection({
         }
 
         toast({
-          title: "Gespeichert",
+          title: copy.savedTitle,
           description: nextField
-            ? "Nachweis aktualisiert. Der naechste offene Entscheidungspunkt wurde geoeffnet."
-            : "Nachweis aktualisiert.",
+            ? copy.savedNext
+            : copy.savedDescription,
         });
       } catch {
         toast({
           variant: "destructive",
-          title: "Fehler",
-          description: "Aenderung konnte nicht gespeichert werden.",
+          title: copy.errorTitle,
+          description: copy.saveFailed,
         });
       } finally {
         setIsSavingField(null);
       }
     },
-    [card, draftValues, onCardUpdate, orgSettings, toast],
+    [card, copy, draftValues, onCardUpdate, orgSettings, toast],
   );
 
   return (
@@ -666,15 +935,15 @@ export function GovernanceLiabilitySection({
           <div className="space-y-2">
           <CardTitle className="flex items-center gap-2 text-base font-semibold text-slate-900">
             <ShieldCheck className="h-4 w-4 text-slate-500" />
-            1. Grundnachweise
+            {copy.sectionTitle}
           </CardTitle>
           <p className="text-sm text-slate-600">
-            Risikoklasse, Rolle, Aufsicht und Review-Zyklus.
+            {copy.sectionDescription}
           </p>
           </div>
           {onToggleDetails ? (
             <Button size="sm" variant="outline" onClick={onToggleDetails}>
-              Details ausblenden
+              {copy.hideDetails}
             </Button>
           ) : null}
         </div>
@@ -690,25 +959,27 @@ export function GovernanceLiabilitySection({
         >
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">Stand</h3>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {copy.statusTitle}
+              </h3>
               <p className="text-sm text-slate-600">
-                Vier Grundangaben fuer den Nachweis.
+                {copy.statusDescription}
               </p>
             </div>
             <p className="text-xs text-slate-500">
-              {section1Passed} von {section1Total} abgeschlossen
+              {copy.completedCount(section1Passed, section1Total)}
             </p>
           </div>
 
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <RequirementGroupCard
-              title="Bereits dokumentiert"
-              emptyText="Noch keine Grundnachweise dokumentiert."
+              title={copy.alreadyDocumented}
+              emptyText={copy.noGroundProofs}
               items={completedRequirements}
             />
             <RequirementGroupCard
-              title="Noch offen"
-              emptyText="Alle Grundnachweise sind dokumentiert."
+              title={copy.stillOpen}
+              emptyText={copy.allGroundProofs}
               items={missingRequirements}
               tone="open"
             />
@@ -716,7 +987,7 @@ export function GovernanceLiabilitySection({
 
           <div className="mt-4 space-y-1">
             <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-              Als Naechstes
+              {copy.next}
             </p>
             <p className="text-sm leading-6 text-slate-600">
               {groundProofsNextHint}
@@ -727,17 +998,19 @@ export function GovernanceLiabilitySection({
             {activeDecisionField === "oversight" && showOversightDecision ? (
               <DecisionPanel
                 id="governance-decision-oversight"
-                title="Aufsichtsmodell festlegen"
-                description="Wie wird dieser Einsatzfall menschlich begleitet oder kontrolliert?"
+                title={copy.oversightDecision}
+                description={copy.oversightPanelDescription}
                 helperText={
                   hasOversight && documentedOversightLabel
-                    ? `Aktuell dokumentiert: ${documentedOversightLabel}`
-                    : "Noch kein Aufsichtsmodell dokumentiert."
+                    ? copy.currentlyDocumented(documentedOversightLabel)
+                    : copy.noOversight
                 }
-                options={OVERSIGHT_OPTIONS}
+                options={oversightOptions}
                 selectedValue={draftValues.oversight}
                 isSaving={isSavingField === "oversight"}
-                submitLabel={!hasReviewCycle ? "Speichern und weiter" : "Speichern"}
+                submitLabel={!hasReviewCycle ? copy.saveAndContinue : copy.save}
+                savingLabel={copy.saving}
+                cancelLabel={copy.cancel}
                 onSelect={(value) => handleSelectValue("oversight", value)}
                 onSave={() => void handleSaveField("oversight")}
                 onCancel={
@@ -750,17 +1023,19 @@ export function GovernanceLiabilitySection({
             {activeDecisionField === "reviewCycle" && showReviewCycleDecision ? (
               <DecisionPanel
                 id="governance-decision-reviewCycle"
-                title="Review-Zyklus festlegen"
-                description="In welchem Rhythmus wird dieser Einsatzfall erneut geprueft?"
+                title={copy.reviewCycleDecision}
+                description={copy.reviewCyclePanelDescription}
                 helperText={
                   reviewCycleDetail
-                    ? `Aktuell dokumentiert: ${reviewCycleDetail.label}`
-                    : "Noch kein Review-Zyklus dokumentiert."
+                    ? copy.currentlyDocumented(reviewCycleDetail.label)
+                    : copy.noReviewCycle
                 }
-                options={REVIEW_CYCLE_OPTIONS}
+                options={reviewCycleOptions}
                 selectedValue={draftValues.reviewCycle}
                 isSaving={isSavingField === "reviewCycle"}
-                submitLabel={!hasOversight ? "Speichern und weiter" : "Speichern"}
+                submitLabel={!hasOversight ? copy.saveAndContinue : copy.save}
+                savingLabel={copy.saving}
+                cancelLabel={copy.cancel}
                 onSelect={(value) => handleSelectValue("reviewCycle", value)}
                 onSave={() => void handleSaveField("reviewCycle")}
                 onCancel={
@@ -772,8 +1047,9 @@ export function GovernanceLiabilitySection({
 
             {nextDecisionField && upcomingDecisionHint ? (
               <UpcomingDecisionCard
-                title={getDecisionTitle(nextDecisionField)}
+                title={getDecisionTitle(nextDecisionField, copy)}
                 hint={upcomingDecisionHint}
+                afterLabel={copy.after}
               />
             ) : null}
           </div>
@@ -787,8 +1063,12 @@ export function GovernanceLiabilitySection({
         >
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">Review-Verlauf</h3>
-              <p className="text-sm text-slate-600">Reviews, Fristen und Verlauf.</p>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {copy.reviewHistoryTitle}
+              </h3>
+              <p className="text-sm text-slate-600">
+                {copy.reviewHistoryDescription}
+              </p>
             </div>
             {hasReviewTrail ? (
               <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
@@ -806,12 +1086,16 @@ export function GovernanceLiabilitySection({
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 )}
                 <div className="space-y-1">
-                  <p className="font-medium text-slate-900">Fristueberwachung</p>
+                  <p className="font-medium text-slate-900">
+                    {copy.deadlineMonitoring}
+                  </p>
                   <p className="text-sm text-slate-600">
                     <DeadlineDisplay
                       status={deadline.status}
                       daysRemaining={deadline.daysRemaining}
                       nextReviewAt={deadline.nextReviewAt}
+                      locale={locale}
+                      copy={copy}
                     />
                   </p>
                 </div>
@@ -825,13 +1109,13 @@ export function GovernanceLiabilitySection({
                 )}
                 <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="font-medium text-slate-900">Review-Historie</p>
+                    <p className="font-medium text-slate-900">
+                      {copy.reviewHistory}
+                    </p>
                     <p className="text-sm text-slate-600">
                       {hasHistory
-                        ? `${card.reviews.length} ${
-                            card.reviews.length === 1 ? "Review" : "Reviews"
-                          } dokumentiert`
-                        : "Noch kein Review dokumentiert."}
+                        ? copy.reviewsDocumented(card.reviews.length)
+                        : copy.noReviewDocumented}
                     </p>
                   </div>
                   <Button
@@ -840,7 +1124,7 @@ export function GovernanceLiabilitySection({
                     className="shrink-0"
                     onClick={handleActivateReviewWorkflow}
                   >
-                    Jetzt Review dokumentieren
+                    {copy.documentReviewNow}
                   </Button>
                 </div>
               </li>
@@ -853,8 +1137,12 @@ export function GovernanceLiabilitySection({
                 )}
                 <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="font-medium text-slate-900">Governance-Report</p>
-                    <p className="text-sm text-slate-600">CSV fuer dokumentierte Reviews.</p>
+                    <p className="font-medium text-slate-900">
+                      {copy.governanceReport}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      {copy.reportDescription}
+                    </p>
                   </div>
                   {canGenerateReport ? (
                     <Button
@@ -873,18 +1161,20 @@ export function GovernanceLiabilitySection({
           ) : (
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
               <ul className="space-y-2 text-sm text-slate-600">
-                <li>Fristueberwachung</li>
-                <li>Review-Historie</li>
-                <li>Governance-Report</li>
+                <li>{copy.deadlineMonitoring}</li>
+                <li>{copy.reviewHistory}</li>
+                <li>{copy.governanceReport}</li>
               </ul>
-              <p className="mt-3 text-sm text-slate-600">Reviews, Fristen und Verlauf.</p>
+              <p className="mt-3 text-sm text-slate-600">
+                {copy.reviewHistoryDescription}
+              </p>
               <Button
                 size="sm"
                 variant="outline"
                 className="mt-4"
                 onClick={handleActivateReviewWorkflow}
               >
-                Jetzt Review dokumentieren
+                {copy.documentReviewNow}
               </Button>
             </div>
           )}
@@ -893,8 +1183,12 @@ export function GovernanceLiabilitySection({
         <section className="p-5 md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900">Nachweisexport</h3>
-              <p className="text-sm text-slate-600">Externe Nachweise und Audit-Dokumente.</p>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {copy.evidenceExport}
+              </h3>
+              <p className="text-sm text-slate-600">
+                {copy.evidenceExportDescription}
+              </p>
             </div>
             {isExternBelegbar ? (
               <CheckCircle2 className="h-4 w-4 shrink-0 text-slate-600" />
@@ -912,8 +1206,12 @@ export function GovernanceLiabilitySection({
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                 )}
                 <div className="space-y-1">
-                  <p className="font-medium text-slate-900">ISO 42001 Audit-Dossier</p>
-                  <p className="text-sm text-slate-600">Organisationsweiter Audit-Nachweis.</p>
+                  <p className="font-medium text-slate-900">
+                    {copy.auditDossier}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {copy.auditDossierDescription}
+                  </p>
                 </div>
               </li>
 
@@ -925,8 +1223,12 @@ export function GovernanceLiabilitySection({
                 )}
                 <div className="flex min-w-0 flex-1 items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <p className="font-medium text-slate-900">Governance-Nachweis</p>
-                    <p className="text-sm text-slate-600">Oeffentlich verifizierbarer Nachweis.</p>
+                    <p className="font-medium text-slate-900">
+                      {copy.governanceEvidence}
+                    </p>
+                    <p className="text-sm text-slate-600">
+                      {copy.governanceEvidenceDescription}
+                    </p>
                     {hasTrustPortal && verifyUrl ? (
                       <a
                         href={verifyUrl}
@@ -947,7 +1249,9 @@ export function GovernanceLiabilitySection({
                       onClick={() => void handleActivateTrustPortal()}
                       disabled={isActivatingPortal}
                     >
-                      {isActivatingPortal ? "Wird aktiviert..." : "Trust Portal aktivieren"}
+                      {isActivatingPortal
+                        ? copy.activating
+                        : copy.activateTrustPortal}
                     </Button>
                   ) : null}
                 </div>
@@ -956,11 +1260,11 @@ export function GovernanceLiabilitySection({
           ) : (
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
               <ul className="space-y-2 text-sm text-slate-600">
-                <li>ISO 42001 Audit-Dossier</li>
-                <li>Governance-Nachweis</li>
+                <li>{copy.auditDossier}</li>
+                <li>{copy.governanceEvidence}</li>
               </ul>
               <p className="mt-3 text-sm text-slate-600">
-                Audit-Dossier und Governance-Nachweis.
+                {copy.evidenceExportDescription}
               </p>
               <Button
                 size="sm"
@@ -968,7 +1272,7 @@ export function GovernanceLiabilitySection({
                 className="mt-4"
                 onClick={() => void handleActivateTrustPortal()}
               >
-                Jetzt Nachweise aktivieren
+                {copy.activateEvidence}
               </Button>
             </div>
           )}
@@ -1051,6 +1355,8 @@ function DecisionPanel<TValue extends string>({
   selectedValue,
   isSaving,
   submitLabel,
+  savingLabel,
+  cancelLabel,
   onSelect,
   onSave,
   onCancel,
@@ -1064,6 +1370,8 @@ function DecisionPanel<TValue extends string>({
   selectedValue: string;
   isSaving: boolean;
   submitLabel: string;
+  savingLabel: string;
+  cancelLabel: string;
   onSelect: (value: TValue) => void;
   onSave: () => void;
   onCancel?: () => void;
@@ -1113,11 +1421,11 @@ function DecisionPanel<TValue extends string>({
           onClick={onSave}
           disabled={isSaving || selectedValue === "unknown"}
         >
-          {isSaving ? "Speichert..." : submitLabel}
+          {isSaving ? savingLabel : submitLabel}
         </Button>
         {onCancel ? (
           <Button size="sm" variant="outline" onClick={onCancel}>
-            Abbrechen
+            {cancelLabel}
           </Button>
         ) : null}
       </div>
@@ -1128,15 +1436,17 @@ function DecisionPanel<TValue extends string>({
 function UpcomingDecisionCard({
   title,
   hint,
+  afterLabel,
 }: {
   title: string;
   hint: string;
+  afterLabel: string;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 md:p-5">
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-          Danach
+          {afterLabel}
         </p>
         <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
         <p className="text-sm text-slate-600">{hint}</p>
@@ -1149,30 +1459,27 @@ function DeadlineDisplay({
   status,
   daysRemaining,
   nextReviewAt,
+  locale,
+  copy,
 }: {
   status: string;
   daysRemaining: number | null;
   nextReviewAt: string | null;
+  locale: string;
+  copy: GovernanceLiabilityCopy;
 }) {
   if (status === "overdue" && daysRemaining !== null) {
-    return (
-      <span>
-        Ueberfaellig seit {Math.abs(daysRemaining)}{" "}
-        {Math.abs(daysRemaining) === 1 ? "Tag" : "Tagen"}
-      </span>
-    );
+    return <span>{copy.overdue(Math.abs(daysRemaining))}</span>;
   }
 
   if (status === "due_soon" && daysRemaining !== null) {
-    return (
-      <span>
-        Faellig in {daysRemaining} {daysRemaining === 1 ? "Tag" : "Tagen"}
-      </span>
-    );
+    return <span>{copy.dueSoon(daysRemaining)}</span>;
   }
 
   if (status === "on_track" && nextReviewAt) {
-    return <span>Naechste Pruefung: {formatDateDE(nextReviewAt)}</span>;
+    return (
+      <span>{copy.nextReview(formatDateForLocale(nextReviewAt, locale))}</span>
+    );
   }
 
   return (

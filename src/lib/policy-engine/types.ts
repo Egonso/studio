@@ -70,6 +70,7 @@ export interface PolicyContext {
     useCases: UseCaseCard[];
     orgSettings: OrgSettings;
     level: PolicyLevel;
+    locale?: "de" | "en" | string;
 }
 
 // ── Status Transitions ──────────────────────────────────────────────────────

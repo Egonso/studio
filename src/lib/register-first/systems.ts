@@ -22,6 +22,13 @@ export const WORKFLOW_CONNECTION_MODE_LABELS: Record<
   FULLY_AUTOMATED: "Weitgehend automatisiert",
 };
 
+const WORKFLOW_CONNECTION_MODE_LABELS_EN: Record<WorkflowConnectionMode, string> =
+  {
+    MANUAL_SEQUENCE: "Manual sequence",
+    SEMI_AUTOMATED: "Semi-automated",
+    FULLY_AUTOMATED: "Mostly automated",
+  };
+
 export interface ResolvedUseCaseSystemEntry extends OrderedUseCaseSystem {
   displayName: string;
 }
@@ -33,6 +40,7 @@ interface ResolveUseCaseSystemOptions {
     | ((system: Pick<OrderedUseCaseSystem, "toolId" | "toolFreeText">) => UseCaseSystemProviderType | null | undefined)
     | null;
   emptyLabel?: string;
+  locale?: string;
 }
 
 export interface UseCaseWorkflowDisplay {
@@ -65,6 +73,19 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
 function normalizeSystemIdentity(value: string | null | undefined): string | null {
   const normalized = normalizeOptionalText(value);
   return normalized ? normalized.toLowerCase().replace(/\s+/g, " ") : null;
+}
+
+function isEnglishLocale(locale: string | null | undefined): boolean {
+  return locale?.toLowerCase().startsWith("en") ?? false;
+}
+
+function getWorkflowConnectionModeLabel(
+  mode: WorkflowConnectionMode,
+  locale?: string
+): string {
+  return isEnglishLocale(locale)
+    ? WORKFLOW_CONNECTION_MODE_LABELS_EN[mode]
+    : WORKFLOW_CONNECTION_MODE_LABELS[mode];
 }
 
 function inferProviderType(
@@ -222,7 +243,7 @@ export function resolveUseCaseWorkflowDisplay(
     hasMultipleSystems: systems.length > 1,
     connectionMode,
     connectionModeLabel: connectionMode
-      ? WORKFLOW_CONNECTION_MODE_LABELS[connectionMode]
+      ? getWorkflowConnectionModeLabel(connectionMode, options.locale)
       : null,
     summary,
   };
@@ -324,7 +345,10 @@ export function getUseCaseWorkflowBadge(
     return null;
   }
 
-  const baseLabel = `Mehrsystemig · ${workflow.systemCount} Systeme`;
+  const isEnglish = isEnglishLocale(options.locale);
+  const baseLabel = isEnglish
+    ? `Multi-system · ${workflow.systemCount} system${workflow.systemCount === 1 ? "" : "s"}`
+    : `Mehrsystemig · ${workflow.systemCount} Systeme`;
   return workflow.connectionModeLabel
     ? `${baseLabel} · ${workflow.connectionModeLabel}`
     : baseLabel;

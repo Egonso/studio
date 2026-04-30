@@ -178,8 +178,10 @@ export default function ControlReviewsPage() {
 
   const actionQueue = useMemo(() => {
     if (!snapshot) return [];
-    return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt);
-  }, [snapshot]);
+    return buildControlActionQueue(snapshot.useCases, snapshot.capturedAt, {
+      locale,
+    });
+  }, [locale, snapshot]);
 
   const registerHref = localizeHref(locale, ROUTE_HREFS.register);
   const controlHref = localizeHref(locale, ROUTE_HREFS.control);

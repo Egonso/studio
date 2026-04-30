@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,19 +41,34 @@ import {
 
 const aiRegistry = createAiToolsRegistryService();
 
-const SIGNAL_STRENGTH_LABELS = {
+const SIGNAL_STRENGTH_LABELS_DE = {
   low: "wenige Signale",
   medium: "mehrere Signale",
   high: "starke Signale",
 } as const;
 
-const REVIEW_BOOLEAN_OPTIONS: Array<{
+const SIGNAL_STRENGTH_LABELS_EN = {
+  low: "few signals",
+  medium: "several signals",
+  high: "strong signals",
+} as const;
+
+const REVIEW_BOOLEAN_OPTIONS_DE: Array<{
   value: RiskReviewBooleanChoice;
   label: string;
 }> = [
   { value: "yes", label: "Ja" },
   { value: "no", label: "Nein" },
   { value: "unknown", label: "Noch offen" },
+];
+
+const REVIEW_BOOLEAN_OPTIONS_EN: Array<{
+  value: RiskReviewBooleanChoice;
+  label: string;
+}> = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+  { value: "unknown", label: "Still open" },
 ];
 
 interface UseCaseAssessmentWizardProps {
@@ -137,11 +153,13 @@ function BooleanChoiceField({
   description,
   value,
   onValueChange,
+  options,
 }: {
   label: string;
   description: string;
   value: RiskReviewBooleanChoice;
   onValueChange: (nextValue: RiskReviewBooleanChoice) => void;
+  options: Array<{ value: RiskReviewBooleanChoice; label: string }>;
 }) {
   const fieldId = label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
@@ -159,7 +177,7 @@ function BooleanChoiceField({
         }
         className="mt-4 flex flex-col gap-2 sm:flex-row"
       >
-        {REVIEW_BOOLEAN_OPTIONS.map((option) => (
+        {options.map((option) => (
           <Label
             key={option.value}
             htmlFor={`${fieldId}-${option.value}`}
@@ -187,6 +205,139 @@ export function UseCaseAssessmentWizard({
   onComplete,
   launchContext = null,
 }: UseCaseAssessmentWizardProps) {
+  const locale = useLocale();
+  const isGerman = locale === "de";
+  const signalStrengthLabels = isGerman
+    ? SIGNAL_STRENGTH_LABELS_DE
+    : SIGNAL_STRENGTH_LABELS_EN;
+  const booleanOptions = isGerman
+    ? REVIEW_BOOLEAN_OPTIONS_DE
+    : REVIEW_BOOLEAN_OPTIONS_EN;
+  const copy = {
+    title: isGerman
+      ? "Kurze Pruefung zur Risikoklasse"
+      : "Short risk-class review",
+    description: isGerman
+      ? "Diese Pruefung dokumentiert eine menschliche Einordnung. Sie setzt keine Risikoklasse automatisch und ersetzt keine umfassendere Governance-Pruefung."
+      : "This review documents a human classification. It does not set a risk class automatically and does not replace a broader governance review.",
+    useCase: isGerman ? "Einsatzfall" : "Use case",
+    startingPoint: isGerman ? "Ausgangspunkt" : "Starting point",
+    signalsTitle: isGerman ? "Signale und Einordnung" : "Signals and classification",
+    signalsBody: isGerman
+      ? "Der Vorschlag bleibt ein Entwurf. Entscheidend ist, was Sie fuer diesen Einsatzfall tatsaechlich dokumentieren wollen."
+      : "The suggestion remains a draft. What matters is what you actually want to document for this use case.",
+    currentClassification: isGerman ? "Aktuelle Einstufung" : "Current classification",
+    noCurrentClassification: isGerman
+      ? "Noch kein dokumentierter Eintrag"
+      : "No documented entry yet",
+    suggestion: isGerman ? "Vorschlag" : "Suggestion",
+    signalStrength: isGerman ? "Signalstaerke" : "Signal strength",
+    shortReviewRecommended: isGerman
+      ? "Kurze Pruefung empfohlen."
+      : "Short review recommended.",
+    shortReviewOptional: isGerman
+      ? "Kurze Pruefung optional."
+      : "Short review optional.",
+    whyDirection: isGerman
+      ? "Warum diese Richtung naheliegt"
+      : "Why this direction is plausible",
+    noSignals: isGerman
+      ? "Noch keine begruendenden Signale sichtbar."
+      : "No supporting signals visible yet.",
+    openItems: isGerman ? "Was noch offen sein kann" : "What may still be open",
+    noOpenQuestions: isGerman
+      ? "Aktuell sind keine offenen Rueckfragen markiert."
+      : "No open follow-up questions are currently marked.",
+    classificationEyebrow: isGerman ? "Einordnung" : "Classification",
+    classificationTitle: isGerman
+      ? "Risikoklasse bestaetigen oder anpassen"
+      : "Confirm or adjust risk class",
+    classificationBody: isGerman
+      ? "Waehlen Sie die derzeit tragfaehigste Klasse. Wenn Sie nichts aendern, bleibt ein bestehender Eintrag erhalten."
+      : "Choose the currently most defensible class. If you do not change anything, an existing entry remains in place.",
+    customNoteTitle: isGerman
+      ? "Bestehender Freitext-Vermerk"
+      : "Existing free-text note",
+    customNoteBody: (value: string) =>
+      isGerman
+        ? `"${value}" bleibt erhalten, bis Sie unten bewusst eine kanonische Klasse auswaehlen.`
+        : `"${value}" remains in place until you deliberately select a canonical class below.`,
+    suggestionForReview: isGerman
+      ? "Vorschlag fuer diese Pruefung"
+      : "Suggestion for this review",
+    suggestionCanBeAdopted: (value: string) =>
+      isGerman
+        ? `${value} kann als Entwurf uebernommen und danach bei Bedarf angepasst werden.`
+        : `${value} can be adopted as a draft and adjusted afterwards if needed.`,
+    adoptSuggestion: isGerman ? "Vorschlag uebernehmen" : "Adopt suggestion",
+    unassessedNote: isGerman
+      ? '"Noch nicht eingestuft" ist zulaessig, wenn die Einordnung derzeit bewusst offen bleiben soll.'
+      : '"Unassessed" is allowed if the classification should deliberately remain open for now.',
+    governanceEyebrow: isGerman ? "Pruefbedarf" : "Review need",
+    governanceTitle: isGerman
+      ? "Begleitende Governance-Fakten festhalten"
+      : "Record accompanying governance facts",
+    governanceBody: isGerman
+      ? "Nur soweit derzeit belastbar dokumentierbar. Offene Punkte koennen offen bleiben."
+      : "Only as far as currently documentable with confidence. Open points can remain open.",
+    humanOversight: isGerman ? "Menschliche Aufsicht" : "Human oversight",
+    humanOversightDescription: isGerman
+      ? "Ist derzeit dokumentiert, wie Outputs oder entscheidungsnahe Effekte menschlich ueberwacht werden?"
+      : "Is it documented how outputs or decision-adjacent effects are monitored by humans?",
+    reviewCycle: isGerman ? "Review-Zyklus" : "Review cycle",
+    reviewCycleDescription: isGerman
+      ? "Ist ein nachvollziehbarer Turnus fuer erneute Pruefung oder Aktualisierung festgelegt?"
+      : "Is a traceable interval for re-review or updating defined?",
+    documentationStatus: isGerman ? "Dokumentationsstand" : "Documentation status",
+    documentationStatusDescription: isGerman
+      ? "Sind Zweck, Grenzen und Einsatzparameter derzeit in ausreichender Form beschrieben?"
+      : "Are purpose, boundaries, and usage parameters currently described sufficiently?",
+    noteEyebrow: isGerman ? "Vermerk" : "Note",
+    noteTitle: isGerman
+      ? "Zusaetzlichen Hinweis dokumentieren"
+      : "Document an additional note",
+    noteBody: isGerman
+      ? "Optional. Fuer kurze Begruendung, offene Punkte oder einen bestehenden Draft-Vermerk. AI dient hier nur als Formulierungshilfe."
+      : "Optional. For a short rationale, open points, or an existing draft note. AI is used only as writing assistance here.",
+    aiDraftTitle: isGerman ? "AI-Formulierungshilfe" : "AI writing assistance",
+    aiDraftBody: isGerman
+      ? "AI kann einen sachlichen Begruendungsentwurf formulieren. Die Auswahl der Risikoklasse bleibt eine menschliche Entscheidung."
+      : "AI can draft a factual rationale. Selecting the risk class remains a human decision.",
+    generating: isGerman ? "Formuliert" : "Drafting",
+    regenerate: isGerman ? "Neu formulieren" : "Draft again",
+    generate: isGerman ? "Begruendung formulieren" : "Draft rationale",
+    restorePrevious: isGerman
+      ? "Vorherigen Vermerk wiederherstellen"
+      : "Restore previous note",
+    replacingNote: isGerman
+      ? "Beim Formulieren wird der aktuelle Vermerk im Feld ersetzt. Falls er manuell war, koennen Sie ihn danach wiederherstellen."
+      : "Drafting replaces the current note in the field. If it was manual, you can restore it afterwards.",
+    draftNotSaved: isGerman
+      ? "Der Entwurf wird nicht automatisch gespeichert und bleibt voll editierbar."
+      : "The draft is not saved automatically and remains fully editable.",
+    draftedByAi: "Drafted by AI - Needs Human Review",
+    notePlaceholder: isGerman
+      ? "Optionaler Vermerk zur Einordnung, zu offenen Punkten oder zum naechsten Review."
+      : "Optional note on classification, open points, or the next review.",
+    existingTextRemains: isGerman
+      ? "Bestehender Text bleibt erhalten, bis Sie ihn anpassen oder leeren."
+      : "Existing text remains until you edit or clear it.",
+    step: isGerman ? "Schritt" : "Step",
+    of: isGerman ? "von" : "of",
+    back: isGerman ? "Zurueck" : "Back",
+    next: isGerman ? "Weiter" : "Next",
+    saving: isGerman ? "Speichere" : "Saving",
+    saveReview: isGerman ? "Pruefung speichern" : "Save review",
+    draftError: isGerman
+      ? "Fehler beim Formulieren des Entwurfs."
+      : "Error while drafting rationale.",
+    emptyDraft: isGerman
+      ? "Es konnte kein verwertbarer Entwurf erzeugt werden."
+      : "No usable draft could be generated.",
+    fallbackDraftError: isGerman
+      ? "Der Entwurf konnte gerade nicht erzeugt werden."
+      : "The draft could not be generated right now.",
+  };
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
@@ -205,8 +356,8 @@ export function UseCaseAssessmentWizard({
   const reviewContext = useMemo(
     () =>
       launchContext ??
-      buildRiskReviewLaunchContextFromUseCase(card, fallbackToolRiskLevel),
-    [card, fallbackToolRiskLevel, launchContext],
+      buildRiskReviewLaunchContextFromUseCase(card, fallbackToolRiskLevel, locale),
+    [card, fallbackToolRiskLevel, launchContext, locale],
   );
 
   const [formState, setFormState] = useState(() =>
@@ -249,9 +400,10 @@ export function UseCaseAssessmentWizard({
   const currentStep = steps[stepIndex];
   const suggestionLabel = getRiskClassDisplayLabel(
     reviewContext.suggestion.suggestedRiskClass,
+    locale,
   );
   const currentRiskLabel =
-    reviewContext.currentRiskDisplayLabel ?? "Noch kein dokumentierter Eintrag";
+    reviewContext.currentRiskDisplayLabel ?? copy.noCurrentClassification;
 
   const handleApplySuggestion = () => {
     if (reviewContext.suggestion.suggestedRiskClass === "UNASSESSED") {
@@ -297,18 +449,19 @@ export function UseCaseAssessmentWizard({
             vendor: toolEntry?.vendor ?? null,
             launchContext: reviewContext,
             formState,
+            locale,
           }),
         ),
       });
 
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        throw new Error(data?.error ?? "Fehler beim Formulieren des Entwurfs.");
+        throw new Error(data?.error ?? copy.draftError);
       }
 
       const nextDraft = typeof data?.draft === "string" ? data.draft.trim() : "";
       if (!nextDraft) {
-        throw new Error("Es konnte kein verwertbarer Entwurf erzeugt werden.");
+        throw new Error(copy.emptyDraft);
       }
 
       setFormState((prev) => ({
@@ -321,7 +474,7 @@ export function UseCaseAssessmentWizard({
       setDraftError(
         error instanceof Error
           ? error.message
-          : "Der Entwurf konnte gerade nicht erzeugt werden.",
+          : copy.fallbackDraftError,
       );
     } finally {
       setIsGeneratingDraft(false);
@@ -363,17 +516,15 @@ export function UseCaseAssessmentWizard({
     <Dialog open={open} onOpenChange={(nextOpen) => !isSubmitting && onOpenChange(nextOpen)}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader className="space-y-2">
-          <DialogTitle>Kurze Pruefung zur Risikoklasse</DialogTitle>
+          <DialogTitle>{copy.title}</DialogTitle>
           <DialogDescription className="max-w-[62ch] leading-6">
-            Diese Pruefung dokumentiert eine menschliche Einordnung. Sie setzt
-            keine Risikoklasse automatisch und ersetzt keine umfassendere
-            Governance-Pruefung.
+            {copy.description}
           </DialogDescription>
         </DialogHeader>
 
         <div className="rounded-md border border-slate-200 bg-slate-50/60 px-4 py-3">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-            Einsatzfall
+            {copy.useCase}
           </p>
           <p className="mt-1 text-sm font-medium text-slate-900">
             {reviewContext.purpose}
@@ -384,38 +535,42 @@ export function UseCaseAssessmentWizard({
           {currentStep === "summary" ? (
             <div className="space-y-5">
               <StepLead
-                eyebrow="Ausgangspunkt"
-                title="Signale und Einordnung"
-                body="Der Vorschlag bleibt ein Entwurf. Entscheidend ist, was Sie fuer diesen Einsatzfall tatsaechlich dokumentieren wollen."
+                eyebrow={copy.startingPoint}
+                title={copy.signalsTitle}
+                body={copy.signalsBody}
               />
 
               <div className="grid gap-3 md:grid-cols-2">
                 <SummaryBlock
-                  label="Aktuelle Einstufung"
+                  label={copy.currentClassification}
                   value={currentRiskLabel}
                 />
                 <SummaryBlock
-                  label="Vorschlag"
+                  label={copy.suggestion}
                   value={suggestionLabel}
                   detail={[
-                    `Signalstaerke: ${SIGNAL_STRENGTH_LABELS[reviewContext.suggestion.signalStrength]}.`,
+                    `${copy.signalStrength}: ${
+                      signalStrengthLabels[
+                        reviewContext.suggestion.signalStrength
+                      ]
+                    }.`,
                     reviewContext.suggestion.reviewRecommended
-                      ? "Kurze Pruefung empfohlen."
-                      : "Kurze Pruefung optional.",
+                      ? copy.shortReviewRecommended
+                      : copy.shortReviewOptional,
                   ].join(" ")}
                 />
               </div>
 
               <div className="grid gap-3 md:grid-cols-2">
                 <SummaryList
-                  label="Warum diese Richtung naheliegt"
+                  label={copy.whyDirection}
                   items={reviewContext.suggestion.reasons}
-                  emptyLabel="Noch keine begruendenden Signale sichtbar."
+                  emptyLabel={copy.noSignals}
                 />
                 <SummaryList
-                  label="Was noch offen sein kann"
+                  label={copy.openItems}
                   items={reviewContext.suggestion.openQuestions}
-                  emptyLabel="Aktuell sind keine offenen Rueckfragen markiert."
+                  emptyLabel={copy.noOpenQuestions}
                 />
               </div>
             </div>
@@ -424,20 +579,19 @@ export function UseCaseAssessmentWizard({
           {currentStep === "classification" ? (
             <div className="space-y-5">
               <StepLead
-                eyebrow="Einordnung"
-                title="Risikoklasse bestaetigen oder anpassen"
-                body="Waehlen Sie die derzeit tragfaehigste Klasse. Wenn Sie nichts aendern, bleibt ein bestehender Eintrag erhalten."
+                eyebrow={copy.classificationEyebrow}
+                title={copy.classificationTitle}
+                body={copy.classificationBody}
               />
 
               {reviewContext.hasCustomRiskValue &&
               reviewContext.currentRiskDisplayLabel ? (
                 <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-4">
                   <p className="text-sm font-medium text-slate-900">
-                    Bestehender Freitext-Vermerk
+                    {copy.customNoteTitle}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    "{reviewContext.currentRiskDisplayLabel}" bleibt erhalten,
-                    bis Sie unten bewusst eine kanonische Klasse auswaehlen.
+                    {copy.customNoteBody(reviewContext.currentRiskDisplayLabel)}
                   </p>
                 </div>
               ) : null}
@@ -445,11 +599,10 @@ export function UseCaseAssessmentWizard({
               {reviewContext.suggestion.suggestedRiskClass !== "UNASSESSED" ? (
                 <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
                   <p className="text-sm font-medium text-slate-900">
-                    Vorschlag fuer diese Pruefung
+                    {copy.suggestionForReview}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-slate-600">
-                    {suggestionLabel} kann als Entwurf uebernommen und danach
-                    bei Bedarf angepasst werden.
+                    {copy.suggestionCanBeAdopted(suggestionLabel)}
                   </p>
                   <Button
                     type="button"
@@ -458,7 +611,7 @@ export function UseCaseAssessmentWizard({
                     className="mt-3"
                     onClick={handleApplySuggestion}
                   >
-                    Vorschlag uebernehmen
+                    {copy.adoptSuggestion}
                   </Button>
                 </div>
               ) : null}
@@ -497,10 +650,10 @@ export function UseCaseAssessmentWizard({
                       />
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-slate-900">
-                          {getRiskManualOptionLabel(option)}
+                          {getRiskManualOptionLabel(option, locale)}
                         </p>
                         <p className="text-sm leading-6 text-slate-600">
-                          {getRiskManualOptionDescription(option)}
+                          {getRiskManualOptionDescription(option, locale)}
                         </p>
                       </div>
                     </Label>
@@ -509,8 +662,7 @@ export function UseCaseAssessmentWizard({
               </RadioGroup>
 
               <p className="text-xs leading-5 text-slate-500">
-                "Noch nicht eingestuft" ist zulaessig, wenn die Einordnung
-                derzeit bewusst offen bleiben soll.
+                {copy.unassessedNote}
               </p>
             </div>
           ) : null}
@@ -518,16 +670,17 @@ export function UseCaseAssessmentWizard({
           {currentStep === "governance" ? (
             <div className="space-y-5">
               <StepLead
-                eyebrow="Pruefbedarf"
-                title="Begleitende Governance-Fakten festhalten"
-                body="Nur soweit derzeit belastbar dokumentierbar. Offene Punkte koennen offen bleiben."
+                eyebrow={copy.governanceEyebrow}
+                title={copy.governanceTitle}
+                body={copy.governanceBody}
               />
 
               <div className="space-y-3">
                 <BooleanChoiceField
-                  label="Menschliche Aufsicht"
-                  description="Ist derzeit dokumentiert, wie Outputs oder entscheidungsnahe Effekte menschlich ueberwacht werden?"
+                  label={copy.humanOversight}
+                  description={copy.humanOversightDescription}
                   value={formState.oversightDefined}
+                  options={booleanOptions}
                   onValueChange={(nextValue) =>
                     setFormState((prev) => ({
                       ...prev,
@@ -536,9 +689,10 @@ export function UseCaseAssessmentWizard({
                   }
                 />
                 <BooleanChoiceField
-                  label="Review-Zyklus"
-                  description="Ist ein nachvollziehbarer Turnus fuer erneute Pruefung oder Aktualisierung festgelegt?"
+                  label={copy.reviewCycle}
+                  description={copy.reviewCycleDescription}
                   value={formState.reviewCycleDefined}
+                  options={booleanOptions}
                   onValueChange={(nextValue) =>
                     setFormState((prev) => ({
                       ...prev,
@@ -547,9 +701,10 @@ export function UseCaseAssessmentWizard({
                   }
                 />
                 <BooleanChoiceField
-                  label="Dokumentationsstand"
-                  description="Sind Zweck, Grenzen und Einsatzparameter derzeit in ausreichender Form beschrieben?"
+                  label={copy.documentationStatus}
+                  description={copy.documentationStatusDescription}
                   value={formState.documentationLevelDefined}
+                  options={booleanOptions}
                   onValueChange={(nextValue) =>
                     setFormState((prev) => ({
                       ...prev,
@@ -564,18 +719,17 @@ export function UseCaseAssessmentWizard({
           {currentStep === "note" ? (
             <div className="space-y-5">
               <StepLead
-                eyebrow="Vermerk"
-                title="Zusaetzlichen Hinweis dokumentieren"
-                body="Optional. Fuer kurze Begruendung, offene Punkte oder einen bestehenden Draft-Vermerk. AI dient hier nur als Formulierungshilfe."
+                eyebrow={copy.noteEyebrow}
+                title={copy.noteTitle}
+                body={copy.noteBody}
               />
 
               <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-4">
                 <p className="text-sm font-medium text-slate-900">
-                  AI-Formulierungshilfe
+                  {copy.aiDraftTitle}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-slate-600">
-                  AI kann einen sachlichen Begruendungsentwurf formulieren. Die
-                  Auswahl der Risikoklasse bleibt eine menschliche Entscheidung.
+                  {copy.aiDraftBody}
                 </p>
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -589,12 +743,12 @@ export function UseCaseAssessmentWizard({
                     {isGeneratingDraft ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Formuliert
+                        {copy.generating}
                       </>
                     ) : formState.customAssessmentSource === "AI_DRAFT" ? (
-                      "Neu formulieren"
+                      copy.regenerate
                     ) : (
-                      "Begruendung formulieren"
+                      copy.generate
                     )}
                   </Button>
 
@@ -606,7 +760,7 @@ export function UseCaseAssessmentWizard({
                       className="text-slate-700"
                       onClick={handleRestorePreviousNote}
                     >
-                      Vorherigen Vermerk wiederherstellen
+                      {copy.restorePrevious}
                     </Button>
                   ) : null}
                 </div>
@@ -620,13 +774,11 @@ export function UseCaseAssessmentWizard({
                 {formState.customAssessmentText.trim() &&
                 formState.customAssessmentSource !== "AI_DRAFT" ? (
                   <p className="mt-3 text-xs leading-5 text-slate-500">
-                    Beim Formulieren wird der aktuelle Vermerk im Feld ersetzt.
-                    Falls er manuell war, koennen Sie ihn danach wiederherstellen.
+                    {copy.replacingNote}
                   </p>
                 ) : (
                   <p className="mt-3 text-xs leading-5 text-slate-500">
-                    Der Entwurf wird nicht automatisch gespeichert und bleibt
-                    voll editierbar.
+                    {copy.draftNotSaved}
                   </p>
                 )}
               </div>
@@ -634,7 +786,7 @@ export function UseCaseAssessmentWizard({
               <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
                 {formState.customAssessmentSource === "AI_DRAFT" ? (
                   <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-                    Drafted by AI - Needs Human Review
+                    {copy.draftedByAi}
                   </p>
                 ) : null}
                 <Textarea
@@ -649,11 +801,10 @@ export function UseCaseAssessmentWizard({
                     }))
                   }
                   rows={8}
-                  placeholder="Optionaler Vermerk zur Einordnung, zu offenen Punkten oder zum naechsten Review."
+                  placeholder={copy.notePlaceholder}
                 />
                 <p className="mt-3 text-xs leading-5 text-slate-500">
-                  Bestehender Text bleibt erhalten, bis Sie ihn anpassen oder
-                  leeren.
+                  {copy.existingTextRemains}
                 </p>
               </div>
             </div>
@@ -662,7 +813,7 @@ export function UseCaseAssessmentWizard({
 
         <div className="flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-            Schritt {stepIndex + 1} von {steps.length}
+            {copy.step} {stepIndex + 1} {copy.of} {steps.length}
           </p>
 
           <div className="flex items-center justify-end gap-2">
@@ -673,7 +824,7 @@ export function UseCaseAssessmentWizard({
                 onClick={() => setStepIndex((current) => Math.max(current - 1, 0))}
                 disabled={isSubmitting}
               >
-                Zurueck
+                {copy.back}
               </Button>
             ) : null}
 
@@ -685,7 +836,7 @@ export function UseCaseAssessmentWizard({
                 }
                 disabled={isSubmitting}
               >
-                Weiter
+                {copy.next}
               </Button>
             ) : (
               <Button
@@ -696,10 +847,10 @@ export function UseCaseAssessmentWizard({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Speichere
+                    {copy.saving}
                   </>
                 ) : (
-                  "Pruefung speichern"
+                  copy.saveReview
                 )}
               </Button>
             )}

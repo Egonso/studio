@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { ControlAuditLayer } from "@/components/control/control-audit-layer";
@@ -31,6 +32,7 @@ interface AuditSnapshot {
 
 export default function ControlAuditPage() {
   const { user, loading } = useAuth();
+  const locale = useLocale();
   const router = useRouter();
   const scopedHrefs = useScopedRouteHrefs();
 
@@ -75,12 +77,14 @@ export default function ControlAuditPage() {
     } catch (error) {
       console.error("Failed to load control audit data", error);
       setDataError(
-        "Audit-Daten konnten nicht geladen werden. Bitte oeffnen Sie ein Register und versuchen Sie es erneut."
+        locale === "de"
+          ? "Audit-Daten konnten nicht geladen werden. Bitte öffnen Sie ein Register und versuchen Sie es erneut."
+          : "Audit data could not be loaded. Please open a register and try again."
       );
     } finally {
       setIsDataLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (
@@ -95,8 +99,13 @@ export default function ControlAuditPage() {
 
   const auditLayer = useMemo(() => {
     if (!snapshot) return null;
-    return buildOrgAuditLayer(snapshot.useCases, snapshot.orgSettings, snapshot.capturedAt);
-  }, [snapshot]);
+    return buildOrgAuditLayer(
+      snapshot.useCases,
+      snapshot.orgSettings,
+      snapshot.capturedAt,
+      locale
+    );
+  }, [locale, snapshot]);
 
   if (loading) {
     return (
@@ -119,31 +128,35 @@ export default function ControlAuditPage() {
           {!registerFirstFlags.controlShell ? (
             <Card>
               <CardHeader>
-                <CardTitle>AI Governance Control ist nicht freigeschaltet</CardTitle>
+                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht freigeschaltet" : "AI Governance Control is not enabled"}</CardTitle>
                 <CardDescription>
-                  Der Audit-Bereich ist für diesen Workspace noch nicht freigeschaltet.
+                  {locale === "de"
+                    ? "Der Audit-Bereich ist für diesen Workspace noch nicht freigeschaltet."
+                    : "The audit area is not enabled for this workspace yet."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild>
-                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                 </Button>
               </CardContent>
             </Card>
           ) : !registerFirstFlags.controlIsoAudit ? (
             <Card>
               <CardHeader>
-                <CardTitle>ISO & Audit Layer folgt in Kürze</CardTitle>
+                <CardTitle>{locale === "de" ? "ISO & Audit Layer folgt in Kürze" : "ISO & Audit Layer coming soon"}</CardTitle>
                 <CardDescription>
-                  Die Audit-Ansicht wird aktuell erweitert und steht bald bereit.
+                  {locale === "de"
+                    ? "Die Audit-Ansicht wird aktuell erweitert und steht bald bereit."
+                    : "The audit view is being extended and will be available soon."}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Button asChild variant="outline">
-                  <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
+                  <Link href={scopedHrefs.control}>{locale === "de" ? "Zurück zu Control" : "Back to Control"}</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                  <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -152,19 +165,23 @@ export default function ControlAuditPage() {
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <CardTitle>Control Bereich: ISO & Audit Layer</CardTitle>
+                    <CardTitle>{locale === "de" ? "Control Bereich: ISO & Audit Layer" : "Control Area: ISO & Audit Layer"}</CardTitle>
                     <CardDescription>
                       {snapshot?.organisationName
-                        ? `Org-weite Auditsteuerung fuer ${snapshot.organisationName}.`
-                        : "Org-weite Auditsteuerung und revisionssichere Historie."}
+                        ? locale === "de"
+                          ? `Org-weite Auditsteuerung für ${snapshot.organisationName}.`
+                          : `Organisation-wide audit controls for ${snapshot.organisationName}.`
+                        : locale === "de"
+                          ? "Org-weite Auditsteuerung und revisionssichere Historie."
+                          : "Organisation-wide audit controls and immutable history."}
                     </CardDescription>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={scopedHrefs.control}>Zurueck zu Control</Link>
+                      <Link href={scopedHrefs.control}>{locale === "de" ? "Zurück zu Control" : "Back to Control"}</Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link href={scopedHrefs.register}>Zurueck zum Register</Link>
+                      <Link href={scopedHrefs.register}>{locale === "de" ? "Zurück zum Register" : "Back to register"}</Link>
                     </Button>
                   </div>
                 </CardHeader>
@@ -174,7 +191,7 @@ export default function ControlAuditPage() {
                 <Card>
                   <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Audit-Daten werden geladen.
+                    {locale === "de" ? "Audit-Daten werden geladen." : "Loading audit data."}
                   </CardContent>
                 </Card>
               )}

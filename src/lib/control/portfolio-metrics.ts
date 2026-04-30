@@ -4,6 +4,8 @@ import {
   parseStoredAiActCategory,
 } from "@/lib/register-first/risk-taxonomy";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
+import { getRegisterUseCaseStatusLabel } from "@/lib/register-first/status-flow";
+import { resolveGovernanceCopyLocale } from "@/lib/i18n/governance-copy";
 
 export type PortfolioRiskBucketKey =
   | "PROHIBITED"
@@ -116,20 +118,20 @@ const STATUS_ORDER: RegisterUseCaseStatus[] = [
   "PROOF_READY",
 ];
 
-const STATUS_LABELS: Record<RegisterUseCaseStatus, string> = {
-  UNREVIEWED: "Formale Pruefung ausstehend",
-  REVIEW_RECOMMENDED: "Pruefung empfohlen",
-  REVIEWED: "Pruefung abgeschlossen",
-  PROOF_READY: "Nachweisfaehig",
-};
-
-const RISK_BUCKETS: Array<{ key: PortfolioRiskBucketKey; label: string }> = [
-  { key: "PROHIBITED", label: getRiskClassShortLabel("PROHIBITED") },
-  { key: "HIGH", label: getRiskClassShortLabel("HIGH") },
-  { key: "LIMITED", label: getRiskClassShortLabel("LIMITED") },
-  { key: "MINIMAL", label: getRiskClassShortLabel("MINIMAL") },
-  { key: "UNASSESSED", label: getRiskClassShortLabel("UNASSESSED") },
+const RISK_BUCKET_KEYS: PortfolioRiskBucketKey[] = [
+  "PROHIBITED",
+  "HIGH",
+  "LIMITED",
+  "MINIMAL",
+  "UNASSESSED",
 ];
+
+function getRiskBuckets(locale?: string): Array<{ key: PortfolioRiskBucketKey; label: string }> {
+  return RISK_BUCKET_KEYS.map((key) => ({
+    key,
+    label: getRiskClassShortLabel(key, locale),
+  }));
+}
 
 function parseTimestamp(value: string): number {
   const timestamp = Date.parse(value);
@@ -156,18 +158,22 @@ function share(part: number, total: number): number {
   return Math.round((part / total) * 100);
 }
 
-function normalizeDepartment(useCase: UseCaseCard): string {
+function normalizeDepartment(useCase: UseCaseCard, locale?: string): string {
   const value = useCase.organisation?.trim();
-  if (!value) return "Nicht angegeben";
+  if (!value) {
+    return resolveGovernanceCopyLocale(locale) === "de" ? "Nicht angegeben" : "Not specified";
+  }
   return value;
 }
 
-function normalizeOwner(useCase: UseCaseCard): string {
+function normalizeOwner(useCase: UseCaseCard, locale?: string): string {
   if (useCase.responsibility.isCurrentlyResponsible) {
-    return "Erfasser:in (selbst)";
+    return resolveGovernanceCopyLocale(locale) === "de" ? "Erfasser:in (selbst)" : "Submitter (self)";
   }
   const value = useCase.responsibility.responsibleParty?.trim();
-  if (!value) return "Nicht zugewiesen";
+  if (!value) {
+    return resolveGovernanceCopyLocale(locale) === "de" ? "Nicht zugewiesen" : "Unassigned";
+  }
   return value;
 }
 
@@ -210,9 +216,9 @@ function bandForScore(score: number): "DIFFUSE" | "BALANCED" | "CLUSTERED" {
   return "DIFFUSE";
 }
 
-function createRiskBucketMap(): Map<PortfolioRiskBucketKey, PortfolioRiskBucketInternal> {
+function createRiskBucketMap(locale?: string): Map<PortfolioRiskBucketKey, PortfolioRiskBucketInternal> {
   const map = new Map<PortfolioRiskBucketKey, PortfolioRiskBucketInternal>();
-  for (const bucket of RISK_BUCKETS) {
+  for (const bucket of getRiskBuckets(locale)) {
     map.set(bucket.key, {
       key: bucket.key,
       label: bucket.label,
@@ -261,7 +267,8 @@ function asGroupArray<T extends PortfolioGroupInternal>(
 function computeRiskConcentration(
   concentrationGroups: Map<string, ConcentrationGroupInternal>,
   totalCriticalSystems: number,
-  useCaseById: Map<string, UseCaseCard>
+  useCaseById: Map<string, UseCaseCard>,
+  locale?: string
 ): RiskConcentrationIndex {
   const groups = [...concentrationGroups.values()].filter((group) => group.count > 0);
   const groupCount = groups.length;
@@ -273,7 +280,9 @@ function computeRiskConcentration(
       groupCount: 0,
       concentrationBand: "DIFFUSE",
       methodology:
-        "HHI-normalisiert auf Hochrisiko/Verboten-Segmente nach Fachbereich.",
+        resolveGovernanceCopyLocale(locale) === "de"
+          ? "HHI-normalisiert auf Hochrisiko/Verboten-Segmente nach Fachbereich."
+          : "HHI normalised across high-risk/prohibited segments by department.",
       topConcentrations: [],
     };
   }
@@ -315,19 +324,23 @@ function computeRiskConcentration(
     groupCount,
     concentrationBand: bandForScore(score),
     methodology:
-      "HHI-normalisiert auf Hochrisiko/Verboten-Segmente nach Fachbereich.",
+      resolveGovernanceCopyLocale(locale) === "de"
+        ? "HHI-normalisiert auf Hochrisiko/Verboten-Segmente nach Fachbereich."
+        : "HHI normalised across high-risk/prohibited segments by department.",
     topConcentrations,
   };
 }
 
 export function buildPortfolioMetrics(
   useCases: UseCaseCard[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  locale?: string
 ): PortfolioMetrics {
   const totalSystems = useCases.length;
   const useCaseById = new Map(useCases.map((useCase) => [useCase.useCaseId, useCase]));
 
-  const riskBuckets = createRiskBucketMap();
+  const riskBucketMeta = getRiskBuckets(locale);
+  const riskBuckets = createRiskBucketMap(locale);
   const departmentMap = new Map<string, PortfolioGroupInternal>();
   const ownerMap = new Map<string, PortfolioGroupInternal>();
   const concentrationMap = new Map<string, ConcentrationGroupInternal>();
@@ -345,8 +358,8 @@ export function buildPortfolioMetrics(
   for (const useCase of useCases) {
     const bucketKey = riskBucketForUseCase(useCase);
     const status = useCase.status;
-    const department = normalizeDepartment(useCase);
-    const owner = normalizeOwner(useCase);
+    const department = normalizeDepartment(useCase, locale);
+    const owner = normalizeOwner(useCase, locale);
     const reviewed = isReviewComplete(status);
     const overdue = isReviewOverdue(useCase, now);
     const critical = isConcentrationRisk(bucketKey);
@@ -407,7 +420,7 @@ export function buildPortfolioMetrics(
     }
   }
 
-  const riskDistribution = RISK_BUCKETS.map((bucketMeta) => {
+  const riskDistribution = riskBucketMeta.map((bucketMeta) => {
     const bucket = riskBuckets.get(bucketMeta.key)!;
     const firstUseCaseId = firstIdByAge(bucket.useCaseIds, useCaseById);
     return {
@@ -422,7 +435,7 @@ export function buildPortfolioMetrics(
     };
   });
 
-  const riskStatusMatrix = RISK_BUCKETS.map((bucketMeta) => {
+  const riskStatusMatrix = riskBucketMeta.map((bucketMeta) => {
     const bucket = riskBuckets.get(bucketMeta.key)!;
     const firstUseCaseId = firstIdByAge(bucket.useCaseIds, useCaseById);
     return {
@@ -464,7 +477,7 @@ export function buildPortfolioMetrics(
     const firstUseCaseId = firstIdByAge(statusEntry.useCaseIds, useCaseById);
     return {
       status,
-      label: STATUS_LABELS[status],
+      label: getRegisterUseCaseStatusLabel(status, locale),
       count: statusEntry.count,
       sharePercent: share(statusEntry.count, totalSystems),
       drilldownUseCaseId: firstUseCaseId,
@@ -477,7 +490,8 @@ export function buildPortfolioMetrics(
   const riskConcentrationIndex = computeRiskConcentration(
     concentrationMap,
     totalCriticalSystems,
-    useCaseById
+    useCaseById,
+    locale
   );
 
   return {

@@ -11,6 +11,10 @@
  */
 
 import type { SectionDefinition } from '../section-definition';
+import {
+    formatGovernanceDate,
+    resolveGovernanceCopyLocale,
+} from '@/lib/i18n/governance-copy';
 
 export const commitmentSection: SectionDefinition = {
     sectionId: 'l1-commitment',
@@ -21,13 +25,33 @@ export const commitmentSection: SectionDefinition = {
     shouldInclude: () => true,
 
     buildContent(context) {
-        const orgName = context.orgSettings.organisationName || '[Company Name]';
-        const industry = context.orgSettings.industry || '[Industry]';
-        const today = new Date().toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+        const locale = resolveGovernanceCopyLocale(context.locale);
+        const orgName =
+            context.orgSettings.organisationName ||
+            (locale === 'de' ? '[Firmenname]' : '[Company Name]');
+        const industry =
+            context.orgSettings.industry ||
+            (locale === 'de' ? '[Branche]' : '[Industry]');
+        const today = formatGovernanceDate(new Date(), locale);
+
+        if (locale === 'de') {
+            return [
+                `**Einleitung / Präambel**`,
+                ``,
+                `${orgName} (Branche: ${industry}) erkennt an, dass der EU AI Act ` +
+                `(Verordnung (EU) 2024/1689) neue Anforderungen an den Einsatz ` +
+                `Künstlicher Intelligenz stellt. Diese Erklärung dokumentiert, dass KI ` +
+                `verantwortungsvoll, nachvollziehbar und im Einklang mit europäischen ` +
+                `Werten eingesetzt werden soll.`,
+                ``,
+                `Wir verpflichten uns, den Einsatz von KI-Systemen innerhalb unserer ` +
+                `Organisation transparent zu gestalten und die Rechte betroffener Personen ` +
+                `zu wahren. Diese Erklärung hält den aktuellen Stand unserer Grundprinzipien ` +
+                `fest und sollte regelmäßig überprüft werden.`,
+                ``,
+                `*Erstellt am: ${today}*`,
+            ].join('\n');
+        }
 
         return [
             `**Introduction / Preamble**`,

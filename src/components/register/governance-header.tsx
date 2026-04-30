@@ -84,6 +84,7 @@ function getGovernanceHeaderCopy(locale: string) {
       organisation: 'Organisation',
       organisationalUnit: 'Organisationseinheit',
       contact: 'Kontakt',
+      unnamed: 'Unbenannt',
       privateRegisterInstance: 'Private Register-Instanz',
       registerVersion: 'Registerversion',
       governanceSettings: 'Governance-Einstellungen',
@@ -128,6 +129,7 @@ function getGovernanceHeaderCopy(locale: string) {
     organisation: 'Organisation',
     organisationalUnit: 'Organisational unit',
     contact: 'Contact',
+    unnamed: 'Unnamed',
     privateRegisterInstance: 'Private register instance',
     registerVersion: 'Register version',
     governanceSettings: 'Governance settings',
@@ -166,9 +168,20 @@ export function GovernanceHeader({
   const [isCreatingSupplierLink, setIsCreatingSupplierLink] = useState(false);
   const [isRevokingSupplierLink, setIsRevokingSupplierLink] = useState(false);
   const [supplierInviteDialogOpen, setSupplierInviteDialogOpen] = useState(false);
-  const orgName = register?.organisationName;
-  const orgUnit = register?.organisationUnit;
-  const orgSettings = register?.orgSettings;
+  const normalizeStoredDisplayText = (value: string | null | undefined) => {
+    const normalized = value?.trim();
+    if (!normalized) return null;
+    if (locale !== 'de' && normalized === 'Unbenannt') return copy.unnamed;
+    if (locale !== 'de' && normalized === 'Meine Organisation') {
+      return 'My organisation';
+    }
+    return normalized;
+  };
+  const orgName = normalizeStoredDisplayText(register?.organisationName);
+  const orgUnit = normalizeStoredDisplayText(register?.organisationUnit);
+  const contactName = normalizeStoredDisplayText(
+    register?.orgSettings?.contactPerson?.name,
+  );
 
   useEffect(() => {
     if (initialSupplierInviteDialogOpen && registerFirstFlags.supplierInviteV2) {
@@ -361,11 +374,11 @@ export function GovernanceHeader({
                     </span>
                   </span>
                 )}
-                {orgSettings?.contactPerson?.name && (
+                {contactName && (
                   <span>
                     {copy.contact}:{' '}
                     <span className="font-medium text-slate-950">
-                      {orgSettings.contactPerson.name}
+                      {contactName}
                     </span>
                   </span>
                 )}

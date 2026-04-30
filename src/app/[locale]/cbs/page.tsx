@@ -2,6 +2,7 @@
 'use client';
 
 import { Suspense, useState, useEffect, useCallback } from 'react';
+import { useLocale } from 'next-intl';
 import { AppHeader } from '@/components/app-header';
 import { Loader2, Wand2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -16,10 +17,13 @@ import { PolicyListView } from '@/components/policy-engine/policy-list';
 import { PolicyBuilderWizard } from '@/components/policy-engine/policy-builder-wizard';
 import { PolicyPreview } from '@/components/policy-engine/policy-preview';
 import { PolicyApprovalBanner } from '@/components/policy-engine/policy-approval-banner';
+import { resolveGovernanceCopyLocale } from '@/lib/i18n/governance-copy';
 
 type PageView = 'list' | 'wizard' | 'preview';
 
 function ComplianceInADayPageContent() {
+    const locale = useLocale();
+    const isGerman = resolveGovernanceCopyLocale(locale) === 'de';
     const { user, loading: authLoading } = useAuth();
     const { toast } = useToast();
 
@@ -93,18 +97,19 @@ function ComplianceInADayPageContent() {
         // Update sections if assembler provided them
         if (partial.sections.length > 0) {
             await policyService.updatePolicy(registerId, created.policyId, {
+                title: partial.title,
                 sections: partial.sections,
             });
         }
         toast({
-            title: 'Richtlinie erstellt!',
+            title: isGerman ? 'Richtlinie erstellt!' : 'Policy created',
             description: `Level ${partial.level} – ${partial.title}`,
         });
         // Refresh list
         const polList = await policyService.listPolicies(registerId);
         setPolicies(polList);
         setView('list');
-    }, [registerId, user, toast]);
+    }, [registerId, user, toast, isGerman]);
 
     if (authLoading || !user) {
         return (
@@ -129,14 +134,16 @@ function ComplianceInADayPageContent() {
                                         Smart Policy Engine
                                     </CardTitle>
                                     <CardDescription className="mt-1 max-w-2xl">
-                                        Erstellen Sie in wenigen Schritten eine KI-Richtlinie für Ihr Unternehmen.
+                                        {isGerman
+                                            ? 'Erstellen Sie in wenigen Schritten eine KI-Richtlinie für Ihr Unternehmen.'
+                                            : 'Create an AI policy for your organisation in a few structured steps.'}
                                         {view === 'preview' && selectedPolicy && (
                                             <Button
                                                 variant="link"
                                                 className="ml-2 p-0 h-auto"
                                                 onClick={() => { setView('list'); setSelectedPolicy(null); }}
                                             >
-                                                ← Zurück zur Übersicht
+                                                {isGerman ? '← Zurück zur Übersicht' : '← Back to overview'}
                                             </Button>
                                         )}
                                     </CardDescription>
@@ -166,7 +173,8 @@ function ComplianceInADayPageContent() {
                                     industry: '',
                                     contactPerson: { name: '', email: '' }
                                 },
-                                level: 1 // Default, wizard will change it
+                                level: 1, // Default, wizard will change it
+                                locale,
                             }}
                             orgSnapshot={orgSnapshot}
                             canAccessLevel3={register.plan === 'pro' || register.plan === 'enterprise'}
@@ -184,7 +192,7 @@ function ComplianceInADayPageContent() {
                                         selectedPolicy.policyId,
                                         status,
                                         user.uid,
-                                        `Status changed to ${status}`
+                                        isGerman ? `Status geändert zu ${status}` : `Status changed to ${status}`
                                     );
                                     setSelectedPolicy(updated);
                                     // Refresh list in background

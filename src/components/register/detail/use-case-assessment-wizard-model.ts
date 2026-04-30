@@ -4,7 +4,6 @@ import {
   normalizeStoredAiActCategory,
   resolveDataCategories,
   resolveDecisionInfluence,
-  suggestRiskClassForUseCase,
   type CanonicalAiActRiskClass,
   type RiskSuggestionResult,
   type UseCaseCard,
@@ -100,6 +99,7 @@ function normalizeCustomAssessmentSource(
 export function buildRiskReviewLaunchContext(
   draft: RiskAssistEditDraftInput,
   toolRiskLevel: EuAiActRiskLevel | null,
+  locale?: string,
 ): RiskReviewLaunchContext {
   const manualRiskSelectionValue = getRiskManualSelectionValue(
     draft.aiActCategory,
@@ -114,13 +114,14 @@ export function buildRiskReviewLaunchContext(
     aiActCategory: draft.aiActCategory,
     currentRiskDisplayLabel: getRiskAssistCurrentDisplayLabel(
       draft.aiActCategory,
+      locale,
     ),
     currentRiskClass:
       manualRiskSelectionValue !== CUSTOM_RISK_SELECTION
         ? manualRiskSelectionValue
         : null,
     hasCustomRiskValue: hasCustomRiskSelection(draft.aiActCategory),
-    suggestion: buildRiskSuggestionForEditDraft(draft, toolRiskLevel),
+    suggestion: buildRiskSuggestionForEditDraft(draft, toolRiskLevel, locale),
   };
 }
 
@@ -138,11 +139,21 @@ export function buildRiskReviewLaunchContextFromUseCase(
     | "governanceAssessment"
   >,
   toolRiskLevel: EuAiActRiskLevel | null,
+  locale?: string,
 ): RiskReviewLaunchContext {
   const aiActCategory = getRiskClassEditorValue(
     card.governanceAssessment?.core?.aiActCategory,
   );
   const manualRiskSelectionValue = getRiskManualSelectionValue(aiActCategory);
+  const draft: RiskAssistEditDraftInput = {
+    purpose: card.purpose,
+    usageContexts: card.usageContexts,
+    decisionInfluence: resolveDecisionInfluence(card) ?? null,
+    dataCategories: resolveDataCategories(card),
+    toolId: card.toolId ?? "other",
+    toolFreeText: card.toolFreeText ?? "",
+    aiActCategory,
+  };
 
   return {
     purpose: card.purpose,
@@ -151,13 +162,13 @@ export function buildRiskReviewLaunchContextFromUseCase(
     dataCategories: resolveDataCategories(card),
     toolRiskLevel,
     aiActCategory,
-    currentRiskDisplayLabel: getRiskAssistCurrentDisplayLabel(aiActCategory),
+    currentRiskDisplayLabel: getRiskAssistCurrentDisplayLabel(aiActCategory, locale),
     currentRiskClass:
       manualRiskSelectionValue !== CUSTOM_RISK_SELECTION
         ? manualRiskSelectionValue
         : null,
     hasCustomRiskValue: hasCustomRiskSelection(aiActCategory),
-    suggestion: suggestRiskClassForUseCase(card, { toolRiskLevel }),
+    suggestion: buildRiskSuggestionForEditDraft(draft, toolRiskLevel, locale),
   };
 }
 
@@ -254,6 +265,7 @@ export function buildDraftAssessmentRequestPayload(input: {
   vendor?: string | null;
   launchContext: RiskReviewLaunchContext;
   formState: Pick<RiskReviewFormState, "aiActCategory">;
+  locale?: string;
 }): DraftAssessmentRequestPayload {
   const selectedRiskClass = normalizeStoredAiActCategory(input.formState.aiActCategory);
 
@@ -264,12 +276,15 @@ export function buildDraftAssessmentRequestPayload(input: {
     usageContexts: input.launchContext.usageContexts,
     dataCategories: input.launchContext.dataCategories,
     selectedRiskClass:
-      selectedRiskClass && getRiskAssistCurrentDisplayLabel(selectedRiskClass)
-        ? getRiskAssistCurrentDisplayLabel(selectedRiskClass) ?? undefined
+      selectedRiskClass && getRiskAssistCurrentDisplayLabel(selectedRiskClass, input.locale)
+        ? getRiskAssistCurrentDisplayLabel(selectedRiskClass, input.locale) ?? undefined
         : undefined,
     suggestedRiskClass:
       input.launchContext.suggestion.suggestedRiskClass !== "UNASSESSED"
-        ? getRiskClassDisplayLabel(input.launchContext.suggestion.suggestedRiskClass)
+        ? getRiskClassDisplayLabel(
+            input.launchContext.suggestion.suggestedRiskClass,
+            input.locale,
+          )
         : undefined,
     reasons: input.launchContext.suggestion.reasons,
     openQuestions: input.launchContext.suggestion.openQuestions,

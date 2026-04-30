@@ -15,11 +15,13 @@
  */
 
 import { useState, useMemo } from "react";
+import { useLocale } from "next-intl";
 import { ChevronDown, ChevronUp, ClipboardCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { ReviewEvent, RegisterUseCaseStatus } from "@/lib/register-first/types";
+import { getRegisterUseCaseStatusLabel } from "@/lib/register-first";
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
@@ -35,15 +37,6 @@ const STATUS_BADGE_STYLES: Record<
     REVIEW_RECOMMENDED: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
-const STATUS_LABELS: Record<
-    Exclude<RegisterUseCaseStatus, "UNREVIEWED">,
-    string
-> = {
-    REVIEWED: "Geprüft",
-    PROOF_READY: "Nachweisfähig",
-    REVIEW_RECOMMENDED: "Prüfung empfohlen",
-};
-
 /** Dot color on the timeline by status */
 const DOT_COLORS: Record<
     Exclude<RegisterUseCaseStatus, "UNREVIEWED">,
@@ -56,16 +49,17 @@ const DOT_COLORS: Record<
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatDateTimeDE(isoDate: string): string {
+function formatDateTime(isoDate: string, locale: string): string {
     try {
         const d = new Date(isoDate);
         if (isNaN(d.getTime())) return "–";
-        const day = String(d.getDate()).padStart(2, "0");
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const year = d.getFullYear();
-        const hours = String(d.getHours()).padStart(2, "0");
-        const minutes = String(d.getMinutes()).padStart(2, "0");
-        return `${day}.${month}.${year} ${hours}:${minutes}`;
+        return d.toLocaleString(locale === "de" ? "de-DE" : "en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
     } catch {
         return "–";
     }
@@ -86,6 +80,20 @@ export function ReviewTimeline({
     reviews,
     maxVisible = MAX_VISIBLE_DEFAULT,
 }: ReviewTimelineProps) {
+    const locale = useLocale();
+    const isGerman = locale === "de";
+    const copy = {
+        title: isGerman ? "Prüfhistorie" : "Review history",
+        empty: isGerman
+            ? "Noch keine formale Prüfung dokumentiert."
+            : "No formal review documented yet.",
+        less: isGerman ? "Weniger anzeigen" : "Show less",
+        showAll: (count: number) =>
+            isGerman ? `Alle ${count} Reviews anzeigen` : `Show all ${count} reviews`,
+        disclaimer: isGerman
+            ? "Dokumentierter IST-Zustand. Reviews sind unveränderlich und werden chronologisch protokolliert."
+            : "Documented current state. Reviews are immutable and recorded chronologically.",
+    };
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Sort newest first (reverse chronological)
@@ -108,12 +116,12 @@ export function ReviewTimeline({
                 <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <ClipboardCheck className="w-4 h-4 text-slate-500" />
-                        Prüfhistorie
+                        {copy.title}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pb-4">
                     <p className="text-xs text-muted-foreground">
-                        Noch keine formale Prüfung dokumentiert.
+                        {copy.empty}
                     </p>
                 </CardContent>
             </Card>
@@ -126,7 +134,7 @@ export function ReviewTimeline({
                 <CardTitle className="text-sm font-semibold flex items-center justify-between">
                     <span className="flex items-center gap-2">
                         <ClipboardCheck className="w-4 h-4 text-slate-500" />
-                        Prüfhistorie
+                        {copy.title}
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">
                         {reviews.length} {reviews.length === 1 ? "Review" : "Reviews"}
@@ -140,7 +148,9 @@ export function ReviewTimeline({
                         const isLast = idx === visibleReviews.length - 1;
                         const dotColor = DOT_COLORS[review.nextStatus] ?? "bg-slate-400";
                         const badgeStyle = STATUS_BADGE_STYLES[review.nextStatus] ?? "";
-                        const statusLabel = STATUS_LABELS[review.nextStatus] ?? review.nextStatus;
+                        const statusLabel =
+                            getRegisterUseCaseStatusLabel(review.nextStatus, locale) ??
+                            review.nextStatus;
 
                         return (
                             <div key={review.reviewId} className="relative flex gap-3">
@@ -159,7 +169,7 @@ export function ReviewTimeline({
                                     {/* Header row: date + badge */}
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span className="text-xs font-medium text-slate-700">
-                                            {formatDateTimeDE(review.reviewedAt)}
+                                            {formatDateTime(review.reviewedAt, locale)}
                                         </span>
                                         <Badge
                                             variant="outline"
@@ -197,12 +207,12 @@ export function ReviewTimeline({
                         {isExpanded ? (
                             <>
                                 <ChevronUp className="w-3 h-3 mr-1" />
-                                Weniger anzeigen
+                                {copy.less}
                             </>
                         ) : (
                             <>
                                 <ChevronDown className="w-3 h-3 mr-1" />
-                                Alle {sortedReviews.length} Reviews anzeigen
+                                {copy.showAll(sortedReviews.length)}
                             </>
                         )}
                     </Button>
@@ -210,8 +220,7 @@ export function ReviewTimeline({
 
                 {/* Disclaimer */}
                 <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
-                    Dokumentierter IST-Zustand. Reviews sind unveränderlich und werden
-                    chronologisch protokolliert.
+                    {copy.disclaimer}
                 </p>
             </CardContent>
         </Card>

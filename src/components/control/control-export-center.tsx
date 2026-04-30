@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLocale } from "next-intl";
 import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,11 @@ import type { OrgExportArtifact } from "@/lib/control/exports/org-export-center"
 import { useCapability } from "@/lib/compliance-engine/capability/useCapability";
 import { FeatureGateDialog } from "@/components/feature-gate-dialog";
 import { ArrowUpCircle } from "lucide-react";
+import {
+  formatGovernanceDateTime,
+  getGovernanceCommonCopy,
+  resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 
 interface ControlExportCenterProps {
   artifacts: OrgExportArtifact[];
@@ -33,9 +39,40 @@ function downloadArtifact(artifact: OrgExportArtifact) {
 }
 
 export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCenterProps) {
+  const locale = useLocale();
+  const resolvedLocale = resolveGovernanceCopyLocale(locale);
+  const common = getGovernanceCommonCopy(locale);
   const [activeType, setActiveType] = useState<OrgExportArtifact["type"] | null>(null);
   const { allowed: canExport } = useCapability("auditExport");
   const [showUpsellDialog, setShowUpsellDialog] = useState(false);
+  const copy =
+    resolvedLocale === "de"
+      ? {
+        title: "Organisations-Export-Center",
+        description: "Organisationsweite Governance-Artefakte.",
+        passBoundary:
+          "Use-Case-Pass (PDF/JSON) bleibt im Register und wird nicht mit Organisations-Exporten vermischt.",
+        exportTypes: "Exportarten",
+        exportTypesDescription:
+          "Vier organisationsweite Exportarten für Audit, Reporting und Nachweise.",
+        generating: "Wird erzeugt...",
+        export: "Export",
+        exportPreCheck: "Export-Vorprüfung",
+        expand: "Exportoptionen erweitern",
+      }
+      : {
+        title: "Organisation Export Center",
+        description: "Organisation-wide governance artifacts.",
+        passBoundary:
+          "Use case pass (PDF/JSON) remains in the register and is not mixed with organisation exports.",
+        exportTypes: "Export types",
+        exportTypesDescription:
+          "Four organisation-wide export types for audit, reporting and evidence.",
+        generating: "Generating...",
+        export: "Export",
+        exportPreCheck: "Export pre-check",
+        expand: "Expand export options",
+      };
 
   const sortedArtifacts = useMemo(
     () =>
@@ -55,23 +92,23 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
     <div className="space-y-6">
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle>Organisations-Export-Center</CardTitle>
+          <CardTitle>{copy.title}</CardTitle>
           <CardDescription>
-            Organisation-wide governance artefacts. As of: {generatedAt.toLocaleString("en-GB")}
+            {copy.description} {common.asOf}: {formatGovernanceDateTime(generatedAt, locale)}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-            Use case pass (PDF/JSON) remains in the register and is not mixed with organisation exports.
+            {copy.passBoundary}
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Export Types</CardTitle>
+          <CardTitle>{copy.exportTypes}</CardTitle>
           <CardDescription>
-            Four organisation-wide export types for audit, reporting, and evidence.
+            {copy.exportTypesDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -89,11 +126,11 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
                         className={`h-2 w-2 rounded-full ${artifact.ready ? "bg-green-600" : "bg-slate-500"
                           }`}
                       />
-                      {artifact.ready ? "Export ready" : "Pre-check required"}
+                      {artifact.ready ? common.exportReady : common.preCheckRequired}
                     </p>
                     {artifact.blockers.length > 0 && (
                       <div className="rounded-md border bg-slate-50 p-2 text-xs text-muted-foreground">
-                        <p className="font-medium text-foreground">Open items:</p>
+                        <p className="font-medium text-foreground">{common.openItems}</p>
                         <ul className="mt-1 space-y-1">
                           {artifact.blockers.map((blocker) => (
                             <li key={`${artifact.type}-${blocker}`}>- {blocker}</li>
@@ -121,12 +158,12 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                          Generating...
+                          {copy.generating}
                         </>
                       ) : (
                         <>
                           <Download className="mr-1.5 h-3.5 w-3.5" />
-                          {artifact.ready ? "Export" : "Export pre-check"}
+                          {artifact.ready ? copy.export : copy.exportPreCheck}
                         </>
                       )}
                     </Button>
@@ -138,7 +175,7 @@ export function ControlExportCenter({ artifacts, generatedAt }: ControlExportCen
                       onClick={() => setShowUpsellDialog(true)}
                     >
                       <ArrowUpCircle className="mr-1.5 h-3.5 w-3.5" />
-                      Expand export options
+                      {copy.expand}
                     </Button>
                   )}
                 </div>

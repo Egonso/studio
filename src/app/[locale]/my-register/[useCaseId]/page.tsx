@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
@@ -44,11 +44,98 @@ import type {
   UseCaseCard,
 } from '@/lib/register-first/types';
 import { setActiveWorkspaceId } from '@/lib/workspace-session';
+import { Link, useRouter } from '@/i18n/navigation';
 
 const aiRegistry = createAiToolsRegistryService();
 
+function getUseCaseDetailPageCopy(locale: string) {
+  if (locale === 'de') {
+    return {
+      externalSubmittedNextStep:
+        'Externe Einreichung prüfen und über Übernahme, Ablehnung oder Review entscheiden.',
+      externalNextStep:
+        'Dokumentation, Review und Governance-Details auf Basis der vorhandenen Herkunft ergänzen.',
+      manualNextStep:
+        'Dokumentation, Review und Nachweise ergänzen, damit der Einsatzfall formal prüfbar wird.',
+      provenanceNextStep:
+        'Herkunft, Review und Governance-Details prüfen und dokumentieren.',
+      notFound: 'Einsatzfall nicht gefunden.',
+      noRegister: 'Kein Register gefunden. Bitte erstelle zuerst ein Register.',
+      loadFailed: 'Einsatzfall konnte nicht geladen werden.',
+      saveFailed: 'Fehler beim Speichern der Änderungen.',
+      pageTitle: 'Use Case im Register',
+      pageDescription:
+        'Detailansicht für Dokumentation, Reviews, Herkunft und Timeline.',
+      pageLoadedDescription:
+        'Dokumentieren, reviewen und Herkunft nachvollziehen in einer gemeinsamen Detailansicht.',
+      loadingNextStep:
+        'Wir laden Dokumentation, Review-Kontext und Timeline.',
+      loadingTitle: 'Use Case wird geladen',
+      loadingDescription:
+        'Details, Timeline und Review-Kontext werden vorbereitet.',
+      errorNextStep:
+        'Öffnen Sie das Register oder laden Sie den Use Case erneut.',
+      errorTitle: 'Use Case konnte nicht geladen werden',
+      backToRegister: 'Zurück zum Register',
+      notice: 'Hinweis',
+      invalidFocusPrefix: 'Der Focus-Parameter',
+      invalidFocusSuffix: 'ist nicht gültig und wurde ignoriert.',
+      systemLandscape: 'Systemlandschaft',
+      systemLandscapeDescription:
+        'Verbindet die Ablauf-Sicht mit der deduplizierten Compliance-Perspektive für alle beteiligten Systeme.',
+      systemEvidenceHeading: 'Nachweisstand je System',
+      multiSystemEvidenceDescription:
+        'Zeigt den dokumentierten Nachweisstand pro beteiligtem System.',
+      singleSystemEvidenceDescription:
+        'Zeigt den dokumentierten Nachweisstand für das aktuell geführte System.',
+    };
+  }
+
+  return {
+    externalSubmittedNextStep:
+      'Review the external submission and decide whether to adopt, reject, or route it into review.',
+    externalNextStep:
+      'Complete documentation, review, and governance details using the available source context.',
+    manualNextStep:
+      'Complete documentation, review, and evidence so the use case becomes formally reviewable.',
+    provenanceNextStep:
+      'Review and document source, review, and governance details.',
+    notFound: 'Use case not found.',
+    noRegister: 'No registry found. Create a registry first.',
+    loadFailed: 'Use case could not be loaded.',
+    saveFailed: 'Changes could not be saved.',
+    pageTitle: 'Use case in registry',
+    pageDescription:
+      'Detail view for documentation, reviews, source context, and timeline.',
+    pageLoadedDescription:
+      'Document, review, and trace source context in one detail view.',
+    loadingNextStep:
+      'Loading documentation, review context, and timeline.',
+    loadingTitle: 'Use case is loading',
+    loadingDescription:
+      'Preparing details, timeline, and review context.',
+    errorNextStep:
+      'Open the registry or reload this use case.',
+    errorTitle: 'Use case could not be loaded',
+    backToRegister: 'Back to registry',
+    notice: 'Notice',
+    invalidFocusPrefix: 'The focus parameter',
+    invalidFocusSuffix: 'is not valid and was ignored.',
+    systemLandscape: 'System landscape',
+    systemLandscapeDescription:
+      'Connects the workflow view with the deduplicated compliance view for all involved systems.',
+    systemEvidenceHeading: 'Evidence status per system',
+    multiSystemEvidenceDescription:
+      'Shows the documented evidence status for each involved system.',
+    singleSystemEvidenceDescription:
+      'Shows the documented evidence status for the currently recorded system.',
+  };
+}
+
 export default function UseCaseDetailPage() {
   const params = useParams<{ useCaseId: string }>() ?? { useCaseId: '' };
+  const locale = useLocale();
+  const copy = useMemo(() => getUseCaseDetailPageCopy(locale), [locale]);
   const router = useRouter();
   const searchParams = useSearchParams() ?? new URLSearchParams();
   const workspaceScope = useWorkspaceScope();
@@ -89,11 +176,11 @@ export default function UseCaseDetailPage() {
       : null;
   const detailNextStep = relatedSubmission
     ? relatedSubmission.status === 'submitted'
-      ? 'Externe Einreichung prüfen und über Übernahme, Ablehnung oder Review entscheiden.'
-      : 'Dokumentation, Review und Governance-Details auf Basis der vorhandenen Herkunft ergänzen.'
+      ? copy.externalSubmittedNextStep
+      : copy.externalNextStep
     : card?.origin?.source === 'manual'
-      ? 'Dokumentation, Review und Nachweise ergänzen, damit der Einsatzfall formal prüfbar wird.'
-      : 'Herkunft, Review und Governance-Details prüfen und dokumentieren.';
+      ? copy.manualNextStep
+      : copy.provenanceNextStep;
   const systemSectionMode = useMemo(
     () =>
       card
@@ -105,8 +192,8 @@ export default function UseCaseDetailPage() {
     [card],
   );
   const readiness = useMemo(
-    () => (card ? computeUseCaseReadiness(card, orgSettings) : null),
-    [card, orgSettings],
+    () => (card ? computeUseCaseReadiness(card, orgSettings, locale) : null),
+    [card, locale, orgSettings],
   );
 
   // Map deep-link focus to the corresponding proof step key
@@ -147,7 +234,7 @@ export default function UseCaseDetailPage() {
       ]);
       if (!result) {
         setRelatedSubmission(null);
-        setError('Einsatzfall nicht gefunden.');
+        setError(copy.notFound);
       } else {
         const related =
           result.origin?.source !== 'manual' &&
@@ -176,14 +263,14 @@ export default function UseCaseDetailPage() {
         return;
       }
       if (isServiceError(err, 'REGISTER_NOT_FOUND')) {
-        setError('Kein Register gefunden. Bitte erstelle zuerst ein Register.');
+        setError(copy.noRegister);
       } else {
-        setError('Einsatzfall konnte nicht geladen werden.');
+        setError(copy.loadFailed);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [scopeContext, useCaseId, router]);
+  }, [copy.loadFailed, copy.noRegister, copy.notFound, scopeContext, useCaseId, router]);
 
   useEffect(() => {
     setActiveWorkspaceId(
@@ -257,7 +344,7 @@ export default function UseCaseDetailPage() {
       await loadUseCase();
     } catch (err) {
       console.error('Failed to save metadata', err);
-      setError('Fehler beim Speichern der Änderungen.');
+      setError(copy.saveFailed);
     }
   };
 
@@ -269,16 +356,16 @@ export default function UseCaseDetailPage() {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
-        title="Use Case im Register"
-        description="Detailansicht für Dokumentation, Reviews, Herkunft und Timeline."
-        nextStep="Wir laden Dokumentation, Review-Kontext und Timeline."
+        title={copy.pageTitle}
+        description={copy.pageDescription}
+        nextStep={copy.loadingNextStep}
         width="5xl"
       >
         <PageStatePanel
           tone="loading"
           area="signed_in_free_register"
-          title="Use Case wird geladen"
-          description="Details, Timeline und Review-Kontext werden vorbereitet."
+          title={copy.loadingTitle}
+          description={copy.loadingDescription}
         />
       </SignedInAreaFrame>
     );
@@ -288,20 +375,20 @@ export default function UseCaseDetailPage() {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
-        title="Use Case im Register"
-        description="Detailansicht für Dokumentation, Reviews, Herkunft und Timeline."
-        nextStep="Öffnen Sie das Register oder laden Sie den Use Case erneut."
+        title={copy.pageTitle}
+        description={copy.pageDescription}
+        nextStep={copy.errorNextStep}
         width="5xl"
       >
         <PageStatePanel
           tone="error"
           area="signed_in_free_register"
-          title="Use Case konnte nicht geladen werden"
+          title={copy.errorTitle}
           description={error}
           actions={
             <Button asChild variant="outline">
               <Link href={buildScopedRegisterHref(workspaceScope)}>
-                Zurück zum Register
+                {copy.backToRegister}
               </Link>
             </Button>
           }
@@ -317,8 +404,8 @@ export default function UseCaseDetailPage() {
   return (
     <SignedInAreaFrame
       area="signed_in_free_register"
-      title="Use Case im Register"
-      description="Dokumentieren, reviewen und Herkunft nachvollziehen in einer gemeinsamen Detailansicht."
+      title={copy.pageTitle}
+      description={copy.pageLoadedDescription}
       nextStep={detailNextStep}
       width="5xl"
       headerMode="hidden"
@@ -332,10 +419,10 @@ export default function UseCaseDetailPage() {
 
         {invalidFocus && (
           <div className="border-l-2 border-slate-300 pl-3 text-sm text-slate-600">
-            <p className="font-medium">Hinweis</p>
+            <p className="font-medium">{copy.notice}</p>
             <p>
-              Der Focus-Parameter &quot;{invalidFocus}&quot; ist nicht gueltig und wurde
-              ignoriert.
+              {copy.invalidFocusPrefix} &quot;{invalidFocus}&quot;{' '}
+              {copy.invalidFocusSuffix}
             </p>
           </div>
         )}
@@ -406,11 +493,10 @@ export default function UseCaseDetailPage() {
                     <section className="rounded-lg border border-slate-200 bg-white p-5 md:p-6">
                       <div className="space-y-1">
                         <h3 className="text-[18px] font-semibold tracking-tight">
-                          Systemlandschaft
+                          {copy.systemLandscape}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Verbindet die Ablauf-Sicht mit der deduplizierten
-                          Compliance-Perspektive fuer alle beteiligten Systeme.
+                          {copy.systemLandscapeDescription}
                         </p>
                       </div>
 
@@ -428,8 +514,10 @@ export default function UseCaseDetailPage() {
                             onSave={handleSaveMetadata}
                             mode="multi"
                             layout="embedded"
-                            headingOverride="Nachweisstand je System"
-                            descriptionOverride="Zeigt den dokumentierten Nachweisstand pro beteiligtem System."
+                            headingOverride={copy.systemEvidenceHeading}
+                            descriptionOverride={
+                              copy.multiSystemEvidenceDescription
+                            }
                           />
                         </div>
                       </div>
@@ -446,8 +534,10 @@ export default function UseCaseDetailPage() {
                         isEditing={false}
                         onSave={handleSaveMetadata}
                         mode="single"
-                        headingOverride="Nachweisstand je System"
-                        descriptionOverride="Zeigt den dokumentierten Nachweisstand fuer das aktuell gefuehrte System."
+                        headingOverride={copy.systemEvidenceHeading}
+                        descriptionOverride={
+                          copy.singleSystemEvidenceDescription
+                        }
                         showSectionAction={false}
                       />
                     </div>

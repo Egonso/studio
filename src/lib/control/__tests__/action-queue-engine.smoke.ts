@@ -98,6 +98,29 @@ export function runActionQueueEngineSmoke() {
   assert.equal(queue[0]?.deepLinkLabel, "Aufsichtsmodell festlegen");
   assert.match(queue[0]?.viewLink ?? "", /^\/my-register\/[^?]+$/);
 
+  const highRiskPolicyGap = queue.find(
+    (recommendation) => recommendation.id === "high-risk-no-policy:uc_high_risk_gap"
+  );
+  assert.equal(highRiskPolicyGap?.deepLink, null);
+  assert.equal(highRiskPolicyGap?.deepLinkLabel, null);
+
+  const englishQueue = buildControlActionQueue([highRiskGap, policyGap], now, {
+    locale: "en",
+  });
+  assert.equal(
+    englishQueue[0]?.problem,
+    "High-risk system without a documented oversight model."
+  );
+  assert.equal(englishQueue[0]?.deepLinkLabel, "Set oversight model");
+  assert.ok(
+    englishQueue.every(
+      (recommendation) =>
+        !/Aufsichtsmodell|Review-Zyklus|Hochrisiko-System/.test(
+          recommendation.problem
+        )
+    )
+  );
+
   for (const recommendation of queue) {
     assert.ok(isControlFocusTarget(recommendation.focus));
     if (recommendation.deepLink) {

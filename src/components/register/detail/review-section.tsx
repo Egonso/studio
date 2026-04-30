@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
@@ -33,6 +32,7 @@ import {
   getRegisterUseCaseStatusLabel,
 } from "@/lib/register-first";
 import type { RegisterUseCaseStatus, UseCaseCard } from "@/lib/register-first/types";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 interface ReviewSectionProps {
@@ -46,51 +46,75 @@ interface ReviewSectionProps {
 
 function getReviewContext(
   readiness: UseCaseReadinessResult,
+  locale: string,
 ): {
   title: string;
   description: string;
 } {
+  const isGerman = locale === "de";
   if (readiness.phase === "proof_ready") {
     return {
-      title: "Formale Pruefung abgeschlossen",
-      description: "Der formale Status dieses Einsatzfalls ist dokumentiert.",
+      title: isGerman ? "Formale Pruefung abgeschlossen" : "Formal review completed",
+      description: isGerman
+        ? "Der formale Status dieses Einsatzfalls ist dokumentiert."
+        : "The formal status of this use case is documented.",
     };
   }
 
   if (readiness.phase === "review_pending") {
     return {
-      title: "Formale Pruefung jetzt dokumentierbar",
-      description: "Grundnachweise und Systemnachweis sind dokumentiert.",
+      title: isGerman
+        ? "Formale Pruefung jetzt dokumentierbar"
+        : "Formal review can now be documented",
+      description: isGerman
+        ? "Grundnachweise und Systemnachweis sind dokumentiert."
+        : "Ground evidence and system evidence are documented.",
     };
   }
 
   if (readiness.nextStep?.key === "systemEvidence") {
     return {
-      title: "Formale Pruefung noch nicht verfuegbar",
-      description: "Der Systemnachweis ist noch nicht vollstaendig dokumentiert.",
+      title: isGerman
+        ? "Formale Pruefung noch nicht verfuegbar"
+        : "Formal review not yet available",
+      description: isGerman
+        ? "Der Systemnachweis ist noch nicht vollstaendig dokumentiert."
+        : "System evidence is not fully documented yet.",
     };
   }
 
   return {
-    title: "Formale Pruefung noch nicht verfuegbar",
-    description: "Es fehlen noch Grundnachweise.",
+    title: isGerman
+      ? "Formale Pruefung noch nicht verfuegbar"
+      : "Formal review not yet available",
+    description: isGerman
+      ? "Es fehlen noch Grundnachweise."
+      : "Ground evidence is still missing.",
   };
 }
 
-function getReviewNextHint(readiness: UseCaseReadinessResult): string {
+function getReviewNextHint(
+  readiness: UseCaseReadinessResult,
+  locale: string,
+): string {
+  const isGerman = locale === "de";
   if (readiness.phase === "proof_ready") {
-    return "Bei Bedarf neu bewertbar.";
+    return isGerman ? "Bei Bedarf neu bewertbar." : "Can be reassessed when needed.";
   }
 
   if (readiness.nextStep?.key === "groundProofs") {
-    return "Erst 1. Grundnachweise abschliessen.";
+    return isGerman
+      ? "Erst 1. Grundnachweise abschliessen."
+      : "Complete 1. Ground evidence first.";
   }
 
   if (readiness.nextStep?.key === "systemEvidence") {
-    return "Erst 2. Systemnachweis abschliessen.";
+    return isGerman
+      ? "Erst 2. Systemnachweis abschliessen."
+      : "Complete 2. System evidence first.";
   }
 
-  return "Status jetzt dokumentieren.";
+  return isGerman ? "Status jetzt dokumentieren." : "Document status now.";
 }
 
 export function ReviewSection({
@@ -102,6 +126,85 @@ export function ReviewSection({
   onToggleDetails = null,
 }: ReviewSectionProps) {
   const locale = useLocale();
+  const isGerman = locale === "de";
+  const copy = {
+    title: isGerman ? "3. Formale Pruefung" : "3. Formal review",
+    subtitle: isGerman
+      ? "Letzter Baustein zur Nachweisfaehigkeit."
+      : "Final block for evidence readiness.",
+    unavailableTitle: isGerman ? "Noch nicht verfuegbar" : "Not yet available",
+    unavailableDescription: isGerman
+      ? "Diese formale Pruefung wird erst freigegeben, wenn die fehlenden Nachweisbausteine abgeschlossen sind."
+      : "This formal review becomes available once the missing evidence blocks are complete.",
+    hideDetails: isGerman ? "Details ausblenden" : "Hide details",
+    next: isGerman ? "Als Naechstes" : "Next",
+    openPass: isGerman ? "Use-Case-Pass oeffnen" : "Open use case pass",
+    hideReassessment: isGerman
+      ? "Neubewertung ausblenden"
+      : "Hide reassessment",
+    reassessStatus: isGerman ? "Status neu bewerten" : "Reassess status",
+    beforeFormalCompletionMissing: isGerman
+      ? "Vor dem formalen Abschluss fehlt noch"
+      : "Still missing before formal completion",
+    currentStatus: isGerman ? "Aktueller Status:" : "Current status:",
+    completedStatus: isGerman
+      ? "Der aktuelle Status ist formal abgeschlossen."
+      : "The current status is formally completed.",
+    statusFieldReview: isGerman
+      ? "Status neu bewerten"
+      : "Reassess status",
+    statusFieldDocument: isGerman
+      ? "Formalen Status dokumentieren"
+      : "Document formal status",
+    statusPlaceholderReview: isGerman
+      ? "Status fuer Neubewertung waehlen"
+      : "Select status for reassessment",
+    statusPlaceholderDocument: isGerman
+      ? "Naechsten formalen Status waehlen"
+      : "Select next formal status",
+    proofReadyBlocked: isGerman
+      ? "Der Status Nachweisfaehig wird erst verfuegbar, wenn die fehlenden Nachweisbausteine abgeschlossen sind."
+      : "Evidence-ready becomes available once the missing evidence blocks are complete.",
+    reasonLabel: isGerman
+      ? "Begruendung der Statusaenderung (optional)"
+      : "Reason for status change (optional)",
+    reasonPlaceholder: isGerman
+      ? "Begruendung eingeben..."
+      : "Enter reason...",
+    submitReassessment: isGerman
+      ? "Neubewertung dokumentieren"
+      : "Document reassessment",
+    submitFormalReview: isGerman
+      ? "Formale Pruefung dokumentieren"
+      : "Document formal review",
+    submitStatusChange: isGerman
+      ? "Statusaenderung dokumentieren"
+      : "Document status change",
+    updateFailed: isGerman
+      ? "Statuswechsel fehlgeschlagen. Bitte erneut versuchen."
+      : "Status change failed. Please try again.",
+    optionalReassessment: isGerman
+      ? "Neubewertung bleibt optional verfuegbar."
+      : "Reassessment remains optionally available.",
+    reviewHints: isGerman ? "Review-Hinweise" : "Review notes",
+    confirmFormalReview: isGerman
+      ? "Formale Pruefung bestaetigen"
+      : "Confirm formal review",
+    confirmReassessment: isGerman
+      ? "Neubewertung bestaetigen"
+      : "Confirm reassessment",
+    confirmStatusChange: isGerman
+      ? "Statusaenderung bestaetigen"
+      : "Confirm status change",
+    confirmFrom: isGerman ? "Status von" : "Change status from",
+    confirmTo: isGerman ? "zu" : "to",
+    confirmSuffix: isGerman
+      ? "aendern? Diese Aktion dokumentiert eine formale Entscheidung."
+      : "? This action documents a formal decision.",
+    cancel: isGerman ? "Abbrechen" : "Cancel",
+    setting: isGerman ? "Wird gesetzt..." : "Setting...",
+    confirm: isGerman ? "Bestaetigen" : "Confirm",
+  };
   const nextStatuses = getNextManualStatuses(card.status);
   const availableStatuses = useMemo(
     () =>
@@ -112,8 +215,8 @@ export function ReviewSection({
   );
   const proofReadyBlocked =
     nextStatuses.includes("PROOF_READY") && !readiness.canMarkProofReady;
-  const reviewContext = getReviewContext(readiness);
-  const reviewNextHint = getReviewNextHint(readiness);
+  const reviewContext = getReviewContext(readiness, locale);
+  const reviewNextHint = getReviewNextHint(readiness, locale);
   const blockingSteps = readiness.steps.filter(
     (step) => !step.complete && step.key !== "formalReview",
   );
@@ -142,10 +245,10 @@ export function ReviewSection({
         <CardHeader className="border-b border-slate-200 bg-white pb-4">
           <div className="space-y-2">
             <CardTitle className="text-base font-semibold text-slate-900">
-              3. Formale Pruefung
+              {copy.title}
             </CardTitle>
             <p className="text-sm text-slate-600">
-              Letzter Baustein zur Nachweisfaehigkeit.
+              {copy.subtitle}
             </p>
           </div>
         </CardHeader>
@@ -155,15 +258,14 @@ export function ReviewSection({
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-slate-900">
-                  Noch nicht verfuegbar
+                  {copy.unavailableTitle}
                 </p>
                 <p className="text-sm leading-6 text-slate-600">
-                  Diese formale Pruefung wird erst freigegeben, wenn die fehlenden
-                  Nachweisbausteine abgeschlossen sind.
+                  {copy.unavailableDescription}
                 </p>
               </div>
               <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                Noch nicht verfuegbar
+                {copy.unavailableTitle}
               </p>
             </div>
           </div>
@@ -176,24 +278,24 @@ export function ReviewSection({
     readiness.phase !== "proof_ready" || showReassessmentForm;
   const statusFieldLabel =
     readiness.phase === "proof_ready"
-      ? "Status neu bewerten"
-      : "Formalen Status dokumentieren";
+      ? copy.statusFieldReview
+      : copy.statusFieldDocument;
   const statusTriggerPlaceholder =
     readiness.phase === "proof_ready"
-      ? "Status fuer Neubewertung waehlen"
-      : "Naechsten formalen Status waehlen";
+      ? copy.statusPlaceholderReview
+      : copy.statusPlaceholderDocument;
   const submitLabel =
     readiness.phase === "proof_ready"
-      ? "Neubewertung dokumentieren"
+      ? copy.submitReassessment
       : selectedStatus === "PROOF_READY"
-        ? "Formale Pruefung dokumentieren"
-        : "Statusaenderung dokumentieren";
+        ? copy.submitFormalReview
+        : copy.submitStatusChange;
   const confirmTitle =
     selectedStatus === "PROOF_READY"
-      ? "Formale Pruefung bestaetigen"
+      ? copy.confirmFormalReview
       : readiness.phase === "proof_ready"
-        ? "Neubewertung bestaetigen"
-        : "Statusaenderung bestaetigen";
+        ? copy.confirmReassessment
+        : copy.confirmStatusChange;
   const showNextHint = readiness.phase !== "proof_ready";
 
   const handleConfirm = async () => {
@@ -205,7 +307,7 @@ export function ReviewSection({
       setSelectedStatus("");
       setReason("");
     } catch (_err) {
-      setError("Statuswechsel fehlgeschlagen. Bitte erneut versuchen.");
+      setError(copy.updateFailed);
     } finally {
       setIsUpdating(false);
       setShowConfirm(false);
@@ -219,15 +321,15 @@ export function ReviewSection({
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
               <CardTitle className="text-base font-semibold text-slate-900">
-                3. Formale Pruefung
+                {copy.title}
               </CardTitle>
               <p className="text-sm text-slate-600">
-                Letzter Baustein zur Nachweisfaehigkeit.
+                {copy.subtitle}
               </p>
             </div>
             {onToggleDetails ? (
               <Button size="sm" variant="outline" onClick={onToggleDetails}>
-                Details ausblenden
+                {copy.hideDetails}
               </Button>
             ) : null}
           </div>
@@ -255,7 +357,7 @@ export function ReviewSection({
                 {showNextHint ? (
                   <div className="pt-1">
                     <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                      Als Naechstes
+                      {copy.next}
                     </p>
                     <p className="text-sm leading-6 text-slate-600">
                       {reviewNextHint}
@@ -269,7 +371,7 @@ export function ReviewSection({
                     <Link
                       href={buildScopedUseCasePassHref(useCaseId, workspaceScope)}
                     >
-                      Use-Case-Pass oeffnen
+                      {copy.openPass}
                     </Link>
                   </Button>
                   {availableStatuses.length > 0 ? (
@@ -281,8 +383,8 @@ export function ReviewSection({
                       }
                     >
                       {showReassessmentForm
-                        ? "Neubewertung ausblenden"
-                        : "Status neu bewerten"}
+                        ? copy.hideReassessment
+                        : copy.reassessStatus}
                     </Button>
                   ) : null}
                 </div>
@@ -292,7 +394,7 @@ export function ReviewSection({
             {!readiness.canMarkProofReady ? (
               <div className="mt-4 border-t border-slate-200 pt-4">
                 <p className="text-xs uppercase tracking-[0.08em] text-slate-500">
-                  Vor dem formalen Abschluss fehlt noch
+                  {copy.beforeFormalCompletionMissing}
                 </p>
                 <ul className="mt-3 space-y-2">
                   {blockingSteps.map((step) => (
@@ -316,13 +418,15 @@ export function ReviewSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-muted-foreground">Aktueller Status:</span>
+            <span className="text-sm text-muted-foreground">
+              {copy.currentStatus}
+            </span>
             <RegisterStatusPill status={card.status} />
           </div>
 
           {availableStatuses.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Der aktuelle Status ist formal abgeschlossen.
+              {copy.completedStatus}
             </p>
           ) : shouldShowStatusForm ? (
             <div className="space-y-4">
@@ -347,20 +451,19 @@ export function ReviewSection({
                 </Select>
                 {proofReadyBlocked ? (
                   <p className="mt-2 text-xs text-slate-500">
-                    Der Status Nachweisfaehig wird erst verfuegbar, wenn die
-                    fehlenden Nachweisbausteine abgeschlossen sind.
+                    {copy.proofReadyBlocked}
                   </p>
                 ) : null}
               </div>
 
               <div>
                 <label className="mb-1.5 block text-xs text-muted-foreground">
-                  Begruendung der Statusaenderung (optional)
+                  {copy.reasonLabel}
                 </label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Begruendung eingeben..."
+                  placeholder={copy.reasonPlaceholder}
                   rows={3}
                   className="text-sm"
                 />
@@ -380,13 +483,13 @@ export function ReviewSection({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Neubewertung bleibt optional verfuegbar.
+              {copy.optionalReassessment}
             </p>
           )}
 
           {card.reviewHints.length > 0 && (
             <div className="space-y-1.5 border-t border-slate-200 pt-4">
-              <span className="text-xs text-muted-foreground">Review-Hinweise</span>
+              <span className="text-xs text-muted-foreground">{copy.reviewHints}</span>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 {card.reviewHints.map((hint, i) => (
                   <li key={i}>• {hint}</li>
@@ -402,8 +505,9 @@ export function ReviewSection({
           <AlertDialogHeader>
             <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              Status von{" "}
-              <strong>{getRegisterUseCaseStatusLabel(card.status, locale)}</strong> zu{" "}
+              {copy.confirmFrom}{" "}
+              <strong>{getRegisterUseCaseStatusLabel(card.status, locale)}</strong>{" "}
+              {copy.confirmTo}{" "}
               <strong>
                 {selectedStatus
                   ? getRegisterUseCaseStatusLabel(
@@ -412,16 +516,16 @@ export function ReviewSection({
                     )
                   : ""}
               </strong>{" "}
-              aendern? Diese Aktion dokumentiert eine formale Entscheidung.
+              {copy.confirmSuffix}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isUpdating}>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel disabled={isUpdating}>{copy.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleConfirm()}
               disabled={isUpdating}
             >
-              {isUpdating ? "Wird gesetzt..." : "Bestaetigen"}
+              {isUpdating ? copy.setting : copy.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

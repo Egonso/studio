@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { AlertCircle, ArrowRight } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { type AimsProgress } from '@/lib/data-service';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,6 +21,8 @@ import { getFirebaseAuth } from '@/lib/firebase';
 import { accessCodeService } from '@/lib/register-first/access-code-service';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { evaluateControlUpgradeTriggers } from '@/lib/control/triggers';
+import { localizeHref } from '@/lib/i18n/localize-href';
+import { getRegisterUseCaseStatusLabel } from '@/lib/register-first/status-flow';
 import {
   trackTriggerClicked,
   trackTriggerShown,
@@ -80,13 +83,6 @@ const STATUS_ORDER: RegisterUseCaseStatus[] = [
   'PROOF_READY',
 ];
 
-const STATUS_LABELS: Record<RegisterUseCaseStatus, string> = {
-  UNREVIEWED: 'Formale Prüfung ausstehend',
-  REVIEW_RECOMMENDED: 'Prüfung empfohlen',
-  REVIEWED: 'Prüfung abgeschlossen',
-  PROOF_READY: 'Nachweisfähig',
-};
-
 const STATUS_DOT_CLASS: Record<RegisterUseCaseStatus, string> = {
   UNREVIEWED: 'bg-slate-400',
   REVIEW_RECOMMENDED: 'bg-slate-500',
@@ -101,7 +97,12 @@ export function Dashboard({
   onUseCaseCaptured,
   register = null,
 }: DashboardProps) {
-  const searchParams = useSearchParams() ?? new URLSearchParams();
+  const locale = useLocale();
+  const rawSearchParams = useSearchParams();
+  const searchParams = useMemo(
+    () => rawSearchParams ?? new URLSearchParams(),
+    [rawSearchParams],
+  );
   const router = useRouter();
   const { toast } = useToast();
   const shownTriggerSignatureRef = useRef<string | null>(null);
@@ -127,8 +128,14 @@ export function Dashboard({
 
   const effectiveTotal = useCases.length > 0 ? useCases.length : useCaseCount;
   const upgradeDecision = useMemo(
-    () => evaluateControlUpgradeTriggers(useCases, register?.orgSettings),
-    [useCases, register?.orgSettings],
+    () =>
+      evaluateControlUpgradeTriggers(
+        useCases,
+        register?.orgSettings,
+        undefined,
+        locale,
+      ),
+    [locale, useCases, register?.orgSettings],
   );
   const triggerIds = useMemo(
     () => upgradeDecision.triggers.map((trigger) => trigger.id),
@@ -171,7 +178,9 @@ export function Dashboard({
     }
 
     const triggerQuery = encodeURIComponent(triggerIds.join(','));
-    router.push(`/control?entry=trigger&triggerIds=${triggerQuery}`);
+    router.push(
+      localizeHref(locale, `/control?entry=trigger&triggerIds=${triggerQuery}`),
+    );
   };
 
   const handleSupplierRequest = async () => {
@@ -332,7 +341,7 @@ export function Dashboard({
                         <span
                           className={`h-2 w-2 rounded-full ${STATUS_DOT_CLASS[status]}`}
                         />
-                        <span>{STATUS_LABELS[status]}</span>
+                        <span>{getRegisterUseCaseStatusLabel(status, locale)}</span>
                       </div>
                       <span className="font-mono text-muted-foreground">
                         {statusCounts[status] ?? 0}
@@ -344,10 +353,10 @@ export function Dashboard({
 
               <div className="pt-2">
                 <Link
-                  href="/my-register"
+                  href={localizeHref(locale, '/my-register')}
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Register öffnen
+                  {locale === 'de' ? 'Register öffnen' : 'Open register'}
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </Link>
               </div>
@@ -361,7 +370,9 @@ export function Dashboard({
             <section>
               <Card>
                 <CardHeader>
-                  <CardTitle>Governance-Hinweis</CardTitle>
+                  <CardTitle>
+                    {locale === 'de' ? 'Governance-Hinweis' : 'Governance notice'}
+                  </CardTitle>
                   <CardDescription>{upgradeDecision.message}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">

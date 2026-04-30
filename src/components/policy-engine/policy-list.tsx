@@ -1,6 +1,7 @@
 "use client";
 
 import { FileText, Plus, Clock } from "lucide-react";
+import { useLocale } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,9 +13,10 @@ import {
 } from "@/components/ui/card";
 import type { PolicyDocument } from "@/lib/policy-engine/types";
 import {
-    POLICY_STATUS_LABELS,
-} from "@/lib/policy-engine/types";
-import { APP_LOCALE } from "@/lib/locale";
+    formatGovernanceDate,
+    getPolicyStatusLabel,
+    resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -41,13 +43,9 @@ function statusVariant(
     }
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, locale?: string): string {
     try {
-        return new Date(iso).toLocaleDateString(APP_LOCALE, {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
+        return formatGovernanceDate(iso, locale);
     } catch {
         return iso;
     }
@@ -60,6 +58,28 @@ export function PolicyListView({
     onSelect,
     onCreate,
 }: PolicyListViewProps) {
+    const locale = useLocale();
+    const copy =
+        resolveGovernanceCopyLocale(locale) === "de"
+            ? {
+                emptyTitle: "Keine Richtlinien vorhanden",
+                emptyDescription:
+                    "Erstellen Sie Ihre erste KI-Richtlinie mit der Smart Policy Engine. Der Assistent führt Sie Schritt für Schritt.",
+                createFirst: "Neue Richtlinie erstellen",
+                title: "KI-Richtlinien",
+                create: "Neue Richtlinie",
+                sections: "Abschnitte",
+            }
+            : {
+                emptyTitle: "No policies yet",
+                emptyDescription:
+                    "Create your first AI policy with the Smart Policy Engine. The assistant guides you step by step.",
+                createFirst: "Create new policy",
+                title: "AI policies",
+                create: "New policy",
+                sections: "sections",
+            };
+
     if (policies.length === 0) {
         return (
             <Card>
@@ -68,15 +88,14 @@ export function PolicyListView({
                         <FileText className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <div className="text-center space-y-1">
-                        <h3 className="font-semibold">Keine Richtlinien vorhanden</h3>
+                        <h3 className="font-semibold">{copy.emptyTitle}</h3>
                         <p className="text-sm text-muted-foreground max-w-sm">
-                            Erstellen Sie Ihre erste KI-Richtlinie mit der Smart Policy
-                            Engine. Der Assistent führt Sie Schritt für Schritt.
+                            {copy.emptyDescription}
                         </p>
                     </div>
                     <Button onClick={onCreate}>
                         <Plus className="mr-2 h-4 w-4" />
-                        Neue Richtlinie erstellen
+                        {copy.createFirst}
                     </Button>
                 </CardContent>
             </Card>
@@ -86,10 +105,10 @@ export function PolicyListView({
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">KI-Richtlinien</h2>
+                <h2 className="text-lg font-semibold">{copy.title}</h2>
                 <Button size="sm" onClick={onCreate}>
                     <Plus className="mr-2 h-3.5 w-3.5" />
-                    Neue Richtlinie
+                    {copy.create}
                 </Button>
             </div>
 
@@ -104,7 +123,7 @@ export function PolicyListView({
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-base">{policy.title}</CardTitle>
                                 <Badge variant={statusVariant(policy.status)}>
-                                    {POLICY_STATUS_LABELS[policy.status]}
+                                    {getPolicyStatusLabel(policy.status, locale)}
                                 </Badge>
                             </div>
                             <CardDescription className="flex items-center flex-wrap gap-2 text-xs">
@@ -118,20 +137,20 @@ export function PolicyListView({
                                                 ''
                                         }`}
                                 >
-                                    {POLICY_STATUS_LABELS[policy.status]}
+                                    {getPolicyStatusLabel(policy.status, locale)}
                                 </Badge>
                                 <span>•</span>
                                 <span>v{policy.metadata.version}</span>
                                 <span>•</span>
                                 <span className="flex items-center gap-1">
                                     <Clock className="h-3 w-3" />
-                                    {formatDate(policy.metadata.updatedAt)}
+                                    {formatDate(policy.metadata.updatedAt, locale)}
                                 </span>
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-0 pb-3">
                             <p className="text-xs text-muted-foreground">
-                                {policy.sections.length} Abschnitte •{" "}
+                                {policy.sections.length} {copy.sections} •{" "}
                                 {policy.orgContextSnapshot.organisationName || "–"}
                             </p>
                         </CardContent>

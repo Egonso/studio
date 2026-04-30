@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import {
     Clock,
     ChevronDown,
@@ -11,8 +12,11 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PolicyVersion } from "@/lib/policy-engine/types";
-import { POLICY_STATUS_LABELS } from "@/lib/policy-engine/types";
-import { APP_LOCALE } from "@/lib/locale";
+import {
+    formatGovernanceDateTime,
+    getPolicyStatusLabel,
+    resolveGovernanceCopyLocale,
+} from "@/lib/i18n/governance-copy";
 import { PolicyPreview } from "./policy-preview";
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -23,15 +27,9 @@ interface PolicyVersionTimelineProps {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDateTime(iso: string): string {
+function formatDateTime(iso: string, locale?: string): string {
     try {
-        return new Date(iso).toLocaleString(APP_LOCALE, {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
+        return formatGovernanceDateTime(iso, locale);
     } catch {
         return iso;
     }
@@ -42,15 +40,34 @@ function formatDateTime(iso: string): string {
 export function PolicyVersionTimeline({
     versions,
 }: PolicyVersionTimelineProps) {
+    const locale = useLocale();
     const [expandedId, setExpandedId] = useState<number | null>(null);
+    const copy =
+        resolveGovernanceCopyLocale(locale) === "de"
+            ? {
+                emptyTitle: "Noch keine Versionshistorie vorhanden.",
+                emptyDescription:
+                    "Versionen werden bei jedem Statuswechsel automatisch erstellt.",
+                history: "Versionshistorie",
+                current: "aktuell",
+                contentAt: "Inhalt zum Zeitpunkt",
+            }
+            : {
+                emptyTitle: "No version history yet.",
+                emptyDescription:
+                    "Versions are created automatically on each status change.",
+                history: "Version history",
+                current: "current",
+                contentAt: "Content at",
+            };
 
     if (versions.length === 0) {
         return (
             <div className="rounded-lg border border-dashed p-6 text-center text-muted-foreground text-sm">
                 <Clock className="mx-auto h-6 w-6 mb-2 opacity-50" />
-                <p>Noch keine Versionshistorie vorhanden.</p>
+                <p>{copy.emptyTitle}</p>
                 <p className="text-xs mt-1">
-                    Versionen werden bei jedem Statuswechsel automatisch erstellt.
+                    {copy.emptyDescription}
                 </p>
             </div>
         );
@@ -60,7 +77,7 @@ export function PolicyVersionTimeline({
         <div className="space-y-0">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Versionshistorie ({versions.length})
+                {copy.history} ({versions.length})
             </h3>
 
             <div className="relative">
@@ -100,20 +117,20 @@ export function PolicyVersionTimeline({
                                                     v{v.versionNumber}
                                                 </span>
                                                 <Badge variant="outline" className="text-[10px] gap-0.5">
-                                                    {POLICY_STATUS_LABELS[v.fromStatus]}
+                                                    {getPolicyStatusLabel(v.fromStatus, locale)}
                                                     <ArrowRight className="h-2.5 w-2.5 mx-0.5" />
-                                                    {POLICY_STATUS_LABELS[v.toStatus]}
+                                                    {getPolicyStatusLabel(v.toStatus, locale)}
                                                 </Badge>
                                                 {isFirst && (
                                                     <Badge variant="secondary" className="text-[10px]">
-                                                        aktuell
+                                                        {copy.current}
                                                     </Badge>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                                                 <span className="flex items-center gap-1">
                                                     <Clock className="h-3 w-3" />
-                                                    {formatDateTime(v.createdAt)}
+                                                    {formatDateTime(v.createdAt, locale)}
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <User className="h-3 w-3" />
@@ -143,7 +160,7 @@ export function PolicyVersionTimeline({
                                     {isExpanded && v.sectionsSnapshot.length > 0 && (
                                         <div className="mt-2 mb-1 rounded-md border bg-muted/20 p-3">
                                             <p className="text-xs text-muted-foreground mb-2">
-                                                Inhalt zum Zeitpunkt v{v.versionNumber}:
+                                                {copy.contentAt} v{v.versionNumber}:
                                             </p>
                                             <PolicyPreview
                                                 sections={v.sectionsSnapshot}
