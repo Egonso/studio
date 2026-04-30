@@ -834,12 +834,13 @@
       },
       "governance": {
         "title": "Governance",
-        "body": "Rollen, Freigaben, Richtlinien, Reviews, Audit-Workflows und organisationsweite Nachweislogik. Für Organisationen, die nicht nur dokumentieren, sondern KI-Einsatz systematisch steuern wollen.",
-        "bearer": "Getragen von Organisationen, die ihre Governance auf derselben Struktur bündeln."
+        "body": "Rollen, Freigaben, Richtlinien, Reviews, Audit-Workflows und organisationsweite Nachweislogik. Für Organisationen, die KI-Einsatz systematisch steuern und prüfbar weiterentwickeln wollen.",
+        "bearer": "Getragen von Organisationen, die ihre Governance auf derselben Struktur bündeln.",
+        "cta": "Governance ansehen"
       },
       "fortbildung": {
         "title": "§4-Fortbildung",
-        "body": "Formale Kompetenznachweise, Rollenbezug und dokumentierte Qualifizierung auf derselben Plattform. Für Organisationen, die KI-Kompetenz nicht nur voraussetzen, sondern belegbar aufbauen müssen.",
+        "body": "Formale Kompetenznachweise, Rollenbezug und dokumentierte Qualifizierung auf derselben Plattform. Für Organisationen, die KI-Kompetenz belegbar aufbauen und intern anschlussfähig dokumentieren müssen.",
         "bearer": "Getragen von Organisationen, die Qualifizierung strukturiert absichern wollen.",
         "cta": "Fortbildungspaket ansehen"
       }
@@ -849,7 +850,7 @@
       "title": "Pflicht bleibt offen. Reife ist eine Wahl.",
       "paragraph1": "Das Gesetz zu erfüllen darf nichts kosten. Die eigene Organisation darüber hinaus reifen zu lassen, ist eine Wahl — und wer diese Wahl trifft, trägt den Betrieb für alle mit.",
       "paragraph2": "Die meisten Organisationen werden das Register kostenlos nutzen und nie mehr. Das ist beabsichtigt. Eine kleinere Zahl bündelt zusätzlich Governance, §4-Fortbildung und Policy-Arbeit auf derselben Plattform. So bleibt der einfache Fall offen, und vertiefte Organisationsreife wird dort finanziert, wo ihr eigentlicher Mehrwert entsteht.",
-      "paragraph3": "Das ist nicht nur ein Betriebsmodell. Es ist auch eine ethische Entscheidung: Die gesetzlich notwendige Grunddokumentation soll nicht davon abhängen, ob bereits Budget für eine Governance-Plattform vorhanden ist."
+      "paragraph3": "Darin steckt ein Betriebsmodell und eine ethische Entscheidung: Die gesetzlich notwendige Grunddokumentation soll unabhängig davon möglich sein, ob bereits Budget für eine Governance-Plattform vorhanden ist."
     },
     "nextStep": {
       "label": "Nächster Schritt",

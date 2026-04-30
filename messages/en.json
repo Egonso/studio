@@ -834,8 +834,9 @@
       },
       "governance": {
         "title": "Governance",
-        "body": "Roles, approvals, policies, reviews, audit workflows and organisation-wide evidence logic. For organisations that want to do more than document and instead steer AI use systematically.",
-        "bearer": "Supported by organisations that bundle their governance on the same structure."
+        "body": "Roles, approvals, policies, reviews, audit workflows and organisation-wide evidence logic. For organisations that want to steer AI use systematically and improve it with auditable evidence.",
+        "bearer": "Supported by organisations that bundle their governance on the same structure.",
+        "cta": "View governance"
       },
       "fortbildung": {
         "title": "Article 4 training",
@@ -849,7 +850,7 @@
       "title": "The duty stays open. Organisational maturity is a choice.",
       "paragraph1": "Complying with the law must not cost anything. Choosing to mature the organisation beyond that is a decision — and those who make it carry operations for everyone.",
       "paragraph2": "Most organisations will use the registry for free and never go further. That is intentional. A smaller group also bundles governance, Article 4 training and policy work on the same platform. That keeps the simple case open while deeper organisational maturity is funded where its real added value exists.",
-      "paragraph3": "This is not only an operating model. It is also an ethical choice: legally necessary baseline documentation should not depend on whether budget for a governance platform already exists."
+      "paragraph3": "This combines an operating model with an ethical choice: legally necessary baseline documentation should not depend on whether budget for a governance platform already exists."
     },
     "nextStep": {
       "label": "Next step",

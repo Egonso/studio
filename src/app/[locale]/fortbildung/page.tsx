@@ -26,11 +26,11 @@ interface CourseModuleBreakdown {
   items: string[];
 }
 
-const HERO_IMAGE_SRC = '/images/fortbildung-main-course-map.svg';
-const PASS_PREVIEW_SRC = '/images/fortbildung-use-case-pass-preview.svg';
-const COURSE_SCREEN_SRC = '/images/fortbildung-course-screen.svg';
-const REGISTER_SCREEN_SRC = '/images/fortbildung-register-screen.svg';
-const MATERIALS_SCREEN_SRC = '/images/fortbildung-materials-screen.svg';
+const HERO_IMAGE_SRC = '/images/fortbildung-real-use-case-detail-card.png';
+const PASS_PREVIEW_SRC = '/images/fortbildung-real-use-case-pass-card.png';
+const COURSE_SCREEN_SRC = '/images/fortbildung-real-register-overview-card.png';
+const REGISTER_SCREEN_SRC = '/images/fortbildung-real-use-case-detail-card.png';
+const MATERIALS_SCREEN_SRC = '/images/fortbildung-real-use-case-pass-card.png';
 
 const MAIN_COURSE_MODULES_DE: CourseModuleBreakdown[] = [
   {
@@ -267,22 +267,22 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Einblick',
         screenshotsTitle: 'So sieht die Arbeit im Paket aus',
         screenshotsIntro:
-          'Die Vorschauen zeigen die drei Ebenen des Angebots: Hauptkurs lernen, ein Projekt im Register dokumentieren und die Nachweise aus Kursmaterialien heraus sauber vorbereiten.',
+          'Die Screenshots stammen aus der echten App: Ein Projekt wird erfasst, fachlich eingeordnet und als Use-Case-Pass dokumentiert.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Hauptkurs-Oberfläche',
-            body: 'Der Fokus bleibt auf dem EU-AI-Act-Hauptkurs: strukturierte Module, Lernfortschritt, Videolektionen und direkt zugeordnete Arbeitsmaterialien.',
+            title: 'Registerübersicht',
+            body: 'Der erste KI-Einsatzfall landet in einer strukturierten Übersicht mit Status, Owner-Rolle, Risikoklasse und Aktivität.',
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Projekt im KI Register',
-            body: 'Der erste KI-Einsatzfall wird als konkretes Arbeitsobjekt sichtbar: Zweck, Risiko, Owner, Prüfpfad und Exportstatus stehen zusammen.',
+            title: 'Einsatzfall-Detail',
+            body: 'Im Projekt werden Zweck, Systeme, Wirkungsbereich, Risikoklasse und Nachweisstatus an einem Ort geführt.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
-            title: 'Materialien und Export',
-            body: 'Checklisten, Entscheidungsbaum, RACI-Matrix und Use Case Pass werden im Projektkontext nutzbar gemacht.',
+            title: 'Use-Case-Pass',
+            body: 'Der Registerauszug bündelt Identifikation, beteiligte Systeme und regulatorische Basiswerte als prüfbares Dokument.',
           },
         ],
         article4Title: 'Art. 4 / AI Literacy',
@@ -368,22 +368,22 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Preview',
         screenshotsTitle: 'What working inside the package looks like',
         screenshotsIntro:
-          'The previews show the three levels of the offer: learning the main course, documenting one project in the registry and preparing evidence from the course materials.',
+          'The screenshots come from the actual app: one project is captured, assessed and documented as a Use Case Pass.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Main course interface',
-            body: 'The focus stays on the EU AI Act main course: structured modules, progress, video lessons and directly assigned working materials.',
+            title: 'Registry overview',
+            body: 'The first AI use case is visible in a structured overview with status, owner role, risk class and activity.',
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Project in AI Registry',
-            body: 'The first AI use case becomes a concrete working object: purpose, risk, owner, assessment path and export status stay together.',
+            title: 'Use case detail',
+            body: 'Purpose, systems, impact scope, risk class and evidence status are managed in one project view.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
-            title: 'Materials and export',
-            body: 'Checklists, decision tree, RACI matrix and Use Case Pass are connected to the project context.',
+            title: 'Use Case Pass',
+            body: 'The register extract combines identification, involved systems and regulatory baseline values into an auditable document.',
           },
         ],
         article4Title: 'Article 4 / AI Literacy',
