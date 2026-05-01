@@ -6,6 +6,66 @@ publish = ".next"
 package = "@netlify/plugin-nextjs"
 
 [[redirects]]
+from = "https://eukigesetz.com/"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://www.eukigesetz.com/"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://eukigesetz.com/de"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://eukigesetz.com/de/"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://www.eukigesetz.com/de"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://www.eukigesetz.com/de/"
+to = "/de/kurse/eu-ai-act-officer"
+status = 200
+force = true
+
+[[redirects]]
+from = "https://eukigesetz.com/legacy-home"
+to = "/legacy-home/index.html"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://eukigesetz.com/legacy-home/"
+to = "/legacy-home/index.html"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.eukigesetz.com/legacy-home"
+to = "/legacy-home/index.html"
+status = 301
+force = true
+
+[[redirects]]
+from = "https://www.eukigesetz.com/legacy-home/"
+to = "/legacy-home/index.html"
+status = 301
+force = true
+
+[[redirects]]
 from = "https://app.kiregister.com/*"
 to = "https://kiregister.com/:splat"
 status = 301

@@ -13,7 +13,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     `/${locale}/verify`,
   ]);
 
-  const collectionRoutes = ['/de/standards', '/de/updates', '/de/artefacts'];
+  const collectionRoutes = [
+    '/de/standards',
+    '/de/updates',
+    '/de/artefacts',
+    '/de/kurse/eu-ai-act-officer',
+  ];
 
   const industryRoutes = locales.flatMap((locale) =>
     industries.map((industry) => `/${locale}/industries/${industry.slug}`),
