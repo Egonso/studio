@@ -31,6 +31,9 @@ const SIDE_PREVIEW_SRC = '/images/fortbildung-academy-bonus-track.png';
 const COURSE_SCREEN_SRC = '/images/fortbildung-academy-overview.png';
 const REGISTER_SCREEN_SRC = '/images/fortbildung-academy-main-course.png';
 const MATERIALS_SCREEN_SRC = '/images/fortbildung-academy-bonus-track.png';
+const MOMO_SCREEN_SRC = '/images/fortbildung-academy-momo-technical.png';
+const ZOLTAN_SCREEN_SRC =
+  '/images/fortbildung-academy-zoltan-communication.png';
 
 const MAIN_COURSE_MODULES_DE: CourseModuleBreakdown[] = [
   {
@@ -267,17 +270,27 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Einblick',
         screenshotsTitle: 'So sieht der Kurs in der Academy aus',
         screenshotsIntro:
-          'Die Screenshots stammen aus der Academy: Modulnavigation, Lernvideo, Kursmaterialien und Praxisfälle liegen in derselben Arbeitsoberfläche.',
+          'Die Screenshots stammen aus der Academy und aus den Kursvideos: Modulnavigation, Lernvideo, Kursmaterialien, Momo, Zoltan, Prof. Janine Wendt und Praxisfälle sind sichtbar.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Hauptkurs: Risk Pyramid',
+            title: 'Academy-Oberfläche: Risk Pyramid',
             body: 'Die Lernmodule führen durch die Risikoklassen des EU AI Act und verknüpfen Video, Modulstruktur und begleitende Materialien.',
           },
           {
+            src: MOMO_SCREEN_SRC,
+            title: 'Momo in der Kurs-UI: Technical Essentials',
+            body: 'Die Academy zeigt Momo im Technikmodul mit den angrenzenden Sessions zu Tokens, Embeddings und Sprachmodellen direkt daneben.',
+          },
+          {
+            src: ZOLTAN_SCREEN_SRC,
+            title: 'Zoltan in der Kurs-UI: Internal Communication',
+            body: 'Zoltans Kommunikationsmodul bleibt im Kurskontext sichtbar: Ethik, interne Kommunikation, externe Kommunikation und Rollenspiel liegen in einer Spur.',
+          },
+          {
             src: REGISTER_SCREEN_SRC,
-            title: 'Hauptkurs: Compliance Roadmap',
-            body: 'Der Kurs zeigt die zeitliche Umsetzung bis 2026 und hält das passende Arbeitsmaterial direkt am Video bereit.',
+            title: 'Prof. Janine Wendt: Compliance Roadmap',
+            body: 'Prof. Janine Wendt führt durch den Umsetzungsweg bis 2026 und hält das passende Arbeitsmaterial direkt am Video bereit.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
@@ -368,17 +381,27 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Preview',
         screenshotsTitle: 'What the Academy course looks like',
         screenshotsIntro:
-          'The screenshots come from the Academy: module navigation, learning video, course materials and practical cases are held in the same workspace.',
+          'The screenshots come from the Academy and the course videos: module navigation, learning video, materials, Momo, Zoltan, Prof. Janine Wendt and practical cases are visible.',
         screenshots: [
           {
             src: COURSE_SCREEN_SRC,
-            title: 'Main course: Risk Pyramid',
+            title: 'Academy workspace: Risk Pyramid',
             body: 'The modules guide participants through EU AI Act risk classes and connect video, course structure and materials.',
           },
           {
+            src: MOMO_SCREEN_SRC,
+            title: 'Momo in the course UI: Technical Essentials',
+            body: 'The Academy shows Momo inside the technical module with the adjacent sessions on tokens, embeddings and language models right beside it.',
+          },
+          {
+            src: ZOLTAN_SCREEN_SRC,
+            title: 'Zoltan in the course UI: Internal Communication',
+            body: 'Zoltan’s communication module stays visible in course context: ethics, internal communication, external communication and role play sit in one track.',
+          },
+          {
             src: REGISTER_SCREEN_SRC,
-            title: 'Main course: Compliance Roadmap',
-            body: 'The course shows the implementation path up to 2026 and keeps the matching working material next to the video.',
+            title: 'Prof. Janine Wendt: Compliance Roadmap',
+            body: 'Prof. Janine Wendt walks through the implementation path up to 2026 and keeps the matching working material next to the video.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
