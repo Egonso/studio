@@ -26,10 +26,9 @@ interface CourseModuleBreakdown {
   items: string[];
 }
 
-const HERO_IMAGE_SRC = '/images/fortbildung-academy-main-course.png';
-const SIDE_PREVIEW_SRC = '/images/fortbildung-academy-bonus-track.png';
-const COURSE_SCREEN_SRC = '/images/fortbildung-academy-overview.png';
-const REGISTER_SCREEN_SRC = '/images/fortbildung-academy-main-course.png';
+const HERO_IMAGE_SRC = '/images/fortbildung-academy-dashboard.png';
+const REGISTER_SCREEN_SRC =
+  '/images/fortbildung-academy-janine-decision-tree.png';
 const MATERIALS_SCREEN_SRC = '/images/fortbildung-academy-bonus-track.png';
 const MOMO_SCREEN_SRC = '/images/fortbildung-academy-momo-technical.png';
 const ZOLTAN_SCREEN_SRC =
@@ -270,13 +269,8 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Einblick',
         screenshotsTitle: 'So sieht der Kurs in der Academy aus',
         screenshotsIntro:
-          'Die Screenshots stammen aus der Academy und aus den Kursvideos: Modulnavigation, Lernvideo, Kursmaterialien, Momo, Zoltan, Prof. Janine Wendt und Praxisfälle sind sichtbar.',
+          'Die Screenshots stammen aus der Academy und zeigen Momo, Zoltan, Prof. Janine Wendt und einen Praxisfall jeweils direkt im Kurskontext.',
         screenshots: [
-          {
-            src: COURSE_SCREEN_SRC,
-            title: 'Academy-Oberfläche: Risk Pyramid',
-            body: 'Die Lernmodule führen durch die Risikoklassen des EU AI Act und verknüpfen Video, Modulstruktur und begleitende Materialien.',
-          },
           {
             src: MOMO_SCREEN_SRC,
             title: 'Momo in der Kurs-UI: Technical Essentials',
@@ -289,8 +283,8 @@ export default async function FortbildungPage({ params }: Props) {
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Prof. Janine Wendt: Compliance Roadmap',
-            body: 'Prof. Janine Wendt führt durch den Umsetzungsweg bis 2026 und hält das passende Arbeitsmaterial direkt am Video bereit.',
+            title: 'Prof. Janine Wendt: Decision Tree Live',
+            body: 'Prof. Janine Wendt führt durch die praktische Risikoeinstufung und zeigt den Entscheidungsbaum direkt im Kurskontext.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
@@ -381,13 +375,8 @@ export default async function FortbildungPage({ params }: Props) {
         screenshotsLabel: 'Preview',
         screenshotsTitle: 'What the Academy course looks like',
         screenshotsIntro:
-          'The screenshots come from the Academy and the course videos: module navigation, learning video, materials, Momo, Zoltan, Prof. Janine Wendt and practical cases are visible.',
+          'The screenshots come from the Academy and show Momo, Zoltan, Prof. Janine Wendt and one practical case directly in course context.',
         screenshots: [
-          {
-            src: COURSE_SCREEN_SRC,
-            title: 'Academy workspace: Risk Pyramid',
-            body: 'The modules guide participants through EU AI Act risk classes and connect video, course structure and materials.',
-          },
           {
             src: MOMO_SCREEN_SRC,
             title: 'Momo in the course UI: Technical Essentials',
@@ -400,8 +389,8 @@ export default async function FortbildungPage({ params }: Props) {
           },
           {
             src: REGISTER_SCREEN_SRC,
-            title: 'Prof. Janine Wendt: Compliance Roadmap',
-            body: 'Prof. Janine Wendt walks through the implementation path up to 2026 and keeps the matching working material next to the video.',
+            title: 'Prof. Janine Wendt: Decision Tree Live',
+            body: 'Prof. Janine Wendt walks through practical risk classification and shows the decision tree directly in the course context.',
           },
           {
             src: MATERIALS_SCREEN_SRC,
@@ -728,17 +717,6 @@ export default async function FortbildungPage({ params }: Props) {
                   </li>
                 ))}
               </ul>
-            </div>
-            <div className="overflow-hidden border border-slate-200 bg-slate-50">
-              <Image
-                src={SIDE_PREVIEW_SRC}
-                alt=""
-                width={1040}
-                height={760}
-                className="h-auto w-full"
-                loading="eager"
-                unoptimized
-              />
             </div>
           </aside>
         </section>
