@@ -43,7 +43,15 @@ test('free signup/login entry stays focused and direct', () => {
   assert.match(germanMessages, /"createRegister": "Eigenes Register anlegen"/);
   assert.match(
     germanMessages,
-    /"heroTitle": "Jede Organisation mit KI-Einsatz braucht ein belastbares KI Register\."/,
+    /"heroTitle": "KI-Einsatz dokumentieren, wie es der EU AI Act fordert\."/,
+  );
+  assert.match(
+    germanMessages,
+    /"samplePassTitle": "Use Case Pass als exportierbarer Nachweis"/,
+  );
+  assert.match(
+    germanMessages,
+    /"processTitle": "Drei Schritte bis zum ersten Nachweis\."/,
   );
   assert.match(
     germanMessages,

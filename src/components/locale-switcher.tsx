@@ -2,6 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,12 +27,15 @@ const LOCALE_CODES: Record<Locale, string> = {
 export function LocaleSwitcher() {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   function switchLocale(nextLocale: Locale) {
     startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
+      const queryString = searchParams?.toString() ?? "";
+      const href = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(href, { locale: nextLocale });
     });
   }
 
@@ -43,6 +47,7 @@ export function LocaleSwitcher() {
           size="sm"
           className="gap-2 text-muted-foreground hover:text-foreground"
           disabled={isPending}
+          aria-label="Sprache wechseln / Change language"
         >
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">{LOCALE_LABELS[locale]}</span>
