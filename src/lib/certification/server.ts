@@ -12,6 +12,7 @@ import {
   getAdminDb,
   hasFirebaseAdminCredentials,
 } from '@/lib/firebase-admin';
+import { getCourseVideoIds } from '@/lib/course-progress';
 
 import { buildCertificateBadgeMarkup, CERTIFICATE_BADGE_ASSET_URL } from './badge';
 import { LEGACY_EXAM_DEFINITION } from './legacy-question-bank';
@@ -54,6 +55,8 @@ const CERTIFICATION_FAKE_DOCUMENTS_ENV_NAME = [
   'FAKE',
   'DOCUMENTS',
 ].join('_');
+export const COURSE_COMPLETION_REQUIRED_ERROR =
+  'Course completion is required before starting the certification exam.';
 
 type GeneratedDocument = {
   url: string;
@@ -838,6 +841,49 @@ function buildLegacyUserSnapshot(
   };
 }
 
+function isDevCertificationActor(actor: Pick<CertificationActor, 'uid'>): boolean {
+  return process.env.NODE_ENV !== 'production' && actor.uid.startsWith('dev:');
+}
+
+async function hasCompletedRequiredCourseVideos(
+  actor: Pick<CertificationActor, 'uid'>,
+): Promise<boolean> {
+  if (isDevCertificationActor(actor)) {
+    return true;
+  }
+
+  if (!hasFirebaseAdminCredentials()) {
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  const requiredVideoIds = new Set(getCourseVideoIds());
+  if (requiredVideoIds.size === 0) {
+    return false;
+  }
+
+  const snapshot = await getAdminDb()
+    .doc(`users/${actor.uid}/appData/courseProgress`)
+    .get();
+  const data = snapshot.exists
+    ? (snapshot.data() as { completedVideoIds?: unknown })
+    : null;
+  const completedVideoIds = Array.isArray(data?.completedVideoIds)
+    ? data.completedVideoIds.filter((videoId): videoId is string =>
+        typeof videoId === 'string' && requiredVideoIds.has(videoId),
+      )
+    : [];
+
+  return new Set(completedVideoIds).size >= requiredVideoIds.size;
+}
+
+async function assertCourseCompletionForExam(
+  actor: Pick<CertificationActor, 'uid'>,
+): Promise<void> {
+  if (!(await hasCompletedRequiredCourseVideos(actor))) {
+    throw new Error(COURSE_COMPLETION_REQUIRED_ERROR);
+  }
+}
+
 function serializeExamAttempt(
   attempt: ExamAttemptRecord,
 ): StoredExamAttemptRecord {
@@ -1391,6 +1437,7 @@ async function generateDocumentUrl(
       },
       body: JSON.stringify({
         document: snapshot.render.templateId,
+        apiKey: documenteroApiKey,
         format: 'pdf',
         filename,
         data: buildCertificateTemplateData(snapshot, verifyUrl),
@@ -1455,6 +1502,8 @@ export async function getUserCertificationSnapshot(
 export async function startExamAttempt(
   actor: CertificationActor,
 ): Promise<ExamAttemptRecord> {
+  await assertCourseCompletionForExam(actor);
+
   const attempts = await listAttemptsForEmail(actor.email);
 
   const attempt: ExamAttemptRecord = {
@@ -1492,6 +1541,8 @@ export async function submitExamAttempt(
     throw new Error('Exam attempt does not belong to the authenticated user.');
   }
 
+  await assertCourseCompletionForExam(actor);
+
   const { sectionResults, totalScore } = computeSectionResults(input.sectionAnswers);
   const passed = sectionResults.every((section) => section.passed);
 
@@ -1519,6 +1570,7 @@ export async function submitExamAttempt(
   const existingCertificate = await findLatestCertificateByEmail(actor.email);
   let certificate = existingCertificate;
   let certificateDocument: CertificateDocumentRecord | null = null;
+  let shouldGenerateDocument = false;
 
   if (!certificate || certificate.status !== 'active') {
     const validityMonths =
@@ -1539,28 +1591,31 @@ export async function submitExamAttempt(
         buildAuditEvent(actor.email, 'issued', 'Certificate issued after passing the review.'),
       ],
     };
+    shouldGenerateDocument = true;
   }
 
-  try {
-    const snapshot = buildCertificateDocumentSnapshot(certificate, settings);
-    const document = await generateDocumentUrl(snapshot);
-    certificateDocument = {
-      documentId: randomUUID(),
-      certificateId: certificate.certificateId,
-      generatedAt: new Date().toISOString(),
-      url: document.url,
-      provider: document.provider,
-      generatedBy: actor.email,
-      snapshot,
-    };
-    await saveCertificateDocument(certificateDocument);
-    certificate = {
-      ...certificate,
-      latestDocumentUrl: certificateDocument.url,
-      latestDocumentGeneratedAt: certificateDocument.generatedAt,
-    };
-  } catch (error) {
-    console.error('Certificate document generation failed:', error);
+  if (shouldGenerateDocument) {
+    try {
+      const snapshot = buildCertificateDocumentSnapshot(certificate, settings);
+      const document = await generateDocumentUrl(snapshot);
+      certificateDocument = {
+        documentId: randomUUID(),
+        certificateId: certificate.certificateId,
+        generatedAt: new Date().toISOString(),
+        url: document.url,
+        provider: document.provider,
+        generatedBy: actor.email,
+        snapshot,
+      };
+      await saveCertificateDocument(certificateDocument);
+      certificate = {
+        ...certificate,
+        latestDocumentUrl: certificateDocument.url,
+        latestDocumentGeneratedAt: certificateDocument.generatedAt,
+      };
+    } catch (error) {
+      console.error('Certificate document generation failed:', error);
+    }
   }
 
   await saveCertificate(certificate);
