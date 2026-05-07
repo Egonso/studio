@@ -4,6 +4,8 @@ import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 const COURSE_SALES_PATH = '/de/kurse/eu-ai-act-officer';
+const GERMAN_DEFAULT_HOSTS = new Set(['kiregister.com', 'www.kiregister.com']);
+const LEGACY_FAVICON_PATHS = new Set(['/favicon.ico', '/favicon.png']);
 
 function shouldEnforceHttps(request: NextRequest): boolean {
   if (process.env.NODE_ENV !== 'production') {
@@ -52,6 +54,10 @@ function isCourseSalesDomain(request: NextRequest): boolean {
   return hostname === 'eukigesetz.com' || hostname === 'www.eukigesetz.com';
 }
 
+function isGermanDefaultDomain(request: NextRequest): boolean {
+  return GERMAN_DEFAULT_HOSTS.has(getRequestHostname(request));
+}
+
 function shouldServeCourseLanding(pathname: string): boolean {
   return pathname === '/' || pathname === '/de' || pathname === '/de/';
 }
@@ -60,11 +66,36 @@ function shouldServeArchivedLegacyHome(pathname: string): boolean {
   return pathname === '/legacy-home' || pathname === '/legacy-home/';
 }
 
+function redirectToGermanRoot(request: NextRequest): NextResponse {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = `/${routing.defaultLocale}`;
+
+  const response = NextResponse.redirect(redirectUrl, 307);
+  response.cookies.set('NEXT_LOCALE', routing.defaultLocale, {
+    maxAge: 365 * 24 * 60 * 60,
+    path: '/',
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  return applySecurityHeaders(response);
+}
+
+function redirectToCanonicalFavicon(request: NextRequest): NextResponse {
+  const redirectUrl = request.nextUrl.clone();
+  redirectUrl.pathname = '/register-logo.png';
+  redirectUrl.search = '';
+  return applySecurityHeaders(NextResponse.redirect(redirectUrl, 308));
+}
+
 export default function middleware(request: NextRequest) {
   if (shouldEnforceHttps(request)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.protocol = 'https:';
     return applySecurityHeaders(NextResponse.redirect(redirectUrl, 308));
+  }
+
+  if (LEGACY_FAVICON_PATHS.has(request.nextUrl.pathname)) {
+    return redirectToCanonicalFavicon(request);
   }
 
   // Affiliate link: /ref/{slug} -> set cookie and redirect to home.
@@ -99,6 +130,10 @@ export default function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.rewrite(rewriteUrl));
   }
 
+  if (isGermanDefaultDomain(request) && request.nextUrl.pathname === '/') {
+    return redirectToGermanRoot(request);
+  }
+
   return applySecurityHeaders(intlMiddleware(request));
 }
 
@@ -109,6 +144,8 @@ export const config = {
   // - Static files (files with extensions like .png, .jpg, .ico, etc.)
   // - Vercel internals (/_vercel/...)
   matcher: [
+    '/favicon.ico',
+    '/favicon.png',
     '/((?!api|_next|_vercel|.*\\..*).*)',
     // Also run for root
     '/',
