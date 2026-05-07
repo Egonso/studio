@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { AppClientShell } from '@/components/app-client-shell';
+import { PublicLandingLocaleSwitcher } from '@/components/public-landing-locale-switcher';
 import { routing } from '@/i18n/routing';
 
 const icons: Metadata['icons'] = {
@@ -46,7 +47,10 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <AppClientShell>{children}</AppClientShell>
+      <AppClientShell>
+        <PublicLandingLocaleSwitcher />
+        {children}
+      </AppClientShell>
     </NextIntlClientProvider>
   );
 }
