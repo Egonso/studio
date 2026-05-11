@@ -6,8 +6,8 @@
   "intent": "supplier-evidence",
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
-  "effective_date": "2026-04-22",
-  "last_substantive_update": "2026-04-22",
+  "effective_date": "2026-04-29",
+  "last_substantive_update": "2026-04-29",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
@@ -17,8 +17,8 @@
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
-  "title": "Welche Nachweise OEM-Beschaffung, Qualität und Compliance im Use-Case Pass sehen sollten",
-  "summary": "Dieses Artefakt ordnet die minimale Evidenzstruktur für KI-Einsatzfälle in der Automobil-Lieferkette. Es zeigt, welche Nachweise OEM-Beschaffung, Supplier Quality und Compliance an einem einzelnen Use-Case Pass als belastbar werten sollten, bevor Supplier Requests, Freigaben oder öffentliche Verify-Flächen genutzt werden, und trennt sauber zwischen interner Evidenzbasis, externer Aussage und kontrollierter Außensicht.",
+  "title": "Use-Case Pass Evidenzprofil für OEM-Beschaffung, Qualität und Compliance",
+  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Evidenzprofil für Lieferkette und Freigabe",
   "author": "KIRegister",
@@ -31,7 +31,8 @@
     "ein gemeinsames Evidenzprofil für Beschaffung, Qualität und Compliance rund um einen einzelnen KI-Einsatzfall",
     "eine prüffähige Mindestlogik für Zweck, Verantwortung, Datenbezug, Review-Stand und Grenzen der Aussage",
     "eine Anschlussstruktur zwischen internem Pass, Supplier Request, Verify-Fläche und rechtlicher Einordnung",
-    "eine konkrete Freigabelogik dafür, wann ein Verify-Link genügt und wann ein ergänzendes Dossier notwendig bleibt"
+    "eine konkrete Freigabelogik dafür, wann ein Verify-Link genügt und wann ein ergänzendes Dossier notwendig bleibt",
+    "eine klare Empfängerlogik dafür, welche Aussageform für Procurement, Supplier Quality, Compliance und Eskalation jeweils ausreicht"
   ],
   "downloads": [
     {
@@ -59,6 +60,11 @@
     "description": "Die Automotive-Seite bündelt den branchenspezifischen Kontext, in dem Lieferkettenanfragen, Supplier Quality und Pass-Nachweise zusammenlaufen."
   },
   "related_links": [
+    {
+      "label": "KI-Governance für Automobil-Zulieferer",
+      "href": "/de/industries/automotive-suppliers",
+      "description": "Branchenseite für Lieferkettendruck, OEM-Nachweise und den Use-Case Pass als operatives Referenzobjekt."
+    },
     {
       "label": "Der Use-Case Pass als Standardnachweis",
       "href": "/de/standards/use-case-pass",
@@ -141,6 +147,32 @@
       ]
     },
     {
+      "kind": "table",
+      "heading": "Welche Belegform pro Pass-Feld in Automotive typischerweise erwartet wird",
+      "rows": [
+        {
+          "label": "Fachzweck und Prozessschritt",
+          "value": "Erwartet wird eine fachlich lesbare Beschreibung des realen Einsatzfalls, nicht nur der Name eines Tools oder Modells. Beschaffung und Qualität müssen ohne Zusatzgespräch verstehen können, in welchem Prozessschritt der Fall wirkt und welche operative Grenze die Aussage hat."
+        },
+        {
+          "label": "Owner und Freigabeverantwortung",
+          "value": "Erwartet wird eine benannte Rolle mit Zuständigkeit für Rückfragen, Pflege und Aussagefreigabe. Fehlt diese Zuordnung, bleibt für OEMs und Tier-1 unklar, wer spätere Änderungen, Korrekturen oder Eskalationen verbindlich tragen kann."
+        },
+        {
+          "label": "Datenbezug und Wirkungsnähe",
+          "value": "Erwartet wird ein nachvollziehbarer Bezug zu den genutzten Daten, zur Qualitäts- oder Sicherheitsnähe und zur möglichen externen Wirkung. Gerade in qualitätsnahen Gesprächen genügt kein pauschaler Hinweis auf interne Daten, wenn unklar bleibt, wie nah der Einsatzfall an realen Entscheidungen oder Freigaben liegt."
+        },
+        {
+          "label": "Review-Stand und offene Punkte",
+          "value": "Erwartet wird eine sichtbare Trennung zwischen bestätigten Aussagen, laufenden Prüfungen und noch offenen Punkten. Automotive-Empfänger brauchen keine Perfektion, aber sie müssen erkennen können, welche Teile der Antwort bereits belastbar und welche nur vorläufig sind."
+        },
+        {
+          "label": "Referenzierte Evidenzquellen",
+          "value": "Erwartet wird mindestens eine rückführbare Belegquelle wie Pass, Matrix, Dossier, Richtlinie oder Verify-Auszug. Schwach wirkt eine Antwort, wenn Aussagen zwar plausibel klingen, aber auf keine konkrete Evidenzquelle zurückverweisen."
+        }
+      ]
+    },
+    {
       "kind": "paragraphs",
       "heading": "Warum OEM-Anfragen oft an der Form und nicht am Wissen scheitern",
       "paragraphs": [
@@ -194,6 +226,46 @@
     },
     {
       "kind": "table",
+      "heading": "Welche Mindestantwort ein OEM ohne Nachforderung akzeptieren können sollte",
+      "rows": [
+        {
+          "label": "Gegenstand",
+          "value": "Der konkrete KI-Einsatzfall, sein realer Fachprozess und die klare Scope-Grenze müssen in zwei bis drei Sätzen verständlich sein. Wer nach dem Lesen noch nicht weiß, ob über Assistenz, Prüfunterstützung oder eine qualitätsnahe Entscheidungshilfe gesprochen wird, hat noch keine belastbare Mindestantwort vor sich."
+        },
+        {
+          "label": "Verantwortung",
+          "value": "Eine benannte Rolle muss erkennbar machen, wer die Aussage pflegt, wer Rückfragen beantworten kann und wer Änderungen am Review-Stand freigibt. Ohne diese Zuordnung wird aus einem Dokument schnell nur eine unverbindliche Selbstauskunft."
+        },
+        {
+          "label": "Review-Stand",
+          "value": "Bestätigte Aussagen, laufende Prüfungen und offene Punkte müssen getrennt lesbar sein. Eine gute Mindestantwort verschweigt Lücken nicht, sondern markiert sie so, dass Procurement und Qualität die Reichweite der Aussage sofort einordnen können."
+        },
+        {
+          "label": "Belegpfad",
+          "value": "Mindestens ein klarer Verweis auf Pass, Dossier, Matrix oder Verify-Auszug muss vorhanden sein. Der Empfänger muss erkennen können, auf welcher Primärquelle die Aussage beruht und wohin bei Rückfragen fachlich zurückgesprungen wird."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Wann Procurement akzeptieren, vertiefen oder stoppen sollte",
+      "rows": [
+        {
+          "label": "Akzeptieren",
+          "value": "Wenn Einsatzfall, Scope, verantwortliche Rolle, Review-Stand und Belegpfad konsistent benannt sind und keine implizite Vollfreigabe behauptet wird. Dann ist der Pass stark genug für eine erste lieferkettenfähige Aussage."
+        },
+        {
+          "label": "Vertiefen",
+          "value": "Wenn der Fall qualitätsnah wirkt, zusätzliche Formularlogik mitbringt oder Supplier Quality mehr Trennschärfe zu Kontrollen, Wirkungsnähe oder offenen Punkten braucht. Dann sollte die Kommunikation in Dossier oder strukturierten Request wechseln, ohne die Pass-Basis zu verlassen."
+        },
+        {
+          "label": "Stoppen",
+          "value": "Wenn Scope-Grenzen, Datenbezug, verantwortliche Rolle oder Review-Stand noch unklar sind. In diesem Zustand sollte weder eine belastbare Antwort verschickt noch ein Verify-Link als scheinbar fertiger Nachweis verwendet werden."
+        }
+      ]
+    },
+    {
+      "kind": "table",
       "heading": "Welche Nachweise vor Freigabe, Lieferantengespräch oder Eskalation sichtbar sein sollten",
       "rows": [
         {
@@ -238,6 +310,28 @@
     },
     {
       "kind": "table",
+      "heading": "Welche Aussageform für welche Empfängerrolle typischerweise genügt",
+      "rows": [
+        {
+          "label": "OEM-Beschaffung",
+          "value": "Braucht eine knappe, rückführbare Aussage zu Einsatzfall, Scope, verantwortlicher Rolle und aktueller Beleglage. Dafür genügt oft ein lieferkettenfähiger Pass oder ein darauf beruhendes kurzes Supplier-Dossier."
+        },
+        {
+          "label": "Supplier Quality",
+          "value": "Braucht zusätzlich erkennbare Wirkungsnähe, relevante Kontrollen, Review-Stand und offene Punkte. Eine bloße Außensicht ohne diese Trennung reicht für qualitätsnahe Gespräche meist nicht aus."
+        },
+        {
+          "label": "Compliance und Recht",
+          "value": "Brauchen dieselbe Pass-Basis plus sichtbare Aussagegrenzen, Eskalationspfade und referenzierte Belege. Sobald Scope oder Datenbezug strittig sind, muss die Antwort ausdrücklich als vorläufig oder ergänzungsbedürftig markiert werden."
+        },
+        {
+          "label": "Öffentliche Verify-Nutzung",
+          "value": "Genügt nur für stabil dokumentierte Kernaussagen, die bereits intern freigegeben und aus dem Pass widerspruchsfrei ableitbar sind. Verify ersetzt keine vertiefte Antwort, wenn der Empfänger eigene Prüf- oder Formularlogik mitbringt."
+        }
+      ]
+    },
+    {
+      "kind": "table",
       "heading": "Welche Evidenzstufe für welches Automotive-Gespräch genügt",
       "rows": [
         {
@@ -251,6 +345,28 @@
         {
           "label": "Stufe 3: verify-fähig",
           "value": "Die extern vertretbaren Kernaussagen sind stabil, der Pass referenziert belastbare Evidenz und ein öffentlicher Nachweisausschnitt kann ohne Widerspruch zur internen Dokumentation gezeigt werden. Diese Stufe ist sinnvoll, wenn Dritte einen kontrollierten, wiederholbaren Referenzlink benötigen."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Nachweisform je Gesprächslage zuerst eingesetzt werden sollte",
+      "rows": [
+        {
+          "label": "Erste Beschaffungsanfrage",
+          "value": "Zuerst sollte ein sauber abgegrenzter Pass oder ein kurzes Supplier-Dossier auf Pass-Basis genutzt werden. In dieser Lage zählt vor allem, dass Scope, Owner, aktuelle Evidenzstufe und Aussagegrenze ohne Nebenquellen lesbar sind."
+        },
+        {
+          "label": "Supplier-Quality-Rückfrage",
+          "value": "Hier sollte zusätzlich die Register- und Review-Matrix einbezogen werden, damit Kontrollen, offene Punkte und Wirkungsnähe getrennt sichtbar bleiben. Ein bloßer Außenauszug reicht für qualitätsnahe Gespräche häufig nicht aus."
+        },
+        {
+          "label": "Öffentliche oder halböffentliche Referenz",
+          "value": "Hier ist Verify sinnvoll, aber nur als kontrollierter Auszug aus dem bereits freigegebenen Pass. Verify sollte nie die erste Stelle sein, an der neue Aussagen zur Qualitätsnähe, Datenlage oder Freigabelogik formuliert werden."
+        },
+        {
+          "label": "Rechtliche oder eskalierte Prüfung",
+          "value": "Hier sollte die Kommunikation auf derselben Pass-Basis bleiben, aber mit ergänzendem Dossier, referenzierten Richtlinien und klar markierten Aussagegrenzen arbeiten. Je höher die Tragweite des Gesprächs, desto weniger genügt eine reine Außensicht ohne interne Belegkette."
         }
       ]
     },
@@ -274,6 +390,39 @@
           "label": "Rechtliche oder Eskalationsentscheidung",
           "value": "Erfordert weiterhin vertiefte Einordnung, sobald Datenbezug, Entscheidungsnähe, Qualitätswirkung oder externe Aussagegrenzen offen sind. Der Pass schafft dafür die belastbare Ausgangsbasis, ersetzt aber die eigentliche rechtliche Bewertung nicht."
         }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Aussage Automotive-Teams je Gesprächssituation vertreten sollten",
+      "rows": [
+        {
+          "label": "Erste OEM-Beschaffungsrückfrage",
+          "value": "Vertretbar ist eine knappe Aussage zu Einsatzfall, Zweck, Owner, Scope-Grenze und aktueller Evidenzstufe. Alles, was darüber hinausgeht, sollte ausdrücklich als ergänzungsbedürftig markiert werden statt als implizite Freigabe zu erscheinen."
+        },
+        {
+          "label": "Supplier-Quality-Abgleich",
+          "value": "Hier muss zusätzlich sichtbar sein, wie nah der Einsatzfall an Qualitätsentscheidungen, Freigabeprozessen oder Reklamationsabläufen liegt. Supplier Quality braucht dieselbe Pass-Basis wie Procurement, aber meist mit engerer Sicht auf Kontrollen, offene Punkte und Wirkungsnähe."
+        },
+        {
+          "label": "Verify als kontrollierte Außensicht",
+          "value": "Öffentlich oder halböffentlich gezeigt werden sollten nur Aussagen, die im Pass bereits stabil dokumentiert, intern anschlussfähig und gegenüber Dritten ohne Zusatzdeutung vertretbar sind. Verify darf keine neue Interpretation des Falls erzeugen."
+        },
+        {
+          "label": "Vertiefter Supplier Request",
+          "value": "Sobald zusätzliche Nachweise, eigene Formularfelder oder rechtlich sensible Aussagen verlangt werden, sollte die Kommunikation in einen strukturierten Request-Pfad wechseln. Die Antwort bleibt dann auf denselben Pass rückführbar, wird aber durch Dossier, Matrix oder ergänzende Belege angereichert."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Welche Aussagen ohne belastbaren Pass-Bezug nicht versendet werden sollten",
+      "items": [
+        "Pauschale Zusicherungen zur Lieferketten- oder Qualitätsreife, wenn der konkrete Einsatzfall intern noch nicht sauber abgegrenzt ist.",
+        "Öffentliche Verify-Verweise, obwohl Scope-Grenzen, Review-Stand oder verantwortliche Rolle im Pass noch nicht stabil dokumentiert sind.",
+        "Freitextantworten zu Datenbezug oder Wirkungsnähe, die sich auf keine referenzierte Evidenzquelle zurückführen lassen.",
+        "Formulierungen, die Pilotstatus, offene Prüfungen und bestätigte Aussagen zu einer scheinbar abgeschlossenen Freigabe verschmelzen.",
+        "Anbieter-, Tool- oder Produktbeschreibungen, die den realen Fachprozess und den tatsächlichen Nachweisgegenstand verdecken."
       ]
     },
     {
@@ -345,6 +494,18 @@
     {
       "q": "Wann wirkt eine Antwort trotz vieler Unterlagen schwach?",
       "a": "Wenn Pass, Dossier, Verify-Link und Freitext nicht auf denselben Einsatzfall zurückführen. Viele Anhänge helfen nicht, wenn unklar bleibt, welche Aussage belegt ist, wer sie verantwortet und welcher Scope gegenüber dem OEM tatsächlich gemeint ist."
+    },
+    {
+      "q": "Welche Aussage muss ein OEM ohne weitere Rückfrage direkt verstehen können?",
+      "a": "Mindestens, welcher konkrete Einsatzfall gemeint ist, wofür er fachlich genutzt wird, wer ihn verantwortet, welcher Review-Stand vorliegt und welche Grenzen der Aussage gelten. Wenn diese fünf Punkte nicht auf Anhieb lesbar sind, ist die Evidenzbasis für Lieferkettenkommunikation meist noch zu schwach."
+    },
+    {
+      "q": "Woran erkennt Procurement, dass ein Pass nur formal vollständig, aber noch nicht lieferkettenfähig ist?",
+      "a": "Daran, dass zwar Felder ausgefüllt sind, aber Scope-Grenzen, Datenbezug, verantwortliche Rolle oder der Trennstrich zwischen bestätigten Aussagen und offenen Punkten nicht klar lesbar werden. Formal gefüllte Felder ersetzen keine belastbare Mindestantwort für den konkreten Einsatzfall."
+    },
+    {
+      "q": "Welche Aussage darf ein Verify-Link in Automotive nicht ersetzen?",
+      "a": "Er darf nicht die interne Klärung ersetzen, welche Kernaussagen überhaupt stabil vertreten werden können. Verify ist nur ein kontrollierter Auszug aus einer bereits belastbaren Pass-Basis und keine Abkürzung, wenn Review-Stand oder Aussagegrenzen noch offen sind."
     }
   ]
 }
