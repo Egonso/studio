@@ -7,54 +7,62 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "last_substantive_update": "2026-05-12",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act-explorer",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Explainer für Einkauf, Legal und Governance",
-  "summary": "Dieses Dokument erklärt den Use-Case-Pass aus Sicht von Einkauf, Legal und Governance. Es zeigt, warum fallbezogene Dokumentation für Freigabe, Prüfung, Beschaffung und externe Rückfragen tragfähiger ist als allgemeine Aussagen über KI im Unternehmen.",
+  "summary": "Dieses Dokument erklärt den Use-Case-Pass aus Sicht von Einkauf, Legal und Governance und erweitert die Einordnung für Auditoren, Berater, Trainer und Beschaffungsrollen. Es zeigt, wie ein einzelner KI-Einsatzfall als gemeinsames Arbeitsobjekt für Freigabe, Prüfung, Workshop-Übergabe, Supplier Request und externe Rückfragen genutzt werden kann.",
   "object_label": "Explainer-Artefakt",
   "stance_label": "Entscheidungs- und Einordnungsdokument",
   "author": "KIRegister",
   "audiences": [
     "Einkaufsteams mit Fragen zu Nachweisen, Beschaffung und Lieferkette",
     "Legal- und Compliance-Funktionen mit Bedarf an sauberer Fallstruktur",
-    "Governance-Verantwortliche, die interne und externe Nachweislogik verbinden müssen"
+    "Governance-Verantwortliche, die interne und externe Nachweislogik verbinden müssen",
+    "Auditoren und interne Prüffunktionen, die eine neutrale Mindeststruktur für einen einzelnen KI-Einsatzfall brauchen",
+    "Berater, Trainer und Moderatoren, die aus Gesprächen oder Schulungen direkt anschlussfähige Pass-Arbeit ableiten wollen"
   ],
   "delivers": [
     "eine knappe, anschlussfähige Erklärung des Use-Case-Pass für nicht-technische Entscheider",
     "eine direkte Antwort auf die häufigsten Grundsatzfragen zu Einheit, Richtlinie und Verifikation",
-    "konkrete Handouts und Beispiele, mit denen der Ansatz intern weitergegeben werden kann"
+    "konkrete Handouts und Beispiele, mit denen der Ansatz intern weitergegeben werden kann",
+    "eine Rollenmatrix für Einkauf, Legal, Audit, Beratung, Training und Governance auf derselben Fallbasis",
+    "eine Übergabelogik, mit der ein Gespräch in Zweck, verantwortliche Rolle, Evidenzlage und nächsten Review-Schritt übersetzt wird"
   ],
   "downloads": [
     {
       "label": "Handout: Von der KI-Einführung zur nachweisbaren KI-Nutzung",
       "href": "/resources/handouts/ki-register-handout-ki-einfuehrung-zu-governance.pdf",
-      "description": "Substanzieller Schulungstext, der zeigt, warum Governance als zweiter Schritt nach Einführung und Training entsteht.",
+      "description": "Substanzieller Schulungstext, der zeigt, wie Einführung, Training und Governance-Arbeit in eine dokumentierte Fallstruktur überführt werden.",
       "format": "PDF"
     },
     {
       "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
       "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
-      "description": "Vertiefendes Handout für Einkauf, Legal und Governance zur Struktur, Statuslogik und Exportfähigkeit des Passes.",
+      "description": "Vertiefendes Handout für Einkauf, Legal, Audit und Governance zur Struktur, Statuslogik, Review-Fähigkeit und Exportfähigkeit des Passes.",
       "format": "PDF"
     },
     {
       "label": "Beispiel Use-Case Pass",
       "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Ein ausgearbeiteter Referenzfall, mit dem Einkauf, Legal und Governance die Zielstruktur direkt an einem konkreten Einsatzfall sehen können.",
+      "description": "Ein ausgearbeiteter Referenzfall, mit dem Einkauf, Legal, Audit, Training und Governance die Zielstruktur direkt an einem konkreten Einsatzfall sehen können.",
       "format": "PDF"
     }
   ],
   "cta": {
-    "label": "Jetzt registrieren",
+    "label": "Use-Case Pass im Register vorbereiten",
     "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
-    "description": "Die Registrierung führt direkt in das Register, damit der Pass unmittelbar für reale Einsatzfälle angelegt werden kann."
+    "description": "Der sachliche nächste Schritt ist ein realer Einsatzfall im Register, damit Erklärung, Review und externe Rückfrage auf dasselbe Objekt verweisen."
   },
   "related_links": [
     {
@@ -66,6 +74,11 @@
       "label": "Der Use-Case Pass als Standardnachweis",
       "href": "/de/standards/use-case-pass",
       "description": "Die ausführliche Referenzseite zum Format, zur Evidenzlogik und zur Einführung im Unternehmen."
+    },
+    {
+      "label": "Partner-Arbeitskit für Audit, Training, Beschaffung und Governance",
+      "href": "/de/artefacts/practitioner-kit",
+      "description": "Operatives Arbeitskit für Partnerformate, die aus einem Gespräch direkt einen bearbeitbaren Pass-Stand ableiten sollen."
     }
   ],
   "sections": [
@@ -74,7 +87,8 @@
       "heading": "Die kurze Erklärung",
       "paragraphs": [
         "Ein Use-Case Pass dokumentiert einen einzelnen KI-Einsatzfall so, dass Zweck, Verantwortung, Risiko- und Nachweisbezug in einem Objekt zusammenlaufen.",
-        "Für Einkauf, Legal und Governance ist das hilfreich, weil sich Entscheidungen, Freigaben und Rückfragen auf eine definierte Einheit beziehen lassen. Das reduziert Übersetzungsarbeit zwischen Fachbereich, Compliance und Partnern."
+        "Für Einkauf, Legal und Governance ist das hilfreich, weil sich Entscheidungen, Freigaben und Rückfragen auf eine definierte Einheit beziehen lassen. Das reduziert Übersetzungsarbeit zwischen Fachbereich, Compliance und Partnern.",
+        "Für Auditoren, Berater und Trainer ist derselbe Pass nützlich, weil er aus Gesprächen ein prüfbares Arbeitsobjekt macht. Ein Workshop, eine Vorprüfung oder eine Lieferantenrückfrage endet damit bei Zweck, verantwortlicher Rolle, Evidenzlage und nächstem Review-Schritt statt bei losen Gesprächsnotizen."
       ]
     },
     {
@@ -82,7 +96,8 @@
       "heading": "Warum eine allgemeine KI-Richtlinie allein nicht ausreicht",
       "paragraphs": [
         "Eine allgemeine KI-Richtlinie ist eine horizontale Steuerungsbasis. Sie sagt, welche Grundsätze, Freigabepfade und Verantwortungen ein Unternehmen insgesamt gelten lassen will. Sie beantwortet aber regelmäßig nicht, wie ein einzelner Einsatzfall konkret funktioniert, welche Datenarten berührt werden, welche Entscheidungsnähe besteht und welche Nachweise im Zweifel vorgelegt werden können.",
-        "Genau dort entstehen in der Praxis die Rückfragen von Einkauf, Legal, Audit, Betriebsrat, Kunden oder OEMs. Wer dann nur eine Richtlinie zeigen kann, muss die eigentliche Falllogik erst nachträglich zusammensuchen. Der Use-Case Pass schließt diese Lücke, weil er die abstrakte Richtlinie in ein überprüfbares Objekt pro Einsatzfall übersetzt."
+        "Genau dort entstehen in der Praxis die Rückfragen von Einkauf, Legal, Audit, Betriebsrat, Kunden oder OEMs. Wer dann nur eine Richtlinie zeigen kann, muss die eigentliche Falllogik erst nachträglich zusammensuchen. Der Use-Case Pass schließt diese Lücke, weil er die abstrakte Richtlinie in ein überprüfbares Objekt pro Einsatzfall übersetzt.",
+        "Für Partnerarbeit ist diese Trennung entscheidend. Beratung und Training können die Richtlinie erklären, Audit und Beschaffung brauchen aber zusätzlich den konkreten Fall: Wofür wird KI genutzt, wer verantwortet die Nutzung, welche Evidenz liegt vor und welche Aussage darf heute weitergegeben werden?"
       ]
     },
     {
@@ -111,11 +126,15 @@
         },
         {
           "label": "Vertiefung",
-          "value": "Zwei Handouts für Einführung, Struktur und Rechtsbezug des Pass-Ansatzes."
+          "value": "Zwei Handouts für Einführung, Struktur, Rollenklärung und Rechtsbezug des Pass-Ansatzes."
         },
         {
           "label": "Referenzfall",
           "value": "Ein ausgearbeiteter Beispiel-Pass, der das Zielbild an einem realistischen Einsatzfall sichtbar macht."
+        },
+        {
+          "label": "Rollenmatrix",
+          "value": "Eine Einordnung, welche Funktion welche Frage an denselben Pass stellt und welche Übergabe daraus folgen sollte."
         }
       ]
     },
@@ -124,7 +143,8 @@
       "heading": "Wie man den Explainer intern verwendet",
       "paragraphs": [
         "Der Explainer eignet sich als gemeinsamer Ausgangspunkt für Gespräche zwischen Einkauf, Legal, Governance und Fachbereich. Er schafft eine geteilte Sprache, bevor über konkrete Freigaben, Supplier Requests oder Nachweisanforderungen entschieden wird.",
-        "Am stärksten ist er, wenn direkt im Anschluss ein erster realer Einsatzfall im Register angelegt oder ein bestehender Pass überprüft wird. Dann mündet die Erklärung sofort in eine nachvollziehbare Struktur."
+        "Am stärksten ist er, wenn direkt im Anschluss ein erster realer Einsatzfall im Register angelegt oder ein bestehender Pass überprüft wird. Dann mündet die Erklärung sofort in eine nachvollziehbare Struktur.",
+        "Für Trainer und Berater kann der Explainer als kurzer Einstieg vor einer Fallaufnahme dienen. Für Auditoren und Beschaffung ist er eher ein Erwartungsabgleich: Welche Mindestinformationen müssen vorliegen, bevor eine Aussage als belastbar, begrenzt oder noch offen markiert wird?"
       ]
     },
     {
@@ -142,6 +162,18 @@
         {
           "label": "Governance",
           "value": "Will ein Format, das intern steuerbar und extern kommunizierbar bleibt."
+        },
+        {
+          "label": "Audit",
+          "value": "Will einen einzelnen Einsatzfall als Prüfobjekt lesen können, mit Scope, Review-Stand, Evidenz und offenen Punkten."
+        },
+        {
+          "label": "Beratung und Training",
+          "value": "Wollen aus Workshop, Discovery oder Schulung einen konkreten Pass-Stand mit nächstem Arbeitsschritt ableiten."
+        },
+        {
+          "label": "Beschaffung und Vendor Management",
+          "value": "Wollen vor Anfrage oder Lieferkettenantwort erkennen, welche Aussage bereits gestützt ist und welche Evidenz fehlt."
         }
       ]
     }
@@ -149,11 +181,11 @@
   "faq": [
     {
       "q": "Warum reicht eine allgemeine KI-Richtlinie allein nicht aus?",
-      "a": "Weil sie Grundsätze vorgibt, aber den konkreten Einsatzfall meist nicht ausreichend beschreibt. Für Prüfung, Freigabe und externe Anfragen braucht es eine fallbezogene Evidenzstruktur."
+      "a": "Weil sie Grundsätze vorgibt, aber den konkreten Einsatzfall meist nicht ausreichend beschreibt. Für Prüfung, Freigabe, Training, Beschaffung und externe Anfragen braucht es zusätzlich eine fallbezogene Evidenzstruktur."
     },
     {
       "q": "Weshalb ist ein Einsatzfall die richtige Governance-Einheit?",
-      "a": "Weil Risiko, Verantwortung und Prüfbedarf an der realen Nutzung hängen. Ein Pass pro Einsatzfall ist die kleinste sinnvoll steuerbare und verifizierbare Einheit."
+      "a": "Weil Risiko, Verantwortung und Prüfbedarf an der realen Nutzung hängen. Ein Pass pro Einsatzfall ist die kleinste sinnvoll steuerbare und verifizierbare Einheit für interne Arbeit und externe Rückfragen."
     },
     {
       "q": "Wie hängt ein interner Pass mit externer Verifikation oder Supplier Requests zusammen?",
@@ -161,7 +193,7 @@
     },
     {
       "q": "Wie sollte der Explainer intern weiterverwendet werden?",
-      "a": "Am besten als gemeinsamer Einstieg in ein erstes Register- oder Review-Gespräch. Der Nutzen entsteht, wenn die Erklärung direkt an einen realen Einsatzfall angeschlossen wird."
+      "a": "Am besten als gemeinsamer Einstieg in ein erstes Register-, Review- oder Partnergespräch. Der Nutzen entsteht, wenn die Erklärung direkt an einen realen Einsatzfall angeschlossen und in eine verantwortliche nächste Aktion überführt wird."
     }
   ]
 }
