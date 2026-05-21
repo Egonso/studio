@@ -14,6 +14,13 @@ const GlobalChrome = dynamic(
   () => import("@/components/global-chrome").then((mod) => mod.GlobalChrome),
   { ssr: false }
 );
+const AffiliateAttributionTracker = dynamic(
+  () =>
+    import("@/components/affiliate/affiliate-attribution-tracker").then(
+      (mod) => mod.AffiliateAttributionTracker
+    ),
+  { ssr: false }
+);
 const Toaster = dynamic(
   () => import("@/components/ui/toaster").then((mod) => mod.Toaster),
   { ssr: false }
@@ -27,6 +34,7 @@ export function AppClientShell({ children }: AppClientShellProps) {
   return (
     <AuthProvider>
       <DynamicFavicon />
+      <AffiliateAttributionTracker />
       {children}
       <Toaster />
       <GlobalChrome />

@@ -31,10 +31,12 @@ import { useAuth } from '@/context/auth-context';
 import {
   getAffiliateCommissionHistory,
   getAffiliateProfile,
+  getAffiliateReferralHistory,
 } from '@/app/actions/affiliate';
 import type {
   AffiliateCommission,
   AffiliateRecord,
+  AffiliateReferral,
 } from '@/lib/affiliate/types';
 import { APP_LOCALE } from '@/lib/locale';
 
@@ -55,6 +57,18 @@ function maskEmail(email: string): string {
   return `${local.slice(0, 2)}***@${domain}`;
 }
 
+function formatDate(value: string | null): string {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString(APP_LOCALE);
+}
+
+function referralStatusLabel(status: AffiliateReferral['status']): string {
+  if (status === 'converted') return 'Gekauft';
+  if (status === 'signed_up') return 'Registriert';
+  if (status === 'expired') return 'Abgelaufen';
+  return 'Geklickt';
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -64,6 +78,7 @@ export function AffiliateSettingsSection() {
   const [loading, setLoading] = useState(true);
   const [affiliate, setAffiliate] = useState<AffiliateRecord | null>(null);
   const [commissions, setCommissions] = useState<AffiliateCommission[]>([]);
+  const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [copied, setCopied] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectChecking, setConnectChecking] = useState(false);
@@ -76,10 +91,15 @@ export function AffiliateSettingsSection() {
       const profile = await getAffiliateProfile(idToken);
       if (profile.isAffiliate) {
         setAffiliate(profile.affiliate);
-        const comms = await getAffiliateCommissionHistory(idToken, 20);
+        const [comms, refs] = await Promise.all([
+          getAffiliateCommissionHistory(idToken, 20),
+          getAffiliateReferralHistory(idToken, 50),
+        ]);
         setCommissions(comms);
+        setReferrals(refs);
       } else {
         setAffiliate(null);
+        setReferrals([]);
       }
     } catch (error) {
       console.error('Failed to load affiliate data:', error);
@@ -257,6 +277,65 @@ export function AffiliateSettingsSection() {
                 </p>
               )}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Assigned contacts */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Zugeordnete Kontakte</CardTitle>
+          <CardDescription>
+            Diese Kontakte bleiben deinem Partnerlink dauerhaft zugeordnet, sobald sie registriert oder gekauft haben.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {referrals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Noch keine zugeordneten Kontakte.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Kontakt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Erster Klick</TableHead>
+                  <TableHead>Registrierung</TableHead>
+                  <TableHead>Kauf</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {referrals.map((referral) => (
+                  <TableRow key={referral.referralId}>
+                    <TableCell className="text-sm font-medium">
+                      {referral.referredEmail}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          referral.status === 'converted'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className="text-xs"
+                      >
+                        {referralStatusLabel(referral.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {formatDate(referral.firstClickAt)}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {formatDate(referral.signedUpAt)}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {formatDate(referral.firstPurchaseAt)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

@@ -20,6 +20,7 @@ import {
   getGlobalSettings as getAffiliateGlobalSettingsData,
   listAffiliates as listAffiliatesData,
   listCommissionsForAffiliate,
+  listReferralsForAffiliate,
   saveGlobalSettings as saveAffiliateGlobalSettingsData,
   updateAffiliate as updateAffiliateRecord,
 } from '@/lib/affiliate/server';
@@ -27,7 +28,12 @@ import {
   getEmptyLandingPageAnalyticsSnapshot,
   getLandingPageAnalyticsSnapshot,
 } from '@/lib/admin/landing-page-analytics';
-import type { AffiliateGlobalSettings, AffiliateRecord, AffiliateCommission } from '@/lib/affiliate/types';
+import type {
+  AffiliateGlobalSettings,
+  AffiliateRecord,
+  AffiliateCommission,
+  AffiliateReferral,
+} from '@/lib/affiliate/types';
 import { requireAdmin } from '@/lib/server-auth';
 
 function canLoadAdminData(): boolean {
@@ -361,6 +367,14 @@ export async function getAffiliateCommissions(
 ): Promise<AffiliateCommission[]> {
   await verifyAdmin(idToken);
   return listCommissionsForAffiliate(affiliateEmail);
+}
+
+export async function getAffiliateReferrals(
+  idToken: string,
+  affiliateEmail: string,
+): Promise<AffiliateReferral[]> {
+  await verifyAdmin(idToken);
+  return listReferralsForAffiliate(affiliateEmail);
 }
 
 export async function forceResetAllAffiliatesToDefaults(

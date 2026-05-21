@@ -27,6 +27,7 @@ import type { SupplierInviteRecord } from '@/lib/register-first/supplier-invite-
 import type { Register } from '@/lib/register-first/types';
 import type { SubmissionRiskFlag } from '@/lib/register-first/submission-trust-tier';
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
+import { getClientIp } from '@/lib/security/request-security';
 import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
 
 const SUPPLIER_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
@@ -52,18 +53,17 @@ function mapTokenFailure(reason: string): { status: number; error: string } {
     default:
       return {
         status: 404,
-        error: 'Ungueltiger Lieferanten-Link.',
+        error: 'Ungültiger Lieferanten-Link.',
       };
   }
 }
 
 function resolveClientIp(request: Request): string {
-  const forwardedFor = request.headers.get('x-forwarded-for') ?? 'unknown';
-  return forwardedFor.split(',')[0]?.trim() || 'unknown';
+  return getClientIp(request);
 }
 
 function resolveSupplierRateLimitKey(request: Request, requestToken: string): string {
-  return `${resolveClientIp(request)}:${requestToken}`;
+  return requestToken;
 }
 
 function isV2InviteToken(token: string): boolean {
@@ -126,14 +126,14 @@ function buildSupplierNextStep(approvalWorkflow: ApprovalWorkflow | null | undef
 
     return {
       nextStepTitle: 'Interne Freigabe ausstehend',
-      nextStepDescription: `Die Einreichung liegt jetzt vor und wird intern geprueft. Fuer die naechste Freigabe sind ${roleLabel} vorgesehen.`,
+      nextStepDescription: `Die Einreichung liegt jetzt vor und wird intern geprüft. Für die nächste Freigabe sind ${roleLabel} vorgesehen.`,
     };
   }
 
   return {
     nextStepTitle: 'Interne Sichtung im Register',
     nextStepDescription:
-      'Die Angaben liegen jetzt als nachvollziehbare externe Einreichung vor und koennen intern geprueft, freigegeben oder uebernommen werden.',
+      'Die Angaben liegen jetzt als nachvollziehbare externe Einreichung vor und können intern geprüft, freigegeben oder übernommen werden.',
   };
 }
 
@@ -182,7 +182,7 @@ async function handleV2Submit(
   const parsed = parseSupplierInviteToken(requestToken);
   if (!parsed) {
     return NextResponse.json(
-      { error: 'Ungueltiger Anfrage-Link.' },
+      { error: 'Ungültiger Anfrage-Link.' },
       { status: 400 },
     );
   }
@@ -202,12 +202,12 @@ async function handleV2Submit(
     const messageMap: Record<string, string> = {
       missing: 'Bitte verifizieren Sie sich zuerst.',
       expired: 'Ihre Sitzung ist abgelaufen. Bitte verifizieren Sie sich erneut.',
-      invalid_signature: 'Ungueltige Sitzung. Bitte verifizieren Sie sich erneut.',
+      invalid_signature: 'Ungültige Sitzung. Bitte verifizieren Sie sich erneut.',
       invite_mismatch: 'Sitzung passt nicht zur Anfrage.',
-      malformed: 'Ungueltige Sitzung.',
+      malformed: 'Ungültige Sitzung.',
     };
     return NextResponse.json(
-      { error: messageMap[sessionResult.reason] ?? 'Sitzung ungueltig.' },
+      { error: messageMap[sessionResult.reason] ?? 'Sitzung ungültig.' },
       { status: 403 },
     );
   }
@@ -223,7 +223,7 @@ async function handleV2Submit(
   // Check invite status
   if (invite.revokedAt || invite.status === 'revoked') {
     return NextResponse.json(
-      { error: 'Diese Anfrage wurde zurueckgezogen.' },
+      { error: 'Diese Anfrage wurde zurückgezogen.' },
       { status: 410 },
     );
   }
@@ -469,17 +469,16 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check maxSubmissions if explicitly set
     const tokenRecord = tokenAccess.value.token;
+    const maxSubmissions = tokenRecord.maxSubmissions ?? 1;
     if (
-      tokenRecord.maxSubmissions != null &&
-      (tokenRecord.submissionCount ?? 0) >= tokenRecord.maxSubmissions
+      (tokenRecord.submissionCount ?? 0) >= maxSubmissions
     ) {
       logInfo('supplier_submission', {
         tokenId: tokenRecord.tokenId,
         ipHash,
         submissionCount: tokenRecord.submissionCount ?? 0,
-        maxSubmissions: tokenRecord.maxSubmissions,
+        maxSubmissions,
         honeypotTriggered: false,
         outcome: 'rejected_consumed',
       });
@@ -616,7 +615,7 @@ export async function POST(req: Request) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: 'Bitte pruefen Sie die uebermittelten Lieferantenangaben.' },
+        { error: 'Bitte prüfen Sie die übermittelten Lieferantenangaben.' },
         { status: 400 },
       );
     }

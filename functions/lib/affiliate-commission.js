@@ -120,6 +120,24 @@ async function processAffiliateCommission(db, stripe, input) {
     const commissionAmount = Math.round((netAmount * commissionRate) / 100);
     if (commissionAmount <= 0)
         return;
+    const duplicateEventSnap = await db
+        .collection('affiliateCommissions')
+        .where('stripeEventId', '==', input.stripeEventId)
+        .limit(1)
+        .get();
+    if (!duplicateEventSnap.empty) {
+        return;
+    }
+    if (input.invoiceId) {
+        const duplicateInvoiceSnap = await db
+            .collection('affiliateCommissions')
+            .where('invoiceId', '==', input.invoiceId)
+            .limit(1)
+            .get();
+        if (!duplicateInvoiceSnap.empty) {
+            return;
+        }
+    }
     // 7. Update referral if first purchase
     if (referral.status === 'signed_up') {
         await referralDoc.ref.update({

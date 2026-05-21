@@ -123,6 +123,14 @@ export async function createAffiliate(input: {
   const email = normalizeEmail(input.email);
   const slug = input.slug.toLowerCase().replace(/[^a-z0-9_-]/g, '');
 
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return Promise.reject(
+      Object.assign(new Error('Bitte eine gültige E-Mail-Adresse eintragen.'), {
+        code: 'INVALID_EMAIL',
+      }),
+    );
+  }
+
   if (!slug || slug.length < 2) {
     return Promise.reject(
       Object.assign(new Error('Slug muss mindestens 2 Zeichen lang sein.'), {
@@ -140,7 +148,7 @@ export async function createAffiliate(input: {
   if (existingDoc.exists) {
     return Promise.reject(
       Object.assign(
-        new Error(`Ein Affiliate mit der Email "${email}" existiert bereits.`),
+        new Error(`Ein Affiliate mit der E-Mail "${email}" existiert bereits.`),
         { code: 'DUPLICATE_EMAIL' },
       ),
     );
@@ -354,6 +362,21 @@ export async function listCommissionsForAffiliate(
     .get();
 
   return snap.docs.map((d) => d.data() as AffiliateCommission);
+}
+
+export async function listReferralsForAffiliate(
+  email: string,
+  limit = 50,
+): Promise<AffiliateReferral[]> {
+  const db = getAdminDb();
+  const snap = await db
+    .collection(AFFILIATE_COLLECTIONS.referrals)
+    .where('affiliateEmail', '==', normalizeEmail(email))
+    .orderBy('createdAt', 'desc')
+    .limit(limit)
+    .get();
+
+  return snap.docs.map((d) => d.data() as AffiliateReferral);
 }
 
 // ---------------------------------------------------------------------------

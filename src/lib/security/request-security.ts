@@ -141,18 +141,23 @@ export function safeHttpsUrlSchema(label: string) {
 }
 
 export function getClientIp(request: Pick<Request, 'headers'>): string {
-  const candidates = [
+  const trustedProxyCandidates = [
     request.headers.get('cf-connecting-ip'),
     request.headers.get('x-nf-client-connection-ip'),
     request.headers.get('x-real-ip'),
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
   ];
 
-  for (const candidate of candidates) {
+  for (const candidate of trustedProxyCandidates) {
     const normalized = candidate?.trim();
     if (normalized) {
       return normalized;
     }
+  }
+
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const normalizedForwardedFor = forwardedFor?.split(',')[0]?.trim();
+  if (normalizedForwardedFor) {
+    return normalizedForwardedFor;
   }
 
   return 'unknown';

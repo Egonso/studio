@@ -6,6 +6,7 @@ import { captureException } from '@/lib/observability/error-tracking';
 import { logInfo, logWarn } from '@/lib/observability/logger';
 import { normalizeCaptureByCodeSelections } from '@/lib/capture-by-code/selections';
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
+import { getClientIp } from '@/lib/security/request-security';
 import { validateSharedCaptureFields } from '@/lib/register-first/shared-capture-fields';
 import { getRegisterFirstFeatureFlags } from '@/lib/register-first/flags';
 import {
@@ -348,7 +349,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const ip = req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = getClientIp(req);
     const ipRateLimit = await checkPublicRateLimit({
       namespace: 'capture-by-code:ip',
       key: ip,

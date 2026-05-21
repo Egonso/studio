@@ -686,13 +686,8 @@ async function attributeAffiliateSignup(auth: Auth): Promise<void> {
     body: JSON.stringify({ slug }),
   });
 
-  if (response.ok) {
-    // Fire-and-forget click tracking for the initial referral visit
-    void fetch('/api/affiliate/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug }),
-    }).catch(() => {});
+  if (!response.ok) {
+    throw new Error(`Affiliate attribution failed with status ${response.status}.`);
   }
 }
 

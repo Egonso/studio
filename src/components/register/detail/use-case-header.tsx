@@ -133,20 +133,20 @@ export function UseCaseHeader({
     exportJson: isGerman ? "JSON exportieren" : "Export JSON",
     sealing: isGerman ? "Formal signieren..." : "Signing...",
     seal: isGerman ? "Formal signieren" : "Formally sign",
-    delete: isGerman ? "Loeschen" : "Delete",
+    delete: isGerman ? "Löschen" : "Delete",
     ownerRole: isGerman ? "Owner-Rolle" : "Owner role",
     decisionRelevance: isGerman
       ? "Entscheidungsrelevanz"
       : "Decision relevance",
     riskClass: isGerman ? "Risikoklasse" : "Risk class",
     impactScope: isGerman ? "Wirkungsbereich" : "Scope",
-    deleteTitle: isGerman ? "Einsatzfall loeschen?" : "Delete use case?",
+    deleteTitle: isGerman ? "Einsatzfall löschen?" : "Delete use case?",
     deleteDescription: isGerman
-      ? "Diese Aktion kann nicht rueckgaengig gemacht werden. Der Einsatzfall wird unwiderruflich geloescht."
+      ? "Diese Aktion kann nicht rückgängig gemacht werden. Der Einsatzfall wird unwiderruflich gelöscht."
       : "This action cannot be undone. The use case will be permanently deleted.",
     cancel: isGerman ? "Abbrechen" : "Cancel",
-    deleting: isGerman ? "Loeschen..." : "Deleting...",
-    deleteConfirm: isGerman ? "Endgueltig loeschen" : "Delete permanently",
+    deleting: isGerman ? "Löschen..." : "Deleting...",
+    deleteConfirm: isGerman ? "Endgültig löschen" : "Delete permanently",
   };
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();

@@ -6,6 +6,7 @@ import {
   getAffiliateBySlug,
   getGlobalSettings,
   incrementAffiliateSignups,
+  markReferralSignedUp,
   resolveEffectiveRates,
 } from '@/lib/affiliate/server';
 
@@ -28,6 +29,10 @@ export async function POST(request: Request) {
     // Don't create duplicate referrals
     const existing = await findReferralByReferredEmail(email);
     if (existing) {
+      if (existing.status === 'clicked') {
+        await markReferralSignedUp(existing.referralId, decoded.uid);
+        await incrementAffiliateSignups(existing.affiliateEmail);
+      }
       return NextResponse.json({ ok: true, already: true });
     }
 
@@ -47,13 +52,14 @@ export async function POST(request: Request) {
       globalSettings,
     );
 
-    await createReferral({
+    const referral = await createReferral({
       affiliateEmail: affiliate.email,
       affiliateSlug: affiliate.slug,
       referredEmail: email,
       attributionWindowMonths,
     });
 
+    await markReferralSignedUp(referral.referralId, decoded.uid);
     await incrementAffiliateSignups(affiliate.email);
 
     return NextResponse.json({ ok: true });

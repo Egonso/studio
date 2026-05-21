@@ -58,6 +58,7 @@ import type {
   AffiliateCommission,
   AffiliateGlobalSettings,
   AffiliateRecord,
+  AffiliateReferral,
 } from '@/lib/affiliate/types';
 import { AFFILIATE_DEFAULTS } from '@/lib/affiliate/types';
 import { APP_LOCALE } from '@/lib/locale';
@@ -89,6 +90,7 @@ export interface AffiliateAdminPanelProps {
     attributionWindowMonths?: number | null;
   }) => Promise<void>;
   onLoadCommissions: (email: string) => Promise<AffiliateCommission[]>;
+  onLoadReferrals: (email: string) => Promise<AffiliateReferral[]>;
   onForceResetAll: () => Promise<{ resetCount: number }>;
 }
 
@@ -115,6 +117,18 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
+function formatDate(value: string | null): string {
+  if (!value) return '—';
+  return new Date(value).toLocaleDateString(APP_LOCALE);
+}
+
+function referralStatusLabel(status: AffiliateReferral['status']): string {
+  if (status === 'converted') return 'Gekauft';
+  if (status === 'signed_up') return 'Registriert';
+  if (status === 'expired') return 'Abgelaufen';
+  return 'Geklickt';
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -129,6 +143,7 @@ export function AffiliateAdminPanel({
   onCreate,
   onUpdate,
   onLoadCommissions,
+  onLoadReferrals,
   onForceResetAll,
 }: AffiliateAdminPanelProps) {
   // Search
@@ -165,6 +180,7 @@ export function AffiliateAdminPanel({
   const [useDefaultAttrMonths, setUseDefaultAttrMonths] = useState(true);
   const [detailSaving, setDetailSaving] = useState(false);
   const [detailCommissions, setDetailCommissions] = useState<AffiliateCommission[]>([]);
+  const [detailReferrals, setDetailReferrals] = useState<AffiliateReferral[]>([]);
   const [commissionsLoading, setCommissionsLoading] = useState(false);
 
   // Sync settings form when globalSettings loads
@@ -222,15 +238,20 @@ export function AffiliateAdminPanel({
 
       setCommissionsLoading(true);
       try {
-        const comms = await onLoadCommissions(affiliate.email);
+        const [comms, refs] = await Promise.all([
+          onLoadCommissions(affiliate.email),
+          onLoadReferrals(affiliate.email),
+        ]);
         setDetailCommissions(comms);
+        setDetailReferrals(refs);
       } catch {
         setDetailCommissions([]);
+        setDetailReferrals([]);
       } finally {
         setCommissionsLoading(false);
       }
     },
-    [onLoadCommissions],
+    [onLoadCommissions, onLoadReferrals],
   );
 
   // Save settings
@@ -426,14 +447,33 @@ export function AffiliateAdminPanel({
                 <DialogHeader>
                   <DialogTitle>Neuen Affiliate anlegen</DialogTitle>
                   <DialogDescription>
-                    Wähle einen bestehenden Nutzer und vergib einen einzigartigen Slug für den Affiliate-Link.
+                    Wähle einen bestehenden Nutzer oder trage eine E-Mail ein. Der Affiliate kann seinen Bereich später mit derselben E-Mail sehen.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-1.5">
-                    <Label>Nutzer suchen</Label>
+                    <Label>E-Mail</Label>
                     <Input
-                      placeholder="Email oder Name..."
+                      inputMode="email"
+                      placeholder="name@unternehmen.at"
+                      type="email"
+                      value={createEmail}
+                      onChange={(e) => {
+                        const email = e.target.value.trim().toLowerCase();
+                        setCreateEmail(email);
+                        if (!createSlug) {
+                          setCreateSlug(slugify(email.split('@')[0] ?? ''));
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Bestehendes Nutzerkonto ist optional. Wichtig ist dieselbe E-Mail beim späteren Login.
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Bestehenden Nutzer suchen</Label>
+                    <Input
+                      placeholder="E-Mail oder Name..."
                       value={createUserSearch}
                       onChange={(e) => setCreateUserSearch(e.target.value)}
                     />
@@ -688,6 +728,60 @@ export function AffiliateAdminPanel({
                 <p className="mt-1 text-sm text-muted-foreground">
                   Kein Stripe-Konto verbunden. Der Affiliate muss über seine Settings die Verbindung herstellen.
                 </p>
+              )}
+            </div>
+
+            {/* Referral ownership */}
+            <div>
+              <h4 className="mb-2 text-sm font-medium">Zugeordnete Kontakte</h4>
+              {commissionsLoading ? (
+                <div className="flex h-20 items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : detailReferrals.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Noch keine Kontakte.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Kontakt</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Erster Klick</TableHead>
+                      <TableHead>Registrierung</TableHead>
+                      <TableHead>Kauf</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {detailReferrals.slice(0, 50).map((referral) => (
+                      <TableRow key={referral.referralId}>
+                        <TableCell className="text-xs font-medium">
+                          {referral.referredEmail}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              referral.status === 'converted'
+                                ? 'default'
+                                : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {referralStatusLabel(referral.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {formatDate(referral.firstClickAt)}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {formatDate(referral.signedUpAt)}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {formatDate(referral.firstPurchaseAt)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
             </div>
 

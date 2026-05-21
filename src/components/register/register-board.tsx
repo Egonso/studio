@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -33,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -215,6 +217,9 @@ function getRegisterBoardCopy(locale: string) {
       confirmStatusTitle: 'Statusänderung bestätigen',
       confirmStatusDesc:
         'Diese Statusänderung dokumentiert eine formale Entscheidung. Fortfahren?',
+      statusReasonLabel: 'Begründung',
+      statusReasonPlaceholder:
+        'Kurz sachlich begründen, warum dieser Status jetzt gesetzt wird.',
     };
   }
 
@@ -308,6 +313,9 @@ function getRegisterBoardCopy(locale: string) {
     confirmStatusTitle: 'Confirm status change',
     confirmStatusDesc:
       'This status change records a formal decision. Continue?',
+    statusReasonLabel: 'Reason',
+    statusReasonPlaceholder:
+      'Briefly explain why this status is being set now.',
   };
 }
 
@@ -452,6 +460,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   >({});
   const [_updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
   const [confirmingStatusCard, setConfirmingStatusCard] = useState<UseCaseCard | null>(null);
+  const [statusChangeReason, setStatusChangeReason] = useState("");
   const [_updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
     {}
   );
@@ -656,7 +665,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [copy.noOrganisation, copy.notAssigned, copy.viewAll, sortedUseCases, statusLabel, viewMode]);
 
-  const handleUpdateStatus = async (card: UseCaseCard) => {
+  const handleUpdateStatus = async (card: UseCaseCard, reason?: string) => {
     const nextStatus = selectedNextStatusById[card.useCaseId];
     if (!nextStatus) {
       return;
@@ -672,6 +681,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           scopeContext,
           useCaseId: card.useCaseId,
           nextStatus,
+          reason,
           actor: "HUMAN",
         });
       } else {
@@ -679,6 +689,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           projectId,
           useCaseId: card.useCaseId,
           nextStatus,
+          reason,
           actor: "HUMAN",
         });
       }
@@ -1015,13 +1026,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     <DropdownMenuContent align="end" className="w-56">
       {nextStatuses.length > 0 && (
         <div className="mb-1 border-b p-2">
-          <p className="mb-1 text-xs font-medium text-muted-foreground">Change status</p>
+          <p className="mb-1 text-xs font-medium text-muted-foreground">{copy.changeStatus}</p>
           <Select
             onValueChange={(value) => {
               setSelectedNextStatusById((prev) => ({
                 ...prev,
                 [card.useCaseId]: value as RegisterUseCaseStatus,
               }));
+              setStatusChangeReason("");
               setConfirmingStatusCard(card);
             }}
           >
@@ -1554,7 +1566,12 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       {/* Status change confirmation dialog */}
       <AlertDialog
         open={confirmingStatusCard !== null}
-        onOpenChange={(open) => { if (!open) setConfirmingStatusCard(null); }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmingStatusCard(null);
+            setStatusChangeReason("");
+          }
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1563,13 +1580,28 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
               {copy.confirmStatusDesc}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="status-change-reason">{copy.statusReasonLabel}</Label>
+            <Textarea
+              id="status-change-reason"
+              value={statusChangeReason}
+              onChange={(event) => setStatusChangeReason(event.target.value)}
+              placeholder={copy.statusReasonPlaceholder}
+              maxLength={500}
+            />
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (confirmingStatusCard) {
-                  void handleUpdateStatus(confirmingStatusCard);
+                  const normalizedReason = statusChangeReason.trim();
+                  void handleUpdateStatus(
+                    confirmingStatusCard,
+                    normalizedReason.length > 0 ? normalizedReason : undefined,
+                  );
                   setConfirmingStatusCard(null);
+                  setStatusChangeReason("");
                 }
               }}
             >

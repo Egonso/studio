@@ -29,6 +29,7 @@ import {
     createAffiliate,
     updateAffiliate,
     getAffiliateCommissions,
+    getAffiliateReferrals,
     forceResetAllAffiliatesToDefaults,
 } from "@/app/actions/admin";
 import { CertificationAdminPanel } from "@/components/admin/certification-admin-panel";
@@ -808,6 +809,10 @@ export default function AdminPage() {
                             onLoadCommissions={async (email) => {
                                 const idToken = await getAdminIdToken();
                                 return getAffiliateCommissions(idToken, email);
+                            }}
+                            onLoadReferrals={async (email) => {
+                                const idToken = await getAdminIdToken();
+                                return getAffiliateReferrals(idToken, email);
                             }}
                             onForceResetAll={async () => {
                                 const idToken = await getAdminIdToken();

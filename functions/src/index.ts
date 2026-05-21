@@ -308,20 +308,19 @@ export const stripeWebhook = onRequest(
             `Updated ${email} in both 'customers' (Studio) and 'allowlist' (Compass)`,
           );
 
-          // Affiliate commission processing
-          await processAffiliateCommission(db, stripe, {
-            email,
-            grossAmount: session.amount_total ?? 0,
-            currency: session.currency || 'eur',
-            stripeEventId: event.id,
-            stripeEventType: event.type,
-            checkoutSessionId: session.id,
-            invoiceId: null,
-            subscriptionId:
-              typeof session.subscription === 'string'
-                ? session.subscription
-                : null,
-          });
+          if (typeof session.subscription !== 'string') {
+            // One-time checkouts do not emit recurring invoice commissions.
+            await processAffiliateCommission(db, stripe, {
+              email,
+              grossAmount: session.amount_total ?? 0,
+              currency: session.currency || 'eur',
+              stripeEventId: event.id,
+              stripeEventType: event.type,
+              checkoutSessionId: session.id,
+              invoiceId: null,
+              subscriptionId: null,
+            });
+          }
         }
       }
 

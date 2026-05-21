@@ -24,6 +24,7 @@ test("issueSupplierRequestToken creates a public URL and verifiable token", () =
     issued.publicUrl.startsWith("https://kiregister.com/request/"),
     true
   );
+  assert.equal(issued.record.maxSubmissions, 1);
 
   assert.deepEqual(
     verifySupplierRequestToken(
@@ -36,6 +37,17 @@ test("issueSupplierRequestToken creates a public URL and verifiable token", () =
       parsed: parsed!,
     }
   );
+});
+
+test("issueSupplierRequestToken respects custom maxSubmissions", () => {
+  const issued = issueSupplierRequestToken({
+    registerId: "reg_123",
+    ownerId: "owner_456",
+    createdBy: "owner_456",
+    maxSubmissions: 3,
+  });
+
+  assert.equal(issued.record.maxSubmissions, 3);
 });
 
 test("verifySupplierRequestToken rejects tampered and expired tokens", () => {

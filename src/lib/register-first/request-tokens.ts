@@ -17,6 +17,7 @@ export interface IssueSupplierRequestTokenInput {
   ownerId: string;
   createdBy: string;
   createdByEmail?: string | null;
+  maxSubmissions?: number;
   now?: Date;
   expiresInDays?: number;
 }
@@ -82,6 +83,7 @@ export function issueSupplierRequestToken(
   const secret = createSupplierRequestTokenSecret();
   const token = `${TOKEN_PREFIX}.${tokenId}.${secret}`;
   const expiresAt = new Date(now);
+  const maxSubmissions = Math.max(1, input.maxSubmissions ?? 1);
   expiresAt.setDate(
     expiresAt.getDate() + Math.max(1, input.expiresInDays ?? DEFAULT_EXPIRY_DAYS)
   );
@@ -103,7 +105,7 @@ export function issueSupplierRequestToken(
     firstUsedAt: null,
     lastUsedIpHash: null,
     submissionCount: 0,
-    maxSubmissions: null,
+    maxSubmissions,
   });
 
   return {

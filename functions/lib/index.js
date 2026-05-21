@@ -269,19 +269,19 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                     }),
                 }, { merge: true });
                 console.log(`Updated ${email} in both 'customers' (Studio) and 'allowlist' (Compass)`);
-                // Affiliate commission processing
-                await (0, affiliate_commission_1.processAffiliateCommission)(db, stripe, {
-                    email,
-                    grossAmount: (_m = session.amount_total) !== null && _m !== void 0 ? _m : 0,
-                    currency: session.currency || 'eur',
-                    stripeEventId: event.id,
-                    stripeEventType: event.type,
-                    checkoutSessionId: session.id,
-                    invoiceId: null,
-                    subscriptionId: typeof session.subscription === 'string'
-                        ? session.subscription
-                        : null,
-                });
+                if (typeof session.subscription !== 'string') {
+                    // One-time checkouts do not emit recurring invoice commissions.
+                    await (0, affiliate_commission_1.processAffiliateCommission)(db, stripe, {
+                        email,
+                        grossAmount: (_m = session.amount_total) !== null && _m !== void 0 ? _m : 0,
+                        currency: session.currency || 'eur',
+                        stripeEventId: event.id,
+                        stripeEventType: event.type,
+                        checkoutSessionId: session.id,
+                        invoiceId: null,
+                        subscriptionId: null,
+                    });
+                }
             }
         }
         // Handle invoice.paid for subscriptions

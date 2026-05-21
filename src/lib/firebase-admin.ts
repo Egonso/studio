@@ -326,38 +326,63 @@ function initializeFirebaseAdminApp(): App {
     }
   }
 
-  const fallbackApp = tryInitialize(
-    'project-only fallback',
-    () => ({ projectId }),
-    () => {
-      logCredentialResolutionHints(projectId, rejectedCredentials);
-      warnOnce(
-        `project-only-fallback:${projectId}:${rejectedCredentials.join('|')}`,
-        rejectedCredentials.length > 0
-          ? '⚠️ Firebase Admin initialized without usable explicit credentials'
-          : '⚠️ Firebase Admin initialized without explicit credentials',
-      );
-    },
-  );
-  if (fallbackApp) {
-    return fallbackApp;
-  }
-
-  throw new Error('Firebase Admin could not be initialized.');
+  logCredentialResolutionHints(projectId, rejectedCredentials);
+  throw new Error('Firebase Admin credentials are not configured.');
 }
 
-export const adminApp = initializeFirebaseAdminApp();
-export const db = getFirestore(adminApp);
-export const auth = getAuth(adminApp);
+let cachedAdminApp: App | null = null;
+let cachedDb: Firestore | null = null;
+let cachedAuth: Auth | null = null;
+
+function createLazyAdminProxy<T extends object>(resolveTarget: () => T): T {
+  return new Proxy({} as T, {
+    get(_target, property, receiver) {
+      return Reflect.get(resolveTarget() as object, property, receiver);
+    },
+    has(_target, property) {
+      return property in resolveTarget();
+    },
+    ownKeys() {
+      return Reflect.ownKeys(resolveTarget());
+    },
+    getOwnPropertyDescriptor(_target, property) {
+      const descriptor = Object.getOwnPropertyDescriptor(resolveTarget(), property);
+      if (!descriptor) {
+        return undefined;
+      }
+
+      return {
+        ...descriptor,
+        configurable: true,
+      };
+    },
+  });
+}
 
 export function getAdminApp(): App {
-  return adminApp;
+  if (!cachedAdminApp) {
+    cachedAdminApp = initializeFirebaseAdminApp();
+  }
+
+  return cachedAdminApp;
 }
 
 export function getAdminDb(): Firestore {
-  return db;
+  if (!cachedDb) {
+    cachedDb = getFirestore(getAdminApp());
+  }
+
+  return cachedDb;
 }
 
 export function getAdminAuth(): Auth {
-  return auth;
+  if (!cachedAuth) {
+    cachedAuth = getAuth(getAdminApp());
+  }
+
+  return cachedAuth;
 }
+
+export const adminApp = createLazyAdminProxy<App>(() => getAdminApp());
+export const db = createLazyAdminProxy<Firestore>(() => getAdminDb());
+export const auth = createLazyAdminProxy<Auth>(() => getAdminAuth());

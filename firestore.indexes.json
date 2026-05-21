@@ -127,6 +127,38 @@
             ]
         },
         {
+            "collectionGroup": "affiliateReferrals",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "referredEmail",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "status",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "affiliateReferrals",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "affiliateEmail",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
             "collectionGroup": "affiliateCommissions",
             "queryScope": "COLLECTION",
             "fields": [

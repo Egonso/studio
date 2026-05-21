@@ -7,32 +7,36 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-29",
-  "last_substantive_update": "2026-04-29",
+  "last_substantive_update": "2026-05-14",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Evidenzprofil für OEM-Beschaffung, Qualität und Compliance",
-  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss.",
+  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung ergänzt eine Partner-Handoff-Logik, damit Berater, Trainer, Auditoren und Governance-Praktiker aus demselben Evidenzprofil eine begrenzte Nachforderung, eine Trainingsaufgabe oder eine externe Antwort ableiten können.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Evidenzprofil für Lieferkette und Freigabe",
   "author": "KIRegister",
   "audiences": [
     "Automotive-Zulieferer, die KI-Einsatzfälle für OEMs oder Tier-1-Kunden belastbar dokumentieren müssen",
     "OEM-Beschaffungsteams und Supplier-Quality-Funktionen mit Bedarf an einer einheitlichen Mindeststruktur",
-    "Compliance-, Legal- und Governance-Verantwortliche, die externe Aussagen auf denselben Einsatzfall zurückführen wollen"
+    "Compliance-, Legal- und Governance-Verantwortliche, die externe Aussagen auf denselben Einsatzfall zurückführen wollen",
+    "Berater, Trainer, Auditoren und Moderatoren, die Lieferkettenrückfragen in prüfbare Pass-Arbeit übersetzen müssen"
   ],
   "delivers": [
     "ein gemeinsames Evidenzprofil für Beschaffung, Qualität und Compliance rund um einen einzelnen KI-Einsatzfall",
     "eine prüffähige Mindestlogik für Zweck, Verantwortung, Datenbezug, Review-Stand und Grenzen der Aussage",
     "eine Anschlussstruktur zwischen internem Pass, Supplier Request, Verify-Fläche und rechtlicher Einordnung",
     "eine konkrete Freigabelogik dafür, wann ein Verify-Link genügt und wann ein ergänzendes Dossier notwendig bleibt",
-    "eine klare Empfängerlogik dafür, welche Aussageform für Procurement, Supplier Quality, Compliance und Eskalation jeweils ausreicht"
+    "eine klare Empfängerlogik dafür, welche Aussageform für Procurement, Supplier Quality, Compliance und Eskalation jeweils ausreicht",
+    "eine Partner-Handoff-Logik, die offene Evidenz, Trainingsbedarf, Nachforderung und externe Antwort sauber trennt"
   ],
   "downloads": [
     {
@@ -110,6 +114,28 @@
         {
           "label": "Compliance",
           "value": "Will prüfen, ob Scope, Datenbezug, Review-Status und Grenzen der Aussage so dokumentiert sind, dass interne und externe Kommunikation nicht auseinanderlaufen."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Partnerentscheidung aus dem Evidenzprofil folgt",
+      "rows": [
+        {
+          "label": "Beratung",
+          "value": "Leitet aus dem Pass ab, ob die Organisation bereits eine belastbare Lieferkettenantwort formulieren kann oder zuerst Scope, Owner, Datenbezug und Review-Stand nachschärfen muss."
+        },
+        {
+          "label": "Training und Moderation",
+          "value": "Übersetzt reale Rückfragen in Übungsfälle: Welche Aussage ist belegt, welche bleibt offen, wer trägt die nächste Evidenz und welche Grenze darf im Workshop nicht überschritten werden?"
+        },
+        {
+          "label": "Audit und Governance",
+          "value": "Nutzen das Evidenzprofil als Übergabeobjekt, damit Akzeptieren, Vertiefen oder Stoppen nicht aus Bauchgefühl, sondern aus dokumentiertem Pass-Stand und offener Evidenz folgen."
+        },
+        {
+          "label": "Procurement-Stakeholder",
+          "value": "Erhalten eine klare Arbeitsgrenze: Ein Verify-Link genügt nur für stabile Kernaussagen; qualitätsnahe oder rechtlich sensible Rückfragen wechseln in Dossier, Matrix oder Review-Nachforderung."
         }
       ]
     },
