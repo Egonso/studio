@@ -10,14 +10,15 @@ import {
   ClipboardCheck,
   FileCheck2,
   Mail,
+  MonitorPlay,
   ReceiptText,
   Scale,
   ShieldCheck,
   TimerReset,
+  UsersRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import { ThemeAwareLogo } from '@/components/theme-aware-logo';
 import { Button } from '@/components/ui/button';
 import { localizeHref } from '@/lib/i18n/localize-href';
 
@@ -45,6 +46,7 @@ const ZOLTAN_IMAGE_SRC = '/images/faculty/zoltan-gal.png';
 
 const packageStats = [
   { value: '43', label: 'Lernvideos im Hauptkurs' },
+  { value: '4', label: 'Art.-4-Kurzschulungen' },
   { value: '7', label: 'Lektionen für Praxis und Mandat' },
   { value: '30 Sek.', label: 'erste Erfassung im Register' },
   { value: '29+', label: 'Arbeitsmaterialien' },
@@ -114,6 +116,29 @@ const courseCards = [
   },
 ] as const;
 
+const article4MinimumTracks = [
+  {
+    title: 'Alle Mitarbeitenden',
+    body:
+      'Grundregeln für sichere KI-Nutzung: Ergebnisse prüfen, Daten schützen, relevante Einsatzfälle intern melden.',
+  },
+  {
+    title: 'Führungskräfte',
+    body:
+      'KI-Kompetenz als Führungsaufgabe: Einsatzfälle sichtbar machen, Rollen klären und menschliche Kontrolle organisieren.',
+  },
+  {
+    title: 'HR und Recruiting',
+    body:
+      'Besonders sensible Nutzung bei personenbezogenen Entscheidungen: Fairness, Transparenz und Freigabegrenzen.',
+  },
+  {
+    title: 'IT, Produkt und Data',
+    body:
+      'Technische und organisatorische Leitplanken für Auswahl, Betrieb, Dokumentation und risikobasierte Einführung.',
+  },
+] as const;
+
 const suitableFor = [
   'Organisationen, die AI-Literacy mit einem konkreten Einsatzfall verbinden wollen',
   'Kanzleien, die Mandanten vom Rechtsrat in dokumentierte Umsetzung führen',
@@ -141,6 +166,11 @@ const faqItems = [
       'Ein Fortbildungspaket für eine Person: Hauptkurs, Prüfung, Zertifikat, zwei vertiefende Praxiskurse, Kursmaterialien, zwölf Monate Academy-Zugang und KIRegister als Arbeitsraum für den ersten Projektkontext.',
   },
   {
+    question: 'Sind die Art.-4-Kurzschulungsvideos enthalten?',
+    answer:
+      'Ja. Enthalten ist eine schlanke Mindestspur für interne KI-Kompetenz nach Artikel 4: vier rollenspezifische Kurzschulungen für Mitarbeitende, Führungskräfte, HR sowie IT, Produkt und Data. Sie ersetzt nicht die vertiefte Fortbildung, hilft aber beim schnellen Organisationsstart.',
+  },
+  {
     question: 'Ist KIRegister im Paket enthalten?',
     answer:
       'Ja. Der dauerhafte Free-Register-Zugang ist enthalten. Zusätzlich ist ein Pro-Zeitfenster vorgesehen, damit ein erster Organisations-, Beratungs- oder Mandantenkontext als Use Case Pass vorbereitet werden kann.',
@@ -148,7 +178,7 @@ const faqItems = [
   {
     question: 'Was bedeutet „in 30 Sekunden erfassen“?',
     answer:
-      'Die schnelle Erfassung senkt die Hürde am Anfang: Zweck, Wirkungskontext und Verantwortung werden kurz festgehalten. Die fachliche Prüfung, Evidenz und Freigabe folgen anschließend im Kurs- und Registerprozess.',
+      'Die schnelle Erfassung senkt die Hürde am Anfang: Zweck, Wirkungskontext und Verantwortung werden kurz festgehalten. Vor der Freigabe kann jeder Einsatzfall im Register präzise und im Detail geprüft werden.',
   },
   {
     question: 'Gibt es eine Geld-zurück-Garantie?',
@@ -163,7 +193,7 @@ const faqItems = [
   {
     question: 'Kann ich vor der Buchung etwas fragen?',
     answer:
-      'Ja. Schreiben Sie direkt an mail.zoltangal@gmail.com. Sinnvoll sind vor allem Fragen zu Zielgruppe, Paketgrenze, Zugang und dem ersten Projekt- oder Mandantenkontext.',
+      'Ja. Schreiben Sie direkt an mail.zoltangal@gmail.com.',
   },
 ] as const;
 
@@ -174,6 +204,7 @@ const facultyCards: ReadonlyArray<{
   icon: LucideIcon;
   tags: readonly string[];
   imageSrc?: string;
+  imagePosition?: string;
 }> = [
   {
     name: 'Prof. Dr. Janine Wendt',
@@ -183,6 +214,7 @@ const facultyCards: ReadonlyArray<{
     icon: Scale,
     tags: ['Recht', 'Ethik', 'Prüfung'],
     imageSrc: JANINE_IMAGE_SRC,
+    imagePosition: 'object-center',
   },
   {
     name: 'Momo Feichtinger',
@@ -192,6 +224,7 @@ const facultyCards: ReadonlyArray<{
     icon: BookOpen,
     tags: ['Angewandte KI', 'Business Innovation', 'Use Case Pass'],
     imageSrc: MOMO_IMAGE_SRC,
+    imagePosition: 'object-center',
   },
   {
     name: 'Dipl.-Psych. M.A. phil. Zoltán Gal',
@@ -201,6 +234,7 @@ const facultyCards: ReadonlyArray<{
     icon: BriefcaseBusiness,
     tags: ['Beratung', 'Mandat', 'Umsetzung'],
     imageSrc: ZOLTAN_IMAGE_SRC,
+    imagePosition: 'object-center',
   },
 ] as const;
 
@@ -315,7 +349,7 @@ function FacultyCard({
 
   return (
     <article className="flex h-full flex-col border border-slate-200 p-5">
-      <div className="flex aspect-[4/3] items-center justify-center border border-slate-200 bg-slate-50">
+      <div className="flex aspect-square items-center justify-center overflow-hidden border border-slate-200 bg-slate-50">
         {faculty.imageSrc ? (
           <Image
             src={faculty.imageSrc}
@@ -324,18 +358,24 @@ function FacultyCard({
             height={320}
             unoptimized
             loading="eager"
-            className="h-full w-full object-cover grayscale"
+            sizes="(min-width: 768px) 33vw, 100vw"
+            className={[
+              'h-full w-full object-cover',
+              faculty.imagePosition,
+            ]
+              .filter(Boolean)
+              .join(' ')}
           />
         ) : (
           <Icon className="h-10 w-10 text-slate-900" />
         )}
       </div>
-      <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-        {faculty.role}
-      </p>
-      <h3 className="mt-3 text-xl font-semibold text-slate-950">
+      <h3 className="mt-5 text-xl font-semibold text-slate-950">
         {faculty.name}
       </h3>
+      <p className="mt-2 text-sm leading-6 text-slate-600">
+        {faculty.role}
+      </p>
       <p className="mt-4 flex-1 text-sm leading-7 text-slate-600">
         {faculty.body}
       </p>
@@ -358,12 +398,18 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
     <main className="min-h-screen bg-white text-slate-950">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
-          <Link href={homeHref} className="flex items-center gap-3">
-            <ThemeAwareLogo
+          <Link
+            href={homeHref}
+            className="flex items-center gap-3"
+            aria-label="KI Register Startseite"
+          >
+            <Image
+              src="/register-logo.png"
               alt="KI Register"
-              width={28}
-              height={28}
-              className="h-7 w-7"
+              width={40}
+              height={40}
+              priority
+              className="h-9 w-9 object-contain"
             />
             <span className="text-sm font-semibold text-slate-950">
               KI Register
@@ -425,7 +471,8 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
               </p>
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Für 1 Person, 1 Projektkontext und 12 Monate Zugang zur Academy.
+              Für 1 Person, 1 Projektkontext, 12 Monate Academy-Zugang und
+              die Art.-4-Kurzschulungen als Mindestvariante.
             </p>
             <div className="mt-6">
               <PurchaseButton className="h-12 w-full rounded-md text-sm font-semibold">
@@ -439,11 +486,16 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
               </p>
               <p className="flex gap-3">
                 <ReceiptText className="mt-1 h-4 w-4 shrink-0 text-slate-900" />
-                <span>Zugang, Rechnung und Projektstart folgen nach der Buchung.</span>
+                <span>
+                  Zugang, Rechnung und Projektstart folgen nach der Buchung.
+                </span>
               </p>
               <p className="flex gap-3">
                 <Mail className="mt-1 h-4 w-4 shrink-0 text-slate-900" />
-                <a className="underline-offset-4 hover:underline" href={QUESTIONS_HREF}>
+                <a
+                  className="underline-offset-4 hover:underline"
+                  href={QUESTIONS_HREF}
+                >
                   Fragen vorab per E-Mail stellen
                 </a>
               </p>
@@ -451,7 +503,7 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
           </aside>
         </div>
 
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-2 border-t border-slate-200 px-5 md:grid-cols-4">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-2 border-t border-slate-200 px-5 md:grid-cols-5">
           {packageStats.map((stat) => (
             <div
               key={stat.label}
@@ -522,7 +574,10 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
 
           <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {courseCards.map((course) => (
-              <article key={course.title} className="border border-slate-200 p-5">
+              <article
+                key={course.title}
+                className="h-full border border-slate-200 bg-white p-5"
+              >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                   {course.kicker}
                 </p>
@@ -531,6 +586,51 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
                 </h3>
                 <p className="mt-4 text-sm leading-7 text-slate-600">
                   {course.body}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-14 md:py-20 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div>
+            <Eyebrow>Art.-4-Mindestvariante</Eyebrow>
+            <h2 className="mt-4 text-3xl font-semibold leading-tight text-slate-950 md:text-4xl">
+              Vier Kurzschulungsvideos für KI-Kompetenz nach Rollen.
+            </h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              Zusätzlich zum Fortbildungspaket gibt es eine schlanke interne
+              Mindestspur: vier rollenspezifische Schulungsvideos bzw. vertonte
+              Lernmodule zu Artikel 4 der EU-KI-Verordnung, jeweils auf etwa
+              12 bis 15 Minuten ausgelegt.
+            </p>
+            <div className="mt-6 grid gap-3 text-sm leading-6 text-slate-600 sm:grid-cols-2">
+              <p className="flex gap-3">
+                <MonitorPlay className="mt-1 h-4 w-4 shrink-0 text-slate-900" />
+                <span>Für den schnellen Start in der Organisation.</span>
+              </p>
+              <p className="flex gap-3">
+                <UsersRound className="mt-1 h-4 w-4 shrink-0 text-slate-900" />
+                <span>Nach Zielgruppen getrennt statt als Einheitsvideo.</span>
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {article4MinimumTracks.map((track) => (
+              <article
+                key={track.title}
+                className="border border-slate-200 bg-white p-5"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Kurzmodul
+                </p>
+                <h3 className="mt-3 text-lg font-semibold leading-6 text-slate-950">
+                  {track.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {track.body}
                 </p>
               </article>
             ))}
@@ -616,7 +716,8 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
             <p className="mt-4 text-sm leading-7 text-slate-600">
               495€ Einführungspreis, regulär 620€. Für eine Person, einen
               abgegrenzten Projekt- oder Mandantenkontext und einen konkreten
-              Start in die Registerarbeit.
+              Start in die Registerarbeit, inklusive Art.-4-Kurzschulungen für
+              den internen Basisstart.
             </p>
           </div>
           <div className="space-y-3">
