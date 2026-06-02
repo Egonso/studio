@@ -7,18 +7,21 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-28",
+  "last_substantive_update": "2026-06-02",
   "source_urls": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Partner-Arbeitskit für Audit, Training, Beschaffung und Governance",
-  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung und Übergabe auf derselben Fallbasis hält.",
+  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung, Review-Log und Übergabe auf derselben Fallbasis hält.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Arbeitskit für fallbezogene Partnerarbeit",
   "author": "KIRegister",
@@ -32,7 +35,8 @@
   "delivers": [
     "ein kompaktes Materialset, mit dem ein realer KI-Einsatzfall in einen belastbaren Use-Case Pass überführt werden kann",
     "eine gemeinsame Arbeitslogik für Audit, Training, Beratung, Beschaffung und Governance ohne zweite Dokumentationswelt",
-    "eine klare Übergabe zwischen Fallaufnahme, Review-Bedarf, offener Evidenz und nächstem operativen Schritt"
+    "eine klare Übergabe zwischen Fallaufnahme, Review-Bedarf, offener Evidenz und nächstem operativen Schritt",
+    "eine Review-Log-Logik, mit der Partner festhalten, welche Pass-Aussage bestätigt, ergänzt, begrenzt oder nachgefordert wird"
   ],
   "downloads": [
     {
@@ -44,7 +48,7 @@
     {
       "label": "Practitioner Workshop Kit",
       "href": "/resources/workbooks/ki-register-practitioner-workshop-kit.xlsx",
-      "description": "Professionelles Workbook mit Workshop-Canvas, Capture-Template und Delivery-Checkliste für Auditoren, Berater, Trainer und Governance-Teams.",
+      "description": "Professionelles Workbook mit Workshop-Canvas, Capture-Template, Review-Log-Feldern und Delivery-Checkliste für Auditoren, Berater, Trainer und Governance-Teams.",
       "format": "XLSX"
     },
     {
@@ -83,7 +87,7 @@
     },
     {
       "q": "Was sollte nach einem Partnertermin mindestens vorliegen?",
-      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
+      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand, einem knappen Review-Log-Eintrag und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
     },
     {
       "q": "Warum hilft das Kit auch der Beschaffung?",
@@ -113,7 +117,7 @@
         },
         {
           "label": "Practitioner Workshop Kit",
-          "value": "Ein mehrblättriges Workbook mit Capture-Struktur, Feldern für offene Punkte und einer Arbeitslogik für Übergabe, Review und Nachbereitung."
+          "value": "Ein mehrblättriges Workbook mit Capture-Struktur, Review-Log-Feldern für offene Punkte und einer Arbeitslogik für Übergabe, Review und Nachbereitung."
         },
         {
           "label": "Governance-Handout zur KI-Einführung",
@@ -140,6 +144,10 @@
         {
           "label": "Offene Punkte",
           "value": "Fragen, Annahmen oder Lücken, die im Termin sichtbar bleiben sollen, damit keine Vollständigkeit suggeriert wird."
+        },
+        {
+          "label": "Review-Log-Anlass",
+          "value": "Der konkrete Auslöser für Nacharbeit: Auditfeststellung, Trainingsbeitrag, Beschaffungsrückfrage, Lieferantenantwort oder Governance-Entscheidung."
         }
       ]
     },
@@ -162,6 +170,10 @@
         {
           "label": "Beschaffung und Vendor Management",
           "value": "Nutzen die Fallstruktur, um vor Anfrage, Freigabe oder Lieferkettenantwort auf dieselben Mindestangaben zuzugreifen und Rückfragen gezielt zu begrenzen."
+        },
+        {
+          "label": "Partner-Review-Log",
+          "value": "Hält fest, welche Pass-Aussage übernommen, nachgefordert, vertieft, begrenzt oder vorerst gestoppt wird und welche Rolle den nächsten Schritt trägt."
         }
       ]
     },
