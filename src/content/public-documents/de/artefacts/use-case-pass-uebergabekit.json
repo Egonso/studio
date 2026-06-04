@@ -21,39 +21,40 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Übergabekit für Audit, Training, Beschaffung und Governance",
-  "summary": "Dieses Übergabekit zeigt, wie ein einzelner Use-Case-Pass von Workshop, Beratung oder Schulung in eine belastbare Prüf-, Freigabe- und Anfragegrundlage überführt wird. Es richtet sich an Partner und interne Praktiker, die Rollenübergaben, Aussagegrenzen, offene Punkte und Nachweise ohne zweite Dokumentationswelt organisieren müssen. Die Aktualisierung ergänzt einen Übergabevermerk, damit Audit, Training, Beschaffung und Governance nach einem Partnertermin dieselbe minimale Abnahmeentscheidung lesen.",
+  "summary": "Dieses Übergabekit zeigt, wie ein einzelner Use-Case-Pass von Workshop, Beratung oder Schulung in eine belastbare Prüf-, Freigabe- und Anfragegrundlage überführt wird. Die Aktualisierung ergänzt den Übergabevermerk als primäres Partnerobjekt, damit Audit, Training, Beratung, Beschaffung und Governance nach einem Termin dieselbe Aussagegrenze, denselben Evidenzstand und dieselbe Anschlussentscheidung lesen.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Übergabekit für Fallarbeit",
   "author": "KIRegister",
   "audiences": [
     "Berater und Projektverantwortliche, die aus Discovery oder Workshops eine belastbare Fallstruktur mit klaren Aussagegrenzen übergeben müssen",
     "Trainer und Moderatoren, die Lernformate in reale Register- und Nachweisarbeit überführen",
-    "Auditoren, Beschaffung, Vendor Management und Governance-Praktiker, die einen einzelnen KI-Einsatzfall entlang derselben Struktur prüfen oder weiterverwenden"
+    "Auditoren, Beschaffung, Vendor Management und Governance-Praktiker, die einen einzelnen KI-Einsatzfall entlang derselben Struktur prüfen oder weiterverwenden",
+    "Procurement-Stakeholder und fachliche Owner, die vor externer Weitergabe eine kurze, neutrale Übergabeentscheidung brauchen"
   ],
   "delivers": [
     "eine klare Übergabelogik zwischen Erfassung, Review, Audit, Beschaffung und Governance",
     "ein sofort nutzbares Materialpaket aus Beispielpass, Registermatrix und Pass-Handout",
     "einen neutralen Bezugsrahmen, damit Partnerformate auf demselben Arbeitsobjekt enden statt in Freitext, E-Mails oder Einmalfolien",
     "eine sichtbare Trennung zwischen belastbarer Aussage, offenen Punkten und nächstem formalen Schritt",
-    "einen kurzen Übergabevermerk, der Verantwortliche, Evidenzstand, Aussagegrenze und Anschlussentscheidung prüfbar zusammenführt"
+    "einen knappen Übergabevermerk, der Verantwortliche, Evidenzstand, Aussagegrenze und Anschlussentscheidung prüfbar zusammenführt"
   ],
   "downloads": [
     {
       "label": "Beispiel Use-Case Pass",
       "href": "/resources/examples/ki-register-use-case-pass-beispiel.pdf",
-      "description": "Referenzdokument für einen einzelnen KI-Einsatzfall mit Zweck, verantwortlicher Rolle, Review-Stand und Evidenzkette als stabiles Übergabeobjekt.",
+      "description": "Referenzdokument für einen einzelnen KI-Einsatzfall mit Zweck, verantwortlicher Rolle, Review-Stand und Evidenzkette; nutzbar als Zielbild für den kurzen Übergabevermerk nach Partnerterminen.",
       "format": "PDF"
     },
     {
       "label": "Register- und Review-Matrix",
       "href": "/resources/workbooks/ki-register-use-case-register-beispiel.xlsx",
-      "description": "Arbeitsmatrix für offene Punkte, Zuständigkeiten, Aussagegrenzen und Review-Übergänge, damit Partner und interne Stellen denselben Fallbestand fortführen können.",
+      "description": "Arbeitsmatrix für offene Punkte, Zuständigkeiten, Aussagegrenzen und Review-Übergänge, damit Partner und interne Stellen denselben Fallbestand fortführen und Übergabeentscheidungen nachvollziehbar nachhalten können.",
       "format": "XLSX"
     },
     {
       "label": "Handout: Use-Case Pass - Anatomie und Rechtsgrundlage",
       "href": "/resources/handouts/ki-register-handout-use-case-pass-anatomie.pdf",
-      "description": "Knappe Einordnung der Pass-Felder, damit Training, Audit, Einkauf und Governance dieselben Begriffe und Mindestangaben verwenden.",
+      "description": "Knappe Einordnung der Pass-Felder, damit Training, Audit, Einkauf und Governance dieselben Begriffe, Mindestangaben und Grenzen einer Übergabe verwenden.",
       "format": "PDF"
     }
   ],
@@ -72,6 +73,11 @@
       "label": "Audit Evidence Kit",
       "href": "/de/artefacts/audit-evidence-kit",
       "description": "Anschlussartefakt für vertiefte Prüf- und Evidenzgespräche auf derselben Pass-Basis."
+    },
+    {
+      "label": "Use-Case Pass Trainingsnachweis-Kit für Partner",
+      "href": "/de/artefacts/use-case-pass-trainingsnachweis-kit",
+      "description": "Anschlussartefakt, wenn ein Partnertermin aus Training oder AI-Literacy-Arbeit in fallbezogene Pass-Evidenz überführt werden soll."
     }
   ],
   "sections": [
@@ -101,7 +107,7 @@
         },
         {
           "label": "Übergabevermerk",
-          "value": "Hält nach Partnertermin, Training oder Vorgespräch fest, welche Aussage heute trägt, welche Rolle nachführt und welche Entscheidung als Nächstes dokumentiert wird."
+          "value": "Hält am Ende eines Partnerformats fest, welche Aussage heute trägt, welche Evidenz offen bleibt, welche Rolle den nächsten Schritt trägt und welche Entscheidung als Nächstes dokumentiert wird."
         }
       ]
     },
@@ -111,19 +117,19 @@
       "rows": [
         {
           "label": "Training und Moderation",
-          "value": "Verdichten Gesprächsinhalte in einen ersten belastbaren Fallzuschnitt, benennen Owner, markieren Lücken und halten fest, welche Aussagen bereits tragfähig sind."
+          "value": "Verdichten Gesprächsinhalte in einen ersten belastbaren Fallzuschnitt, benennen Owner, markieren Lücken und halten im Übergabevermerk fest, welche Aussagen bereits tragfähig sind."
         },
         {
           "label": "Beratung und Projektarbeit",
-          "value": "Ergänzen Nachweisfelder, priorisieren offene Punkte und sorgen dafür, dass aus Workshop-Ergebnissen ein fortführbarer Registereintrag statt eines Einmal-Deliverables entsteht."
+          "value": "Ergänzen Nachweisfelder, priorisieren offene Punkte und sorgen dafür, dass aus Workshop-Ergebnissen ein fortführbarer Registereintrag mit klarer Anschlussentscheidung statt eines Einmal-Deliverables entsteht."
         },
         {
           "label": "Audit, Beschaffung und Governance",
-          "value": "Nutzen denselben Pass, um Scope, Verantwortlichkeit, Review-Stand, Evidenzlage und Aussagegrenzen fallbezogen zu prüfen oder für Anfragen weiterzuverwenden."
+          "value": "Nutzen denselben Pass, um Scope, Verantwortlichkeit, Review-Stand, Evidenzlage und Aussagegrenzen fallbezogen zu prüfen und vor Anfragen dieselbe Übergabeentscheidung zu lesen."
         },
         {
           "label": "Vendor Management und interne Anfragestellen",
-          "value": "Nutzen das Kit, um Rückfragen zu Lieferanten, Tools oder Prozessen wieder auf den einzelnen Einsatzfall zurückzuführen, bevor externe Zusagen oder Freigabeschritte vorbereitet werden."
+          "value": "Nutzen das Kit, um Rückfragen zu Lieferanten, Tools oder Prozessen wieder auf den einzelnen Einsatzfall zurückzuführen, bevor externe Zusagen, Freigabeschritte oder Nachforderungen vorbereitet werden."
         },
         {
           "label": "Beschaffung und Lieferantensteuerung",
@@ -152,8 +158,8 @@
           "value": "Partner, Audit, Beschaffung und Governance greifen auf dasselbe Objekt zu, statt jeweils eine eigene Abfragestruktur aufzubauen."
         },
         {
-          "label": "Abnahmeentscheidung sichtbar",
-          "value": "Der Vermerk nennt eine begrenzte Entscheidung: akzeptieren, ergänzen, nachfordern, Anfrage vorbereiten oder Aussage zurückhalten."
+          "label": "Übergabevermerk lesbar",
+          "value": "Der Abschluss nennt die aktuelle Aussage, die offene Evidenz, die verantwortliche Rolle und die nächste Entscheidung, damit nach dem Termin keine neue Deutung entsteht."
         }
       ]
     },
@@ -166,7 +172,8 @@
         "Der Übergabevermerk benennt, ob die heutige Aussage akzeptiert, ergänzt, nachgefordert oder zurückgehalten wird.",
         "Offene Punkte bleiben ausdrücklich offen, wenn Review, Freigabe oder Beschaffungsprüfung noch läuft.",
         "Die nächste formale Aktion ist klar: Pass vervollständigen, Review anstoßen, Anfrage vorbereiten oder Export ableiten.",
-        "Es wird nur nach außen getragen, was durch Pass oder referenzierte Evidenz gestützt ist."
+        "Es wird nur nach außen getragen, was durch Pass oder referenzierte Evidenz gestützt ist.",
+        "Der Übergabevermerk trennt ausdrücklich zwischen interner Nacharbeit, externer Aussage und noch nicht belastbarer Annahme."
       ]
     },
     {
@@ -215,11 +222,11 @@
     },
     {
       "q": "Wozu braucht es zusätzlich eine Matrix, wenn schon ein Pass vorliegt?",
-      "a": "Der Pass hält den einzelnen Fall zusammen. Die Matrix macht sichtbar, welche offenen Punkte, Zuständigkeiten und Review-Schritte über mehrere Fälle hinweg noch bearbeitet werden müssen. Beides ergänzt sich, ohne dieselben Informationen doppelt zu pflegen."
+      "a": "Der Pass hält den einzelnen Fall zusammen. Die Matrix macht sichtbar, welche offenen Punkte, Zuständigkeiten und Review-Schritte über mehrere Fälle hinweg noch bearbeitet werden müssen. Beides ergänzt sich, ohne dieselben Informationen doppelt zu pflegen. Für Partnertermine hilft die Matrix außerdem, Übergabevermerke über mehrere Fälle vergleichbar zu halten."
     },
     {
       "q": "Ist das Kit eher für externe Partner oder interne Teams gedacht?",
-      "a": "Für beide Seiten, solange sie am selben Fallobjekt arbeiten. Externe Partner nutzen es für saubere Übergaben aus Training oder Beratung, interne Teams für Review, Freigabe, Beschaffung und anschließende Nachweispflege."
+      "a": "Für beide Seiten, solange sie am selben Fallobjekt arbeiten. Externe Partner nutzen es für saubere Übergaben aus Training oder Beratung, interne Teams für Review, Freigabe, Beschaffung und anschließende Nachweispflege. Entscheidend ist, dass beide Seiten dieselbe Aussagegrenze und denselben nächsten Schritt lesen."
     },
     {
       "q": "Warum betont das Kit Aussagegrenzen so stark?",
