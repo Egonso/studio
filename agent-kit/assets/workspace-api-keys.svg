@@ -1,0 +1,20 @@
+<svg width="960" height="320" viewBox="0 0 960 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Workspace API key setup</title>
+  <desc id="desc">A schematic API key panel for choosing scope, register and creating a scoped key.</desc>
+  <rect width="960" height="320" fill="#F8FAFC"/>
+  <rect x="64" y="40" width="832" height="240" rx="12" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+  <text x="96" y="86" fill="#0F172A" font-family="Arial, sans-serif" font-size="22" font-weight="700">Agent Kit API Keys</text>
+  <text x="96" y="116" fill="#475569" font-family="Arial, sans-serif" font-size="14">Create one scoped key for the register your agent may submit to.</text>
+  <rect x="96" y="148" width="220" height="60" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="112" y="173" fill="#0F172A" font-family="Arial, sans-serif" font-size="13" font-weight="700">Scope</text>
+  <text x="112" y="194" fill="#475569" font-family="Arial, sans-serif" font-size="13">My Register or Workspace</text>
+  <rect x="344" y="148" width="220" height="60" rx="8" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="360" y="173" fill="#0F172A" font-family="Arial, sans-serif" font-size="13" font-weight="700">Target register</text>
+  <text x="360" y="194" fill="#475569" font-family="Arial, sans-serif" font-size="13">Select linked register</text>
+  <rect x="592" y="148" width="208" height="60" rx="8" fill="#0F172A"/>
+  <text x="626" y="184" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="14" font-weight="700">Create API key</text>
+  <rect x="96" y="230" width="704" height="30" rx="6" fill="#0F172A"/>
+  <text x="112" y="250" fill="#E2E8F0" font-family="Arial, sans-serif" font-size="13">export KI_REGISTER_API_KEY="akv1.&lt;scopeId&gt;.&lt;keyId&gt;.&lt;secret&gt;"</text>
+  <circle cx="836" cy="178" r="24" fill="#DBEAFE" stroke="#0F172A"/>
+  <path d="M826 178L834 186L848 170" stroke="#0F172A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,7 +1,7 @@
 {
   "name": "ki-register-agent-kit",
-  "version": "0.1.0",
-  "description": "Standalone toolkit for documenting AI applications, processes, and workflows.",
+  "version": "0.2.0",
+  "description": "EU AI Act use-case documentation CLI and skill bundle for KI-Register.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",

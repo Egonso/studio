@@ -1,0 +1,45 @@
+{
+  "name": "KI-Register EU AI Act Use Case Documenter",
+  "slug": "ki-register-use-case-documenter",
+  "version": "0.2.0",
+  "repository": "https://github.com/Egonso/ki-register-agent-kit",
+  "homepage": "https://kiregister.com/developers/agent-kit",
+  "skillPath": "skills/ki-register-use-case-documenter/SKILL.md",
+  "license": "Apache-2.0",
+  "shortDescription": "Document AI use cases for EU AI Act governance and submit confirmed records to KI-Register.",
+  "longDescription": "A portable Agent Skill plus Node CLI for documenting AI applications, processes and workflows. It can inspect a codebase, interview stakeholders, generate README.md and manifest.json records, validate the manifest, and submit confirmed documentation to KI-Register through the Agent Kit API.",
+  "category": "AI governance",
+  "tags": [
+    "ai-governance",
+    "eu-ai-act",
+    "ai-compliance",
+    "use-case-documentation",
+    "agent-skill",
+    "codex",
+    "claude-code",
+    "openclaw",
+    "skillsmp",
+    "audit",
+    "procurement"
+  ],
+  "requirements": {
+    "node": ">=18",
+    "environment": [
+      {
+        "name": "KI_REGISTER_API_KEY",
+        "requiredFor": "submit"
+      },
+      {
+        "name": "KI_REGISTER_REGISTER_ID",
+        "requiredFor": "submit"
+      }
+    ]
+  },
+  "commands": {
+    "onboard": "node ./bin/studio-agent.mjs onboard",
+    "capture": "node ./bin/studio-agent.mjs capture",
+    "interview": "node ./bin/studio-agent.mjs interview",
+    "validate": "node ./bin/studio-agent.mjs validate ./docs/agent-workflows/<slug>/manifest.json",
+    "submit": "node ./bin/studio-agent.mjs submit ./docs/agent-workflows/<slug>/manifest.json --endpoint https://kiregister.com/api/agent-kit/submit"
+  }
+}

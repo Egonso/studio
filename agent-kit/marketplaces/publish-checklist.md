@@ -7,7 +7,7 @@
 - [ ] Check `README.md` screenshots and links
 - [ ] Run `npm test` at the repository root
 - [ ] Review `CHANGELOG.md`
-- [ ] Verify `skills/studio-use-case-documenter/SKILL.md` and `agents/openai.yaml` still match
+- [ ] Verify `skills/ki-register-use-case-documenter/SKILL.md` and `agents/openai.yaml` still match
 - [ ] Confirm no internal or customer-specific examples remain
 
 ## Before publishing to ClawHub or another skill registry
@@ -17,6 +17,8 @@
 - [ ] Bundle includes only necessary assets
 - [ ] Version number is updated if behavior changed
 - [ ] Listing text and tags are ready
+- [ ] No API keys, register ids, customer examples, or internal credentials are bundled
+- [ ] Publish from a clean clone with the current registry-specific CLI or upload flow
 
 ## Before publishing to SkillsMP-style directories
 

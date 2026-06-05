@@ -25,7 +25,7 @@ The important part is that the team lead does not need to read local files or un
 
 ## Scope setup
 
-Create the API key in the signed-in control area and choose the target register first.
+Create the API key in the signed-in control area and choose the target register first. If you do not have a KI-Register account yet, start at `https://kiregister.com/developers/agent-kit` or `https://kiregister.com/settings/agent-kit`; the site will route you through sign-in or account creation before key setup.
 
 ![Workspace Agent Kit keys](../assets/workspace-api-keys.svg)
 
@@ -76,7 +76,7 @@ Use the local ki-register-agent-kit repository in this workspace. If there is no
 ### OpenClaw or skill-based agents
 
 ```text
-Use the studio-use-case-documenter skill. If no local profile exists, onboard me first. Capture this new workflow, interview me about purpose, owner, data, risks, controls, and human checkpoints, then submit the confirmed manifest to our KI-Register register.
+Use the ki-register-use-case-documenter skill. If no local profile exists, onboard me first. Capture this new workflow, interview me about purpose, owner, data, risks, controls, and human checkpoints, then submit the confirmed manifest to our KI-Register register.
 ```
 
 ### Generic shell-based agent
