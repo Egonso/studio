@@ -7,18 +7,21 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-16",
-  "last_substantive_update": "2026-05-05",
+  "last_substantive_update": "2026-06-11",
   "source_urls": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass FAQ für Beschaffung und Governance-Freigaben",
-  "summary": "Dieses Artefakt übersetzt den Use-Case-Pass in einen knappen Freigabe- und Beschaffungskontext. Es zeigt, welche Mindestinformationen Einkauf, Governance, Audit, Training und interne Prüffunktionen vor einer Anfrage, Freigabe oder Lieferkettenantwort auf derselben Fallbasis sehen sollten und wie daraus ein belastbarer nächster Arbeitsschritt entsteht.",
+  "summary": "Dieses Artefakt übersetzt den Use-Case-Pass in einen knappen Freigabe- und Beschaffungskontext. Es zeigt, welche Mindestinformationen Einkauf, Governance, Audit, Training und interne Prüffunktionen vor einer Anfrage, Freigabe oder Lieferkettenantwort auf derselben Fallbasis sehen sollten und wie daraus ein belastbarer nächster Arbeitsschritt entsteht. Die Aktualisierung ergänzt ein Freigabe- und Nachforderungsraster, mit dem Partner nach einem Termin festhalten, ob die Aussage getragen, begrenzt, nachgefordert oder bis zum Review zurückgestellt wird.",
   "object_label": "Freigabe-Artefakt",
   "stance_label": "FAQ für Beschaffung und Governance",
   "author": "KIRegister",
@@ -32,7 +35,8 @@
     "eine knappe FAQ-Struktur für Freigabe-, Beschaffungs- und Nachweisfragen zum einzelnen KI-Einsatzfall",
     "eine Mindestlogik für Zweck, Verantwortung, Datenbezug, Status und Evidenz vor jeder externen oder internen Anfrage",
     "eine direkte Verbindung zwischen Use-Case Pass, Register-Matrix und Supplier-Request-Unterlagen",
-    "eine operative Erstaufnahme-Logik, mit der Partner nach einem Termin zwischen belastbarer Aussage, offener Evidenz und Nachforderung unterscheiden können"
+    "eine operative Erstaufnahme-Logik, mit der Partner nach einem Termin zwischen belastbarer Aussage, offener Evidenz und Nachforderung unterscheiden können",
+    "ein Freigabe- und Nachforderungsraster für die Entscheidung, ob ein Pass-Stand getragen, begrenzt, vertieft oder zurückgestellt wird"
   ],
   "downloads": [
     {
@@ -79,7 +83,7 @@
   "faq": [
     {
       "q": "Welche Information sollte vor einer Freigabe oder Beschaffungsentscheidung mindestens vorliegen?",
-      "a": "Mindestens der fachliche Zweck, die verantwortliche Rolle, der Datenbezug, der aktuelle Review-Status und die belastbar referenzierte Evidenz zum konkreten Einsatzfall. Zusätzlich sollte sichtbar sein, welche Aussage heute vertreten werden kann und welche Punkte erst nach Review, Lieferantenrückfrage oder fachlicher Klärung beantwortet werden dürfen."
+      "a": "Mindestens der fachliche Zweck, die verantwortliche Rolle, der Datenbezug, der aktuelle Review-Status und die belastbar referenzierte Evidenz zum konkreten Einsatzfall. Zusätzlich sollte sichtbar sein, welche Aussage heute vertreten werden kann und welche Punkte erst nach Review, Lieferantenrückfrage oder fachlicher Klärung beantwortet werden dürfen. Für Partnertermine sollte außerdem eine kurze Freigabezeile entstehen: Aussage tragen, Aussage begrenzen, Evidenz nachfordern, Review starten oder externe Antwort zurückstellen."
     },
     {
       "q": "Warum sollte Beschaffung auf einem einzelnen Einsatzfall statt auf einer Tool-Liste aufsetzen?",
@@ -118,6 +122,10 @@
         {
           "label": "Erstaufnahme-Fragen",
           "value": "Halten fest, welche Mindestangaben vor einem Partnertermin, Review oder Beschaffungsgespräch abgefragt werden müssen, damit der Pass nicht erst nachträglich aus Notizen rekonstruiert wird."
+        },
+        {
+          "label": "Freigabe- und Nachforderungsraster",
+          "value": "Ordnet den nächsten Schritt nach einem Partnertermin: Aussage aus dem Pass tragen, Aussage begrenzen, Evidenz nachfordern, Review starten oder externe Weitergabe bis zur Klärung zurückstellen."
         }
       ]
     },
@@ -130,7 +138,9 @@
         "Sind Datenbezug, Entscheidungsnähe und externe Wirkung so dokumentiert, dass der Review-Bedarf erkennbar wird?",
         "Sind die wichtigsten Evidenzen referenziert und von offenen Punkten getrennt, statt beides im Freitext zu vermischen?",
         "Ist klar, ob die nächste Aktion eine interne Vervollständigung, ein Review, eine Lieferantenrückfrage oder eine externe Antwort ist?",
-        "Lässt sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widersprüchliche Aussagen einzuführen?"
+        "Lässt sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widersprüchliche Aussagen einzuführen?",
+        "Ist dokumentiert, ob der Partner die heutige Aussage trägt, begrenzt, vertieft, nachfordert oder bis zur nächsten Evidenz zurückstellt?",
+        "Ist benannt, welche Rolle die offene Evidenz liefert und welcher Registerschritt nach Eingang der Antwort folgt?"
       ]
     },
     {
@@ -157,7 +167,7 @@
       "heading": "Wie die FAQ operativ verwendet wird",
       "paragraphs": [
         "In internen Freigaben kann die FAQ als Vorprüfung dienen: Liegen die Mindestfelder vor, wird der Fall weiterbearbeitet; fehlen sie, wird der Pass zuerst vervollständigt. Das verhindert, dass Gremien über unklare Gegenstände entscheiden müssen.",
-        "In Partner- oder Lieferkettenkontexten hilft die gleiche Logik, Anfragen zu verschlanken. Wer den Pass sauber führt, kann gezielt beantworten, welche Aussage bereits belastbar ist, welche Punkte noch im Review stehen und welche Frage an Owner, Lieferant oder Fachbereich zurückgegeben werden muss."
+        "In Partner- oder Lieferkettenkontexten hilft die gleiche Logik, Anfragen zu verschlanken. Wer den Pass sauber führt, kann gezielt beantworten, welche Aussage bereits belastbar ist, welche Punkte noch im Review stehen und welche Frage an Owner, Lieferant oder Fachbereich zurückgegeben werden muss. Das Freigabe- und Nachforderungsraster macht daraus eine kurze Abschlusszeile, die Audit, Beschaffung, Training und Governance nach dem Termin gleich lesen können."
       ]
     }
   ]
