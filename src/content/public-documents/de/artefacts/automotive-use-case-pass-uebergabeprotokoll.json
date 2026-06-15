@@ -7,18 +7,21 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-12",
-  "last_substantive_update": "2026-05-12",
+  "last_substantive_update": "2026-06-15",
   "source_urls": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Übergabeprotokoll für Automotive-Lieferketten",
-  "summary": "Dieses Artefakt beschreibt, wie Automotive-Zulieferer einen einzelnen KI-Einsatzfall vor einer OEM-Rückfrage, Supplier-Quality-Prüfung oder Compliance-Freigabe übergeben sollten. Es trennt interne Pass-Pflege, externe Aussage, Verify-Sicht und ergänzendes Dossier so, dass Beschaffung, Qualität und Recht dieselbe Evidenzbasis lesen und keine zweite Dokumentationslogik entsteht.",
+  "summary": "Dieses Artefakt beschreibt, wie Automotive-Zulieferer einen einzelnen KI-Einsatzfall vor einer OEM-Rückfrage, Supplier-Quality-Prüfung oder Compliance-Freigabe übergeben sollten. Es trennt interne Pass-Pflege, externe Aussage, Verify-Sicht und ergänzendes Dossier so, dass Beschaffung, Qualität und Recht dieselbe Evidenzbasis lesen und keine zweite Dokumentationslogik entsteht. Die Aktualisierung ergänzt ein Abnahmefenster für OEM-Beschaffung und Supplier Quality: Teams erkennen vor dem Versand, ob der Pass übergabefähig ist, ein Dossier nötig wird, Evidenz nachgefordert wird oder die externe Antwort zurückgehalten bleibt.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Übergabeprotokoll für Pass-Nachweise",
   "author": "KIRegister",
@@ -31,7 +34,8 @@
     "ein neutrales Übergabeprotokoll für einen einzelnen KI-Einsatzfall in der Automotive-Lieferkette",
     "eine Rollenlogik für Owner, Beschaffung, Qualität, Compliance und externe Empfänger",
     "eine klare Entscheidung, wann Pass, Verify-Link, Supplier-Dossier oder Nachforderung die richtige Belegform ist",
-    "eine Mindeststruktur für Aussagegrenze, Review-Stand, Datenbezug, offene Punkte und Quellenpfad"
+    "eine Mindeststruktur für Aussagegrenze, Review-Stand, Datenbezug, offene Punkte und Quellenpfad",
+    "ein Abnahmefenster für OEM-Beschaffung und Supplier Quality, das Pass-Stand, Belegform und externe Weitergabe auf eine Entscheidung bringt"
   ],
   "downloads": [
     {
@@ -224,6 +228,22 @@
         {
           "label": "Nachfordern",
           "value": "Eine eng begrenzte Nachforderung ist sinnvoll, wenn eine einzelne fehlende Evidenzquelle den nächsten Schritt blockiert, etwa ein Freigabevermerk, eine Datenbeschreibung oder eine Owner-Bestätigung."
+        },
+        {
+          "label": "Übergabefähig vor OEM-Versand",
+          "value": "Der Pass benennt Einsatzfall, Fachzweck, verantwortliche Rolle, Review-Stand, Datenbezug, Belegpfad und Aussagegrenze so klar, dass Beschaffung und Supplier Quality dieselbe externe Kernaussage tragen können."
+        },
+        {
+          "label": "Dossier ergänzen",
+          "value": "Der Pass ist stabil, doch der Empfänger verlangt zusätzliche Formularlogik, Qualitätsnähe, Kontrollbeschreibung oder Rollenklärung. Das Supplier-Dossier übernimmt nur Aussagen, die bereits im Pass oder in der Matrix referenziert sind."
+        },
+        {
+          "label": "Evidenz nachfordern",
+          "value": "Eine einzelne Lücke blockiert die nächste Entscheidung, etwa Datenbeschreibung, Owner-Bestätigung, Freigabevermerk, Trainingsbezug oder Review-Notiz. Die Nachforderung bleibt eng am fehlenden Pass-Feld."
+        },
+        {
+          "label": "Antwort zurückhalten",
+          "value": "Scope-Grenze, Datenbezug, Wirkungsnähe oder Review-Stand sind für externe Leser noch zu unklar. Die Antwort bleibt intern, bis der Pass die tragfähige Mindeststruktur sichtbar führt."
         }
       ]
     },
