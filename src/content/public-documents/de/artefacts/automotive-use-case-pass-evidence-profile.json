@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-29",
-  "last_substantive_update": "2026-06-01",
+  "last_substantive_update": "2026-06-15",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Evidenzprofil für OEM-Beschaffung, Qualität und Compliance",
-  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung ergänzt eine Abnahmelogik für standardisierte Lieferkettenarbeit: Procurement, Qualität und Compliance sollen denselben Pass-Stand lesen und daraus akzeptieren, vertiefen, nachfordern oder zurückhalten können.",
+  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung vom 15. Juni 2026 ergänzt ein Abnahmeprofil für standardisierte Lieferkettenarbeit: Procurement, Qualität und Compliance sollen denselben Pass-Stand lesen, seine Aktualität prüfen und daraus akzeptieren, vertiefen, Evidenz nachfordern oder die externe Aussage zurückhalten können.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Evidenzprofil für Lieferkette und Freigabe",
   "author": "KIRegister",
@@ -37,6 +37,7 @@
     "eine Anschlussstruktur zwischen internem Pass, Supplier Request, Verify-Fläche und rechtlicher Einordnung",
     "eine konkrete Freigabelogik dafür, wann ein Verify-Link genügt und wann ein ergänzendes Dossier notwendig bleibt",
     "eine klare Empfängerlogik dafür, welche Aussageform für Procurement, Supplier Quality, Compliance und Eskalation jeweils ausreicht",
+    "ein Aktualitäts- und Abnahmeprofil, das OEM-Teams vor Versand, Portalantwort oder Qualitätsrunde als wiederholbaren Prüfpunkt verwenden können",
     "eine Partner-Handoff-Logik, die offene Evidenz, Trainingsbedarf, Nachforderung und externe Antwort sauber trennt",
     "eine Abnahmelogik für standardisierte Lieferkettenarbeit, damit OEM-Procurement, Supplier Quality und Compliance dieselbe Mindestantwort lesen"
   ],
@@ -201,6 +202,10 @@
         {
           "label": "Standardisierungsanschluss",
           "value": "Erwartet wird eine Feldlogik, die in Lieferantenportal, Qualitätsreview, Audit-Vorbereitung oder Beschaffungsgespräch wiederverwendet werden kann. Der Standardisierungsbeitrag liegt in der wiederholbaren Mindeststruktur aus Scope, Rolle, Evidenz und Aussagegrenze."
+        },
+        {
+          "label": "Aktualitäts- und Abnahmevermerk",
+          "value": "Erwartet wird ein klarer Standpunkt dazu, wann der Pass zuletzt fachlich geprüft wurde, welche Rolle die externe Aussage trägt und welche Entscheidung daraus folgt. Für OEM-Beschaffung und Supplier Quality ist dieser Vermerk der Unterschied zwischen einer informativen Beschreibung und einer wiederholbaren Abnahmegrundlage."
         }
       ]
     },
@@ -279,6 +284,10 @@
         {
           "label": "Abnahmeentscheidung",
           "value": "Aus der Mindestantwort muss eine begrenzte Entscheidung ableitbar sein: akzeptieren, vertiefen, Evidenz nachfordern oder externe Aussage zurückhalten. Ohne diese Entscheidung bleibt der Pass zwar informativ, aber noch nicht als Standardobjekt für Beschaffung und Qualität verwendbar."
+        },
+        {
+          "label": "Aktualität",
+          "value": "Der Empfänger sollte erkennen können, ob der Pass-Stand zur aktuellen Nutzung passt. Dazu gehören letzter fachlicher Review, sichtbare offene Punkte und ein Hinweis, ob seit dem Review wesentliche Änderungen an Zweck, Datenbezug, Prozessnähe oder externer Wirkung eingetreten sind."
         }
       ]
     },
@@ -301,6 +310,10 @@
         {
           "label": "Nachfordern",
           "value": "Wenn eine einzelne fehlende Quelle den nächsten Schritt blockiert, sollte die Anfrage eng begrenzt werden: welches Pass-Feld fehlt, welche Rolle antwortet und welche Entscheidung nach Eingang der Evidenz möglich wird."
+        },
+        {
+          "label": "Bedingt akzeptieren",
+          "value": "Wenn die Kernaussage tragfähig ist, aber ein Zusatzpunkt offen bleibt, kann Procurement eine begrenzte Akzeptanz dokumentieren: welcher Teil angenommen wird, welche Evidenz nachgereicht wird und bis wann Supplier Quality oder Compliance den Punkt erneut liest."
         }
       ]
     },
@@ -327,6 +340,10 @@
         {
           "label": "Übergabe an Qualität und Compliance",
           "value": "Vor externer Antwort sollten Owner, Qualität und Compliance denselben Pass-Stand bestätigen: Zweck, Datenbezug, Wirkungsnähe, Review-Stand und Aussagegrenze. Diese Übergabe verhindert, dass eine schnelle Beschaffungsantwort qualitätsnahe oder rechtliche Klärungen verdeckt."
+        },
+        {
+          "label": "Aktualitätsprüfung vor Versand",
+          "value": "Vor Portalantwort, Dossier oder Verify-Verweis sollte sichtbar sein, ob sich seit dem letzten Review Zweck, Datenquellen, Modellnutzung, Prozessnähe oder externe Wirkung verändert haben. Bleibt dieser Stand unklar, ist die Antwort für Standardisierung und Wiederverwendung zu schwach."
         }
       ]
     },
@@ -371,6 +388,10 @@
         {
           "label": "Öffentliche Verify-Nutzung",
           "value": "Genügt nur für stabil dokumentierte Kernaussagen, die bereits intern freigegeben und aus dem Pass widerspruchsfrei ableitbar sind. Verify ersetzt keine vertiefte Antwort, wenn der Empfänger eigene Prüf- oder Formularlogik mitbringt."
+        },
+        {
+          "label": "OEM-Standardisierungsteam",
+          "value": "Braucht eine wiederverwendbare Feldlogik, die über einzelne Lieferanten hinaus Bestand hat: Einsatzfall, Owner, Review-Stand, Belegpfad, Aktualitätsvermerk und Abnahmeentscheidung. So kann der Pass in Portalfragen, Qualitätsrunden und Audit-Vorbereitung dieselbe Sprache behalten."
         }
       ]
     },
@@ -389,6 +410,10 @@
         {
           "label": "Stufe 3: verify-fähig",
           "value": "Die extern vertretbaren Kernaussagen sind stabil, der Pass referenziert belastbare Evidenz und ein öffentlicher Nachweisausschnitt kann ohne Widerspruch zur internen Dokumentation gezeigt werden. Diese Stufe ist sinnvoll, wenn Dritte einen kontrollierten, wiederholbaren Referenzlink benötigen."
+        },
+        {
+          "label": "Stufe 4: standardfähig",
+          "value": "Der Pass enthält zusätzlich eine klare Abnahmeentscheidung, einen Aktualitätsvermerk und eine übertragbare Feldstruktur für wiederkehrende OEM- oder Tier-1-Anfragen. Diese Stufe eignet sich für Procurement-Playbooks, Supplier-Quality-Runden und Partnertrainings, weil dieselbe Mindestantwort wiederholt geprüft werden kann."
         }
       ]
     },
@@ -433,6 +458,10 @@
         {
           "label": "Rechtliche oder Eskalationsentscheidung",
           "value": "Erfordert weiterhin vertiefte Einordnung, sobald Datenbezug, Entscheidungsnähe, Qualitätswirkung oder externe Aussagegrenzen offen sind. Der Pass schafft dafür die belastbare Ausgangsbasis, ersetzt aber die eigentliche rechtliche Bewertung nicht."
+        },
+        {
+          "label": "Standardisierte Lieferantenabnahme",
+          "value": "Tragfähig, wenn mehrere Empfänger dieselbe Mindeststruktur nutzen können: konkrete Nutzung, verantwortliche Rolle, Daten- und Wirkungsbezug, Review-Stand, offene Punkte, Belegpfad und Abnahmeentscheidung. Dadurch wird der Use-Case Pass vom Einzelfalldokument zum wiederholbaren Lieferkettenstandard."
         }
       ]
     },
@@ -506,6 +535,7 @@
       "paragraphs": [
         "Zulieferer können das Evidenzprofil als Vorprüfung verwenden, bevor eine Anfrage an einen OEM beantwortet wird. Fehlen Zweck, Owner, Datenbezug oder Review-Stand, sollte zuerst der Pass vervollständigt werden. Liegt die Mindeststruktur vor, lässt sich die Antwort kontrolliert aus dem vorhandenen Objekt ableiten.",
         "OEM-Beschaffung und Supplier Quality können die gleiche Logik nutzen, um unverhältnismäßige oder unklare Anfragen zu vermeiden. Statt allgemeine KI-Fragebögen zu verteilen, lässt sich präziser nach dem konkreten Einsatzfall, seiner Wirkung und seiner Evidenzbasis fragen. Genau dadurch wird der Use-Case Pass als wiederholbarer Standard anschlussfähig: dieselbe Mindeststruktur kann in Lieferantenportal, Qualitätsrunde, Audit-Vorbereitung und Dossier wiederkehren.",
+        "Für eine Standardisierungsrunde ist besonders wichtig, dass jede Annahme als Entscheidung lesbar bleibt. Akzeptiert wird nur die belegte Kernaussage, vertieft wird die qualitäts- oder rechtsnahe Ergänzung, nachgefordert wird eine konkrete Evidenzquelle und zurückgehalten wird jede externe Aussage, deren Pass-Basis noch zu schwach ist.",
         "Sobald ein Fall extern sichtbar gemacht werden soll, sollte Verify nur dieselben Aussagen zeigen, die im Pass bereits dokumentiert und intern tragfähig sind. Das verhindert, dass öffentliche Nachweise eine andere Wirklichkeit abbilden als die interne Register- und Review-Arbeit."
       ]
     }
@@ -545,7 +575,7 @@
     },
     {
       "q": "Welche Aussage muss ein OEM ohne weitere Rückfrage direkt verstehen können?",
-      "a": "Mindestens, welcher konkrete Einsatzfall gemeint ist, wofür er fachlich genutzt wird, wer ihn verantwortet, welcher Review-Stand vorliegt und welche Grenzen der Aussage gelten. Wenn diese fünf Punkte nicht auf Anhieb lesbar sind, ist die Evidenzbasis für Lieferkettenkommunikation meist noch zu schwach."
+      "a": "Mindestens, welcher konkrete Einsatzfall gemeint ist, wofür er fachlich genutzt wird, wer ihn verantwortet, welcher Review-Stand vorliegt und welche Grenzen der Aussage gelten. Zusätzlich sollte erkennbar sein, welche Abnahmeentscheidung aus diesem Stand folgt: akzeptieren, vertiefen, Evidenz nachfordern oder externe Aussage zurückhalten. Wenn diese Punkte nicht auf Anhieb lesbar sind, ist die Evidenzbasis für Lieferkettenkommunikation meist noch zu schwach."
     },
     {
       "q": "Woran erkennt Procurement, dass ein Pass nur formal vollständig, aber noch nicht lieferkettenfähig ist?",
