@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-19",
-  "last_substantive_update": "2026-05-21",
+  "last_substantive_update": "2026-06-16",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Nachforderungsbrief für Partner und Beschaffung",
-  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsteams und Governance-Praktiker dabei, fehlende Angaben zu einem konkreten KI-Einsatzfall sachlich nachzufordern. Der Nachforderungsbrief hält Scope, verantwortliche Rolle, offene Evidenz und nächsten Review-Schritt auf derselben Use-Case-Pass-Basis zusammen, damit Partnerarbeit nach Audit, Workshop, Lieferantenrückfrage oder Freigabevorbereitung nicht in losen E-Mails endet.",
+  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsteams und Governance-Praktiker dabei, fehlende Angaben zu einem konkreten KI-Einsatzfall sachlich nachzufordern. Der Nachforderungsbrief hält Scope, verantwortliche Rolle, offene Evidenz, Prüfbriefing-Notiz und nächsten Review-Schritt auf derselben Use-Case-Pass-Basis zusammen, damit Partnerarbeit nach Audit, Workshop, Lieferantenrückfrage oder Freigabevorbereitung in eine prüffähige Registerhandlung führt.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Nachforderungsbrief für fehlende Pass-Evidenz",
   "author": "KIRegister",
@@ -36,6 +36,7 @@
     "einen neutralen Nachforderungsbrief für fehlende Angaben zu einem einzelnen KI-Einsatzfall",
     "eine klare Trennung zwischen bestätigter Pass-Aussage, offener Evidenz, verantwortlicher Rolle und nächstem Review-Schritt",
     "eine Arbeitslogik für Audit, Beratung, Training, Beschaffung und Governance, die keine zweite Dokumentationswelt neben dem Register erzeugt",
+    "eine Prüfbriefing-Notiz, die vor dem Versand festhält, welche Rolle welche Lücke sieht und welcher Anschluss im Pass vorgesehen ist",
     "eine prüfbare Entscheidungsstruktur, wann Partner akzeptieren, vertiefen, stoppen oder eine begrenzte Nachforderung stellen sollten"
   ],
   "downloads": [
@@ -150,23 +151,23 @@
       "rows": [
         {
           "label": "Audit und Revision",
-          "value": "Nutzen den Brief, um offene Nachweise eng zu benennen und zu verhindern, dass ein Review wegen unklarer Gesamtfragen blockiert bleibt."
+          "value": "Nutzen den Brief, um offene Nachweise eng zu benennen. Die Prüfbriefing-Notiz hält fest, welches Pass-Feld maßgeblich ist, welche Evidenz bereits vorliegt und welche Antwort den Review wieder anschlussfähig macht."
         },
         {
           "label": "Beratung und Governance",
-          "value": "Übersetzen Gap-Analysen in eine konkrete Rückfrage, die nach Eingang direkt in den Pass oder in einen Review-Schritt überführt werden kann."
+          "value": "Übersetzen Gap-Analysen in eine konkrete Rückfrage. Die Notiz verbindet Fallzuschnitt, verantwortliche Rolle, erwartete Quelle und geplante Rückführung in Pass oder Matrix."
         },
         {
           "label": "Training und Moderation",
-          "value": "Nutzen den Brief als Abschlussobjekt nach Workshops, wenn Teilnehmende zwar den Fall verstanden haben, aber einzelne Belege oder Rollen noch nachreichen müssen."
+          "value": "Nutzen den Brief als Abschlussobjekt nach Workshops. Die Prüfbriefing-Notiz benennt, welche Teilnehmerrolle Zweck, Datenbezug, Beleg oder Review-Stand bis zum nächsten Termin ergänzt."
         },
         {
           "label": "Beschaffung und Vendor Management",
-          "value": "Begrenzen Lieferanten- oder Auftraggeberrückfragen auf die fehlenden Mindestangaben, die für Anfrage, Freigabe oder Antwort wirklich benötigt werden."
+          "value": "Begrenzen Lieferanten- oder Auftraggeberrückfragen auf die fehlenden Mindestangaben. Vor Versand wird festgehalten, ob Lieferantenbeleg, Verify-Auszug oder Request-Workbook als Anschluss genügt."
         },
         {
           "label": "Use-Case Owner",
-          "value": "Erhalten keine abstrakte Governance-Aufgabe, sondern eine prüfbare Bitte um Zweckklärung, Datenbeschreibung, Evidenzquelle, Review-Stand oder Aussagegrenze."
+          "value": "Erhalten eine prüfbare Bitte um Zweckklärung, Datenbeschreibung, Evidenzquelle, Review-Stand oder Aussagegrenze. Die Notiz benennt den formalen Anschluss: Pass aktualisieren, Review starten, Freigabegrenze dokumentieren oder externe Aussage zurückhalten."
         }
       ]
     },
@@ -216,7 +217,7 @@
       "heading": "Wie das Artefakt in der Praxis eingesetzt wird",
       "paragraphs": [
         "Nach einem Partnertermin wird zuerst der Pass-Stand gelesen: Was ist bereits bestätigt, welche Aussage hängt an welcher Evidenz und welche Rolle kann die Lücke schließen? Danach wird die Nachforderung als knapper Brief oder Registereintrag formuliert. Sie enthält keine neuen Bewertungen, sondern nur den fehlenden Nachweis, die betroffene Aussage und den nächsten Schritt.",
-        "Für Beschaffung und Governance ist besonders wichtig, dass die Nachforderung nicht zur Parallelakte wird. Die Antwort gehört zurück in den Pass, in die Review-Matrix oder in das Supplier Request Kit. Dadurch kann später nachvollzogen werden, warum eine Aussage akzeptiert, vertieft, gestoppt oder an eine andere Rolle übergeben wurde."
+        "Für Beschaffung und Governance ist besonders wichtig, dass die Nachforderung nicht zur Parallelakte wird. Vor dem Versand kann eine kurze Prüfbriefing-Notiz festhalten, welche Partnerrolle die Lücke sieht, welche Quelle erwartet wird und welcher Anschluss im Pass vorgesehen ist. Die Antwort gehört zurück in den Pass, in die Review-Matrix oder in das Supplier Request Kit. Dadurch kann später nachvollzogen werden, warum eine Aussage akzeptiert, vertieft, gestoppt oder an eine andere Rolle übergeben wurde."
       ]
     },
     {
