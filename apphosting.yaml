@@ -25,6 +25,14 @@ env:
     secret: SUPPLIER_SESSION_SECRET
   - variable: NEXT_PUBLIC_APP_ORIGIN
     secret: NEXT_PUBLIC_APP_ORIGIN
+  - variable: DOCUMENTERO_API_KEY
+    secret: DOCUMENTERO_API_KEY
+  - variable: DOCUMENTERO_TEMPLATE_ID
+    value: "z1ffZUyuWFQwXBaoo2NL"
+  - variable: CERTIFICATION_DOCUMENT_PROVIDER
+    value: "documentero"
+  - variable: CERTIFICATION_ENABLE_DOCUMENTERO
+    value: "1"
   - variable: NEXT_PUBLIC_REGISTER_FIRST_ENABLED
     value: "true"
   - variable: NEXT_PUBLIC_REGISTER_FIRST_HYBRID_ENTRY

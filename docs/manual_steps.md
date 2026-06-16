@@ -94,22 +94,41 @@ Activate TTL policy for `supplierInviteChallenges` on field `ttlDeleteAt` via Fi
 The repo now wires the required runtime variables in `apphosting.yaml`. You still need to store the secret values in Firebase App Hosting / Secret Manager:
 
 ```bash
-firebase apphosting:secrets:set EMAILIT_API_KEY --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set EMAILIT_FROM_EMAIL --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set EMAILIT_SUPPLIER_INVITE_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set EMAILIT_SUPPLIER_OTP_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET --project ai-act-compass-m6o05 --location europe-west1
-firebase apphosting:secrets:set NEXT_PUBLIC_APP_ORIGIN --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set EMAILIT_API_KEY --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set EMAILIT_FROM_EMAIL --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_INVITE_TEMPLATE --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_OTP_TEMPLATE --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set EMAILIT_SUPPLIER_CONFIRMATION_TEMPLATE --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:set NEXT_PUBLIC_APP_ORIGIN --project ai-act-compass-m6o05 --location us-central1
 ```
 
 If you later rotate the session key and want overlap support:
 
 ```bash
-firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET_PREVIOUS --project ai-act-compass-m6o05 --location europe-west1
+firebase apphosting:secrets:set SUPPLIER_SESSION_SECRET_PREVIOUS --project ai-act-compass-m6o05 --location us-central1
 ```
 
 `NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED=true` is now already checked into `apphosting.yaml`.
+
+#### Certification PDF template
+
+The EU AI Act Officer certificate PDF uses the legacy Documentero template for
+new certificates after Academy video completion plus passed exam.
+
+`apphosting.yaml` wires:
+
+- `DOCUMENTERO_API_KEY` as a secret
+- `DOCUMENTERO_TEMPLATE_ID=z1ffZUyuWFQwXBaoo2NL`
+- `CERTIFICATION_DOCUMENT_PROVIDER=documentero`
+- `CERTIFICATION_ENABLE_DOCUMENTERO=1`
+
+Store the Documentero API key in Firebase App Hosting / Secret Manager:
+
+```bash
+firebase apphosting:secrets:set DOCUMENTERO_API_KEY --project ai-act-compass-m6o05 --location us-central1
+firebase apphosting:secrets:grantaccess DOCUMENTERO_API_KEY --project ai-act-compass-m6o05 --backend studio --location us-central1
+```
 
 #### Functions config
 
