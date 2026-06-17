@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { AppHeader } from '@/components/app-header';
-import { PageStatePanel } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate } from '@/components/product-shells';
 import {
   Card,
   CardContent,
@@ -32,6 +32,7 @@ import {
 import { useAuth } from '@/context/auth-context';
 import { RegisterDeleteDialog } from '@/components/register/register-delete-dialog';
 import { GovernanceHeader } from '@/components/register/governance-header';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { registerFirstFlags } from '@/lib/register-first/flags';
@@ -52,6 +53,7 @@ import {
   getVisiblePremiumControlNav,
   ROUTE_HREFS,
 } from '@/lib/navigation/route-manifest';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { setActiveWorkspaceId } from '@/lib/workspace-session';
 import {
   appendWorkspaceScope,
@@ -115,6 +117,10 @@ function getMyRegisterPageCopy(locale: string) {
       loadingTitle: 'Register wird geladen',
       loadingDesc:
         'Use Cases, External Inbox und Registerkontext werden vorbereitet.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Ihr Register gehört zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       noRegisterTitle: 'Starten Sie mit Ihrem ersten Register',
       noRegisterDesc:
         'Ein Register ist Ihr Arbeitsbereich zum Dokumentieren, Prüfen und Einsammeln externer Angaben. Danach sind Register, Use Cases, External Inbox und Settings direkt verfügbar.',
@@ -154,6 +160,10 @@ function getMyRegisterPageCopy(locale: string) {
     loadingTitle: 'Loading registry',
     loadingDesc:
       'Use cases, external inbox and registry context are being prepared.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'Your registry belongs to your account or workspace. Sign in to open this area.',
+    signIn: 'Sign in',
     noRegisterTitle: 'Start with your first registry',
     noRegisterDesc:
       'A registry is your workspace for documenting, reviewing and collecting external information. Use cases, external inbox and settings are available directly afterwards.',
@@ -209,6 +219,10 @@ export default function MyRegisterPage() {
   const onboardingParam = searchParams.get('onboarding');
   const openParam = searchParams.get('open');
   const checkoutSessionId = searchParams.get('checkout_session_id');
+  const registerSearch = searchParams.toString();
+  const registerPath = registerSearch
+    ? `/my-register?${registerSearch}`
+    : '/my-register';
   const scopeContext = useMemo(
     () => parseRegisterScopeFromWorkspaceValue(workspaceScope),
     [workspaceScope],
@@ -265,7 +279,6 @@ export default function MyRegisterPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      router.push('/login');
       return;
     }
     if (hasChecked) return;
@@ -319,12 +332,31 @@ export default function MyRegisterPage() {
       .catch((err) => {
         const code = mapErrorCode(err);
         if (code === 'UNAUTHENTICATED') {
-          router.push('/login');
+          router.push(
+            buildLocalizedLoginPath(locale, {
+              mode: 'login',
+              returnTo: localizeHref(
+                locale,
+                appendWorkspaceScope(registerPath, workspaceScope),
+              ),
+            }),
+          );
         } else {
           setOnboardingState('no_register');
         }
       });
-  }, [authLoading, user, hasChecked, router, onboardingParam, scopeContext, copy.defaultOrganisation]);
+  }, [
+    authLoading,
+    user,
+    hasChecked,
+    router,
+    onboardingParam,
+    scopeContext,
+    copy.defaultOrganisation,
+    locale,
+    registerPath,
+    workspaceScope,
+  ]);
 
   useEffect(() => {
     if (!user || !activeRegister?.registerId || !checkoutSessionId) {
@@ -453,6 +485,25 @@ export default function MyRegisterPage() {
       ),
     );
   };
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedAreaGate
+        area="signed_in_free_register"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(
+            locale,
+            appendWorkspaceScope(registerPath, workspaceScope),
+          ),
+        })}
+        signInLabel={copy.signIn}
+        width="5xl"
+      />
+    );
+  }
 
   if (authLoading || onboardingState === 'loading') {
     return (
