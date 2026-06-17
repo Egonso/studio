@@ -43,6 +43,9 @@ const workspaceRegisterLinkRoute = readSource("src/app/api/workspaces/[orgId]/re
 const workspaceAgentKitKeysRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/keys/route.ts");
 const workspaceAgentKitKeyItemRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/keys/[keyId]/route.ts");
 const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
+const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
+const agentOperatorUseCasesRoute = readSource("src/app/api/agent/operator/use-cases/route.ts");
+const agentOperatorUseCaseRoute = readSource("src/app/api/agent/operator/use-cases/[useCaseId]/route.ts");
 const coverageAssistConfigRoute = readSource("src/app/api/coverage-assist/config/route.ts");
 
 test("invite creation route requires workspace-admin authorization", () => {
@@ -137,8 +140,29 @@ test("coverage assist config route exposes only public rollout flags", () => {
 
 test("agent kit submit route authenticates with API keys and scopes register lookup to the workspace", () => {
   assert.match(agentKitSubmitRoute, /authenticateAgentKitApiKey\(/);
+  assert.match(agentKitSubmitRoute, /hasAgentKitApiKeyScope\(authentication\.record, 'submit:usecase'\)/);
   assert.match(agentKitSubmitRoute, /isPersonalAgentKitScope\(/);
   assert.match(agentKitSubmitRoute, /findRegisterLocationById\(payload\.registerId, \{/);
   assert.match(agentKitSubmitRoute, /workspaceId: personalScope \? undefined : authentication\.record\.orgId/);
   assert.match(agentKitSubmitRoute, /sanitizeFirestorePayload\(useCase\)/);
+});
+
+test("agent operator routes authenticate API keys and enforce read-only scopes", () => {
+  assert.match(agentOperatorRegistersRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorRegistersRoute, /'read:register'/);
+  assert.match(agentOperatorRegistersRoute, /mode: 'read_only'/);
+  assert.doesNotMatch(agentOperatorRegistersRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorRegistersRoute, /export async function PATCH/);
+
+  assert.match(agentOperatorUseCasesRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorUseCasesRoute, /'read:usecase'/);
+  assert.match(agentOperatorUseCasesRoute, /mode: 'read_only'/);
+  assert.doesNotMatch(agentOperatorUseCasesRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorUseCasesRoute, /export async function PATCH/);
+
+  assert.match(agentOperatorUseCaseRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorUseCaseRoute, /'read:usecase'/);
+  assert.match(agentOperatorUseCaseRoute, /mode: 'read_only'/);
+  assert.doesNotMatch(agentOperatorUseCaseRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorUseCaseRoute, /export async function PATCH/);
 });

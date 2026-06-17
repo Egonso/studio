@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
+  AGENT_KIT_API_KEY_SCOPE_VALUES,
   createAgentKitApiKey,
+  normalizeAgentKitApiKeyScopes,
+  type AgentKitApiKeyScope,
   isPersonalAgentKitScope,
   listAgentKitApiKeys,
   listAgentKitApiKeysForUser,
@@ -24,7 +27,23 @@ interface RouteContext {
 
 const createAgentKitKeySchema = z.object({
   label: z.string().trim().min(3).max(120),
+  scopes: z
+    .array(z.enum(AGENT_KIT_API_KEY_SCOPE_VALUES))
+    .min(1)
+    .max(AGENT_KIT_API_KEY_SCOPE_VALUES.length)
+    .optional(),
 });
+
+function isSubmitOnlyScopeSet(scopes: readonly AgentKitApiKeyScope[]): boolean {
+  return scopes.length === 1 && scopes[0] === 'submit:usecase';
+}
+
+function canCreateAgentKitScopeSet(
+  role: 'OWNER' | 'ADMIN' | 'REVIEWER' | 'MEMBER' | 'EXTERNAL_OFFICER',
+  scopes: readonly AgentKitApiKeyScope[],
+): boolean {
+  return isSubmitOnlyScopeSet(scopes) || role === 'OWNER' || role === 'ADMIN';
+}
 
 function handleError(error: unknown) {
   if (error instanceof ServerAuthError) {
@@ -119,6 +138,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
         ownerId: location.ownerId,
       })),
       submitEndpoint: '/api/agent-kit/submit',
+      operatorEndpoint: '/api/agent/operator',
     });
   } catch (error) {
     return handleError(error);
@@ -134,9 +154,21 @@ export async function POST(req: NextRequest, context: RouteContext) {
       orgId,
     );
     const payload = createAgentKitKeySchema.parse(await req.json());
+    const scopes = normalizeAgentKitApiKeyScopes(payload.scopes);
+    if (!canCreateAgentKitScopeSet(authorization.role, scopes)) {
+      return NextResponse.json(
+        {
+          error:
+            'Nur Owner und Admins koennen Agent-Kit-Keys mit Operator- oder Schreib-Scopes erstellen.',
+        },
+        { status: 403 },
+      );
+    }
+
     const created = await createAgentKitApiKey({
       orgId,
       label: payload.label,
+      scopes,
       createdByUserId: authorization.user.uid,
       createdByEmail: authorization.user.email,
     });
@@ -146,6 +178,7 @@ export async function POST(req: NextRequest, context: RouteContext) {
         key: created.summary,
         apiKey: created.apiKey,
         submitEndpoint: '/api/agent-kit/submit',
+        operatorEndpoint: '/api/agent/operator',
       },
       { status: 201 },
     );

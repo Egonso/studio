@@ -65,6 +65,26 @@ node ./bin/studio-agent.mjs submit \
 
 The command returns the new `useCaseId` plus the detail URL when submission succeeds.
 
+## Read-only Operator API
+
+Autopilot and scheduled local agents should first use a read-only Operator key
+instead of a submit key. The useful first checks are:
+
+```bash
+curl "$KI_REGISTER_BASE_URL/api/agent/operator/registers" \
+  -H "Authorization: Bearer $KI_REGISTER_API_KEY"
+
+curl "$KI_REGISTER_BASE_URL/api/agent/operator/use-cases?registerId=$KI_REGISTER_REGISTER_ID" \
+  -H "Authorization: Bearer $KI_REGISTER_API_KEY"
+
+curl "$KI_REGISTER_BASE_URL/api/agent/operator/use-cases/uc_123?registerId=$KI_REGISTER_REGISTER_ID" \
+  -H "Authorization: Bearer $KI_REGISTER_API_KEY"
+```
+
+Use a key with `read:register` and `read:usecase` for this. That key can compare
+local evidence with the real register state but cannot submit a manifest unless
+it also has `submit:usecase`.
+
 ## Example prompts for agents
 
 ### Codex App or Claude Code

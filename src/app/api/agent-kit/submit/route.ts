@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import {
   authenticateAgentKitApiKey,
+  hasAgentKitApiKeyScope,
   isPersonalAgentKitScope,
   touchAgentKitApiKeyUsage,
 } from '@/lib/agent-kit/api-keys';
@@ -73,6 +74,16 @@ export async function POST(req: NextRequest) {
     const authentication = await authenticateAgentKitApiKey(resolveApiKey(req));
     if (!authentication.ok) {
       return mapAuthenticationError(authentication.reason);
+    }
+    if (!hasAgentKitApiKeyScope(authentication.record, 'submit:usecase')) {
+      return NextResponse.json(
+        {
+          error:
+            'Dieser Agent-Kit-API-Key darf keine Use Cases einreichen.',
+          missingScopes: ['submit:usecase'],
+        },
+        { status: 403 },
+      );
     }
 
     const payload = submissionSchema.parse(await req.json());

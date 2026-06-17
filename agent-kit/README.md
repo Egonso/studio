@@ -110,6 +110,23 @@ node ./bin/studio-agent.mjs submit \
 
 `scopeId` is the selected target scope: your own user id for `Mein Register` or the workspace id for a workspace scope.
 
+### Read-only Operator API
+
+For Autopilot-style checks, create a key with `read:register` and
+`read:usecase` instead of a submit-only key. That key can inspect the real
+KI-Register state without creating or changing entries:
+
+```bash
+curl "$KI_REGISTER_BASE_URL/api/agent/operator/registers" \
+  -H "Authorization: Bearer $KI_REGISTER_API_KEY"
+
+curl "$KI_REGISTER_BASE_URL/api/agent/operator/use-cases?registerId=$KI_REGISTER_REGISTER_ID" \
+  -H "Authorization: Bearer $KI_REGISTER_API_KEY"
+```
+
+Read-only Operator keys do not imply `submit:usecase`. Submitting a manifest
+remains a separate, confirmed step.
+
 ### What this means for non-technical teams
 
 - The technical team sets up the key and agent workflow once.

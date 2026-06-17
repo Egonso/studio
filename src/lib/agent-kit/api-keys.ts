@@ -11,6 +11,25 @@ import type { WorkspaceMemberRecord } from '@/lib/enterprise/workspace';
 import { getWorkspaceRecord } from '@/lib/workspace-admin';
 
 const AGENT_KIT_API_KEY_PREFIX = 'akv1';
+export const AGENT_KIT_API_KEY_SCOPE_VALUES = [
+  'submit:usecase',
+  'read:register',
+  'read:usecase',
+  'read:audit',
+  'write:candidate',
+  'write:review-note',
+  'write:status-proposal',
+] as const;
+
+export type AgentKitApiKeyScope =
+  (typeof AGENT_KIT_API_KEY_SCOPE_VALUES)[number];
+
+const AGENT_KIT_API_KEY_SCOPE_SET = new Set<string>(
+  AGENT_KIT_API_KEY_SCOPE_VALUES,
+);
+const DEFAULT_AGENT_KIT_API_KEY_SCOPES: AgentKitApiKeyScope[] = [
+  'submit:usecase',
+];
 
 export interface AgentKitApiKeyRecord {
   keyId: string;
@@ -18,6 +37,7 @@ export interface AgentKitApiKeyRecord {
   label: string;
   keyHash: string;
   keyPreview: string;
+  scopes: AgentKitApiKeyScope[];
   createdAt: string;
   createdByUserId: string;
   createdByEmail?: string | null;
@@ -33,6 +53,7 @@ export interface AgentKitApiKeySummary {
   orgId: string;
   label: string;
   keyPreview: string;
+  scopes: AgentKitApiKeyScope[];
   createdAt: string;
   createdByUserId: string;
   createdByEmail?: string | null;
@@ -69,6 +90,37 @@ export type AgentKitApiKeyAuthenticationResult =
 function normalizeOptionalText(value: string | null | undefined): string | null {
   const normalized = value?.trim();
   return normalized ? normalized : null;
+}
+
+export function normalizeAgentKitApiKeyScopes(
+  value: readonly string[] | null | undefined,
+): AgentKitApiKeyScope[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    return [...DEFAULT_AGENT_KIT_API_KEY_SCOPES];
+  }
+
+  const scopes: AgentKitApiKeyScope[] = [];
+  for (const rawScope of value) {
+    const scope = normalizeOptionalText(rawScope);
+    if (!scope || !AGENT_KIT_API_KEY_SCOPE_SET.has(scope)) {
+      continue;
+    }
+
+    if (!scopes.includes(scope as AgentKitApiKeyScope)) {
+      scopes.push(scope as AgentKitApiKeyScope);
+    }
+  }
+
+  return scopes.length > 0 ? scopes : [...DEFAULT_AGENT_KIT_API_KEY_SCOPES];
+}
+
+function normalizeAgentKitApiKeyRecord(
+  record: AgentKitApiKeyRecord,
+): AgentKitApiKeyRecord {
+  return {
+    ...record,
+    scopes: normalizeAgentKitApiKeyScopes(record.scopes),
+  };
 }
 
 function normalizeAuthorizationValue(
@@ -114,17 +166,19 @@ function buildKeyPreview(parsed: ParsedAgentKitApiKey): string {
 }
 
 function toSummary(record: AgentKitApiKeyRecord): AgentKitApiKeySummary {
+  const normalizedRecord = normalizeAgentKitApiKeyRecord(record);
   return {
-    keyId: record.keyId,
-    orgId: record.orgId,
-    label: record.label,
-    keyPreview: record.keyPreview,
-    createdAt: record.createdAt,
-    createdByUserId: record.createdByUserId,
-    createdByEmail: record.createdByEmail ?? null,
-    lastUsedAt: record.lastUsedAt ?? null,
-    lastSubmittedUseCaseId: record.lastSubmittedUseCaseId ?? null,
-    revokedAt: record.revokedAt ?? null,
+    keyId: normalizedRecord.keyId,
+    orgId: normalizedRecord.orgId,
+    label: normalizedRecord.label,
+    keyPreview: normalizedRecord.keyPreview,
+    scopes: normalizedRecord.scopes,
+    createdAt: normalizedRecord.createdAt,
+    createdByUserId: normalizedRecord.createdByUserId,
+    createdByEmail: normalizedRecord.createdByEmail ?? null,
+    lastUsedAt: normalizedRecord.lastUsedAt ?? null,
+    lastSubmittedUseCaseId: normalizedRecord.lastSubmittedUseCaseId ?? null,
+    revokedAt: normalizedRecord.revokedAt ?? null,
   };
 }
 
@@ -162,6 +216,7 @@ export function parseAgentKitApiKey(
 export function issueAgentKitApiKey(input: {
   orgId: string;
   label: string;
+  scopes?: readonly AgentKitApiKeyScope[] | null;
   createdByUserId: string;
   createdByEmail?: string | null;
   now?: Date;
@@ -186,6 +241,7 @@ export function issueAgentKitApiKey(input: {
       label: input.label.trim(),
       keyHash: hashAgentKitApiKeySecret(secret),
       keyPreview: buildKeyPreview(parsed),
+      scopes: normalizeAgentKitApiKeyScopes(input.scopes),
       createdAt: now.toISOString(),
       createdByUserId: input.createdByUserId,
       createdByEmail: normalizeOptionalText(input.createdByEmail),
@@ -201,6 +257,7 @@ export function issueAgentKitApiKey(input: {
 export async function createAgentKitApiKey(input: {
   orgId: string;
   label: string;
+  scopes?: readonly AgentKitApiKeyScope[] | null;
   createdByUserId: string;
   createdByEmail?: string | null;
   now?: Date;
@@ -239,7 +296,9 @@ export async function listAgentKitApiKeys(
     : await keyCollection(orgId).get();
 
   return snapshot.docs
-    .map((document) => toSummary(document.data() as AgentKitApiKeyRecord))
+    .map((document) =>
+      toSummary(document.data() as AgentKitApiKeyRecord),
+    )
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
@@ -249,8 +308,23 @@ export async function getAgentKitApiKeyRecord(
 ): Promise<AgentKitApiKeyRecord | null> {
   const snapshot = await keyCollection(orgId).doc(keyId).get();
   return snapshot.exists
-    ? (snapshot.data() as AgentKitApiKeyRecord)
+    ? normalizeAgentKitApiKeyRecord(snapshot.data() as AgentKitApiKeyRecord)
     : null;
+}
+
+export function hasAgentKitApiKeyScope(
+  record: Pick<AgentKitApiKeyRecord, 'scopes'>,
+  scope: AgentKitApiKeyScope,
+): boolean {
+  return normalizeAgentKitApiKeyScopes(record.scopes).includes(scope);
+}
+
+export function hasAgentKitApiKeyScopes(
+  record: Pick<AgentKitApiKeyRecord, 'scopes'>,
+  requiredScopes: readonly AgentKitApiKeyScope[],
+): boolean {
+  const availableScopes = normalizeAgentKitApiKeyScopes(record.scopes);
+  return requiredScopes.every((scope) => availableScopes.includes(scope));
 }
 
 async function hasActiveWorkspaceAccess(
@@ -381,12 +455,20 @@ export async function touchAgentKitApiKeyUsage(input: {
   lastSubmittedUseCaseId?: string | null;
   now?: Date;
 }): Promise<void> {
+  const patch: {
+    lastUsedAt: string;
+    lastSubmittedUseCaseId?: string | null;
+  } = {
+    lastUsedAt: (input.now ?? new Date()).toISOString(),
+  };
+
+  if ('lastSubmittedUseCaseId' in input) {
+    patch.lastSubmittedUseCaseId =
+      normalizeOptionalText(input.lastSubmittedUseCaseId) ?? null;
+  }
+
   await keyCollection(input.orgId).doc(input.keyId).set(
-    {
-      lastUsedAt: (input.now ?? new Date()).toISOString(),
-      lastSubmittedUseCaseId:
-        normalizeOptionalText(input.lastSubmittedUseCaseId) ?? null,
-    },
+    patch,
     { merge: true },
   );
 }

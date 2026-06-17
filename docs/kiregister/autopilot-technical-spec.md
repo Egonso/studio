@@ -149,11 +149,17 @@ Spätere Quellen:
 Die bestehende Submit-API bleibt. Zusätzlich brauchen wir eine bewusst
 freigegebene Operator-API für read-only und später Review-Schreibvorgänge.
 
-Geplante Endpunkte:
+Sprint 1 ist als read-only Slice umgesetzt und dokumentiert in
+[`docs/kiregister/operator-api-sprint-1.md`](./operator-api-sprint-1.md).
+
+Aktive Endpunkte:
 
 - `GET /api/agent/operator/registers`
 - `GET /api/agent/operator/use-cases`
 - `GET /api/agent/operator/use-cases/[useCaseId]`
+
+Noch nicht aktiv:
+
 - `POST /api/agent/operator/candidates`
 - `POST /api/agent/operator/runs`
 - `PATCH /api/agent/operator/runs/[runId]`
@@ -171,6 +177,10 @@ Wir brauchen Scopes:
 - `write:candidate`
 - `write:review-note`
 - `write:status-proposal`
+
+Bestehende Keys ohne Scope-Feld gelten aus Kompatibilitätsgründen als
+`submit:usecase`. Read-only Operator-Keys bekommen bewusst `read:register` und
+`read:usecase`; sie können nicht still in die Submit-API schreiben.
 
 Schreibende Scopes werden erst nach read-only Dogfood eingeführt.
 
