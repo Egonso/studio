@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   CheckCircle2,
   Download,
   FileText,
   Inbox,
+  LogIn,
   RefreshCw,
   XCircle,
 } from 'lucide-react';
@@ -246,6 +246,10 @@ function getCandidateReviewCopy(locale: string) {
       loadingPanelTitle: 'Review-Inbox wird geladen',
       loadingPanelDescription:
         'Workspace, Register und Kandidaten werden abgefragt.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Die Agent Review Inbox zeigt Workspace-Daten und Review-Nachweise. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       backToAgentKit: 'Zurück zu Agent Kit',
       reload: 'Neu laden',
       activeScope: 'Aktiver Bereich',
@@ -373,6 +377,10 @@ function getCandidateReviewCopy(locale: string) {
     loadingPanelTitle: 'Loading review inbox',
     loadingPanelDescription:
       'Workspace, register and candidates are being requested.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'The Agent review inbox shows workspace data and review evidence. Sign in to open this area.',
+    signIn: 'Sign in',
     backToAgentKit: 'Back to Agent Kit',
     reload: 'Reload',
     activeScope: 'Active scope',
@@ -586,7 +594,6 @@ function getManifestSystems(manifest: CandidateManifest): string {
 export default function AgentCandidateReviewPage() {
   const locale = useLocale();
   const copy = getCandidateReviewCopy(locale);
-  const router = useRouter();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const { profile, loading: profileLoading } = useUserProfile();
@@ -625,12 +632,6 @@ export default function AgentCandidateReviewPage() {
     locale,
     appendWorkspaceScope('/settings/agent-kit', workspaceScope),
   );
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push(localizeHref(locale, '/login'));
-    }
-  }, [loading, locale, router, user]);
 
   useEffect(() => {
     if (!profile) {
@@ -1308,7 +1309,28 @@ export default function AgentCandidateReviewPage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <SignedInAreaFrame
+        area="signed_in_free_register"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        width="5xl"
+      >
+        <PageStatePanel
+          area="signed_in_free_register"
+          title={copy.signedOutTitle}
+          description={copy.signedOutDescription}
+          actions={
+            <Button asChild>
+              <Link href={localizeHref(locale, '/login')}>
+                <LogIn className="mr-2 h-4 w-4" />
+                {copy.signIn}
+              </Link>
+            </Button>
+          }
+        />
+      </SignedInAreaFrame>
+    );
   }
 
   return (

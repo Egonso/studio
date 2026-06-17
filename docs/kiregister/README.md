@@ -56,3 +56,4 @@ Die technische Spezifikation liegt in:
 - [Candidate Review Export Sprints 29-33](./candidate-review-export-sprints-29-33.md)
 - [Audit Operator Scope Sprints 34-38](./audit-operator-scope-sprints-34-38.md)
 - [Agent Run Detail Context Sprints 39-43](./agent-run-detail-context-sprints-39-43.md)
+- [Agent Kit Signed-out QA Sprints 44-48](./agent-kit-signed-out-qa-sprints-44-48.md)

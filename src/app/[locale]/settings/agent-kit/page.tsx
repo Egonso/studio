@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
   ArrowUpRight,
   Copy,
   Inbox,
   KeyRound,
+  LogIn,
   Plus,
   RefreshCw,
   Trash2,
@@ -128,6 +128,10 @@ function getAgentKitSettingsCopy(locale: string) {
       loadingPanelTitle: 'API-Key-Bereich wird geladen',
       loadingPanelDescription:
         'Workspace, Register und bestehende Keys werden vorbereitet.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Agent-Kit-API-Keys gehören zu einem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       title: 'Agent Kit API Keys',
       description:
         'Der klare Ort für scoped Agent-Kit-API-Keys, Ziel-Register und copy-paste-fertige Einreichungsbefehle.',
@@ -245,6 +249,10 @@ function getAgentKitSettingsCopy(locale: string) {
     loadingPanelTitle: 'Loading API key area',
     loadingPanelDescription:
       'Workspace, register and existing keys are being prepared.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'Agent Kit API keys belong to an account or workspace. Sign in to open this area.',
+    signIn: 'Sign in',
     title: 'Agent Kit API keys',
     description:
       'The clear place for scoped Agent Kit API keys, target registers and ready-to-paste submission commands.',
@@ -378,7 +386,6 @@ export default function AgentKitSettingsPage() {
   const locale = useLocale();
   const { user, loading } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
-  const router = useRouter();
   const { toast } = useToast();
   const scopedHrefs = useScopedRouteHrefs();
   const workspaceScope = useWorkspaceScope();
@@ -405,12 +412,6 @@ export default function AgentKitSettingsPage() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push(localizeHref(locale, '/login'));
-    }
-  }, [loading, locale, router, user]);
 
   useEffect(() => {
     if (!profile) {
@@ -865,7 +866,28 @@ export default function AgentKitSettingsPage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <SignedInAreaFrame
+        area="signed_in_free_register"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        width="5xl"
+      >
+        <PageStatePanel
+          area="signed_in_free_register"
+          title={copy.signedOutTitle}
+          description={copy.signedOutDescription}
+          actions={
+            <Button asChild>
+              <Link href={localizeHref(locale, '/login')}>
+                <LogIn className="mr-2 h-4 w-4" />
+                {copy.signIn}
+              </Link>
+            </Button>
+          }
+        />
+      </SignedInAreaFrame>
+    );
   }
 
   return (
