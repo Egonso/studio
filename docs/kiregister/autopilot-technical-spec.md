@@ -178,6 +178,9 @@ Sprint 10 ergänzt Status-Filter in der Review-Inbox und ist dokumentiert in
 Sprint 11 ergänzt Status-Filter für Candidate-Listen-APIs und CLI und ist
 dokumentiert in
 [`docs/kiregister/candidate-api-status-filter-sprint-11.md`](./candidate-api-status-filter-sprint-11.md).
+Sprint 12 ergänzt bessere Review-Orientierung und leere Filterzustände und ist
+dokumentiert in
+[`docs/kiregister/candidate-review-orientation-sprint-12.md`](./candidate-review-orientation-sprint-12.md).
 
 Aktive Endpunkte:
 

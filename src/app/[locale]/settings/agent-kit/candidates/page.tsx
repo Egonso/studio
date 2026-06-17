@@ -180,6 +180,7 @@ function getCandidateReviewCopy(locale: string) {
         'Für dieses Register liegen keine Review-Kandidaten vor.',
       noFilteredCandidates:
         'Für diesen Status liegen keine Review-Kandidaten vor.',
+      showAllCandidates: 'Alle anzeigen',
       statusFilterAll: 'Alle',
       candidate: 'Kandidat',
       status: 'Status',
@@ -230,6 +231,14 @@ function getCandidateReviewCopy(locale: string) {
         'Der Kandidat wurde als neuer Registereintrag übernommen.',
       mergeErrorTitle: 'Kandidat konnte nicht übernommen werden',
       previousDecision: 'Bisherige Entscheidung',
+      statusNextNeedsReview:
+        'Prüfen Sie Evidenz, Dublettenhinweise und offene Fragen. Danach kann der Review akzeptiert oder abgelehnt werden.',
+      statusNextAccepted:
+        'Der Review ist akzeptiert. Prüfen Sie vor der Übernahme, ob ein bestehender Einsatzfall passt.',
+      statusNextRejected:
+        'Der Kandidat ist abgelehnt und bleibt als Review-Nachweis erhalten.',
+      statusNextMerged:
+        'Der Kandidat wurde übernommen. Die weitere Bearbeitung findet im erzeugten Einsatzfall statt.',
       statusNeedsReview: 'Review offen',
       statusAccepted: 'akzeptiert',
       statusRejected: 'abgelehnt',
@@ -267,6 +276,7 @@ function getCandidateReviewCopy(locale: string) {
       'There are no review candidates for this register.',
     noFilteredCandidates:
       'There are no review candidates for this status.',
+    showAllCandidates: 'Show all',
     statusFilterAll: 'All',
     candidate: 'Candidate',
     status: 'Status',
@@ -317,6 +327,14 @@ function getCandidateReviewCopy(locale: string) {
       'The candidate was created as a new register entry.',
     mergeErrorTitle: 'Candidate could not be created as a use case',
     previousDecision: 'Previous decision',
+    statusNextNeedsReview:
+      'Review evidence, duplicate hints and open questions. Then accept or reject the review.',
+    statusNextAccepted:
+      'The review is accepted. Before creation, check whether an existing use case already fits.',
+    statusNextRejected:
+      'The candidate is rejected and remains available as review evidence.',
+    statusNextMerged:
+      'The candidate has been created. Continue work in the generated use case.',
     statusNeedsReview: 'review open',
     statusAccepted: 'accepted',
     statusRejected: 'rejected',
@@ -370,6 +388,25 @@ function getCandidateStatusLabel(
   }
 
   return copy.statusNeedsReview;
+}
+
+function getCandidateStatusNextStep(
+  status: CandidateStatus,
+  copy: ReturnType<typeof getCandidateReviewCopy>,
+): string {
+  if (status === 'accepted') {
+    return copy.statusNextAccepted;
+  }
+
+  if (status === 'rejected') {
+    return copy.statusNextRejected;
+  }
+
+  if (status === 'merged') {
+    return copy.statusNextMerged;
+  }
+
+  return copy.statusNextNeedsReview;
 }
 
 function getManifestSystems(manifest: CandidateManifest): string {
@@ -1029,8 +1066,17 @@ export default function AgentCandidateReviewPage() {
                     </TableRow>
                   ) : filteredCandidates.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-sm text-muted-foreground">
-                        {copy.noFilteredCandidates}
+                      <TableCell colSpan={6}>
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+                          <span>{copy.noFilteredCandidates}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setStatusFilter('all')}
+                          >
+                            {copy.showAllCandidates}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1107,6 +1153,9 @@ export default function AgentCandidateReviewPage() {
                     <p className="mt-2 text-sm leading-6 text-slate-700">
                       {candidateDetail.purpose}
                     </p>
+                    <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-700">
+                      {getCandidateStatusNextStep(candidateDetail.status, copy)}
+                    </div>
                   </div>
 
                   <section className="rounded-md border border-slate-200 p-4">

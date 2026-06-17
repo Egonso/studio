@@ -48,3 +48,6 @@ Use-Case-Erzeugung. Es ist ausschließlich ein Lese- und Orientierungsfilter.
 Sprint 12 sollte die Review-Inbox nach Entscheidung oder Merge besser
 orientieren: klare Folgehinweise, bessere leere Zustände und weniger
 Verwirrung, wenn ein Filter keine Kandidaten enthält.
+
+Details:
+[`docs/kiregister/candidate-review-orientation-sprint-12.md`](./candidate-review-orientation-sprint-12.md).
