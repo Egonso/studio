@@ -95,3 +95,6 @@ Sprint 3 sollte die Candidate-Inbox bauen:
 4. KIRegister zeigt Candidate als Review-Objekt, nicht als echten Use Case
 5. Mensch entscheidet: verwerfen, zusammenführen oder als neuen Use Case
    übernehmen
+
+Sprint 3 hat diesen Server-Pfad umgesetzt. Details:
+[`docs/kiregister/candidate-inbox-sprint-3.md`](./candidate-inbox-sprint-3.md).

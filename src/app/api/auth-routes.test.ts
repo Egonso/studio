@@ -46,6 +46,8 @@ const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
 const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
 const agentOperatorUseCasesRoute = readSource("src/app/api/agent/operator/use-cases/route.ts");
 const agentOperatorUseCaseRoute = readSource("src/app/api/agent/operator/use-cases/[useCaseId]/route.ts");
+const agentOperatorCandidatesRoute = readSource("src/app/api/agent/operator/candidates/route.ts");
+const agentOperatorCandidateRoute = readSource("src/app/api/agent/operator/candidates/[candidateId]/route.ts");
 const coverageAssistConfigRoute = readSource("src/app/api/coverage-assist/config/route.ts");
 
 test("invite creation route requires workspace-admin authorization", () => {
@@ -165,4 +167,20 @@ test("agent operator routes authenticate API keys and enforce read-only scopes",
   assert.match(agentOperatorUseCaseRoute, /mode: 'read_only'/);
   assert.doesNotMatch(agentOperatorUseCaseRoute, /export async function POST/);
   assert.doesNotMatch(agentOperatorUseCaseRoute, /export async function PATCH/);
+});
+
+test("agent operator candidate routes keep candidate writes separate from use case writes", () => {
+  assert.match(agentOperatorCandidatesRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorCandidatesRoute, /'write:candidate'/);
+  assert.match(agentOperatorCandidatesRoute, /createAgentOperatorCandidate/);
+  assert.match(agentOperatorCandidatesRoute, /mode: 'candidate_review'/);
+  assert.doesNotMatch(agentOperatorCandidatesRoute, /useCases/);
+  assert.doesNotMatch(agentOperatorCandidatesRoute, /export async function PATCH/);
+
+  assert.match(agentOperatorCandidateRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorCandidateRoute, /'write:candidate'/);
+  assert.match(agentOperatorCandidateRoute, /getAgentOperatorCandidate/);
+  assert.match(agentOperatorCandidateRoute, /mode: 'candidate_review'/);
+  assert.doesNotMatch(agentOperatorCandidateRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorCandidateRoute, /export async function PATCH/);
 });

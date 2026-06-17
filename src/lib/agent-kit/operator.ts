@@ -116,7 +116,7 @@ function isLocationInRecordScope(
     : location.register.workspaceId === record.orgId;
 }
 
-function toRegisterView(
+export function toAgentOperatorRegisterView(
   record: AgentKitApiKeyRecord,
   location: ServerRegisterLocation,
 ): AgentOperatorRegisterView {
@@ -211,7 +211,7 @@ export async function listAgentOperatorRegisters(
 
   return locations
     .filter((location) => isLocationInRecordScope(record, location))
-    .map((location) => toRegisterView(record, location))
+    .map((location) => toAgentOperatorRegisterView(record, location))
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 }
 
@@ -281,7 +281,7 @@ export async function listAgentOperatorUseCases(
     .map(toAgentOperatorUseCaseSummary);
 
   return {
-    register: toRegisterView(record, location),
+    register: toAgentOperatorRegisterView(record, location),
     useCases,
     count: useCases.length,
     limit,
@@ -319,7 +319,7 @@ export async function getAgentOperatorUseCase(
   }
 
   return {
-    register: toRegisterView(record, location),
+    register: toAgentOperatorRegisterView(record, location),
     useCase: toAgentOperatorUseCaseDetail(card),
   };
 }

@@ -153,16 +153,21 @@ Sprint 1 ist als read-only Slice umgesetzt und dokumentiert in
 [`docs/kiregister/operator-api-sprint-1.md`](./operator-api-sprint-1.md).
 Sprint 2 ergänzt die lokale CLI-Nutzung und ist dokumentiert in
 [`docs/kiregister/operator-cli-sprint-2.md`](./operator-cli-sprint-2.md).
+Sprint 3 ergänzt die Candidate-Inbox als getrennten Schreibpfad und ist
+dokumentiert in
+[`docs/kiregister/candidate-inbox-sprint-3.md`](./candidate-inbox-sprint-3.md).
 
 Aktive Endpunkte:
 
 - `GET /api/agent/operator/registers`
 - `GET /api/agent/operator/use-cases`
 - `GET /api/agent/operator/use-cases/[useCaseId]`
+- `GET /api/agent/operator/candidates`
+- `GET /api/agent/operator/candidates/[candidateId]`
+- `POST /api/agent/operator/candidates`
 
 Noch nicht aktiv:
 
-- `POST /api/agent/operator/candidates`
 - `POST /api/agent/operator/runs`
 - `PATCH /api/agent/operator/runs/[runId]`
 - später: `PATCH /api/agent/operator/use-cases/[useCaseId]/review`
