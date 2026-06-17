@@ -161,6 +161,9 @@ Sprint 4 ergänzt die lokale Candidate-CLI und ist dokumentiert in
 Sprint 5 ergänzt die Agent-Kit-Key-Oberfläche um explizite Scope-Auswahl und
 ist dokumentiert in
 [`docs/kiregister/scope-ui-sprint-5.md`](./scope-ui-sprint-5.md).
+Sprint 6 ergänzt die menschliche Candidate Review Inbox und ist dokumentiert
+in
+[`docs/kiregister/candidate-review-ui-sprint-6.md`](./candidate-review-ui-sprint-6.md).
 
 Aktive Endpunkte:
 
@@ -170,11 +173,14 @@ Aktive Endpunkte:
 - `GET /api/agent/operator/candidates`
 - `GET /api/agent/operator/candidates/[candidateId]`
 - `POST /api/agent/operator/candidates`
+- `GET /api/workspaces/[orgId]/agent-kit/candidates`
+- `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
 
 Noch nicht aktiv:
 
 - `POST /api/agent/operator/runs`
 - `PATCH /api/agent/operator/runs/[runId]`
+- `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
 - später: `PATCH /api/agent/operator/use-cases/[useCaseId]/review`
 
 ### Berechtigungen

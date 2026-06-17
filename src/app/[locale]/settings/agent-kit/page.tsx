@@ -7,6 +7,7 @@ import { useLocale } from 'next-intl';
 import {
   ArrowUpRight,
   Copy,
+  Inbox,
   KeyRound,
   Plus,
   RefreshCw,
@@ -27,7 +28,10 @@ import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
-import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
+import {
+  appendWorkspaceScope,
+  buildScopedRegisterHref,
+} from '@/lib/navigation/workspace-scope';
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
 type AgentKitApiKeyScope =
@@ -125,6 +129,7 @@ function getAgentKitSettingsCopy(locale: string) {
       nextStep:
         'Erstellen Sie zuerst einen scoped Key und geben Sie ihn nur an den technischen Agent-Workflow weiter.',
       backToSettings: 'Zurück zu Einstellungen',
+      reviewInbox: 'Review-Inbox',
       publicDocs: 'Öffentliche API-Doku',
       errorPanelTitle: 'API-Key-Bereich konnte nicht geladen werden',
       reload: 'Neu laden',
@@ -234,6 +239,7 @@ function getAgentKitSettingsCopy(locale: string) {
     nextStep:
       'Create a scoped key first and share it only with the technical agent workflow.',
     backToSettings: 'Back to settings',
+    reviewInbox: 'Review inbox',
     publicDocs: 'Public API docs',
     errorPanelTitle: 'API key area could not be loaded',
     reload: 'Reload',
@@ -359,6 +365,10 @@ export default function AgentKitSettingsPage() {
   const workspaceScope = useWorkspaceScope();
   const copy = getAgentKitSettingsCopy(locale);
   const developersAgentKitHref = localizeHref(locale, '/developers/agent-kit');
+  const candidateReviewHref = localizeHref(
+    locale,
+    appendWorkspaceScope('/settings/agent-kit/candidates', workspaceScope),
+  );
 
   const [workspaceId, setWorkspaceIdState] = useState<string | null>(null);
   const [workspaceOptions, setWorkspaceOptions] = useState<AgentKitScopeOption[]>([]);
@@ -830,6 +840,12 @@ export default function AgentKitSettingsPage() {
         <>
           <Button asChild variant="outline">
             <Link href={scopedHrefs.settings}>{copy.backToSettings}</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href={candidateReviewHref}>
+              <Inbox className="mr-2 h-4 w-4" />
+              {copy.reviewInbox}
+            </Link>
           </Button>
           <Button asChild variant="outline">
             <Link href={developersAgentKitHref}>{copy.publicDocs}</Link>

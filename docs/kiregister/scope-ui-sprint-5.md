@@ -64,9 +64,12 @@ Die Umsetzung bleibt charta-konform:
 
 ## Nächster Sprint
 
-Sprint 6 sollte die menschliche Review-Inbox anbinden:
+Sprint 6 bindet die menschliche Review-Inbox an:
 
-1. user-authentifizierte Candidate-Liste für Workspace-/Register-Mitglieder
+1. user-authentifizierte Candidate-Liste für persönliche Register und Workspace-Reviewer
 2. ruhige Detailansicht mit Manifest, Evidenz, Blockern und Review-Fragen
 3. noch keine Übernahme in echte Use Cases
 4. erst danach eine separat geprüfte Aktion `Als Einsatzfall übernehmen`
+
+Details:
+[`docs/kiregister/candidate-review-ui-sprint-6.md`](./candidate-review-ui-sprint-6.md).

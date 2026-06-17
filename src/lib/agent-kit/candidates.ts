@@ -5,10 +5,14 @@ import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 
 import { db } from '@/lib/firebase-admin';
-import type { AgentKitApiKeyRecord } from '@/lib/agent-kit/api-keys';
+import {
+  isPersonalAgentKitScope,
+  type AgentKitApiKeyRecord,
+} from '@/lib/agent-kit/api-keys';
 import {
   resolveAgentOperatorRegisterLocation,
   toAgentOperatorRegisterView,
+  toAgentOperatorRegisterViewForLocation,
   type AgentOperatorRegisterView,
 } from '@/lib/agent-kit/operator';
 import {
@@ -213,6 +217,14 @@ function toSummary(
   };
 }
 
+function getCandidateScopeTypeForRecord(
+  record: AgentKitApiKeyRecord,
+): AgentOperatorRegisterView['scopeType'] {
+  return isPersonalAgentKitScope(record.orgId, record.createdByUserId)
+    ? 'personal'
+    : 'workspace';
+}
+
 export function buildAgentOperatorCandidateRecord(input: {
   payload: AgentOperatorCandidatePayload;
   location: ServerRegisterLocation;
@@ -370,10 +382,22 @@ export async function listAgentOperatorCandidates(input: {
     return null;
   }
 
+  return listAgentOperatorCandidatesForLocation({
+    location,
+    scopeType: getCandidateScopeTypeForRecord(input.record),
+    limit: input.limit,
+  });
+}
+
+export async function listAgentOperatorCandidatesForLocation(input: {
+  location: ServerRegisterLocation;
+  scopeType: AgentOperatorRegisterView['scopeType'];
+  limit?: number | null;
+}): Promise<AgentOperatorCandidateListResult> {
   const limit = normalizeLimit(input.limit);
   const snapshot = await db
     .collection(
-      `users/${location.ownerId}/registers/${location.registerId}/agentCandidates`,
+      `users/${input.location.ownerId}/registers/${input.location.registerId}/agentCandidates`,
     )
     .orderBy('updatedAt', 'desc')
     .limit(limit)
@@ -385,7 +409,7 @@ export async function listAgentOperatorCandidates(input: {
         return parseAgentOperatorCandidateRecord(document.data());
       } catch (error) {
         console.warn('Skipping invalid operator candidate', {
-          registerId: location.registerId,
+          registerId: input.location.registerId,
           documentId: document.id,
           error,
         });
@@ -399,7 +423,10 @@ export async function listAgentOperatorCandidates(input: {
     .map(toSummary);
 
   return {
-    register: toAgentOperatorRegisterView(input.record, location),
+    register: toAgentOperatorRegisterViewForLocation(
+      input.location,
+      input.scopeType,
+    ),
     candidates,
     count: candidates.length,
     limit,
@@ -419,9 +446,21 @@ export async function getAgentOperatorCandidate(input: {
     return null;
   }
 
+  return getAgentOperatorCandidateForLocation({
+    location,
+    scopeType: getCandidateScopeTypeForRecord(input.record),
+    candidateId: input.candidateId,
+  });
+}
+
+export async function getAgentOperatorCandidateForLocation(input: {
+  location: ServerRegisterLocation;
+  scopeType: AgentOperatorRegisterView['scopeType'];
+  candidateId: string;
+}): Promise<AgentOperatorCandidateDetailResult | null> {
   const snapshot = await db
     .doc(
-      `users/${location.ownerId}/registers/${location.registerId}/agentCandidates/${input.candidateId}`,
+      `users/${input.location.ownerId}/registers/${input.location.registerId}/agentCandidates/${input.candidateId}`,
     )
     .get();
   if (!snapshot.exists) {
@@ -429,7 +468,10 @@ export async function getAgentOperatorCandidate(input: {
   }
 
   return {
-    register: toAgentOperatorRegisterView(input.record, location),
+    register: toAgentOperatorRegisterViewForLocation(
+      input.location,
+      input.scopeType,
+    ),
     candidate: parseAgentOperatorCandidateRecord(snapshot.data()),
   };
 }

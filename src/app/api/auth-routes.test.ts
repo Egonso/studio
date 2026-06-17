@@ -42,6 +42,9 @@ const workspaceExternalSubmissionItemRoute = readSource("src/app/api/workspaces/
 const workspaceRegisterLinkRoute = readSource("src/app/api/workspaces/[orgId]/registers/link/route.ts");
 const workspaceAgentKitKeysRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/keys/route.ts");
 const workspaceAgentKitKeyItemRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/keys/[keyId]/route.ts");
+const workspaceAgentKitCandidatesRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/route.ts");
+const workspaceAgentKitCandidateItemRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/route.ts");
+const agentKitCandidateReviewAuth = readSource("src/lib/agent-kit/candidate-review-auth.ts");
 const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
 const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
 const agentOperatorUseCasesRoute = readSource("src/app/api/agent/operator/use-cases/route.ts");
@@ -121,6 +124,8 @@ test("workspace enterprise routes enforce member, admin, and reviewer auth on th
   assert.match(workspaceAgentKitKeysRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceAgentKitKeyItemRoute, /requireUser\(/);
   assert.match(workspaceAgentKitKeyItemRoute, /requireWorkspaceMember\(/);
+  assert.match(workspaceAgentKitCandidatesRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitCandidateItemRoute, /authorizeAgentOperatorCandidateReview\(/);
 });
 
 test("billing and workspace register routes use scope-aware register lookup hints", () => {
@@ -183,4 +188,22 @@ test("agent operator candidate routes keep candidate writes separate from use ca
   assert.match(agentOperatorCandidateRoute, /mode: 'candidate_review'/);
   assert.doesNotMatch(agentOperatorCandidateRoute, /export async function POST/);
   assert.doesNotMatch(agentOperatorCandidateRoute, /export async function PATCH/);
+});
+
+test("workspace agent candidate review routes are read-only human review paths", () => {
+  assert.match(agentKitCandidateReviewAuth, /requireUser\(/);
+  assert.match(agentKitCandidateReviewAuth, /requireWorkspaceReviewer\(/);
+  assert.match(agentKitCandidateReviewAuth, /findRegisterLocationById\(/);
+
+  assert.match(workspaceAgentKitCandidatesRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitCandidatesRoute, /listAgentOperatorCandidatesForLocation/);
+  assert.doesNotMatch(workspaceAgentKitCandidatesRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitCandidatesRoute, /export async function PATCH/);
+  assert.doesNotMatch(workspaceAgentKitCandidatesRoute, /createAgentOperatorCandidate/);
+
+  assert.match(workspaceAgentKitCandidateItemRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitCandidateItemRoute, /getAgentOperatorCandidateForLocation/);
+  assert.doesNotMatch(workspaceAgentKitCandidateItemRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitCandidateItemRoute, /export async function PATCH/);
+  assert.doesNotMatch(workspaceAgentKitCandidateItemRoute, /createAgentOperatorCandidate/);
 });

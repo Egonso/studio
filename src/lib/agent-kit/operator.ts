@@ -116,9 +116,9 @@ function isLocationInRecordScope(
     : location.register.workspaceId === record.orgId;
 }
 
-export function toAgentOperatorRegisterView(
-  record: AgentKitApiKeyRecord,
+export function toAgentOperatorRegisterViewForLocation(
   location: ServerRegisterLocation,
+  scopeType: AgentOperatorRegisterView['scopeType'],
 ): AgentOperatorRegisterView {
   const register = location.register;
   return {
@@ -129,8 +129,18 @@ export function toAgentOperatorRegisterView(
     workspaceId: register.workspaceId ?? null,
     createdAt: register.createdAt,
     ownerId: location.ownerId,
-    scopeType: isPersonalScope(record) ? 'personal' : 'workspace',
+    scopeType,
   };
+}
+
+export function toAgentOperatorRegisterView(
+  record: AgentKitApiKeyRecord,
+  location: ServerRegisterLocation,
+): AgentOperatorRegisterView {
+  return toAgentOperatorRegisterViewForLocation(
+    location,
+    isPersonalScope(record) ? 'personal' : 'workspace',
+  );
 }
 
 function useCaseMatchesSearch(
