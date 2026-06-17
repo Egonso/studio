@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ActionQueue } from '@/components/control/action-queue';
 import { ControlKpiHeader } from '@/components/control/control-kpi-header';
 import { ControlMaturityPanel } from '@/components/control/control-maturity-panel';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ import {
   CONTROL_REVIEW_DUE_WINDOW_DAYS,
 } from '@/lib/control/maturity-calculator';
 import { getCourseProgress } from '@/lib/data-service';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import { registerService } from '@/lib/register-first/register-service';
@@ -63,6 +65,10 @@ function getControlPageCopy(locale: string) {
         'Kennzahlen, Prioritäten und Reifegrad werden vorbereitet.',
       loadingPanelDescriptionControl:
         'Governance-Kennzahlen, Action Queue und Reifegrad werden vorbereitet.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Control-Ansichten gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       frameDescriptionReportWithOrg:
         'Der aktuelle Bericht für {organisation}. Kennzahlen, Prioritäten und Reifegrad basieren direkt auf Ihrem Register.',
       frameDescriptionControlWithOrg:
@@ -162,6 +168,10 @@ function getControlPageCopy(locale: string) {
       'Metrics, priorities and maturity are being prepared.',
     loadingPanelDescriptionControl:
       'Governance metrics, action queue and maturity are being prepared.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'Control views belong to your account or workspace. Sign in to open this area.',
+    signIn: 'Sign in',
     frameDescriptionReportWithOrg:
       'The current report for {organisation}. Metrics, priorities and maturity are based directly on your register.',
     frameDescriptionControlWithOrg:
@@ -250,7 +260,6 @@ export default function ControlPage() {
   const t = useTranslations();
   const copy = useMemo(() => getControlPageCopy(locale), [locale]);
   const { user, loading } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const scopedHrefs = useScopedRouteHrefs();
   const { plan, allowed: canOpenReviews, loading: entitlementLoading } =
@@ -270,12 +279,6 @@ export default function ControlPage() {
   );
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
 
   const loadControlSnapshot = useCallback(async () => {
     setIsDataLoading(true);
@@ -409,7 +412,23 @@ export default function ControlPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    const controlSearch = searchParams?.toString() ?? '';
+    const controlPath = controlSearch ? `/control?${controlSearch}` : '/control';
+
+    return (
+      <ProtectedAreaGate
+        area={frameArea}
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, controlPath),
+        })}
+        signInLabel={copy.signIn}
+      />
+    );
+  }
 
   return (
     <SignedInAreaFrame

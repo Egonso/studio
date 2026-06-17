@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ControlPolicyEngine } from '@/components/control/control-policy-engine';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { trackControlOpened } from '@/lib/analytics/control-events';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import {
@@ -63,7 +63,6 @@ export default function ControlPoliciesPage() {
   const t = useTranslations();
   const locale = useLocale();
   const { user, loading } = useAuth();
-  const router = useRouter();
   const {
     allowed: policyAllowed,
     loading: capabilityLoading,
@@ -76,12 +75,6 @@ export default function ControlPoliciesPage() {
   const registerHref = localizeHref(locale, ROUTE_HREFS.register);
   const controlHref = localizeHref(locale, ROUTE_HREFS.control);
   const governanceUpgradeHref = localizeHref(locale, ROUTE_HREFS.governanceUpgrade);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
 
   useEffect(() => {
     if (
@@ -192,7 +185,24 @@ export default function ControlPoliciesPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={locale === 'de' ? 'Anmeldung erforderlich' : 'Sign-in required'}
+        description={
+          locale === 'de'
+            ? 'Policy-Steuerung gehört zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.'
+            : 'Policy controls belong to your account or workspace. Sign in to open this area.'
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, ROUTE_HREFS.controlPolicies),
+        })}
+        signInLabel={locale === 'de' ? 'Anmelden' : 'Sign in'}
+      />
+    );
+  }
 
   return (
     <SignedInAreaFrame

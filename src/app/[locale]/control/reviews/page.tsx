@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
 import { ActionQueue } from '@/components/control/action-queue';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { buildControlActionQueue } from '@/lib/control/action-queue-engine';
 import { calculateControlOverview } from '@/lib/control/maturity-calculator';
@@ -41,6 +41,10 @@ function getReviewsPageCopy(locale: string) {
       loadingPanelTitle: 'Reviews werden geladen',
       loadingPanelDescription:
         'Action Queue, fällige Reviews und Governance-Fristen werden vorbereitet.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Review-Workflows gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       frameDescriptionWithOrg:
         'Priorisierte Review-Arbeit für {organisation}.',
       frameDescription:
@@ -79,6 +83,10 @@ function getReviewsPageCopy(locale: string) {
     loadingPanelTitle: 'Loading reviews',
     loadingPanelDescription:
       'Action queue, due reviews and governance deadlines are being prepared.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'Review workflows belong to your account or workspace. Sign in to open this area.',
+    signIn: 'Sign in',
     frameDescriptionWithOrg:
       'Prioritised review work for {organisation}.',
     frameDescription:
@@ -113,7 +121,6 @@ export default function ControlReviewsPage() {
   const { user, loading } = useAuth();
   const locale = useLocale();
   const copy = useMemo(() => getReviewsPageCopy(locale), [locale]);
-  const router = useRouter();
   const {
     allowed: reviewAllowed,
     loading: capabilityLoading,
@@ -122,12 +129,6 @@ export default function ControlReviewsPage() {
   const [snapshot, setSnapshot] = useState<ReviewSnapshot | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
 
   const loadReviewSnapshot = useCallback(async () => {
     setIsDataLoading(true);
@@ -205,7 +206,20 @@ export default function ControlReviewsPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, ROUTE_HREFS.controlReviews),
+        })}
+        signInLabel={copy.signIn}
+      />
+    );
+  }
 
   return (
     <SignedInAreaFrame

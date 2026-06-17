@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { ControlExportCenter } from '@/components/control/control-export-center';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { trackControlOpened } from '@/lib/analytics/control-events';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import {
   buildOrgExportArtifacts,
   type OrgExportArtifact,
@@ -33,7 +33,6 @@ interface ExportSnapshot {
 export default function ControlExportsPage() {
   const { user, loading } = useAuth();
   const locale = useLocale();
-  const router = useRouter();
   const {
     allowed: exportAllowed,
     loading: capabilityLoading,
@@ -46,12 +45,6 @@ export default function ControlExportsPage() {
   const registerHref = localizeHref(locale, ROUTE_HREFS.register);
   const controlHref = localizeHref(locale, ROUTE_HREFS.control);
   const governanceUpgradeHref = localizeHref(locale, ROUTE_HREFS.governanceUpgrade);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
 
   useEffect(() => {
     if (!registerFirstFlags.controlAnalytics) return;
@@ -154,7 +147,24 @@ export default function ControlExportsPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={locale === 'de' ? 'Anmeldung erforderlich' : 'Sign-in required'}
+        description={
+          locale === 'de'
+            ? 'Export- und Audit-Artefakte gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.'
+            : 'Export and audit artifacts belong to your account or workspace. Sign in to open this area.'
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, ROUTE_HREFS.controlExports),
+        })}
+        signInLabel={locale === 'de' ? 'Anmelden' : 'Sign in'}
+      />
+    );
+  }
 
   return (
     <SignedInAreaFrame

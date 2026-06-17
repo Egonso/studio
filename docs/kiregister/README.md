@@ -60,3 +60,4 @@ Die technische Spezifikation liegt in:
 - [Protected Area Gate Sprints 49-53](./protected-area-gate-sprints-49-53.md)
 - [Protected Login Return Sprints 54-58](./protected-login-return-sprints-54-58.md)
 - [Settings Protected Gate Sprints 59-63](./settings-protected-gate-sprints-59-63.md)
+- [Control Protected Gate Sprints 64-68](./control-protected-gate-sprints-64-68.md)

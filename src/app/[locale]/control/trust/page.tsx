@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { ExternalLink, Globe } from 'lucide-react';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
@@ -41,6 +41,10 @@ function getTrustPageCopy(locale: string) {
       loadingPanelTitle: 'Trust Portal wird geladen',
       loadingPanelDescription:
         'Öffentliche Nachweise und Disclosure-Daten werden vorbereitet.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Trust-Portal-Steuerung gehört zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.',
+      signIn: 'Anmelden',
       frameDescriptionWithOrg:
         'Öffentliche Trust-Signale für {organisation}.',
       frameDescription:
@@ -86,6 +90,10 @@ function getTrustPageCopy(locale: string) {
     loadingPanelTitle: 'Loading trust portal',
     loadingPanelDescription:
       'Public evidence and disclosure data are being prepared.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'Trust portal controls belong to your account or workspace. Sign in to open this area.',
+    signIn: 'Sign in',
     frameDescriptionWithOrg:
       'Public trust signals for {organisation}.',
     frameDescription:
@@ -127,7 +135,6 @@ export default function ControlTrustPage() {
   const { user, loading } = useAuth();
   const locale = useLocale();
   const copy = useMemo(() => getTrustPageCopy(locale), [locale]);
-  const router = useRouter();
   const {
     allowed: trustAllowed,
     loading: capabilityLoading,
@@ -136,12 +143,6 @@ export default function ControlTrustPage() {
   const [snapshot, setSnapshot] = useState<TrustSnapshot | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, user, router]);
 
   const loadTrustData = useCallback(async () => {
     setIsDataLoading(true);
@@ -220,7 +221,20 @@ export default function ControlTrustPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, ROUTE_HREFS.controlTrust),
+        })}
+        signInLabel={copy.signIn}
+      />
+    );
+  }
 
   return (
     <SignedInAreaFrame
