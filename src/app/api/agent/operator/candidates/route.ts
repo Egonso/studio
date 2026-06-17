@@ -7,6 +7,7 @@ import {
   mapAgentKitAuthenticationError,
 } from '@/lib/agent-kit/operator-auth';
 import {
+  AGENT_OPERATOR_CANDIDATE_STATUS_VALUES,
   agentOperatorCandidatePayloadSchema,
   createAgentOperatorCandidate,
   listAgentOperatorCandidates,
@@ -15,6 +16,7 @@ import { touchAgentOperatorReadUsage } from '@/lib/agent-kit/operator';
 
 const candidateListQuerySchema = z.object({
   registerId: z.string().trim().min(1).max(200),
+  status: z.enum(AGENT_OPERATOR_CANDIDATE_STATUS_VALUES).optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
 });
 
@@ -45,11 +47,13 @@ export async function GET(req: NextRequest) {
 
     const query = candidateListQuerySchema.parse({
       registerId: req.nextUrl.searchParams.get('registerId') ?? undefined,
+      status: req.nextUrl.searchParams.get('status') ?? undefined,
       limit: req.nextUrl.searchParams.get('limit') ?? undefined,
     });
     const result = await listAgentOperatorCandidates({
       record: authentication.record,
       registerId: query.registerId,
+      status: query.status,
       limit: query.limit,
     });
 

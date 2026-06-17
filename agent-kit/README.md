@@ -137,6 +137,7 @@ export KI_REGISTER_REGISTER_ID="reg_123"
 node ./bin/studio-agent.mjs operator registers --json
 node ./bin/studio-agent.mjs operator use-cases --json
 node ./bin/studio-agent.mjs operator use-case uc_123 --json
+node ./bin/studio-agent.mjs operator candidates --status needs_review --json
 ```
 
 To hand a reviewed local manifest into the Candidate Inbox instead of creating a

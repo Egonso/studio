@@ -151,6 +151,8 @@ function startMockOperatorServer() {
       }
 
       assert.equal(url.searchParams.get("registerId"), "reg_smoke");
+      assert.equal(url.searchParams.get("status"), "needs_review");
+      assert.equal(url.searchParams.get("limit"), "1");
       response.end(
         JSON.stringify({
           mode: "candidate_review",
@@ -381,7 +383,19 @@ async function main() {
     assert.equal(operatorUseCase.useCase.useCaseId, "uc_smoke");
 
     const operatorCandidates = JSON.parse(
-      await runCliAsync(["operator", "candidates", "--json"], workspace, operatorEnv),
+      await runCliAsync(
+        [
+          "operator",
+          "candidates",
+          "--status",
+          "needs_review",
+          "--limit",
+          "1",
+          "--json",
+        ],
+        workspace,
+        operatorEnv,
+      ),
     );
     assert.equal(operatorCandidates.ok, true);
     assert.equal(operatorCandidates.candidates[0].candidateId, "cand_smoke");

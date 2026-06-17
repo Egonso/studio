@@ -79,6 +79,12 @@ const REGISTER_USE_CASE_STATUS_VALUES = [
   "REVIEWED",
   "PROOF_READY",
 ];
+const AGENT_CANDIDATE_STATUS_VALUES = [
+  "needs_review",
+  "accepted",
+  "rejected",
+  "merged",
+];
 
 const USAGE_CONTEXT_ALIASES = Object.freeze({
   internal: "INTERNAL_ONLY",
@@ -178,7 +184,7 @@ function printHelp() {
     "  --endpoint <url>        Agent Kit submit API endpoint",
     "  --operator-endpoint <url> Agent Operator API base endpoint",
     "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
-    "  --status <value>        Optional operator use-case status filter",
+    "  --status <value>        Optional operator use-case or candidate status filter",
     "  --search-text <value>   Optional operator use-case text filter",
     "  --limit <number>        Optional operator use-case list limit",
     "  --cadence <value>       Autopilot cadence: manual, daily, every-3-days, weekly",
@@ -1829,10 +1835,11 @@ async function getOperatorUseCase({ endpoint, apiKey, registerId, useCaseId }) {
   });
 }
 
-async function getOperatorCandidates({ endpoint, apiKey, registerId, limit }) {
+async function getOperatorCandidates({ endpoint, apiKey, registerId, status, limit }) {
   return requestJson({
     endpoint: buildOperatorUrl(endpoint, "candidates", {
       registerId,
+      status,
       limit,
     }),
     apiKey,
@@ -2601,6 +2608,12 @@ async function runOperator(flags, positionals) {
     const defaults = await resolveOperatorDefaults(flags, config, {
       requireRegisterId: true,
     });
+    const status = normalizeChoice(
+      flags.status,
+      AGENT_CANDIDATE_STATUS_VALUES,
+      undefined,
+      "--status",
+    );
     const limit = normalizeText(flags.limit);
     if (limit && (!Number.isInteger(Number(limit)) || Number(limit) < 1)) {
       throw new Error("--limit must be a positive integer.");
@@ -2608,6 +2621,7 @@ async function runOperator(flags, positionals) {
 
     const response = await getOperatorCandidates({
       ...defaults,
+      status,
       limit,
     });
     const candidates = Array.isArray(response?.candidates)

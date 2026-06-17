@@ -35,3 +35,6 @@ Der Filter ist bewusst eine Arbeitsansicht:
 
 Sprint 11 sollte denselben Statusfilter serverseitig verfügbar machen, damit
 größere Register nicht immer die komplette Candidate-Liste laden müssen.
+
+Details:
+[`docs/kiregister/candidate-api-status-filter-sprint-11.md`](./candidate-api-status-filter-sprint-11.md).

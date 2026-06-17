@@ -175,6 +175,9 @@ in
 [`docs/kiregister/candidate-duplicate-gate-sprint-9.md`](./candidate-duplicate-gate-sprint-9.md).
 Sprint 10 ergänzt Status-Filter in der Review-Inbox und ist dokumentiert in
 [`docs/kiregister/candidate-status-filter-sprint-10.md`](./candidate-status-filter-sprint-10.md).
+Sprint 11 ergänzt Status-Filter für Candidate-Listen-APIs und CLI und ist
+dokumentiert in
+[`docs/kiregister/candidate-api-status-filter-sprint-11.md`](./candidate-api-status-filter-sprint-11.md).
 
 Aktive Endpunkte:
 

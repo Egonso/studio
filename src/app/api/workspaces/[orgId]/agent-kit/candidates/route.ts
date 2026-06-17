@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import {
+  AGENT_OPERATOR_CANDIDATE_STATUS_VALUES,
   listAgentOperatorCandidatesForLocation,
+  type AgentOperatorCandidateStatus,
 } from '@/lib/agent-kit/candidates';
 import {
   authorizeAgentOperatorCandidateReview,
@@ -35,6 +37,23 @@ function parseLimit(value: string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function parseStatus(value: string | null): AgentOperatorCandidateStatus | null {
+  const normalized = value?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  if (
+    AGENT_OPERATOR_CANDIDATE_STATUS_VALUES.includes(
+      normalized as AgentOperatorCandidateStatus,
+    )
+  ) {
+    return normalized as AgentOperatorCandidateStatus;
+  }
+
+  throw new ServerAuthError('Ungültiger Kandidatenstatus.', 400);
+}
+
 export async function GET(req: NextRequest, context: RouteContext) {
   const { orgId } = await context.params;
   const registerId = req.nextUrl.searchParams.get('registerId')?.trim();
@@ -63,6 +82,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
     const result = await listAgentOperatorCandidatesForLocation({
       location: authorization.location,
       scopeType: authorization.scopeType,
+      status: parseStatus(req.nextUrl.searchParams.get('status')),
       limit: parseLimit(req.nextUrl.searchParams.get('limit')),
     });
 

@@ -435,6 +435,7 @@ export async function createAgentOperatorCandidate(input: {
 export async function listAgentOperatorCandidates(input: {
   record: AgentKitApiKeyRecord;
   registerId: string;
+  status?: AgentOperatorCandidateStatus | null;
   limit?: number | null;
 }): Promise<AgentOperatorCandidateListResult | null> {
   const location = await resolveAgentOperatorRegisterLocation(
@@ -448,6 +449,7 @@ export async function listAgentOperatorCandidates(input: {
   return listAgentOperatorCandidatesForLocation({
     location,
     scopeType: getCandidateScopeTypeForRecord(input.record),
+    status: input.status,
     limit: input.limit,
   });
 }
@@ -455,6 +457,7 @@ export async function listAgentOperatorCandidates(input: {
 export async function listAgentOperatorCandidatesForLocation(input: {
   location: ServerRegisterLocation;
   scopeType: AgentOperatorRegisterView['scopeType'];
+  status?: AgentOperatorCandidateStatus | null;
   limit?: number | null;
 }): Promise<AgentOperatorCandidateListResult> {
   const limit = normalizeLimit(input.limit);
@@ -482,6 +485,9 @@ export async function listAgentOperatorCandidatesForLocation(input: {
     .filter(
       (candidate): candidate is AgentOperatorCandidateRecord =>
         candidate !== null,
+    )
+    .filter((candidate) =>
+      input.status ? candidate.status === input.status : true,
     )
     .map(toSummary);
 
