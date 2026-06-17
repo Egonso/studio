@@ -34,6 +34,12 @@ import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-sess
 type CandidateStatus = 'needs_review' | 'accepted' | 'rejected' | 'merged';
 type CandidateStatusFilter = 'all' | CandidateStatus;
 type CandidateStatusCounts = Record<CandidateStatus, number>;
+type AgentRunStatus =
+  | 'running'
+  | 'needs_review'
+  | 'no_candidates'
+  | 'completed'
+  | 'failed';
 
 interface RegisterOption {
   registerId: string;
@@ -176,6 +182,33 @@ interface CandidateMergePreviewResponse {
   };
 }
 
+interface AgentRunSummary {
+  runId: string;
+  registerId: string;
+  status: AgentRunStatus;
+  mode: string | null;
+  cadence: string | null;
+  startedAt: string;
+  completedAt: string | null;
+  sourceCount: number;
+  evidenceCount: number;
+  candidateCount: number;
+  reviewQuestionCount: number;
+  skippedSourceCount: number;
+  error: string | null;
+  source: {
+    agent: string;
+    localRunPath: string | null;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AgentRunListResponse {
+  runs: AgentRunSummary[];
+  count: number;
+}
+
 function createEmptyCandidateStatusCounts(): CandidateStatusCounts {
   return {
     needs_review: 0,
@@ -211,6 +244,20 @@ function getCandidateReviewCopy(locale: string) {
       candidates: 'Review-Kandidaten',
       candidatesDesc:
         'Kandidaten sind Agentenvorschläge. Sie sind noch keine echten Use Cases.',
+      agentRuns: 'Agent-Läufe',
+      agentRunsDesc:
+        'Laufprotokolle zeigen, aus welchem lokalen Agentenlauf Kandidaten entstanden sind.',
+      noAgentRuns:
+        'Für dieses Register sind noch keine Agent-Läufe dokumentiert.',
+      activeRunFilter: 'Aktiver Lauf-Filter',
+      showRunCandidates: 'Kandidaten anzeigen',
+      clearRunFilter: 'Lauf-Filter entfernen',
+      run: 'Lauf',
+      runStatusRunning: 'läuft',
+      runStatusNeedsReview: 'Review offen',
+      runStatusNoCandidates: 'keine Kandidaten',
+      runStatusCompleted: 'abgeschlossen',
+      runStatusFailed: 'fehlgeschlagen',
       noCandidates:
         'Für dieses Register liegen keine Review-Kandidaten vor.',
       noFilteredCandidates:
@@ -315,6 +362,20 @@ function getCandidateReviewCopy(locale: string) {
     candidates: 'Review candidates',
     candidatesDesc:
       'Candidates are agent proposals. They are not real use cases yet.',
+    agentRuns: 'Agent runs',
+    agentRunsDesc:
+      'Run protocols show which local agent run created candidates.',
+    noAgentRuns:
+      'No agent runs have been documented for this register yet.',
+    activeRunFilter: 'Active run filter',
+    showRunCandidates: 'Show candidates',
+    clearRunFilter: 'Clear run filter',
+    run: 'Run',
+    runStatusRunning: 'running',
+    runStatusNeedsReview: 'needs review',
+    runStatusNoCandidates: 'no candidates',
+    runStatusCompleted: 'completed',
+    runStatusFailed: 'failed',
     noCandidates:
       'There are no review candidates for this register.',
     noFilteredCandidates:
@@ -460,6 +521,29 @@ function getCandidateStatusNextStep(
   return copy.statusNextNeedsReview;
 }
 
+function getAgentRunStatusLabel(
+  status: AgentRunStatus,
+  copy: ReturnType<typeof getCandidateReviewCopy>,
+): string {
+  if (status === 'running') {
+    return copy.runStatusRunning;
+  }
+
+  if (status === 'needs_review') {
+    return copy.runStatusNeedsReview;
+  }
+
+  if (status === 'no_candidates') {
+    return copy.runStatusNoCandidates;
+  }
+
+  if (status === 'failed') {
+    return copy.runStatusFailed;
+  }
+
+  return copy.runStatusCompleted;
+}
+
 function getManifestSystems(manifest: CandidateManifest): string {
   const systems = manifest.systems
     ?.map((system) => system.name ?? system.toolFreeText ?? system.toolId ?? null)
@@ -482,6 +566,8 @@ export default function AgentCandidateReviewPage() {
   const [registers, setRegisters] = useState<RegisterOption[]>([]);
   const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
   const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
+  const [agentRuns, setAgentRuns] = useState<AgentRunSummary[]>([]);
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
   const [candidateStatusCounts, setCandidateStatusCounts] =
     useState<CandidateStatusCounts>(() => createEmptyCandidateStatusCounts());
@@ -492,6 +578,7 @@ export default function AgentCandidateReviewPage() {
     useState<CandidateMergePreviewResponse['preview'] | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>('all');
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoadingRuns, setIsLoadingRuns] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
@@ -598,6 +685,8 @@ export default function AgentCandidateReviewPage() {
   const loadWorkspaceData = useCallback(async () => {
     if (!workspaceId) {
       setRegisters([]);
+      setAgentRuns([]);
+      setSelectedRunId(null);
       setCandidates([]);
       setCandidateDetail(null);
       return;
@@ -625,6 +714,37 @@ export default function AgentCandidateReviewPage() {
     }
   }, [authFetch, copy.loadFallback, workspaceId]);
 
+  const loadAgentRuns = useCallback(async () => {
+    if (!workspaceId || !selectedRegisterId) {
+      setAgentRuns([]);
+      setSelectedRunId(null);
+      return;
+    }
+
+    setIsLoadingRuns(true);
+    try {
+      const params = new URLSearchParams({
+        registerId: selectedRegisterId,
+        limit: '10',
+      });
+      const response = await authFetch(
+        `/api/workspaces/${workspaceId}/agent-kit/runs?${params.toString()}`,
+      );
+      const payload = (await response.json()) as AgentRunListResponse;
+      setAgentRuns(payload.runs);
+      setSelectedRunId((current) =>
+        current && payload.runs.some((run) => run.runId === current)
+          ? current
+          : null,
+      );
+    } catch (loadError) {
+      console.error('Failed to load agent runs', loadError);
+      setAgentRuns([]);
+    } finally {
+      setIsLoadingRuns(false);
+    }
+  }, [authFetch, selectedRegisterId, workspaceId]);
+
   const loadCandidates = useCallback(async () => {
     if (!workspaceId || !selectedRegisterId) {
       setCandidates([]);
@@ -645,6 +765,9 @@ export default function AgentCandidateReviewPage() {
       });
       if (statusFilter !== 'all') {
         params.set('status', statusFilter);
+      }
+      if (selectedRunId) {
+        params.set('runId', selectedRunId);
       }
       const response = await authFetch(
         `/api/workspaces/${workspaceId}/agent-kit/candidates?${params.toString()}`,
@@ -674,7 +797,14 @@ export default function AgentCandidateReviewPage() {
     } finally {
       setIsLoadingData(false);
     }
-  }, [authFetch, copy.loadFallback, selectedRegisterId, statusFilter, workspaceId]);
+  }, [
+    authFetch,
+    copy.loadFallback,
+    selectedRegisterId,
+    selectedRunId,
+    statusFilter,
+    workspaceId,
+  ]);
 
   const loadCandidateDetail = useCallback(async () => {
     if (!workspaceId || !selectedRegisterId || !selectedCandidateId) {
@@ -874,6 +1004,19 @@ export default function AgentCandidateReviewPage() {
   }, [loadWorkspaceData, loading, profileLoading, user, workspaceId]);
 
   useEffect(() => {
+    if (!loading && !profileLoading && user && workspaceId && selectedRegisterId) {
+      void loadAgentRuns();
+    }
+  }, [
+    loadAgentRuns,
+    loading,
+    profileLoading,
+    selectedRegisterId,
+    user,
+    workspaceId,
+  ]);
+
+  useEffect(() => {
     if (!loading && !profileLoading && user && workspaceId) {
       void loadCandidates();
     }
@@ -910,6 +1053,10 @@ export default function AgentCandidateReviewPage() {
   const selectedWorkspace = useMemo(
     () => workspaceOptions.find((workspace) => workspace.orgId === workspaceId) ?? null,
     [workspaceId, workspaceOptions],
+  );
+  const selectedRun = useMemo(
+    () => agentRuns.find((run) => run.runId === selectedRunId) ?? null,
+    [agentRuns, selectedRunId],
   );
   const selectedCandidate = useMemo(
     () =>
@@ -987,6 +1134,8 @@ export default function AgentCandidateReviewPage() {
   const handleWorkspaceChange = (nextWorkspaceId: string) => {
     setWorkspaceId(nextWorkspaceId);
     setSelectedRegisterId(null);
+    setAgentRuns([]);
+    setSelectedRunId(null);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
     setDuplicateReviewConfirmed(false);
@@ -994,6 +1143,8 @@ export default function AgentCandidateReviewPage() {
 
   const handleRegisterChange = (nextRegisterId: string) => {
     setSelectedRegisterId(nextRegisterId);
+    setAgentRuns([]);
+    setSelectedRunId(null);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
     setDuplicateReviewConfirmed(false);
@@ -1131,6 +1282,92 @@ export default function AgentCandidateReviewPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{copy.agentRuns}</CardTitle>
+            <CardDescription>{copy.agentRunsDesc}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {selectedRun ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                <div>
+                  <p className="text-sm font-medium text-slate-950">
+                    {copy.activeRunFilter}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedRun.runId} ·{' '}
+                    {getAgentRunStatusLabel(selectedRun.status, copy)}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedRunId(null)}
+                >
+                  {copy.clearRunFilter}
+                </Button>
+              </div>
+            ) : null}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{copy.run}</TableHead>
+                  <TableHead>{copy.status}</TableHead>
+                  <TableHead>{copy.candidates}</TableHead>
+                  <TableHead>{copy.review}</TableHead>
+                  <TableHead>{copy.action}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoadingRuns ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                      {copy.loadingPanelDescription}
+                    </TableCell>
+                  </TableRow>
+                ) : agentRuns.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-sm text-muted-foreground">
+                      {copy.noAgentRuns}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  agentRuns.map((run) => (
+                    <TableRow key={run.runId}>
+                      <TableCell>
+                        <div className="font-medium">{run.runId}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(run.startedAt, locale, copy.unknown)}
+                          {run.source.agent ? ` · ${run.source.agent}` : ''}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="border-gray-200 bg-gray-50 text-gray-800"
+                        >
+                          {getAgentRunStatusLabel(run.status, copy)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{run.candidateCount}</TableCell>
+                      <TableCell>{run.reviewQuestionCount}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant={run.runId === selectedRunId ? 'secondary' : 'ghost'}
+                          size="sm"
+                          onClick={() => setSelectedRunId(run.runId)}
+                        >
+                          {copy.showRunCandidates}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>

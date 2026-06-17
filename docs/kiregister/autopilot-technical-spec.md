@@ -189,6 +189,9 @@ Audit-Timeline-Nachweis und sind dokumentiert in
 Die Sprints 19-23 ergänzen Agent-Run-Protokolle, Run-Operator-API, CLI-Anbindung
 und Kandidaten-Historie je Run und sind dokumentiert in
 [`docs/kiregister/agent-run-protocol-sprints-19-23.md`](./agent-run-protocol-sprints-19-23.md).
+Die Sprints 24-28 machen Run-Protokolle in der Review-Inbox sichtbar und
+ergänzen den Run-Filter für Kandidaten. Sie sind dokumentiert in
+[`docs/kiregister/agent-run-review-ui-sprints-24-28.md`](./agent-run-review-ui-sprints-24-28.md).
 
 Aktive Endpunkte:
 

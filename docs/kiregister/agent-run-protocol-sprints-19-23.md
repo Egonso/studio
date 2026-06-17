@@ -101,7 +101,12 @@ Die Statuscounts werden dabei ebenfalls auf den Run begrenzt.
 
 Nach diesem Backend-/CLI-Fundament sollte die UI folgen:
 
-- Run-Liste in der Agent-Review-Inbox
-- Run-Detailansicht mit Kandidaten und Statuscounts
+Die Run-Liste und der Run-Filter in der Agent-Review-Inbox sind im direkten
+Folgeblock dokumentiert:
+[`agent-run-review-ui-sprints-24-28.md`](./agent-run-review-ui-sprints-24-28.md).
+
+Danach bleiben:
+
+- Run-Detailansicht mit Fehler- und Skipped-Source-Kontext
 - Exportfähiger Candidate-Review-Auszug
 - später eigener `read:audit`-Scope für Run- und Audit-Lesezugriffe
