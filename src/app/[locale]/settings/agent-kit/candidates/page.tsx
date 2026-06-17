@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, FileText, Inbox, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileText, Inbox, RefreshCw, XCircle } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { localizeHref } from '@/lib/i18n/localize-href';
@@ -100,11 +101,20 @@ interface CandidateManifest {
   }>;
 }
 
+interface CandidateReviewDecision {
+  status: 'accepted' | 'rejected';
+  note: string | null;
+  decidedAt: string;
+  decidedByUserId: string;
+  decidedByEmail: string | null;
+}
+
 interface CandidateDetail extends CandidateSummary {
   reviewQuestions: CandidateReviewQuestion[];
   evidence: CandidateEvidenceItem[];
   duplicateHints: CandidateDuplicateHint[];
   manifest: CandidateManifest;
+  reviewDecision: CandidateReviewDecision | null;
   createdByEmail: string | null;
 }
 
@@ -172,6 +182,15 @@ function getCandidateReviewCopy(locale: string) {
       manifest: 'Manifest-Auszug',
       createdBy: 'Erstellt durch',
       sensitive: 'sensibel',
+      reviewDecision: 'Review-Entscheidung',
+      reviewNotePlaceholder: 'Begründung oder offene Einschränkung dokumentieren',
+      acceptCandidate: 'Review akzeptieren',
+      rejectCandidate: 'Ablehnen',
+      reviewSavedTitle: 'Review dokumentiert',
+      reviewSavedDesc:
+        'Der Kandidatenstatus wurde aktualisiert. Es wurde kein echter Einsatzfall erzeugt.',
+      reviewErrorTitle: 'Review konnte nicht gespeichert werden',
+      previousDecision: 'Bisherige Entscheidung',
       statusNeedsReview: 'Review offen',
       statusAccepted: 'akzeptiert',
       statusRejected: 'abgelehnt',
@@ -234,6 +253,15 @@ function getCandidateReviewCopy(locale: string) {
     manifest: 'Manifest excerpt',
     createdBy: 'Created by',
     sensitive: 'sensitive',
+    reviewDecision: 'Review decision',
+    reviewNotePlaceholder: 'Document the rationale or remaining limitation',
+    acceptCandidate: 'Accept review',
+    rejectCandidate: 'Reject',
+    reviewSavedTitle: 'Review documented',
+    reviewSavedDesc:
+      'The candidate status was updated. No real use case was created.',
+    reviewErrorTitle: 'Review could not be saved',
+    previousDecision: 'Previous decision',
     statusNeedsReview: 'review open',
     statusAccepted: 'accepted',
     statusRejected: 'rejected',
@@ -302,6 +330,7 @@ export default function AgentCandidateReviewPage() {
   const copy = getCandidateReviewCopy(locale);
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { toast } = useToast();
   const { profile, loading: profileLoading } = useUserProfile();
   const workspaceScope = useWorkspaceScope();
 
@@ -315,6 +344,8 @@ export default function AgentCandidateReviewPage() {
   const [candidateDetail, setCandidateDetail] = useState<CandidateDetail | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
+  const [reviewNote, setReviewNote] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const agentKitHref = localizeHref(
@@ -493,6 +524,7 @@ export default function AgentCandidateReviewPage() {
       );
       const payload = (await response.json()) as CandidateDetailResponse;
       setCandidateDetail(payload.candidate);
+      setReviewNote(payload.candidate.reviewDecision?.note ?? '');
     } catch (loadError) {
       console.error('Failed to load candidate detail', loadError);
       setError(
@@ -508,6 +540,71 @@ export default function AgentCandidateReviewPage() {
     selectedRegisterId,
     workspaceId,
   ]);
+
+  const submitReviewDecision = useCallback(
+    async (status: CandidateReviewDecision['status']) => {
+      if (!workspaceId || !selectedRegisterId || !selectedCandidateId) {
+        return;
+      }
+
+      setBusyReviewStatus(status);
+      try {
+        const params = new URLSearchParams({
+          registerId: selectedRegisterId,
+        });
+        const response = await authFetch(
+          `/api/workspaces/${workspaceId}/agent-kit/candidates/${selectedCandidateId}/review?${params.toString()}`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({
+              status,
+              note: reviewNote.trim() || null,
+            }),
+          },
+        );
+        const payload = (await response.json()) as CandidateDetailResponse;
+        setCandidateDetail(payload.candidate);
+        setReviewNote(payload.candidate.reviewDecision?.note ?? '');
+        setCandidates((current) =>
+          current.map((candidate) =>
+            candidate.candidateId === payload.candidate.candidateId
+              ? {
+                  ...candidate,
+                  status: payload.candidate.status,
+                  updatedAt: payload.candidate.updatedAt,
+                }
+              : candidate,
+          ),
+        );
+        toast({
+          title: copy.reviewSavedTitle,
+          description: copy.reviewSavedDesc,
+        });
+      } catch (reviewError) {
+        console.error('Failed to save candidate review decision', reviewError);
+        toast({
+          variant: 'destructive',
+          title: copy.reviewErrorTitle,
+          description:
+            reviewError instanceof Error ? reviewError.message : copy.detailFallback,
+        });
+      } finally {
+        setBusyReviewStatus(null);
+      }
+    },
+    [
+      authFetch,
+      copy.detailFallback,
+      copy.reviewErrorTitle,
+      copy.reviewSavedDesc,
+      copy.reviewSavedTitle,
+      reviewNote,
+      selectedCandidateId,
+      selectedRegisterId,
+      toast,
+      workspaceId,
+    ],
+  );
 
   useEffect(() => {
     if (!loading && !profileLoading && user) {
@@ -807,6 +904,54 @@ export default function AgentCandidateReviewPage() {
                       {candidateDetail.purpose}
                     </p>
                   </div>
+
+                  <section className="rounded-md border border-slate-200 p-4">
+                    <h3 className="text-sm font-semibold text-slate-950">
+                      {copy.reviewDecision}
+                    </h3>
+                    {candidateDetail.reviewDecision ? (
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        {copy.previousDecision}:{' '}
+                        {getCandidateStatusLabel(
+                          candidateDetail.reviewDecision.status,
+                          copy,
+                        )}{' '}
+                        ·{' '}
+                        {formatDate(
+                          candidateDetail.reviewDecision.decidedAt,
+                          locale,
+                          copy.unknown,
+                        )}
+                        {candidateDetail.reviewDecision.decidedByEmail
+                          ? ` · ${candidateDetail.reviewDecision.decidedByEmail}`
+                          : ''}
+                      </p>
+                    ) : null}
+                    <textarea
+                      value={reviewNote}
+                      onChange={(event) => setReviewNote(event.target.value)}
+                      placeholder={copy.reviewNotePlaceholder}
+                      className="mt-3 min-h-24 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm leading-6 text-slate-900 outline-none ring-offset-background placeholder:text-muted-foreground focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                    />
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => void submitReviewDecision('accepted')}
+                        disabled={Boolean(busyReviewStatus)}
+                      >
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        {copy.acceptCandidate}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => void submitReviewDecision('rejected')}
+                        disabled={Boolean(busyReviewStatus)}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" />
+                        {copy.rejectCandidate}
+                      </Button>
+                    </div>
+                  </section>
 
                   <dl className="grid gap-3 sm:grid-cols-2">
                     <div>

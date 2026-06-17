@@ -6,11 +6,13 @@ import {
   type ServerRegisterLocation,
 } from '@/lib/register-first/register-admin';
 import {
+  type AuthenticatedRequestUser,
   requireUser,
   requireWorkspaceReviewer,
 } from '@/lib/server-auth';
 
 export interface AgentOperatorCandidateReviewAuthorization {
+  user: AuthenticatedRequestUser;
   location: ServerRegisterLocation;
   scopeType: 'personal' | 'workspace';
 }
@@ -32,13 +34,14 @@ export async function authorizeAgentOperatorCandidateReview(input: {
 
     return location
       ? {
+          user,
           location,
           scopeType: 'personal',
         }
       : null;
   }
 
-  await requireWorkspaceReviewer(
+  const authorization = await requireWorkspaceReviewer(
     input.authorizationHeader,
     input.orgId,
   );
@@ -48,6 +51,7 @@ export async function authorizeAgentOperatorCandidateReview(input: {
 
   return location
     ? {
+        user: authorization.user,
         location,
         scopeType: 'workspace',
       }

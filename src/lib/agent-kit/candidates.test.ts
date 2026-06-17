@@ -101,6 +101,7 @@ test('buildAgentOperatorCandidateRecord stores review object separate from use c
   assert.equal(candidate.reviewQuestions[0]?.questionId, 'rq_1');
   assert.equal(candidate.evidence[0]?.evidenceId, 'ev_1');
   assert.equal(candidate.createdByKeyId, 'akit_test');
+  assert.equal(candidate.reviewDecision, null);
 });
 
 test('parseAgentOperatorCandidateRecord normalizes embedded manifest', () => {
@@ -123,10 +124,22 @@ test('parseAgentOperatorCandidateRecord normalizes embedded manifest', () => {
   });
 
   const parsed = parseAgentOperatorCandidateRecord(
-    JSON.parse(JSON.stringify(candidate)),
+    JSON.parse(JSON.stringify({
+      ...candidate,
+      status: 'accepted',
+      reviewDecision: {
+        status: 'accepted',
+        note: 'Plausibel nach Fachreview.',
+        decidedAt: '2026-06-17T11:00:00.000Z',
+        decidedByUserId: 'reviewer_test',
+        decidedByEmail: 'reviewer@example.com',
+      },
+    })),
   );
 
   assert.equal(parsed.candidateId, 'cand_test');
   assert.equal(parsed.manifest.title, 'Policy note assistant');
   assert.equal(parsed.source.agent, 'studio-agent');
+  assert.equal(parsed.reviewDecision?.status, 'accepted');
+  assert.equal(parsed.reviewDecision?.note, 'Plausibel nach Fachreview.');
 });

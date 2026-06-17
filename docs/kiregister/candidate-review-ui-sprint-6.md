@@ -73,9 +73,12 @@ aber nicht die Authentifizierungslogik.
 
 ## Nächster Sprint
 
-Sprint 7 sollte die formale Review-Aktion modellieren:
+Sprint 7 modelliert die formale Review-Aktion:
 
 1. Candidate-Status `accepted` / `rejected` als dokumentierter Review-Schritt
 2. Reviewer, Zeitstempel und Begründung speichern
 3. weiterhin keine automatische Erstellung echter Use Cases
 4. erst danach separater Merge-Sprint mit Audit-Historie
+
+Details:
+[`docs/kiregister/candidate-review-decision-sprint-7.md`](./candidate-review-decision-sprint-7.md).

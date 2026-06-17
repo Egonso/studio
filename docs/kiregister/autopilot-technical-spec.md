@@ -164,6 +164,9 @@ ist dokumentiert in
 Sprint 6 ergänzt die menschliche Candidate Review Inbox und ist dokumentiert
 in
 [`docs/kiregister/candidate-review-ui-sprint-6.md`](./candidate-review-ui-sprint-6.md).
+Sprint 7 ergänzt die formale Review-Entscheidung ohne Merge und ist
+dokumentiert in
+[`docs/kiregister/candidate-review-decision-sprint-7.md`](./candidate-review-decision-sprint-7.md).
 
 Aktive Endpunkte:
 
@@ -175,12 +178,13 @@ Aktive Endpunkte:
 - `POST /api/agent/operator/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
+- `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
 
 Noch nicht aktiv:
 
 - `POST /api/agent/operator/runs`
 - `PATCH /api/agent/operator/runs/[runId]`
-- `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
+- `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 - später: `PATCH /api/agent/operator/use-cases/[useCaseId]/review`
 
 ### Berechtigungen

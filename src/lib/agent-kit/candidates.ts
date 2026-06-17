@@ -32,6 +32,14 @@ export const AGENT_OPERATOR_CANDIDATE_STATUS_VALUES = [
 export type AgentOperatorCandidateStatus =
   (typeof AGENT_OPERATOR_CANDIDATE_STATUS_VALUES)[number];
 
+export const AGENT_OPERATOR_CANDIDATE_REVIEW_STATUS_VALUES = [
+  'accepted',
+  'rejected',
+] as const;
+
+export type AgentOperatorCandidateReviewStatus =
+  (typeof AGENT_OPERATOR_CANDIDATE_REVIEW_STATUS_VALUES)[number];
+
 export interface AgentOperatorEvidenceItem {
   evidenceId: string;
   source: string;
@@ -63,6 +71,14 @@ export interface AgentOperatorCandidateSource {
   localCandidateId: string | null;
 }
 
+export interface AgentOperatorCandidateReviewDecision {
+  status: AgentOperatorCandidateReviewStatus;
+  note: string | null;
+  decidedAt: string;
+  decidedByUserId: string;
+  decidedByEmail: string | null;
+}
+
 export interface AgentOperatorCandidateRecord {
   candidateId: string;
   registerId: string;
@@ -79,6 +95,7 @@ export interface AgentOperatorCandidateRecord {
   duplicateHints: AgentOperatorDuplicateHint[];
   manifest: StudioUseCaseManifest;
   source: AgentOperatorCandidateSource;
+  reviewDecision: AgentOperatorCandidateReviewDecision | null;
   createdAt: string;
   updatedAt: string;
   createdByKeyId: string;
@@ -147,6 +164,14 @@ const candidateSourceSchema = z.object({
   agent: z.string().trim().min(1).max(120).default('studio-agent'),
   runId: z.string().trim().min(1).max(200).optional().nullable(),
   localCandidateId: z.string().trim().min(1).max(200).optional().nullable(),
+});
+
+const candidateReviewDecisionSchema = z.object({
+  status: z.enum(AGENT_OPERATOR_CANDIDATE_REVIEW_STATUS_VALUES),
+  note: z.string().trim().min(1).max(1000).nullable(),
+  decidedAt: z.string().datetime(),
+  decidedByUserId: z.string().trim().min(1),
+  decidedByEmail: z.string().trim().min(1).nullable(),
 });
 
 export const agentOperatorCandidatePayloadSchema = z.object({
@@ -274,6 +299,7 @@ export function buildAgentOperatorCandidateRecord(input: {
         input.payload.source?.localCandidateId ?? null,
       ),
     },
+    reviewDecision: null,
     createdAt: nowIso,
     updatedAt: nowIso,
     createdByKeyId: input.record.keyId,
@@ -310,6 +336,7 @@ export function parseAgentOperatorCandidateRecord(
         runId: true,
         localCandidateId: true,
       }),
+      reviewDecision: candidateReviewDecisionSchema.nullable().optional(),
       createdAt: z.string().datetime(),
       updatedAt: z.string().datetime(),
       createdByKeyId: z.string().trim().min(1),
@@ -336,6 +363,7 @@ export function parseAgentOperatorCandidateRecord(
       runId: parsed.source.runId ?? null,
       localCandidateId: parsed.source.localCandidateId ?? null,
     },
+    reviewDecision: parsed.reviewDecision ?? null,
   };
 }
 
@@ -473,5 +501,58 @@ export async function getAgentOperatorCandidateForLocation(input: {
       input.scopeType,
     ),
     candidate: parseAgentOperatorCandidateRecord(snapshot.data()),
+  };
+}
+
+export async function reviewAgentOperatorCandidateForLocation(input: {
+  location: ServerRegisterLocation;
+  scopeType: AgentOperatorRegisterView['scopeType'];
+  candidateId: string;
+  status: AgentOperatorCandidateReviewStatus;
+  note?: string | null;
+  decidedByUserId: string;
+  decidedByEmail?: string | null;
+  now?: Date;
+}): Promise<AgentOperatorCandidateDetailResult | null> {
+  const current = await getAgentOperatorCandidateForLocation({
+    location: input.location,
+    scopeType: input.scopeType,
+    candidateId: input.candidateId,
+  });
+  if (!current) {
+    return null;
+  }
+
+  const nowIso = (input.now ?? new Date()).toISOString();
+  const reviewDecision: AgentOperatorCandidateReviewDecision = {
+    status: input.status,
+    note: normalizeOptionalText(input.note ?? null),
+    decidedAt: nowIso,
+    decidedByUserId: input.decidedByUserId,
+    decidedByEmail: normalizeOptionalText(input.decidedByEmail ?? null),
+  };
+  const candidate: AgentOperatorCandidateRecord = {
+    ...current.candidate,
+    status: input.status,
+    updatedAt: nowIso,
+    reviewDecision,
+  };
+
+  await db
+    .doc(
+      `users/${input.location.ownerId}/registers/${input.location.registerId}/agentCandidates/${input.candidateId}`,
+    )
+    .set(
+      sanitizeFirestorePayload({
+        status: candidate.status,
+        updatedAt: candidate.updatedAt,
+        reviewDecision,
+      }),
+      { merge: true },
+    );
+
+  return {
+    register: current.register,
+    candidate,
   };
 }
