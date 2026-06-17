@@ -74,10 +74,15 @@ Der Agent-Kit-Smoke-Test prüft mit lokalem Mock-Server:
 
 ## Nächster sinnvoller Schritt
 
-Sprint 5 sollte die Produktoberfläche anschließen:
+Sprint 5 schließt die erste Produktoberfläche an:
 
 1. API-Key UI mit Scope-Auswahl (`Submit-only`, `Read-only`, `Candidate`)
-2. ruhige Candidate Review Inbox im KIRegister
-3. Detailansicht für Kandidat, Evidenz und offene Review-Fragen
-4. noch keine Übernahme in echte Use Cases, bevor die Review-Aktion separat
-   modelliert und getestet ist
+2. passende CLI-Snippets je nach Key-Modus
+3. bestehende Keys zeigen ihre Berechtigung sekundär an
+
+Details:
+[`docs/kiregister/scope-ui-sprint-5.md`](./scope-ui-sprint-5.md).
+
+Die ruhige Candidate Review Inbox bleibt der nächste Sprint, weil sie einen
+eigenen user-authentifizierten Produktpfad braucht und nicht über den lokalen
+Agent-Key im Browser laufen sollte.

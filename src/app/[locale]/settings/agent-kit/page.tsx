@@ -30,11 +30,29 @@ import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
 import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
+type AgentKitApiKeyScope =
+  | 'submit:usecase'
+  | 'read:register'
+  | 'read:usecase'
+  | 'read:audit'
+  | 'write:candidate'
+  | 'write:review-note'
+  | 'write:status-proposal';
+
+type AgentKitKeyMode = 'submit' | 'read' | 'candidate';
+
+const AGENT_KIT_KEY_MODE_SCOPES: Record<AgentKitKeyMode, AgentKitApiKeyScope[]> = {
+  submit: ['submit:usecase'],
+  read: ['read:register', 'read:usecase'],
+  candidate: ['read:register', 'read:usecase', 'write:candidate'],
+};
+
 interface AgentKitApiKeyRow {
   keyId: string;
   orgId: string;
   label: string;
   keyPreview: string;
+  scopes?: AgentKitApiKeyScope[];
   createdAt: string;
   createdByUserId: string;
   createdByEmail?: string | null;
@@ -54,6 +72,7 @@ interface WorkspaceAgentKitKeysResponse {
   keys: AgentKitApiKeyRow[];
   registers: AgentKitRegisterOption[];
   submitEndpoint: string;
+  operatorEndpoint?: string;
   workspace?: {
     orgId: string;
     name: string;
@@ -70,8 +89,17 @@ function getAgentKitSettingsCopy(locale: string) {
       unknown: 'unbekannt',
       loadDataFallback: 'Agent-Kit-Daten konnten nicht geladen werden.',
       loadWorkspacesFallback: 'Bereiche konnten nicht geladen werden.',
-      promptSnippet: (registerId: string) =>
-        `Nutze die lokale ki-register-agent-kit CLI in diesem Repository. Falls noch kein Onboarding vorhanden ist, führe zuerst das Onboarding durch. Dokumentiere diesen neuen KI-Einsatzfall, frage fehlende Fakten nach, zeige mir die Zusammenfassung vor dem Schreiben und reiche das Manifest nach meiner Bestätigung in KI Register Register ${registerId} ein.`,
+      promptSnippet: (registerId: string, mode: AgentKitKeyMode) => {
+        if (mode === 'candidate') {
+          return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository. Falls noch kein Onboarding vorhanden ist, führe zuerst das Onboarding durch. Dokumentiere diesen neuen KI-Einsatzfall, frage fehlende Fakten nach, zeige mir die Zusammenfassung und lege das Manifest danach als Review-Kandidat in KI Register Register ${registerId} ab. Erstelle keinen echten Einsatzfall ohne menschliche Review.`;
+        }
+
+        if (mode === 'read') {
+          return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository mit einem Read-only-Operator-Key. Lies Register und Einsatzfälle aus KI Register Register ${registerId}, verändere nichts und melde nur offene Fragen, Risiken oder fehlende Nachweise.`;
+        }
+
+        return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository. Falls noch kein Onboarding vorhanden ist, führe zuerst das Onboarding durch. Dokumentiere diesen neuen KI-Einsatzfall, frage fehlende Fakten nach, zeige mir die Zusammenfassung vor dem Schreiben und reiche das Manifest nach meiner Bestätigung in KI Register Register ${registerId} ein.`;
+      },
       copiedTitle: (labelText: string) => `${labelText} kopiert`,
       copiedDesc: 'Sie können den Inhalt jetzt direkt weiterverwenden.',
       copyFailedTitle: 'Kopieren fehlgeschlagen',
@@ -115,11 +143,25 @@ function getAgentKitSettingsCopy(locale: string) {
         'Für diesen Workspace gibt es noch kein verknüpftes Register. Öffnen Sie zuerst den passenden Bereich und richten Sie dort ein Register ein oder verknüpfen Sie es.',
       openRegister: 'Register öffnen',
       endpoint: 'Endpoint',
-      endpointDesc: 'Dieser Endpoint wird von `studio-agent submit` genutzt.',
+      endpointDesc:
+        'Je nach Berechtigung nutzt das CLI den Submit- oder Operator-Endpoint.',
       createKeyTitle: 'Scoped API-Key erstellen',
       createKeyDesc:
-        'Technische Teams richten das einmal ein. Teamleads brauchen später nur den sichtbaren Fall im KI Register.',
+        'Legen Sie bewusst fest, ob ein Agent direkt einreichen, nur lesen oder Review-Kandidaten ablegen darf.',
       labelPlaceholder: 'Zum Beispiel: Codex auf MacBook Pro',
+      keyModeLabel: 'Berechtigung',
+      keyModePlaceholder: 'Berechtigung wählen',
+      keyModeSubmit: 'Submit-only',
+      keyModeRead: 'Read-only Operator',
+      keyModeCandidate: 'Candidate Operator',
+      keyModeSubmitDesc:
+        'Darf bestätigte Manifeste direkt als Einsatzfall einreichen.',
+      keyModeReadDesc:
+        'Darf Register und Einsatzfälle lesen, aber nichts schreiben.',
+      keyModeCandidateDesc:
+        'Darf Register lesen und Review-Kandidaten ablegen. Keine echten Einsatzfälle.',
+      operatorScopeNotice:
+        'Operator-Berechtigungen können nur Owner und Admins erstellen.',
       targetRegisterPlaceholder: 'Ziel-Register wählen',
       createKey: 'API-Key erstellen',
       newApiKey: 'Neuer API-Key',
@@ -157,8 +199,17 @@ function getAgentKitSettingsCopy(locale: string) {
     unknown: 'unknown',
     loadDataFallback: 'Agent Kit data could not be loaded.',
     loadWorkspacesFallback: 'Scopes could not be loaded.',
-    promptSnippet: (registerId: string) =>
-      `Use the local ki-register-agent-kit CLI in this repository. If there is no onboarding yet, run onboarding first. Document this new AI use case, ask for missing facts, show me the summary before writing, and after my confirmation submit the manifest into AI Registry register ${registerId}.`,
+    promptSnippet: (registerId: string, mode: AgentKitKeyMode) => {
+      if (mode === 'candidate') {
+        return `Use the local ki-register-agent-kit CLI in this repository. If there is no onboarding yet, run onboarding first. Document this new AI use case, ask for missing facts, show me the summary, and then store the manifest as a review candidate in AI Registry register ${registerId}. Do not create a real use case without human review.`;
+      }
+
+      if (mode === 'read') {
+        return `Use the local ki-register-agent-kit CLI in this repository with a read-only Operator key. Read registers and use cases from AI Registry register ${registerId}, change nothing, and report only open questions, risks or missing evidence.`;
+      }
+
+      return `Use the local ki-register-agent-kit CLI in this repository. If there is no onboarding yet, run onboarding first. Document this new AI use case, ask for missing facts, show me the summary before writing, and after my confirmation submit the manifest into AI Registry register ${registerId}.`;
+    },
     copiedTitle: (labelText: string) => `${labelText} copied`,
     copiedDesc: 'You can use the content directly now.',
     copyFailedTitle: 'Copy failed',
@@ -201,11 +252,25 @@ function getAgentKitSettingsCopy(locale: string) {
       'There is no linked register for this workspace yet. Open the matching area first and create or link a register there.',
     openRegister: 'Open register',
     endpoint: 'Endpoint',
-    endpointDesc: 'This endpoint is used by `studio-agent submit`.',
+    endpointDesc:
+      'Depending on the permission, the CLI uses the submit or Operator endpoint.',
     createKeyTitle: 'Create scoped API key',
     createKeyDesc:
-      'Technical teams set this up once. Later, team leads only need the visible use case inside AI Registry.',
+      'Decide explicitly whether an agent may submit directly, read only, or store review candidates.',
     labelPlaceholder: 'For example: Codex on MacBook Pro',
+    keyModeLabel: 'Permission',
+    keyModePlaceholder: 'Choose permission',
+    keyModeSubmit: 'Submit-only',
+    keyModeRead: 'Read-only Operator',
+    keyModeCandidate: 'Candidate Operator',
+    keyModeSubmitDesc:
+      'Can submit confirmed manifests directly as use cases.',
+    keyModeReadDesc:
+      'Can read registers and use cases, but cannot write anything.',
+    keyModeCandidateDesc:
+      'Can read registers and store review candidates. No real use cases.',
+    operatorScopeNotice:
+      'Operator permissions can only be created by owners and admins.',
     targetRegisterPlaceholder: 'Choose target register',
     createKey: 'Create API key',
     newApiKey: 'New API key',
@@ -270,6 +335,20 @@ function resolveAbsoluteUrl(value: string): string {
   return value;
 }
 
+function getAgentKitKeyModeForScopes(
+  scopes: readonly AgentKitApiKeyScope[] | null | undefined,
+): AgentKitKeyMode {
+  if (scopes?.includes('write:candidate')) {
+    return 'candidate';
+  }
+
+  if (scopes?.includes('read:register') || scopes?.includes('read:usecase')) {
+    return 'read';
+  }
+
+  return 'submit';
+}
+
 export default function AgentKitSettingsPage() {
   const locale = useLocale();
   const { user, loading } = useAuth();
@@ -286,9 +365,12 @@ export default function AgentKitSettingsPage() {
   const [keys, setKeys] = useState<AgentKitApiKeyRow[]>([]);
   const [registers, setRegisters] = useState<AgentKitRegisterOption[]>([]);
   const [submitEndpoint, setSubmitEndpoint] = useState('/api/agent-kit/submit');
+  const [operatorEndpoint, setOperatorEndpoint] = useState('/api/agent/operator');
+  const [actorRole, setActorRole] = useState<string | null>(null);
   const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
   const [workspaceOptionsError, setWorkspaceOptionsError] = useState<string | null>(null);
   const [label, setLabel] = useState('');
+  const [selectedKeyMode, setSelectedKeyMode] = useState<AgentKitKeyMode>('submit');
   const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -455,6 +537,8 @@ export default function AgentKitSettingsPage() {
       setKeys(payload.keys);
       setRegisters(payload.registers);
       setSubmitEndpoint(payload.submitEndpoint);
+      setOperatorEndpoint(payload.operatorEndpoint ?? '/api/agent/operator');
+      setActorRole(payload.actorRole);
       setResolvedWorkspaceName(payload.workspace?.name ?? payload.workspace?.orgId ?? null);
       setSelectedRegisterId((current) =>
         current && payload.registers.some((entry) => entry.registerId === current)
@@ -536,6 +620,39 @@ export default function AgentKitSettingsPage() {
     () => resolveAbsoluteUrl(submitEndpoint),
     [submitEndpoint],
   );
+  const absoluteOperatorEndpoint = useMemo(
+    () => resolveAbsoluteUrl(operatorEndpoint),
+    [operatorEndpoint],
+  );
+  const canCreateOperatorKey = actorRole === 'OWNER' || actorRole === 'ADMIN';
+  const selectedKeyModeDescription =
+    selectedKeyMode === 'candidate'
+      ? copy.keyModeCandidateDesc
+      : selectedKeyMode === 'read'
+        ? copy.keyModeReadDesc
+        : copy.keyModeSubmitDesc;
+  const selectedEndpoint =
+    selectedKeyMode === 'submit' ? absoluteSubmitEndpoint : absoluteOperatorEndpoint;
+  const getKeyModeLabel = useCallback(
+    (mode: AgentKitKeyMode) => {
+      if (mode === 'candidate') {
+        return copy.keyModeCandidate;
+      }
+
+      if (mode === 'read') {
+        return copy.keyModeRead;
+      }
+
+      return copy.keyModeSubmit;
+    },
+    [copy.keyModeCandidate, copy.keyModeRead, copy.keyModeSubmit],
+  );
+
+  useEffect(() => {
+    if (!canCreateOperatorKey && selectedKeyMode !== 'submit') {
+      setSelectedKeyMode('submit');
+    }
+  }, [canCreateOperatorKey, selectedKeyMode]);
   const selectedScopeRegisterHref = useMemo(
     () =>
       localizeHref(
@@ -554,19 +671,37 @@ export default function AgentKitSettingsPage() {
       return null;
     }
 
+    if (selectedKeyMode === 'candidate') {
+      return [
+        'export KI_REGISTER_API_KEY="<your-agent-kit-api-key>"',
+        `export KI_REGISTER_REGISTER_ID="${selectedRegister.registerId}"`,
+        `export KI_REGISTER_OPERATOR_ENDPOINT="${absoluteOperatorEndpoint}"`,
+        `node ./agent-kit/bin/studio-agent.mjs operator candidate submit ./docs/agent-workflows/<slug>/manifest.json --register-id "${selectedRegister.registerId}" --json`,
+      ].join('\n');
+    }
+
+    if (selectedKeyMode === 'read') {
+      return [
+        'export KI_REGISTER_API_KEY="<your-agent-kit-api-key>"',
+        `export KI_REGISTER_REGISTER_ID="${selectedRegister.registerId}"`,
+        `export KI_REGISTER_OPERATOR_ENDPOINT="${absoluteOperatorEndpoint}"`,
+        `node ./agent-kit/bin/studio-agent.mjs operator use-cases --register-id "${selectedRegister.registerId}" --json`,
+      ].join('\n');
+    }
+
     return [
       'export KI_REGISTER_API_KEY="<your-agent-kit-api-key>"',
       `export KI_REGISTER_REGISTER_ID="${selectedRegister.registerId}"`,
       `node ./agent-kit/bin/studio-agent.mjs submit ./docs/agent-workflows/<slug>/manifest.json --endpoint "${absoluteSubmitEndpoint}"`,
     ].join('\n');
-  }, [absoluteSubmitEndpoint, selectedRegister]);
+  }, [absoluteOperatorEndpoint, absoluteSubmitEndpoint, selectedKeyMode, selectedRegister]);
   const promptSnippet = useMemo(() => {
     if (!selectedRegister) {
       return null;
     }
 
-    return copy.promptSnippet(selectedRegister.registerId);
-  }, [copy, selectedRegister]);
+    return copy.promptSnippet(selectedRegister.registerId, selectedKeyMode);
+  }, [copy, selectedKeyMode, selectedRegister]);
 
   const handleWorkspaceChange = (nextWorkspaceId: string) => {
     setWorkspaceIdState(nextWorkspaceId);
@@ -602,7 +737,10 @@ export default function AgentKitSettingsPage() {
     try {
       const response = await authFetch(`/api/workspaces/${workspaceId}/agent-kit/keys`, {
         method: 'POST',
-        body: JSON.stringify({ label: label.trim() }),
+        body: JSON.stringify({
+          label: label.trim(),
+          scopes: AGENT_KIT_KEY_MODE_SCOPES[selectedKeyMode],
+        }),
       });
       const payload = (await response.json()) as {
         apiKey: string;
@@ -785,7 +923,7 @@ export default function AgentKitSettingsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>{copy.endpoint}</CardDescription>
-              <CardTitle className="text-base break-all">{absoluteSubmitEndpoint}</CardTitle>
+              <CardTitle className="text-base break-all">{selectedEndpoint}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-6 text-slate-600">{copy.endpointDesc}</p>
@@ -802,12 +940,29 @@ export default function AgentKitSettingsPage() {
             <CardDescription>{copy.createKeyDesc}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-3 xl:grid-cols-[1.2fr_260px_auto]">
+            <div className="grid gap-3 xl:grid-cols-[1.2fr_240px_260px_auto]">
               <Input
                 value={label}
                 onChange={(event) => setLabel(event.target.value)}
                 placeholder={copy.labelPlaceholder}
               />
+              <Select
+                value={selectedKeyMode}
+                onValueChange={(value) => setSelectedKeyMode(value as AgentKitKeyMode)}
+              >
+                <SelectTrigger aria-label={copy.keyModeLabel}>
+                  <SelectValue placeholder={copy.keyModePlaceholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="submit">{copy.keyModeSubmit}</SelectItem>
+                  <SelectItem value="read" disabled={!canCreateOperatorKey}>
+                    {copy.keyModeRead}
+                  </SelectItem>
+                  <SelectItem value="candidate" disabled={!canCreateOperatorKey}>
+                    {copy.keyModeCandidate}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <Select
                 value={selectedRegisterId ?? undefined}
                 onValueChange={(value) => setSelectedRegisterId(value)}
@@ -829,12 +984,22 @@ export default function AgentKitSettingsPage() {
                 disabled={
                   busyAction === 'create_key' ||
                   !label.trim() ||
-                  registers.length === 0
+                  registers.length === 0 ||
+                  (!canCreateOperatorKey && selectedKeyMode !== 'submit')
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {copy.createKey}
               </Button>
+            </div>
+            <div className="space-y-1 text-sm leading-6 text-slate-600">
+              <p>
+                {copy.keyModeLabel}: {getKeyModeLabel(selectedKeyMode)} ·{' '}
+                {selectedKeyModeDescription}
+              </p>
+              {!canCreateOperatorKey ? (
+                <p>{copy.operatorScopeNotice}</p>
+              ) : null}
             </div>
 
             {latestApiKey ? (
@@ -936,6 +1101,10 @@ export default function AgentKitSettingsPage() {
                       <TableCell>
                         <div className="font-medium">{key.label}</div>
                         <div className="text-xs text-muted-foreground">{key.keyPreview}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {copy.keyModeLabel}:{' '}
+                          {getKeyModeLabel(getAgentKitKeyModeForScopes(key.scopes))}
+                        </div>
                       </TableCell>
                       <TableCell>{key.createdByEmail ?? key.createdByUserId}</TableCell>
                       <TableCell>{formatDate(key.createdAt, locale, copy.unknown)}</TableCell>

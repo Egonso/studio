@@ -158,6 +158,9 @@ dokumentiert in
 [`docs/kiregister/candidate-inbox-sprint-3.md`](./candidate-inbox-sprint-3.md).
 Sprint 4 ergänzt die lokale Candidate-CLI und ist dokumentiert in
 [`docs/kiregister/candidate-cli-sprint-4.md`](./candidate-cli-sprint-4.md).
+Sprint 5 ergänzt die Agent-Kit-Key-Oberfläche um explizite Scope-Auswahl und
+ist dokumentiert in
+[`docs/kiregister/scope-ui-sprint-5.md`](./scope-ui-sprint-5.md).
 
 Aktive Endpunkte:
 
@@ -191,7 +194,10 @@ Bestehende Keys ohne Scope-Feld gelten aus Kompatibilitätsgründen als
 `submit:usecase`. Read-only Operator-Keys bekommen bewusst `read:register` und
 `read:usecase`; sie können nicht still in die Submit-API schreiben.
 
-Schreibende Scopes werden erst nach read-only Dogfood eingeführt.
+Die Produktoberfläche unterscheidet seit Sprint 5 drei Key-Modi:
+`Submit-only`, `Read-only Operator` und `Candidate Operator`. Schreibende
+Operator-Scopes werden nur für Owner und Admins angeboten und schreiben im
+ersten Schritt ausschließlich in die Candidate-Inbox.
 
 ## Datenverträge
 
