@@ -44,6 +44,29 @@ const CONNECTION_MODE_VALUES = [
   "SEMI_AUTOMATED",
   "FULLY_AUTOMATED",
 ];
+const AUTOPILOT_CADENCE_VALUES = [
+  "manual",
+  "daily",
+  "every-3-days",
+  "weekly",
+];
+const AUTOPILOT_MODE_VALUES = [
+  "draft-only",
+  "review-first",
+  "submit-after-confirmation",
+];
+const AI_DEPENDENCY_HINTS = new Set([
+  "@ai-sdk/openai",
+  "@anthropic-ai/sdk",
+  "@genkit-ai/firebase",
+  "@genkit-ai/googleai",
+  "@genkit-ai/next",
+  "@langchain/openai",
+  "ai",
+  "genkit",
+  "langchain",
+  "openai",
+]);
 
 const DEFAULT_OUT_DIR = path.join("docs", "agent-workflows");
 const DEFAULT_SUBMIT_ENDPOINT = "https://kiregister.com/api/agent-kit/submit";
@@ -114,6 +137,8 @@ function printHelp() {
     "  create                  Create docs from --input JSON or direct flags",
     "  validate <manifest>     Validate an existing manifest.json",
     "  submit <manifest>       Submit a manifest.json directly to KI-Register",
+    "  autopilot plan          Draft a local KI-Register Autopilot run policy",
+    "  autopilot run           Run the local draft-only Autopilot against allowed sources",
     "  list                    List generated workflow folders",
     "  template                Print a starter manifest template",
     "  help                    Show this help text",
@@ -124,6 +149,8 @@ function printHelp() {
     "  studio-agent create --input ./examples/sample-use-case.json --out-dir ./docs/agent-workflows",
     "  studio-agent validate ./docs/agent-workflows/marketing-assistant/manifest.json",
     "  studio-agent submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
+    "  studio-agent autopilot plan --cadence every-3-days --out-file ./autopilot-plan.json",
+    "  studio-agent autopilot run --policy ./autopilot-plan.json",
     "",
     "Common flags:",
     "  --out-dir <path>        Target folder for generated workflow docs",
@@ -133,6 +160,10 @@ function printHelp() {
     "  --register-id <id>      Target KI-Register register id for submit",
     "  --endpoint <url>        Agent Kit submit API endpoint",
     "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
+    "  --cadence <value>       Autopilot cadence: manual, daily, every-3-days, weekly",
+    "  --mode <value>          Autopilot mode: draft-only, review-first, submit-after-confirmation",
+    "  --sources <list>        Comma-separated read sources for Autopilot planning",
+    "  --policy <file>         Autopilot policy file for local runs",
   ];
 
   process.stdout.write(`${lines.join("\n")}\n`);
@@ -215,6 +246,10 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-")
     .slice(0, 80) || "untitled";
+}
+
+function randomIdSuffix() {
+  return Math.random().toString(36).slice(2, 10);
 }
 
 function normalizeEnum(value, allowedValues, aliases = {}) {
@@ -412,6 +447,441 @@ function buildTemplate() {
       "Escalation checklist",
     ],
     tags: ["support", "customer-service", "human-review"],
+  };
+}
+
+function normalizeChoice(value, allowedValues, fallback, flagName) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return fallback;
+  }
+
+  if (allowedValues.includes(normalized)) {
+    return normalized;
+  }
+
+  throw new Error(
+    `${flagName} must be one of ${allowedValues.join(", ")}`,
+  );
+}
+
+function buildAutopilotPlan(flags, config) {
+  const now = new Date().toISOString();
+  const cadence = normalizeChoice(
+    flags.cadence,
+    AUTOPILOT_CADENCE_VALUES,
+    "every-3-days",
+    "--cadence",
+  );
+  const mode = normalizeChoice(
+    flags.mode,
+    AUTOPILOT_MODE_VALUES,
+    "draft-only",
+    "--mode",
+  );
+  const outputDirectory = resolveOutputDirectory(
+    flags["out-dir"] ?? config?.defaults.outDir,
+  );
+  const explicitSources = normalizeStringList(flags.sources);
+  const allowedSources =
+    explicitSources.length > 0
+      ? explicitSources
+      : [
+          "docs/agent-workflows",
+          "repository files explicitly reviewed by the operator",
+        ];
+  const registerId = resolveRegisterId(flags, config) ?? null;
+
+  return {
+    schemaVersion: "1.0.0",
+    kind: "kiregister.autopilot.plan",
+    generatedBy: "studio-agent",
+    generatedAt: now,
+    cadence,
+    mode,
+    scope: normalizeText(flags.scope) ?? "local-workstation",
+    target: {
+      registerId,
+      submitEndpoint: resolveSubmitEndpoint(flags, config),
+      outputDirectory,
+      candidateDirectory: path.join(outputDirectory, "_autopilot-candidates"),
+      evidenceDirectory: path.join(outputDirectory, "_autopilot-evidence"),
+    },
+    policy: {
+      defaultWriteBehavior:
+        mode === "submit-after-confirmation"
+          ? "submit only after explicit local confirmation"
+          : "write local draft evidence and candidate manifests only",
+      mayRead: allowedSources,
+      mayWrite: [
+        "local candidate manifests",
+        "local evidence summaries",
+        ...(mode === "submit-after-confirmation"
+          ? ["confirmed KI-Register submissions after explicit local confirmation"]
+          : []),
+      ],
+      neverDo: [
+        "make final legal or compliance decisions",
+        "mark a high-risk classification as final",
+        "submit personal or special-category data without review",
+        "change existing register records silently",
+        "read sources that were not explicitly allowed",
+      ],
+    },
+    humanReviewTriggers: [
+      {
+        id: "unknown-owner",
+        question: "Who owns this AI use case?",
+        blocks: "submission",
+      },
+      {
+        id: "external-or-public-context",
+        question: "Is this internal, employee-facing, customer-facing, applicant-facing, or public?",
+        blocks: "risk-and-register-status",
+      },
+      {
+        id: "personal-or-sensitive-data",
+        question: "Which data categories are actually processed?",
+        blocks: "submission",
+      },
+      {
+        id: "decision-influence-unclear",
+        question: "Does the system assist, prepare, or automate a decision?",
+        blocks: "risk-and-register-status",
+      },
+      {
+        id: "low-confidence-evidence",
+        question: "Is the detected evidence enough to document a real use case?",
+        blocks: "submission",
+      },
+    ],
+    runSteps: [
+      "read only explicitly allowed sources",
+      "detect new or changed AI-use evidence",
+      "map evidence to a candidate manifest",
+      "write candidate manifest and evidence summary locally",
+      "ask only the unresolved human-review questions",
+      "submit only after confirmation when mode allows it",
+    ],
+    suggestedScheduler: {
+      owner: "operator",
+      note: "studio-agent creates the plan but does not install a background scheduler by itself.",
+      launchdCadence:
+        cadence === "daily"
+          ? "StartCalendarInterval every day"
+          : cadence === "every-3-days"
+            ? "StartInterval 259200"
+            : cadence === "weekly"
+              ? "StartCalendarInterval once per week"
+              : "manual run only",
+    },
+  };
+}
+
+function normalizeAutopilotPolicy(rawPolicy) {
+  if (!rawPolicy || typeof rawPolicy !== "object") {
+    throw new Error("Autopilot policy must be a JSON object.");
+  }
+
+  if (rawPolicy.kind !== "kiregister.autopilot.plan") {
+    throw new Error("Autopilot policy kind must be kiregister.autopilot.plan.");
+  }
+
+  return {
+    ...rawPolicy,
+    policy: {
+      mayRead: normalizeStringList(rawPolicy.policy?.mayRead),
+      mayWrite: normalizeStringList(rawPolicy.policy?.mayWrite),
+      neverDo: normalizeStringList(rawPolicy.policy?.neverDo),
+      defaultWriteBehavior: normalizeText(rawPolicy.policy?.defaultWriteBehavior),
+    },
+    target: {
+      registerId: normalizeText(rawPolicy.target?.registerId) ?? null,
+      submitEndpoint:
+        normalizeText(rawPolicy.target?.submitEndpoint) ??
+        DEFAULT_SUBMIT_ENDPOINT,
+      outputDirectory:
+        normalizeText(rawPolicy.target?.outputDirectory) ??
+        path.resolve(process.cwd(), DEFAULT_OUT_DIR),
+      candidateDirectory:
+        normalizeText(rawPolicy.target?.candidateDirectory) ??
+        path.resolve(process.cwd(), DEFAULT_OUT_DIR, "_autopilot-candidates"),
+      evidenceDirectory:
+        normalizeText(rawPolicy.target?.evidenceDirectory) ??
+        path.resolve(process.cwd(), DEFAULT_OUT_DIR, "_autopilot-evidence"),
+    },
+  };
+}
+
+function loadAutopilotPolicy(flags, config) {
+  const policyPath = normalizeText(flags.policy);
+  if (policyPath) {
+    return normalizeAutopilotPolicy(
+      readJsonFile(path.resolve(process.cwd(), policyPath)),
+    );
+  }
+
+  return normalizeAutopilotPolicy(buildAutopilotPlan(flags, config));
+}
+
+function createRunId(now = new Date()) {
+  return `apr_${now.toISOString().replace(/[^0-9]/g, "").slice(0, 14)}_${randomIdSuffix()}`;
+}
+
+function isWorkspaceLocalPath(candidatePath) {
+  const workspaceRoot = path.resolve(process.cwd());
+  const resolved = path.resolve(process.cwd(), candidatePath);
+  return (
+    resolved === workspaceRoot ||
+    resolved.startsWith(`${workspaceRoot}${path.sep}`)
+  );
+}
+
+function resolveAllowedSource(source) {
+  const sourceText = normalizeText(source);
+  if (!sourceText) {
+    return {
+      ok: false,
+      source,
+      reason: "empty-source",
+    };
+  }
+
+  if (sourceText.includes("://")) {
+    return {
+      ok: false,
+      source: sourceText,
+      reason: "remote-sources-not-supported-in-local-run",
+    };
+  }
+
+  if (!isWorkspaceLocalPath(sourceText)) {
+    return {
+      ok: false,
+      source: sourceText,
+      reason: "outside-workspace",
+    };
+  }
+
+  const resolvedPath = path.resolve(process.cwd(), sourceText);
+  if (!existsSync(resolvedPath)) {
+    return {
+      ok: false,
+      source: sourceText,
+      resolvedPath,
+      reason: "not-found",
+    };
+  }
+
+  return {
+    ok: true,
+    source: sourceText,
+    resolvedPath,
+  };
+}
+
+function readPackageJsonEvidence(source, resolvedPath, runId, observedAt) {
+  const packageData = readJsonFile(resolvedPath);
+  const dependencyBlocks = [
+    packageData.dependencies,
+    packageData.devDependencies,
+    packageData.peerDependencies,
+    packageData.optionalDependencies,
+  ].filter((entry) => entry && typeof entry === "object");
+  const dependencyNames = [
+    ...new Set(dependencyBlocks.flatMap((entry) => Object.keys(entry))),
+  ].sort();
+  const aiDependencies = dependencyNames.filter((name) =>
+    AI_DEPENDENCY_HINTS.has(name),
+  );
+
+  if (aiDependencies.length === 0) {
+    return {
+      evidence: [],
+      candidates: [],
+    };
+  }
+
+  const evidenceId = `ev_${runId}_package_ai_deps`;
+  const candidateId = `cand_${runId}_package_ai_deps`;
+
+  return {
+    evidence: [
+      {
+        evidenceId,
+        source,
+        sourceRef: resolvedPath,
+        observedAt,
+        claim: `Repository declares AI-related dependencies: ${aiDependencies.join(", ")}`,
+        confidence: 0.68,
+        excerpt: aiDependencies.join(", "),
+        sensitive: false,
+      },
+    ],
+    candidates: [
+      {
+        candidateId,
+        title: "AI SDK usage in repository",
+        purpose:
+          "Repository declares AI-related SDK dependencies; review whether this represents a KI-Register use case.",
+        systems: aiDependencies.map((name, index) => ({
+          position: index + 1,
+          name,
+          providerType: "SDK",
+        })),
+        confidence: 0.62,
+        status: "needs_review",
+        blockedBy: [
+          "unknown-owner",
+          "decision-influence-unclear",
+          "low-confidence-evidence",
+        ],
+        evidenceIds: [evidenceId],
+      },
+    ],
+  };
+}
+
+function readWorkflowEvidence(source, resolvedPath, runId, observedAt) {
+  if (!statSync(resolvedPath).isDirectory()) {
+    return {
+      evidence: [],
+      candidates: [],
+    };
+  }
+
+  const evidence = [];
+  for (const entry of readdirSync(resolvedPath)) {
+    const manifestPath = path.join(resolvedPath, entry, "manifest.json");
+    if (!existsSync(manifestPath)) {
+      continue;
+    }
+
+    const manifest = readJsonFile(manifestPath);
+    evidence.push({
+      evidenceId: `ev_${runId}_workflow_${slugify(entry)}`,
+      source,
+      sourceRef: manifestPath,
+      observedAt,
+      claim: `Existing workflow manifest found: ${manifest.title ?? entry}`,
+      confidence: 0.9,
+      excerpt: manifest.purpose ?? manifest.summary ?? manifest.title ?? entry,
+      sensitive: false,
+    });
+  }
+
+  return {
+    evidence,
+    candidates: [],
+  };
+}
+
+function scanAutopilotSource(sourceInfo, runId, observedAt) {
+  if (!sourceInfo.ok) {
+    return {
+      evidence: [],
+      candidates: [],
+      skipped: sourceInfo,
+    };
+  }
+
+  if (path.basename(sourceInfo.resolvedPath) === "package.json") {
+    return readPackageJsonEvidence(
+      sourceInfo.source,
+      sourceInfo.resolvedPath,
+      runId,
+      observedAt,
+    );
+  }
+
+  if (sourceInfo.source.includes("agent-workflows")) {
+    return readWorkflowEvidence(
+      sourceInfo.source,
+      sourceInfo.resolvedPath,
+      runId,
+      observedAt,
+    );
+  }
+
+  return {
+    evidence: [],
+    candidates: [],
+    skipped: {
+      source: sourceInfo.source,
+      resolvedPath: sourceInfo.resolvedPath,
+      reason: "source-type-not-yet-supported",
+    },
+  };
+}
+
+function writeAutopilotRunArtifacts({ policy, run }) {
+  ensureDirectory(policy.target.candidateDirectory);
+  ensureDirectory(policy.target.evidenceDirectory);
+
+  const runPath = path.join(
+    policy.target.evidenceDirectory,
+    `${run.runId}.json`,
+  );
+  writeFileSync(runPath, `${JSON.stringify(run, null, 2)}\n`, "utf8");
+
+  const candidatePaths = run.candidates.map((candidate) => {
+    const candidatePath = path.join(
+      policy.target.candidateDirectory,
+      `${candidate.candidateId}.json`,
+    );
+    writeFileSync(candidatePath, `${JSON.stringify(candidate, null, 2)}\n`, "utf8");
+    return candidatePath;
+  });
+
+  return {
+    runPath,
+    candidatePaths,
+  };
+}
+
+function runAutopilotLocalDraft(flags, config) {
+  const policy = loadAutopilotPolicy(flags, config);
+  const now = new Date();
+  const observedAt = now.toISOString();
+  const runId = createRunId(now);
+  const sourceResults = policy.policy.mayRead.map((source) =>
+    scanAutopilotSource(resolveAllowedSource(source), runId, observedAt),
+  );
+  const evidence = sourceResults.flatMap((result) => result.evidence);
+  const candidates = sourceResults.flatMap((result) => result.candidates);
+  const skippedSources = sourceResults
+    .map((result) => result.skipped)
+    .filter((entry) => Boolean(entry));
+  const run = {
+    schemaVersion: "1.0.0",
+    kind: "kiregister.autopilot.run",
+    runId,
+    startedAt: observedAt,
+    completedAt: new Date().toISOString(),
+    status: candidates.length > 0 ? "needs_review" : "no_candidates",
+    mode: policy.mode,
+    cadence: policy.cadence,
+    sourceCount: policy.policy.mayRead.length,
+    evidenceCount: evidence.length,
+    candidateCount: candidates.length,
+    reviewQuestionCount: candidates.reduce(
+      (total, candidate) => total + candidate.blockedBy.length,
+      0,
+    ),
+    evidence,
+    candidates,
+    skippedSources,
+    nextAction:
+      candidates.length > 0
+        ? "Review local candidates before any KIRegister submission."
+        : "No candidate detected from supported local sources.",
+  };
+
+  const files = writeAutopilotRunArtifacts({ policy, run });
+  return {
+    policy,
+    run,
+    files,
   };
 }
 
@@ -1600,6 +2070,83 @@ function runTemplate(flags) {
   process.stdout.write(`${JSON.stringify(template, null, 2)}\n`);
 }
 
+function runAutopilot(flags, positionals) {
+  const subcommand = positionals[1] ?? "help";
+
+  if (subcommand === "help") {
+    process.stdout.write(
+      [
+        "studio-agent autopilot",
+        "",
+        "Commands:",
+        "  plan    Draft a local KI-Register Autopilot run policy",
+        "  run     Run the local draft-only Autopilot against allowed sources",
+        "",
+        "Example:",
+        "  studio-agent autopilot plan --cadence every-3-days --mode draft-only --out-file ./autopilot-plan.json",
+        "  studio-agent autopilot run --policy ./autopilot-plan.json",
+      ].join("\n") + "\n",
+    );
+    return;
+  }
+
+  if (subcommand === "run") {
+    const config = loadConfig();
+    const result = runAutopilotLocalDraft(flags, config);
+
+    emitResult(
+      {
+        ok: true,
+        command: "autopilot run",
+        policy: result.policy,
+        run: result.run,
+        files: result.files,
+        message: `Autopilot run ${result.run.runId}: ${result.run.candidateCount} candidate(s), ${result.run.evidenceCount} evidence item(s).`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand !== "plan") {
+    throw new Error(`Unknown autopilot command: ${subcommand}`);
+  }
+
+  const config = loadConfig();
+  const plan = buildAutopilotPlan(flags, config);
+  const outFile = normalizeText(flags["out-file"]);
+
+  if (outFile) {
+    const targetFile = path.resolve(process.cwd(), outFile);
+    ensureDirectory(path.dirname(targetFile));
+    writeFileSync(targetFile, `${JSON.stringify(plan, null, 2)}\n`, "utf8");
+
+    emitResult(
+      {
+        ok: true,
+        command: "autopilot plan",
+        targetFile,
+        plan,
+        message: `Wrote Autopilot plan to ${targetFile}`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  process.stdout.write(
+    `${JSON.stringify(
+      {
+        ok: true,
+        command: "autopilot plan",
+        plan,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 async function main() {
   const { flags, positionals } = parseArgs(process.argv.slice(2));
   const command = positionals[0] ?? "help";
@@ -1636,6 +2183,11 @@ async function main() {
 
   if (command === "submit") {
     await runSubmit(flags, positionals);
+    return;
+  }
+
+  if (command === "autopilot") {
+    runAutopilot(flags, positionals);
     return;
   }
 

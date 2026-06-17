@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
@@ -63,6 +63,18 @@ function main() {
       2,
     )}\n`,
   );
+  writeFileSync(
+    path.join(workspace, "package.json"),
+    `${JSON.stringify(
+      {
+        dependencies: {
+          openai: "^6.0.0",
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
 
   const createResult = JSON.parse(
     runCli(["capture", "--input", inputPath, "--yes", "--json"], workspace),
@@ -82,6 +94,59 @@ function main() {
     ),
   );
   assert.equal(validateResult.ok, true);
+
+  const autopilotPlan = JSON.parse(
+    runCli(
+      [
+        "autopilot",
+        "plan",
+        "--json",
+        "--cadence",
+        "every-3-days",
+        "--mode",
+        "draft-only",
+        "--sources",
+        "docs/agent-workflows,package.json",
+      ],
+      workspace,
+    ),
+  );
+  assert.equal(autopilotPlan.ok, true);
+  assert.equal(autopilotPlan.plan.kind, "kiregister.autopilot.plan");
+  assert.equal(autopilotPlan.plan.cadence, "every-3-days");
+  assert.deepEqual(autopilotPlan.plan.policy.mayRead, [
+    "docs/agent-workflows",
+    "package.json",
+  ]);
+
+  const planPath = path.join(workspace, "autopilot-plan.json");
+  runCli(
+    [
+      "autopilot",
+      "plan",
+      "--cadence",
+      "every-3-days",
+      "--mode",
+      "draft-only",
+      "--sources",
+      "docs/agent-workflows,package.json",
+      "--out-file",
+      planPath,
+    ],
+    workspace,
+  );
+
+  const autopilotRun = JSON.parse(
+    runCli(
+      ["autopilot", "run", "--policy", planPath, "--json"],
+      workspace,
+    ),
+  );
+  assert.equal(autopilotRun.ok, true);
+  assert.equal(autopilotRun.run.kind, "kiregister.autopilot.run");
+  assert.equal(autopilotRun.run.candidateCount, 1);
+  assert.equal(existsSync(autopilotRun.files.runPath), true);
+  assert.equal(existsSync(autopilotRun.files.candidatePaths[0]), true);
 
   process.stdout.write("agent-kit smoke test passed\n");
 }

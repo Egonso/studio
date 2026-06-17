@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedBy": "studio-agent",
+  "generatedAt": "2026-06-17T00:00:00.000Z",
+  "updatedAt": "2026-06-17T00:00:00.000Z",
+  "documentationType": "workflow",
+  "status": "draft",
+  "slug": "kiregister-autopilot",
+  "title": "KIRegister Autopilot",
+  "summary": "A local or workspace-bound agent prepares KI-Register drafts from approved sources and asks humans only for unresolved governance decisions.",
+  "purpose": "Reduce manual register maintenance by detecting AI-use evidence, drafting use-case records, and escalating only unclear or responsibility-bearing questions.",
+  "ownerRole": "KIRegister Product and Studio Engineering",
+  "contactPersonName": null,
+  "isCurrentlyResponsible": true,
+  "responsibleParty": null,
+  "usageContexts": [
+    "EMPLOYEES"
+  ],
+  "decisionInfluence": "PREPARATION",
+  "dataCategories": [
+    "INTERNAL_CONFIDENTIAL",
+    "PERSONAL_DATA"
+  ],
+  "systems": [
+    {
+      "position": 1,
+      "name": "Approved local or workspace sources",
+      "providerType": "SOURCE"
+    },
+    {
+      "position": 2,
+      "name": "studio-agent Autopilot Runner",
+      "providerType": "AGENT"
+    },
+    {
+      "position": 3,
+      "name": "KIRegister Agent Kit Submit API",
+      "providerType": "API"
+    },
+    {
+      "position": 4,
+      "name": "KIRegister",
+      "providerType": "REGISTER"
+    }
+  ],
+  "workflow": {
+    "connectionMode": "SEMI_AUTOMATED",
+    "summary": "The agent reads approved sources, writes local candidates and evidence, asks review questions when required, and submits only confirmed manifests."
+  },
+  "triggers": [
+    "Scheduled local run",
+    "Manual operator run",
+    "New approved source evidence"
+  ],
+  "steps": [
+    "Load the Autopilot policy",
+    "Read only approved sources",
+    "Detect AI-use evidence",
+    "Create local candidate manifests and evidence summaries",
+    "Ask only unresolved human-review questions",
+    "Submit confirmed manifests to KIRegister when policy allows it"
+  ],
+  "humansInLoop": [
+    "Humans answer blockierende Review-Fragen zu Owner, Datenkategorien, Entscheidungseinfluss und Risiko",
+    "Humans confirm every submission unless the future policy explicitly allows a narrower trusted path",
+    "Formal governance decisions stay outside automated finalization"
+  ],
+  "risks": [
+    "Autopilot may be perceived as surveillance if source permissions are unclear",
+    "Low-confidence evidence could create plausible but incorrect drafts",
+    "Over-automation could blur responsibility for governance decisions"
+  ],
+  "controls": [
+    "Source allowlist is explicit in the Autopilot policy",
+    "Default mode writes local drafts only",
+    "Human review triggers block submission for unclear responsibility-bearing fields",
+    "Every candidate keeps an evidence summary",
+    "No scheduler is installed implicitly"
+  ],
+  "artifacts": [
+    "docs/kiregister/autopilot-technical-spec.md",
+    "Autopilot policy JSON",
+    "Candidate manifest",
+    "Evidence summary",
+    "KIRegister use-case record after confirmed submission"
+  ],
+  "tags": [
+    "kiregister",
+    "autopilot",
+    "agent-kit",
+    "governance",
+    "human-review"
+  ]
+}

@@ -43,6 +43,7 @@ This repository turns those ideas into a practical operating standard:
 | `schemas/studio-use-case.schema.json` | Canonical manifest contract | Makes documentation machine-readable and validation-friendly |
 | `examples/sample-use-case.json` | Starter payload | Good for automation, testing and onboarding |
 | `examples/slash-command.md` | Generic slash-command pattern | Helpful for agents that support custom command aliases |
+| `studio-agent autopilot plan` | Local Autopilot policy draft | Defines allowed sources, write boundaries, and human-review triggers before any background agent exists |
 
 ## Quick start
 
@@ -135,6 +136,15 @@ node ./bin/studio-agent.mjs create --input ./examples/sample-use-case.json
 
 # List all known workflow folders
 node ./bin/studio-agent.mjs list --json
+
+# Draft a KI-Register Autopilot run policy before installing any scheduler
+node ./bin/studio-agent.mjs autopilot plan \
+  --cadence every-3-days \
+  --mode draft-only \
+  --out-file ./autopilot-plan.json
+
+# Run the local draft-only Autopilot against sources allowed by that policy
+node ./bin/studio-agent.mjs autopilot run --policy ./autopilot-plan.json
 ```
 
 ### Best-practice usage rules
