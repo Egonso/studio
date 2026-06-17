@@ -166,6 +166,7 @@ function printHelp() {
     "  operator runs           List documented Autopilot agent runs",
     "  operator run <id>       Read one documented Autopilot agent run",
     "  operator run submit <run-json> Document a local Autopilot run",
+    "  operator review-export  Export a bounded candidate review extract",
     "  autopilot plan          Draft a local KI-Register Autopilot run policy",
     "  autopilot run           Run the local draft-only Autopilot against allowed sources",
     "  list                    List generated workflow folders",
@@ -183,6 +184,7 @@ function printHelp() {
     "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
     "  studio-agent operator candidate submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
     "  studio-agent operator run submit ./_autopilot-evidence/run.json --register-id reg_123",
+    "  studio-agent operator review-export --register-id reg_123 --json",
     "  studio-agent autopilot plan --cadence every-3-days --out-file ./autopilot-plan.json",
     "  studio-agent autopilot run --policy ./autopilot-plan.json",
     "",
@@ -197,6 +199,7 @@ function printHelp() {
     "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
     "  --status <value>        Optional operator use-case or candidate status filter",
     "  --run-id <value>        Optional operator candidate run filter or run id override",
+    "  --out-file <path>       Optional file target for generated plans or exports",
     "  --search-text <value>   Optional operator use-case text filter",
     "  --limit <number>        Optional operator list limit",
     "  --cadence <value>       Autopilot cadence: manual, daily, every-3-days, weekly",
@@ -1891,6 +1894,25 @@ async function getOperatorRun({ endpoint, apiKey, registerId, runId }) {
   });
 }
 
+async function getOperatorReviewExport({
+  endpoint,
+  apiKey,
+  registerId,
+  status,
+  runId,
+}) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "review-export", {
+      registerId,
+      status,
+      runId,
+    }),
+    apiKey,
+    timeoutMessage: "Operator review export request timed out",
+    errorFallback: "Operator review export failed",
+  });
+}
+
 async function postOperatorRun({
   endpoint,
   apiKey,
@@ -2617,6 +2639,7 @@ async function runOperator(flags, positionals) {
         "  runs              List documented Autopilot agent runs",
         "  run <id>          Read one documented Autopilot agent run",
         "  run submit <file> Document a local Autopilot run",
+        "  review-export    Export a bounded candidate review extract",
         "",
         "Examples:",
         "  studio-agent operator registers --json",
@@ -2627,6 +2650,7 @@ async function runOperator(flags, positionals) {
         "  studio-agent operator candidate submit ./docs/agent-workflows/<slug>/manifest.json --register-id reg_123",
         "  studio-agent operator runs --register-id reg_123 --json",
         "  studio-agent operator run submit ./_autopilot-evidence/run.json --register-id reg_123",
+        "  studio-agent operator review-export --register-id reg_123 --json",
         "",
         "Required:",
         "  --api-key or KI_REGISTER_API_KEY",
@@ -2795,6 +2819,47 @@ async function runOperator(flags, positionals) {
         response,
         runs,
         message: `Loaded ${runs.length} agent run(s) from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "review-export" || subcommand === "review") {
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+    const status = normalizeChoice(
+      flags.status,
+      AGENT_CANDIDATE_STATUS_VALUES,
+      undefined,
+      "--status",
+    );
+    const response = await getOperatorReviewExport({
+      ...defaults,
+      status,
+      runId: normalizeText(flags["run-id"]),
+    });
+    const outFile = normalizeText(flags["out-file"]);
+    if (outFile) {
+      const targetFile = path.resolve(process.cwd(), outFile);
+      ensureDirectory(path.dirname(targetFile));
+      writeFileSync(targetFile, `${JSON.stringify(response, null, 2)}\n`, "utf8");
+    }
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator review-export",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        ...(outFile ? { targetFile: path.resolve(process.cwd(), outFile) } : {}),
+        response,
+        export: response,
+        message:
+          typeof response?.exportedCount === "number"
+            ? `Exported ${response.exportedCount} review candidate(s) from register ${defaults.registerId}.`
+            : `Exported review extract from register ${defaults.registerId}.`,
       },
       Boolean(flags.json),
     );

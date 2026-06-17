@@ -58,6 +58,7 @@ const agentOperatorCandidatesRoute = readSource("src/app/api/agent/operator/cand
 const agentOperatorCandidateRoute = readSource("src/app/api/agent/operator/candidates/[candidateId]/route.ts");
 const agentOperatorRunsRoute = readSource("src/app/api/agent/operator/runs/route.ts");
 const agentOperatorRunRoute = readSource("src/app/api/agent/operator/runs/[runId]/route.ts");
+const agentOperatorReviewExportRoute = readSource("src/app/api/agent/operator/review-export/route.ts");
 const coverageAssistConfigRoute = readSource("src/app/api/coverage-assist/config/route.ts");
 
 test("invite creation route requires workspace-admin authorization", () => {
@@ -220,6 +221,19 @@ test("agent operator run routes write only run protocols", () => {
   assert.match(agentOperatorRunRoute, /export async function PATCH/);
   assert.doesNotMatch(agentOperatorRunRoute, /useCases/);
   assert.doesNotMatch(agentOperatorRunRoute, /createAgentOperatorCandidate/);
+});
+
+test("agent operator review export uses audit-read scope without mutations", () => {
+  assert.match(agentOperatorReviewExportRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorReviewExportRoute, /'read:audit'/);
+  assert.match(agentOperatorReviewExportRoute, /listAgentOperatorCandidates/);
+  assert.match(agentOperatorReviewExportRoute, /getAgentOperatorRun/);
+  assert.match(agentOperatorReviewExportRoute, /mode: 'audit_read'/);
+  assert.match(agentOperatorReviewExportRoute, /kiregister\.agentReviewExport/);
+  assert.match(agentOperatorReviewExportRoute, /export async function GET/);
+  assert.doesNotMatch(agentOperatorReviewExportRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorReviewExportRoute, /createAgentOperatorCandidate/);
+  assert.doesNotMatch(agentOperatorReviewExportRoute, /mergeAgentOperatorCandidateForLocation/);
 });
 
 test("workspace agent candidate review routes are read-only human review paths", () => {

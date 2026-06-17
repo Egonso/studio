@@ -195,6 +195,9 @@ ergänzen den Run-Filter für Kandidaten. Sie sind dokumentiert in
 Die Sprints 29-33 ergänzen den exportfähigen Candidate-Review-Auszug und sind
 dokumentiert in
 [`docs/kiregister/candidate-review-export-sprints-29-33.md`](./candidate-review-export-sprints-29-33.md).
+Die Sprints 34-38 aktivieren den Audit-Operator-Scope `read:audit` für
+Review-Auszüge und sind dokumentiert in
+[`docs/kiregister/audit-operator-scope-sprints-34-38.md`](./audit-operator-scope-sprints-34-38.md).
 
 Aktive Endpunkte:
 
@@ -208,6 +211,7 @@ Aktive Endpunkte:
 - `POST /api/agent/operator/runs`
 - `GET /api/agent/operator/runs/[runId]`
 - `PATCH /api/agent/operator/runs/[runId]`
+- `GET /api/agent/operator/review-export`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
 - `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`

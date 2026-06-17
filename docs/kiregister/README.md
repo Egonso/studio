@@ -54,3 +54,4 @@ Die technische Spezifikation liegt in:
 - [Agent Run Protocol Sprints 19-23](./agent-run-protocol-sprints-19-23.md)
 - [Agent Run Review UI Sprints 24-28](./agent-run-review-ui-sprints-24-28.md)
 - [Candidate Review Export Sprints 29-33](./candidate-review-export-sprints-29-33.md)
+- [Audit Operator Scope Sprints 34-38](./audit-operator-scope-sprints-34-38.md)

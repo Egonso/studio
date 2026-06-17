@@ -187,4 +187,5 @@ test("studio-agent operator help exposes run protocol commands", () => {
 
   assert.match(output, /operator runs/);
   assert.match(output, /operator run submit/);
+  assert.match(output, /operator review-export/);
 });

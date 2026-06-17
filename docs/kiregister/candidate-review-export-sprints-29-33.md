@@ -77,7 +77,12 @@ Der Block ist gegen ESLint, Typecheck und Auth-Routentest validiert.
 
 ## Nächste sinnvolle Blöcke
 
+Der Audit-Operator-Scope `read:audit` ist im direkten Folgeblock umgesetzt und
+dokumentiert:
+[`audit-operator-scope-sprints-34-38.md`](./audit-operator-scope-sprints-34-38.md).
+
+Danach bleiben:
+
 - Run-Detailansicht mit Fehler- und Skipped-Source-Kontext
 - visueller Preview-/Browser-Check der Review-Inbox
-- eigener `read:audit`-Scope für auditnahe Lesezugriffe
 - später Exportformat als signierbarer Audit-Anhang

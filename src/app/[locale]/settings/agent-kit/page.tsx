@@ -43,12 +43,13 @@ type AgentKitApiKeyScope =
   | 'write:review-note'
   | 'write:status-proposal';
 
-type AgentKitKeyMode = 'submit' | 'read' | 'candidate';
+type AgentKitKeyMode = 'submit' | 'read' | 'candidate' | 'audit';
 
 const AGENT_KIT_KEY_MODE_SCOPES: Record<AgentKitKeyMode, AgentKitApiKeyScope[]> = {
   submit: ['submit:usecase'],
   read: ['read:register', 'read:usecase'],
   candidate: ['read:register', 'read:usecase', 'write:candidate'],
+  audit: ['read:register', 'read:audit'],
 };
 
 interface AgentKitApiKeyRow {
@@ -100,6 +101,10 @@ function getAgentKitSettingsCopy(locale: string) {
 
         if (mode === 'read') {
           return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository mit einem Read-only-Operator-Key. Lies Register und Einsatzfälle aus KI Register Register ${registerId}, verändere nichts und melde nur offene Fragen, Risiken oder fehlende Nachweise.`;
+        }
+
+        if (mode === 'audit') {
+          return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository mit einem Audit-Operator-Key. Exportiere den Candidate-Review-Auszug für KI Register Register ${registerId}, verändere nichts und fasse nur Review-Status, offene Fragen und Nachweislücken zusammen.`;
         }
 
         return `Nutze die lokale ki-register-agent-kit CLI in diesem Repository. Falls noch kein Onboarding vorhanden ist, führe zuerst das Onboarding durch. Dokumentiere diesen neuen KI-Einsatzfall, frage fehlende Fakten nach, zeige mir die Zusammenfassung vor dem Schreiben und reiche das Manifest nach meiner Bestätigung in KI Register Register ${registerId} ein.`;
@@ -159,12 +164,15 @@ function getAgentKitSettingsCopy(locale: string) {
       keyModeSubmit: 'Submit-only',
       keyModeRead: 'Read-only Operator',
       keyModeCandidate: 'Candidate Operator',
+      keyModeAudit: 'Audit Operator',
       keyModeSubmitDesc:
         'Darf bestätigte Manifeste direkt als Einsatzfall einreichen.',
       keyModeReadDesc:
         'Darf Register und Einsatzfälle lesen, aber nichts schreiben.',
       keyModeCandidateDesc:
         'Darf Register lesen und Review-Kandidaten ablegen. Keine echten Einsatzfälle.',
+      keyModeAuditDesc:
+        'Darf Register finden und Candidate-Review-Auszüge lesen. Keine Schreibrechte.',
       operatorScopeNotice:
         'Operator-Berechtigungen können nur Owner und Admins erstellen.',
       targetRegisterPlaceholder: 'Ziel-Register wählen',
@@ -211,6 +219,10 @@ function getAgentKitSettingsCopy(locale: string) {
 
       if (mode === 'read') {
         return `Use the local ki-register-agent-kit CLI in this repository with a read-only Operator key. Read registers and use cases from AI Registry register ${registerId}, change nothing, and report only open questions, risks or missing evidence.`;
+      }
+
+      if (mode === 'audit') {
+        return `Use the local ki-register-agent-kit CLI in this repository with an audit Operator key. Export the candidate review extract for AI Registry register ${registerId}, change nothing, and summarize only review status, open questions and evidence gaps.`;
       }
 
       return `Use the local ki-register-agent-kit CLI in this repository. If there is no onboarding yet, run onboarding first. Document this new AI use case, ask for missing facts, show me the summary before writing, and after my confirmation submit the manifest into AI Registry register ${registerId}.`;
@@ -269,12 +281,15 @@ function getAgentKitSettingsCopy(locale: string) {
     keyModeSubmit: 'Submit-only',
     keyModeRead: 'Read-only Operator',
     keyModeCandidate: 'Candidate Operator',
+    keyModeAudit: 'Audit Operator',
     keyModeSubmitDesc:
       'Can submit confirmed manifests directly as use cases.',
     keyModeReadDesc:
       'Can read registers and use cases, but cannot write anything.',
     keyModeCandidateDesc:
       'Can read registers and store review candidates. No real use cases.',
+    keyModeAuditDesc:
+      'Can find registers and read candidate review extracts. No write access.',
     operatorScopeNotice:
       'Operator permissions can only be created by owners and admins.',
     targetRegisterPlaceholder: 'Choose target register',
@@ -346,6 +361,10 @@ function getAgentKitKeyModeForScopes(
 ): AgentKitKeyMode {
   if (scopes?.includes('write:candidate')) {
     return 'candidate';
+  }
+
+  if (scopes?.includes('read:audit')) {
+    return 'audit';
   }
 
   if (scopes?.includes('read:register') || scopes?.includes('read:usecase')) {
@@ -638,6 +657,8 @@ export default function AgentKitSettingsPage() {
   const selectedKeyModeDescription =
     selectedKeyMode === 'candidate'
       ? copy.keyModeCandidateDesc
+      : selectedKeyMode === 'audit'
+        ? copy.keyModeAuditDesc
       : selectedKeyMode === 'read'
         ? copy.keyModeReadDesc
         : copy.keyModeSubmitDesc;
@@ -653,9 +674,18 @@ export default function AgentKitSettingsPage() {
         return copy.keyModeRead;
       }
 
+      if (mode === 'audit') {
+        return copy.keyModeAudit;
+      }
+
       return copy.keyModeSubmit;
     },
-    [copy.keyModeCandidate, copy.keyModeRead, copy.keyModeSubmit],
+    [
+      copy.keyModeAudit,
+      copy.keyModeCandidate,
+      copy.keyModeRead,
+      copy.keyModeSubmit,
+    ],
   );
 
   useEffect(() => {
@@ -696,6 +726,15 @@ export default function AgentKitSettingsPage() {
         `export KI_REGISTER_REGISTER_ID="${selectedRegister.registerId}"`,
         `export KI_REGISTER_OPERATOR_ENDPOINT="${absoluteOperatorEndpoint}"`,
         `node ./agent-kit/bin/studio-agent.mjs operator use-cases --register-id "${selectedRegister.registerId}" --json`,
+      ].join('\n');
+    }
+
+    if (selectedKeyMode === 'audit') {
+      return [
+        'export KI_REGISTER_API_KEY="<your-agent-kit-api-key>"',
+        `export KI_REGISTER_REGISTER_ID="${selectedRegister.registerId}"`,
+        `export KI_REGISTER_OPERATOR_ENDPOINT="${absoluteOperatorEndpoint}"`,
+        `node ./agent-kit/bin/studio-agent.mjs operator review-export --register-id "${selectedRegister.registerId}" --json`,
       ].join('\n');
     }
 
@@ -976,6 +1015,9 @@ export default function AgentKitSettingsPage() {
                   </SelectItem>
                   <SelectItem value="candidate" disabled={!canCreateOperatorKey}>
                     {copy.keyModeCandidate}
+                  </SelectItem>
+                  <SelectItem value="audit" disabled={!canCreateOperatorKey}>
+                    {copy.keyModeAudit}
                   </SelectItem>
                 </SelectContent>
               </Select>
