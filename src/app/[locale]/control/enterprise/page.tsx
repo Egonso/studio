@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
   Copy,
@@ -17,7 +16,7 @@ import {
   Workflow,
 } from 'lucide-react';
 
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,11 +35,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/context/auth-context';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import {
   getGovernanceDateLocale,
   resolveGovernanceCopyLocale,
 } from '@/lib/i18n/governance-copy';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import type { GovernanceSignOffRecord } from '@/lib/enterprise/governance-signoff';
 import {
   getWorkspaceRoleLabel,
@@ -716,7 +717,6 @@ export default function ControlEnterprisePage() {
   const { profile } = useUserProfile();
   const locale = useLocale();
   const copy = useMemo(() => getEnterpriseCopy(locale), [locale]);
-  const router = useRouter();
   const scopedHrefs = useScopedRouteHrefs();
   const { toast } = useToast();
   const {
@@ -750,12 +750,6 @@ export default function ControlEnterprisePage() {
     purpose: '',
     url: '',
   });
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [loading, router, user]);
 
   useEffect(() => {
     if (!profile) {
@@ -1321,7 +1315,22 @@ export default function ControlEnterprisePage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={locale === 'de' ? 'Anmeldung erforderlich' : 'Sign-in required'}
+        description={
+          locale === 'de'
+            ? 'Organisationssteuerung gehört zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.'
+            : 'Organisation controls belong to your account or workspace. Sign in to open this area.'
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, '/control/organisation'),
+        })}
+        signInLabel={locale === 'de' ? 'Anmelden' : 'Sign in'}
+      />
+    );
   }
 
   return (
