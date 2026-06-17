@@ -69,7 +69,12 @@ Der Block ist gegen ESLint und Typecheck validiert.
 
 ## Nächste sinnvolle Blöcke
 
-- Exportfähiger Candidate-Review-Auszug
+Der exportfähige Candidate-Review-Auszug ist im direkten Folgeblock
+dokumentiert:
+[`candidate-review-export-sprints-29-33.md`](./candidate-review-export-sprints-29-33.md).
+
+Danach bleiben:
+
 - Run-Detailseite mit Kandidatenliste und Fehler-/Skipped-Source-Kontext
 - Visuelle QA der authentifizierten Review-Inbox
 - eigener `read:audit`-Scope für auditnahe Lesezugriffe

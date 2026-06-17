@@ -48,6 +48,7 @@ const workspaceAgentKitCandidateReviewRoute = readSource("src/app/api/workspaces
 const workspaceAgentKitCandidateMergeRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge/route.ts");
 const workspaceAgentKitRunsRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/runs/route.ts");
 const workspaceAgentKitRunRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/runs/[runId]/route.ts");
+const workspaceAgentKitReviewExportRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/review-export/route.ts");
 const agentKitCandidateReviewAuth = readSource("src/lib/agent-kit/candidate-review-auth.ts");
 const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
 const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
@@ -134,6 +135,7 @@ test("workspace enterprise routes enforce member, admin, and reviewer auth on th
   assert.match(workspaceAgentKitCandidateItemRoute, /authorizeAgentOperatorCandidateReview\(/);
   assert.match(workspaceAgentKitRunsRoute, /authorizeAgentOperatorCandidateReview\(/);
   assert.match(workspaceAgentKitRunRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitReviewExportRoute, /authorizeAgentOperatorCandidateReview\(/);
 });
 
 test("billing and workspace register routes use scope-aware register lookup hints", () => {
@@ -264,4 +266,11 @@ test("workspace agent candidate review routes are read-only human review paths",
   assert.match(workspaceAgentKitRunRoute, /export async function GET/);
   assert.doesNotMatch(workspaceAgentKitRunRoute, /export async function POST/);
   assert.doesNotMatch(workspaceAgentKitRunRoute, /updateAgentOperatorRun/);
+
+  assert.match(workspaceAgentKitReviewExportRoute, /listAgentOperatorCandidatesForLocation/);
+  assert.match(workspaceAgentKitReviewExportRoute, /getAgentOperatorRunForLocation/);
+  assert.match(workspaceAgentKitReviewExportRoute, /kiregister\.agentReviewExport/);
+  assert.match(workspaceAgentKitReviewExportRoute, /export async function GET/);
+  assert.doesNotMatch(workspaceAgentKitReviewExportRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitReviewExportRoute, /mergeAgentOperatorCandidateForLocation/);
 });

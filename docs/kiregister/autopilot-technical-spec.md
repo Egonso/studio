@@ -192,6 +192,9 @@ und Kandidaten-Historie je Run und sind dokumentiert in
 Die Sprints 24-28 machen Run-Protokolle in der Review-Inbox sichtbar und
 ergänzen den Run-Filter für Kandidaten. Sie sind dokumentiert in
 [`docs/kiregister/agent-run-review-ui-sprints-24-28.md`](./agent-run-review-ui-sprints-24-28.md).
+Die Sprints 29-33 ergänzen den exportfähigen Candidate-Review-Auszug und sind
+dokumentiert in
+[`docs/kiregister/candidate-review-export-sprints-29-33.md`](./candidate-review-export-sprints-29-33.md).
 
 Aktive Endpunkte:
 
@@ -212,6 +215,7 @@ Aktive Endpunkte:
 - `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 - `GET /api/workspaces/[orgId]/agent-kit/runs`
 - `GET /api/workspaces/[orgId]/agent-kit/runs/[runId]`
+- `GET /api/workspaces/[orgId]/agent-kit/review-export`
 
 Noch nicht aktiv:
 

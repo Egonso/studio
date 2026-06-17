@@ -53,3 +53,4 @@ Die technische Spezifikation liegt in:
 - [Candidate Merge Assurance Sprints 14-18](./candidate-merge-assurance-sprints-14-18.md)
 - [Agent Run Protocol Sprints 19-23](./agent-run-protocol-sprints-19-23.md)
 - [Agent Run Review UI Sprints 24-28](./agent-run-review-ui-sprints-24-28.md)
+- [Candidate Review Export Sprints 29-33](./candidate-review-export-sprints-29-33.md)

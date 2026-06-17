@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   CheckCircle2,
+  Download,
   FileText,
   Inbox,
   RefreshCw,
@@ -263,6 +264,11 @@ function getCandidateReviewCopy(locale: string) {
       noFilteredCandidates:
         'Für diesen Status liegen keine Review-Kandidaten vor.',
       showAllCandidates: 'Alle anzeigen',
+      exportReview: 'Review-Auszug exportieren',
+      reviewExportTitle: 'Review-Auszug exportiert',
+      reviewExportDesc:
+        'Der aktuelle Kandidaten- und Filterstand wurde als JSON-Auszug vorbereitet.',
+      reviewExportErrorTitle: 'Review-Auszug konnte nicht exportiert werden',
       statusFilterAll: 'Alle',
       candidate: 'Kandidat',
       status: 'Status',
@@ -381,6 +387,11 @@ function getCandidateReviewCopy(locale: string) {
     noFilteredCandidates:
       'There are no review candidates for this status.',
     showAllCandidates: 'Show all',
+    exportReview: 'Export review extract',
+    reviewExportTitle: 'Review extract exported',
+    reviewExportDesc:
+      'The current candidate and filter state was prepared as a JSON extract.',
+    reviewExportErrorTitle: 'Review extract could not be exported',
     statusFilterAll: 'All',
     candidate: 'Candidate',
     status: 'Status',
@@ -581,6 +592,7 @@ export default function AgentCandidateReviewPage() {
   const [isLoadingRuns, setIsLoadingRuns] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isExportingReview, setIsExportingReview] = useState(false);
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
   const [isMergingCandidate, setIsMergingCandidate] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
@@ -991,6 +1003,73 @@ export default function AgentCandidateReviewPage() {
     }
   }, [authFetch, selectedCandidateId, selectedRegisterId, workspaceId]);
 
+  const downloadReviewExport = useCallback(async () => {
+    if (!workspaceId || !selectedRegisterId) {
+      return;
+    }
+
+    setIsExportingReview(true);
+    try {
+      const params = new URLSearchParams({
+        registerId: selectedRegisterId,
+      });
+      if (statusFilter !== 'all') {
+        params.set('status', statusFilter);
+      }
+      if (selectedRunId) {
+        params.set('runId', selectedRunId);
+      }
+      const response = await authFetch(
+        `/api/workspaces/${workspaceId}/agent-kit/review-export?${params.toString()}`,
+      );
+      const payload = await response.json();
+      const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
+        type: 'application/json',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = [
+        'kiregister-agent-review',
+        selectedRegisterId,
+        selectedRunId,
+        statusFilter === 'all' ? null : statusFilter,
+      ]
+        .filter(Boolean)
+        .join('-')
+        .concat('.json');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast({
+        title: copy.reviewExportTitle,
+        description: copy.reviewExportDesc,
+      });
+    } catch (exportError) {
+      console.error('Failed to export candidate review extract', exportError);
+      toast({
+        variant: 'destructive',
+        title: copy.reviewExportErrorTitle,
+        description:
+          exportError instanceof Error ? exportError.message : copy.detailFallback,
+      });
+    } finally {
+      setIsExportingReview(false);
+    }
+  }, [
+    authFetch,
+    copy.detailFallback,
+    copy.reviewExportDesc,
+    copy.reviewExportErrorTitle,
+    copy.reviewExportTitle,
+    selectedRegisterId,
+    selectedRunId,
+    statusFilter,
+    toast,
+    workspaceId,
+  ]);
+
   useEffect(() => {
     if (!loading && !profileLoading && user) {
       void loadWorkspaces();
@@ -1376,22 +1455,33 @@ export default function AgentCandidateReviewPage() {
               <CardDescription>{copy.candidatesDesc}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {candidateStatusFilterOptions.map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={statusFilter === filter ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setStatusFilter(filter)}
-                  >
-                    {filter === 'all'
-                      ? copy.statusFilterAll
-                      : getCandidateStatusLabel(filter, copy)}
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {getCandidateStatusCount(filter)}
-                    </span>
-                  </Button>
-                ))}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
+                  {candidateStatusFilterOptions.map((filter) => (
+                    <Button
+                      key={filter}
+                      variant={statusFilter === filter ? 'secondary' : 'outline'}
+                      size="sm"
+                      onClick={() => setStatusFilter(filter)}
+                    >
+                      {filter === 'all'
+                        ? copy.statusFilterAll
+                        : getCandidateStatusLabel(filter, copy)}
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {getCandidateStatusCount(filter)}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void downloadReviewExport()}
+                  disabled={isExportingReview || !selectedRegisterId}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {copy.exportReview}
+                </Button>
               </div>
               <Table>
                 <TableHeader>
