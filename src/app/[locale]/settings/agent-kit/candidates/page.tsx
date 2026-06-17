@@ -25,6 +25,7 @@ import {
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
 type CandidateStatus = 'needs_review' | 'accepted' | 'rejected' | 'merged';
+type CandidateStatusFilter = 'all' | CandidateStatus;
 
 interface RegisterOption {
   registerId: string;
@@ -177,6 +178,9 @@ function getCandidateReviewCopy(locale: string) {
         'Kandidaten sind Agentenvorschläge. Sie sind noch keine echten Use Cases.',
       noCandidates:
         'Für dieses Register liegen keine Review-Kandidaten vor.',
+      noFilteredCandidates:
+        'Für diesen Status liegen keine Review-Kandidaten vor.',
+      statusFilterAll: 'Alle',
       candidate: 'Kandidat',
       status: 'Status',
       review: 'Review',
@@ -261,6 +265,9 @@ function getCandidateReviewCopy(locale: string) {
       'Candidates are agent proposals. They are not real use cases yet.',
     noCandidates:
       'There are no review candidates for this register.',
+    noFilteredCandidates:
+      'There are no review candidates for this status.',
+    statusFilterAll: 'All',
     candidate: 'Candidate',
     status: 'Status',
     review: 'Review',
@@ -390,6 +397,7 @@ export default function AgentCandidateReviewPage() {
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [candidateDetail, setCandidateDetail] = useState<CandidateDetail | null>(null);
+  const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>('all');
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
@@ -768,6 +776,31 @@ export default function AgentCandidateReviewPage() {
       null,
     [registers, selectedRegisterId],
   );
+  const filteredCandidates = useMemo(
+    () =>
+      statusFilter === 'all'
+        ? candidates
+        : candidates.filter((candidate) => candidate.status === statusFilter),
+    [candidates, statusFilter],
+  );
+  const candidateStatusFilterOptions = useMemo(
+    () =>
+      [
+        'all',
+        'needs_review',
+        'accepted',
+        'rejected',
+        'merged',
+      ] as const,
+    [],
+  );
+  const getCandidateStatusCount = useCallback(
+    (status: CandidateStatusFilter) =>
+      status === 'all'
+        ? candidates.length
+        : candidates.filter((candidate) => candidate.status === status).length,
+    [candidates],
+  );
   const mergedUseCaseHref = useMemo(() => {
     const useCaseId = candidateDetail?.mergeResult?.useCaseId;
     if (!useCaseId) {
@@ -789,6 +822,20 @@ export default function AgentCandidateReviewPage() {
     selectedWorkspace?.scopeType,
     workspaceId,
   ]);
+
+  useEffect(() => {
+    if (
+      selectedCandidateId &&
+      filteredCandidates.some(
+        (candidate) => candidate.candidateId === selectedCandidateId,
+      )
+    ) {
+      return;
+    }
+
+    setSelectedCandidateId(filteredCandidates[0]?.candidateId ?? null);
+    setCandidateDetail(null);
+  }, [filteredCandidates, selectedCandidateId]);
 
   const handleWorkspaceChange = (nextWorkspaceId: string) => {
     setWorkspaceId(nextWorkspaceId);
@@ -944,7 +991,24 @@ export default function AgentCandidateReviewPage() {
               <CardTitle>{copy.candidates}</CardTitle>
               <CardDescription>{copy.candidatesDesc}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {candidateStatusFilterOptions.map((filter) => (
+                  <Button
+                    key={filter}
+                    variant={statusFilter === filter ? 'secondary' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter(filter)}
+                  >
+                    {filter === 'all'
+                      ? copy.statusFilterAll
+                      : getCandidateStatusLabel(filter, copy)}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {getCandidateStatusCount(filter)}
+                    </span>
+                  </Button>
+                ))}
+              </div>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -963,8 +1027,14 @@ export default function AgentCandidateReviewPage() {
                         {copy.noCandidates}
                       </TableCell>
                     </TableRow>
+                  ) : filteredCandidates.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                        {copy.noFilteredCandidates}
+                      </TableCell>
+                    </TableRow>
                   ) : (
-                    candidates.map((candidate) => (
+                    filteredCandidates.map((candidate) => (
                       <TableRow key={candidate.candidateId}>
                         <TableCell>
                           <div className="font-medium">{candidate.title}</div>

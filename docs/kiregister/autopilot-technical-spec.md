@@ -173,6 +173,8 @@ dokumentiert in
 Sprint 9 ergänzt ein Duplicate-Review-Gate vor dem Merge und ist dokumentiert
 in
 [`docs/kiregister/candidate-duplicate-gate-sprint-9.md`](./candidate-duplicate-gate-sprint-9.md).
+Sprint 10 ergänzt Status-Filter in der Review-Inbox und ist dokumentiert in
+[`docs/kiregister/candidate-status-filter-sprint-10.md`](./candidate-status-filter-sprint-10.md).
 
 Aktive Endpunkte:
 

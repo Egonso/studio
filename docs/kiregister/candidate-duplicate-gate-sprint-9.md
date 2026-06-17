@@ -60,3 +60,6 @@ Als nächstes sollte die Review-Inbox selbst besser steuerbar werden:
 - Status-Filter oder Status-Tabs
 - stabilere leere Zustände
 - bessere Orientierung nach Merge oder Ablehnung
+
+Sprint 10 setzt die Status-Filter in der Review-Inbox um:
+[`docs/kiregister/candidate-status-filter-sprint-10.md`](./candidate-status-filter-sprint-10.md).
