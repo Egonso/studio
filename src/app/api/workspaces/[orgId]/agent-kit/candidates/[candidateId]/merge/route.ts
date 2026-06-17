@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   AgentOperatorCandidateMergeStateError,
   mergeAgentOperatorCandidateForLocation,
+  previewAgentOperatorCandidateMergeForLocation,
 } from '@/lib/agent-kit/candidates';
 import {
   authorizeAgentOperatorCandidateReview,
@@ -114,6 +115,52 @@ export async function POST(req: NextRequest, context: RouteContext) {
       },
       { status: 201 },
     );
+  } catch (error) {
+    return handleCandidateMergeError(error);
+  }
+}
+
+export async function GET(req: NextRequest, context: RouteContext) {
+  const { orgId, candidateId } = await context.params;
+  const registerId = req.nextUrl.searchParams.get('registerId')?.trim();
+
+  if (!registerId) {
+    return NextResponse.json(
+      { error: 'Register-ID fehlt.' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const authorization = await authorizeAgentOperatorCandidateReview({
+      authorizationHeader: req.headers.get('authorization'),
+      orgId,
+      registerId,
+    });
+
+    if (!authorization) {
+      return NextResponse.json(
+        { error: 'Register nicht gefunden.' },
+        { status: 404 },
+      );
+    }
+
+    const result = await previewAgentOperatorCandidateMergeForLocation({
+      location: authorization.location,
+      scopeType: authorization.scopeType,
+      candidateId,
+      actorUserId: authorization.user.uid,
+      actorEmail: authorization.user.email,
+    });
+
+    if (!result) {
+      return NextResponse.json(
+        { error: 'Review-Kandidat nicht gefunden.' },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     return handleCandidateMergeError(error);
   }

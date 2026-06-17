@@ -183,6 +183,9 @@ dokumentiert in
 [`docs/kiregister/candidate-review-orientation-sprint-12.md`](./candidate-review-orientation-sprint-12.md).
 Die Sprints 9-13 sind zusätzlich als Härtungsbatch zusammengefasst in
 [`docs/kiregister/candidate-hardening-batch-sprints-9-13.md`](./candidate-hardening-batch-sprints-9-13.md).
+Die Sprints 14-18 ergänzen serverseitige Statuscounts, Merge-Voransicht und
+Audit-Timeline-Nachweis und sind dokumentiert in
+[`docs/kiregister/candidate-merge-assurance-sprints-14-18.md`](./candidate-merge-assurance-sprints-14-18.md).
 
 Aktive Endpunkte:
 
@@ -195,6 +198,7 @@ Aktive Endpunkte:
 - `GET /api/workspaces/[orgId]/agent-kit/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
 - `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
+- `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 - `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 
 Noch nicht aktiv:

@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CheckCircle2, FileText, Inbox, RefreshCw, XCircle } from 'lucide-react';
+import {
+  ArrowLeft,
+  CheckCircle2,
+  FileText,
+  Inbox,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react';
 import { useLocale } from 'next-intl';
 
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
@@ -26,6 +33,7 @@ import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-sess
 
 type CandidateStatus = 'needs_review' | 'accepted' | 'rejected' | 'merged';
 type CandidateStatusFilter = 'all' | CandidateStatus;
+type CandidateStatusCounts = Record<CandidateStatus, number>;
 
 interface RegisterOption {
   registerId: string;
@@ -133,6 +141,8 @@ interface CandidateDetail extends CandidateSummary {
 interface CandidateListResponse {
   candidates: CandidateSummary[];
   count: number;
+  totalCount?: number;
+  statusCounts?: Partial<CandidateStatusCounts>;
 }
 
 interface CandidateDetailResponse {
@@ -147,6 +157,31 @@ interface CandidateMergeResponse {
     purpose: string;
     detailPath: string;
     detailUrl: string;
+  };
+}
+
+interface CandidateMergePreviewResponse {
+  preview: {
+    canMerge: boolean;
+    duplicateReviewRequired: boolean;
+    blockedReasons: string[];
+    useCase: {
+      purpose: string;
+      status: string;
+      systemSummary: string;
+      reviewHints: string[];
+      evidences: Array<{ evidenceId: string; label: string; type: string }>;
+      labels: Array<{ key: string; value: string }>;
+    };
+  };
+}
+
+function createEmptyCandidateStatusCounts(): CandidateStatusCounts {
+  return {
+    needs_review: 0,
+    accepted: 0,
+    rejected: 0,
+    merged: 0,
   };
 }
 
@@ -218,6 +253,14 @@ function getCandidateReviewCopy(locale: string) {
       mergedUseCase: 'Übernommener Einsatzfall',
       mergeHint:
         'Nur akzeptierte Kandidaten können als neuer Einsatzfall übernommen werden.',
+      mergePreview: 'Voransicht des Einsatzfalls',
+      mergePreviewDesc:
+        'Diese Felder würden beim Übernehmen als neuer Use Case dokumentiert.',
+      mergePreviewBlocked: 'Übernahme noch nicht möglich',
+      auditTrace: 'Audit-Nachweis',
+      auditTraceDesc:
+        'Beim Übernehmen wird ein Timeline-Eintrag im erzeugten Use Case dokumentiert.',
+      reviewHints: 'Review-Hinweise',
       duplicateReviewGate:
         'Dublettenhinweise vor der Übernahme geprüft.',
       duplicateReviewGateHint:
@@ -314,6 +357,14 @@ function getCandidateReviewCopy(locale: string) {
     mergedUseCase: 'Created use case',
     mergeHint:
       'Only accepted candidates can be created as new use cases.',
+    mergePreview: 'Use case preview',
+    mergePreviewDesc:
+      'These fields would be documented when creating the new use case.',
+    mergePreviewBlocked: 'Creation is not available yet',
+    auditTrace: 'Audit evidence',
+    auditTraceDesc:
+      'Creating the use case documents a timeline entry on the generated use case.',
+    reviewHints: 'Review hints',
     duplicateReviewGate:
       'Duplicate hints reviewed before creation.',
     duplicateReviewGateHint:
@@ -432,11 +483,17 @@ export default function AgentCandidateReviewPage() {
   const [selectedRegisterId, setSelectedRegisterId] = useState<string | null>(null);
   const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
+  const [candidateStatusCounts, setCandidateStatusCounts] =
+    useState<CandidateStatusCounts>(() => createEmptyCandidateStatusCounts());
+  const [candidateTotalCount, setCandidateTotalCount] = useState(0);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const [candidateDetail, setCandidateDetail] = useState<CandidateDetail | null>(null);
+  const [mergePreview, setMergePreview] =
+    useState<CandidateMergePreviewResponse['preview'] | null>(null);
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>('all');
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
   const [isMergingCandidate, setIsMergingCandidate] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
@@ -571,8 +628,11 @@ export default function AgentCandidateReviewPage() {
   const loadCandidates = useCallback(async () => {
     if (!workspaceId || !selectedRegisterId) {
       setCandidates([]);
+      setCandidateStatusCounts(createEmptyCandidateStatusCounts());
+      setCandidateTotalCount(0);
       setSelectedCandidateId(null);
       setCandidateDetail(null);
+      setMergePreview(null);
       return;
     }
 
@@ -583,11 +643,24 @@ export default function AgentCandidateReviewPage() {
         registerId: selectedRegisterId,
         limit: '50',
       });
+      if (statusFilter !== 'all') {
+        params.set('status', statusFilter);
+      }
       const response = await authFetch(
         `/api/workspaces/${workspaceId}/agent-kit/candidates?${params.toString()}`,
       );
       const payload = (await response.json()) as CandidateListResponse;
+      const nextStatusCounts = {
+        ...createEmptyCandidateStatusCounts(),
+        ...(payload.statusCounts ?? {}),
+      };
       setCandidates(payload.candidates);
+      setCandidateStatusCounts(nextStatusCounts);
+      setCandidateTotalCount(
+        typeof payload.totalCount === 'number'
+          ? payload.totalCount
+          : Object.values(nextStatusCounts).reduce((sum, count) => sum + count, 0),
+      );
       setSelectedCandidateId((current) =>
         current && payload.candidates.some((candidate) => candidate.candidateId === current)
           ? current
@@ -601,15 +674,17 @@ export default function AgentCandidateReviewPage() {
     } finally {
       setIsLoadingData(false);
     }
-  }, [authFetch, copy.loadFallback, selectedRegisterId, workspaceId]);
+  }, [authFetch, copy.loadFallback, selectedRegisterId, statusFilter, workspaceId]);
 
   const loadCandidateDetail = useCallback(async () => {
     if (!workspaceId || !selectedRegisterId || !selectedCandidateId) {
       setCandidateDetail(null);
+      setMergePreview(null);
       return;
     }
 
     setIsLoadingDetail(true);
+    setMergePreview(null);
     try {
       const params = new URLSearchParams({
         registerId: selectedRegisterId,
@@ -715,12 +790,12 @@ export default function AgentCandidateReviewPage() {
       const response = await authFetch(
         `/api/workspaces/${workspaceId}/agent-kit/candidates/${selectedCandidateId}/merge?${params.toString()}`,
         {
-            method: 'POST',
-            body: JSON.stringify({
-              duplicateReviewConfirmed,
-            }),
-          },
-        );
+          method: 'POST',
+          body: JSON.stringify({
+            duplicateReviewConfirmed,
+          }),
+        },
+      );
       const payload = (await response.json()) as CandidateMergeResponse;
       setCandidateDetail(payload.candidate);
       setCandidates((current) =>
@@ -762,6 +837,30 @@ export default function AgentCandidateReviewPage() {
     workspaceId,
   ]);
 
+  const loadMergePreview = useCallback(async () => {
+    if (!workspaceId || !selectedRegisterId || !selectedCandidateId) {
+      setMergePreview(null);
+      return;
+    }
+
+    setIsLoadingPreview(true);
+    try {
+      const params = new URLSearchParams({
+        registerId: selectedRegisterId,
+      });
+      const response = await authFetch(
+        `/api/workspaces/${workspaceId}/agent-kit/candidates/${selectedCandidateId}/merge?${params.toString()}`,
+      );
+      const payload = (await response.json()) as CandidateMergePreviewResponse;
+      setMergePreview(payload.preview);
+    } catch (previewError) {
+      console.error('Failed to load candidate merge preview', previewError);
+      setMergePreview(null);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  }, [authFetch, selectedCandidateId, selectedRegisterId, workspaceId]);
+
   useEffect(() => {
     if (!loading && !profileLoading && user) {
       void loadWorkspaces();
@@ -790,6 +889,17 @@ export default function AgentCandidateReviewPage() {
   useEffect(() => {
     void loadCandidateDetail();
   }, [loadCandidateDetail]);
+
+  useEffect(() => {
+    if (candidateDetail && !candidateDetail.mergeResult) {
+      void loadMergePreview();
+    } else {
+      setMergePreview(null);
+    }
+  }, [
+    candidateDetail,
+    loadMergePreview,
+  ]);
 
   useEffect(() => {
     const persistedWorkspaceId =
@@ -834,9 +944,9 @@ export default function AgentCandidateReviewPage() {
   const getCandidateStatusCount = useCallback(
     (status: CandidateStatusFilter) =>
       status === 'all'
-        ? candidates.length
-        : candidates.filter((candidate) => candidate.status === status).length,
-    [candidates],
+        ? candidateTotalCount
+        : candidateStatusCounts[status],
+    [candidateStatusCounts, candidateTotalCount],
   );
   const mergedUseCaseHref = useMemo(() => {
     const useCaseId = candidateDetail?.mergeResult?.useCaseId;
@@ -1011,7 +1121,7 @@ export default function AgentCandidateReviewPage() {
               <CardDescription>{copy.candidates}</CardDescription>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Inbox className="h-5 w-5" />
-                {candidates.length}
+                {candidateTotalCount}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -1227,6 +1337,89 @@ export default function AgentCandidateReviewPage() {
                           <p className="text-sm leading-6 text-muted-foreground">
                             {copy.mergeHint}
                           </p>
+                          {isLoadingPreview ? (
+                            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                              <p className="text-sm font-medium text-slate-950">
+                                {copy.loadingPanelTitle}
+                              </p>
+                              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                {copy.loadingPanelDescription}
+                              </p>
+                            </div>
+                          ) : mergePreview ? (
+                            <div className="rounded-md border border-slate-200 p-3">
+                              <div>
+                                <h4 className="text-sm font-semibold text-slate-950">
+                                  {copy.mergePreview}
+                                </h4>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                  {copy.mergePreviewDesc}
+                                </p>
+                              </div>
+                              {mergePreview.blockedReasons.length > 0 ? (
+                                <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+                                  <p className="text-sm font-medium text-slate-950">
+                                    {copy.mergePreviewBlocked}
+                                  </p>
+                                  <ul className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
+                                    {mergePreview.blockedReasons.map((reason) => (
+                                      <li key={reason}>{reason}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
+                              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+                                <div>
+                                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    {copy.purpose}
+                                  </dt>
+                                  <dd className="mt-1 text-sm leading-6 text-slate-900">
+                                    {mergePreview.useCase.purpose}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    {copy.status}
+                                  </dt>
+                                  <dd className="mt-1 text-sm text-slate-900">
+                                    {mergePreview.useCase.status}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    {copy.systems}
+                                  </dt>
+                                  <dd className="mt-1 text-sm leading-6 text-slate-900">
+                                    {mergePreview.useCase.systemSummary}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    {copy.reviewHints}
+                                  </dt>
+                                  <dd className="mt-1 text-sm text-slate-900">
+                                    {mergePreview.useCase.reviewHints.length}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    {copy.evidenceItems}
+                                  </dt>
+                                  <dd className="mt-1 text-sm text-slate-900">
+                                    {mergePreview.useCase.evidences.length}
+                                  </dd>
+                                </div>
+                              </dl>
+                              <div className="mt-3 border-t border-slate-200 pt-3">
+                                <p className="text-sm font-medium text-slate-950">
+                                  {copy.auditTrace}
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                  {copy.auditTraceDesc}
+                                </p>
+                              </div>
+                            </div>
+                          ) : null}
                           {candidateDetail.duplicateHints.length > 0 ? (
                             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
                               <p className="text-sm leading-6 text-slate-700">
@@ -1250,8 +1443,10 @@ export default function AgentCandidateReviewPage() {
                             onClick={() => void submitMergeCandidate()}
                             disabled={
                               isMergingCandidate ||
+                              isLoadingPreview ||
                               busyReviewStatus !== null ||
                               candidateDetail.status !== 'accepted' ||
+                              !mergePreview?.canMerge ||
                               (candidateDetail.duplicateHints.length > 0 &&
                                 !duplicateReviewConfirmed)
                             }

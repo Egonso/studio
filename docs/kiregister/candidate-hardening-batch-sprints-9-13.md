@@ -74,9 +74,18 @@ lokalen Sprint-Commits.
 
 ## Nächste sinnvolle Schritte
 
-Nach diesem Batch lohnt sich vor allem Produkt-Härtung:
+Der direkte Folgeblock ist umgesetzt und dokumentiert in
+[`candidate-merge-assurance-sprints-14-18.md`](./candidate-merge-assurance-sprints-14-18.md).
+
+Er enthält:
 
 - Audit-Timeline-Eintrag im erzeugten Use Case
 - Merge-Voransicht vor dem Schreiben
 - serverseitige Statuscounts für große Review-Inboxen
+
+Danach lohnt sich vor allem operative Nachvollziehbarkeit:
+
 - visuelle QA der authentifizierten Review-Inbox in Preview
+- Run-Protokolle für Agentenläufe
+- Kandidaten-Historie je Agent-Run
+- Export/Audit-Auszug für Candidate-Reviews

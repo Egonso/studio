@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildAgentOperatorCandidateRecord,
+  buildMergedUseCaseFromCandidate,
   parseAgentOperatorCandidateRecord,
 } from '@/lib/agent-kit/candidates';
 import type { AgentKitApiKeyRecord } from '@/lib/agent-kit/api-keys';
@@ -149,4 +150,71 @@ test('parseAgentOperatorCandidateRecord normalizes embedded manifest', () => {
   assert.equal(parsed.reviewDecision?.status, 'accepted');
   assert.equal(parsed.reviewDecision?.note, 'Plausibel nach Fachreview.');
   assert.equal(parsed.mergeResult?.useCaseId, 'uc_merged');
+});
+
+test('buildMergedUseCaseFromCandidate records candidate origin for the timeline', () => {
+  const candidate = buildAgentOperatorCandidateRecord({
+    record: keyRecord,
+    location,
+    candidateId: 'cand_timeline',
+    now: new Date('2026-06-17T10:00:00.000Z'),
+    payload: {
+      registerId: 'reg_test',
+      manifest: {
+        documentationType: 'workflow',
+        title: 'Invoice triage assistant',
+        purpose: 'Prepare invoice triage notes for accounting review.',
+        ownerRole: 'Accounting Lead',
+        usageContexts: ['EMPLOYEES'],
+        systems: [{ position: 1, name: 'Lexware' }],
+      },
+      evidence: [
+        {
+          source: 'repository',
+          sourceRef: 'docs/invoice-flow.md',
+          claim: 'Invoice triage notes are prepared with AI support.',
+          confidence: 0.8,
+          sensitive: false,
+        },
+      ],
+    },
+  });
+
+  const useCase = buildMergedUseCaseFromCandidate({
+    candidate: {
+      ...candidate,
+      status: 'accepted',
+    },
+    actorUserId: 'reviewer_test',
+    actorEmail: 'reviewer@example.com',
+    now: new Date('2026-06-17T12:00:00.000Z'),
+  });
+  const manualEdits = useCase.manualEdits ?? [];
+
+  assert.equal(manualEdits.length, 1);
+  assert.equal(manualEdits[0]?.editId, 'agent_candidate_merge_cand_timeline');
+  assert.equal(manualEdits[0]?.editedBy, 'reviewer_test');
+  assert.equal(manualEdits[0]?.editedByName, 'reviewer@example.com');
+  assert.deepEqual(manualEdits[0]?.changedFields, [
+    'origin',
+    'labels',
+    'reviewHints',
+    'evidences',
+  ]);
+  assert.ok(
+    useCase.reviewHints.some((hint) =>
+      hint.includes('cand_timeline'),
+    ),
+  );
+  assert.ok(
+    useCase.labels?.some(
+      (label) =>
+        label.key === 'agent_candidate_id' && label.value === 'cand_timeline',
+    ),
+  );
+  assert.ok(
+    useCase.evidences.some((evidence) =>
+      evidence.evidenceId.startsWith('agent_candidate_'),
+    ),
+  );
 });

@@ -22,10 +22,13 @@ import {
 } from '@/lib/agent-kit/manifest';
 import { sanitizeFirestorePayload } from '@/lib/register-first/firestore-sanitize';
 import type { ServerRegisterLocation } from '@/lib/register-first/register-admin';
+import { parseUseCaseCard } from '@/lib/register-first/schema';
 import {
-  parseUseCaseCard,
-} from '@/lib/register-first/schema';
-import type { UseCaseCard } from '@/lib/register-first/types';
+  resolveDataCategories,
+  resolveDecisionInfluence,
+  type UseCaseCard,
+} from '@/lib/register-first/types';
+import { getUseCaseSystemsSummary } from '@/lib/register-first/systems';
 
 export const AGENT_OPERATOR_CANDIDATE_STATUS_VALUES = [
   'needs_review',
@@ -133,10 +136,17 @@ export interface AgentOperatorCandidateSummary {
   source: AgentOperatorCandidateSource;
 }
 
+export type AgentOperatorCandidateStatusCounts = Record<
+  AgentOperatorCandidateStatus,
+  number
+>;
+
 export interface AgentOperatorCandidateListResult {
   register: AgentOperatorRegisterView;
   candidates: AgentOperatorCandidateSummary[];
   count: number;
+  totalCount: number;
+  statusCounts: AgentOperatorCandidateStatusCounts;
   limit: number;
 }
 
@@ -148,6 +158,30 @@ export interface AgentOperatorCandidateDetailResult {
 export interface AgentOperatorCandidateMergeDetailResult
   extends AgentOperatorCandidateDetailResult {
   useCase: UseCaseCard;
+}
+
+export interface AgentOperatorCandidateMergeUseCasePreview {
+  purpose: string;
+  status: UseCaseCard['status'];
+  systemSummary: string;
+  usageContexts: UseCaseCard['usageContexts'];
+  decisionInfluence: ReturnType<typeof resolveDecisionInfluence> | null;
+  dataCategories: ReturnType<typeof resolveDataCategories>;
+  responsibility: UseCaseCard['responsibility'];
+  reviewHints: string[];
+  evidences: UseCaseCard['evidences'];
+  labels: NonNullable<UseCaseCard['labels']>;
+  origin: UseCaseCard['origin'] | null;
+}
+
+export interface AgentOperatorCandidateMergePreviewResult
+  extends AgentOperatorCandidateDetailResult {
+  preview: {
+    canMerge: boolean;
+    duplicateReviewRequired: boolean;
+    blockedReasons: string[];
+    useCase: AgentOperatorCandidateMergeUseCasePreview;
+  };
 }
 
 const DEFAULT_CANDIDATE_LIMIT = 50;
@@ -226,6 +260,13 @@ function normalizeOptionalText(value: string | null | undefined): string | null 
   return normalized ? normalized : null;
 }
 
+function trimToLength(value: string, maxLength: number): string {
+  const normalized = value.trim();
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`
+    : normalized;
+}
+
 function createCandidateId(now: Date): string {
   return `cand_${now.getTime().toString(36)}_${randomBytes(6).toString('hex')}`;
 }
@@ -240,6 +281,21 @@ function normalizeLimit(value: number | null | undefined): number {
   }
 
   return Math.min(Math.floor(value), MAX_CANDIDATE_LIMIT);
+}
+
+function createEmptyCandidateStatusCounts(): AgentOperatorCandidateStatusCounts {
+  return {
+    needs_review: 0,
+    accepted: 0,
+    rejected: 0,
+    merged: 0,
+  };
+}
+
+function candidateCollection(location: ServerRegisterLocation) {
+  return db.collection(
+    `users/${location.ownerId}/registers/${location.registerId}/agentCandidates`,
+  );
 }
 
 function buildSystemSummary(manifest: StudioUseCaseManifest): string {
@@ -274,12 +330,119 @@ function toSummary(
   };
 }
 
+async function countAgentOperatorCandidatesForLocation(
+  location: ServerRegisterLocation,
+): Promise<AgentOperatorCandidateStatusCounts> {
+  const collection = candidateCollection(location);
+  const entries = await Promise.all(
+    AGENT_OPERATOR_CANDIDATE_STATUS_VALUES.map(async (status) => {
+      const snapshot = await collection.where('status', '==', status).count().get();
+      return [status, snapshot.data().count] as const;
+    }),
+  );
+
+  return entries.reduce((counts, [status, count]) => {
+    counts[status] = count;
+    return counts;
+  }, createEmptyCandidateStatusCounts());
+}
+
 function getCandidateScopeTypeForRecord(
   record: AgentKitApiKeyRecord,
 ): AgentOperatorRegisterView['scopeType'] {
   return isPersonalAgentKitScope(record.orgId, record.createdByUserId)
     ? 'personal'
     : 'workspace';
+}
+
+export function buildMergedUseCaseFromCandidate(input: {
+  candidate: AgentOperatorCandidateRecord;
+  actorUserId: string;
+  actorEmail?: string | null;
+  now: Date;
+}): UseCaseCard {
+  const timestamp = input.now.toISOString();
+  const useCase = buildRegisterUseCaseFromManifest({
+    manifest: input.candidate.manifest,
+    createdByUserId: input.actorUserId,
+    createdByEmail: input.actorEmail ?? null,
+    now: input.now,
+  });
+  const candidateEvidence = input.candidate.evidence.slice(0, 10).map(
+    (evidence, index) => ({
+      evidenceId: `agent_candidate_${index + 1}`,
+      label: trimToLength(evidence.claim, 200),
+      type: 'NOTE' as const,
+    }),
+  );
+
+  return parseUseCaseCard({
+    ...useCase,
+    reviewHints: [
+      ...useCase.reviewHints,
+      trimToLength(
+        `Agent candidate ${input.candidate.candidateId} accepted before merge.`,
+        300,
+      ),
+    ],
+    evidences: [...useCase.evidences, ...candidateEvidence],
+    labels: [
+      ...(useCase.labels ?? []),
+      {
+        key: 'agent_candidate_id',
+        value: input.candidate.candidateId,
+      },
+      {
+        key: 'agent_candidate_status',
+        value: input.candidate.status,
+      },
+    ],
+    manualEdits: [
+      ...(useCase.manualEdits ?? []),
+      {
+        editId: `agent_candidate_merge_${input.candidate.candidateId}`,
+        editedAt: timestamp,
+        editedBy: input.actorUserId,
+        editedByName: normalizeOptionalText(input.actorEmail ?? null),
+        summary: trimToLength(
+          `Agent-Kandidat ${input.candidate.candidateId} als Einsatzfall übernommen.`,
+          300,
+        ),
+        changedFields: ['origin', 'labels', 'reviewHints', 'evidences'],
+      },
+    ],
+  });
+}
+
+function buildMergeUseCasePreview(
+  useCase: UseCaseCard,
+): AgentOperatorCandidateMergeUseCasePreview {
+  return {
+    purpose: useCase.purpose,
+    status: useCase.status,
+    systemSummary: getUseCaseSystemsSummary(useCase),
+    usageContexts: useCase.usageContexts,
+    decisionInfluence: resolveDecisionInfluence(useCase) ?? null,
+    dataCategories: resolveDataCategories(useCase),
+    responsibility: useCase.responsibility,
+    reviewHints: useCase.reviewHints,
+    evidences: useCase.evidences,
+    labels: useCase.labels ?? [],
+    origin: useCase.origin ?? null,
+  };
+}
+
+function getCandidateMergeBlockedReasons(
+  candidate: AgentOperatorCandidateRecord,
+): string[] {
+  return [
+    candidate.status !== 'accepted'
+      ? 'Nur akzeptierte Review-Kandidaten können übernommen werden.'
+      : null,
+    candidate.mergeResult
+      ? 'Dieser Review-Kandidat wurde bereits übernommen.'
+      : null,
+  ].filter((reason): reason is string => Boolean(reason));
 }
 
 export function buildAgentOperatorCandidateRecord(input: {
@@ -461,13 +624,17 @@ export async function listAgentOperatorCandidatesForLocation(input: {
   limit?: number | null;
 }): Promise<AgentOperatorCandidateListResult> {
   const limit = normalizeLimit(input.limit);
-  const snapshot = await db
-    .collection(
-      `users/${input.location.ownerId}/registers/${input.location.registerId}/agentCandidates`,
-    )
-    .orderBy('updatedAt', 'desc')
-    .limit(limit)
-    .get();
+  const collection = candidateCollection(input.location);
+  const [snapshot, statusCounts] = await Promise.all([
+    input.status
+      ? collection
+          .where('status', '==', input.status)
+          .orderBy('updatedAt', 'desc')
+          .limit(limit)
+          .get()
+      : collection.orderBy('updatedAt', 'desc').limit(limit).get(),
+    countAgentOperatorCandidatesForLocation(input.location),
+  ]);
 
   const candidates = snapshot.docs
     .map((document) => {
@@ -486,10 +653,11 @@ export async function listAgentOperatorCandidatesForLocation(input: {
       (candidate): candidate is AgentOperatorCandidateRecord =>
         candidate !== null,
     )
-    .filter((candidate) =>
-      input.status ? candidate.status === input.status : true,
-    )
     .map(toSummary);
+  const totalCount = Object.values(statusCounts).reduce(
+    (sum, count) => sum + count,
+    0,
+  );
 
   return {
     register: toAgentOperatorRegisterViewForLocation(
@@ -498,6 +666,8 @@ export async function listAgentOperatorCandidatesForLocation(input: {
     ),
     candidates,
     count: candidates.length,
+    totalCount,
+    statusCounts,
     limit,
   };
 }
@@ -598,6 +768,43 @@ export async function reviewAgentOperatorCandidateForLocation(input: {
   };
 }
 
+export async function previewAgentOperatorCandidateMergeForLocation(input: {
+  location: ServerRegisterLocation;
+  scopeType: AgentOperatorRegisterView['scopeType'];
+  candidateId: string;
+  actorUserId: string;
+  actorEmail?: string | null;
+  now?: Date;
+}): Promise<AgentOperatorCandidateMergePreviewResult | null> {
+  const current = await getAgentOperatorCandidateForLocation({
+    location: input.location,
+    scopeType: input.scopeType,
+    candidateId: input.candidateId,
+  });
+  if (!current) {
+    return null;
+  }
+
+  const previewUseCase = buildMergedUseCaseFromCandidate({
+    candidate: current.candidate,
+    actorUserId: input.actorUserId,
+    actorEmail: input.actorEmail ?? null,
+    now: input.now ?? new Date(),
+  });
+  const blockedReasons = getCandidateMergeBlockedReasons(current.candidate);
+
+  return {
+    register: current.register,
+    candidate: current.candidate,
+    preview: {
+      canMerge: blockedReasons.length === 0,
+      duplicateReviewRequired: current.candidate.duplicateHints.length > 0,
+      blockedReasons,
+      useCase: buildMergeUseCasePreview(previewUseCase),
+    },
+  };
+}
+
 export async function mergeAgentOperatorCandidateForLocation(input: {
   location: ServerRegisterLocation;
   scopeType: AgentOperatorRegisterView['scopeType'];
@@ -626,16 +833,9 @@ export async function mergeAgentOperatorCandidateForLocation(input: {
     }
 
     const currentCandidate = parseAgentOperatorCandidateRecord(snapshot.data());
-    if (currentCandidate.status !== 'accepted') {
-      throw new AgentOperatorCandidateMergeStateError(
-        'Nur akzeptierte Review-Kandidaten können übernommen werden.',
-      );
-    }
-
-    if (currentCandidate.mergeResult) {
-      throw new AgentOperatorCandidateMergeStateError(
-        'Dieser Review-Kandidat wurde bereits übernommen.',
-      );
+    const blockedReasons = getCandidateMergeBlockedReasons(currentCandidate);
+    if (blockedReasons.length > 0) {
+      throw new AgentOperatorCandidateMergeStateError(blockedReasons[0]);
     }
 
     if (
@@ -647,25 +847,11 @@ export async function mergeAgentOperatorCandidateForLocation(input: {
       );
     }
 
-    const useCase = buildRegisterUseCaseFromManifest({
-      manifest: currentCandidate.manifest,
-      createdByUserId: input.mergedByUserId,
-      createdByEmail: input.mergedByEmail ?? null,
+    const useCaseWithCandidateLink = buildMergedUseCaseFromCandidate({
+      candidate: currentCandidate,
+      actorUserId: input.mergedByUserId,
+      actorEmail: input.mergedByEmail ?? null,
       now,
-    });
-    const useCaseWithCandidateLink = parseUseCaseCard({
-      ...useCase,
-      reviewHints: [
-        ...useCase.reviewHints,
-        `Agent candidate accepted from ${currentCandidate.candidateId}.`,
-      ],
-      labels: [
-        ...(useCase.labels ?? []),
-        {
-          key: 'agent_candidate_id',
-          value: currentCandidate.candidateId,
-        },
-      ],
     });
     const mergeResult: AgentOperatorCandidateMergeResult = {
       useCaseId: useCaseWithCandidateLink.useCaseId,
