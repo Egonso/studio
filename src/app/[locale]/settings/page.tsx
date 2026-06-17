@@ -8,9 +8,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
 import { AffiliateSettingsSection } from '@/components/settings/affiliate-settings-section';
 import { GovernanceSettingsSection } from '@/components/settings/governance-settings-section';
-import { SignedInAreaFrame } from '@/components/product-shells';
+import { ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 import { useIsAffiliate } from '@/lib/affiliate/use-is-affiliate';
@@ -36,6 +37,10 @@ export default function SettingsPage() {
     locale === 'de'
       ? {
           loadingNextStep: 'Wir laden Ihre Einstellungen.',
+          signedOutTitle: 'Anmeldung erforderlich',
+          signedOutDescription:
+            'Einstellungen gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um diesen Bereich zu öffnen.',
+          signIn: 'Anmelden',
           description:
             'Konto, Einladungen und registerweite Governance-Einstellungen auf einer einzigen Seite.',
           nextStepGovernance:
@@ -49,6 +54,10 @@ export default function SettingsPage() {
         }
       : {
           loadingNextStep: 'We are loading your settings.',
+          signedOutTitle: 'Sign-in required',
+          signedOutDescription:
+            'Settings belong to your account or workspace. Sign in to open this area.',
+          signIn: 'Sign in',
           description:
             'Account, invitations and register-wide governance settings on a single page.',
           nextStepGovernance:
@@ -78,8 +87,22 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    router.push(localizeHref(locale, '/login'));
-    return null;
+    const settingsSearch = searchParams.toString();
+    const settingsPath = settingsSearch ? `/settings?${settingsSearch}` : '/settings';
+
+    return (
+      <ProtectedAreaGate
+        area="signed_in_free_register"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, settingsPath),
+        })}
+        signInLabel={copy.signIn}
+        width="5xl"
+      />
+    );
   }
 
   const handleSectionChange = (section: string) => {
