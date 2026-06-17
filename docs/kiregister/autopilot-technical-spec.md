@@ -186,6 +186,9 @@ Die Sprints 9-13 sind zusätzlich als Härtungsbatch zusammengefasst in
 Die Sprints 14-18 ergänzen serverseitige Statuscounts, Merge-Voransicht und
 Audit-Timeline-Nachweis und sind dokumentiert in
 [`docs/kiregister/candidate-merge-assurance-sprints-14-18.md`](./candidate-merge-assurance-sprints-14-18.md).
+Die Sprints 19-23 ergänzen Agent-Run-Protokolle, Run-Operator-API, CLI-Anbindung
+und Kandidaten-Historie je Run und sind dokumentiert in
+[`docs/kiregister/agent-run-protocol-sprints-19-23.md`](./agent-run-protocol-sprints-19-23.md).
 
 Aktive Endpunkte:
 
@@ -195,16 +198,20 @@ Aktive Endpunkte:
 - `GET /api/agent/operator/candidates`
 - `GET /api/agent/operator/candidates/[candidateId]`
 - `POST /api/agent/operator/candidates`
+- `GET /api/agent/operator/runs`
+- `POST /api/agent/operator/runs`
+- `GET /api/agent/operator/runs/[runId]`
+- `PATCH /api/agent/operator/runs/[runId]`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
 - `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 - `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
+- `GET /api/workspaces/[orgId]/agent-kit/runs`
+- `GET /api/workspaces/[orgId]/agent-kit/runs/[runId]`
 
 Noch nicht aktiv:
 
-- `POST /api/agent/operator/runs`
-- `PATCH /api/agent/operator/runs/[runId]`
 - später: `PATCH /api/agent/operator/use-cases/[useCaseId]/review`
 
 ### Berechtigungen

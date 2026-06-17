@@ -46,6 +46,8 @@ const workspaceAgentKitCandidatesRoute = readSource("src/app/api/workspaces/[org
 const workspaceAgentKitCandidateItemRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/route.ts");
 const workspaceAgentKitCandidateReviewRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review/route.ts");
 const workspaceAgentKitCandidateMergeRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge/route.ts");
+const workspaceAgentKitRunsRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/runs/route.ts");
+const workspaceAgentKitRunRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/runs/[runId]/route.ts");
 const agentKitCandidateReviewAuth = readSource("src/lib/agent-kit/candidate-review-auth.ts");
 const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
 const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
@@ -53,6 +55,8 @@ const agentOperatorUseCasesRoute = readSource("src/app/api/agent/operator/use-ca
 const agentOperatorUseCaseRoute = readSource("src/app/api/agent/operator/use-cases/[useCaseId]/route.ts");
 const agentOperatorCandidatesRoute = readSource("src/app/api/agent/operator/candidates/route.ts");
 const agentOperatorCandidateRoute = readSource("src/app/api/agent/operator/candidates/[candidateId]/route.ts");
+const agentOperatorRunsRoute = readSource("src/app/api/agent/operator/runs/route.ts");
+const agentOperatorRunRoute = readSource("src/app/api/agent/operator/runs/[runId]/route.ts");
 const coverageAssistConfigRoute = readSource("src/app/api/coverage-assist/config/route.ts");
 
 test("invite creation route requires workspace-admin authorization", () => {
@@ -128,6 +132,8 @@ test("workspace enterprise routes enforce member, admin, and reviewer auth on th
   assert.match(workspaceAgentKitKeyItemRoute, /requireWorkspaceMember\(/);
   assert.match(workspaceAgentKitCandidatesRoute, /authorizeAgentOperatorCandidateReview\(/);
   assert.match(workspaceAgentKitCandidateItemRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitRunsRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitRunRoute, /authorizeAgentOperatorCandidateReview\(/);
 });
 
 test("billing and workspace register routes use scope-aware register lookup hints", () => {
@@ -180,6 +186,7 @@ test("agent operator candidate routes keep candidate writes separate from use ca
   assert.match(agentOperatorCandidatesRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
   assert.match(agentOperatorCandidatesRoute, /'write:candidate'/);
   assert.match(agentOperatorCandidatesRoute, /createAgentOperatorCandidate/);
+  assert.match(agentOperatorCandidatesRoute, /runId/);
   assert.match(agentOperatorCandidatesRoute, /mode: 'candidate_review'/);
   assert.doesNotMatch(agentOperatorCandidatesRoute, /useCases/);
   assert.doesNotMatch(agentOperatorCandidatesRoute, /export async function PATCH/);
@@ -190,6 +197,27 @@ test("agent operator candidate routes keep candidate writes separate from use ca
   assert.match(agentOperatorCandidateRoute, /mode: 'candidate_review'/);
   assert.doesNotMatch(agentOperatorCandidateRoute, /export async function POST/);
   assert.doesNotMatch(agentOperatorCandidateRoute, /export async function PATCH/);
+});
+
+test("agent operator run routes write only run protocols", () => {
+  assert.match(agentOperatorRunsRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorRunsRoute, /'write:candidate'/);
+  assert.match(agentOperatorRunsRoute, /listAgentOperatorRuns/);
+  assert.match(agentOperatorRunsRoute, /createAgentOperatorRun/);
+  assert.match(agentOperatorRunsRoute, /mode: 'candidate_review'/);
+  assert.match(agentOperatorRunsRoute, /export async function GET/);
+  assert.match(agentOperatorRunsRoute, /export async function POST/);
+  assert.doesNotMatch(agentOperatorRunsRoute, /useCases/);
+  assert.doesNotMatch(agentOperatorRunsRoute, /createAgentOperatorCandidate/);
+
+  assert.match(agentOperatorRunRoute, /authenticateAgentKitHeaders\(req\.headers\)/);
+  assert.match(agentOperatorRunRoute, /'write:candidate'/);
+  assert.match(agentOperatorRunRoute, /getAgentOperatorRun/);
+  assert.match(agentOperatorRunRoute, /updateAgentOperatorRun/);
+  assert.match(agentOperatorRunRoute, /export async function GET/);
+  assert.match(agentOperatorRunRoute, /export async function PATCH/);
+  assert.doesNotMatch(agentOperatorRunRoute, /useCases/);
+  assert.doesNotMatch(agentOperatorRunRoute, /createAgentOperatorCandidate/);
 });
 
 test("workspace agent candidate review routes are read-only human review paths", () => {
@@ -224,4 +252,16 @@ test("workspace agent candidate review routes are read-only human review paths",
   assert.match(workspaceAgentKitCandidateMergeRoute, /export async function POST/);
   assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /export async function PATCH/);
   assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /createAgentOperatorCandidate/);
+
+  assert.match(workspaceAgentKitRunsRoute, /listAgentOperatorRunsForLocation/);
+  assert.match(workspaceAgentKitRunsRoute, /export async function GET/);
+  assert.doesNotMatch(workspaceAgentKitRunsRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitRunsRoute, /createAgentOperatorRun/);
+
+  assert.match(workspaceAgentKitRunRoute, /getAgentOperatorRunForLocation/);
+  assert.match(workspaceAgentKitRunRoute, /listAgentOperatorCandidatesForLocation/);
+  assert.match(workspaceAgentKitRunRoute, /runId/);
+  assert.match(workspaceAgentKitRunRoute, /export async function GET/);
+  assert.doesNotMatch(workspaceAgentKitRunRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitRunRoute, /updateAgentOperatorRun/);
 });

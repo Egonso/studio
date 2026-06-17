@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import {
-  AGENT_OPERATOR_CANDIDATE_STATUS_VALUES,
-  listAgentOperatorCandidatesForLocation,
-  type AgentOperatorCandidateStatus,
-} from '@/lib/agent-kit/candidates';
+import { listAgentOperatorRunsForLocation } from '@/lib/agent-kit/runs';
 import {
   authorizeAgentOperatorCandidateReview,
 } from '@/lib/agent-kit/candidate-review-auth';
@@ -16,18 +12,6 @@ interface RouteContext {
   params: Promise<{ orgId: string }>;
 }
 
-function handleCandidateReviewError(error: unknown) {
-  if (error instanceof ServerAuthError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
-  }
-
-  console.error('Agent candidate review route failed:', error);
-  return NextResponse.json(
-    { error: 'Review-Kandidaten konnten nicht geladen werden.' },
-    { status: 500 },
-  );
-}
-
 function parseLimit(value: string | null): number | null {
   if (!value) {
     return null;
@@ -37,21 +21,16 @@ function parseLimit(value: string | null): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function parseStatus(value: string | null): AgentOperatorCandidateStatus | null {
-  const normalized = value?.trim();
-  if (!normalized) {
-    return null;
+function handleAgentRunError(error: unknown) {
+  if (error instanceof ServerAuthError) {
+    return NextResponse.json({ error: error.message }, { status: error.status });
   }
 
-  if (
-    AGENT_OPERATOR_CANDIDATE_STATUS_VALUES.includes(
-      normalized as AgentOperatorCandidateStatus,
-    )
-  ) {
-    return normalized as AgentOperatorCandidateStatus;
-  }
-
-  throw new ServerAuthError('Ungültiger Kandidatenstatus.', 400);
+  console.error('Agent run review route failed:', error);
+  return NextResponse.json(
+    { error: 'Agent-Läufe konnten nicht geladen werden.' },
+    { status: 500 },
+  );
 }
 
 export async function GET(req: NextRequest, context: RouteContext) {
@@ -79,16 +58,14 @@ export async function GET(req: NextRequest, context: RouteContext) {
       );
     }
 
-    const result = await listAgentOperatorCandidatesForLocation({
+    const result = await listAgentOperatorRunsForLocation({
       location: authorization.location,
       scopeType: authorization.scopeType,
-      status: parseStatus(req.nextUrl.searchParams.get('status')),
-      runId: req.nextUrl.searchParams.get('runId')?.trim() || null,
       limit: parseLimit(req.nextUrl.searchParams.get('limit')),
     });
 
     return NextResponse.json(result);
   } catch (error) {
-    return handleCandidateReviewError(error);
+    return handleAgentRunError(error);
   }
 }

@@ -51,3 +51,4 @@ Die technische Spezifikation liegt in:
 
 - [Autopilot Technical Spec](./autopilot-technical-spec.md)
 - [Candidate Merge Assurance Sprints 14-18](./candidate-merge-assurance-sprints-14-18.md)
+- [Agent Run Protocol Sprints 19-23](./agent-run-protocol-sprints-19-23.md)

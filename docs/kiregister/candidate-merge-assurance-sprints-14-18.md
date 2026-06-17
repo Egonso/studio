@@ -102,9 +102,12 @@ Der Block wird zusammen mit Tests, Typecheck und Dokumentation gepusht.
 ## Nächste sinnvolle Blöcke
 
 Nach diesem Block sollte der nächste große Abschnitt die operative
-Nachvollziehbarkeit stärken:
+Nachvollziehbarkeit stärken.
+
+Der direkte Folgeblock für Agent-Run-Protokolle ist dokumentiert in
+[`agent-run-protocol-sprints-19-23.md`](./agent-run-protocol-sprints-19-23.md).
+
+Danach bleiben für die Oberfläche:
 
 - visuelle QA der authentifizierten Review-Inbox in einer Preview-Umgebung
-- Run-Protokolle für Agentenläufe
-- Kandidaten-Historie je Agent-Run
 - Export/Audit-Auszug für Candidate-Reviews

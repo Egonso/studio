@@ -332,11 +332,16 @@ function toSummary(
 
 async function countAgentOperatorCandidatesForLocation(
   location: ServerRegisterLocation,
+  runId?: string | null,
 ): Promise<AgentOperatorCandidateStatusCounts> {
   const collection = candidateCollection(location);
   const entries = await Promise.all(
     AGENT_OPERATOR_CANDIDATE_STATUS_VALUES.map(async (status) => {
-      const snapshot = await collection.where('status', '==', status).count().get();
+      let query = collection.where('status', '==', status);
+      if (runId) {
+        query = query.where('source.runId', '==', runId);
+      }
+      const snapshot = await query.count().get();
       return [status, snapshot.data().count] as const;
     }),
   );
@@ -599,6 +604,7 @@ export async function listAgentOperatorCandidates(input: {
   record: AgentKitApiKeyRecord;
   registerId: string;
   status?: AgentOperatorCandidateStatus | null;
+  runId?: string | null;
   limit?: number | null;
 }): Promise<AgentOperatorCandidateListResult | null> {
   const location = await resolveAgentOperatorRegisterLocation(
@@ -613,6 +619,7 @@ export async function listAgentOperatorCandidates(input: {
     location,
     scopeType: getCandidateScopeTypeForRecord(input.record),
     status: input.status,
+    runId: input.runId,
     limit: input.limit,
   });
 }
@@ -621,19 +628,23 @@ export async function listAgentOperatorCandidatesForLocation(input: {
   location: ServerRegisterLocation;
   scopeType: AgentOperatorRegisterView['scopeType'];
   status?: AgentOperatorCandidateStatus | null;
+  runId?: string | null;
   limit?: number | null;
 }): Promise<AgentOperatorCandidateListResult> {
   const limit = normalizeLimit(input.limit);
   const collection = candidateCollection(input.location);
+  let query: FirebaseFirestore.Query = collection.orderBy('updatedAt', 'desc');
+  if (input.runId) {
+    query = query.where('source.runId', '==', input.runId);
+  }
+  if (input.status) {
+    query = query.where('status', '==', input.status);
+  }
+  query = query.limit(limit);
+
   const [snapshot, statusCounts] = await Promise.all([
-    input.status
-      ? collection
-          .where('status', '==', input.status)
-          .orderBy('updatedAt', 'desc')
-          .limit(limit)
-          .get()
-      : collection.orderBy('updatedAt', 'desc').limit(limit).get(),
-    countAgentOperatorCandidatesForLocation(input.location),
+    query.get(),
+    countAgentOperatorCandidatesForLocation(input.location, input.runId),
   ]);
 
   const candidates = snapshot.docs

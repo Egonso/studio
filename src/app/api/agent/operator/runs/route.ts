@@ -2,23 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import {
-  findMissingAgentKitScopes,
+  createAgentOperatorRun,
+  listAgentOperatorRuns,
+  agentOperatorRunPayloadSchema,
+} from '@/lib/agent-kit/runs';
+import {
   authenticateAgentKitHeaders,
+  findMissingAgentKitScopes,
   mapAgentKitAuthenticationError,
 } from '@/lib/agent-kit/operator-auth';
-import {
-  AGENT_OPERATOR_CANDIDATE_STATUS_VALUES,
-  agentOperatorCandidatePayloadSchema,
-  createAgentOperatorCandidate,
-  listAgentOperatorCandidates,
-} from '@/lib/agent-kit/candidates';
 import { touchAgentOperatorReadUsage } from '@/lib/agent-kit/operator';
 
-const candidateListQuerySchema = z.object({
+const runListQuerySchema = z.object({
   registerId: z.string().trim().min(1).max(200),
-  status: z.enum(AGENT_OPERATOR_CANDIDATE_STATUS_VALUES).optional(),
-  runId: z.string().trim().min(1).max(200).optional(),
-  limit: z.coerce.number().int().min(1).max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -39,24 +36,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Dieser Agent-Kit-API-Key darf keine Kandidaten lesen.',
+            'Dieser Agent-Kit-API-Key darf keine Agent-Läufe lesen.',
           missingScopes,
         },
         { status: 403 },
       );
     }
 
-    const query = candidateListQuerySchema.parse({
+    const query = runListQuerySchema.parse({
       registerId: req.nextUrl.searchParams.get('registerId') ?? undefined,
-      status: req.nextUrl.searchParams.get('status') ?? undefined,
-      runId: req.nextUrl.searchParams.get('runId') ?? undefined,
       limit: req.nextUrl.searchParams.get('limit') ?? undefined,
     });
-    const result = await listAgentOperatorCandidates({
+    const result = await listAgentOperatorRuns({
       record: authentication.record,
       registerId: query.registerId,
-      status: query.status,
-      runId: query.runId,
       limit: query.limit,
     });
 
@@ -80,14 +73,14 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.issues[0]?.message ?? 'Ungueltige Kandidaten-Abfrage.' },
+        { error: error.issues[0]?.message ?? 'Ungueltige Run-Abfrage.' },
         { status: 400 },
       );
     }
 
-    console.error('Agent operator candidates route failed:', error);
+    console.error('Agent operator runs route failed:', error);
     return NextResponse.json(
-      { error: 'Operator-Kandidaten konnten nicht geladen werden.' },
+      { error: 'Operator-Läufe konnten nicht geladen werden.' },
       { status: 500 },
     );
   }
@@ -111,15 +104,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Dieser Agent-Kit-API-Key darf keine Kandidaten einreichen.',
+            'Dieser Agent-Kit-API-Key darf keine Agent-Läufe dokumentieren.',
           missingScopes,
         },
         { status: 403 },
       );
     }
 
-    const payload = agentOperatorCandidatePayloadSchema.parse(await req.json());
-    const result = await createAgentOperatorCandidate({
+    const payload = agentOperatorRunPayloadSchema.parse(await req.json());
+    const result = await createAgentOperatorRun({
       record: authentication.record,
       payload,
     });
@@ -145,14 +138,14 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: error.issues[0]?.message ?? 'Ungueltiger Kandidat.' },
+        { error: error.issues[0]?.message ?? 'Ungueltiger Agent-Lauf.' },
         { status: 400 },
       );
     }
 
-    console.error('Agent operator candidate create route failed:', error);
+    console.error('Agent operator run create route failed:', error);
     return NextResponse.json(
-      { error: 'Operator-Kandidat konnte nicht gespeichert werden.' },
+      { error: 'Operator-Lauf konnte nicht dokumentiert werden.' },
       { status: 500 },
     );
   }

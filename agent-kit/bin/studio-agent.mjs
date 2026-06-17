@@ -85,6 +85,13 @@ const AGENT_CANDIDATE_STATUS_VALUES = [
   "rejected",
   "merged",
 ];
+const AGENT_RUN_STATUS_VALUES = [
+  "running",
+  "needs_review",
+  "no_candidates",
+  "completed",
+  "failed",
+];
 
 const USAGE_CONTEXT_ALIASES = Object.freeze({
   internal: "INTERNAL_ONLY",
@@ -156,6 +163,9 @@ function printHelp() {
     "  operator candidates     List candidate review objects in a register",
     "  operator candidate <id> Read one candidate review object",
     "  operator candidate submit <manifest> Submit a manifest as a review candidate",
+    "  operator runs           List documented Autopilot agent runs",
+    "  operator run <id>       Read one documented Autopilot agent run",
+    "  operator run submit <run-json> Document a local Autopilot run",
     "  autopilot plan          Draft a local KI-Register Autopilot run policy",
     "  autopilot run           Run the local draft-only Autopilot against allowed sources",
     "  list                    List generated workflow folders",
@@ -172,6 +182,7 @@ function printHelp() {
     "  studio-agent operator use-cases --register-id reg_123 --json",
     "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
     "  studio-agent operator candidate submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
+    "  studio-agent operator run submit ./_autopilot-evidence/run.json --register-id reg_123",
     "  studio-agent autopilot plan --cadence every-3-days --out-file ./autopilot-plan.json",
     "  studio-agent autopilot run --policy ./autopilot-plan.json",
     "",
@@ -185,8 +196,9 @@ function printHelp() {
     "  --operator-endpoint <url> Agent Operator API base endpoint",
     "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
     "  --status <value>        Optional operator use-case or candidate status filter",
+    "  --run-id <value>        Optional operator candidate run filter or run id override",
     "  --search-text <value>   Optional operator use-case text filter",
-    "  --limit <number>        Optional operator use-case list limit",
+    "  --limit <number>        Optional operator list limit",
     "  --cadence <value>       Autopilot cadence: manual, daily, every-3-days, weekly",
     "  --mode <value>          Autopilot mode: draft-only, review-first, submit-after-confirmation",
     "  --sources <list>        Comma-separated read sources for Autopilot planning",
@@ -1835,16 +1847,66 @@ async function getOperatorUseCase({ endpoint, apiKey, registerId, useCaseId }) {
   });
 }
 
-async function getOperatorCandidates({ endpoint, apiKey, registerId, status, limit }) {
+async function getOperatorCandidates({
+  endpoint,
+  apiKey,
+  registerId,
+  status,
+  runId,
+  limit,
+}) {
   return requestJson({
     endpoint: buildOperatorUrl(endpoint, "candidates", {
       registerId,
       status,
+      runId,
       limit,
     }),
     apiKey,
     timeoutMessage: "Operator candidates request timed out",
     errorFallback: "Operator candidates request failed",
+  });
+}
+
+async function getOperatorRuns({ endpoint, apiKey, registerId, limit }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "runs", {
+      registerId,
+      limit,
+    }),
+    apiKey,
+    timeoutMessage: "Operator runs request timed out",
+    errorFallback: "Operator runs request failed",
+  });
+}
+
+async function getOperatorRun({ endpoint, apiKey, registerId, runId }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, `runs/${encodeURIComponent(runId)}`, {
+      registerId,
+    }),
+    apiKey,
+    timeoutMessage: "Operator run request timed out",
+    errorFallback: "Operator run request failed",
+  });
+}
+
+async function postOperatorRun({
+  endpoint,
+  apiKey,
+  registerId,
+  payload,
+}) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "runs"),
+    apiKey,
+    method: "POST",
+    body: {
+      registerId,
+      ...payload,
+    },
+    timeoutMessage: "Operator run submit request timed out",
+    errorFallback: "Operator run submit failed",
   });
 }
 
@@ -1913,6 +1975,64 @@ function buildOperatorCandidatePayloadFromManifest({
       },
     },
     validation,
+  };
+}
+
+function buildOperatorRunPayloadFromFile({ runPath, flags }) {
+  const run = readJsonFile(runPath);
+  const runId = normalizeText(flags["run-id"] ?? run.runId);
+  const startedAt = normalizeText(run.startedAt);
+  const status = normalizeChoice(
+    flags.status ?? run.status,
+    AGENT_RUN_STATUS_VALUES,
+    "completed",
+    "--status",
+  );
+  const evidence = Array.isArray(run.evidence) ? run.evidence : [];
+  const candidates = Array.isArray(run.candidates) ? run.candidates : [];
+  const skippedSources = Array.isArray(run.skippedSources)
+    ? run.skippedSources
+    : [];
+  const reviewQuestionCount =
+    Number.isInteger(Number(run.reviewQuestionCount))
+      ? Number(run.reviewQuestionCount)
+      : candidates.reduce(
+          (total, candidate) =>
+            total +
+            (Array.isArray(candidate.blockedBy)
+              ? candidate.blockedBy.length
+              : 0),
+          0,
+        );
+
+  return {
+    run,
+    payload: {
+      ...(runId ? { runId } : {}),
+      status,
+      mode: normalizeText(flags.mode ?? run.mode) ?? null,
+      cadence: normalizeText(flags.cadence ?? run.cadence) ?? null,
+      ...(startedAt ? { startedAt } : {}),
+      completedAt: normalizeText(run.completedAt) ?? null,
+      sourceCount: Number.isInteger(Number(run.sourceCount))
+        ? Number(run.sourceCount)
+        : 0,
+      evidenceCount: Number.isInteger(Number(run.evidenceCount))
+        ? Number(run.evidenceCount)
+        : evidence.length,
+      candidateCount: Number.isInteger(Number(run.candidateCount))
+        ? Number(run.candidateCount)
+        : candidates.length,
+      reviewQuestionCount,
+      skippedSourceCount: Number.isInteger(Number(run.skippedSourceCount))
+        ? Number(run.skippedSourceCount)
+        : skippedSources.length,
+      error: normalizeText(flags.error ?? run.error) ?? null,
+      source: {
+        agent: normalizeText(flags["source-agent"]) ?? "studio-agent",
+        localRunPath: path.resolve(process.cwd(), runPath),
+      },
+    },
   };
 }
 
@@ -2494,6 +2614,9 @@ async function runOperator(flags, positionals) {
         "  candidates        List candidate review objects in a register",
         "  candidate <id>    Read one candidate review object",
         "  candidate submit <manifest> Submit a manifest as a review candidate",
+        "  runs              List documented Autopilot agent runs",
+        "  run <id>          Read one documented Autopilot agent run",
+        "  run submit <file> Document a local Autopilot run",
         "",
         "Examples:",
         "  studio-agent operator registers --json",
@@ -2502,6 +2625,8 @@ async function runOperator(flags, positionals) {
         "  studio-agent operator candidates --register-id reg_123 --json",
         "  studio-agent operator candidate cand_123 --register-id reg_123 --json",
         "  studio-agent operator candidate submit ./docs/agent-workflows/<slug>/manifest.json --register-id reg_123",
+        "  studio-agent operator runs --register-id reg_123 --json",
+        "  studio-agent operator run submit ./_autopilot-evidence/run.json --register-id reg_123",
         "",
         "Required:",
         "  --api-key or KI_REGISTER_API_KEY",
@@ -2622,6 +2747,7 @@ async function runOperator(flags, positionals) {
     const response = await getOperatorCandidates({
       ...defaults,
       status,
+      runId: normalizeText(flags["run-id"]),
       limit,
     });
     const candidates = Array.isArray(response?.candidates)
@@ -2637,6 +2763,108 @@ async function runOperator(flags, positionals) {
         response,
         candidates,
         message: `Loaded ${candidates.length} candidate(s) from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "runs") {
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+    const limit = normalizeText(flags.limit);
+    if (limit && (!Number.isInteger(Number(limit)) || Number(limit) < 1)) {
+      throw new Error("--limit must be a positive integer.");
+    }
+
+    const response = await getOperatorRuns({
+      ...defaults,
+      limit,
+    });
+    const runs = Array.isArray(response?.runs)
+      ? response.runs
+      : [];
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator runs",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        response,
+        runs,
+        message: `Loaded ${runs.length} agent run(s) from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "run") {
+    const action = normalizeText(positionals[2] ?? flags["run-id"]);
+    if (!action) {
+      throw new Error("operator run requires a run id or submit.");
+    }
+
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+
+    if (action === "submit") {
+      const runTarget = normalizeText(positionals[3] ?? flags.input);
+      if (!runTarget) {
+        throw new Error("operator run submit requires an Autopilot run JSON file.");
+      }
+
+      const runPath = path.resolve(process.cwd(), runTarget);
+      if (!existsSync(runPath)) {
+        throw new Error(`Run file not found: ${runPath}`);
+      }
+
+      const runPayload = buildOperatorRunPayloadFromFile({
+        runPath,
+        flags,
+      });
+      const response = await postOperatorRun({
+        ...defaults,
+        payload: runPayload.payload,
+      });
+
+      emitOperatorResult(
+        {
+          ok: true,
+          command: "operator run submit",
+          endpoint: defaults.endpoint,
+          registerId: defaults.registerId,
+          runPath,
+          response,
+          run: response?.run ?? null,
+          message:
+            typeof response?.run?.runId === "string"
+              ? `Documented agent run ${response.run.runId}.`
+              : "Documented agent run.",
+        },
+        Boolean(flags.json),
+      );
+      return;
+    }
+
+    const response = await getOperatorRun({
+      ...defaults,
+      runId: action,
+    });
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator run",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        runId: action,
+        response,
+        run: response?.run ?? null,
+        message: `Loaded agent run ${action} from register ${defaults.registerId}.`,
       },
       Boolean(flags.json),
     );

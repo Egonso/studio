@@ -181,3 +181,10 @@ test("studio-agent submit requires an API key before attempting delivery", () =>
     /Missing Agent-Kit API key/,
   );
 });
+
+test("studio-agent operator help exposes run protocol commands", () => {
+  const output = runCli(["operator", "help"]);
+
+  assert.match(output, /operator runs/);
+  assert.match(output, /operator run submit/);
+});
