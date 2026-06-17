@@ -85,6 +85,17 @@ Use a key with `read:register` and `read:usecase` for this. That key can compare
 local evidence with the real register state but cannot submit a manifest unless
 it also has `submit:usecase`.
 
+The CLI wraps those same reads for local agents:
+
+```bash
+export KI_REGISTER_API_KEY="akv1.<scopeId>.<keyId>.<secret>"
+export KI_REGISTER_REGISTER_ID="reg_123"
+
+node ./bin/studio-agent.mjs operator registers --json
+node ./bin/studio-agent.mjs operator use-cases --json
+node ./bin/studio-agent.mjs operator use-case uc_123 --json
+```
+
 ## Example prompts for agents
 
 ### Codex App or Claude Code

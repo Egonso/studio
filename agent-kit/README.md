@@ -44,6 +44,7 @@ This repository turns those ideas into a practical operating standard:
 | `examples/sample-use-case.json` | Starter payload | Good for automation, testing and onboarding |
 | `examples/slash-command.md` | Generic slash-command pattern | Helpful for agents that support custom command aliases |
 | `studio-agent autopilot plan` | Local Autopilot policy draft | Defines allowed sources, write boundaries, and human-review triggers before any background agent exists |
+| `studio-agent operator ...` | Read-only KI-Register bridge | Lets local agents inspect registers and use cases before proposing new work |
 
 ## Quick start
 
@@ -126,6 +127,17 @@ curl "$KI_REGISTER_BASE_URL/api/agent/operator/use-cases?registerId=$KI_REGISTER
 
 Read-only Operator keys do not imply `submit:usecase`. Submitting a manifest
 remains a separate, confirmed step.
+
+The same reads are available through the CLI:
+
+```bash
+export KI_REGISTER_API_KEY="akv1.<scopeId>.<keyId>.<secret>"
+export KI_REGISTER_REGISTER_ID="reg_123"
+
+node ./bin/studio-agent.mjs operator registers --json
+node ./bin/studio-agent.mjs operator use-cases --json
+node ./bin/studio-agent.mjs operator use-case uc_123 --json
+```
 
 ### What this means for non-technical teams
 

@@ -134,3 +134,6 @@ Sprint 2 sollte keine stillen Mutationen hinzufügen. Sinnvoll wäre:
 2. Lokale CLI-Befehle `operator registers` und `operator use-cases`.
 3. Candidate-Inbox als eigener Schreibpfad mit `write:candidate`.
 4. Audit-Log für Operator-Lesezugriffe, ohne Nutzungsdaten aufzublähen.
+
+Sprint 2 hat Punkt 2 umgesetzt. Details:
+[`docs/kiregister/operator-cli-sprint-2.md`](./operator-cli-sprint-2.md).

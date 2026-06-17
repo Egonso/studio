@@ -1,22 +1,144 @@
 #!/usr/bin/env node
 
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
 
 const ROOT_DIR = process.cwd();
 const CLI_PATH = path.join(ROOT_DIR, "bin", "studio-agent.mjs");
 
-function runCli(args, cwd = ROOT_DIR) {
+function runCli(args, cwd = ROOT_DIR, env = {}) {
   return execFileSync("node", [CLI_PATH, ...args], {
     cwd,
     encoding: "utf8",
+    env: {
+      ...process.env,
+      ...env,
+    },
   });
 }
 
-function main() {
+function runCliAsync(args, cwd = ROOT_DIR, env = {}) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      "node",
+      [CLI_PATH, ...args],
+      {
+        cwd,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          ...env,
+        },
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          error.message = `${error.message}\n${stderr}`;
+          reject(error);
+          return;
+        }
+
+        resolve(stdout);
+      },
+    );
+  });
+}
+
+function startMockOperatorServer() {
+  const server = createServer((request, response) => {
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    const authHeader = request.headers.authorization ?? "";
+
+    response.setHeader("content-type", "application/json");
+
+    if (!String(authHeader).startsWith("Bearer akv1.")) {
+      response.statusCode = 401;
+      response.end(JSON.stringify({ error: "missing api key" }));
+      return;
+    }
+
+    if (url.pathname === "/api/agent/operator/registers") {
+      response.end(
+        JSON.stringify({
+          mode: "read_only",
+          registers: [
+            {
+              registerId: "reg_smoke",
+              name: "Smoke Register",
+              organisationName: "Smoke GmbH",
+              workspaceId: "ws_smoke",
+              createdAt: "2026-06-17T10:00:00.000Z",
+              ownerId: "user_smoke",
+              scopeType: "workspace",
+            },
+          ],
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === "/api/agent/operator/use-cases") {
+      assert.equal(url.searchParams.get("registerId"), "reg_smoke");
+      assert.equal(url.searchParams.get("status"), "UNREVIEWED");
+      assert.equal(url.searchParams.get("searchText"), "smoke");
+      assert.equal(url.searchParams.get("limit"), "1");
+      response.end(
+        JSON.stringify({
+          mode: "read_only",
+          register: {
+            registerId: "reg_smoke",
+            name: "Smoke Register",
+          },
+          count: 1,
+          useCases: [
+            {
+              useCaseId: "uc_smoke",
+              purpose: "Draft smoke summaries for review.",
+              status: "UNREVIEWED",
+              systemSummary: "OpenAI",
+            },
+          ],
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === "/api/agent/operator/use-cases/uc_smoke") {
+      assert.equal(url.searchParams.get("registerId"), "reg_smoke");
+      response.end(
+        JSON.stringify({
+          mode: "read_only",
+          useCase: {
+            useCaseId: "uc_smoke",
+            purpose: "Draft smoke summaries for review.",
+            status: "UNREVIEWED",
+            systemSummary: "OpenAI",
+          },
+        }),
+      );
+      return;
+    }
+
+    response.statusCode = 404;
+    response.end(JSON.stringify({ error: "not found" }));
+  });
+
+  return new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      assert.ok(address && typeof address === "object");
+      resolve({
+        server,
+        operatorEndpoint: `http://127.0.0.1:${address.port}/api/agent/operator`,
+      });
+    });
+  });
+}
+
+async function main() {
   const template = JSON.parse(runCli(["template"]));
   assert.equal(template.documentationType, "application");
   assert.equal(Array.isArray(template.systems), true);
@@ -148,7 +270,57 @@ function main() {
   assert.equal(existsSync(autopilotRun.files.runPath), true);
   assert.equal(existsSync(autopilotRun.files.candidatePaths[0]), true);
 
+  const operatorServer = await startMockOperatorServer();
+  try {
+    const operatorEnv = {
+      KI_REGISTER_API_KEY: "akv1.ws_smoke.key_smoke.secret_smoke",
+      KI_REGISTER_OPERATOR_ENDPOINT: operatorServer.operatorEndpoint,
+      KI_REGISTER_REGISTER_ID: "reg_smoke",
+    };
+
+    const operatorRegisters = JSON.parse(
+      await runCliAsync(["operator", "registers", "--json"], workspace, operatorEnv),
+    );
+    assert.equal(operatorRegisters.ok, true);
+    assert.equal(operatorRegisters.registers[0].registerId, "reg_smoke");
+
+    const operatorUseCases = JSON.parse(
+      await runCliAsync(
+        [
+          "operator",
+          "use-cases",
+          "--status",
+          "UNREVIEWED",
+          "--search-text",
+          "smoke",
+          "--limit",
+          "1",
+          "--json",
+        ],
+        workspace,
+        operatorEnv,
+      ),
+    );
+    assert.equal(operatorUseCases.ok, true);
+    assert.equal(operatorUseCases.useCases[0].useCaseId, "uc_smoke");
+
+    const operatorUseCase = JSON.parse(
+      await runCliAsync(
+        ["operator", "use-case", "uc_smoke", "--json"],
+        workspace,
+        operatorEnv,
+      ),
+    );
+    assert.equal(operatorUseCase.ok, true);
+    assert.equal(operatorUseCase.useCase.useCaseId, "uc_smoke");
+  } finally {
+    operatorServer.server.close();
+  }
+
   process.stdout.write("agent-kit smoke test passed\n");
 }
 
-main();
+main().catch((error) => {
+  process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
+  process.exit(1);
+});

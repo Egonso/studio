@@ -70,8 +70,15 @@ const AI_DEPENDENCY_HINTS = new Set([
 
 const DEFAULT_OUT_DIR = path.join("docs", "agent-workflows");
 const DEFAULT_SUBMIT_ENDPOINT = "https://kiregister.com/api/agent-kit/submit";
+const DEFAULT_OPERATOR_ENDPOINT = "https://kiregister.com/api/agent/operator";
 const CONFIG_DIR_NAME = ".studio-agent";
 const CONFIG_FILE_NAME = "config.json";
+const REGISTER_USE_CASE_STATUS_VALUES = [
+  "UNREVIEWED",
+  "REVIEW_RECOMMENDED",
+  "REVIEWED",
+  "PROOF_READY",
+];
 
 const USAGE_CONTEXT_ALIASES = Object.freeze({
   internal: "INTERNAL_ONLY",
@@ -137,6 +144,9 @@ function printHelp() {
     "  create                  Create docs from --input JSON or direct flags",
     "  validate <manifest>     Validate an existing manifest.json",
     "  submit <manifest>       Submit a manifest.json directly to KI-Register",
+    "  operator registers      List registers visible to a read-only Operator key",
+    "  operator use-cases      List use cases in the configured register",
+    "  operator use-case <id>  Read one use case from the configured register",
     "  autopilot plan          Draft a local KI-Register Autopilot run policy",
     "  autopilot run           Run the local draft-only Autopilot against allowed sources",
     "  list                    List generated workflow folders",
@@ -149,6 +159,9 @@ function printHelp() {
     "  studio-agent create --input ./examples/sample-use-case.json --out-dir ./docs/agent-workflows",
     "  studio-agent validate ./docs/agent-workflows/marketing-assistant/manifest.json",
     "  studio-agent submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
+    "  studio-agent operator registers --json",
+    "  studio-agent operator use-cases --register-id reg_123 --json",
+    "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
     "  studio-agent autopilot plan --cadence every-3-days --out-file ./autopilot-plan.json",
     "  studio-agent autopilot run --policy ./autopilot-plan.json",
     "",
@@ -159,7 +172,11 @@ function printHelp() {
     "  --yes                   Skip the final confirmation prompt",
     "  --register-id <id>      Target KI-Register register id for submit",
     "  --endpoint <url>        Agent Kit submit API endpoint",
+    "  --operator-endpoint <url> Agent Operator API base endpoint",
     "  --api-key <value>       Agent Kit API key (or use KI_REGISTER_API_KEY)",
+    "  --status <value>        Optional operator use-case status filter",
+    "  --search-text <value>   Optional operator use-case text filter",
+    "  --limit <number>        Optional operator use-case list limit",
     "  --cadence <value>       Autopilot cadence: manual, daily, every-3-days, weekly",
     "  --mode <value>          Autopilot mode: draft-only, review-first, submit-after-confirmation",
     "  --sources <list>        Comma-separated read sources for Autopilot planning",
@@ -305,6 +322,15 @@ function resolveOutputDirectory(outDirFlag) {
   return path.resolve(process.cwd(), outDirFlag ?? DEFAULT_OUT_DIR);
 }
 
+function deriveOperatorEndpoint(submitEndpoint) {
+  const endpoint = normalizeText(submitEndpoint);
+  if (!endpoint) {
+    return DEFAULT_OPERATOR_ENDPOINT;
+  }
+
+  return endpoint.replace(/\/api\/agent-kit\/submit\/?$/u, "/api/agent/operator");
+}
+
 function resolveConfigPath(cwd = process.cwd()) {
   return path.join(cwd, CONFIG_DIR_NAME, CONFIG_FILE_NAME);
 }
@@ -372,6 +398,11 @@ function normalizeConfig(config) {
     submission: {
       endpoint:
         normalizeText(raw.submission?.endpoint) ?? DEFAULT_SUBMIT_ENDPOINT,
+      operatorEndpoint:
+        normalizeText(raw.submission?.operatorEndpoint) ??
+        deriveOperatorEndpoint(
+          normalizeText(raw.submission?.endpoint) ?? DEFAULT_SUBMIT_ENDPOINT,
+        ),
       registerId: normalizeText(raw.submission?.registerId),
     },
   };
@@ -905,6 +936,31 @@ function resolveSubmitEndpoint(flags, config) {
     normalizeText(config?.submission?.endpoint) ??
     DEFAULT_SUBMIT_ENDPOINT
   );
+}
+
+function resolveOperatorEndpoint(flags, config) {
+  return (
+    normalizeText(flags["operator-endpoint"]) ??
+    normalizeText(process.env.KI_REGISTER_OPERATOR_ENDPOINT) ??
+    normalizeText(config?.submission?.operatorEndpoint) ??
+    deriveOperatorEndpoint(resolveSubmitEndpoint(flags, config))
+  );
+}
+
+function buildOperatorUrl(endpoint, pathSuffix, params = {}) {
+  const baseEndpoint = normalizeText(endpoint) ?? DEFAULT_OPERATOR_ENDPOINT;
+  const normalizedBase = baseEndpoint.replace(/\/+$/u, "");
+  const normalizedSuffix = pathSuffix.replace(/^\/+/u, "");
+  const url = new URL(`${normalizedBase}/${normalizedSuffix}`);
+
+  Object.entries(params).forEach(([key, value]) => {
+    const normalizedValue = normalizeText(value == null ? undefined : String(value));
+    if (normalizedValue) {
+      url.searchParams.set(key, normalizedValue);
+    }
+  });
+
+  return url.toString();
 }
 
 function resolveRegisterId(flags, config) {
@@ -1464,6 +1520,44 @@ function emitResult(payload, asJson = false) {
   }
 }
 
+function emitOperatorResult(payload, asJson = false) {
+  if (asJson) {
+    emitResult(payload, true);
+    return;
+  }
+
+  if (payload.message) {
+    process.stdout.write(`${payload.message}\n`);
+  }
+
+  if (Array.isArray(payload.registers)) {
+    payload.registers.forEach((register) => {
+      process.stdout.write(
+        `- ${register.registerId}: ${register.name ?? register.organisationName ?? "Unnamed register"}\n`,
+      );
+    });
+  }
+
+  if (Array.isArray(payload.useCases)) {
+    payload.useCases.forEach((useCase) => {
+      process.stdout.write(
+        `- ${useCase.useCaseId}: ${useCase.purpose} [${useCase.status}]\n`,
+      );
+    });
+  }
+
+  if (payload.useCase) {
+    process.stdout.write(
+      [
+        `Use case: ${payload.useCase.useCaseId}`,
+        `Purpose: ${payload.useCase.purpose}`,
+        `Status: ${payload.useCase.status}`,
+        `Systems: ${payload.useCase.systemSummary ?? "Not documented"}`,
+      ].join("\n") + "\n",
+    );
+  }
+}
+
 function collectWorkflowEntries(outDir) {
   if (!existsSync(outDir)) {
     return [];
@@ -1526,25 +1620,76 @@ async function resolveSubmitDefaults(flags, config) {
   };
 }
 
-async function postSubmitRequest({ endpoint, apiKey, registerId, manifest }) {
-  const endpointUrl = new URL(endpoint);
-  const requestBody = JSON.stringify({
+async function resolveOperatorDefaults(flags, config, options = {}) {
+  const endpoint = resolveOperatorEndpoint(flags, config);
+  let registerId = resolveRegisterId(flags, config);
+
+  if (
+    options.requireRegisterId &&
+    !registerId &&
+    process.stdin.isTTY &&
+    process.stdout.isTTY
+  ) {
+    const { rl, ask } = await createPromptSession();
+    try {
+      registerId = normalizeText(
+        await ask("KI-Register register id", {
+          defaultValue: config?.submission?.registerId,
+        }),
+      );
+    } finally {
+      rl.close();
+    }
+  }
+
+  if (options.requireRegisterId && !registerId) {
+    throw new Error(
+      "Missing register id. Use --register-id, set KI_REGISTER_REGISTER_ID, or save it in onboard.",
+    );
+  }
+
+  const apiKey = resolveApiKey(flags);
+  if (!apiKey) {
+    throw new Error(
+      "Missing Agent-Kit API key. Use --api-key or set KI_REGISTER_API_KEY.",
+    );
+  }
+
+  return {
+    endpoint,
     registerId,
-    manifest,
-  });
+    apiKey,
+  };
+}
+
+async function requestJson({
+  endpoint,
+  apiKey,
+  method = "GET",
+  body,
+  timeoutMessage = "Request timed out",
+  errorFallback = "Request failed",
+}) {
+  const endpointUrl = new URL(endpoint);
+  const requestBody = body === undefined ? null : JSON.stringify(body);
 
   return new Promise((resolve, reject) => {
     const transport = endpointUrl.protocol === "https:" ? httpsRequest : httpRequest;
+    const headers = {
+      authorization: `Bearer ${apiKey}`,
+      connection: "close",
+    };
+
+    if (requestBody) {
+      headers["content-type"] = "application/json";
+      headers["content-length"] = Buffer.byteLength(requestBody);
+    }
+
     const request = transport(
       endpointUrl,
       {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "content-length": Buffer.byteLength(requestBody),
-          authorization: `Bearer ${apiKey}`,
-          connection: "close",
-        },
+        method,
+        headers,
       },
       (response) => {
         response.setEncoding("utf8");
@@ -1569,7 +1714,7 @@ async function postSubmitRequest({ endpoint, apiKey, registerId, manifest }) {
               typeof payload === "object" &&
               typeof payload.error === "string"
                 ? payload.error
-                : `Submit failed with ${statusCode}`;
+                : `${errorFallback} with ${statusCode}`;
             reject(new Error(message));
             return;
           }
@@ -1580,13 +1725,70 @@ async function postSubmitRequest({ endpoint, apiKey, registerId, manifest }) {
     );
 
     request.setTimeout(15000, () => {
-      request.destroy(new Error("Submit request timed out"));
+      request.destroy(new Error(timeoutMessage));
     });
     request.on("error", (error) => {
       reject(error);
     });
-    request.write(requestBody);
+    if (requestBody) {
+      request.write(requestBody);
+    }
     request.end();
+  });
+}
+
+async function postSubmitRequest({ endpoint, apiKey, registerId, manifest }) {
+  return requestJson({
+    endpoint,
+    apiKey,
+    method: "POST",
+    body: {
+      registerId,
+      manifest,
+    },
+    timeoutMessage: "Submit request timed out",
+    errorFallback: "Submit failed",
+  });
+}
+
+async function getOperatorRegisters({ endpoint, apiKey }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "registers"),
+    apiKey,
+    timeoutMessage: "Operator registers request timed out",
+    errorFallback: "Operator registers request failed",
+  });
+}
+
+async function getOperatorUseCases({
+  endpoint,
+  apiKey,
+  registerId,
+  status,
+  searchText,
+  limit,
+}) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "use-cases", {
+      registerId,
+      status,
+      searchText,
+      limit,
+    }),
+    apiKey,
+    timeoutMessage: "Operator use-cases request timed out",
+    errorFallback: "Operator use-cases request failed",
+  });
+}
+
+async function getOperatorUseCase({ endpoint, apiKey, registerId, useCaseId }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, `use-cases/${encodeURIComponent(useCaseId)}`, {
+      registerId,
+    }),
+    apiKey,
+    timeoutMessage: "Operator use-case request timed out",
+    errorFallback: "Operator use-case request failed",
   });
 }
 
@@ -1655,6 +1857,11 @@ async function runOnboard(flags) {
       defaultValue:
         existingConfig.submission?.endpoint ?? DEFAULT_SUBMIT_ENDPOINT,
     });
+    const operatorEndpoint = await ask("KI-Register Operator API endpoint", {
+      defaultValue:
+        existingConfig.submission?.operatorEndpoint ??
+        deriveOperatorEndpoint(submitEndpoint),
+    });
     const defaultRegisterId = await ask("Default KI-Register register id");
 
     const config = normalizeConfig({
@@ -1679,6 +1886,7 @@ async function runOnboard(flags) {
       },
       submission: {
         endpoint: submitEndpoint,
+        operatorEndpoint,
         registerId: defaultRegisterId,
       },
     });
@@ -2147,6 +2355,128 @@ function runAutopilot(flags, positionals) {
   );
 }
 
+async function runOperator(flags, positionals) {
+  const subcommand = positionals[1] ?? "help";
+
+  if (subcommand === "help") {
+    process.stdout.write(
+      [
+        "studio-agent operator",
+        "",
+        "Commands:",
+        "  registers         List registers visible to a read-only Operator key",
+        "  use-cases         List use cases in a register",
+        "  use-case <id>     Read one use case in a register",
+        "",
+        "Examples:",
+        "  studio-agent operator registers --json",
+        "  studio-agent operator use-cases --register-id reg_123 --json",
+        "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
+        "",
+        "Required:",
+        "  --api-key or KI_REGISTER_API_KEY",
+        "  --operator-endpoint or KI_REGISTER_OPERATOR_ENDPOINT for non-production targets",
+      ].join("\n") + "\n",
+    );
+    return;
+  }
+
+  const config = loadConfig();
+
+  if (subcommand === "registers") {
+    const defaults = await resolveOperatorDefaults(flags, config);
+    const response = await getOperatorRegisters(defaults);
+    const registers = Array.isArray(response?.registers)
+      ? response.registers
+      : [];
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator registers",
+        endpoint: defaults.endpoint,
+        response,
+        registers,
+        message: `Loaded ${registers.length} register(s) from KI-Register.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "use-cases" || subcommand === "usecases") {
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+    const status = normalizeChoice(
+      flags.status,
+      REGISTER_USE_CASE_STATUS_VALUES,
+      undefined,
+      "--status",
+    );
+    const limit = normalizeText(flags.limit);
+    if (limit && (!Number.isInteger(Number(limit)) || Number(limit) < 1)) {
+      throw new Error("--limit must be a positive integer.");
+    }
+
+    const response = await getOperatorUseCases({
+      ...defaults,
+      status,
+      searchText: normalizeText(flags["search-text"]),
+      limit,
+    });
+    const useCases = Array.isArray(response?.useCases)
+      ? response.useCases
+      : [];
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator use-cases",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        response,
+        useCases,
+        message: `Loaded ${useCases.length} use case(s) from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "use-case" || subcommand === "usecase") {
+    const useCaseId = normalizeText(positionals[2] ?? flags["use-case-id"]);
+    if (!useCaseId) {
+      throw new Error("operator use-case requires a use case id.");
+    }
+
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+    const response = await getOperatorUseCase({
+      ...defaults,
+      useCaseId,
+    });
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator use-case",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        useCaseId,
+        response,
+        useCase: response?.useCase ?? null,
+        message: `Loaded use case ${useCaseId} from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  throw new Error(`Unknown operator command: ${subcommand}`);
+}
+
 async function main() {
   const { flags, positionals } = parseArgs(process.argv.slice(2));
   const command = positionals[0] ?? "help";
@@ -2183,6 +2513,11 @@ async function main() {
 
   if (command === "submit") {
     await runSubmit(flags, positionals);
+    return;
+  }
+
+  if (command === "operator") {
+    await runOperator(flags, positionals);
     return;
   }
 

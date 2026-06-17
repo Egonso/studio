@@ -151,6 +151,8 @@ freigegebene Operator-API für read-only und später Review-Schreibvorgänge.
 
 Sprint 1 ist als read-only Slice umgesetzt und dokumentiert in
 [`docs/kiregister/operator-api-sprint-1.md`](./operator-api-sprint-1.md).
+Sprint 2 ergänzt die lokale CLI-Nutzung und ist dokumentiert in
+[`docs/kiregister/operator-cli-sprint-2.md`](./operator-cli-sprint-2.md).
 
 Aktive Endpunkte:
 
