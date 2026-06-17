@@ -8,13 +8,12 @@ import {
   Download,
   FileText,
   Inbox,
-  LogIn,
   RefreshCw,
   XCircle,
 } from 'lucide-react';
 import { useLocale } from 'next-intl';
 
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1310,26 +1309,14 @@ export default function AgentCandidateReviewPage() {
 
   if (!user) {
     return (
-      <SignedInAreaFrame
+      <ProtectedAreaGate
         area="signed_in_free_register"
         title={copy.signedOutTitle}
         description={copy.signedOutDescription}
+        signInHref={localizeHref(locale, '/login')}
+        signInLabel={copy.signIn}
         width="5xl"
-      >
-        <PageStatePanel
-          area="signed_in_free_register"
-          title={copy.signedOutTitle}
-          description={copy.signedOutDescription}
-          actions={
-            <Button asChild>
-              <Link href={localizeHref(locale, '/login')}>
-                <LogIn className="mr-2 h-4 w-4" />
-                {copy.signIn}
-              </Link>
-            </Button>
-          }
-        />
-      </SignedInAreaFrame>
+      />
     );
   }
 

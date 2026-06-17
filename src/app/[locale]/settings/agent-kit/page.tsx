@@ -8,13 +8,12 @@ import {
   Copy,
   Inbox,
   KeyRound,
-  LogIn,
   Plus,
   RefreshCw,
   Trash2,
 } from 'lucide-react';
 
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -867,26 +866,14 @@ export default function AgentKitSettingsPage() {
 
   if (!user) {
     return (
-      <SignedInAreaFrame
+      <ProtectedAreaGate
         area="signed_in_free_register"
         title={copy.signedOutTitle}
         description={copy.signedOutDescription}
+        signInHref={localizeHref(locale, '/login')}
+        signInLabel={copy.signIn}
         width="5xl"
-      >
-        <PageStatePanel
-          area="signed_in_free_register"
-          title={copy.signedOutTitle}
-          description={copy.signedOutDescription}
-          actions={
-            <Button asChild>
-              <Link href={localizeHref(locale, '/login')}>
-                <LogIn className="mr-2 h-4 w-4" />
-                {copy.signIn}
-              </Link>
-            </Button>
-          }
-        />
-      </SignedInAreaFrame>
+      />
     );
   }
 

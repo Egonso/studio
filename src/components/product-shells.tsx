@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   FileText,
   Loader2,
+  LogIn,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -286,5 +287,49 @@ export function PageStatePanel({
         {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
       </CardContent>
     </Card>
+  );
+}
+
+interface ProtectedAreaGateProps {
+  area: Extract<
+    ProductAreaId,
+    'signed_in_free_register' | 'paid_governance_control'
+  >;
+  title: string;
+  description: string;
+  signInHref: string;
+  signInLabel: string;
+  width?: '5xl' | '6xl';
+}
+
+export function ProtectedAreaGate({
+  area,
+  title,
+  description,
+  signInHref,
+  signInLabel,
+  width = '5xl',
+}: ProtectedAreaGateProps) {
+  return (
+    <SignedInAreaFrame
+      area={area}
+      title={title}
+      description={description}
+      width={width}
+    >
+      <PageStatePanel
+        area={area}
+        title={title}
+        description={description}
+        actions={
+          <Button asChild>
+            <Link href={signInHref}>
+              <LogIn className="h-4 w-4" />
+              {signInLabel}
+            </Link>
+          </Button>
+        }
+      />
+    </SignedInAreaFrame>
   );
 }
