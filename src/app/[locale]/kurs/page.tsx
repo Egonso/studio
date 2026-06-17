@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { ExamCard } from '@/components/exam-card';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import {
   Accordion,
   AccordionContent,
@@ -27,12 +27,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { academyProgramDefinitions } from '@/lib/academy-programs';
 import { courseData } from '@/lib/course-data';
 import type { Module, Video } from '@/lib/course-data';
 import { buildAcademyProgressSnapshot } from '@/lib/course-progress';
 import { getCourseProgress, saveCourseProgress } from '@/lib/data-service';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
 import { cn } from '@/lib/utils';
 
@@ -123,12 +125,6 @@ export default function CoursePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, router, user]);
-
-  useEffect(() => {
     if (!user || !allowed) {
       return;
     }
@@ -194,7 +190,25 @@ export default function CoursePage() {
   }
 
   if (!user) {
-    return null;
+    const courseSearch = searchParams?.toString() ?? '';
+    const coursePath = courseSearch ? `/kurs?${courseSearch}` : '/kurs';
+
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={locale === 'de' ? 'Anmeldung erforderlich' : 'Sign-in required'}
+        description={
+          locale === 'de'
+            ? 'Academy-Inhalte gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen.'
+            : 'Academy content belongs to your account or workspace. Sign in to open this area.'
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, coursePath),
+        })}
+        signInLabel={locale === 'de' ? 'Anmelden' : 'Sign in'}
+      />
+    );
   }
 
   if (!allowed) {
