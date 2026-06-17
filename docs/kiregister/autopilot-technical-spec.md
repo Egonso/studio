@@ -198,6 +198,9 @@ dokumentiert in
 Die Sprints 34-38 aktivieren den Audit-Operator-Scope `read:audit` für
 Review-Auszüge und sind dokumentiert in
 [`docs/kiregister/audit-operator-scope-sprints-34-38.md`](./audit-operator-scope-sprints-34-38.md).
+Die Sprints 39-43 ergänzen Run-Detailkontext mit übersprungenen Quellen und
+sind dokumentiert in
+[`docs/kiregister/agent-run-detail-context-sprints-39-43.md`](./agent-run-detail-context-sprints-39-43.md).
 
 Aktive Endpunkte:
 

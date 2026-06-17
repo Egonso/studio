@@ -2049,6 +2049,13 @@ function buildOperatorRunPayloadFromFile({ runPath, flags }) {
       skippedSourceCount: Number.isInteger(Number(run.skippedSourceCount))
         ? Number(run.skippedSourceCount)
         : skippedSources.length,
+      skippedSources: skippedSources
+        .slice(0, 50)
+        .map((source) => ({
+          source: normalizeText(source.source) ?? "unknown",
+          resolvedPath: normalizeText(source.resolvedPath) ?? null,
+          reason: normalizeText(source.reason) ?? "unknown",
+        })),
       error: normalizeText(flags.error ?? run.error) ?? null,
       source: {
         agent: normalizeText(flags["source-agent"]) ?? "studio-agent",

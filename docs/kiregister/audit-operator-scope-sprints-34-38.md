@@ -81,6 +81,10 @@ Der Block ist gegen ESLint, Typecheck, Auth-Routentest und CLI-Smoke validiert.
 
 ## Nächste sinnvolle Blöcke
 
-- Run-Detailansicht mit Fehler- und Skipped-Source-Kontext
+Der Run-Detailkontext ist im direkten Folgeblock dokumentiert:
+[`agent-run-detail-context-sprints-39-43.md`](./agent-run-detail-context-sprints-39-43.md).
+
+Danach bleiben:
+
 - visueller Preview-/Browser-Check der Review-Inbox
 - signierbarer Audit-Anhang für Candidate-Review-Auszüge

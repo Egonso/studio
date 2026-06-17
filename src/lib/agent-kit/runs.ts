@@ -34,6 +34,12 @@ export interface AgentOperatorRunSource {
   localRunPath: string | null;
 }
 
+export interface AgentOperatorRunSkippedSource {
+  source: string;
+  resolvedPath: string | null;
+  reason: string;
+}
+
 export interface AgentOperatorRunRecord {
   runId: string;
   registerId: string;
@@ -49,6 +55,7 @@ export interface AgentOperatorRunRecord {
   candidateCount: number;
   reviewQuestionCount: number;
   skippedSourceCount: number;
+  skippedSources: AgentOperatorRunSkippedSource[];
   error: string | null;
   source: AgentOperatorRunSource;
   createdAt: string;
@@ -97,6 +104,12 @@ const agentOperatorRunSourceSchema = z.object({
   localRunPath: z.string().trim().min(1).max(1000).optional().nullable(),
 });
 
+const agentOperatorRunSkippedSourceSchema = z.object({
+  source: z.string().trim().min(1).max(1000),
+  resolvedPath: z.string().trim().min(1).max(1000).optional().nullable(),
+  reason: z.string().trim().min(1).max(300),
+});
+
 export const agentOperatorRunPayloadSchema = z.object({
   registerId: z.string().trim().min(1).max(200),
   runId: z.string().trim().min(1).max(200).optional(),
@@ -110,6 +123,7 @@ export const agentOperatorRunPayloadSchema = z.object({
   candidateCount: z.number().int().min(0).max(10000).optional().default(0),
   reviewQuestionCount: z.number().int().min(0).max(10000).optional().default(0),
   skippedSourceCount: z.number().int().min(0).max(10000).optional().default(0),
+  skippedSources: z.array(agentOperatorRunSkippedSourceSchema).max(50).optional(),
   error: z.string().trim().min(1).max(1000).optional().nullable(),
   source: agentOperatorRunSourceSchema.optional(),
 });
@@ -143,6 +157,16 @@ function normalizeCount(value: number | null | undefined): number {
   }
 
   return Math.floor(value);
+}
+
+function normalizeSkippedSources(
+  value: readonly z.infer<typeof agentOperatorRunSkippedSourceSchema>[] | null | undefined,
+): AgentOperatorRunSkippedSource[] {
+  return (value ?? []).slice(0, 50).map((source) => ({
+    source: source.source.trim(),
+    resolvedPath: normalizeOptionalText(source.resolvedPath ?? null),
+    reason: source.reason.trim(),
+  }));
 }
 
 function normalizeLimit(value: number | null | undefined): number {
@@ -201,6 +225,7 @@ export function buildAgentOperatorRunRecord(input: {
   const now = input.now ?? new Date();
   const nowIso = now.toISOString();
   const startedAt = input.payload.startedAt ?? nowIso;
+  const skippedSources = normalizeSkippedSources(input.payload.skippedSources);
 
   return {
     runId: input.payload.runId ?? createRunId(now),
@@ -216,7 +241,11 @@ export function buildAgentOperatorRunRecord(input: {
     evidenceCount: normalizeCount(input.payload.evidenceCount),
     candidateCount: normalizeCount(input.payload.candidateCount),
     reviewQuestionCount: normalizeCount(input.payload.reviewQuestionCount),
-    skippedSourceCount: normalizeCount(input.payload.skippedSourceCount),
+    skippedSourceCount:
+      input.payload.skippedSourceCount === undefined
+        ? skippedSources.length
+        : normalizeCount(input.payload.skippedSourceCount),
+    skippedSources,
     error: normalizeOptionalText(input.payload.error ?? null),
     source: {
       agent: input.payload.source?.agent ?? 'studio-agent',
@@ -251,6 +280,7 @@ export function parseAgentOperatorRunRecord(
       candidateCount: z.number().int().min(0).optional(),
       reviewQuestionCount: z.number().int().min(0).optional(),
       skippedSourceCount: z.number().int().min(0).optional(),
+      skippedSources: z.array(agentOperatorRunSkippedSourceSchema).optional(),
       error: z.string().trim().min(1).max(1000).nullable().optional(),
       source: agentOperatorRunSourceSchema.default({ agent: 'studio-agent' }),
       createdAt: z.string().datetime(),
@@ -276,6 +306,7 @@ export function parseAgentOperatorRunRecord(
     candidateCount: parsed.candidateCount ?? 0,
     reviewQuestionCount: parsed.reviewQuestionCount ?? 0,
     skippedSourceCount: parsed.skippedSourceCount ?? 0,
+    skippedSources: normalizeSkippedSources(parsed.skippedSources),
     error: parsed.error ?? null,
     source: {
       agent: parsed.source.agent,
@@ -435,6 +466,10 @@ export async function updateAgentOperatorRun(input: {
 
   const current = parseAgentOperatorRunRecord(snapshot.data());
   const updatedAt = new Date().toISOString();
+  const skippedSources =
+    input.payload.skippedSources === undefined
+      ? current.skippedSources
+      : normalizeSkippedSources(input.payload.skippedSources);
   const run: AgentOperatorRunRecord = {
     ...current,
     status: input.payload.status ?? current.status,
@@ -468,9 +503,12 @@ export async function updateAgentOperatorRun(input: {
         ? current.reviewQuestionCount
         : normalizeCount(input.payload.reviewQuestionCount),
     skippedSourceCount:
-      input.payload.skippedSourceCount === undefined
-        ? current.skippedSourceCount
-        : normalizeCount(input.payload.skippedSourceCount),
+      input.payload.skippedSourceCount !== undefined
+        ? normalizeCount(input.payload.skippedSourceCount)
+        : input.payload.skippedSources !== undefined
+          ? skippedSources.length
+          : current.skippedSourceCount,
+    skippedSources,
     error:
       'error' in input.payload
         ? normalizeOptionalText(input.payload.error ?? null)
@@ -499,6 +537,7 @@ export async function updateAgentOperatorRun(input: {
       candidateCount: run.candidateCount,
       reviewQuestionCount: run.reviewQuestionCount,
       skippedSourceCount: run.skippedSourceCount,
+      skippedSources: run.skippedSources,
       error: run.error,
       source: run.source,
       updatedAt,

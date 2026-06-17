@@ -210,6 +210,18 @@ interface AgentRunListResponse {
   count: number;
 }
 
+interface AgentRunDetail extends AgentRunSummary {
+  skippedSources: Array<{
+    source: string;
+    resolvedPath: string | null;
+    reason: string;
+  }>;
+}
+
+interface AgentRunDetailResponse {
+  run: AgentRunDetail;
+}
+
 function createEmptyCandidateStatusCounts(): CandidateStatusCounts {
   return {
     needs_review: 0,
@@ -254,6 +266,10 @@ function getCandidateReviewCopy(locale: string) {
       showRunCandidates: 'Kandidaten anzeigen',
       clearRunFilter: 'Lauf-Filter entfernen',
       run: 'Lauf',
+      runError: 'Fehler im Lauf',
+      skippedSources: 'Übersprungene Quellen',
+      noSkippedSources:
+        'Keine übersprungenen Quellen im Laufprotokoll dokumentiert.',
       runStatusRunning: 'läuft',
       runStatusNeedsReview: 'Review offen',
       runStatusNoCandidates: 'keine Kandidaten',
@@ -377,6 +393,10 @@ function getCandidateReviewCopy(locale: string) {
     showRunCandidates: 'Show candidates',
     clearRunFilter: 'Clear run filter',
     run: 'Run',
+    runError: 'Run error',
+    skippedSources: 'Skipped sources',
+    noSkippedSources:
+      'No skipped sources were documented in the run protocol.',
     runStatusRunning: 'running',
     runStatusNeedsReview: 'needs review',
     runStatusNoCandidates: 'no candidates',
@@ -579,6 +599,7 @@ export default function AgentCandidateReviewPage() {
   const [resolvedWorkspaceName, setResolvedWorkspaceName] = useState<string | null>(null);
   const [agentRuns, setAgentRuns] = useState<AgentRunSummary[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const [selectedRunDetail, setSelectedRunDetail] = useState<AgentRunDetail | null>(null);
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
   const [candidateStatusCounts, setCandidateStatusCounts] =
     useState<CandidateStatusCounts>(() => createEmptyCandidateStatusCounts());
@@ -590,6 +611,7 @@ export default function AgentCandidateReviewPage() {
   const [statusFilter, setStatusFilter] = useState<CandidateStatusFilter>('all');
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingRuns, setIsLoadingRuns] = useState(false);
+  const [isLoadingRunDetail, setIsLoadingRunDetail] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isExportingReview, setIsExportingReview] = useState(false);
@@ -699,6 +721,7 @@ export default function AgentCandidateReviewPage() {
       setRegisters([]);
       setAgentRuns([]);
       setSelectedRunId(null);
+      setSelectedRunDetail(null);
       setCandidates([]);
       setCandidateDetail(null);
       return;
@@ -730,6 +753,7 @@ export default function AgentCandidateReviewPage() {
     if (!workspaceId || !selectedRegisterId) {
       setAgentRuns([]);
       setSelectedRunId(null);
+      setSelectedRunDetail(null);
       return;
     }
 
@@ -749,6 +773,11 @@ export default function AgentCandidateReviewPage() {
           ? current
           : null,
       );
+      setSelectedRunDetail((current) =>
+        current && payload.runs.some((run) => run.runId === current.runId)
+          ? current
+          : null,
+      );
     } catch (loadError) {
       console.error('Failed to load agent runs', loadError);
       setAgentRuns([]);
@@ -756,6 +785,30 @@ export default function AgentCandidateReviewPage() {
       setIsLoadingRuns(false);
     }
   }, [authFetch, selectedRegisterId, workspaceId]);
+
+  const loadSelectedRunDetail = useCallback(async () => {
+    if (!workspaceId || !selectedRegisterId || !selectedRunId) {
+      setSelectedRunDetail(null);
+      return;
+    }
+
+    setIsLoadingRunDetail(true);
+    try {
+      const params = new URLSearchParams({
+        registerId: selectedRegisterId,
+      });
+      const response = await authFetch(
+        `/api/workspaces/${workspaceId}/agent-kit/runs/${selectedRunId}?${params.toString()}`,
+      );
+      const payload = (await response.json()) as AgentRunDetailResponse;
+      setSelectedRunDetail(payload.run);
+    } catch (loadError) {
+      console.error('Failed to load selected agent run detail', loadError);
+      setSelectedRunDetail(null);
+    } finally {
+      setIsLoadingRunDetail(false);
+    }
+  }, [authFetch, selectedRegisterId, selectedRunId, workspaceId]);
 
   const loadCandidates = useCallback(async () => {
     if (!workspaceId || !selectedRegisterId) {
@@ -1096,6 +1149,10 @@ export default function AgentCandidateReviewPage() {
   ]);
 
   useEffect(() => {
+    void loadSelectedRunDetail();
+  }, [loadSelectedRunDetail]);
+
+  useEffect(() => {
     if (!loading && !profileLoading && user && workspaceId) {
       void loadCandidates();
     }
@@ -1215,6 +1272,7 @@ export default function AgentCandidateReviewPage() {
     setSelectedRegisterId(null);
     setAgentRuns([]);
     setSelectedRunId(null);
+    setSelectedRunDetail(null);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
     setDuplicateReviewConfirmed(false);
@@ -1224,6 +1282,7 @@ export default function AgentCandidateReviewPage() {
     setSelectedRegisterId(nextRegisterId);
     setAgentRuns([]);
     setSelectedRunId(null);
+    setSelectedRunDetail(null);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
     setDuplicateReviewConfirmed(false);
@@ -1386,6 +1445,72 @@ export default function AgentCandidateReviewPage() {
                 >
                   {copy.clearRunFilter}
                 </Button>
+                <div className="w-full border-t border-slate-200 pt-3">
+                  {isLoadingRunDetail ? (
+                    <p className="text-sm text-muted-foreground">
+                      {copy.loadingPanelDescription}
+                    </p>
+                  ) : (
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {copy.evidenceItems}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-900">
+                          {selectedRunDetail?.evidenceCount ?? selectedRun.evidenceCount}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {copy.skippedSources}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-900">
+                          {selectedRunDetail?.skippedSourceCount ??
+                            selectedRun.skippedSourceCount}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {copy.runError}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-900">
+                          {selectedRunDetail?.error ?? selectedRun.error ?? copy.unknown}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {!isLoadingRunDetail && selectedRunDetail ? (
+                    <div className="mt-3 border-t border-slate-200 pt-3">
+                      <p className="text-sm font-medium text-slate-950">
+                        {copy.skippedSources}
+                      </p>
+                      {selectedRunDetail.skippedSources.length === 0 ? (
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          {copy.noSkippedSources}
+                        </p>
+                      ) : (
+                        <div className="mt-2 space-y-2">
+                          {selectedRunDetail.skippedSources.map((source) => (
+                            <div
+                              key={`${source.source}-${source.resolvedPath ?? ''}-${source.reason}`}
+                              className="rounded-md border border-slate-200 bg-white p-2"
+                            >
+                              <p className="break-all text-sm text-slate-900">
+                                {source.source}
+                              </p>
+                              <p className="mt-1 break-all text-xs text-muted-foreground">
+                                {source.reason}
+                                {source.resolvedPath
+                                  ? ` · ${source.resolvedPath}`
+                                  : ''}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : null}
             <Table>

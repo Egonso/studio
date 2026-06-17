@@ -52,6 +52,13 @@ test('buildAgentOperatorRunRecord stores run protocol separate from candidates',
       candidateCount: 2,
       reviewQuestionCount: 4,
       skippedSourceCount: 1,
+      skippedSources: [
+        {
+          source: 'tmp/outside',
+          resolvedPath: '/tmp/outside',
+          reason: 'outside-workspace',
+        },
+      ],
       source: {
         agent: 'studio-agent',
         localRunPath: '_autopilot-evidence/run_20260617_001.json',
@@ -66,6 +73,7 @@ test('buildAgentOperatorRunRecord stores run protocol separate from candidates',
   assert.equal(run.status, 'needs_review');
   assert.equal(run.candidateCount, 2);
   assert.equal(run.reviewQuestionCount, 4);
+  assert.equal(run.skippedSources[0]?.reason, 'outside-workspace');
   assert.equal(run.source.agent, 'studio-agent');
   assert.equal(run.createdByKeyId, 'akit_runs');
 });
