@@ -64,3 +64,4 @@ Die technische Spezifikation liegt in:
 - [Academy Protected Gate Sprints 69-73](./academy-protected-gate-sprints-69-73.md)
 - [Register Protected Gate Sprints 74-78](./register-protected-gate-sprints-74-78.md)
 - [Use Case Detail Protected Gate Sprints 79-83](./use-case-detail-protected-gate-sprints-79-83.md)
+- [Control Specialized Protected Gates Sprints 84-88](./control-specialized-protected-gates-sprints-84-88.md)

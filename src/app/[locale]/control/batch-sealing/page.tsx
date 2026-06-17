@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
+import { ProtectedAreaGate } from "@/components/product-shells";
 import { useAuth } from "@/context/auth-context";
 import {
     Card,
@@ -14,6 +15,8 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { buildLocalizedLoginPath } from "@/lib/auth/login-routing";
+import { localizeHref } from "@/lib/i18n/localize-href";
 import { registerService } from "@/lib/register-first/register-service";
 import type { UseCaseCard } from "@/lib/register-first/types";
 import { BatchSealingView } from "@/components/control/batch-sealing-view";
@@ -21,18 +24,12 @@ import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 
 export default function BatchSealingPage() {
     const { user, loading } = useAuth();
-    const router = useRouter();
+    const locale = useLocale();
     const scopedHrefs = useScopedRouteHrefs();
 
     const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [dataError, setDataError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push("/login");
-        }
-    }, [loading, user, router]);
 
     const loadData = useCallback(async () => {
         setIsDataLoading(true);
@@ -73,7 +70,24 @@ export default function BatchSealingPage() {
         );
     }
 
-    if (!user) return null;
+    if (!user) {
+        return (
+            <ProtectedAreaGate
+                area="paid_governance_control"
+                title={locale === "de" ? "Anmeldung erforderlich" : "Sign-in required"}
+                description={
+                    locale === "de"
+                        ? "Batch-Sealing gehört zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen."
+                        : "Batch sealing belongs to your account or workspace. Sign in to open this area."
+                }
+                signInHref={buildLocalizedLoginPath(locale, {
+                    mode: "login",
+                    returnTo: localizeHref(locale, "/control/batch-sealing"),
+                })}
+                signInLabel={locale === "de" ? "Anmelden" : "Sign in"}
+            />
+        );
+    }
 
     return (
         <div className="flex min-h-screen flex-col bg-background">

@@ -2,16 +2,18 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
 import { PortfolioIntelligence } from "@/components/control/portfolio-intelligence";
+import { ProtectedAreaGate } from "@/components/product-shells";
 import { useAuth } from "@/context/auth-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { trackControlOpened } from "@/lib/analytics/control-events";
+import { buildLocalizedLoginPath } from "@/lib/auth/login-routing";
 import { buildPortfolioMetrics } from "@/lib/control/portfolio-metrics";
+import { localizeHref } from "@/lib/i18n/localize-href";
 import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { registerService } from "@/lib/register-first/register-service";
@@ -26,18 +28,11 @@ interface PortfolioSnapshot {
 export default function ControlPortfolioPage() {
   const { user, loading } = useAuth();
   const locale = useLocale();
-  const router = useRouter();
   const scopedHrefs = useScopedRouteHrefs();
 
   const [snapshot, setSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [loading, user, router]);
 
   useEffect(() => {
     if (!registerFirstFlags.controlAnalytics) return;
@@ -96,7 +91,24 @@ export default function ControlPortfolioPage() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <ProtectedAreaGate
+        area="paid_governance_control"
+        title={locale === "de" ? "Anmeldung erforderlich" : "Sign-in required"}
+        description={
+          locale === "de"
+            ? "Portfolio-Ansichten gehören zu Ihrem Konto oder Workspace. Melden Sie sich an, um den Bereich zu öffnen."
+            : "Portfolio views belong to your account or workspace. Sign in to open this area."
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: "login",
+          returnTo: localizeHref(locale, "/control/portfolio"),
+        })}
+        signInLabel={locale === "de" ? "Anmelden" : "Sign in"}
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
