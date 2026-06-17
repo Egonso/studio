@@ -23,6 +23,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { useScopedRouteHrefs } from '@/lib/navigation/use-scoped-route-hrefs';
@@ -390,6 +391,14 @@ export default function AgentKitSettingsPage() {
   const workspaceScope = useWorkspaceScope();
   const copy = getAgentKitSettingsCopy(locale);
   const developersAgentKitHref = localizeHref(locale, '/developers/agent-kit');
+  const agentKitReturnToHref = localizeHref(
+    locale,
+    appendWorkspaceScope('/settings/agent-kit', workspaceScope),
+  );
+  const signedOutLoginHref = buildLocalizedLoginPath(locale, {
+    mode: 'login',
+    returnTo: agentKitReturnToHref,
+  });
   const candidateReviewHref = localizeHref(
     locale,
     appendWorkspaceScope('/settings/agent-kit/candidates', workspaceScope),
@@ -870,7 +879,7 @@ export default function AgentKitSettingsPage() {
         area="signed_in_free_register"
         title={copy.signedOutTitle}
         description={copy.signedOutDescription}
-        signInHref={localizeHref(locale, '/login')}
+        signInHref={signedOutLoginHref}
         signInLabel={copy.signIn}
         width="5xl"
       />

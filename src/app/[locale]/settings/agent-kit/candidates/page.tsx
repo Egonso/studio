@@ -22,6 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
 import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
@@ -631,6 +632,14 @@ export default function AgentCandidateReviewPage() {
     locale,
     appendWorkspaceScope('/settings/agent-kit', workspaceScope),
   );
+  const candidateReviewReturnToHref = localizeHref(
+    locale,
+    appendWorkspaceScope('/settings/agent-kit/candidates', workspaceScope),
+  );
+  const signedOutLoginHref = buildLocalizedLoginPath(locale, {
+    mode: 'login',
+    returnTo: candidateReviewReturnToHref,
+  });
 
   useEffect(() => {
     if (!profile) {
@@ -1313,7 +1322,7 @@ export default function AgentCandidateReviewPage() {
         area="signed_in_free_register"
         title={copy.signedOutTitle}
         description={copy.signedOutDescription}
-        signInHref={localizeHref(locale, '/login')}
+        signInHref={signedOutLoginHref}
         signInLabel={copy.signIn}
         width="5xl"
       />

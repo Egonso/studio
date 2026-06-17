@@ -58,3 +58,4 @@ Die technische Spezifikation liegt in:
 - [Agent Run Detail Context Sprints 39-43](./agent-run-detail-context-sprints-39-43.md)
 - [Agent Kit Signed-out QA Sprints 44-48](./agent-kit-signed-out-qa-sprints-44-48.md)
 - [Protected Area Gate Sprints 49-53](./protected-area-gate-sprints-49-53.md)
+- [Protected Login Return Sprints 54-58](./protected-login-return-sprints-54-58.md)

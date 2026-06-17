@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildAuthPath,
+  buildLocalizedLoginPath,
   getInitialAuthIntent,
   getInitialAuthMode,
   readLoginRouteOptions,
@@ -35,6 +36,16 @@ test('readLoginRouteOptions accepts both session_id and checkout_session_id', ()
   assert.equal(fromSession.sessionId, 'cs_123');
   assert.equal(fromCheckout.intent, 'create_register');
   assert.equal(fromCheckout.sessionId, 'cs_456');
+});
+
+test('buildLocalizedLoginPath keeps return targets on localized login links', () => {
+  assert.equal(
+    buildLocalizedLoginPath('de', {
+      mode: 'login',
+      returnTo: '/de/settings/agent-kit/candidates?workspace=org_123',
+    }),
+    '/de/login?mode=login&returnTo=%2Fde%2Fsettings%2Fagent-kit%2Fcandidates%3Fworkspace%3Dorg_123',
+  );
 });
 
 test('initial auth defaults prefer the single root signup flow', () => {

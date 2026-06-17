@@ -98,6 +98,14 @@ export function buildLoginPath(options: LoginRouteOptions = {}): string {
   return buildAuthPath(options);
 }
 
+export function buildLocalizedLoginPath(
+  locale: string,
+  options: LoginRouteOptions = {},
+): string {
+  const authPath = buildLoginPath(options);
+  return `/${locale}/login${authPath === "/" ? "" : authPath.slice(1)}`;
+}
+
 export function getInitialAuthMode(
   options: Pick<
     AuthRouteOptions,
