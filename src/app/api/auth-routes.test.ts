@@ -45,6 +45,7 @@ const workspaceAgentKitKeyItemRoute = readSource("src/app/api/workspaces/[orgId]
 const workspaceAgentKitCandidatesRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/route.ts");
 const workspaceAgentKitCandidateItemRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/route.ts");
 const workspaceAgentKitCandidateReviewRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review/route.ts");
+const workspaceAgentKitCandidateMergeRoute = readSource("src/app/api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge/route.ts");
 const agentKitCandidateReviewAuth = readSource("src/lib/agent-kit/candidate-review-auth.ts");
 const agentKitSubmitRoute = readSource("src/app/api/agent-kit/submit/route.ts");
 const agentOperatorRegistersRoute = readSource("src/app/api/agent/operator/registers/route.ts");
@@ -214,4 +215,10 @@ test("workspace agent candidate review routes are read-only human review paths",
   assert.doesNotMatch(workspaceAgentKitCandidateReviewRoute, /export async function POST/);
   assert.doesNotMatch(workspaceAgentKitCandidateReviewRoute, /createAgentOperatorCandidate/);
   assert.doesNotMatch(workspaceAgentKitCandidateReviewRoute, /useCases/);
+
+  assert.match(workspaceAgentKitCandidateMergeRoute, /authorizeAgentOperatorCandidateReview\(/);
+  assert.match(workspaceAgentKitCandidateMergeRoute, /mergeAgentOperatorCandidateForLocation/);
+  assert.match(workspaceAgentKitCandidateMergeRoute, /export async function POST/);
+  assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /export async function PATCH/);
+  assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /createAgentOperatorCandidate/);
 });

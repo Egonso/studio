@@ -134,6 +134,12 @@ test('parseAgentOperatorCandidateRecord normalizes embedded manifest', () => {
         decidedByUserId: 'reviewer_test',
         decidedByEmail: 'reviewer@example.com',
       },
+      mergeResult: {
+        useCaseId: 'uc_merged',
+        mergedAt: '2026-06-17T12:00:00.000Z',
+        mergedByUserId: 'reviewer_test',
+        mergedByEmail: 'reviewer@example.com',
+      },
     })),
   );
 
@@ -142,4 +148,5 @@ test('parseAgentOperatorCandidateRecord normalizes embedded manifest', () => {
   assert.equal(parsed.source.agent, 'studio-agent');
   assert.equal(parsed.reviewDecision?.status, 'accepted');
   assert.equal(parsed.reviewDecision?.note, 'Plausibel nach Fachreview.');
+  assert.equal(parsed.mergeResult?.useCaseId, 'uc_merged');
 });

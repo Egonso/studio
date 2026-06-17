@@ -16,11 +16,16 @@ import {
   type AgentOperatorRegisterView,
 } from '@/lib/agent-kit/operator';
 import {
+  buildRegisterUseCaseFromManifest,
   parseStudioUseCaseManifest,
   type StudioUseCaseManifest,
 } from '@/lib/agent-kit/manifest';
 import { sanitizeFirestorePayload } from '@/lib/register-first/firestore-sanitize';
 import type { ServerRegisterLocation } from '@/lib/register-first/register-admin';
+import {
+  parseUseCaseCard,
+} from '@/lib/register-first/schema';
+import type { UseCaseCard } from '@/lib/register-first/types';
 
 export const AGENT_OPERATOR_CANDIDATE_STATUS_VALUES = [
   'needs_review',
@@ -79,6 +84,13 @@ export interface AgentOperatorCandidateReviewDecision {
   decidedByEmail: string | null;
 }
 
+export interface AgentOperatorCandidateMergeResult {
+  useCaseId: string;
+  mergedAt: string;
+  mergedByUserId: string;
+  mergedByEmail: string | null;
+}
+
 export interface AgentOperatorCandidateRecord {
   candidateId: string;
   registerId: string;
@@ -96,6 +108,7 @@ export interface AgentOperatorCandidateRecord {
   manifest: StudioUseCaseManifest;
   source: AgentOperatorCandidateSource;
   reviewDecision: AgentOperatorCandidateReviewDecision | null;
+  mergeResult: AgentOperatorCandidateMergeResult | null;
   createdAt: string;
   updatedAt: string;
   createdByKeyId: string;
@@ -130,6 +143,11 @@ export interface AgentOperatorCandidateListResult {
 export interface AgentOperatorCandidateDetailResult {
   register: AgentOperatorRegisterView;
   candidate: AgentOperatorCandidateRecord;
+}
+
+export interface AgentOperatorCandidateMergeDetailResult
+  extends AgentOperatorCandidateDetailResult {
+  useCase: UseCaseCard;
 }
 
 const DEFAULT_CANDIDATE_LIMIT = 50;
@@ -173,6 +191,20 @@ const candidateReviewDecisionSchema = z.object({
   decidedByUserId: z.string().trim().min(1),
   decidedByEmail: z.string().trim().min(1).nullable(),
 });
+
+const candidateMergeResultSchema = z.object({
+  useCaseId: z.string().trim().min(1),
+  mergedAt: z.string().datetime(),
+  mergedByUserId: z.string().trim().min(1),
+  mergedByEmail: z.string().trim().min(1).nullable(),
+});
+
+export class AgentOperatorCandidateMergeStateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AgentOperatorCandidateMergeStateError';
+  }
+}
 
 export const agentOperatorCandidatePayloadSchema = z.object({
   registerId: z.string().trim().min(1).max(200),
@@ -300,6 +332,7 @@ export function buildAgentOperatorCandidateRecord(input: {
       ),
     },
     reviewDecision: null,
+    mergeResult: null,
     createdAt: nowIso,
     updatedAt: nowIso,
     createdByKeyId: input.record.keyId,
@@ -337,6 +370,7 @@ export function parseAgentOperatorCandidateRecord(
         localCandidateId: true,
       }),
       reviewDecision: candidateReviewDecisionSchema.nullable().optional(),
+      mergeResult: candidateMergeResultSchema.nullable().optional(),
       createdAt: z.string().datetime(),
       updatedAt: z.string().datetime(),
       createdByKeyId: z.string().trim().min(1),
@@ -364,6 +398,7 @@ export function parseAgentOperatorCandidateRecord(
       localCandidateId: parsed.source.localCandidateId ?? null,
     },
     reviewDecision: parsed.reviewDecision ?? null,
+    mergeResult: parsed.mergeResult ?? null,
   };
 }
 
@@ -555,4 +590,102 @@ export async function reviewAgentOperatorCandidateForLocation(input: {
     register: current.register,
     candidate,
   };
+}
+
+export async function mergeAgentOperatorCandidateForLocation(input: {
+  location: ServerRegisterLocation;
+  scopeType: AgentOperatorRegisterView['scopeType'];
+  candidateId: string;
+  mergedByUserId: string;
+  mergedByEmail?: string | null;
+  now?: Date;
+}): Promise<AgentOperatorCandidateMergeDetailResult | null> {
+  const candidateRef = db.doc(
+    `users/${input.location.ownerId}/registers/${input.location.registerId}/agentCandidates/${input.candidateId}`,
+  );
+  const now = input.now ?? new Date();
+  const nowIso = now.toISOString();
+  const register = toAgentOperatorRegisterViewForLocation(
+    input.location,
+    input.scopeType,
+  );
+  let result: AgentOperatorCandidateMergeDetailResult | null = null;
+
+  await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(candidateRef);
+    if (!snapshot.exists) {
+      result = null;
+      return;
+    }
+
+    const currentCandidate = parseAgentOperatorCandidateRecord(snapshot.data());
+    if (currentCandidate.status !== 'accepted') {
+      throw new AgentOperatorCandidateMergeStateError(
+        'Nur akzeptierte Review-Kandidaten können übernommen werden.',
+      );
+    }
+
+    if (currentCandidate.mergeResult) {
+      throw new AgentOperatorCandidateMergeStateError(
+        'Dieser Review-Kandidat wurde bereits übernommen.',
+      );
+    }
+
+    const useCase = buildRegisterUseCaseFromManifest({
+      manifest: currentCandidate.manifest,
+      createdByUserId: input.mergedByUserId,
+      createdByEmail: input.mergedByEmail ?? null,
+      now,
+    });
+    const useCaseWithCandidateLink = parseUseCaseCard({
+      ...useCase,
+      reviewHints: [
+        ...useCase.reviewHints,
+        `Agent candidate accepted from ${currentCandidate.candidateId}.`,
+      ],
+      labels: [
+        ...(useCase.labels ?? []),
+        {
+          key: 'agent_candidate_id',
+          value: currentCandidate.candidateId,
+        },
+      ],
+    });
+    const mergeResult: AgentOperatorCandidateMergeResult = {
+      useCaseId: useCaseWithCandidateLink.useCaseId,
+      mergedAt: nowIso,
+      mergedByUserId: input.mergedByUserId,
+      mergedByEmail: normalizeOptionalText(input.mergedByEmail ?? null),
+    };
+    const candidate: AgentOperatorCandidateRecord = {
+      ...currentCandidate,
+      status: 'merged',
+      updatedAt: nowIso,
+      mergeResult,
+    };
+    const useCaseRef = db.doc(
+      `users/${input.location.ownerId}/registers/${input.location.registerId}/useCases/${useCaseWithCandidateLink.useCaseId}`,
+    );
+
+    transaction.set(useCaseRef, sanitizeFirestorePayload(useCaseWithCandidateLink), {
+      merge: false,
+    });
+    transaction.set(
+      candidateRef,
+      sanitizeFirestorePayload({
+        status: candidate.status,
+        updatedAt: candidate.updatedAt,
+        mergeResult,
+      }),
+      { merge: true },
+    );
+
+    result = {
+      register,
+      candidate,
+      useCase: useCaseWithCandidateLink,
+    };
+  });
+
+  return result;
 }

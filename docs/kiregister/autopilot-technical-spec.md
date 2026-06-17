@@ -167,6 +167,9 @@ in
 Sprint 7 ergänzt die formale Review-Entscheidung ohne Merge und ist
 dokumentiert in
 [`docs/kiregister/candidate-review-decision-sprint-7.md`](./candidate-review-decision-sprint-7.md).
+Sprint 8 ergänzt die kontrollierte Übernahme akzeptierter Kandidaten und ist
+dokumentiert in
+[`docs/kiregister/candidate-merge-sprint-8.md`](./candidate-merge-sprint-8.md).
 
 Aktive Endpunkte:
 
@@ -179,12 +182,12 @@ Aktive Endpunkte:
 - `GET /api/workspaces/[orgId]/agent-kit/candidates`
 - `GET /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]`
 - `PATCH /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/review`
+- `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 
 Noch nicht aktiv:
 
 - `POST /api/agent/operator/runs`
 - `PATCH /api/agent/operator/runs/[runId]`
-- `POST /api/workspaces/[orgId]/agent-kit/candidates/[candidateId]/merge`
 - später: `PATCH /api/agent/operator/use-cases/[useCaseId]/review`
 
 ### Berechtigungen

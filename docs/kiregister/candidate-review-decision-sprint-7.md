@@ -72,9 +72,12 @@ Sprint 7 bleibt ein Review-Workflow:
 
 ## Nächster Sprint
 
-Sprint 8 sollte den Merge bewusst separat modellieren:
+Sprint 8 modelliert den Merge bewusst separat:
 
 1. nur akzeptierte Kandidaten sind merge-fähig
-2. Voransicht des Ziel-Use-Case vor dem Schreiben
-3. Audit-Ereignis mit Candidate-ID, Reviewer und Merge-Actor
+2. transaktionales Erzeugen eines neuen Use Case
+3. Candidate-Nachweis mit Use-Case-ID, Reviewer und Merge-Actor
 4. keine stille Überschreibung bestehender Use Cases
+
+Details:
+[`docs/kiregister/candidate-merge-sprint-8.md`](./candidate-merge-sprint-8.md).

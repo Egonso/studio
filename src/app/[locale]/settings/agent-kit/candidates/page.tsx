@@ -18,7 +18,10 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import type { AgentKitScopeOption } from '@/lib/agent-kit/scope-options';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
-import { appendWorkspaceScope } from '@/lib/navigation/workspace-scope';
+import {
+  appendWorkspaceScope,
+  buildScopedUseCaseDetailHref,
+} from '@/lib/navigation/workspace-scope';
 import { getActiveWorkspaceId, setActiveWorkspaceId } from '@/lib/workspace-session';
 
 type CandidateStatus = 'needs_review' | 'accepted' | 'rejected' | 'merged';
@@ -109,12 +112,20 @@ interface CandidateReviewDecision {
   decidedByEmail: string | null;
 }
 
+interface CandidateMergeResult {
+  useCaseId: string;
+  mergedAt: string;
+  mergedByUserId: string;
+  mergedByEmail: string | null;
+}
+
 interface CandidateDetail extends CandidateSummary {
   reviewQuestions: CandidateReviewQuestion[];
   evidence: CandidateEvidenceItem[];
   duplicateHints: CandidateDuplicateHint[];
   manifest: CandidateManifest;
   reviewDecision: CandidateReviewDecision | null;
+  mergeResult: CandidateMergeResult | null;
   createdByEmail: string | null;
 }
 
@@ -125,6 +136,17 @@ interface CandidateListResponse {
 
 interface CandidateDetailResponse {
   candidate: CandidateDetail;
+}
+
+interface CandidateMergeResponse {
+  candidate: CandidateDetail;
+  useCase: {
+    useCaseId: string;
+    status: string;
+    purpose: string;
+    detailPath: string;
+    detailUrl: string;
+  };
 }
 
 function getCandidateReviewCopy(locale: string) {
@@ -186,10 +208,19 @@ function getCandidateReviewCopy(locale: string) {
       reviewNotePlaceholder: 'Begründung oder offene Einschränkung dokumentieren',
       acceptCandidate: 'Review akzeptieren',
       rejectCandidate: 'Ablehnen',
+      mergeCandidate: 'Als Einsatzfall übernehmen',
+      openUseCase: 'Einsatzfall öffnen',
+      mergedUseCase: 'Übernommener Einsatzfall',
+      mergeHint:
+        'Nur akzeptierte Kandidaten können als neuer Einsatzfall übernommen werden.',
       reviewSavedTitle: 'Review dokumentiert',
       reviewSavedDesc:
         'Der Kandidatenstatus wurde aktualisiert. Es wurde kein echter Einsatzfall erzeugt.',
       reviewErrorTitle: 'Review konnte nicht gespeichert werden',
+      mergeSavedTitle: 'Einsatzfall erzeugt',
+      mergeSavedDesc:
+        'Der Kandidat wurde als neuer Registereintrag übernommen.',
+      mergeErrorTitle: 'Kandidat konnte nicht übernommen werden',
       previousDecision: 'Bisherige Entscheidung',
       statusNeedsReview: 'Review offen',
       statusAccepted: 'akzeptiert',
@@ -257,10 +288,19 @@ function getCandidateReviewCopy(locale: string) {
     reviewNotePlaceholder: 'Document the rationale or remaining limitation',
     acceptCandidate: 'Accept review',
     rejectCandidate: 'Reject',
+    mergeCandidate: 'Create use case',
+    openUseCase: 'Open use case',
+    mergedUseCase: 'Created use case',
+    mergeHint:
+      'Only accepted candidates can be created as new use cases.',
     reviewSavedTitle: 'Review documented',
     reviewSavedDesc:
       'The candidate status was updated. No real use case was created.',
     reviewErrorTitle: 'Review could not be saved',
+    mergeSavedTitle: 'Use case created',
+    mergeSavedDesc:
+      'The candidate was created as a new register entry.',
+    mergeErrorTitle: 'Candidate could not be created as a use case',
     previousDecision: 'Previous decision',
     statusNeedsReview: 'review open',
     statusAccepted: 'accepted',
@@ -345,6 +385,7 @@ export default function AgentCandidateReviewPage() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
+  const [isMergingCandidate, setIsMergingCandidate] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -606,6 +647,62 @@ export default function AgentCandidateReviewPage() {
     ],
   );
 
+  const submitMergeCandidate = useCallback(async () => {
+    if (!workspaceId || !selectedRegisterId || !selectedCandidateId) {
+      return;
+    }
+
+    setIsMergingCandidate(true);
+    try {
+      const params = new URLSearchParams({
+        registerId: selectedRegisterId,
+      });
+      const response = await authFetch(
+        `/api/workspaces/${workspaceId}/agent-kit/candidates/${selectedCandidateId}/merge?${params.toString()}`,
+        {
+          method: 'POST',
+        },
+      );
+      const payload = (await response.json()) as CandidateMergeResponse;
+      setCandidateDetail(payload.candidate);
+      setCandidates((current) =>
+        current.map((candidate) =>
+          candidate.candidateId === payload.candidate.candidateId
+            ? {
+                ...candidate,
+                status: payload.candidate.status,
+                updatedAt: payload.candidate.updatedAt,
+              }
+            : candidate,
+        ),
+      );
+      toast({
+        title: copy.mergeSavedTitle,
+        description: copy.mergeSavedDesc,
+      });
+    } catch (mergeError) {
+      console.error('Failed to merge candidate into use case', mergeError);
+      toast({
+        variant: 'destructive',
+        title: copy.mergeErrorTitle,
+        description:
+          mergeError instanceof Error ? mergeError.message : copy.detailFallback,
+      });
+    } finally {
+      setIsMergingCandidate(false);
+    }
+  }, [
+    authFetch,
+    copy.detailFallback,
+    copy.mergeErrorTitle,
+    copy.mergeSavedDesc,
+    copy.mergeSavedTitle,
+    selectedCandidateId,
+    selectedRegisterId,
+    toast,
+    workspaceId,
+  ]);
+
   useEffect(() => {
     if (!loading && !profileLoading && user) {
       void loadWorkspaces();
@@ -657,6 +754,27 @@ export default function AgentCandidateReviewPage() {
       null,
     [registers, selectedRegisterId],
   );
+  const mergedUseCaseHref = useMemo(() => {
+    const useCaseId = candidateDetail?.mergeResult?.useCaseId;
+    if (!useCaseId) {
+      return null;
+    }
+
+    return localizeHref(
+      locale,
+      buildScopedUseCaseDetailHref(
+        useCaseId,
+        selectedWorkspace?.scopeType === 'personal'
+          ? null
+          : workspaceId,
+      ),
+    );
+  }, [
+    candidateDetail?.mergeResult?.useCaseId,
+    locale,
+    selectedWorkspace?.scopeType,
+    workspaceId,
+  ]);
 
   const handleWorkspaceChange = (nextWorkspaceId: string) => {
     setWorkspaceId(nextWorkspaceId);
@@ -950,6 +1068,43 @@ export default function AgentCandidateReviewPage() {
                         <XCircle className="mr-2 h-4 w-4" />
                         {copy.rejectCandidate}
                       </Button>
+                    </div>
+                    <div className="mt-4 border-t border-slate-200 pt-4">
+                      {candidateDetail.mergeResult && mergedUseCaseHref ? (
+                        <div className="space-y-3">
+                          <p className="text-sm leading-6 text-muted-foreground">
+                            {copy.mergedUseCase}:{' '}
+                            {candidateDetail.mergeResult.useCaseId} ·{' '}
+                            {formatDate(
+                              candidateDetail.mergeResult.mergedAt,
+                              locale,
+                              copy.unknown,
+                            )}
+                          </p>
+                          <Button asChild variant="outline">
+                            <Link href={mergedUseCaseHref}>
+                              {copy.openUseCase}
+                            </Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-sm leading-6 text-muted-foreground">
+                            {copy.mergeHint}
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => void submitMergeCandidate()}
+                            disabled={
+                              isMergingCandidate ||
+                              busyReviewStatus !== null ||
+                              candidateDetail.status !== 'accepted'
+                            }
+                          >
+                            {copy.mergeCandidate}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </section>
 
