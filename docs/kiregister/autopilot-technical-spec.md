@@ -156,6 +156,8 @@ Sprint 2 ergänzt die lokale CLI-Nutzung und ist dokumentiert in
 Sprint 3 ergänzt die Candidate-Inbox als getrennten Schreibpfad und ist
 dokumentiert in
 [`docs/kiregister/candidate-inbox-sprint-3.md`](./candidate-inbox-sprint-3.md).
+Sprint 4 ergänzt die lokale Candidate-CLI und ist dokumentiert in
+[`docs/kiregister/candidate-cli-sprint-4.md`](./candidate-cli-sprint-4.md).
 
 Aktive Endpunkte:
 

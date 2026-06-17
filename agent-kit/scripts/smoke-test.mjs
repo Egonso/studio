@@ -122,6 +122,72 @@ function startMockOperatorServer() {
       return;
     }
 
+    if (url.pathname === "/api/agent/operator/candidates") {
+      if (request.method === "POST") {
+        let rawBody = "";
+        request.on("data", (chunk) => {
+          rawBody += chunk;
+        });
+        request.on("end", () => {
+          const payload = JSON.parse(rawBody);
+          assert.equal(payload.registerId, "reg_smoke");
+          assert.equal(payload.manifest.title, "Support knowledge assistant");
+          response.statusCode = 201;
+          response.end(
+            JSON.stringify({
+              mode: "candidate_review",
+              candidate: {
+                candidateId: "cand_smoke",
+                registerId: "reg_smoke",
+                title: payload.manifest.title,
+                purpose: payload.manifest.purpose,
+                status: "needs_review",
+                systemSummary: "Zendesk +1",
+              },
+            }),
+          );
+        });
+        return;
+      }
+
+      assert.equal(url.searchParams.get("registerId"), "reg_smoke");
+      response.end(
+        JSON.stringify({
+          mode: "candidate_review",
+          count: 1,
+          candidates: [
+            {
+              candidateId: "cand_smoke",
+              registerId: "reg_smoke",
+              title: "Support knowledge assistant",
+              purpose: "Draft support summaries for review.",
+              status: "needs_review",
+              systemSummary: "Zendesk +1",
+            },
+          ],
+        }),
+      );
+      return;
+    }
+
+    if (url.pathname === "/api/agent/operator/candidates/cand_smoke") {
+      assert.equal(url.searchParams.get("registerId"), "reg_smoke");
+      response.end(
+        JSON.stringify({
+          mode: "candidate_review",
+          candidate: {
+            candidateId: "cand_smoke",
+            registerId: "reg_smoke",
+            title: "Support knowledge assistant",
+            purpose: "Draft support summaries for review.",
+            status: "needs_review",
+            systemSummary: "Zendesk +1",
+          },
+        }),
+      );
+      return;
+    }
+
     response.statusCode = 404;
     response.end(JSON.stringify({ error: "not found" }));
   });
@@ -313,6 +379,42 @@ async function main() {
     );
     assert.equal(operatorUseCase.ok, true);
     assert.equal(operatorUseCase.useCase.useCaseId, "uc_smoke");
+
+    const operatorCandidates = JSON.parse(
+      await runCliAsync(["operator", "candidates", "--json"], workspace, operatorEnv),
+    );
+    assert.equal(operatorCandidates.ok, true);
+    assert.equal(operatorCandidates.candidates[0].candidateId, "cand_smoke");
+
+    const operatorCandidate = JSON.parse(
+      await runCliAsync(
+        ["operator", "candidate", "cand_smoke", "--json"],
+        workspace,
+        operatorEnv,
+      ),
+    );
+    assert.equal(operatorCandidate.ok, true);
+    assert.equal(operatorCandidate.candidate.candidateId, "cand_smoke");
+
+    const submittedCandidate = JSON.parse(
+      await runCliAsync(
+        [
+          "operator",
+          "candidate",
+          "submit",
+          createResult.files.manifestPath,
+          "--confidence",
+          "0.75",
+          "--blocked-by",
+          "personal-or-sensitive-data",
+          "--json",
+        ],
+        workspace,
+        operatorEnv,
+      ),
+    );
+    assert.equal(submittedCandidate.ok, true);
+    assert.equal(submittedCandidate.candidate.candidateId, "cand_smoke");
   } finally {
     operatorServer.server.close();
   }

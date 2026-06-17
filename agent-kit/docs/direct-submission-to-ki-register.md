@@ -96,6 +96,16 @@ node ./bin/studio-agent.mjs operator use-cases --json
 node ./bin/studio-agent.mjs operator use-case uc_123 --json
 ```
 
+To submit a review candidate without creating a real use case:
+
+```bash
+node ./bin/studio-agent.mjs operator candidate submit \
+  ./docs/agent-workflows/<slug>/manifest.json \
+  --confidence 0.74 \
+  --blocked-by personal-or-sensitive-data \
+  --json
+```
+
 ## Example prompts for agents
 
 ### Codex App or Claude Code

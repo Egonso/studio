@@ -139,6 +139,17 @@ node ./bin/studio-agent.mjs operator use-cases --json
 node ./bin/studio-agent.mjs operator use-case uc_123 --json
 ```
 
+To hand a reviewed local manifest into the Candidate Inbox instead of creating a
+real register entry:
+
+```bash
+node ./bin/studio-agent.mjs operator candidate submit \
+  ./docs/agent-workflows/<slug>/manifest.json \
+  --confidence 0.74 \
+  --blocked-by personal-or-sensitive-data \
+  --json
+```
+
 ### What this means for non-technical teams
 
 - The technical team sets up the key and agent workflow once.

@@ -113,3 +113,6 @@ Erst danach ist der lokale Autopilot-End-to-End-Pfad wirklich nutzbar:
 2. lokalen Kandidaten erzeugen
 3. Candidate an KIRegister einreichen
 4. Mensch prüft im Produkt
+
+Sprint 4 hat die CLI-Anbindung umgesetzt. Details:
+[`docs/kiregister/candidate-cli-sprint-4.md`](./candidate-cli-sprint-4.md).

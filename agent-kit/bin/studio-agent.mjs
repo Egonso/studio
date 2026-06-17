@@ -147,6 +147,9 @@ function printHelp() {
     "  operator registers      List registers visible to a read-only Operator key",
     "  operator use-cases      List use cases in the configured register",
     "  operator use-case <id>  Read one use case from the configured register",
+    "  operator candidates     List candidate review objects in a register",
+    "  operator candidate <id> Read one candidate review object",
+    "  operator candidate submit <manifest> Submit a manifest as a review candidate",
     "  autopilot plan          Draft a local KI-Register Autopilot run policy",
     "  autopilot run           Run the local draft-only Autopilot against allowed sources",
     "  list                    List generated workflow folders",
@@ -162,6 +165,7 @@ function printHelp() {
     "  studio-agent operator registers --json",
     "  studio-agent operator use-cases --register-id reg_123 --json",
     "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
+    "  studio-agent operator candidate submit ./docs/agent-workflows/marketing-assistant/manifest.json --register-id reg_123",
     "  studio-agent autopilot plan --cadence every-3-days --out-file ./autopilot-plan.json",
     "  studio-agent autopilot run --policy ./autopilot-plan.json",
     "",
@@ -975,6 +979,20 @@ function resolveApiKey(flags) {
   return normalizeText(flags["api-key"]) ?? normalizeText(process.env.KI_REGISTER_API_KEY);
 }
 
+function normalizeOptionalNumber(value, flagName) {
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return undefined;
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${flagName} must be a number.`);
+  }
+
+  return parsed;
+}
+
 function normalizeSystemEntries(value) {
   const rawEntries = Array.isArray(value)
     ? value
@@ -1546,6 +1564,14 @@ function emitOperatorResult(payload, asJson = false) {
     });
   }
 
+  if (Array.isArray(payload.candidates)) {
+    payload.candidates.forEach((candidate) => {
+      process.stdout.write(
+        `- ${candidate.candidateId}: ${candidate.title ?? candidate.purpose} [${candidate.status}]\n`,
+      );
+    });
+  }
+
   if (payload.useCase) {
     process.stdout.write(
       [
@@ -1553,6 +1579,17 @@ function emitOperatorResult(payload, asJson = false) {
         `Purpose: ${payload.useCase.purpose}`,
         `Status: ${payload.useCase.status}`,
         `Systems: ${payload.useCase.systemSummary ?? "Not documented"}`,
+      ].join("\n") + "\n",
+    );
+  }
+
+  if (payload.candidate) {
+    process.stdout.write(
+      [
+        `Candidate: ${payload.candidate.candidateId}`,
+        `Title: ${payload.candidate.title}`,
+        `Status: ${payload.candidate.status}`,
+        `Systems: ${payload.candidate.systemSummary ?? "Not documented"}`,
       ].join("\n") + "\n",
     );
   }
@@ -1790,6 +1827,86 @@ async function getOperatorUseCase({ endpoint, apiKey, registerId, useCaseId }) {
     timeoutMessage: "Operator use-case request timed out",
     errorFallback: "Operator use-case request failed",
   });
+}
+
+async function getOperatorCandidates({ endpoint, apiKey, registerId, limit }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "candidates", {
+      registerId,
+      limit,
+    }),
+    apiKey,
+    timeoutMessage: "Operator candidates request timed out",
+    errorFallback: "Operator candidates request failed",
+  });
+}
+
+async function getOperatorCandidate({ endpoint, apiKey, registerId, candidateId }) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, `candidates/${encodeURIComponent(candidateId)}`, {
+      registerId,
+    }),
+    apiKey,
+    timeoutMessage: "Operator candidate request timed out",
+    errorFallback: "Operator candidate request failed",
+  });
+}
+
+async function postOperatorCandidate({
+  endpoint,
+  apiKey,
+  registerId,
+  payload,
+}) {
+  return requestJson({
+    endpoint: buildOperatorUrl(endpoint, "candidates"),
+    apiKey,
+    method: "POST",
+    body: {
+      registerId,
+      ...payload,
+    },
+    timeoutMessage: "Operator candidate submit request timed out",
+    errorFallback: "Operator candidate submit failed",
+  });
+}
+
+function buildOperatorCandidatePayloadFromManifest({
+  manifestPath,
+  config,
+  flags,
+}) {
+  const manifest = normalizeManifest(readJsonFile(manifestPath), {
+    config,
+  });
+  const validation = validateManifest(manifest);
+  if (!validation.isValid) {
+    throw new Error(validation.errors.join("; "));
+  }
+
+  const confidence = normalizeOptionalNumber(flags.confidence, "--confidence");
+  if (confidence !== undefined && (confidence < 0 || confidence > 1)) {
+    throw new Error("--confidence must be between 0 and 1.");
+  }
+
+  const blockedBy = normalizeStringList(flags["blocked-by"]);
+  const localCandidateId =
+    normalizeText(flags["local-candidate-id"]) ??
+    normalizeText(path.basename(path.dirname(manifestPath)));
+
+  return {
+    payload: {
+      manifest,
+      ...(confidence !== undefined ? { confidence } : {}),
+      ...(blockedBy.length > 0 ? { blockedBy } : {}),
+      source: {
+        agent: normalizeText(flags["source-agent"]) ?? "studio-agent",
+        runId: normalizeText(flags["run-id"]) ?? null,
+        localCandidateId,
+      },
+    },
+    validation,
+  };
 }
 
 async function runOnboard(flags) {
@@ -2367,11 +2484,17 @@ async function runOperator(flags, positionals) {
         "  registers         List registers visible to a read-only Operator key",
         "  use-cases         List use cases in a register",
         "  use-case <id>     Read one use case in a register",
+        "  candidates        List candidate review objects in a register",
+        "  candidate <id>    Read one candidate review object",
+        "  candidate submit <manifest> Submit a manifest as a review candidate",
         "",
         "Examples:",
         "  studio-agent operator registers --json",
         "  studio-agent operator use-cases --register-id reg_123 --json",
         "  studio-agent operator use-case uc_123 --register-id reg_123 --json",
+        "  studio-agent operator candidates --register-id reg_123 --json",
+        "  studio-agent operator candidate cand_123 --register-id reg_123 --json",
+        "  studio-agent operator candidate submit ./docs/agent-workflows/<slug>/manifest.json --register-id reg_123",
         "",
         "Required:",
         "  --api-key or KI_REGISTER_API_KEY",
@@ -2468,6 +2591,110 @@ async function runOperator(flags, positionals) {
         response,
         useCase: response?.useCase ?? null,
         message: `Loaded use case ${useCaseId} from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "candidates") {
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+    const limit = normalizeText(flags.limit);
+    if (limit && (!Number.isInteger(Number(limit)) || Number(limit) < 1)) {
+      throw new Error("--limit must be a positive integer.");
+    }
+
+    const response = await getOperatorCandidates({
+      ...defaults,
+      limit,
+    });
+    const candidates = Array.isArray(response?.candidates)
+      ? response.candidates
+      : [];
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator candidates",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        response,
+        candidates,
+        message: `Loaded ${candidates.length} candidate(s) from register ${defaults.registerId}.`,
+      },
+      Boolean(flags.json),
+    );
+    return;
+  }
+
+  if (subcommand === "candidate") {
+    const action = normalizeText(positionals[2] ?? flags["candidate-id"]);
+    if (!action) {
+      throw new Error("operator candidate requires a candidate id or submit.");
+    }
+
+    const defaults = await resolveOperatorDefaults(flags, config, {
+      requireRegisterId: true,
+    });
+
+    if (action === "submit") {
+      const manifestTarget = normalizeText(positionals[3] ?? flags.input);
+      if (!manifestTarget) {
+        throw new Error("operator candidate submit requires a manifest path or workflow folder.");
+      }
+
+      const manifestPath = resolveManifestPath(manifestTarget);
+      if (!existsSync(manifestPath)) {
+        throw new Error(`Manifest not found: ${manifestPath}`);
+      }
+
+      const candidate = buildOperatorCandidatePayloadFromManifest({
+        manifestPath,
+        config,
+        flags,
+      });
+      const response = await postOperatorCandidate({
+        ...defaults,
+        payload: candidate.payload,
+      });
+
+      emitOperatorResult(
+        {
+          ok: true,
+          command: "operator candidate submit",
+          endpoint: defaults.endpoint,
+          registerId: defaults.registerId,
+          manifestPath,
+          response,
+          candidate: response?.candidate ?? null,
+          warnings: candidate.validation.warnings,
+          message:
+            typeof response?.candidate?.candidateId === "string"
+              ? `Submitted candidate ${response.candidate.candidateId} for review.`
+              : "Submitted candidate for review.",
+        },
+        Boolean(flags.json),
+      );
+      return;
+    }
+
+    const response = await getOperatorCandidate({
+      ...defaults,
+      candidateId: action,
+    });
+
+    emitOperatorResult(
+      {
+        ok: true,
+        command: "operator candidate",
+        endpoint: defaults.endpoint,
+        registerId: defaults.registerId,
+        candidateId: action,
+        response,
+        candidate: response?.candidate ?? null,
+        message: `Loaded candidate ${action} from register ${defaults.registerId}.`,
       },
       Boolean(flags.json),
     );
