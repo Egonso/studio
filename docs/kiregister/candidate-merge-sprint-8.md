@@ -68,7 +68,9 @@ Der Kernpfad ist damit end-to-end arbeitsfähig:
 Der nächste sinnvolle Sprint wäre kein weiterer Schreibpfad, sondern
 Produkt-Härtung:
 
-- Duplicate-Preview vor Merge
 - Audit-Timeline-Eintrag im Use Case
 - Filter und Status-Tabs in der Review-Inbox
 - bessere leere Zustände für neue Organisationen
+
+Sprint 9 setzt dafür zuerst das Duplicate-Review-Gate vor dem Merge um:
+[`docs/kiregister/candidate-duplicate-gate-sprint-9.md`](./candidate-duplicate-gate-sprint-9.md).

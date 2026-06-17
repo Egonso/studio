@@ -170,6 +170,9 @@ dokumentiert in
 Sprint 8 ergänzt die kontrollierte Übernahme akzeptierter Kandidaten und ist
 dokumentiert in
 [`docs/kiregister/candidate-merge-sprint-8.md`](./candidate-merge-sprint-8.md).
+Sprint 9 ergänzt ein Duplicate-Review-Gate vor dem Merge und ist dokumentiert
+in
+[`docs/kiregister/candidate-duplicate-gate-sprint-9.md`](./candidate-duplicate-gate-sprint-9.md).
 
 Aktive Endpunkte:
 

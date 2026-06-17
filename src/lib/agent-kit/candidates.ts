@@ -596,6 +596,7 @@ export async function mergeAgentOperatorCandidateForLocation(input: {
   location: ServerRegisterLocation;
   scopeType: AgentOperatorRegisterView['scopeType'];
   candidateId: string;
+  duplicateReviewConfirmed?: boolean;
   mergedByUserId: string;
   mergedByEmail?: string | null;
   now?: Date;
@@ -628,6 +629,15 @@ export async function mergeAgentOperatorCandidateForLocation(input: {
     if (currentCandidate.mergeResult) {
       throw new AgentOperatorCandidateMergeStateError(
         'Dieser Review-Kandidat wurde bereits übernommen.',
+      );
+    }
+
+    if (
+      currentCandidate.duplicateHints.length > 0 &&
+      input.duplicateReviewConfirmed !== true
+    ) {
+      throw new AgentOperatorCandidateMergeStateError(
+        'Dublettenhinweise müssen vor der Übernahme geprüft werden.',
       );
     }
 

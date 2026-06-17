@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import {
   AgentOperatorCandidateMergeStateError,
@@ -18,6 +19,10 @@ interface RouteContext {
   params: Promise<{ orgId: string; candidateId: string }>;
 }
 
+const candidateMergeSchema = z.object({
+  duplicateReviewConfirmed: z.boolean().optional().default(false),
+});
+
 function handleCandidateMergeError(error: unknown) {
   if (error instanceof ServerAuthError) {
     return NextResponse.json({ error: error.message }, { status: error.status });
@@ -25,6 +30,13 @@ function handleCandidateMergeError(error: unknown) {
 
   if (error instanceof AgentOperatorCandidateMergeStateError) {
     return NextResponse.json({ error: error.message }, { status: 409 });
+  }
+
+  if (error instanceof z.ZodError) {
+    return NextResponse.json(
+      { error: error.issues[0]?.message ?? 'Ungültige Übernahme-Anfrage.' },
+      { status: 400 },
+    );
   }
 
   console.error('Agent candidate merge route failed:', error);
@@ -59,10 +71,16 @@ export async function POST(req: NextRequest, context: RouteContext) {
       );
     }
 
+    const payload = candidateMergeSchema.parse(
+      req.headers.get('content-length') === '0'
+        ? {}
+        : await req.json().catch(() => ({})),
+    );
     const result = await mergeAgentOperatorCandidateForLocation({
       location: authorization.location,
       scopeType: authorization.scopeType,
       candidateId,
+      duplicateReviewConfirmed: payload.duplicateReviewConfirmed,
       mergedByUserId: authorization.user.uid,
       mergedByEmail: authorization.user.email,
     });

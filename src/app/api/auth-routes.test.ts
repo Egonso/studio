@@ -218,6 +218,7 @@ test("workspace agent candidate review routes are read-only human review paths",
 
   assert.match(workspaceAgentKitCandidateMergeRoute, /authorizeAgentOperatorCandidateReview\(/);
   assert.match(workspaceAgentKitCandidateMergeRoute, /mergeAgentOperatorCandidateForLocation/);
+  assert.match(workspaceAgentKitCandidateMergeRoute, /duplicateReviewConfirmed/);
   assert.match(workspaceAgentKitCandidateMergeRoute, /export async function POST/);
   assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /export async function PATCH/);
   assert.doesNotMatch(workspaceAgentKitCandidateMergeRoute, /createAgentOperatorCandidate/);

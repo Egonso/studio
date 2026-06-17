@@ -213,6 +213,10 @@ function getCandidateReviewCopy(locale: string) {
       mergedUseCase: 'Übernommener Einsatzfall',
       mergeHint:
         'Nur akzeptierte Kandidaten können als neuer Einsatzfall übernommen werden.',
+      duplicateReviewGate:
+        'Dublettenhinweise vor der Übernahme geprüft.',
+      duplicateReviewGateHint:
+        'Dieser Kandidat enthält Dublettenhinweise. Prüfen Sie diese Hinweise, bevor ein neuer Einsatzfall erzeugt wird.',
       reviewSavedTitle: 'Review dokumentiert',
       reviewSavedDesc:
         'Der Kandidatenstatus wurde aktualisiert. Es wurde kein echter Einsatzfall erzeugt.',
@@ -293,6 +297,10 @@ function getCandidateReviewCopy(locale: string) {
     mergedUseCase: 'Created use case',
     mergeHint:
       'Only accepted candidates can be created as new use cases.',
+    duplicateReviewGate:
+      'Duplicate hints reviewed before creation.',
+    duplicateReviewGateHint:
+      'This candidate includes duplicate hints. Review them before creating a new use case.',
     reviewSavedTitle: 'Review documented',
     reviewSavedDesc:
       'The candidate status was updated. No real use case was created.',
@@ -387,6 +395,7 @@ export default function AgentCandidateReviewPage() {
   const [busyReviewStatus, setBusyReviewStatus] = useState<CandidateReviewDecision['status'] | null>(null);
   const [isMergingCandidate, setIsMergingCandidate] = useState(false);
   const [reviewNote, setReviewNote] = useState('');
+  const [duplicateReviewConfirmed, setDuplicateReviewConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const agentKitHref = localizeHref(
@@ -566,6 +575,7 @@ export default function AgentCandidateReviewPage() {
       const payload = (await response.json()) as CandidateDetailResponse;
       setCandidateDetail(payload.candidate);
       setReviewNote(payload.candidate.reviewDecision?.note ?? '');
+      setDuplicateReviewConfirmed(payload.candidate.duplicateHints.length === 0);
     } catch (loadError) {
       console.error('Failed to load candidate detail', loadError);
       setError(
@@ -660,9 +670,12 @@ export default function AgentCandidateReviewPage() {
       const response = await authFetch(
         `/api/workspaces/${workspaceId}/agent-kit/candidates/${selectedCandidateId}/merge?${params.toString()}`,
         {
-          method: 'POST',
-        },
-      );
+            method: 'POST',
+            body: JSON.stringify({
+              duplicateReviewConfirmed,
+            }),
+          },
+        );
       const payload = (await response.json()) as CandidateMergeResponse;
       setCandidateDetail(payload.candidate);
       setCandidates((current) =>
@@ -697,6 +710,7 @@ export default function AgentCandidateReviewPage() {
     copy.mergeErrorTitle,
     copy.mergeSavedDesc,
     copy.mergeSavedTitle,
+    duplicateReviewConfirmed,
     selectedCandidateId,
     selectedRegisterId,
     toast,
@@ -781,12 +795,14 @@ export default function AgentCandidateReviewPage() {
     setSelectedRegisterId(null);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
+    setDuplicateReviewConfirmed(false);
   };
 
   const handleRegisterChange = (nextRegisterId: string) => {
     setSelectedRegisterId(nextRegisterId);
     setSelectedCandidateId(null);
     setCandidateDetail(null);
+    setDuplicateReviewConfirmed(false);
   };
 
   if (loading || profileLoading) {
@@ -1092,13 +1108,33 @@ export default function AgentCandidateReviewPage() {
                           <p className="text-sm leading-6 text-muted-foreground">
                             {copy.mergeHint}
                           </p>
+                          {candidateDetail.duplicateHints.length > 0 ? (
+                            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+                              <p className="text-sm leading-6 text-slate-700">
+                                {copy.duplicateReviewGateHint}
+                              </p>
+                              <label className="mt-3 flex items-start gap-3 text-sm text-slate-900">
+                                <input
+                                  type="checkbox"
+                                  checked={duplicateReviewConfirmed}
+                                  onChange={(event) =>
+                                    setDuplicateReviewConfirmed(event.target.checked)
+                                  }
+                                  className="mt-1 h-4 w-4 rounded border-slate-300"
+                                />
+                                <span>{copy.duplicateReviewGate}</span>
+                              </label>
+                            </div>
+                          ) : null}
                           <Button
                             variant="outline"
                             onClick={() => void submitMergeCandidate()}
                             disabled={
                               isMergingCandidate ||
                               busyReviewStatus !== null ||
-                              candidateDetail.status !== 'accepted'
+                              candidateDetail.status !== 'accepted' ||
+                              (candidateDetail.duplicateHints.length > 0 &&
+                                !duplicateReviewConfirmed)
                             }
                           >
                             {copy.mergeCandidate}
