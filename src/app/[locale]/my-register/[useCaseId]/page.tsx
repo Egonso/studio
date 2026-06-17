@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
+import { PageStatePanel, ProtectedAreaGate, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
 import { UseCaseHeader } from '@/components/register/detail/use-case-header';
 import { UseCaseAssessmentWizard } from '@/components/register/detail/use-case-assessment-wizard';
@@ -25,8 +25,13 @@ import {
   isControlFocusTarget,
   type ControlFocusTarget,
 } from '@/lib/control/deep-link';
-import { buildScopedRegisterHref } from '@/lib/navigation/workspace-scope';
+import {
+  appendWorkspaceScope,
+  buildScopedRegisterHref,
+} from '@/lib/navigation/workspace-scope';
 import { useWorkspaceScope } from '@/lib/navigation/use-workspace-scope';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import { registerFirstFlags } from '@/lib/register-first/flags';
 import {
   createAiToolsRegistryService,
@@ -66,6 +71,10 @@ function getUseCaseDetailPageCopy(locale: string) {
       pageTitle: 'Use Case im Register',
       pageDescription:
         'Detailansicht für Dokumentation, Reviews, Herkunft und Timeline.',
+      signedOutTitle: 'Anmeldung erforderlich',
+      signedOutDescription:
+        'Dieser Use Case gehört zu Ihrem Register. Melden Sie sich an, um die Detailansicht zu öffnen.',
+      signIn: 'Anmelden',
       pageLoadedDescription:
         'Dokumentieren, reviewen und Herkunft nachvollziehen in einer gemeinsamen Detailansicht.',
       loadingNextStep:
@@ -107,6 +116,10 @@ function getUseCaseDetailPageCopy(locale: string) {
     pageTitle: 'Use case in registry',
     pageDescription:
       'Detail view for documentation, reviews, source context, and timeline.',
+    signedOutTitle: 'Sign-in required',
+    signedOutDescription:
+      'This use case belongs to your registry. Sign in to open the detail view.',
+    signIn: 'Sign in',
     pageLoadedDescription:
       'Document, review, and trace source context in one detail view.',
     loadingNextStep:
@@ -159,6 +172,10 @@ export default function UseCaseDetailPage() {
     useState<EditableMetadataField | null>(null);
 
   const useCaseId = params.useCaseId;
+  const detailSearch = searchParams.toString();
+  const detailPath = detailSearch
+    ? `/my-register/${useCaseId}?${detailSearch}`
+    : `/my-register/${useCaseId}`;
   const focusParam = searchParams.get('focus');
   const editParam = searchParams.get('edit');
   const fieldParam = searchParams.get('field');
@@ -259,7 +276,15 @@ export default function UseCaseDetailPage() {
     } catch (err) {
       setRelatedSubmission(null);
       if (isServiceError(err, 'UNAUTHENTICATED')) {
-        router.push('/login');
+        router.push(
+          buildLocalizedLoginPath(locale, {
+            mode: 'login',
+            returnTo: localizeHref(
+              locale,
+              appendWorkspaceScope(detailPath, workspaceScope),
+            ),
+          }),
+        );
         return;
       }
       if (isServiceError(err, 'REGISTER_NOT_FOUND')) {
@@ -270,7 +295,17 @@ export default function UseCaseDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [copy.loadFailed, copy.noRegister, copy.notFound, scopeContext, useCaseId, router]);
+  }, [
+    copy.loadFailed,
+    copy.noRegister,
+    copy.notFound,
+    scopeContext,
+    useCaseId,
+    router,
+    locale,
+    detailPath,
+    workspaceScope,
+  ]);
 
   useEffect(() => {
     setActiveWorkspaceId(
@@ -280,13 +315,12 @@ export default function UseCaseDetailPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
       return;
     }
     if (!authLoading && user) {
       void loadUseCase();
     }
-  }, [authLoading, user, loadUseCase, router]);
+  }, [authLoading, user, loadUseCase]);
 
   useEffect(() => {
     if (!card) return;
@@ -351,6 +385,25 @@ export default function UseCaseDetailPage() {
   const handleEditField = useCallback((field: EditableMetadataField) => {
     setRequestedEditField(field);
   }, []);
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedAreaGate
+        area="signed_in_free_register"
+        title={copy.signedOutTitle}
+        description={copy.signedOutDescription}
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(
+            locale,
+            appendWorkspaceScope(detailPath, workspaceScope),
+          ),
+        })}
+        signInLabel={copy.signIn}
+        width="5xl"
+      />
+    );
+  }
 
   if (authLoading || isLoading) {
     return (
