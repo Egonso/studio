@@ -29,3 +29,6 @@ reine Review-Orientierung innerhalb der bestehenden Inbox.
 
 Sprint 13 bündelt die Batch-Dokumentation, führt die Abschlussvalidierung aus
 und pusht die fünf lokalen Sprint-Commits gemeinsam.
+
+Batch-Notiz:
+[`candidate-hardening-batch-sprints-9-13.md`](./candidate-hardening-batch-sprints-9-13.md).

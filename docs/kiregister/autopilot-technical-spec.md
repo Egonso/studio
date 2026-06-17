@@ -181,6 +181,8 @@ dokumentiert in
 Sprint 12 ergänzt bessere Review-Orientierung und leere Filterzustände und ist
 dokumentiert in
 [`docs/kiregister/candidate-review-orientation-sprint-12.md`](./candidate-review-orientation-sprint-12.md).
+Die Sprints 9-13 sind zusätzlich als Härtungsbatch zusammengefasst in
+[`docs/kiregister/candidate-hardening-batch-sprints-9-13.md`](./candidate-hardening-batch-sprints-9-13.md).
 
 Aktive Endpunkte:
 
