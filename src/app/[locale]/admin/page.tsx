@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppHeader } from "@/components/app-header";
+import { ProtectedAreaGate } from "@/components/product-shells";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,8 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useScopedRouteHrefs } from "@/lib/navigation/use-scoped-route-hrefs";
+import { buildLocalizedLoginPath } from "@/lib/auth/login-routing";
+import { localizeHref } from "@/lib/i18n/localize-href";
 
 interface LandingPageAnalyticsState {
     available: boolean;
@@ -75,6 +79,7 @@ function formatLandingMonth(monthKey: string): string {
 export default function AdminPage() {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const locale = useLocale();
     const scopedHrefs = useScopedRouteHrefs();
     const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -148,7 +153,6 @@ export default function AdminPage() {
         if (loading) return;
 
         if (!user) {
-            router.push('/login');
             return;
         }
 
@@ -306,6 +310,26 @@ export default function AdminPage() {
                 <Loader2 className="h-8 w-8 animate-spin" />
                 <p className="text-muted-foreground text-sm">Verifiziere Admin-Rechte...</p>
             </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <ProtectedAreaGate
+                area="paid_governance_control"
+                title={locale === "de" ? "Anmeldung erforderlich" : "Sign-in required"}
+                description={
+                    locale === "de"
+                        ? "Der Admin-Bereich gehört zu einem berechtigten Konto. Melden Sie sich an, um den Bereich zu öffnen."
+                        : "The admin area belongs to an authorised account. Sign in to open this area."
+                }
+                signInHref={buildLocalizedLoginPath(locale, {
+                    mode: "login",
+                    returnTo: localizeHref(locale, "/admin"),
+                })}
+                signInLabel={locale === "de" ? "Anmelden" : "Sign in"}
+                width="5xl"
+            />
         );
     }
 

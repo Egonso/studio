@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback, Fragment, ChangeEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { AppHeader } from '@/components/app-header';
+import { ProtectedAreaGate } from '@/components/product-shells';
 import {
   analyzeDocumentAction,
   getImplementationGuideAction,
@@ -41,6 +43,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { buildLocalizedLoginPath } from '@/lib/auth/login-routing';
+import { localizeHref } from '@/lib/i18n/localize-href';
 import {
   getCompanyContext,
   saveCompanyContext,
@@ -89,6 +93,7 @@ const StepContent = ({ content }: { content: string }) => {
 };
 
 export default function TaskPage() {
+  const locale = useLocale();
   const [task, setTask] = useState<Task | null>(null);
   const [documentText, setDocumentText] = useState('');
   const [fileName, setFileName] = useState<string | null>(null);
@@ -122,7 +127,6 @@ export default function TaskPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push('/login');
       return;
     }
     if (user) {
@@ -281,6 +285,26 @@ export default function TaskPage() {
     const projectId = getActiveProjectId();
     router.push(projectId ? `/dashboard?projectId=${projectId}` : '/projects');
   };
+
+  if (!authLoading && !user) {
+    return (
+      <ProtectedAreaGate
+        area="signed_in_free_register"
+        title={locale === 'de' ? 'Anmeldung erforderlich' : 'Sign-in required'}
+        description={
+          locale === 'de'
+            ? 'Diese Aufgabe gehört zu Ihrem Konto. Melden Sie sich an, um den Bereich zu öffnen.'
+            : 'This task belongs to your account. Sign in to open this area.'
+        }
+        signInHref={buildLocalizedLoginPath(locale, {
+          mode: 'login',
+          returnTo: localizeHref(locale, `/task/${taskId}`),
+        })}
+        signInLabel={locale === 'de' ? 'Anmelden' : 'Sign in'}
+        width="5xl"
+      />
+    );
+  }
 
   if (authLoading || !task) {
     return (
