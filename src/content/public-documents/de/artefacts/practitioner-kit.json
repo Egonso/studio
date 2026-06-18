@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-06-09",
+  "last_substantive_update": "2026-06-18",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Partner-Arbeitskit für Audit, Training, Beschaffung und Governance",
-  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung, Review-Log, Prüffähigkeitsnotiz und Übergabe auf derselben Fallbasis hält.",
+  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung, Review-Log, Prüffähigkeitsnotiz und Übergabe auf derselben Fallbasis hält. Die Aktualisierung ergänzt die Rollenmatrix als operativen Bezugspunkt: Partner können nach einem Termin dokumentieren, welche Rolle Zweck, Evidenz, Befugnis, Nachforderung und nächste Registeraktion trägt.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Arbeitskit für fallbezogene Partnerarbeit",
   "author": "KIRegister",
@@ -37,7 +37,8 @@
     "eine gemeinsame Arbeitslogik für Audit, Training, Beratung, Beschaffung und Governance ohne zweite Dokumentationswelt",
     "eine klare Übergabe zwischen Fallaufnahme, Review-Bedarf, offener Evidenz und nächstem operativen Schritt",
     "eine Review-Log-Logik, mit der Partner festhalten, welche Pass-Aussage bestätigt, ergänzt, begrenzt oder nachgefordert wird",
-    "eine Prüffähigkeitsnotiz, die nach Audit-, Trainings- oder Beschaffungstermin den nächsten Registerschritt an einem einzelnen Einsatzfall festhält"
+    "eine Prüffähigkeitsnotiz, die nach Audit-, Trainings- oder Beschaffungstermin den nächsten Registerschritt an einem einzelnen Einsatzfall festhält",
+    "eine Rollenmatrix, die Owner, Fachbereich, Beschaffung, Lieferantenkontakt, Audit und Governance mit einer konkreten Evidenz- oder Nachforderungsaufgabe verbindet"
   ],
   "downloads": [
     {
@@ -88,7 +89,7 @@
     },
     {
       "q": "Was sollte nach einem Partnertermin mindestens vorliegen?",
-      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand, einem knappen Review-Log-Eintrag, einer Prüffähigkeitsnotiz und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
+      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand, einem knappen Review-Log-Eintrag, einer Prüffähigkeitsnotiz, einer Rollenmatrix und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
     },
     {
       "q": "Warum hilft das Kit auch der Beschaffung?",
@@ -125,6 +126,10 @@
           "value": "Ein knapper Abschlussvermerk für Partnerformate, der festhält, ob der einzelne Einsatzfall heute reviewfähig, nachforderungsbedürftig, beschaffungsfähig oder vorerst zurückzuhalten ist."
         },
         {
+          "label": "Rollenmatrix",
+          "value": "Eine knappe Zuordnung von Use-Case Owner, Fachbereich, Beschaffung, Lieferantenkontakt, Audit und Governance zu Zweckklärung, Evidenzlieferung, Befugnisgrenze, Nachforderung und nächster Registeraktion."
+        },
+        {
           "label": "Governance-Handout zur KI-Einführung",
           "value": "Ein Begleittext, der den Übergang von allgemeiner Einführung zu dokumentierter, nachweisbarer Nutzung fachlich einordnet."
         }
@@ -153,6 +158,10 @@
         {
           "label": "Review-Log-Anlass",
           "value": "Der konkrete Auslöser für Nacharbeit: Auditfeststellung, Trainingsbeitrag, Beschaffungsrückfrage, Lieferantenantwort oder Governance-Entscheidung."
+        },
+        {
+          "label": "Rollen- und Befugnisgrenze",
+          "value": "Eine kurze Zuordnung, welche Rolle den fachlichen Zweck bestätigt, welche Rolle Evidenz nachreicht, wer externe Aussagen freigeben darf und welche Stelle bei fehlender Grundlage stoppt."
         },
         {
           "label": "Prüffähigkeitsgrenze",
@@ -187,6 +196,14 @@
         {
           "label": "Governance-Praktiker",
           "value": "Nutzen die Prüffähigkeitsnotiz, um nach dem Termin denselben Registerschritt zu dokumentieren, den Audit, Training oder Beschaffung bereits am Use-Case Pass erkannt haben."
+        },
+        {
+          "label": "Use-Case Owner und Fachbereich",
+          "value": "Lesen aus der Rollenmatrix, welche Angabe sie selbst bestätigen müssen, welche Evidenz von Lieferanten oder IT kommt und welche Aussage bis zur Klärung intern bleibt."
+        },
+        {
+          "label": "Lieferantenkontakt",
+          "value": "Erkennt, welche Nachforderung eng am Pass-Feld hängt und welche Rückfrage erst nach interner Zweck-, Daten- oder Befugnisklärung an Anbieter oder Auftraggeber gegeben wird."
         }
       ]
     },
@@ -206,7 +223,7 @@
       "heading": "Warum dieses Format für Beschaffung und Governance anschlussfähig ist",
       "paragraphs": [
         "Partnerformate scheitern häufig nicht an fehlender Aktivität, sondern an fehlender Form. Es wird diskutiert, geschult und geprüft, aber der konkrete Einsatzfall bleibt unscharf. Dieses Arbeitskit setzt genau dort an und führt verschiedene Rollen auf eine gemeinsame Fallstruktur zurück.",
-        "Das ist für Auditoren, Trainer, Berater, Beschaffung und Governance-Praktiker anschlussfähig, weil das Kit keine werbliche Kurzlogik braucht. Es liefert eine sachliche Mindestordnung für den einzelnen KI-Einsatzfall und hält offen auseinander, was bereits dokumentiert ist, was noch geprüft werden muss und was erst später entschieden werden kann."
+        "Das ist für Auditoren, Trainer, Berater, Beschaffung und Governance-Praktiker anschlussfähig, weil das Kit keine werbliche Kurzlogik braucht. Es liefert eine sachliche Mindestordnung für den einzelnen KI-Einsatzfall und hält offen auseinander, was bereits dokumentiert ist, was noch geprüft werden muss und was erst später entschieden werden kann. Die Rollenmatrix ergänzt diese Ordnung um eine klare Verantwortungszeile, damit nach dem Termin sichtbar bleibt, wer die nächste Evidenz liefert, wer die Aussage trägt und wer bei fehlender Grundlage stoppt."
       ]
     },
     {
