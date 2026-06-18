@@ -1,0 +1,20 @@
+name: Repo Hygiene
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: '17 4 * * 1'
+
+jobs:
+  tracked-ignored:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check tracked ignored files
+        run: node ./scripts/check-tracked-ignored.mjs
