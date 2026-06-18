@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-21",
-  "last_substantive_update": "2026-05-21",
+  "last_substantive_update": "2026-06-18",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
@@ -20,7 +20,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Trainingsnachweis-Kit für Partner",
-  "summary": "Dieses Trainingsnachweis-Kit hilft Trainern, Auditoren, Beratern, Beschaffungsteams und Governance-Praktikern, Schulungs- und Workshop-Ergebnisse zu einem konkreten KI-Einsatzfall in prüffähige Pass-Angaben zu überführen. Das Artefakt hält Lernziel, Rollenklärung, Einsatzfallbezug, offene Evidenz und nächsten Review-Schritt zusammen, damit AI-Literacy-Arbeit nicht nur als Teilnahmebestätigung endet, sondern als belastbarer Baustein im Use-Case Pass weitergeführt wird.",
+  "summary": "Dieses Trainingsnachweis-Kit hilft Trainern, Auditoren, Beratern, Beschaffungsteams und Governance-Praktikern, Schulungs- und Workshop-Ergebnisse zu einem konkreten KI-Einsatzfall in prüffähige Pass-Angaben zu überführen. Das Artefakt hält Lernziel, Rollenklärung, Einsatzfallbezug, offene Evidenz und nächsten Review-Schritt zusammen, damit AI-Literacy-Arbeit als belastbarer Baustein im Use-Case Pass weitergeführt wird. Ergänzt ist ein Abnahmevermerk nach dem Partnerformat: Er trennt befähigte Rolle, verwendete Quelle, offene Evidenz, Aussagegrenze und nächsten Registerschritt, bevor Beschaffung, Audit oder Governance eine Aussage weiterverwenden.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Trainingsnachweis für fallbezogene Pass-Arbeit",
   "author": "KIRegister",
@@ -34,7 +34,9 @@
     "ein neutrales Arbeitsobjekt für den Nachweis, dass Training, Rollenklärung und Einsatzfallbezug zu einem konkreten Use-Case Pass geführt wurden",
     "eine Feldlogik für Lernziel, betroffene Rolle, Einsatzfall, bestätigte Evidenz, offene Punkte und Anschlussentscheidung",
     "eine Übergabestruktur für Partnerformate, damit Workshop-Ergebnisse in Register, Review-Matrix oder Beschaffungsantwort weitergeführt werden können",
-    "eine sachliche Grenze zwischen Teilnahme, Befähigung, fallbezogener Evidenz und formaler Freigabe"
+    "eine sachliche Grenze zwischen Teilnahme, Befähigung, fallbezogener Evidenz und formaler Freigabe",
+    "einen Abnahmevermerk nach dem Trainingsformat, der befähigte Rolle, verwendete Quelle, offene Evidenz und nächstes Registerziel trennt",
+    "eine Beschaffungs- und Audit-Lesart, mit der Partner vor externen Antworten erkennen, ob Trainingsbezug, Pass-Stand und Aussagegrenze zusammenpassen"
   ],
   "downloads": [
     {
@@ -106,6 +108,10 @@
         {
           "label": "Eine Anschlussentscheidung",
           "value": "Am Ende steht eine operative Entscheidung: Pass ergänzen, Review anstoßen, Evidenz nachfordern, Beschaffungsantwort vorbereiten oder externe Aussage zurückhalten."
+        },
+        {
+          "label": "Ein Abnahmevermerk",
+          "value": "Nach dem Format hält der Vermerk fest, ob der Trainingsbezug den Pass stützt, nur begrenzt trägt, weitere Evidenz braucht oder vor externer Weitergabe ausdrücklich zurückgehalten werden muss."
         }
       ]
     },
@@ -132,6 +138,10 @@
         {
           "label": "Aussagegrenze",
           "value": "Welche Aussage darf nach dem Training bereits genutzt werden, und welche Prüfung bleibt ausdrücklich offen, bevor Audit, Beschaffung oder externe Kommunikation darauf aufbauen?"
+        },
+        {
+          "label": "Quellenpfad",
+          "value": "Welche Handouts, Workbooks, Lieferantenangaben oder internen Richtlinien wurden tatsächlich verwendet, und wo werden sie im Pass oder in der Review-Matrix wieder auffindbar?"
         }
       ]
     },
@@ -153,11 +163,15 @@
         },
         {
           "label": "Beschaffung und Vendor Management",
-          "value": "Erkennen, ob die für Lieferanten- oder Auftraggeberrückfragen zuständige Rolle den Fall ausreichend einordnen kann oder zuerst weitere Evidenz braucht."
+          "value": "Erkennen, ob die für Lieferanten- oder Auftraggeberrückfragen zuständige Rolle den Fall ausreichend einordnen kann, ob ein Verify-Link tragfähig ist oder ob vor einer Antwort weitere Evidenz fehlt."
         },
         {
           "label": "Use-Case Owner",
           "value": "Erhalten eine konkrete Rückmeldung, welche Angaben nach dem Training im Pass ergänzt, bestätigt oder für einen nächsten Review vorbereitet werden müssen."
+        },
+        {
+          "label": "Prüf- und Abnahmerunde",
+          "value": "Nutzt den Abnahmevermerk, um nach dem Partnerformat dieselbe Entscheidung zu lesen: Aussage tragen, begrenzen, vertiefen, nachfordern oder zurückhalten."
         }
       ]
     },
@@ -169,7 +183,8 @@
         "Die befähigte Rolle ist so benannt, dass spätere Rückfragen, Korrekturen oder Nachreichungen eindeutig zugeordnet werden können.",
         "Das Lernziel ist mit einem Pass-Feld oder einer Anschlussentscheidung verbunden, etwa Zweck, Datenbezug, Review-Stand, menschliche Aufsicht oder Lieferantenangabe.",
         "Bestätigte Aussagen, Annahmen und offene Punkte bleiben getrennt.",
-        "Die nächste Aktion ist dokumentiert und kann im Register, in der Review-Matrix oder in einer Beschaffungsantwort weitergeführt werden."
+        "Die nächste Aktion ist dokumentiert und kann im Register, in der Review-Matrix oder in einer Beschaffungsantwort weitergeführt werden.",
+        "Der Abnahmevermerk benennt ausdrücklich, ob der Trainingsnachweis für eine interne Entscheidung genügt oder für externe Aussagen noch nicht belastbar ist."
       ]
     },
     {
@@ -197,6 +212,10 @@
           "value": "Ein konkretes Dokument, eine Lieferantenangabe, ein Policy-Bezug oder eine Zuständigkeitsbestätigung fehlt und blockiert die nächste Aussage."
         },
         {
+          "label": "Begrenzt abnehmen",
+          "value": "Training, Rolle und Fallbezug sind ausreichend dokumentiert, aber die Aussage bleibt auf interne Vorbereitung, nächsten Review oder eine klar begrenzte Beschaffungsantwort beschränkt."
+        },
+        {
           "label": "Externe Aussage zurückhalten",
           "value": "Der Einsatzfall ist nach dem Training noch nicht tragfähig genug beschrieben, um eine Lieferanten-, Kunden- oder Prüfantwort darauf zu stützen."
         }
@@ -207,7 +226,7 @@
       "heading": "Wie das Artefakt übergeben wird",
       "paragraphs": [
         "Nach dem Termin wird zuerst festgehalten, welcher Einsatzfall tatsächlich bearbeitet wurde. Danach werden Rolle, Lernziel, bestätigte Angaben und offene Punkte dem Pass zugeordnet. Wo ein Handout oder Workbook genutzt wurde, wird es als Arbeitsquelle erwähnt; die eigentliche Entscheidung bleibt jedoch im Trainingsnachweis-Brief und später im Register sichtbar.",
-        "Für Partner ist diese Übergabe wichtig, weil sie die Lücke zwischen Enablement und Governance schließt. Ein Trainer kann zeigen, was behandelt wurde, ein Auditor kann die offene Evidenz sehen, Beschaffung erkennt die Aussagegrenze und Governance kann entscheiden, ob der Pass ergänzt, geprüft oder für externe Aussagen noch zurückgehalten wird."
+        "Für Partner ist diese Übergabe wichtig, weil sie die Lücke zwischen Enablement und Governance schließt. Ein Trainer kann zeigen, was behandelt wurde, ein Auditor kann die offene Evidenz sehen, Beschaffung erkennt die Aussagegrenze und Governance kann entscheiden, ob der Pass ergänzt, geprüft, begrenzt abgenommen oder für externe Aussagen noch zurückgehalten wird."
       ]
     }
   ],
@@ -222,7 +241,7 @@
     },
     {
       "q": "Welche Rolle spielt das Kit bei Beschaffungsfragen?",
-      "a": "Es zeigt, ob die verantwortliche Rolle den Einsatzfall und seine Aussagegrenze ausreichend einordnen kann, bevor Lieferantenangaben, Freigabeempfehlungen oder externe Antworten verwendet werden."
+      "a": "Es zeigt, ob die verantwortliche Rolle den Einsatzfall und seine Aussagegrenze ausreichend einordnen kann, bevor Lieferantenangaben, Freigabeempfehlungen oder externe Antworten verwendet werden. Der Abnahmevermerk macht sichtbar, ob ein Trainingsbezug nur intern tragfähig ist, eine begrenzte Beschaffungsantwort erlaubt oder zuerst weitere Evidenz nachgefordert werden muss."
     },
     {
       "q": "Ersetzt das Kit eine formale Freigabe?",
