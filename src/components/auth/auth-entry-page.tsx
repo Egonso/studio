@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -56,6 +57,9 @@ type JoinStep = 'code' | 'confirm' | 'signup';
 type CopyTarget = 'code' | 'link' | null;
 
 const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
+const EXAMPLE_PASS_HREF =
+  '/resources/examples/ki-register-use-case-pass-beispiel.pdf';
+const EXAMPLE_PASS_IMAGE_SRC = '/images/use-case-pass-example.png';
 
 interface CheckoutReturnContext {
   claimable: boolean;
@@ -990,115 +994,176 @@ export default function AuthEntryPage() {
 
   return (
     <MarketingShell>
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
-        <div className="mb-10 flex items-center gap-3">
+      <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6">
+        <div className="mb-10 flex min-w-0 items-center gap-3 pr-24">
           <ThemeAwareLogo
             alt={t('metadata.appName')}
             width={34}
             height={34}
             className="h-8 w-auto"
           />
-          <p className="text-base font-semibold tracking-tight text-slate-950">
+          <p className="truncate text-base font-semibold tracking-tight text-slate-950">
             {t('metadata.appName')}
           </p>
         </div>
 
-        <section className="space-y-6 pb-10">
-          <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
-            {t('auth.marketing.heroTitle')}
-          </h1>
-          <p className="max-w-3xl text-lg leading-8 text-slate-600">
-            {t('auth.marketing.heroDescription')}
-          </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              onClick={handleHeroSetup}
-              aria-controls="auth-access-panel"
-              className="h-11 rounded-none bg-slate-950 px-5 text-sm font-medium text-white hover:bg-slate-800"
-            >
-              {t('auth.marketing.ctaSetup')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleHeroJoin}
-              aria-controls="auth-access-panel"
-              className="h-11 rounded-none border-slate-300 px-5 text-sm font-medium text-slate-950 hover:bg-slate-50"
-            >
-              {t('auth.marketing.ctaJoin')}
-            </Button>
-          </div>
-          <div className="max-w-3xl border border-slate-200 bg-slate-50 px-4 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-              {t('auth.marketing.heroCommitmentLabel')}
+        <section className="grid gap-8 border-b border-slate-200 pb-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(360px,0.75fr)] lg:items-start">
+          <div className="space-y-6">
+            <p className="text-xs font-medium uppercase text-slate-500">
+              {t('auth.marketing.heroKicker')}
             </p>
-            <p className="mt-2 text-base font-medium text-slate-950">
-              {t('auth.marketing.heroCommitmentTitle')}
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] text-slate-950 sm:text-5xl">
+              {t('auth.marketing.heroTitle')}
+            </h1>
+            <p className="max-w-2xl text-lg leading-8 text-slate-600">
+              {t('auth.marketing.heroDescription')}
             </p>
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              {t('auth.marketing.heroCommitmentDescription')}
+            <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+              <Button
+                type="button"
+                onClick={handleHeroSetup}
+                aria-controls="auth-access-panel"
+                className="h-11 w-full rounded-none bg-slate-950 px-5 text-sm font-medium text-white hover:bg-slate-800 sm:w-auto"
+              >
+                {t('auth.marketing.ctaSetup')}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleHeroJoin}
+                aria-controls="auth-access-panel"
+                className="h-11 w-full rounded-none border-slate-300 px-5 text-sm font-medium text-slate-950 hover:bg-slate-50 sm:w-auto"
+              >
+                {t('auth.marketing.ctaJoin')}
+              </Button>
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="h-11 w-full rounded-none border-slate-300 px-5 text-sm font-medium text-slate-950 hover:bg-slate-50 sm:w-auto"
+              >
+                <Link href={localizeInternalHref('/capture')}>
+                  {t('auth.marketing.ctaCapture')}
+                </Link>
+              </Button>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              <Link
+                href={localizeInternalHref('/downloads')}
+                className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+              >
+                {t('nav.downloads')}
+              </Link>
+              <a
+                href={WHITEPAPER_HREF}
+                target="_blank"
+                rel="noreferrer"
+                className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+              >
+                {t('auth.marketing.whitepaperDownload')}
+              </a>
+            </div>
+          </div>
+
+          <aside
+            id="example-pass"
+            className="scroll-mt-8 border border-slate-200 bg-white p-4 shadow-sm"
+            aria-label={t('auth.marketing.samplePassLabel')}
+          >
+            <p className="text-xs font-medium uppercase text-slate-500">
+              {t('auth.marketing.samplePassLabel')}
             </p>
-          </div>
-          <div className="max-w-3xl text-sm leading-7 text-slate-600">
-            <Link
-              href={localizeInternalHref('/plattform')}
-              className="mt-2 inline-block text-slate-950 underline decoration-slate-300 underline-offset-4 hover:text-slate-700"
-            >
-              {t('auth.marketing.heroFundingLink')}
-            </Link>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            <Link
-              href={localizeInternalHref('/downloads')}
-              className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
-            >
-              {t('nav.downloads')}
-            </Link>
+            <h2 className="mt-2 text-xl font-semibold text-slate-950">
+              {t('auth.marketing.samplePassTitle')}
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              {t('auth.marketing.samplePassDescription')}
+            </p>
             <a
-              href={WHITEPAPER_HREF}
+              href={EXAMPLE_PASS_HREF}
               target="_blank"
               rel="noreferrer"
-              className="text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+              className="mt-5 block max-h-[520px] overflow-hidden border border-slate-200 bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
             >
-              {t('auth.marketing.whitepaperDownload')}
+              <Image
+                src={EXAMPLE_PASS_IMAGE_SRC}
+                alt={t('auth.marketing.samplePassImageAlt')}
+                width={1489}
+                height={2105}
+                sizes="(min-width: 1024px) 420px, 100vw"
+                className="h-auto w-full"
+                priority
+              />
             </a>
+            <div className="mt-4 text-sm">
+              <a
+                href={EXAMPLE_PASS_HREF}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-slate-950 underline underline-offset-4 hover:text-slate-600"
+              >
+                {t('auth.marketing.samplePdfLink')}
+              </a>
+            </div>
+          </aside>
+        </section>
+
+        <section className="grid gap-5 border-b border-slate-200 py-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-medium uppercase text-slate-500">
+              {t('auth.marketing.processLabel')}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+              {t('auth.marketing.processTitle')}
+            </h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="border-l border-slate-200 pl-4">
+              <p className="text-sm font-medium text-slate-950">
+                1. {t('auth.marketing.processSetupTitle')}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {t('auth.marketing.processSetupDescription')}
+              </p>
+            </div>
+            <div className="border-l border-slate-200 pl-4">
+              <p className="text-sm font-medium text-slate-950">
+                2. {t('auth.marketing.processCaptureTitle')}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {t('auth.marketing.processCaptureDescription')}
+              </p>
+            </div>
+            <div className="border-l border-slate-200 pl-4">
+              <p className="text-sm font-medium text-slate-950">
+                3. {t('auth.marketing.processShareTitle')}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {t('auth.marketing.processShareDescription')}
+              </p>
+            </div>
           </div>
         </section>
 
-        <section className="space-y-5 border-t border-slate-200 py-8">
-          <div className="flex gap-4">
-            <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
-            <div className="space-y-1">
-              <p className="text-base font-medium text-slate-950">
-                {t('auth.marketing.featureResponsibilityTitle')}
-              </p>
-              <p className="text-base leading-7 text-slate-600">
-                {t('auth.marketing.featureResponsibilityDescription')}
-              </p>
-            </div>
+        <section className="grid gap-5 border-b border-slate-200 py-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-medium uppercase text-slate-500">
+              {t('auth.marketing.heroCommitmentLabel')}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+              {t('auth.marketing.heroCommitmentTitle')}
+            </h2>
           </div>
-          <div className="flex gap-4">
-            <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
-            <div className="space-y-1">
-              <p className="text-base font-medium text-slate-950">
-                {t('auth.marketing.featureStatusTitle')}
-              </p>
-              <p className="text-base leading-7 text-slate-600">
-                {t('auth.marketing.featureStatusDescription')}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
-            <div className="space-y-1">
-              <p className="text-base font-medium text-slate-950">
-                {t('auth.marketing.featureEvidenceTitle')}
-              </p>
-              <p className="text-base leading-7 text-slate-600">
-                {t('auth.marketing.featureEvidenceDescription')}
-              </p>
-            </div>
+          <div className="space-y-3">
+            <p className="text-base leading-8 text-slate-600">
+              {t('auth.marketing.heroCommitmentDescription')}
+            </p>
+            <Link
+              href={localizeInternalHref('/plattform')}
+              className="inline-block text-sm text-slate-950 underline decoration-slate-300 underline-offset-4 hover:text-slate-700"
+            >
+              {t('auth.marketing.heroFundingLink')}
+            </Link>
           </div>
         </section>
 
