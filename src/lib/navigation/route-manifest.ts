@@ -16,6 +16,7 @@ export const ROUTE_PATHS = {
   supplierRequestPattern: '/request/[requestToken]',
   settings: '/settings',
   settingsAgentKit: '/settings/agent-kit',
+  settingsAgentAccess: '/settings/agent-access',
   governanceSettings: '/settings/governance',
   control: '/control',
   controlWelcome: '/control/welcome',
@@ -40,6 +41,7 @@ export const ROUTE_HREFS = {
   externalInbox: `${ROUTE_PATHS.register}?filter=${EXTERNAL_INBOX_FILTER}`,
   settings: ROUTE_PATHS.settings,
   settingsAgentKit: ROUTE_PATHS.settingsAgentKit,
+  settingsAgentAccess: ROUTE_PATHS.settingsAgentAccess,
   governanceSettings: `${ROUTE_PATHS.settings}?section=governance`,
   governanceUpgrade: `${ROUTE_PATHS.settings}?section=governance#upgrade-panel`,
   control: ROUTE_PATHS.control,
@@ -192,6 +194,13 @@ export const CANONICAL_ROUTE_MAP: CanonicalRouteEntry[] = [
     href: ROUTE_PATHS.settingsAgentKit,
     label: 'Agent Kit Settings',
     description: 'Signed-in setup for Agent Kit API keys and direct submissions.',
+  },
+  {
+    segment: 'signed_in_free_register',
+    href: ROUTE_PATHS.settingsAgentAccess,
+    label: 'Agent Access Settings',
+    description:
+      'Signed-in overview of public agent discovery, demo artifacts and action boundaries.',
   },
   {
     segment: 'paid_governance_control',

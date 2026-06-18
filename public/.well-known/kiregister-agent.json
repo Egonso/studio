@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0.0",
+  "kind": "kiregister.agent_distribution_profile",
+  "product": {
+    "name": "KIRegister",
+    "category": "AI governance register",
+    "primaryUse": "Document AI use cases, governance reviews, evidence and audit exports under the EU AI Act."
+  },
+  "publicArtifacts": [
+    "/llms.txt",
+    "/.well-known/kiregister-agent.json",
+    "/api/agent/discovery",
+    "/api/agent/openapi.json",
+    "/api/agent/demo/session",
+    "/api/agent/procurement-dossier",
+    "/api/mcp",
+    "/api/agent/a2a-card",
+    "/api/agent/audit-export",
+    "/api/agent/commerce/prepare-checkout-intent"
+  ],
+  "humanApprovalRequiredFor": [
+    "paid_activation",
+    "workspace_creation",
+    "source_connection",
+    "submitting_register_entries",
+    "formal_risk_classification",
+    "external_data_connection"
+  ],
+  "blockedForAgentOnly": [
+    "final_legal_assessment",
+    "silent_subscription_purchase",
+    "accept_terms",
+    "risk_classification_as_final"
+  ],
+  "dataProcessingSummary": {
+    "personalDataPossible": true,
+    "specialCategoriesBlockedByDefault": true,
+    "sourceAllowlistRequired": true,
+    "publicDiscoveryUsesWorkspaceData": false
+  }
+}

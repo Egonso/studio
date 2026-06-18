@@ -90,6 +90,27 @@ AI Registry provides a programmatic API for enterprise integrations and agent wo
 - Access via Settings → Agent Kit & API (requires authentication)
 - Use cases: automated use-case registration pipelines, compliance monitoring agents, ERP/HR system integrations
 
+## Agent-Ready Distribution
+
+KIRegister also exposes a read-only public surface for external agents that
+need to evaluate the product before a human approves workspace access,
+source connections, or purchase decisions:
+
+- Agent discovery: https://kiregister.com/api/agent/discovery
+- Agent profile: https://kiregister.com/.well-known/kiregister-agent.json
+- OpenAPI: https://kiregister.com/api/agent/openapi.json
+- Read-only demo session: https://kiregister.com/api/agent/demo/session
+- Draft procurement dossier: https://kiregister.com/api/agent/procurement-dossier
+- A2A-oriented agent card: https://kiregister.com/api/agent/a2a-card
+- Agent distribution audit export: https://kiregister.com/api/agent/audit-export
+- Agentic-commerce sandbox: https://kiregister.com/api/agent/commerce/prepare-checkout-intent
+- Read-only MCP descriptor: https://kiregister.com/api/mcp
+
+These public agent endpoints do not expose workspace data. They are intended
+for discovery, demo artifacts, and draft procurement dossiers. Human approval
+remains required for paid activation, source connections, submitting register
+entries, accepting terms, and final legal or risk decisions.
+
 ## Pricing — Free by Default
 
 **The entire documentation layer is permanently free.** Any organisation can sign up and immediately:

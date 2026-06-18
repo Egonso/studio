@@ -400,6 +400,30 @@ The Agent Kit provides structured access for AI agents:
 - Returns governance summaries, risk exposure reports, use case metadata in agent-friendly format
 - Useful for: Slack bots reporting compliance status, CI/CD gates on AI system changes, ERP integration for new tool onboarding
 
+### Agent-Ready Distribution
+
+KIRegister exposes a separate read-only public surface for external agents that
+need to evaluate the product before a human approves workspace access, source
+connections, submissions, or purchase decisions.
+
+Public agent endpoints:
+
+- `GET /api/agent/discovery` — public product profile, capabilities, action policy and integration links
+- `GET /.well-known/kiregister-agent.json` — static agent distribution profile
+- `GET /api/agent/openapi.json` — OpenAPI for the public agent distribution API
+- `GET /api/agent/demo/session` — curated read-only demo session with sample use cases
+- `GET /api/agent/procurement-dossier` — draft procurement dossier as JSON
+- `GET /api/agent/procurement-dossier?format=markdown` — draft procurement dossier as Markdown
+- `GET /api/mcp` — read-only MCP descriptor
+- `POST /api/mcp` — read-only JSON-RPC tool calls for product profile, demo session, sample export and procurement dossier
+- `GET /api/agent/a2a-card` — A2A-oriented agent card
+- `GET /api/agent/audit-export` — bounded agent-distribution audit export
+- `POST /api/agent/commerce/prepare-checkout-intent` — sandbox-only checkout intent preparation; no live checkout
+
+These public agent endpoints do not expose workspace data. Human approval
+remains required for paid activation, workspace creation, source connections,
+submitting register entries, accepting terms, and final legal or risk decisions.
+
 ---
 
 ## 8. Glossary

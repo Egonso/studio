@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Link2, Settings, Shield } from 'lucide-react';
+import { Loader2, Link2, Network, Settings, Shield } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { AccountSettingsSection } from '@/components/settings/account-settings-section';
@@ -50,6 +50,7 @@ export default function SettingsPage() {
           introDescription:
             'Kontoeinstellungen und Governance-Regeln liegen jetzt auf derselben Oberfläche. Das Zahnrad im Header öffnet den Konto-Bereich, das Zahnrad im Register direkt den Governance-Bereich.',
           agentKit: 'Agent Kit API Keys',
+          agentAccess: 'Agentenzugriff',
           publicDocs: 'Öffentliche API-Doku',
         }
       : {
@@ -67,6 +68,7 @@ export default function SettingsPage() {
           introDescription:
             'Account settings and governance rules now live on the same surface. The gear in the header opens the account area, and the gear inside the register opens the governance area directly.',
           agentKit: 'Agent Kit API keys',
+          agentAccess: 'Agent access',
           publicDocs: 'Public API docs',
         };
 
@@ -148,6 +150,13 @@ export default function SettingsPage() {
               className="inline-flex items-center rounded-md border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
             >
               {copy.agentKit}
+            </Link>
+            <Link
+              href={localizeHref(locale, '/settings/agent-access')}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+            >
+              <Network className="h-4 w-4" />
+              {copy.agentAccess}
             </Link>
             <Link
               href={localizeHref(locale, '/developers/agent-kit')}

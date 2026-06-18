@@ -4,7 +4,7 @@ This repository now uses one canonical product route model:
 
 - Public auth entry: `/`
 - Public external intake: `/erfassen`, `/request/[requestToken]`
-- Signed-in free register: `/my-register`, `/my-register?section=use-cases`, `/my-register?filter=supplier_requests`, `/capture`, `/settings`
+- Signed-in free register: `/my-register`, `/my-register?section=use-cases`, `/my-register?filter=supplier_requests`, `/capture`, `/settings`, `/settings/agent-access`
 - Paid governance control center: `/control`, `/control/reviews`, `/settings/governance`, `/control/policies`, `/control/exports`, `/control/trust`, `/control/organisation`, `/academy`
 
 ## Canonical Routes
@@ -19,6 +19,7 @@ This repository now uses one canonical product route model:
 | Signed-in free register | `/my-register?filter=supplier_requests` | External inbox lens inside the same register workspace |
 | Signed-in free register | `/capture` | Signed-in quick capture |
 | Signed-in free register | `/settings` | Account and governance settings |
+| Signed-in free register | `/settings/agent-access` | Organisation view for public agent discovery, demo artifacts and action boundaries |
 | Paid governance control | `/control` | Governance control center overview |
 | Paid governance control | `/control/reviews` | Reviews and action queue |
 | Paid governance control | `/settings/governance` | Governance settings |
@@ -39,6 +40,15 @@ These are still valid and intentionally not redirected:
 - `/verify/pass/[hashId]`
 - `/trust/[projectId]`
 - `/exam`
+- `/.well-known/kiregister-agent.json`
+- `/api/agent/discovery`
+- `/api/agent/openapi.json`
+- `/api/agent/demo/session`
+- `/api/agent/procurement-dossier`
+- `/api/agent/a2a-card`
+- `/api/agent/audit-export`
+- `/api/agent/commerce/prepare-checkout-intent`
+- `/api/mcp`
 
 ## Deprecated Aliases
 
