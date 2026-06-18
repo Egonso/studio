@@ -28,6 +28,7 @@ export const ROUTE_PATHS = {
   law: '/law',
   downloads: '/downloads',
   developersAgentKit: '/developers/agent-kit',
+  personalPortrait: '/zoltan',
   verifyPattern: '/verify/[code]',
   verifyPassPattern: '/verify/pass/[hashId]',
   publicTrustPattern: '/trust/[projectId]',
@@ -562,11 +563,20 @@ export function showGlobalFooterForPathname(pathname: string): boolean {
   if (!pathname) {
     return false;
   }
+
+  if (isPersonalPortraitPathname(pathname)) {
+    return false;
+  }
+
   return true;
 }
 
 export function showSiteChatbotForPathname(pathname: string): boolean {
   if (!pathname) {
+    return false;
+  }
+
+  if (isPersonalPortraitPathname(pathname)) {
     return false;
   }
 
@@ -580,6 +590,14 @@ export function showSiteChatbotForPathname(pathname: string): boolean {
   }
 
   return true;
+}
+
+function isPersonalPortraitPathname(pathname: string): boolean {
+  return (
+    pathname === ROUTE_PATHS.personalPortrait ||
+    pathname === `/de${ROUTE_PATHS.personalPortrait}` ||
+    pathname === `/en${ROUTE_PATHS.personalPortrait}`
+  );
 }
 
 export interface ProductNavItem {

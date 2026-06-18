@@ -3,6 +3,8 @@
 # dependencies
 /node_modules
 **/node_modules/
+/node_modules.partial/
+/node_modules_partial_*/
 /.pnp
 .pnp.*
 .yarn/*
@@ -66,3 +68,9 @@ apps/ki-register-menubar-mac/dist/
 
 # local onboarding for the agent workflow toolkit
 /.studio-agent/*
+
+# local Codex-generated artifacts
+/.codex-artifacts/
+
+# generated knowledge graph artifacts
+/graphify-out/

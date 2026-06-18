@@ -32,6 +32,7 @@ This repository now uses one canonical product route model:
 
 These are still valid and intentionally not redirected:
 
+- `/zoltan`
 - `/gesetz`
 - `/downloads`
 - `/verify/[code]`

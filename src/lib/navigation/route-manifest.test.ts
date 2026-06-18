@@ -160,11 +160,15 @@ test('global chrome keeps the footer available across marketing, app and focused
   assert.equal(showGlobalFooterForPathname('/pass/demo-use-case'), true);
   assert.equal(showGlobalFooterForPathname('/exam'), true);
   assert.equal(showGlobalFooterForPathname('/gesetz'), true);
+  assert.equal(showGlobalFooterForPathname('/zoltan'), false);
+  assert.equal(showGlobalFooterForPathname('/de/zoltan'), false);
 
   assert.equal(showSiteChatbotForPathname('/'), true);
   assert.equal(showSiteChatbotForPathname('/erfassen'), false);
   assert.equal(showSiteChatbotForPathname('/request/token-123'), false);
   assert.equal(showSiteChatbotForPathname('/exam'), false);
+  assert.equal(showSiteChatbotForPathname('/zoltan'), false);
+  assert.equal(showSiteChatbotForPathname('/en/zoltan'), false);
   assert.equal(showSiteChatbotForPathname('/my-register'), true);
   assert.equal(showSiteChatbotForPathname('/control'), true);
   assert.equal(showSiteChatbotForPathname('/settings'), true);

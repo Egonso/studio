@@ -1,0 +1,888 @@
+.root {
+  --ink: #f2f7f2;
+  --ink-soft: rgba(242, 247, 242, 0.74);
+  --ink-muted: rgba(242, 247, 242, 0.52);
+  --ink-faint: rgba(242, 247, 242, 0.16);
+  --night: #061524;
+  --night-2: #0a2031;
+  --night-3: #082a3c;
+  --paper: #e7efe7;
+  --cobalt: #65a9d6;
+  --green: #67d0a3;
+  --ember: #d97742;
+  --gold: #e7b64a;
+  --honey: #f0c15b;
+  --line: rgba(242, 247, 242, 0.18);
+  --line-strong: rgba(242, 247, 242, 0.36);
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 80% 12%, rgba(231, 182, 74, 0.15), transparent 30rem),
+    linear-gradient(180deg, #071a2b, var(--night) 34rem);
+  color: var(--ink);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.root * {
+  box-sizing: border-box;
+}
+
+.webglCanvas {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 3rem 1fr 3rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  color: var(--ink);
+}
+
+.brand,
+.navLinks a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.brand {
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+}
+
+.navLinks {
+  display: flex;
+  justify-content: center;
+  gap: 1.4rem;
+}
+
+.navLinks a {
+  border-bottom: 1px solid transparent;
+  font-size: 0.75rem;
+  line-height: 1;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.navLinks a:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.iconButton {
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(6, 21, 36, 0.58);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.iconButton:hover {
+  transform: translateY(-1px);
+  border-color: var(--line-strong);
+  background: rgba(240, 193, 91, 0.1);
+}
+
+.iconButton svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 8rem 1.2rem 3rem;
+  background:
+    radial-gradient(circle at 12% 80%, rgba(103, 208, 163, 0.12), transparent 24rem),
+    radial-gradient(circle at 78% 22%, rgba(240, 193, 91, 0.18), transparent 30rem),
+    linear-gradient(180deg, #061b2d 0%, var(--night) 100%);
+}
+
+.honeyField {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.6;
+  background:
+    linear-gradient(30deg, transparent 24%, rgba(240, 193, 91, 0.16) 25%, rgba(240, 193, 91, 0.16) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.14) 75%, rgba(240, 193, 91, 0.14) 76%, transparent 77%),
+    linear-gradient(150deg, transparent 24%, rgba(240, 193, 91, 0.14) 25%, rgba(240, 193, 91, 0.14) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.12) 75%, rgba(240, 193, 91, 0.12) 76%, transparent 77%),
+    linear-gradient(90deg, transparent 24%, rgba(240, 193, 91, 0.1) 25%, rgba(240, 193, 91, 0.1) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.1) 75%, rgba(240, 193, 91, 0.1) 76%, transparent 77%);
+  background-position:
+    0 0,
+    0 0,
+    0 0;
+  background-size: 6.2rem 10.8rem;
+  mask-image: radial-gradient(circle at 65% 42%, black, transparent 68%);
+}
+
+.portraitImage {
+  display: block;
+  width: 7rem;
+  height: 7.75rem;
+  object-fit: cover;
+  object-position: 55% 22%;
+  filter: grayscale(0.1) contrast(1.08) saturate(0.88);
+}
+
+.heroVeil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(6, 21, 36, 0.96), rgba(6, 21, 36, 0.5) 56%, rgba(6, 21, 36, 0.12)),
+    linear-gradient(0deg, rgba(6, 21, 36, 0.92), rgba(6, 21, 36, 0.08) 48%, rgba(6, 21, 36, 0.42));
+}
+
+.heroContent {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  min-height: calc(100svh - 11rem);
+  max-width: 1180px;
+  margin: 0 auto;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.kicker,
+.sectionEyebrow,
+.heroMeta,
+.forceNumber,
+.forceProject,
+.projectDetail > p {
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+.kicker,
+.sectionEyebrow {
+  margin: 0 0 1.1rem;
+  color: var(--gold);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  max-width: 920px;
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 6.4rem;
+  font-weight: 400;
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.heroTitle span {
+  display: block;
+  color: rgba(242, 247, 242, 0.72);
+}
+
+.heroClaim {
+  max-width: 670px;
+  margin: 2rem 0 0;
+  color: rgba(242, 247, 242, 0.88);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  line-height: 1.22;
+}
+
+.heroMeta {
+  display: flex;
+  max-width: 920px;
+  margin: 2.4rem 0 0;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.heroMeta span {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.48rem 0.64rem;
+  background: rgba(242, 247, 242, 0.04);
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+}
+
+.portraitBadge {
+  display: flex;
+  width: min(100%, 28rem);
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.2rem;
+  border: 1px solid rgba(240, 193, 91, 0.28);
+  border-radius: 8px;
+  padding: 0.7rem;
+  background:
+    linear-gradient(135deg, rgba(240, 193, 91, 0.1), rgba(103, 208, 163, 0.06)),
+    rgba(6, 21, 36, 0.68);
+  box-shadow: 0 1.4rem 4rem rgba(0, 0, 0, 0.26);
+}
+
+.portraitBadge img {
+  flex: 0 0 auto;
+  border-radius: 6px;
+}
+
+.portraitBadge div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.portraitBadge span {
+  color: var(--gold);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.portraitBadge strong {
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.18;
+}
+
+.sectionInner {
+  position: relative;
+  z-index: 4;
+  width: min(1160px, calc(100% - 2.4rem));
+  margin: 0 auto;
+}
+
+.threshold,
+.forceSection,
+.axisSection,
+.universeSection,
+.contradictionSection,
+.readerSection,
+.finalSection {
+  position: relative;
+  z-index: 2;
+  padding: 8rem 0;
+}
+
+.threshold {
+  background: var(--night-2);
+}
+
+.thresholdGrid,
+.axisGrid,
+.constellationWrap {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 4rem;
+  align-items: start;
+}
+
+.thresholdStatement h2,
+.splitHeader h2,
+.axisIntro h2,
+.finalCopy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 3.8rem;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.thresholdCopy {
+  color: var(--ink-soft);
+  font-size: 1.12rem;
+  line-height: 1.75;
+}
+
+.thresholdCopy p {
+  margin: 0 0 1.5rem;
+}
+
+.thresholdRule {
+  height: 1px;
+  margin-top: 3rem;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.thresholdRule span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  background: var(--green);
+}
+
+.splitHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(18rem, 0.7fr);
+  gap: 4rem;
+  align-items: end;
+  margin-bottom: 4rem;
+}
+
+.splitHeader p:last-child,
+.axisIntro p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+  line-height: 1.68;
+}
+
+.forceList {
+  border-top: 1px solid var(--line);
+}
+
+.forceItem {
+  display: grid;
+  grid-template-columns: 4rem minmax(8rem, 0.3fr) minmax(10rem, 0.32fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  padding: 1.55rem 0;
+}
+
+.forceNumber,
+.forceProject {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+
+.forceItem h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.34rem;
+  font-weight: 500;
+}
+
+.forceItem p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.62;
+}
+
+.axisSection {
+  background: var(--paper);
+  color: #102338;
+}
+
+.axisSection .sectionEyebrow {
+  color: #8b5420;
+}
+
+.axisIntro h2 {
+  color: #102338;
+}
+
+.axisIntro p {
+  color: rgba(16, 35, 56, 0.74);
+}
+
+.axisConsole {
+  border: 1px solid rgba(16, 35, 56, 0.22);
+  border-radius: 8px;
+  padding: 1.2rem;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.qMeter {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.qMeter > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.qMeter span {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.qMeter strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 4rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.qTrack {
+  height: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(16, 35, 56, 0.2);
+  border-radius: 4px;
+  background: rgba(16, 35, 56, 0.08);
+}
+
+.qTrack span {
+  display: block;
+  width: var(--q-score);
+  height: 100%;
+  background: #102338;
+  transition: width 220ms ease;
+}
+
+.axisControl {
+  display: grid;
+  gap: 0.55rem;
+  border-top: 1px solid rgba(16, 35, 56, 0.16);
+  padding: 1.1rem 0 0;
+}
+
+.axisControl + .axisControl {
+  margin-top: 1rem;
+}
+
+.axisControl > span {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #102338;
+  font-size: 1rem;
+}
+
+.axisControl strong {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(16, 35, 56, 0.22);
+  border-radius: 4px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+}
+
+.axisControl input {
+  width: 100%;
+  accent-color: #102338;
+}
+
+.axisControl small {
+  color: rgba(16, 35, 56, 0.66);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.universeSection {
+  background:
+    radial-gradient(circle at 14% 22%, rgba(103, 208, 163, 0.09), transparent 24rem),
+    #071b2d;
+}
+
+.constellation {
+  position: relative;
+  min-height: 34rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(103, 208, 163, 0.1), transparent 38%),
+    linear-gradient(30deg, transparent 24%, rgba(240, 193, 91, 0.13) 25%, rgba(240, 193, 91, 0.13) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.12) 75%, rgba(240, 193, 91, 0.12) 76%, transparent 77%),
+    linear-gradient(150deg, transparent 24%, rgba(240, 193, 91, 0.11) 25%, rgba(240, 193, 91, 0.11) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.1) 75%, rgba(240, 193, 91, 0.1) 76%, transparent 77%),
+    linear-gradient(90deg, transparent 24%, rgba(240, 193, 91, 0.09) 25%, rgba(240, 193, 91, 0.09) 26%, transparent 27%, transparent 74%, rgba(240, 193, 91, 0.09) 75%, rgba(240, 193, 91, 0.09) 76%, transparent 77%);
+  background-size:
+    auto,
+    5.4rem 9.4rem,
+    5.4rem 9.4rem,
+    5.4rem 9.4rem;
+  transform-style: preserve-3d;
+}
+
+.constellation::before,
+.constellation::after {
+  position: absolute;
+  inset: 17%;
+  border: 1px solid rgba(240, 193, 91, 0.16);
+  content: "";
+  pointer-events: none;
+  transform: rotate(18deg);
+}
+
+.constellation::after {
+  inset: 27%;
+  transform: rotate(-24deg);
+}
+
+.constellationCore {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  display: grid;
+  width: 12rem;
+  min-height: 7.5rem;
+  place-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba(6, 21, 36, 0.84);
+  color: var(--ink-soft);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.constellationCore svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--green);
+}
+
+.projectNode {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  z-index: 4;
+  display: grid;
+  max-width: 11rem;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.7rem;
+  background: rgba(6, 21, 36, 0.84);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.projectNode span {
+  color: var(--gold);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+}
+
+.projectNode:hover,
+.projectNode[data-active="true"] {
+  border-color: var(--green);
+  background: rgba(103, 208, 163, 0.12);
+  color: var(--ink);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.projectDetail {
+  align-self: stretch;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1.4rem;
+  background: rgba(242, 247, 242, 0.045);
+}
+
+.projectDetail > p {
+  margin: 0 0 1rem;
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.projectDetail h3 {
+  margin: 0 0 1.5rem;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.45rem;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.projectDetail blockquote {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.55rem;
+  line-height: 1.36;
+}
+
+.projectDetail div {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.1rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+
+.projectDetail svg {
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  margin-top: 0.22rem;
+  color: var(--ember);
+}
+
+.contradictionSection {
+  background: var(--paper);
+  color: #102338;
+}
+
+.contradictionSection .sectionEyebrow {
+  color: #8b5420;
+}
+
+.contradictionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(16, 35, 56, 0.18);
+}
+
+.contradictionGrid p {
+  min-height: 17rem;
+  margin: 0;
+  padding: 1.1rem;
+  background: var(--paper);
+  color: #102338;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.45rem;
+  line-height: 1.22;
+}
+
+.readerSection {
+  background:
+    radial-gradient(circle at 88% 14%, rgba(240, 193, 91, 0.16), transparent 28rem),
+    #082033;
+}
+
+.readerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(240, 193, 91, 0.24);
+}
+
+.readerCard {
+  position: relative;
+  display: grid;
+  min-height: 14rem;
+  gap: 0.9rem;
+  align-content: start;
+  padding: 1rem;
+  background:
+    linear-gradient(160deg, rgba(240, 193, 91, 0.08), transparent 62%),
+    #071b2d;
+  color: var(--ink);
+}
+
+.readerCard svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--honey);
+}
+
+.readerCard h3 {
+  max-width: 13rem;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.28rem;
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+.readerCard p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.finalSection {
+  min-height: 88svh;
+  display: flex;
+  align-items: center;
+  background:
+    radial-gradient(circle at 82% 22%, rgba(240, 193, 91, 0.16), transparent 26rem),
+    #071b2d;
+}
+
+.finalCopy {
+  max-width: 920px;
+}
+
+.finalCopy h2 {
+  margin-bottom: 2rem;
+}
+
+.finalCopy a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-bottom: 1px solid var(--green);
+  color: var(--ink);
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.finalCopy svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 980px) {
+  .heroTitle {
+    font-size: 4.4rem;
+  }
+
+  .heroClaim {
+    font-size: 1.6rem;
+  }
+
+  .thresholdGrid,
+  .axisGrid,
+  .constellationWrap,
+  .splitHeader {
+    grid-template-columns: 1fr;
+    gap: 2.4rem;
+  }
+
+  .forceItem {
+    grid-template-columns: 3rem 1fr;
+  }
+
+  .forceItem p {
+    grid-column: 2;
+  }
+
+  .forceProject {
+    grid-column: 2;
+  }
+
+  .contradictionGrid,
+  .readerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .nav {
+    grid-template-columns: 3rem 1fr;
+  }
+
+  .navLinks {
+    display: none;
+  }
+
+  .iconButton {
+    justify-self: end;
+  }
+
+  .hero {
+    padding-top: 6.5rem;
+  }
+
+  .portraitImage {
+    object-position: 57% 28%;
+  }
+
+  .heroVeil {
+    background:
+      linear-gradient(90deg, rgba(6, 21, 36, 0.94), rgba(6, 21, 36, 0.52)),
+      linear-gradient(0deg, rgba(6, 21, 36, 0.98), rgba(6, 21, 36, 0.16) 56%, rgba(6, 21, 36, 0.48));
+  }
+
+  .heroTitle {
+    font-size: 3.35rem;
+  }
+
+  .heroClaim {
+    font-size: 1.32rem;
+  }
+
+  .thresholdStatement h2,
+  .splitHeader h2,
+  .axisIntro h2,
+  .finalCopy h2 {
+    font-size: 2.45rem;
+  }
+
+  .threshold,
+  .forceSection,
+  .axisSection,
+  .universeSection,
+  .contradictionSection,
+  .readerSection,
+  .finalSection {
+    padding: 5.2rem 0;
+  }
+
+  .constellation {
+    min-height: 30rem;
+  }
+
+  .constellationCore {
+    width: 10rem;
+  }
+
+  .projectNode {
+    max-width: 8.2rem;
+    font-size: 0.72rem;
+  }
+
+  .contradictionGrid,
+  .readerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contradictionGrid p,
+  .readerCard {
+    min-height: 10rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .projectNode,
+  .iconButton {
+    transition: none;
+  }
+}
