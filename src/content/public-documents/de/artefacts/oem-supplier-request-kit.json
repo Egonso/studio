@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-17",
-  "last_substantive_update": "2026-05-25",
+  "last_substantive_update": "2026-06-22",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
@@ -20,7 +20,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette",
-  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Die Aktualisierung schärft das Kit als Automotive-Artefakt für Beschaffung, Supplier Quality, Audit, Beratung, Training und Governance: Jede externe Aussage wird auf denselben Use-Case Pass, dieselbe Evidenzgrenze und denselben nächsten operativen Schritt zurückgeführt. Ergänzt ist ein Procurement-Readiness-Gate, damit Teams vor dem Versand unterscheiden können, ob eine Antwort akzeptierbar, begrenzt vertretbar, nachforderungsbedürftig oder zu stoppen ist.",
+  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Die Aktualisierung vom 22. Juni 2026 schärft das Kit als Automotive-Artefakt für Beschaffung, Supplier Quality, Audit, Beratung, Training und Governance: Jede externe Aussage wird auf denselben Use-Case Pass, dieselbe Evidenzgrenze und denselben nächsten operativen Schritt zurückgeführt. Ergänzt ist ein Supplier-Quality-Abnahmepunkt, damit Teams vor dem Versand festhalten können, ob eine Antwort akzeptierbar ist, vertieft werden muss, Evidenz nachgefordert wird oder die externe Aussage zurückgehalten bleibt.",
   "object_label": "Lieferketten-Artefakt",
   "stance_label": "Lieferketten-Toolkit",
   "author": "KIRegister",
@@ -35,7 +35,8 @@
     "klare Mindestfelder für Scope, Wirkung, Datenbezug, Status und Evidenz",
     "eine gemeinsame Erwartungslogik für Beschaffung, Qualitätsmanagement, Audit, Beratung, Training und Compliance vor jeder externen Aussage",
     "eine neutrale Übergabeentscheidung, ob eine Antwort vertretbar ist, Evidenz nachgefordert wird oder ein Review-Schritt im Register folgen muss",
-    "ein Procurement-Readiness-Gate für OEM-Beschaffung und Supplier Quality, bevor ein Verify-Link, Dossier oder Request-Brief nach außen geht"
+    "ein Procurement-Readiness-Gate für OEM-Beschaffung und Supplier Quality, bevor ein Verify-Link, Dossier oder Request-Brief nach außen geht",
+    "einen Supplier-Quality-Abnahmepunkt, der Zweck, Datenbezug, Wirkungsnähe, offene Punkte und externe Aussagegrenze vor dem Versand zusammenführt"
   ],
   "downloads": [
     {
@@ -116,6 +117,10 @@
           "value": "Ein mehrblättriges Workbook mit Anfragebogen, Antwortstruktur, Evidence-Checklist und sauber getrennten Rollen für Anfragende, Antwortende und prüfende Partner."
         },
         {
+          "label": "Supplier-Quality-Abnahmepunkt",
+          "value": "Eine ergänzende Arbeitslogik für den letzten Prüfpunkt vor externer Antwort: Zweck, Datenbezug, Wirkungsnähe, offene Punkte, Nachforderung und begrenzte Abnahmeentscheidung werden in einer gemeinsamen Sicht geführt."
+        },
+        {
           "label": "Supplier Response Dossier",
           "value": "Ein professionell formulierter PDF-Beleg, der zeigt, wie eine knappe, belastbare Antwort mit Scope, Kernaussagen, Grenzen und Evidenz aussehen kann."
         },
@@ -153,6 +158,7 @@
         "Grenzen der Aussage offen markieren, wenn noch Prüfungen laufen oder Informationen fehlen.",
         "Bei Bedarf auf Verify-Fläche, Export oder ergänzendes Dossier verweisen, statt Freitext zu verdoppeln.",
         "Vor dem Versand festlegen, ob die Anfrage mit vorhandener Evidenz beantwortet werden kann oder zuerst eine begrenzte Nachforderung an Owner, Qualität oder Lieferant nötig bleibt.",
+        "Supplier Quality in einem eigenen Abnahmepunkt bestätigen lassen, ob Wirkungsnähe, offene Punkte und Verify-Grenze für die konkrete externe Aussage tragfähig genug sind.",
         "Am Ende festhalten, ob Beschaffung akzeptieren kann, Audit vertiefen sollte oder Governance zuerst Evidenz nachfordern muss."
       ]
     },
@@ -179,6 +185,30 @@
         {
           "label": "Supplier Quality vor Akzeptanz",
           "value": "Eine sichtbare Trennung zwischen stabiler Kernaussage, qualitätsnaher Wirkungsprüfung und offenen Review-Punkten. Ohne diese Trennung sollte die Antwort nicht als akzeptiert, sondern als vertiefungs- oder nachforderungsbedürftig geführt werden."
+        },
+        {
+          "label": "Supplier Quality vor Versandfreigabe",
+          "value": "Eine dokumentierte Abnahmeentscheidung, die den Pass-Stand, die externe Aussagegrenze, fehlende Evidenz und den nächsten Termin zusammenhält. Dadurch bleibt klar, ob die Antwort getragen, vertieft, nachgefordert oder zurückgehalten wird."
+        },
+        {
+          "label": "Vor dem OEM-Versand",
+          "value": "Supplier Quality prüft, ob der Use-Case Pass Zweck, Prozessgrenze, Owner, Datenbezug, Wirkungsnähe, Review-Stand und offene Punkte so enthält, dass die externe Kernaussage ohne Zusatzdeutung getragen werden kann."
+        },
+        {
+          "label": "Bei qualitätsnaher Wirkung",
+          "value": "Wenn der Einsatzfall nahe an Reklamation, Freigabe, Qualitätsentscheidung oder Serienprozess wirkt, wird die Antwort nicht nur aus Beschaffungssicht gelesen. Das Abnahmeblatt hält fest, welche Kontrollbeschreibung oder Owner-Bestätigung noch fehlt."
+        },
+        {
+          "label": "Bei Verify-Nutzung",
+          "value": "Der Verify-Link wird nur als kontrollierter Auszug verwendet. Der Abnahmepunkt markiert, welche Aussage öffentlich zeigbar ist und welche Einordnung im internen Pass oder im Supplier-Dossier bleiben muss."
+        },
+        {
+          "label": "Bei Nachforderung",
+          "value": "Fehlende Evidenz wird eng einem Pass-Feld zugeordnet, etwa Datenbeschreibung, Review-Notiz, Freigabevermerk oder Trainingsbezug. Dadurch wird die nächste Nachforderung prüfbar und bleibt von allgemeinen Zusatzwünschen getrennt."
+        },
+        {
+          "label": "Bei begrenzter Abnahme",
+          "value": "Die Abnahmeentscheidung beschreibt genau, welcher Teil der Antwort akzeptiert wird, welcher Punkt offen bleibt, wer ihn trägt und bis wann Supplier Quality oder Compliance erneut liest."
         }
       ]
     },
