@@ -7,12 +7,15 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-20",
-  "last_substantive_update": "2026-05-12",
+  "last_substantive_update": "2026-06-10",
   "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/news/commission-publishes-code-practice-marking-and-labelling-ai-generated-content",
     "https://digital-strategy.ec.europa.eu/en/news/commission-opens-consultation-draft-guidelines-ai-transparency-obligations",
     "https://digital-strategy.ec.europa.eu/en/library/draft-guidelines-implementation-transparency-obligations-certain-ai-systems-under-article-50-ai-act",
     "https://digital-strategy.ec.europa.eu/en/consultations/consultation-draft-guidelines-transparency-obligations-under-ai-act",
     "https://digital-strategy.ec.europa.eu/en/policies/code-practice-ai-generated-content",
+    "https://digital-strategy.ec.europa.eu/en/faqs/signing-code-practice-transparency-ai-generated-content",
+    "https://digital-strategy.ec.europa.eu/en/policies/eu-icons",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
   ],
   "schema_types": ["Article", "BreadcrumbList", "Organization"],
@@ -20,7 +23,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Der Kennzeichnungsweg für KI-Inhalte wird zum Pflichtfeld im Use-Case Pass",
-  "summary": "Die Kommission hat am 8. Mai 2026 den Entwurf der Artikel-50-Leitlinien zu Transparenzpflichten veröffentlicht und die Konsultation bis 3. Juni 2026 geöffnet. Für KIRegister folgt daraus ein enger Standard: Jeder interaktive oder generative Einsatzfall mit Außen- oder Personenbezug sollte im Use-Case Pass einen getrennten Kennzeichnungsweg mit Rolle, Inhaltstyp, Hinweisform, Ausnahmegrund und Evidenzlink führen.",
+  "summary": "Die Kommission hat den finalen Code of Practice zur Markierung und Kennzeichnung KI-generierter Inhalte am 10. Juni 2026 veröffentlicht. Für KIRegister folgt daraus ein enger Standard: Jeder interaktive oder generative Einsatzfall mit Außen- oder Personenbezug sollte im Use-Case Pass einen getrennten Kennzeichnungsweg mit Rolle, Inhaltstyp, Code-Abschnitt, Hinweisform, Ausnahmegrund, Signaturstatus und Evidenzlink führen.",
   "object_label": "Regulatorisches Update",
   "stance_label": "Kennzeichnungsweg und Evidenzpfad",
   "author": "KIRegister",
@@ -30,8 +33,8 @@
     "Partner, Auditoren und Auftraggeber mit Bedarf an belastbarer Transparenz über KI-generierte Inhalte"
   ],
   "delivers": [
-    "eine enge Einordnung des offiziellen Leitlinienentwurfs zu Transparenzpflichten nach Artikel 50",
-    "eine konkrete Pass-Feldlogik für Interaktionshinweis, Markierung, Kennzeichnung, Ausnahmepfad und Evidenz",
+    "eine enge Einordnung des finalen Code of Practice zu Markierung und Kennzeichnung KI-generierter Inhalte",
+    "eine konkrete Pass-Feldlogik für Interaktionshinweis, Markierung, Kennzeichnung, Code-Abschnitt, Ausnahmepfad, Signaturstatus und Evidenz",
     "einen pragmatischen Standard für interaktive und generative Use Cases mit Personen- oder Außenbezug"
   ],
   "cta": {
@@ -54,7 +57,7 @@
   "faq": [
     {
       "q": "Reicht ein allgemeiner Hinweis wie „mit KI erstellt“ für jeden Einsatzfall aus?",
-      "a": "Die offiziellen EU-Seiten sprechen für eine präzisere Logik. Je nach Rolle und Inhalt geht es um Interaktionshinweise, maschinenlesbare Markierung, Kennzeichnung von Deepfakes, Hinweise bei Texten zu Fragen von öffentlichem Interesse oder Systeme zur Emotionserkennung und biometrischen Kategorisierung. Zusätzlich ist relevant, ob ein Ausnahmepfad wegen menschlicher Prüfung und redaktioneller Verantwortung greift. Ein pauschales Label deckt diese Unterschiede nicht sauber ab."
+      "a": "Die offiziellen EU-Seiten sprechen für eine präzisere Logik. Je nach Rolle und Inhalt geht es um Interaktionshinweise, maschinenlesbare Markierung, Kennzeichnung von Deepfakes, Hinweise bei Texten zu Fragen von öffentlichem Interesse oder Systeme zur Emotionserkennung und biometrischen Kategorisierung. Nach dem finalen Code sollte zusätzlich sichtbar sein, welcher Code-Abschnitt angewendet wird, ob ein EU-Icon oder eine andere Kennzeichnung genutzt wird, welcher Signatur- oder Alternativnachweis des Anbieters vorliegt und ob ein Ausnahmepfad wegen menschlicher Prüfung und redaktioneller Verantwortung greift."
     }
   ],
   "sections": [
@@ -63,7 +66,7 @@
       "heading": "Was sich jetzt praktisch verdichtet",
       "paragraphs": [
         "Das AI Office konkretisiert den Transparenzpfad für KI-generierte Inhalte entlang von Artikel 50. Der laufende Code-of-Practice-Prozess trennt deutlich zwischen Pflichten der Anbieter generativer Systeme und Pflichten der Betreiber, die Deepfakes oder bestimmte Texte zu Fragen von öffentlichem Interesse veröffentlichen.",
-        "Für KIRegister ist daran vor allem die Trennung der Pfade wichtig. Anbieter müssen Menschen informieren, wenn sie mit einem KI-System interagieren, und generative Ausgaben maschinenlesbar markierbar machen. Betreiber müssen Personen informieren, wenn sie Deepfakes, KI-generierte Veröffentlichungen zu Fragen von öffentlichem Interesse, Emotionserkennung oder biometrischer Kategorisierung ausgesetzt sind. Der laufende Code of Practice zu KI-generierten Inhalten ergänzt diesen Pfad für Markierung und Kennzeichnung."
+        "Für KIRegister ist daran vor allem die Trennung der Pfade wichtig. Anbieter müssen Menschen informieren, wenn sie mit einem KI-System interagieren, und generative Ausgaben maschinenlesbar markierbar machen. Betreiber müssen Personen informieren, wenn sie Deepfakes, KI-generierte Veröffentlichungen zu Fragen von öffentlichem Interesse, Emotionserkennung oder biometrischer Kategorisierung ausgesetzt sind. Der finale Code of Practice ergänzt diesen Pfad für Markierung und Kennzeichnung und trennt dabei die technische Markierung durch Anbieter von der sichtbaren oder kontextnahen Kennzeichnung durch Betreiber."
       ]
     },
     {
@@ -83,6 +86,14 @@
           "value": "Wie die Information, Markierung oder Kennzeichnung umgesetzt wird, etwa durch Interaktionshinweis, maschinenlesbare Markierung, sichtbares Label, Disclaimer, redaktionellen Freigabeschritt oder eine technische Detektionslösung."
         },
         {
+          "label": "Code-Abschnitt und Signaturstatus",
+          "value": "Ob der Einsatzfall auf Abschnitt 1, Abschnitt 2 oder beide Abschnitte des finalen Code of Practice verweist und ob der relevante Anbieter oder Betreiber signiert hat, nicht signiert hat oder einen Alternativnachweis führt."
+        },
+        {
+          "label": "EU-Icon oder gleichwertige Kennzeichnung",
+          "value": "Ob die Kennzeichnung mit einem offiziellen EU-Icon, einer gleichwertig verständlichen sichtbaren Angabe oder einem dokumentierten technischen Markierungsweg umgesetzt wird."
+        },
+        {
           "label": "Ausnahmepfad",
           "value": "Ob für öffentliche Textveröffentlichungen ein nachvollziehbarer Pfad aus menschlicher Prüfung und redaktioneller Verantwortung dokumentiert ist."
         },
@@ -99,6 +110,7 @@
         "Der Pass trennt erstmals sauber zwischen einem generativen Inhalt und seinem Transparenzpfad.",
         "Interaktive und generative Use Cases werden prüfbar, weil Auslösepunkt, Rollenpfad und Hinweisform zusammen dokumentiert sind.",
         "Ausnahmen durch menschliche Prüfung bleiben nachvollziehbar, weil sie als begründeter Pfad mit Evidenz festgehalten werden.",
+        "Der Signaturstatus oder Alternativnachweis des Anbieters wird direkt am Einsatzfall sichtbar, statt nur als allgemeiner Lieferantenhinweis außerhalb des Registers zu stehen.",
         "Lieferanten-, Audit-, Produkt- und Kommunikationsfragen lassen sich mit demselben Pass-Feld beantworten, ohne eine zweite Dokumentationswelt aufzubauen."
       ]
     },
@@ -107,7 +119,8 @@
       "heading": "Was daraus nicht abgeleitet werden sollte",
       "paragraphs": [
         "Die offiziellen Seiten sagen nicht, dass jede generative Ausgabe denselben Hinweis braucht. Sie zeigen vielmehr, dass zwischen maschinenlesbarer Markierung, Deepfake-Kennzeichnung, öffentlicher Textveröffentlichung und menschlich geprüften Inhalten unterschieden werden muss.",
-        "Schwach wäre auch ein rein globaler Richtlinienvermerk ohne Fallbezug. Artikel-50-Fragen hängen an Inhalt, Oberfläche, Rolle, Freigabe und Evidenz. Wenn diese Angaben nur zentral beschrieben werden, fehlt im konkreten Audit- oder Lieferantengespräch der belegbare Bezug zum Einsatzfall."
+        "Schwach wäre auch ein rein globaler Richtlinienvermerk ohne Fallbezug. Artikel-50-Fragen hängen an Inhalt, Oberfläche, Rolle, Freigabe und Evidenz. Wenn diese Angaben nur zentral beschrieben werden, fehlt im konkreten Audit- oder Lieferantengespräch der belegbare Bezug zum Einsatzfall.",
+        "Der finale Code ersetzt außerdem keine eigene Prüfung am konkreten Einsatz. Er macht den Nachweispfad nur klarer: Signaturstatus, Code-Abschnitt, technische Markierung, sichtbare Kennzeichnung und redaktioneller Ausnahmepfad müssen als belegte Angaben geführt werden."
       ]
     },
     {
@@ -115,7 +128,7 @@
       "heading": "Was jetzt konkret aufgebaut werden sollte",
       "paragraphs": [
         "Jeder generative Einsatzfall mit Außenwirkung sollte im Use-Case Pass einen eigenen Abschnitt für den Kennzeichnungsweg erhalten. Dort werden Inhaltstyp, einschlägiges Transparenzregime, konkrete Umsetzung, verantwortliche Stelle und Evidenzlink festgehalten.",
-        "Im nächsten Schritt sollte derselbe Kennzeichnungsweg in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz, bevor die Regeln am 2. August 2026 anwendbar werden."
+        "Im nächsten Schritt sollte derselbe Kennzeichnungsweg in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. Für jeden betroffenen Einsatzfall sollte sichtbar sein, welcher Code-Abschnitt greift, ob ein EU-Icon oder ein gleichwertiger Hinweis genutzt wird, welcher Signaturstatus vorliegt und welche Evidenz den Betrieb belegt. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz, bevor die Regeln am 2. August 2026 anwendbar werden."
       ]
     }
   ]
