@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-16",
-  "last_substantive_update": "2026-06-11",
+  "last_substantive_update": "2026-06-23",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass FAQ für Beschaffung und Governance-Freigaben",
-  "summary": "Dieses Artefakt übersetzt den Use-Case-Pass in einen knappen Freigabe- und Beschaffungskontext. Es zeigt, welche Mindestinformationen Einkauf, Governance, Audit, Training und interne Prüffunktionen vor einer Anfrage, Freigabe oder Lieferkettenantwort auf derselben Fallbasis sehen sollten und wie daraus ein belastbarer nächster Arbeitsschritt entsteht. Die Aktualisierung ergänzt ein Freigabe- und Nachforderungsraster, mit dem Partner nach einem Termin festhalten, ob die Aussage getragen, begrenzt, nachgefordert oder bis zum Review zurückgestellt wird.",
+  "summary": "Dieses Artefakt übersetzt den Use-Case-Pass in einen knappen Freigabe- und Beschaffungskontext. Es zeigt, welche Mindestinformationen Einkauf, Governance, Audit, Training und interne Prüffunktionen vor einer Anfrage, Freigabe oder Lieferkettenantwort auf derselben Fallbasis sehen sollten und wie daraus ein belastbarer nächster Arbeitsschritt entsteht. Die Aktualisierung vom 23. Juni 2026 ergänzt einen Beschaffungsprüfbrief, mit dem Partner vor Anfrage, Freigabe oder Lieferantenantwort Zweck, verantwortliche Rolle, vorhandene Evidenz, Aussagegrenze und nächste Registeraktion in einer kompakten Zeile zusammenführen.",
   "object_label": "Freigabe-Artefakt",
   "stance_label": "FAQ für Beschaffung und Governance",
   "author": "KIRegister",
@@ -36,7 +36,8 @@
     "eine Mindestlogik für Zweck, Verantwortung, Datenbezug, Status und Evidenz vor jeder externen oder internen Anfrage",
     "eine direkte Verbindung zwischen Use-Case Pass, Register-Matrix und Supplier-Request-Unterlagen",
     "eine operative Erstaufnahme-Logik, mit der Partner nach einem Termin zwischen belastbarer Aussage, offener Evidenz und Nachforderung unterscheiden können",
-    "ein Freigabe- und Nachforderungsraster für die Entscheidung, ob ein Pass-Stand getragen, begrenzt, vertieft oder zurückgestellt wird"
+    "ein Freigabe- und Nachforderungsraster für die Entscheidung, ob ein Pass-Stand getragen, begrenzt, vertieft oder zurückgestellt wird",
+    "einen Beschaffungsprüfbrief, mit dem Partner vor Anfrage, Freigabe oder Lieferantenantwort den tragbaren Pass-Stand, offene Evidenz und die nächste Registeraktion in einer kompakten Zeile festhalten"
   ],
   "downloads": [
     {
@@ -83,7 +84,7 @@
   "faq": [
     {
       "q": "Welche Information sollte vor einer Freigabe oder Beschaffungsentscheidung mindestens vorliegen?",
-      "a": "Mindestens der fachliche Zweck, die verantwortliche Rolle, der Datenbezug, der aktuelle Review-Status und die belastbar referenzierte Evidenz zum konkreten Einsatzfall. Zusätzlich sollte sichtbar sein, welche Aussage heute vertreten werden kann und welche Punkte erst nach Review, Lieferantenrückfrage oder fachlicher Klärung beantwortet werden dürfen. Für Partnertermine sollte außerdem eine kurze Freigabezeile entstehen: Aussage tragen, Aussage begrenzen, Evidenz nachfordern, Review starten oder externe Antwort zurückstellen."
+      "a": "Mindestens der fachliche Zweck, die verantwortliche Rolle, der Datenbezug, der aktuelle Review-Status und die belastbar referenzierte Evidenz zum konkreten Einsatzfall. Zusätzlich sollte sichtbar sein, welche Aussage heute vertreten werden kann und welche Punkte erst nach Review, Lieferantenrückfrage oder fachlicher Klärung beantwortet werden dürfen. Für Partnertermine sollte außerdem eine kurze Freigabezeile entstehen: Aussage tragen, Aussage begrenzen, Evidenz nachfordern, Review starten oder externe Antwort zurückstellen. Der Beschaffungsprüfbrief hält diese Entscheidung so knapp fest, dass Einkauf, Audit, Training und Governance denselben nächsten Registerschritt sehen."
     },
     {
       "q": "Warum sollte Beschaffung auf einem einzelnen Einsatzfall statt auf einer Tool-Liste aufsetzen?",
@@ -126,6 +127,10 @@
         {
           "label": "Freigabe- und Nachforderungsraster",
           "value": "Ordnet den nächsten Schritt nach einem Partnertermin: Aussage aus dem Pass tragen, Aussage begrenzen, Evidenz nachfordern, Review starten oder externe Weitergabe bis zur Klärung zurückstellen."
+        },
+        {
+          "label": "Beschaffungsprüfbrief",
+          "value": "Eine kurze partnerfähige Zeile vor Anfrage oder Freigabe: Zweck verstanden, verantwortliche Rolle benannt, Evidenz sichtbar, Aussagegrenze notiert und nächste Registeraktion festgelegt."
         }
       ]
     },
@@ -140,7 +145,8 @@
         "Ist klar, ob die nächste Aktion eine interne Vervollständigung, ein Review, eine Lieferantenrückfrage oder eine externe Antwort ist?",
         "Lässt sich eine externe Antwort aus dem vorhandenen Pass ableiten, ohne neue Begriffe oder widersprüchliche Aussagen einzuführen?",
         "Ist dokumentiert, ob der Partner die heutige Aussage trägt, begrenzt, vertieft, nachfordert oder bis zur nächsten Evidenz zurückstellt?",
-        "Ist benannt, welche Rolle die offene Evidenz liefert und welcher Registerschritt nach Eingang der Antwort folgt?"
+        "Ist benannt, welche Rolle die offene Evidenz liefert und welcher Registerschritt nach Eingang der Antwort folgt?",
+        "Liegt ein Beschaffungsprüfbrief vor, der tragbare Aussage, offene Evidenz, verantwortliche Rolle und nächsten Registerschritt in einer Zeile trennt?"
       ]
     },
     {
@@ -159,7 +165,7 @@
       "heading": "Warum dieses Format für Partner und Prüffunktionen anschlussfähig ist",
       "paragraphs": [
         "Berater, Auditoren und Governance-Praktiker brauchen in frühen Phasen selten ein großes Dossier. Häufig genügt eine saubere Mindeststruktur, mit der sich feststellen lässt, ob ein Fall bereits freigabefähig ist, welche Felder fehlen und welche Aussage nach außen vertreten werden kann.",
-        "Genau dafür ist diese FAQ gedacht. Sie schafft einen kleinen gemeinsamen Prüfrahmen, der an reale Registerarbeit anschließt und sich ohne Bruch in Supplier Requests, Review-Schleifen, Audit-Vorbereitung oder Trainingsnachbereitung fortsetzen lässt. Partner können damit am Terminende sauber benennen, ob ein Fall übergabefähig ist oder ob eine eng begrenzte Nachforderung offen bleibt."
+        "Genau dafür ist diese FAQ gedacht. Sie schafft einen kleinen gemeinsamen Prüfrahmen, der an reale Registerarbeit anschließt und sich ohne Bruch in Supplier Requests, Review-Schleifen, Audit-Vorbereitung oder Trainingsnachbereitung fortsetzen lässt. Partner können damit am Terminende sauber benennen, ob ein Fall übergabefähig ist oder ob eine eng begrenzte Nachforderung offen bleibt. Der Beschaffungsprüfbrief ergänzt diese Logik um eine kurze Zeile, die Einkauf, Audit, Training und Governance vor der nächsten Weitergabe gemeinsam lesen können."
       ]
     },
     {
@@ -167,7 +173,7 @@
       "heading": "Wie die FAQ operativ verwendet wird",
       "paragraphs": [
         "In internen Freigaben kann die FAQ als Vorprüfung dienen: Liegen die Mindestfelder vor, wird der Fall weiterbearbeitet; fehlen sie, wird der Pass zuerst vervollständigt. Das verhindert, dass Gremien über unklare Gegenstände entscheiden müssen.",
-        "In Partner- oder Lieferkettenkontexten hilft die gleiche Logik, Anfragen zu verschlanken. Wer den Pass sauber führt, kann gezielt beantworten, welche Aussage bereits belastbar ist, welche Punkte noch im Review stehen und welche Frage an Owner, Lieferant oder Fachbereich zurückgegeben werden muss. Das Freigabe- und Nachforderungsraster macht daraus eine kurze Abschlusszeile, die Audit, Beschaffung, Training und Governance nach dem Termin gleich lesen können."
+        "In Partner- oder Lieferkettenkontexten hilft die gleiche Logik, Anfragen zu verschlanken. Wer den Pass sauber führt, kann gezielt beantworten, welche Aussage bereits belastbar ist, welche Punkte noch im Review stehen und welche Frage an Owner, Lieferant oder Fachbereich zurückgegeben werden muss. Das Freigabe- und Nachforderungsraster macht daraus eine kurze Abschlusszeile, die Audit, Beschaffung, Training und Governance nach dem Termin gleich lesen können. Der Beschaffungsprüfbrief ist die operative Kurzform dieser Abschlusszeile, bevor eine externe Antwort, interne Freigabe oder Lieferantenrückfrage weiterläuft."
       ]
     }
   ]
