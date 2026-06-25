@@ -6,6 +6,15 @@ const ROOT = process.cwd();
 const CONTENT_ROOT = path.join(ROOT, 'src/content/public-documents');
 const MANIFEST_PATH = path.join(CONTENT_ROOT, 'publish-manifest.generated.json');
 const BASE_URL = (process.env.NEXT_PUBLIC_APP_ORIGIN || 'https://kiregister.com').replace(/\/+$/, '');
+const DEFAULT_VERIFY_RETRIES = 2;
+const DEFAULT_VERIFY_RETRY_DELAY_MS = 2500;
+const DEFAULT_VERIFY_TIMEOUT_MS = 20000;
+const DEFAULT_HEALTH_CHECK_PATHS = [
+  '/de/industries/automotive-suppliers',
+  '/de/standards/use-case-pass',
+  '/de/verify',
+  '/de/law',
+];
 
 const VALID_CONTENT_TYPES = new Set(['standard', 'update', 'artefact']);
 const VALID_LOCALES = new Set(['de', 'en']);
@@ -880,18 +889,71 @@ function collectVerificationTargets(validationResults, options = {}) {
   return [...targets.values()].sort((left, right) => left.url.localeCompare(right.url));
 }
 
-async function verifyTarget(target) {
-  const response = await fetch(target.url, {
-    method: 'GET',
-    redirect: 'follow',
-    headers: {
-      'user-agent': 'KIRegister public content verifier',
-      accept: '*/*',
-    },
+class VerificationError extends Error {
+  constructor(message, options = {}) {
+    super(message);
+    this.name = 'VerificationError';
+    this.retryable = options.retryable === true;
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
   });
+}
+
+function isRetryableStatus(status) {
+  return status === 408 || status === 429 || status >= 500;
+}
+
+function parseIntegerOption(value, fallback, label, { minimum = 0 } = {}) {
+  if (value == null || value === '') {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isSafeInteger(parsed) || parsed < minimum) {
+    throw new Error(`${label} must be an integer >= ${minimum}.`);
+  }
+
+  return parsed;
+}
+
+async function fetchWithTimeout(url, timeoutMs) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: {
+        'user-agent': 'KIRegister public content verifier',
+        accept: '*/*',
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new VerificationError(`timed out after ${timeoutMs}ms`, { retryable: true });
+    }
+
+    throw new VerificationError('fetch failed', { retryable: true });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function verifyTargetOnce(target, options) {
+  const response = await fetchWithTimeout(target.url, options.timeoutMs);
 
   if (!response.ok) {
-    throw new Error(`returned ${response.status}`);
+    throw new VerificationError(`returned ${response.status}`, {
+      retryable: isRetryableStatus(response.status),
+    });
   }
 
   const isHtml = (response.headers.get('content-type') || '').includes('text/html');
@@ -916,7 +978,7 @@ async function verifyTarget(target) {
     .replace(/\\u0022/g, '"');
   for (const fragment of target.expectedText) {
     if (!html.includes(fragment) && !normalizedHtml.includes(fragment)) {
-      throw new Error(`missing expected fragment "${fragment}"`);
+      throw new VerificationError(`missing expected fragment "${fragment}"`);
     }
   }
 
@@ -926,13 +988,36 @@ async function verifyTarget(target) {
   };
 }
 
+async function verifyTarget(target, options) {
+  for (let attempt = 0; attempt <= options.retries; attempt += 1) {
+    try {
+      return await verifyTargetOnce(target, options);
+    } catch (error) {
+      const canRetry =
+        error instanceof VerificationError && error.retryable && attempt < options.retries;
+
+      if (!canRetry) {
+        throw error;
+      }
+
+      const waitMs = options.retryDelayMs * 2 ** attempt;
+      console.warn(
+        `RETRY [${[...target.kinds].join(', ')}] ${target.url} :: ${error.message}; retry ${attempt + 1}/${options.retries} in ${waitMs}ms`,
+      );
+      await sleep(waitMs);
+    }
+  }
+
+  throw new VerificationError('verification retry loop exhausted');
+}
+
 async function verifyLinks(validationResults, options = {}) {
   const targets = collectVerificationTargets(validationResults, options);
   let failures = 0;
 
   for (const target of targets) {
     try {
-      const result = await verifyTarget(target);
+      const result = await verifyTarget(target, options);
       console.log(
         `OK [${[...target.kinds].join(', ')}] ${target.url} (${result.status} ${result.contentType})`,
       );
@@ -953,9 +1038,65 @@ async function verifyLinks(validationResults, options = {}) {
   console.log(`Verified ${targets.length} internal public links and downloads against ${BASE_URL}${scopeLabel}.`);
 }
 
+function normalizeHealthCheckPath(input) {
+  if (/^https?:\/\//i.test(input)) {
+    return input;
+  }
+
+  const pathWithSlash = input.startsWith('/') ? input : `/${input}`;
+  return `${BASE_URL}${pathWithSlash}`;
+}
+
+async function healthCheck(options = {}) {
+  const paths = options.paths.length > 0 ? options.paths : DEFAULT_HEALTH_CHECK_PATHS;
+  const targets = paths.map((healthPath) => ({
+    url: normalizeHealthCheckPath(healthPath),
+    kinds: new Set(['health']),
+    sources: new Set(['public-content-preflight']),
+    expectedText: new Set(),
+  }));
+  let failures = 0;
+
+  for (const target of targets) {
+    try {
+      const result = await verifyTarget(target, options);
+      console.log(`OK [health] ${target.url} (${result.status} ${result.contentType})`);
+    } catch (error) {
+      failures += 1;
+      console.error(
+        `FAIL [health] ${target.url} :: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  if (failures > 0) {
+    process.exit(1);
+  }
+
+  console.log(`Verified ${targets.length} public health routes against ${BASE_URL}.`);
+}
+
 function parseCliOptions(argv) {
   const options = {
     slug: null,
+    paths: [],
+    retries: parseIntegerOption(
+      process.env.PUBLIC_CONTENT_VERIFY_RETRIES,
+      DEFAULT_VERIFY_RETRIES,
+      'PUBLIC_CONTENT_VERIFY_RETRIES',
+    ),
+    retryDelayMs: parseIntegerOption(
+      process.env.PUBLIC_CONTENT_VERIFY_RETRY_DELAY_MS,
+      DEFAULT_VERIFY_RETRY_DELAY_MS,
+      'PUBLIC_CONTENT_VERIFY_RETRY_DELAY_MS',
+      { minimum: 1 },
+    ),
+    timeoutMs: parseIntegerOption(
+      process.env.PUBLIC_CONTENT_VERIFY_TIMEOUT_MS,
+      DEFAULT_VERIFY_TIMEOUT_MS,
+      'PUBLIC_CONTENT_VERIFY_TIMEOUT_MS',
+      { minimum: 1 },
+    ),
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -969,6 +1110,60 @@ function parseCliOptions(argv) {
 
     if (arg.startsWith('--slug=')) {
       options.slug = arg.slice('--slug='.length) || null;
+      continue;
+    }
+
+    if (arg === '--path') {
+      options.paths.push(argv[index + 1] ?? '');
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--path=')) {
+      options.paths.push(arg.slice('--path='.length));
+      continue;
+    }
+
+    if (arg === '--retries') {
+      options.retries = parseIntegerOption(argv[index + 1], options.retries, '--retries');
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--retries=')) {
+      options.retries = parseIntegerOption(arg.slice('--retries='.length), options.retries, '--retries');
+      continue;
+    }
+
+    if (arg === '--retry-delay-ms') {
+      options.retryDelayMs = parseIntegerOption(argv[index + 1], options.retryDelayMs, '--retry-delay-ms', { minimum: 1 });
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--retry-delay-ms=')) {
+      options.retryDelayMs = parseIntegerOption(
+        arg.slice('--retry-delay-ms='.length),
+        options.retryDelayMs,
+        '--retry-delay-ms',
+        { minimum: 1 },
+      );
+      continue;
+    }
+
+    if (arg === '--timeout-ms') {
+      options.timeoutMs = parseIntegerOption(argv[index + 1], options.timeoutMs, '--timeout-ms', { minimum: 1 });
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--timeout-ms=')) {
+      options.timeoutMs = parseIntegerOption(
+        arg.slice('--timeout-ms='.length),
+        options.timeoutMs,
+        '--timeout-ms',
+        { minimum: 1 },
+      );
     }
   }
 
@@ -978,6 +1173,12 @@ function parseCliOptions(argv) {
 async function main() {
   const command = process.argv[2] || 'validate';
   const options = parseCliOptions(process.argv.slice(3));
+
+  if (command === 'health-check') {
+    await healthCheck(options);
+    return;
+  }
+
   const validationResults = loadDocuments();
   const hasErrors = printErrors(validationResults);
 
@@ -1002,7 +1203,7 @@ async function main() {
     return;
   }
 
-  console.error(`Unknown command "${command}". Use "validate", "manifest", or "verify-links".`);
+  console.error(`Unknown command "${command}". Use "validate", "manifest", "verify-links", or "health-check".`);
   process.exit(1);
 }
 

@@ -19,6 +19,7 @@
     "test": "node ./scripts/run-tests.mjs",
     "test:playwright": "playwright test",
     "content:public:resources": "python3 ./scripts/generate-public-artefacts.py",
+    "content:public:preflight": "node ./scripts/public-content-ops.mjs health-check",
     "content:public:validate": "node ./scripts/public-content-ops.mjs validate",
     "content:public:manifest": "node ./scripts/public-content-ops.mjs manifest",
     "content:public:verify-links": "node ./scripts/public-content-ops.mjs verify-links",
