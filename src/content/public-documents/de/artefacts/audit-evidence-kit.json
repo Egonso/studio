@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-16",
-  "last_substantive_update": "2026-06-09",
+  "last_substantive_update": "2026-06-25",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Audit Evidence Kit für Prüfer, Beschaffung und Governance",
-  "summary": "Das Audit Evidence Kit bündelt die minimalen Arbeitsobjekte, mit denen ein einzelner KI-Einsatzfall für Audit, Beratung, Training, Beschaffung und Governance nachvollziehbar gemacht werden kann. Die Aktualisierung stärkt den Partner-Prüfbrief und den Partner-Abnahmevermerk als neutrale Übergabeobjekte: Rückfragen zu Scope, Verantwortung, Review-Stand, Evidenz und Aussagegrenze werden auf dieselbe Use-Case-Pass-Struktur bezogen, bevor ein Review, eine Beschaffungsantwort oder ein Trainingsabschluss weitergeführt wird. Zusätzlich wird festgehalten, welche Entscheidung nach dem Termin dokumentiert werden muss: Aussage vorbereiten, Evidenz nachfordern, Review starten, externe Weitergabe zurückhalten oder begrenzt abnehmen.",
+  "summary": "Das Audit Evidence Kit bündelt die minimalen Arbeitsobjekte, mit denen ein einzelner KI-Einsatzfall für Audit, Beratung, Training, Beschaffung und Governance nachvollziehbar gemacht werden kann. Die Aktualisierung ergänzt den Evidenz-Triage-Vermerk als neutrale Entscheidungshilfe vor Review, Nachforderung oder externer Weitergabe: Partner halten fest, welche Pass-Aussage heute getragen wird, welche Quelle sie stützt, welche Lücke begrenzt nachgefordert werden muss und welche Aussage bis dahin zurückgehalten bleibt. Rückfragen zu Scope, Verantwortung, Review-Stand, Evidenz und Aussagegrenze bleiben damit auf dieselbe Use-Case-Pass-Struktur bezogen.",
   "object_label": "Prüf-Artefakt",
   "stance_label": "Evidenz- und Anfragepaket",
   "author": "KIRegister",
@@ -38,7 +38,8 @@
     "eine Übergabelogik, mit der Partner aus einem Termin unmittelbar einen prüfbaren Pass-Stand oder eine begrenzte Nachforderung ableiten können",
     "einen Partner-Prüfbrief, der bestätigte Aussagen, offene Evidenz und den nächsten formalen Schritt ohne zweite Dokumentationslogik trennt",
     "eine Entscheidungszeile für Partnerformate, damit Beschaffung, Audit, Training und Governance nach dem Termin denselben nächsten Schritt lesen",
-    "einen Partner-Abnahmevermerk, der prüffähige Aussagen, offene Nachweise und zurückgehaltene externe Weitergaben vor der Übergabe sichtbar trennt"
+    "einen Partner-Abnahmevermerk, der prüffähige Aussagen, offene Nachweise und zurückgehaltene externe Weitergaben vor der Übergabe sichtbar trennt",
+    "einen Evidenz-Triage-Vermerk, der vor Review, Nachforderung oder Weitergabe die tragende Quelle, die konkrete Lücke und die zulässige Anschlussentscheidung dokumentiert"
   ],
   "downloads": [
     {
@@ -114,6 +115,10 @@
         {
           "label": "Partner-Abnahmevermerk",
           "value": "Eine knappe Abnahmeentscheidung für Partnerformate, die festhält, ob der Pass-Stand prüffähig übergeben, nur intern weiterbearbeitet, für Beschaffung vorbereitet oder bis zur nächsten Evidenz zurückgehalten wird."
+        },
+        {
+          "label": "Evidenz-Triage-Vermerk",
+          "value": "Eine kurze Entscheidungshilfe vor Review, Nachforderung oder externer Weitergabe: Welche Pass-Aussage wird heute getragen, welche Quelle stützt sie, welche Lücke bleibt offen und welche Anschlussentscheidung ist zulässig?"
         }
       ]
     },
@@ -125,6 +130,7 @@
         "Welche Rolle oder Person verantwortet den Einsatzfall, beantwortet Rückfragen und hält die Nachweise aktuell?",
         "Welcher Review- oder Freigabestand liegt vor, und welche offenen Punkte müssen im Prüfbrief ausdrücklich sichtbar bleiben?",
         "Welche Evidenzen, Kontrollen oder Begleitdokumente stützen die Aussagen zum Einsatzfall und welche sind nur angekündigt?",
+        "Welche einzelne Evidenz entscheidet darüber, ob eine Aussage heute getragen, begrenzt nachgefordert oder bis zum Review zurückgehalten werden muss?",
         "Welche Grenzen der Aussage müssen offen benannt werden, wenn Informationen noch unvollständig sind oder eine externe Weitergabe vorbereitet wird?"
       ]
     },
@@ -133,7 +139,8 @@
       "heading": "Warum dieses Format für Prüfer und Beschaffung anschlussfähig ist",
       "paragraphs": [
         "Audit- und Beschaffungssituationen scheitern oft nicht an fehlender Aktivität, sondern an fehlender Form. Informationen liegen vor, sind aber auf Richtlinien, Tabellen, E-Mail-Verläufe und mündliche Zuständigkeiten verteilt. Dadurch bleibt unklar, welche Aussage zu welchem Einsatzfall gehört.",
-        "Der Use-Case Pass schafft hier eine belastbare Einheit. Wenn Scope, Owner, Review-Stand und Evidenz je Einsatzfall zusammenlaufen, können Auditoren, Berater, Trainer, Beschaffung und Governance dieselbe Struktur lesen. Der Prüfbrief übersetzt diesen Stand in eine kurze Übergabe, die interne Nachforderung, externe Antwort oder Trainingsabschluss auf denselben Fall zurückführt."
+        "Der Use-Case Pass schafft hier eine belastbare Einheit. Wenn Scope, Owner, Review-Stand und Evidenz je Einsatzfall zusammenlaufen, können Auditoren, Berater, Trainer, Beschaffung und Governance dieselbe Struktur lesen. Der Prüfbrief übersetzt diesen Stand in eine kurze Übergabe, die interne Nachforderung, externe Antwort oder Trainingsabschluss auf denselben Fall zurückführt.",
+        "Der Evidenz-Triage-Vermerk ergänzt diese Übergabe um eine einfache Kontrollfrage: Welche Quelle trägt welche Aussage? Damit wird vor dem nächsten Schritt sichtbar, ob eine Antwort vorbereitet, eine Nachforderung eng gestellt, ein Review gestartet oder eine externe Weitergabe bewusst zurückgehalten werden muss."
       ]
     },
     {
@@ -175,6 +182,7 @@
         "Im Gespräch zuerst Scope, Zweck und verantwortliche Rolle festziehen, bevor Spezialfragen zu Regulierung, Technik oder Freigabe diskutiert werden.",
         "Offene Punkte in der Matrix sichtbar lassen und im Prüfbrief als Nachforderung, Annahme oder laufende Prüfung kennzeichnen.",
         "Für externe Rückfragen, Trainingsunterlagen oder interne Freigaben nur Aussagen verwenden, die durch Pass, Review oder Evidenz abgesichert sind.",
+        "Vor Review, Nachforderung oder Weitergabe den Evidenz-Triage-Vermerk ausfüllen: tragende Aussage, Quelle, Lücke, verantwortliche Rolle und Anschlussentscheidung.",
         "Am Terminende ausdrücklich festhalten, ob der Fall bereits prüffähig übergeben werden kann oder ob eine begrenzte Nachforderung an Owner, Lieferant oder Fachbereich nötig bleibt.",
         "Für Partnerunterlagen nur die Pass-Felder weiterverwenden, die im Gespräch bestätigt wurden; Annahmen bleiben als offene Punkte in der Matrix stehen.",
         "Den Prüfbrief an Audit, Beschaffung oder Governance nur mit einem eindeutigen nächsten Schritt übergeben: Review starten, Evidenz nachfordern, Antwort vorbereiten oder Aussage zurückhalten.",
@@ -199,7 +207,7 @@
     },
     {
       "q": "Was tun, wenn Informationen im Einsatzfall noch fehlen?",
-      "a": "Offene Punkte sichtbar lassen und die Grenzen der Aussage klar markieren. Für Audit und Beschaffung ist eine sauber begrenzte Aussage belastbarer als eine scheinbar vollständige, aber schlecht abgesicherte Antwort. Die Matrix hält die Lücke fest, der Prüfbrief macht den nächsten Verantwortlichen und die erwartete Evidenz sichtbar."
+      "a": "Offene Punkte sichtbar lassen und die Grenzen der Aussage klar markieren. Für Audit und Beschaffung ist eine sauber begrenzte Aussage belastbarer als eine scheinbar vollständige, aber schlecht abgesicherte Antwort. Die Matrix hält die Lücke fest, der Prüfbrief macht den nächsten Verantwortlichen und die erwartete Evidenz sichtbar. Der Evidenz-Triage-Vermerk ergänzt, ob die betroffene Aussage getragen, begrenzt nachgefordert, in ein Review gegeben oder bis zur nächsten Quelle zurückgehalten wird."
     },
     {
       "q": "Ist das Kit eher für interne Teams oder externe Partner gedacht?",
