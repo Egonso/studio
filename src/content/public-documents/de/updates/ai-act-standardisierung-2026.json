@@ -7,9 +7,10 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "last_substantive_update": "2026-06-23",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/news/ai-act-advisory-forum-convenes-its-kick-meeting",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
   ],
   "schema_types": ["Article", "BreadcrumbList", "Organization"],
@@ -17,7 +18,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Standardisierung wird zur Anschlussfrage für jedes KI-Register",
-  "summary": "Europäische Standardisierung wirkt bereits in der Struktur von Register, Exporten und Nachweisen. Wer KI-Einsatzfälle heute sauber erfasst, legt damit fest, ob spätere Standards ohne Neuaufbau übernommen werden können oder ob Nachweise mühsam nachgezogen werden müssen.",
+  "summary": "Europäische Standardisierung wirkt bereits in der Struktur von Register, Exporten und Nachweisen. Seit dem Kick-off des AI Act Advisory Forum ist zusätzlich sichtbar, dass Standardisierungsfragen und Hochrisiko-Leitlinien in die laufende Implementierungsarbeit einfließen. Der Use-Case Pass sollte deshalb nicht nur spätere Standards erwarten, sondern den aktuellen Standardisierungsstand als belegte Quelle am Einsatzfall führen.",
   "object_label": "Regulatorisches Update",
   "stance_label": "Operative Standardisierungsfolge",
   "author": "KIRegister",
@@ -28,6 +29,7 @@
   ],
   "delivers": [
     "eine Einordnung, warum Standardisierung heute schon ein Format- und Datenmodellthema ist",
+    "eine Aktualisierung zum AI Act Advisory Forum als laufender Implementierungs- und Standardisierungskanal",
     "konkrete Folgen für Register, Export, Verify-Flächen und öffentliche Referenzseiten",
     "einen priorisierten Arbeitsfokus für die nächsten operativen Ausbauschritte"
   ],
@@ -51,7 +53,7 @@
   "faq": [
     {
       "q": "Warum betrifft Standardisierung auch Unternehmen ohne sofortige Zertifizierungspläne?",
-      "a": "Weil gemeinsame Begriffe, Feldlogiken und Evidenzmuster lange vor einer formalen Zertifizierung in Audits, Kundennachfragen und Beschaffung wirksam werden. Wer die Datenstruktur früh sauber aufsetzt, spart später Umstellungsaufwand."
+      "a": "Weil gemeinsame Begriffe, Feldlogiken und Evidenzmuster lange vor einer formalen Zertifizierung in Audits, Kundennachfragen und Beschaffung wirksam werden. Das AI Act Advisory Forum hat zum Auftakt bereits Standardisierungsfragen und Entwurfsleitlinien zur Hochrisiko-Klassifikation als Input-Themen behandelt. Wer die Datenstruktur früh sauber aufsetzt, spart später Umstellungsaufwand und kann Quellenstände nachvollziehbar aktualisieren."
     }
   ],
   "sections": [
@@ -60,7 +62,7 @@
       "heading": "Was sich regulatorisch verdichtet",
       "paragraphs": [
         "Standardisierung klingt nach Fernziel, wirkt operativ aber sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Feldnamen oder Evidenz entwickeln, wird aus einer internen Dokumentationsfrage sofort ein Formatproblem.",
-        "Für KI-Register bedeutet das: Inhalt und Konsistenz müssen gemeinsam stimmen. Je sauberer Einsatzfälle beschrieben, aktualisiert und nach außen gezeigt werden, desto weniger Reibung entsteht morgen bei Anpassung, Export und Prüfung."
+        "Für KI-Register bedeutet das: Inhalt, Konsistenz und Quellenstand müssen gemeinsam stimmen. Der Kick-off des AI Act Advisory Forum zeigt, dass Standardisierungsfragen nicht nur ein späteres Normungsthema bleiben, sondern Teil der laufenden AI-Act-Implementierung sind. Je sauberer Einsatzfälle beschrieben, aktualisiert und nach außen gezeigt werden, desto weniger Reibung entsteht morgen bei Anpassung, Export und Prüfung."
       ]
     },
     {
@@ -78,6 +80,10 @@
         {
           "label": "Exportfähigkeit",
           "value": "Dokumente und Beispiele brauchen eine Form, die sich ohne Neuformulierung in Anfragen, Audits und Beschaffungskontexte übertragen lässt."
+        },
+        {
+          "label": "Quellenstand",
+          "value": "Der Pass sollte festhalten, ob ein Nachweisfeld auf bestehender FAQ, Standardisierungsseite, Advisory-Forum-Input oder später referenziertem Standard beruht."
         }
       ]
     },
@@ -86,6 +92,7 @@
       "heading": "Was jetzt im Register vorbereitet sein muss",
       "items": [
         "Ein Pass pro realem KI-Einsatzfall statt einer losen Tool- oder Anbieterlogik.",
+        "Ein eigener Quellenstand für Standardisierung und Implementierung, damit klar bleibt, welche Aussage aus welcher offiziellen Fassung stammt.",
         "Einheitliche Benennung von Review-Status, Verantwortlichkeit und Evidenzquellen.",
         "Öffentliche Inhalte, Verify-Flächen und Downloads auf derselben Begriffswelt wie das Register.",
         "Partnerkits und Supplier-Workflows, die dieselben Felder verwenden wie die interne Pass-Struktur."
@@ -96,7 +103,7 @@
       "heading": "Wer zuerst handeln sollte",
       "paragraphs": [
         "Priorität haben Teams, die bereits heute zwischen interner Dokumentation und externer Nachfrage vermitteln: Governance, Beschaffung, Audit, Qualitätsmanagement und produktnahe Fachbereiche. Genau dort fällt zuerst auf, ob ein Register als Standardobjekt funktioniert oder nur als interne Liste.",
-        "Für Automotive und andere stark eingebundene Lieferketten gilt das besonders deutlich. Wer dort auf ein fallbezogenes, wiederverwendbares Format setzt, gewinnt früher Anschlussfähigkeit als Unternehmen, die ihre Nachweise erst bei der ersten Anfrage improvisieren."
+        "Für Automotive und andere stark eingebundene Lieferketten gilt das besonders deutlich. Wenn sich Standardisierungs- und Hochrisiko-Fragen über AI Office, Advisory Forum und spätere Normungsdokumente weiter verdichten, brauchen diese Teams ein Format, das Quellenstände am Einsatzfall fortschreibt statt Nachweise erst bei der ersten Anfrage zu improvisieren."
       ]
     },
     {
@@ -104,7 +111,7 @@
       "heading": "Was wir nicht empfehlen",
       "paragraphs": [
         "Nicht sinnvoll ist ein Register, das intern freie Notizen erlaubt und extern mit völlig anderen Begriffen arbeitet. Das erzeugt doppelte Pflege, unklare Verantwortlichkeiten und schwache Anschlussfähigkeit.",
-        "Ebenso wenig hilfreich sind Bildungsseiten oder Kits, die nur erklären, aber keine strukturelle Brücke zum echten Produkt und seinen Exporten schlagen. Standardisierung wird nur wirksam, wenn Inhalt, Workflow und Artefakt dieselbe Sprache sprechen."
+        "Ebenso wenig hilfreich sind Bildungsseiten oder Kits, die nur erklären, aber keine strukturelle Brücke zum echten Produkt und seinen Exporten schlagen. Standardisierung wird nur wirksam, wenn Inhalt, Workflow, Quellenstand und Artefakt dieselbe Sprache sprechen."
       ]
     }
   ]
