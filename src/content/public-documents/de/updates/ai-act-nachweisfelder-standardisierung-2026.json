@@ -7,18 +7,22 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-19",
-  "last_substantive_update": "2026-04-19",
+  "last_substantive_update": "2026-06-29",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/faqs/understanding-standardisation-ai-act",
     "https://digital-strategy.ec.europa.eu/en/faqs/navigating-ai-act",
-    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/news/ai-act-advisory-forum-convenes-its-kick-meeting",
+    "https://digital-strategy.ec.europa.eu/en/library/draft-commission-guidelines-classification-high-risk-ai-systems",
+    "https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-draft-guidelines-classification-high-risk-artificial-intelligence-systems",
+    "https://ai-act-service-desk.ec.europa.eu/en/guidelines-classification-high-risk-ai-systems-summaries-examples"
   ],
   "schema_types": ["Article", "BreadcrumbList", "Organization"],
   "template_variant": "authority-update",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Die Standardisierungs-FAQ macht Nachweisfelder im Use-Case Pass konkret",
-  "summary": "Die Kommission beschreibt jetzt präziser, welche Themen künftige harmonisierte Standards abdecken und dass diese später per Annex auf Anforderungen des AI Act gemappt werden. Für KIRegister folgt daraus ein enger Standard: Use-Case-Pässe sollten Nachweisfelder für Risikomanagement, Datensatz-Governance, Logging, Nutzerinformation, Human Oversight, Genauigkeit, Robustheit, Cybersicherheit und Qualitätsmanagement sauber trennen.",
+  "summary": "Die Kommission beschreibt jetzt präziser, welche Themen künftige harmonisierte Standards abdecken und hat zugleich Draft-Guidelines mit Beispielen zur Hochrisiko-Klassifizierung zugänglich gemacht. Für KIRegister folgt daraus ein enger Standard: Use-Case-Pässe sollten Nachweisfelder für Risikomanagement, Datensatz-Governance, Logging, Nutzerinformation, Human Oversight, Genauigkeit, Robustheit, Cybersicherheit, Qualitätsmanagement, Klassifizierungs-Evidenz und Fristbezug sauber trennen.",
   "object_label": "Regulatorisches Update",
   "stance_label": "Nachweisfelder und Standardmapping",
   "author": "KIRegister",
@@ -28,8 +32,8 @@
     "Partner, Auditoren und Beschaffer mit Bedarf an strukturierter Nachweisführung"
   ],
   "delivers": [
-    "eine enge Einordnung der offiziellen Standardisierungs-FAQ für die Pass-Struktur",
-    "eine konkrete Liste von Nachweisfeldern, die heute schon getrennt geführt werden sollten",
+    "eine enge Einordnung der offiziellen Standardisierungs- und Hochrisiko-Guideline-Quellen für die Pass-Struktur",
+    "eine konkrete Liste von Nachweisfeldern, die heute schon getrennt geführt und mit Klassifizierungs-Evidenz verbunden werden sollten",
     "einen pragmatischen Maßstab für standardisierungsfähige Register- und Exportlogik"
   ],
   "cta": {
@@ -52,7 +56,7 @@
   "faq": [
     {
       "q": "Bedeutet das schon, dass jeder Use Case ein formales Hochrisiko-System ist?",
-      "a": "Nein. Die Quellen sagen nicht, dass jeder Einsatzfall unter die Hochrisiko-Regeln fällt. Sie machen aber klar, welche Nachweisthemen künftige harmonisierte Standards für hochriskante Systeme abdecken sollen. Genau deshalb ist es sinnvoll, diese Felder schon heute getrennt zu führen, damit Prüf- und Lieferkettenfragen nicht erst später in freie Texte ausgelagert werden."
+      "a": "Nein. Die Quellen sagen nicht, dass jeder Einsatzfall unter die Hochrisiko-Regeln fällt. Sie machen aber klar, welche Nachweisthemen künftige harmonisierte Standards für hochriskante Systeme abdecken sollen und welche Beispiele die Kommission für die Klassifizierung bereitstellt. Genau deshalb ist es sinnvoll, diese Felder schon heute getrennt zu führen, den Hochrisiko-Bezug belegbar zu prüfen und offene Grenzfälle nicht in freie Texte auszulagern."
     }
   ],
   "sections": [
@@ -61,7 +65,7 @@
       "heading": "Was sich jetzt praktisch verdichtet",
       "paragraphs": [
         "Die Standardisierungs-FAQ der Kommission benennt jetzt deutlich konkreter, welche Themen harmonisierte Standards für den AI Act abdecken sollen: Risikomanagement, Governance und Qualität von Datensätzen, Logging, Transparenz und Information für Nutzer, Human Oversight, Genauigkeit, Robustheit, Cybersicherheit, Qualitätsmanagement und Konformitätsbewertung.",
-        "Neu praktisch wird das durch einen zweiten Punkt: Wenn harmonisierte Standards später im Amtsblatt referenziert werden, sollen sie mit einem Annex erscheinen, der die rechtlichen Anforderungen des AI Act auf die Klauseln des Standards abbildet. Für KIRegister heißt das nicht, heute schon Normtexte zu simulieren. Es heißt aber, den Use-Case Pass so zu strukturieren, dass diese Nachweisthemen nicht in einer einzigen Freitextbeschreibung verschwinden."
+        "Neu praktisch wird das durch zwei zusätzliche Signale: Das AI Act Advisory Forum hat bei seinem Kick-off am 19. Juni 2026 erste Beiträge zu Standardisierungsfragen und zu den Draft-Guidelines für die Hochrisiko-Klassifizierung behandelt. Zugleich stellt der AI Act Service Desk Zusammenfassungen, Beispiele und den Guideline Explorer bereit; die Feedback-Seite nennt für die Konsultation den 23. Juli 2026, die finale Annahme der Guidelines bis Ende 2026 und die verschobene Anwendung der Hochrisiko-Regeln ab Dezember 2027 für Stand-alone-Systeme beziehungsweise August 2028 für produktintegrierte Systeme. Für KIRegister heißt das nicht, heute schon Normtexte zu simulieren. Es heißt aber, den Use-Case Pass so zu strukturieren, dass Nachweisfelder, Klassifizierungslogik, Fristbezug und offene Grenzfälle nicht in einer einzigen Freitextbeschreibung verschwinden."
       ]
     },
     {
@@ -95,6 +99,18 @@
         {
           "label": "Qualitätsmanagement",
           "value": "Welche wiederkehrenden Review-, Änderungs- und Korrekturprozesse den Einsatzfall über den Lebenszyklus stabil halten."
+        },
+        {
+          "label": "Hochrisiko-Klassifizierungsanker",
+          "value": "Welche AI-Act-Kategorie, Annex-I-Produktnähe, Annex-III-Nähe oder dokumentierte Nicht-Hochrisiko-Begründung für den Einsatzfall geprüft wurde."
+        },
+        {
+          "label": "Beispiel- und Konsultationsbezug",
+          "value": "Welche offizielle Guideline-Stelle, Service-Desk-Zusammenfassung oder praktische Beispielgruppe zur Bewertung herangezogen wurde und wann diese Evidenz erneut geprüft wird."
+        },
+        {
+          "label": "Frist- und Review-Bezug",
+          "value": "Ob der Einsatzfall als Stand-alone-System, produktintegriertes System oder nicht betroffener Grenzfall geführt wird und welches Review-Datum zur finalen Guideline-Annahme gesetzt wurde."
         }
       ]
     },
@@ -103,8 +119,8 @@
       "heading": "Warum das den Use-Case Pass stärkt",
       "items": [
         "Der Pass wird von einer allgemeinen Beschreibung zu einem nach Themen trennbaren Nachweisobjekt.",
-        "Spätere Standard- oder Annex-Zuordnungen lassen sich auf vorhandene Felder beziehen statt auf unstrukturierte Fließtexte.",
-        "Audit-, Lieferketten- und Beschaffungsfragen können mit denselben Pass-Feldern beantwortet werden.",
+        "Spätere Standard-, Annex- oder Guideline-Zuordnungen lassen sich auf vorhandene Felder beziehen statt auf unstrukturierte Fließtexte.",
+        "Audit-, Lieferketten- und Beschaffungsfragen können mit denselben Pass-Feldern beantwortet werden, einschließlich des belegten Hochrisiko-Prüfpfads.",
         "Register, Export und Verify-Fläche bleiben auf derselben Nachweislogik statt drei verschiedene Dokumentationswelten zu erzeugen."
       ]
     },
@@ -113,7 +129,7 @@
       "heading": "Was daraus nicht abgeleitet werden sollte",
       "paragraphs": [
         "Die offiziellen Seiten sagen nicht, dass Unternehmen auf die Veröffentlichung harmonisierter Standards warten sollten. Ebenso wenig sagen sie, dass jede Organisation heute schon dieselbe Tiefe wie eine spätere Konformitätsbewertung braucht.",
-        "Nicht sinnvoll ist deshalb ein überladener Pass, der Normkapitel nachahmt oder Formalismen ohne echten Einsatzfallbezug sammelt. Sinnvoll ist eine schlanke, aber klar getrennte Feldlogik, die bei Bedarf verdichtet werden kann, ohne das Grundobjekt neu zu bauen."
+        "Nicht sinnvoll ist deshalb ein überladener Pass, der Normkapitel nachahmt oder Formalismen ohne echten Einsatzfallbezug sammelt. Ebenso schwach wäre eine bloße Ampel für Hochrisiko, die nicht zeigt, welche offizielle Kategorie, welches Beispiel oder welche Ausschlussbegründung geprüft wurde. Sinnvoll ist eine schlanke, aber klar getrennte Feldlogik, die bei Bedarf verdichtet werden kann, ohne das Grundobjekt neu zu bauen."
       ]
     },
     {
@@ -121,7 +137,7 @@
       "heading": "Was jetzt konkret aufgebaut werden sollte",
       "paragraphs": [
         "Für relevante oder potenziell sensible KI-Einsatzfälle sollte der Pass nicht nur Zweck, Owner und Status führen, sondern die Nachweisthemen aus der FAQ als eigene Bereiche sichtbar machen. Das betrifft besonders Fälle mit Partnerprüfung, Beschaffung, Qualitätsmanagement oder möglicher Hochrisiko-Nähe.",
-        "Im nächsten Schritt sollten dieselben Felder in Exporte, Supplier Requests und interne Review-Routinen übernommen werden. So entsteht ein dokumentenzentrierter Standard, der mit künftigen Standardisierungs- und OJEU-Mappings anschlussfähig bleibt, ohne heute mehr zu versprechen als die Quellen tragen."
+        "Im nächsten Schritt sollten dieselben Felder in Exporte, Supplier Requests und interne Review-Routinen übernommen werden. Zusätzlich sollte jeder potenziell sensible Einsatzfall einen belegten Klassifizierungsvermerk führen: geprüfte AI-Act-Nähe, herangezogene Guideline- oder Beispielquelle, aktueller Evidenzstand, betroffene Fristlogik und Datum der nächsten Überprüfung. So entsteht ein dokumentenzentrierter Standard, der mit künftigen Standardisierungs-, Guideline- und OJEU-Mappings anschlussfähig bleibt, ohne heute mehr zu versprechen als die Quellen tragen."
       ]
     }
   ]
