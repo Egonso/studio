@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-17",
-  "last_substantive_update": "2026-06-22",
+  "last_substantive_update": "2026-06-29",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
@@ -20,7 +20,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "OEM Supplier Request Kit für KI-Nachweise in der Lieferkette",
-  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Die Aktualisierung vom 22. Juni 2026 schärft das Kit als Automotive-Artefakt für Beschaffung, Supplier Quality, Audit, Beratung, Training und Governance: Jede externe Aussage wird auf denselben Use-Case Pass, dieselbe Evidenzgrenze und denselben nächsten operativen Schritt zurückgeführt. Ergänzt ist ein Supplier-Quality-Abnahmepunkt, damit Teams vor dem Versand festhalten können, ob eine Antwort akzeptierbar ist, vertieft werden muss, Evidenz nachgefordert wird oder die externe Aussage zurückgehalten bleibt.",
+  "summary": "Das Supplier Request Kit unterstützt Unternehmen dabei, eine OEM- oder Auftraggeberanfrage zu einem konkreten KI-Einsatzfall schnell, sauber und belastbar zu beantworten. Die Aktualisierung vom 29. Juni 2026 schärft das Kit als Automotive-Artefakt für Beschaffung, Supplier Quality, Audit, Beratung, Training und Governance: Jede externe Aussage wird auf denselben Use-Case Pass, dieselbe Evidenzgrenze und denselben nächsten operativen Schritt zurückgeführt. Ergänzt ist eine Anfragekanal-Matrix, damit Teams vor Portalantwort, Supplier-Quality-Runde, Verify-Nutzung oder Eskalation erkennen, welche Belegform genügt und wann Evidenz nachgefordert oder die externe Aussage zurückgehalten werden muss.",
   "object_label": "Lieferketten-Artefakt",
   "stance_label": "Lieferketten-Toolkit",
   "author": "KIRegister",
@@ -36,7 +36,8 @@
     "eine gemeinsame Erwartungslogik für Beschaffung, Qualitätsmanagement, Audit, Beratung, Training und Compliance vor jeder externen Aussage",
     "eine neutrale Übergabeentscheidung, ob eine Antwort vertretbar ist, Evidenz nachgefordert wird oder ein Review-Schritt im Register folgen muss",
     "ein Procurement-Readiness-Gate für OEM-Beschaffung und Supplier Quality, bevor ein Verify-Link, Dossier oder Request-Brief nach außen geht",
-    "einen Supplier-Quality-Abnahmepunkt, der Zweck, Datenbezug, Wirkungsnähe, offene Punkte und externe Aussagegrenze vor dem Versand zusammenführt"
+    "einen Supplier-Quality-Abnahmepunkt, der Zweck, Datenbezug, Wirkungsnähe, offene Punkte und externe Aussagegrenze vor dem Versand zusammenführt",
+    "eine Anfragekanal-Matrix für OEM-Portalantwort, Supplier-Quality-Runde, Verify-Nutzung, rechtliche Eskalation und Standardisierungsrunde"
   ],
   "downloads": [
     {
@@ -209,6 +210,26 @@
         {
           "label": "Bei begrenzter Abnahme",
           "value": "Die Abnahmeentscheidung beschreibt genau, welcher Teil der Antwort akzeptiert wird, welcher Punkt offen bleibt, wer ihn trägt und bis wann Supplier Quality oder Compliance erneut liest."
+        },
+        {
+          "label": "OEM-Portalantwort",
+          "value": "Erwartet wird eine knappe, fallbezogene Antwort mit Einsatzfall, Zweck, verantwortlicher Rolle, aktuellem Review-Stand und Belegpfad. Der Pass muss die externe Kernaussage tragen; zusätzliche Formularfelder dürfen nur vorhandene Pass-Angaben verdichten."
+        },
+        {
+          "label": "Supplier-Quality-Runde",
+          "value": "Erwartet wird zusätzlich eine sichtbare Einordnung von Wirkungsnähe, Qualitätsbezug, offenen Punkten und Kontrollbeschreibung. Wenn diese Angaben fehlen, bleibt die Antwort im Status Nachforderung; die konkrete Evidenz wird dem passenden Pass-Feld zugeordnet."
+        },
+        {
+          "label": "Verify-Nutzung",
+          "value": "Erwartet wird ein stabiler, intern freigegebener Nachweisausschnitt. Verify zeigt nur Kernaussagen, die bereits im Pass dokumentiert sind; vertiefende Aussagen zu Datenlage, Qualitätsnähe oder Eskalation bleiben im Dossier oder in der internen Review-Matrix."
+        },
+        {
+          "label": "Rechtliche oder Compliance-Eskalation",
+          "value": "Erwartet wird eine saubere Trennung zwischen belegter Einsatzfallbeschreibung, offener Bewertung und nächstem Prüfauftrag. Der Pass liefert die Ausgangsbasis, ersetzt aber keine rechtliche Entscheidung und keine technische Konformitätsbewertung."
+        },
+        {
+          "label": "Standardisierungsrunde mit OEM oder Tier-1",
+          "value": "Erwartet wird eine wiederholbare Mindeststruktur aus Einsatzfall, Owner, Review-Stand, Belegquelle, Aussagegrenze und Abnahmeentscheidung. Diese Struktur kann in Portalfragen, Audit-Vorbereitung und Lieferantenhandbuch übernommen werden, ohne die Pass-Logik zu verlassen."
         }
       ]
     },
