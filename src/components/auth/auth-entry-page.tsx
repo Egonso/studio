@@ -988,10 +988,32 @@ export default function AuthEntryPage() {
             ? t('auth.step2')
             : t('auth.step3');
 
+  // With explicit auth context (mode/intent/code/…) this page acts as a
+  // focused flow step after the cinematic landing: no marketing repeat,
+  // just the relevant panel plus a one-line orientation.
+  const focusedFlow = hasExplicitAuthContext;
+
+  const focusedIntro =
+    mode === 'login'
+      ? locale === 'en'
+        ? 'Open your existing register: sign in and continue where you left off.'
+        : 'Bestehendes Register öffnen: anmelden und direkt weiterarbeiten.'
+      : intent === 'join_register'
+        ? locale === 'en'
+          ? 'Join an existing register — with the invitation code or link from your team.'
+          : 'Einem bestehenden Register beitreten — mit dem Einladungscode oder Link Ihres Teams.'
+        : locale === 'en'
+          ? 'Set up your organisation’s register free of charge: account, organisation, share. Takes about two minutes.'
+          : 'Das KI-Register Ihrer Organisation kostenfrei einrichten: Konto, Organisation, teilen. Dauert etwa zwei Minuten.';
+
   return (
     <MarketingShell>
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 py-8 sm:px-6">
-        <div className="mb-10 flex items-center gap-3">
+      <main
+        className={`mx-auto flex min-h-screen w-full flex-col px-4 py-8 sm:px-6 ${
+          focusedFlow ? 'max-w-xl' : 'max-w-3xl'
+        }`}
+      >
+        <div className="mb-8 flex items-center gap-3">
           <ThemeAwareLogo
             alt={t('metadata.appName')}
             width={34}
@@ -1003,6 +1025,21 @@ export default function AuthEntryPage() {
           </p>
         </div>
 
+        {focusedFlow ? (
+          <div className="mb-8 space-y-4">
+            <Link
+              href={localizeInternalHref('/')}
+              className="text-sm text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+            >
+              ← {locale === 'en' ? 'Back to overview' : 'Zurück zur Übersicht'}
+            </Link>
+            <p className="border-l-2 border-slate-950 pl-4 text-sm leading-6 text-slate-600">
+              {focusedIntro}
+            </p>
+          </div>
+        ) : null}
+
+        {focusedFlow ? null : (
         <section className="space-y-6 pb-10">
           <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
             {t('auth.marketing.heroTitle')}
@@ -1065,7 +1102,9 @@ export default function AuthEntryPage() {
             </a>
           </div>
         </section>
+        )}
 
+        {focusedFlow ? null : (
         <section className="space-y-5 border-t border-slate-200 py-8">
           <div className="flex gap-4">
             <span className="mt-3 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
@@ -1101,6 +1140,7 @@ export default function AuthEntryPage() {
             </div>
           </div>
         </section>
+        )}
 
         {contextNotices.length > 0 ? (
           <div className="mb-6 space-y-3">
@@ -1597,19 +1637,23 @@ export default function AuthEntryPage() {
           <p className="text-sm leading-6 text-slate-600">
             {t('auth.marketing.privacyNote')}
           </p>
-          <p className="text-sm leading-6 text-slate-600">
-            {t('auth.marketing.shareNote')}
-          </p>
+          {focusedFlow ? null : (
+            <p className="text-sm leading-6 text-slate-600">
+              {t('auth.marketing.shareNote')}
+            </p>
+          )}
         </section>
 
-        <section className="mt-8 border-t border-slate-200 pt-5">
-          <Link
-            href={localizeInternalHref('/plattform')}
-            className="text-sm leading-6 text-slate-500 underline-offset-4 hover:text-slate-950 hover:underline"
-          >
-            {t('auth.marketing.footerPlattformLink')}
-          </Link>
-        </section>
+        {focusedFlow ? null : (
+          <section className="mt-8 border-t border-slate-200 pt-5">
+            <Link
+              href={localizeInternalHref('/plattform')}
+              className="text-sm leading-6 text-slate-500 underline-offset-4 hover:text-slate-950 hover:underline"
+            >
+              {t('auth.marketing.footerPlattformLink')}
+            </Link>
+          </section>
+        )}
 
       </main>
     </MarketingShell>

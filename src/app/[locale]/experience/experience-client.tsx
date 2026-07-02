@@ -35,6 +35,9 @@ interface ExperienceCopy {
   chromeCta: string;
   chromeLogin: string;
   chromeJoin: string;
+  entryLabel: string;
+  entries: { title: string; body: string; action: string; kind: 'create' | 'join' | 'open' }[];
+  ctaOpen: string;
   quickLinks: { label: string; href: string; external?: boolean }[];
   spine: string[];
   mandatLabel: string;
@@ -86,6 +89,28 @@ const DE: ExperienceCopy = {
   chromeCta: 'Register anlegen',
   chromeLogin: 'Anmelden',
   chromeJoin: 'Register beitreten',
+  entryLabel: 'Direkt starten — drei Wege',
+  entries: [
+    {
+      kind: 'create',
+      title: 'KI-Register kostenfrei einrichten',
+      body: 'Für Organisationen, die starten: Konto anlegen, Organisation benennen, Register teilen. Dauert etwa zwei Minuten, keine Kreditkarte.',
+      action: 'Register einrichten',
+    },
+    {
+      kind: 'join',
+      title: 'Bestehendem Register beitreten',
+      body: 'Sie haben einen Einladungscode oder Link von Ihrem Team? Hier einlösen und direkt Einsatzfälle erfassen.',
+      action: 'Einladung einlösen',
+    },
+    {
+      kind: 'open',
+      title: 'Bestehendes Register öffnen',
+      body: 'Ihre Organisation hat bereits ein Register: anmelden und dort weiterarbeiten, wo Sie aufgehört haben.',
+      action: 'Anmelden',
+    },
+  ],
+  ctaOpen: 'Bestehendes Register öffnen',
   quickLinks: [
     { label: 'Use Case in 30 s erfassen', href: '/capture' },
     { label: 'Downloads', href: '/downloads' },
@@ -242,6 +267,28 @@ const EN: ExperienceCopy = {
   chromeCta: 'Set up register',
   chromeLogin: 'Sign in',
   chromeJoin: 'Join a register',
+  entryLabel: 'Start now — three paths',
+  entries: [
+    {
+      kind: 'create',
+      title: 'Set up an AI register free of charge',
+      body: 'For organisations starting out: create an account, name your organisation, share the register. About two minutes, no credit card.',
+      action: 'Set up register',
+    },
+    {
+      kind: 'join',
+      title: 'Join an existing register',
+      body: 'You received an invitation code or link from your team? Redeem it here and start capturing use cases.',
+      action: 'Redeem invitation',
+    },
+    {
+      kind: 'open',
+      title: 'Open your existing register',
+      body: 'Your organisation already has a register: sign in and continue where you left off.',
+      action: 'Sign in',
+    },
+  ],
+  ctaOpen: 'Open existing register',
   quickLinks: [
     { label: 'Capture a use case in 30 s', href: '/capture' },
     { label: 'Downloads', href: '/downloads' },
@@ -1146,6 +1193,28 @@ export default function ExperienceClient({ locale }: { locale: string }) {
         </div>
       </section>
 
+      {/* ============ DIREKT STARTEN ============ */}
+      <section className={s.act} aria-label={copy.entryLabel}>
+        <p className={s.actLabel}>{copy.entryLabel}</p>
+        <div className={s.entryGrid}>
+          {copy.entries.map((entry) => {
+            const href =
+              entry.kind === 'create'
+                ? setupHref
+                : entry.kind === 'join'
+                  ? joinHref
+                  : loginHref;
+            return (
+              <Link key={entry.kind} href={href} className={s.entryCard}>
+                <h2>{entry.title}</h2>
+                <p>{entry.body}</p>
+                <span className={s.entryAction}>{entry.action} →</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
       {/* ============ AKT I — DAS MANDAT ============ */}
       <section ref={mandatRef} className={`${s.act} ${s.dark}`}>
         <p className={s.actLabel}>{copy.mandatLabel}</p>
@@ -1331,16 +1400,22 @@ export default function ExperienceClient({ locale }: { locale: string }) {
         </h2>
         <div className={s.finaleActions}>
           <Link ref={ctaRef} href={setupHref} className={s.btnPrimary}>
-            {copy.ctaPrimary}
+            {copy.entries[0].title}
           </Link>
           <Link href={joinHref} className={s.btnGhost}>
             {copy.chromeJoin}
           </Link>
-          <Link href={captureHref} className={s.btnGhost}>
-            {copy.ctaSecondary}
+          <Link href={loginHref} className={s.btnGhost}>
+            {copy.ctaOpen}
           </Link>
         </div>
-        <p className={s.finaleMeta}>{copy.finaleMeta}</p>
+        <p className={s.finaleMeta}>
+          {copy.finaleMeta}
+          {' · '}
+          <Link href={captureHref} className={s.finaleMetaLink}>
+            {copy.ctaSecondary}
+          </Link>
+        </p>
       </section>
 
       <footer className={s.footer}>

@@ -10,7 +10,7 @@ import {
 
 import { FortbildungCheckoutButton } from '@/components/fortbildung/fortbildung-checkout-button';
 import { MarketingShell } from '@/components/product-shells';
-import { ThemeAwareLogo } from '@/components/theme-aware-logo';
+import { SiteHeader } from '@/components/public-chrome';
 import { academyProgramDefinitions } from '@/lib/academy-programs';
 import { courseData } from '@/lib/course-data';
 import { localizeHref } from '@/lib/i18n/localize-href';
@@ -223,7 +223,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function FortbildungPage({ params }: Props) {
   const { locale } = await params;
   const isGerman = locale === 'de';
-  const localizedPlatformHref = localizeHref(locale, '/plattform');
   const mainCourseVideoCount = courseData.reduce(
     (count, module) =>
       count +
@@ -468,32 +467,28 @@ export default async function FortbildungPage({ params }: Props) {
   return (
     <MarketingShell>
       <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6">
-        <header className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-          <div className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950">
-            <ThemeAwareLogo
-              alt={copy.brand}
-              width={34}
-              height={34}
-              className="h-8 w-auto"
-            />
-            <span>{copy.brand}</span>
-          </div>
-          <Link
-            href={localizedPlatformHref}
-            className="text-sm text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
-          >
-            {copy.navBack}
-          </Link>
-        </header>
+        <SiteHeader locale={locale} />
 
         <section className="grid gap-8 border-b border-slate-200 pb-10 xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start">
           <div className="space-y-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {copy.kicker}
             </p>
             <h1 className="max-w-4xl text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
               {copy.title}
             </h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-slate-950 pl-4">
+              <p className="text-sm font-medium text-slate-950">
+                {locale === 'en'
+                  ? 'With Prof. Dr. Janine Wendt · TU Darmstadt'
+                  : 'Mit Prof. Dr. Janine Wendt · TU Darmstadt'}
+              </p>
+              <p className="text-sm text-slate-600">
+                {locale === 'en'
+                  ? 'Leading legal expert on the EU AI Act'
+                  : 'Führende Rechtsexpertin zum EU AI Act'}
+              </p>
+            </div>
             <p className="max-w-3xl text-lg leading-8 text-slate-600">
               {copy.lead}
             </p>
@@ -511,7 +506,7 @@ export default async function FortbildungPage({ params }: Props) {
           </div>
 
           <aside className="border border-slate-200 bg-slate-50 px-5 py-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {copy.priceLabel}
             </p>
             <p className="mt-3 text-5xl font-semibold tracking-tight text-slate-950">
@@ -553,7 +548,7 @@ export default async function FortbildungPage({ params }: Props) {
 
         <section className="space-y-4 border-b border-slate-200 py-10">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               Kostenloser Einstieg für alle Mitarbeitenden
             </p>
             <span className="border border-slate-950 bg-slate-950 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
@@ -583,7 +578,7 @@ export default async function FortbildungPage({ params }: Props) {
 
         <section className="space-y-6 border-b border-slate-200 py-10">
           <div className="max-w-4xl space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {copy.screenshotsLabel}
             </p>
             <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
@@ -626,7 +621,7 @@ export default async function FortbildungPage({ params }: Props) {
 
         <section className="grid gap-8 border-b border-slate-200 py-10 lg:grid-cols-[320px_minmax(0,1fr)]">
           <div className="space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {copy.productTruthLabel}
             </p>
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
@@ -677,7 +672,7 @@ export default async function FortbildungPage({ params }: Props) {
         <section className="grid gap-8 border-b border-slate-200 py-10 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-5">
             <div className="space-y-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                 {copy.primaryProductLabel}
               </p>
               <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
@@ -698,7 +693,7 @@ export default async function FortbildungPage({ params }: Props) {
                   <summary className="cursor-pointer list-none">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                           {module.phase}
                         </p>
                         <h3 className="mt-1 text-lg font-semibold leading-7 text-slate-950">
@@ -753,7 +748,7 @@ export default async function FortbildungPage({ params }: Props) {
 
         <section className="space-y-6 border-b border-slate-200 py-10">
           <div className="max-w-4xl space-y-3">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               Neulaunch
             </p>
             <h2 className="text-3xl font-semibold tracking-tight text-slate-950">
@@ -767,7 +762,7 @@ export default async function FortbildungPage({ params }: Props) {
           <div className="grid gap-5 lg:grid-cols-2">
             {bonusPrograms.map((program) => (
               <article key={program.slug} className="border border-slate-200 px-5 py-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                   {program.displayLabel}
                 </p>
                 <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
@@ -779,7 +774,7 @@ export default async function FortbildungPage({ params }: Props) {
                 <div className="mt-5 space-y-4 border-t border-slate-200 pt-5">
                   {program.lessons.map((lesson, index) => (
                     <div key={lesson.id} className="space-y-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                         Bonusmodul {index + 1} · {lesson.duration}
                       </p>
                       <h4 className="text-base font-semibold text-slate-950">

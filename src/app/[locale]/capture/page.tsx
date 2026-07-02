@@ -407,40 +407,88 @@ export default function StandaloneCapturePage() {
       <SignedInAreaFrame
         area="signed_in_free_register"
         title="Quick Capture"
-        description="Der direkte Weg, um einen neuen KI-Einsatzfall zu dokumentieren."
-        nextStep="Melden Sie sich an, um direkt ins Register zu speichern."
+        description="Ein KI-Einsatzfall wird in rund 30 Sekunden erfasst — System, Zweck, Verantwortung. Daraus entsteht ein Eintrag im KI-Register Ihrer Organisation."
+        nextStep="Direkt ausprobieren oder anmelden und ins Register speichern."
         width="5xl"
       >
-        <Card className="mx-auto w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Quick Capture starten</CardTitle>
-            <CardDescription>
-              Melden Sie sich an, um direkt in Ihr Register zu speichern, oder nutzen Sie den Gastmodus.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button
-              className="w-full"
-              onClick={() => {
-                router.push("/login?mode=login");
-              }}
-            >
-              Anmelden
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setGuestMode(true);
-              }}
-            >
-              Als Gast fortfahren
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              Im Gastmodus werden Einträge lokal in diesem Browser gespeichert.
+        <div className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Capture starten</CardTitle>
+              <CardDescription>
+                Drei kurze Felder, keine Vorkenntnisse nötig. Sie können sofort
+                loslegen — ein Konto brauchen Sie erst, wenn der Eintrag ins
+                Register Ihrer Organisation soll.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button
+                className="h-11 w-full"
+                onClick={() => {
+                  setGuestMode(true);
+                }}
+              >
+                Direkt ausprobieren — ohne Anmeldung
+              </Button>
+              <Button
+                variant="outline"
+                className="h-11 w-full"
+                onClick={() => {
+                  router.push("/login?mode=login");
+                }}
+              >
+                Anmelden und ins Register speichern
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Ohne Anmeldung werden Einträge lokal in diesem Browser
+                gespeichert und lassen sich später in ein Register übernehmen.
+                Mit Einladungslink Ihres Teams landet der Eintrag direkt im
+                richtigen Register.
+              </p>
+              <div className="grid gap-2 border-t pt-4 text-xs text-muted-foreground sm:grid-cols-3">
+                <p>
+                  <span className="font-medium text-foreground">1 · Erfassen</span>
+                  <br />
+                  System, Zweck, Daten — ca. 30 Sekunden.
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">2 · Prüfen</span>
+                  <br />
+                  Risk Assist schlägt vor, ein Mensch bestätigt.
+                </p>
+                <p>
+                  <span className="font-medium text-foreground">3 · Nachweisen</span>
+                  <br />
+                  Als Use Case Pass teilen (PDF/JSON).
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <a
+            href="/resources/examples/ki-register-use-case-pass-beispiel.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="group block border bg-card p-4"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Daraus wird
             </p>
-          </CardContent>
-        </Card>
+            <p className="mt-1 text-sm font-medium text-foreground">
+              Ein Use Case Pass — der vorlegbare Nachweis
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/use-case-pass-example.png"
+              alt="Beispiel eines Use Case Pass als PDF"
+              className="mt-3 max-h-72 w-full border object-cover object-top"
+              loading="lazy"
+            />
+            <p className="mt-2 text-xs text-muted-foreground underline-offset-4 group-hover:underline">
+              Beispiel-PDF öffnen
+            </p>
+          </a>
+        </div>
       </SignedInAreaFrame>
     );
   }

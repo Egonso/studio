@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 import { MarketingShell } from '@/components/product-shells';
-import { ThemeAwareLogo } from '@/components/theme-aware-logo';
+import { SiteHeader } from '@/components/public-chrome';
 import { localizeHref } from '@/lib/i18n/localize-href';
 
 const WHITEPAPER_HREF = '/downloads/KIregister_Whitepaper_EU_AI_Act.pdf';
@@ -209,41 +209,11 @@ export default function PlattformPageClient() {
   return (
     <MarketingShell>
       <main className="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6">
-        <header className="mb-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
-          <Link
-            href={localizeHref(locale, '/')}
-            className="flex items-center gap-3 text-sm font-semibold tracking-tight text-slate-950"
-          >
-            <ThemeAwareLogo
-              alt={t('metadata.appName')}
-              width={32}
-              height={32}
-              className="h-8 w-auto"
-            />
-            <span>{t('metadata.appName')}</span>
-          </Link>
-
-          <div className="flex items-center gap-4 text-sm text-slate-600">
-            <Link
-              href={localizeHref(locale, '/')}
-              className="underline-offset-4 hover:text-slate-950 hover:underline"
-            >
-              {t('nav.home')}
-            </Link>
-            <a
-              href={WHITEPAPER_HREF}
-              target="_blank"
-              rel="noreferrer"
-              className="underline-offset-4 hover:text-slate-950 hover:underline"
-            >
-              {t('nav.whitepaper')}
-            </a>
-          </div>
-        </header>
+        <SiteHeader locale={locale} />
 
         <div className="space-y-10">
           <section className="space-y-4 border-b border-slate-200 pb-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {t('plattform.kicker')}
             </p>
             <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight text-slate-950 sm:text-5xl">
@@ -263,7 +233,7 @@ export default function PlattformPageClient() {
           >
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
               <div className="space-y-4">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                   {governanceCopy.eyebrow}
                 </p>
                 <h2 className="max-w-3xl text-3xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-4xl">
@@ -290,7 +260,7 @@ export default function PlattformPageClient() {
               </div>
 
               <aside className="border border-slate-200 bg-slate-50 px-5 py-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                   {governanceCopy.proofLabel}
                 </p>
                 <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-950">
@@ -315,7 +285,7 @@ export default function PlattformPageClient() {
 
             <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                   {governanceCopy.modelLabel}
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
@@ -328,7 +298,7 @@ export default function PlattformPageClient() {
                     key={item.label}
                     className="border border-slate-200 bg-white px-4 py-4"
                   >
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                       {item.label}
                     </p>
                     <h4 className="mt-3 text-base font-semibold text-slate-950">
@@ -343,7 +313,7 @@ export default function PlattformPageClient() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
                 {governanceCopy.modulesLabel}
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -370,7 +340,7 @@ export default function PlattformPageClient() {
           </section>
 
           <section className="space-y-4 border-b border-slate-200 pb-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {t('plattform.pillarsLabel')}
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -399,7 +369,7 @@ export default function PlattformPageClient() {
           </section>
 
           <section className="space-y-4 border-b border-slate-200 pb-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {t('plattform.closing.label')}
             </p>
             <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
@@ -413,7 +383,7 @@ export default function PlattformPageClient() {
           </section>
 
           <section className="border border-slate-200 bg-slate-50 px-4 py-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-slate-500">
               {t('plattform.nextStep.label')}
             </p>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700 sm:text-base">
