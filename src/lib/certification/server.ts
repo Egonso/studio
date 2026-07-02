@@ -928,8 +928,25 @@ async function findLatestCertificateByEmail(
   const normalizedEmail = normalizeEmail(email);
   const certificates = await listCertificates();
   return (
-    certificates.find((certificate) => certificate.email === normalizedEmail) ??
-    null
+    certificates.find(
+      (certificate) =>
+        certificate.email === normalizedEmail && !certificate.program,
+    ) ?? null
+  );
+}
+
+async function findLatestProgramCertificateByEmail(
+  email: string,
+  program: string,
+): Promise<PersonCertificateRecord | null> {
+  const normalizedEmail = normalizeEmail(email);
+  const certificates = await listCertificates();
+  return (
+    certificates.find(
+      (certificate) =>
+        certificate.email === normalizedEmail &&
+        certificate.program === program,
+    ) ?? null
   );
 }
 
@@ -966,6 +983,7 @@ async function saveAttempt(attempt: ExamAttemptRecord): Promise<void> {
 
 async function saveCertificate(
   certificate: PersonCertificateRecord,
+  options?: { skipUserMirror?: boolean },
 ): Promise<void> {
   const effectiveStatus = resolveCertificateStatus(certificate);
 
@@ -989,6 +1007,12 @@ async function saveCertificate(
     .collection('public_certificates')
     .doc(certificate.certificateCode)
     .set(buildPublicRecord(certificate), { merge: true });
+
+  if (options?.skipUserMirror) {
+    // Program certificates (role trainings) must not overwrite the
+    // per-email mirror document used by the main course certificate.
+    return;
+  }
 
   await db
     .collection('user_certificates')
@@ -1798,4 +1822,105 @@ export async function getBadgePreviewData(
     html,
     origin: getPublicAppOrigin(),
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* Training program certificates (e.g. Art.-4 role trainings)          */
+/* ------------------------------------------------------------------ */
+
+export interface TrainingCertificateInput {
+  program: string;
+  examVersion: string;
+  modules: string[];
+  company?: string | null;
+  validityMonths?: number;
+}
+
+export interface TrainingCertificateResult {
+  certificate: PersonCertificateRecord;
+  document: CertificateDocumentRecord | null;
+}
+
+/**
+ * Issues (or re-uses) a certificate for a short training program.
+ * Stored alongside main-course certificates but tagged with `program`,
+ * so it never shadows the main certificate (see
+ * findLatestCertificateByEmail) and never touches the per-email
+ * user_certificates mirror.
+ */
+export async function issueTrainingProgramCertificate(
+  actor: CertificationActor,
+  input: TrainingCertificateInput,
+): Promise<TrainingCertificateResult> {
+  const settings = await getSettings();
+  const holderName = actor.displayName?.trim() || actor.email;
+  const validityMonths =
+    input.validityMonths && input.validityMonths > 0 ? input.validityMonths : 24;
+
+  const existing = await findLatestProgramCertificateByEmail(
+    actor.email,
+    input.program,
+  );
+
+  let certificate: PersonCertificateRecord;
+  if (existing && existing.status === 'active') {
+    certificate = {
+      ...existing,
+      holderName,
+      company: input.company ?? existing.company,
+      modules: [...input.modules],
+      examVersion: input.examVersion,
+    };
+  } else {
+    const base = createCertificateRecord(
+      actor,
+      actor.email,
+      holderName,
+      input.company ?? null,
+      validityMonths,
+    );
+    const certificateCode = await generateUniqueCertificateCode();
+    certificate = {
+      ...base,
+      certificateCode,
+      examVersion: input.examVersion,
+      modules: [...input.modules],
+      program: input.program,
+      publicUrl: buildCertificateVerifyUrl(certificateCode),
+      auditTrail: [
+        buildAuditEvent(
+          actor.email,
+          'issued',
+          `Training certificate issued for program ${input.program}.`,
+        ),
+      ],
+    };
+  }
+
+  let certificateDocument: CertificateDocumentRecord | null = null;
+  try {
+    const snapshot = buildCertificateDocumentSnapshot(certificate, settings);
+    const generated = await generateDocumentUrl(snapshot);
+    certificateDocument = {
+      documentId: randomUUID(),
+      certificateId: certificate.certificateId,
+      generatedAt: new Date().toISOString(),
+      url: generated.url,
+      provider: generated.provider,
+      generatedBy: actor.email,
+      snapshot,
+    };
+    await saveCertificateDocument(certificateDocument);
+    certificate = {
+      ...certificate,
+      latestDocumentUrl: certificateDocument.url,
+      latestDocumentGeneratedAt: certificateDocument.generatedAt,
+    };
+  } catch (error) {
+    console.error('Training certificate document generation failed:', error);
+  }
+
+  await saveCertificate(certificate, { skipUserMirror: true });
+
+  return { certificate, document: certificateDocument };
 }

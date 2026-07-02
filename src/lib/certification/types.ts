@@ -121,6 +121,13 @@ export interface PersonCertificateRecord {
   latestDocumentGeneratedAt: string | null;
   publicUrl: string;
   auditTrail: CertificateAuditEvent[];
+  /**
+   * Optional training program scope (e.g. "art4-geschaeftsfuehrung").
+   * Absent/null for the main course certificate. Certificates with a
+   * program are issued by short role trainings and must never shadow
+   * the main course certificate.
+   */
+  program?: string | null;
 }
 
 export interface PublicCertificateRecord {

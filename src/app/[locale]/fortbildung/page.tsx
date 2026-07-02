@@ -551,6 +551,36 @@ export default async function FortbildungPage({ params }: Props) {
           ))}
         </section>
 
+        <section className="space-y-4 border-b border-slate-200 py-10">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Kostenloser Einstieg für alle Mitarbeitenden
+            </p>
+            <span className="border border-slate-950 bg-slate-950 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+              Kostenlos
+            </span>
+            <span className="border border-slate-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+              KI-generierte Schulung
+            </span>
+          </div>
+          <h2 className="max-w-3xl text-2xl font-semibold tracking-tight text-slate-950">
+            KI-Kompetenz nach Art. 4: vier Rollenschulungen mit Lernkontrolle
+            und Zertifikat.
+          </h2>
+          <p className="max-w-3xl text-sm leading-7 text-slate-600">
+            Für Geschäftsführung, HR, Sachbearbeitung und IT — je ein 6–8-minütiges
+            Video (KI-generiert, redaktionell kuratiert), acht Prüfungsfragen und
+            ein persönlicher Nachweis mit öffentlich prüfbarem Verify-Link.
+            Dauerhaft kostenlos; ein kostenloses Konto genügt für das Zertifikat.
+          </p>
+          <Link
+            href={localizeHref(locale, '/academy/ki-kompetenz')}
+            className="inline-block border border-slate-950 px-5 py-3 text-sm font-medium text-slate-950 transition-colors hover:bg-slate-950 hover:text-white"
+          >
+            Rollenschulungen öffnen
+          </Link>
+        </section>
+
         <section className="space-y-6 border-b border-slate-200 py-10">
           <div className="max-w-4xl space-y-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
