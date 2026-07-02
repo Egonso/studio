@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-06-23",
+  "last_substantive_update": "2026-07-02",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Partner-Arbeitskit für Audit, Training, Beschaffung und Governance",
-  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung, Review-Log, Prüffähigkeitsnotiz, Prüfbriefing und Übergabe auf derselben Fallbasis hält. Die Aktualisierung ergänzt das Prüfbriefing als operativen Abnahmepunkt: Partner dokumentieren vor Review, Anfrage oder Freigabe, welche Aussage heute getragen werden kann, welche Evidenz fehlt und welche Rolle den nächsten Registerschritt übernimmt.",
+  "summary": "Dieses Artefakt unterstützt Auditoren, Berater, Trainer, Beschaffungsfunktionen und Governance-Praktiker dabei, einen konkreten KI-Einsatzfall in einen belastbaren Use-Case Pass zu überführen. Es bündelt dafür ein neutrales institutionelles Arbeitsset, das Vorprüfung, Gesprächsführung, Rollenklärung, Review-Log, Prüffähigkeitsnotiz, Prüfbriefing und Übergabe auf derselben Fallbasis hält. Die Aktualisierung vom 2. Juli 2026 schärft den Partner-Abnahmevermerk als letzten operativen Prüfpunkt: Vor Review, Anfrage, Trainingsergebnis oder Freigabe wird festgehalten, welche Pass-Aussage getragen werden darf, welche Evidenz fehlt, welche Rolle nachliefert und ob der nächste Schritt im Register, in einer begrenzten Nachforderung oder in bewusster Zurückhaltung liegt.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Arbeitskit für fallbezogene Partnerarbeit",
   "author": "KIRegister",
@@ -39,7 +39,8 @@
     "eine Review-Log-Logik, mit der Partner festhalten, welche Pass-Aussage bestätigt, ergänzt, begrenzt oder nachgefordert wird",
     "eine Prüffähigkeitsnotiz, die nach Audit-, Trainings- oder Beschaffungstermin den nächsten Registerschritt an einem einzelnen Einsatzfall festhält",
     "eine Rollenmatrix, die Owner, Fachbereich, Beschaffung, Lieferantenkontakt, Audit und Governance mit einer konkreten Evidenz- oder Nachforderungsaufgabe verbindet",
-    "ein Prüfbriefing-Gate, das vor Review, Lieferantenanfrage oder Freigabe die tragfähige Aussage, offene Evidenz und nächste Registeraktion festhält"
+    "ein Prüfbriefing-Gate, das vor Review, Lieferantenanfrage oder Freigabe die tragfähige Aussage, offene Evidenz und nächste Registeraktion festhält",
+    "ein Partner-Abnahmevermerk, der nach Audit-, Trainings-, Beschaffungs- oder Governance-Termin die zulässige Aussage, die fehlende Evidenz und die verantwortliche Anschlussrolle auf denselben Use-Case Pass zurückführt"
   ],
   "downloads": [
     {
@@ -90,11 +91,11 @@
     },
     {
       "q": "Was sollte nach einem Partnertermin mindestens vorliegen?",
-      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand, einem knappen Review-Log-Eintrag, einer Prüffähigkeitsnotiz, einer Rollenmatrix, einem Prüfbriefing-Gate und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
+      "a": "Ein klar benannter Einsatzfall mit Zweck, verantwortlicher Rolle, sichtbaren offenen Punkten, aktuellem Review-Stand, einem knappen Review-Log-Eintrag, einer Prüffähigkeitsnotiz, einer Rollenmatrix, einem Prüfbriefing-Gate, einem Partner-Abnahmevermerk und einem nächsten Nachweisschritt im Register. Daran sollte sich jedes Partnerformat messen lassen."
     },
     {
       "q": "Warum hilft das Kit auch der Beschaffung?",
-      "a": "Weil Beschaffung vor Freigabe oder Lieferkettenantwort keine allgemeine KI-Erklärung braucht, sondern eine saubere Fallbasis. Der Pass macht sichtbar, wofür der Einsatzfall genutzt wird, wer ihn verantwortet und welche Evidenz heute tatsächlich belastbar ist."
+      "a": "Weil Beschaffung vor Freigabe oder Lieferkettenantwort eine saubere Fallbasis braucht. Der Pass macht sichtbar, wofür der Einsatzfall genutzt wird, wer ihn verantwortet und welche Evidenz heute tatsächlich belastbar ist. Der Partner-Abnahmevermerk ergänzt diese Sicht um eine knappe Entscheidung: Anfrage vorbereiten, Evidenz nachfordern, Review starten oder externe Aussage zurückhalten."
     },
     {
       "q": "Wann reicht das Kit allein nicht mehr aus?",
@@ -129,6 +130,10 @@
         {
           "label": "Prüfbriefing-Gate",
           "value": "Ein neutraler Kurzvermerk vor Review, Lieferantenanfrage oder interner Freigabe. Er hält fest, welche Pass-Aussage heute tragfähig ist, welche Evidenz fehlt, welche Rolle nachliefert und ob der nächste Schritt Prüfung, Nachforderung, Supplier Request oder Zurückhalten lautet."
+        },
+        {
+          "label": "Partner-Abnahmevermerk",
+          "value": "Ein knapper Abschlussvermerk nach Audit-, Trainings-, Beschaffungs- oder Governance-Termin. Er bestätigt ausschließlich die heute tragfähige Pass-Aussage, die offene Evidenz, die zuständige Anschlussrolle und die zulässige nächste Registeraktion."
         },
         {
           "label": "Rollenmatrix",
@@ -173,6 +178,10 @@
           "value": "Die sachliche Grenze der heutigen Aussage: Welche Pass-Felder sind belastbar genug für den nächsten Schritt, und welche Aussage muss bis zur Nachforderung oder zum Review zurückgehalten werden?"
         },
         {
+          "label": "Abnahmevermerk",
+          "value": "Ein kurzer Vermerk, der nach dem Termin festhält, ob die Aussage für interne Weiterarbeit, Beschaffungsrückfrage, Trainingsergebnis, Review oder externe Zurückhaltung genutzt werden darf. Er nennt immer Quelle, offene Evidenz, verantwortliche Rolle und nächste Registeraktion."
+        },
+        {
           "label": "Prüfbriefing-Auftrag",
           "value": "Eine begrenzte Fragestellung für den Termin: Soll der Fall reviewfähig gemacht, eine Evidenzlücke geschlossen, eine Lieferantenanfrage vorbereitet oder eine externe Aussage bewusst zurückgehalten werden?"
         }
@@ -204,7 +213,11 @@
         },
         {
           "label": "Governance-Praktiker",
-          "value": "Nutzen die Prüffähigkeitsnotiz und das Prüfbriefing-Gate, um nach dem Termin denselben Registerschritt zu dokumentieren, den Audit, Training oder Beschaffung bereits am Use-Case Pass erkannt haben."
+          "value": "Nutzen die Prüffähigkeitsnotiz, das Prüfbriefing-Gate und den Partner-Abnahmevermerk, um nach dem Termin denselben Registerschritt zu dokumentieren, den Audit, Training oder Beschaffung bereits am Use-Case Pass erkannt haben."
+        },
+        {
+          "label": "Procurement-Stakeholder",
+          "value": "Lesen im Abnahmevermerk, ob eine Anfrage vorbereitet, eine Mindestantwort akzeptiert, eine Evidenzquelle nachgefordert oder eine externe Aussage zurückgehalten werden muss. Damit bleibt Beschaffung an den Pass gebunden und formuliert keine zweite Falllogik."
         },
         {
           "label": "Use-Case Owner und Fachbereich",
@@ -224,7 +237,9 @@
         "Eine verantwortliche Rolle ist benannt und kann Rückfragen, Änderungen und Nachweispflege übernehmen.",
         "Offene Punkte bleiben sichtbar, statt im Protokoll sprachlich geglättet zu werden.",
         "Review-Stand, belastbare Evidenz und nächste Arbeitsschritte sind getrennt voneinander dokumentiert.",
-        "Audit, Beschaffung und Governance greifen auf dasselbe Objekt zu, statt jeweils eine eigene Abfragestruktur aufzubauen."
+        "Audit, Beschaffung und Governance greifen auf dasselbe Objekt zu, statt jeweils eine eigene Abfragestruktur aufzubauen.",
+        "Der Partner-Abnahmevermerk nennt Quelle, Aussagegrenze, offene Evidenz, verantwortliche Rolle und nächste Registeraktion in einer Zeile.",
+        "Eine externe Aussage wird erst vorbereitet, wenn der Abnahmevermerk die tragende Pass-Aussage und die verbleibende Grenze sichtbar getrennt hat."
       ]
     },
     {
@@ -232,7 +247,8 @@
       "heading": "Warum dieses Format für Beschaffung und Governance anschlussfähig ist",
       "paragraphs": [
         "Partnerformate scheitern häufig nicht an fehlender Aktivität, sondern an fehlender Form. Es wird diskutiert, geschult und geprüft, aber der konkrete Einsatzfall bleibt unscharf. Dieses Arbeitskit setzt genau dort an und führt verschiedene Rollen auf eine gemeinsame Fallstruktur zurück.",
-        "Das ist für Auditoren, Trainer, Berater, Beschaffung und Governance-Praktiker anschlussfähig, weil das Kit keine werbliche Kurzlogik braucht. Es liefert eine sachliche Mindestordnung für den einzelnen KI-Einsatzfall und hält offen auseinander, was bereits dokumentiert ist, was noch geprüft werden muss und was erst später entschieden werden kann. Die Rollenmatrix ergänzt diese Ordnung um eine klare Verantwortungszeile, damit nach dem Termin sichtbar bleibt, wer die nächste Evidenz liefert, wer die Aussage trägt und wer bei fehlender Grundlage stoppt."
+        "Das ist für Auditoren, Trainer, Berater, Beschaffung und Governance-Praktiker anschlussfähig, weil das Kit keine werbliche Kurzlogik braucht. Es liefert eine sachliche Mindestordnung für den einzelnen KI-Einsatzfall und hält offen auseinander, was bereits dokumentiert ist, was noch geprüft werden muss und was erst später entschieden werden kann. Die Rollenmatrix ergänzt diese Ordnung um eine klare Verantwortungszeile, damit nach dem Termin sichtbar bleibt, wer die nächste Evidenz liefert, wer die Aussage trägt und wer bei fehlender Grundlage stoppt.",
+        "Der Partner-Abnahmevermerk macht diese Ordnung nach außen kontrollierbar. Er lässt Beschaffung, Audit, Training und Governance denselben Abschluss lesen: Welche Aussage darf aus dem Use-Case Pass übernommen werden, welche Evidenz fehlt noch, welche Rolle liefert nach und welche Registeraktion folgt daraus? Dadurch bleibt die Partnerarbeit institutionell neutral und auf ein primäres Objekt begrenzt."
       ]
     },
     {
