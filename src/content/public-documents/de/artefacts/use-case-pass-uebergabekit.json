@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-23",
-  "last_substantive_update": "2026-06-04",
+  "last_substantive_update": "2026-07-02",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Übergabekit für Audit, Training, Beschaffung und Governance",
-  "summary": "Dieses Übergabekit zeigt, wie ein einzelner Use-Case-Pass von Workshop, Beratung oder Schulung in eine belastbare Prüf-, Freigabe- und Anfragegrundlage überführt wird. Die Aktualisierung ergänzt den Übergabevermerk als primäres Partnerobjekt, damit Audit, Training, Beratung, Beschaffung und Governance nach einem Termin dieselbe Aussagegrenze, denselben Evidenzstand und dieselbe Anschlussentscheidung lesen.",
+  "summary": "Dieses Übergabekit zeigt, wie ein einzelner Use-Case-Pass von Workshop, Beratung oder Schulung in eine belastbare Prüf-, Freigabe- und Anfragegrundlage überführt wird. Die Aktualisierung vom 2. Juli 2026 ergänzt die Partner-Weitergabeprüfung als neutrale Entscheidungszeile, damit Audit, Training, Beratung, Beschaffung und Governance vor Review, Lieferantenanfrage oder Freigabe dieselbe Aussagegrenze, denselben Evidenzstand und dieselbe Anschlussentscheidung lesen.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Übergabekit für Fallarbeit",
   "author": "KIRegister",
@@ -29,14 +29,16 @@
     "Berater und Projektverantwortliche, die aus Discovery oder Workshops eine belastbare Fallstruktur mit klaren Aussagegrenzen übergeben müssen",
     "Trainer und Moderatoren, die Lernformate in reale Register- und Nachweisarbeit überführen",
     "Auditoren, Beschaffung, Vendor Management und Governance-Praktiker, die einen einzelnen KI-Einsatzfall entlang derselben Struktur prüfen oder weiterverwenden",
-    "Procurement-Stakeholder und fachliche Owner, die vor externer Weitergabe eine kurze, neutrale Übergabeentscheidung brauchen"
+    "Procurement-Stakeholder und fachliche Owner, die vor externer Weitergabe eine kurze, neutrale Übergabeentscheidung brauchen",
+    "Governance-Praktiker, die vor Review, Lieferantenanfrage oder Freigabe eine dokumentierte Entscheidungszeile am einzelnen Pass benötigen"
   ],
   "delivers": [
     "eine klare Übergabelogik zwischen Erfassung, Review, Audit, Beschaffung und Governance",
     "ein sofort nutzbares Materialpaket aus Beispielpass, Registermatrix und Pass-Handout",
     "einen neutralen Bezugsrahmen, damit Partnerformate auf demselben Arbeitsobjekt enden statt in Freitext, E-Mails oder Einmalfolien",
     "eine sichtbare Trennung zwischen belastbarer Aussage, offenen Punkten und nächstem formalen Schritt",
-    "einen knappen Übergabevermerk, der Verantwortliche, Evidenzstand, Aussagegrenze und Anschlussentscheidung prüfbar zusammenführt"
+    "einen knappen Übergabevermerk, der Verantwortliche, Evidenzstand, Aussagegrenze und Anschlussentscheidung prüfbar zusammenführt",
+    "eine Partner-Weitergabeprüfung, die zwischen interner Nacharbeit, externer Anfrage, Review-Freigabe und bewusstem Zurückhalten unterscheidet"
   ],
   "downloads": [
     {
@@ -108,6 +110,10 @@
         {
           "label": "Übergabevermerk",
           "value": "Hält am Ende eines Partnerformats fest, welche Aussage heute trägt, welche Evidenz offen bleibt, welche Rolle den nächsten Schritt trägt und welche Entscheidung als Nächstes dokumentiert wird."
+        },
+        {
+          "label": "Partner-Weitergabeprüfung",
+          "value": "Verdichtet den Übergabevermerk in eine neutrale Entscheidungszeile vor Review, Lieferantenanfrage, Freigabe oder externer Aussage: tragbare Aussage, offene Evidenz, verantwortliche Rolle und nächster Registerschritt."
         }
       ]
     },
@@ -134,6 +140,10 @@
         {
           "label": "Beschaffung und Lieferantensteuerung",
           "value": "Lesen im Übergabevermerk, ob die Fallbasis für Anfrage, Nachforderung oder Zurückhaltung reicht und welche Evidenz bei Anbieter oder Fachbereich noch offen ist."
+        },
+        {
+          "label": "Governance-Praktiker und Use-Case Owner",
+          "value": "Nutzen die Partner-Weitergabeprüfung, um Befugnisgrenze, fehlende Evidenz und nächste Registeraktion gemeinsam festzuhalten, bevor Aussagen aus dem Termin in Review, Anfrage oder Freigabe weiterlaufen."
         }
       ]
     },
@@ -160,6 +170,10 @@
         {
           "label": "Übergabevermerk lesbar",
           "value": "Der Abschluss nennt die aktuelle Aussage, die offene Evidenz, die verantwortliche Rolle und die nächste Entscheidung, damit nach dem Termin keine neue Deutung entsteht."
+        },
+        {
+          "label": "Weitergabeentscheidung dokumentiert",
+          "value": "Es ist ausdrücklich festgehalten, ob die Aussage intern vervollständigt, für Review vorbereitet, als Lieferantenrückfrage formuliert oder bis zur fehlenden Evidenz zurückgehalten wird."
         }
       ]
     },
@@ -171,9 +185,10 @@
         "Die verantwortliche Rolle, der aktuelle Status und die referenzierte Evidenz sind lesbar.",
         "Der Übergabevermerk benennt, ob die heutige Aussage akzeptiert, ergänzt, nachgefordert oder zurückgehalten wird.",
         "Offene Punkte bleiben ausdrücklich offen, wenn Review, Freigabe oder Beschaffungsprüfung noch läuft.",
-        "Die nächste formale Aktion ist klar: Pass vervollständigen, Review anstoßen, Anfrage vorbereiten oder Export ableiten.",
+        "Die nächste formale Aktion ist klar: Pass vervollständigen, Review anstoßen, Anfrage vorbereiten, Lieferantenrückfrage begrenzen oder Export ableiten.",
         "Es wird nur nach außen getragen, was durch Pass oder referenzierte Evidenz gestützt ist.",
-        "Der Übergabevermerk trennt ausdrücklich zwischen interner Nacharbeit, externer Aussage und noch nicht belastbarer Annahme."
+        "Der Übergabevermerk trennt ausdrücklich zwischen interner Nacharbeit, externer Aussage und noch nicht belastbarer Annahme.",
+        "Die Partner-Weitergabeprüfung benennt, ob der nächste Schritt in Review, Freigabe, Supplier Request, Nachforderung oder Zurückhalten liegt."
       ]
     },
     {
@@ -182,7 +197,8 @@
       "paragraphs": [
         "Das Übergabekit vermeidet die typische Reibung zwischen Lernformat und Nachweisformat. Schulung, Discovery oder Beratung dürfen offen und explorativ beginnen, aber sie brauchen ein Ende in dokumentierter Form. Der Use-Case-Pass ist dafür stark, weil er weder reine Präsentation noch juristische Vollbewertung ist, sondern ein präzises Objekt für den konkreten Einsatzfall.",
         "Damit entsteht ein neutraler institutioneller Rahmen. Auditoren sehen den Fallzuschnitt und die Evidenzlage, Beschaffung erkennt Mindestangaben und Aussagegrenzen, Governance kann Review-Pfade anschließen, und Berater oder Trainer müssen keine zweite Dokumentationswelt pflegen, um anschlussfähig zu bleiben.",
-        "Der Übergabevermerk macht diese Anschlussfähigkeit konkret. Er übersetzt Artikel-4-Kompetenzbezug, mögliche Betreiberpflichten und Standardisierungslogik in eine kurze Arbeitsnotiz am einzelnen Pass: Wer übernimmt, welche Evidenz liegt vor, welche Aussagegrenze bleibt sichtbar und welche nächste Entscheidung ist zulässig."
+        "Der Übergabevermerk macht diese Anschlussfähigkeit konkret. Er übersetzt Artikel-4-Kompetenzbezug, mögliche Betreiberpflichten und Standardisierungslogik in eine kurze Arbeitsnotiz am einzelnen Pass: Wer übernimmt, welche Evidenz liegt vor, welche Aussagegrenze bleibt sichtbar und welche nächste Entscheidung ist zulässig.",
+        "Die Partner-Weitergabeprüfung ergänzt diese Arbeitsnotiz um eine institutionelle Entscheidungszeile. Sie verhindert, dass ein Terminabschluss automatisch als Freigabe gelesen wird, und hält fest, ob der Fall erst intern vervollständigt, einem Review zugeführt, als eng begrenzte Lieferantenrückfrage weitergegeben oder bis zur fehlenden Evidenz zurückgehalten wird."
       ]
     },
     {
@@ -191,7 +207,8 @@
       "paragraphs": [
         "In frühen Beschaffungs- oder Governance-Gesprächen vermischen sich häufig Tool-Fragen, Lieferantenbezug, Rollenunklarheit und echte Nachweisfragen. Das Übergabekit schafft hier zuerst Ordnung über den einzelnen Einsatzfall. Erst wenn der Gegenstand klar ist, lassen sich Rückfragen zu Datenbezug, Review, Freigabe oder externer Aussage belastbar bearbeiten.",
         "Gerade für Partner ist das nützlich, weil dieselbe Pass-Struktur in Training, Audit-Vorgespräch, Vendor-Abstimmung und interner Governance weiterverwendet werden kann. Das reduziert Reibung, ohne die Aussage künstlich zu vergrößern.",
-        "Für Beschaffung und Vendor Management entsteht dadurch ein enger Übergabepunkt. Eine Anfrage wird erst vorbereitet, wenn klar ist, ob der Pass eine Mindestantwort trägt, ob eine einzelne Evidenz fehlt oder ob die Aussage bis zur nächsten fachlichen Bestätigung zurückgehalten werden muss."
+        "Für Beschaffung und Vendor Management entsteht dadurch ein enger Übergabepunkt. Eine Anfrage wird erst vorbereitet, wenn klar ist, ob der Pass eine Mindestantwort trägt, ob eine einzelne Evidenz fehlt oder ob die Aussage bis zur nächsten fachlichen Bestätigung zurückgehalten werden muss.",
+        "Praktisch heißt das: Partner halten vor der Weitergabe die Frage und die Aussagegrenze fest. So kann ein Procurement-Team erkennen, ob eine Lieferantenrückfrage tatsächlich nötig ist, ob Governance zuerst eine interne Bestätigung braucht oder ob ein bestehender Pass-Stand bereits für den nächsten Review-Schritt reicht."
       ]
     },
     {
@@ -202,6 +219,7 @@
         "Den Beispielpass als Zielbild verwenden und die eigenen Informationen entlang derselben Feldlogik verdichten.",
         "In der Matrix festhalten, welche Punkte belastbar sind, welche Review brauchen und welche Rolle den nächsten Schritt trägt.",
         "Den Übergabevermerk ergänzen: verantwortliche Rolle, heutiger Evidenzstand, offene Aussagegrenze und nächste Anschlussentscheidung.",
+        "Die Partner-Weitergabeprüfung als eine Zeile dokumentieren: Aussage tragen, intern vervollständigen, Review vorbereiten, Lieferantenrückfrage stellen oder bis zur Evidenz zurückhalten.",
         "Für Audit-, Freigabe- oder Beschaffungsrückfragen nur Aussagen nutzen, die im Pass oder in referenzierter Evidenz gestützt sind.",
         "Anschlussartefakte wie Supplier Requests, Verify-Flächen oder interne Freigaben erst aus dieser stabilen Fallbasis ableiten."
       ]
@@ -211,18 +229,19 @@
       "heading": "Wo das Übergabekit bewusst eng bleibt",
       "paragraphs": [
         "Dieses Artefakt ersetzt weder Rechtsberatung noch technische Tiefenprüfung. Es soll die Stelle schließen, an der Partnerformate oft operativ ausfransen: zwischen erster strukturierter Erfassung und belastbarer Weitergabe in Prüfung, Freigabe oder externe Anfrage.",
-        "Seine Stärke liegt genau in dieser Begrenzung. Wer den einzelnen Einsatzfall sauber übergeben kann, schafft die Voraussetzung für weitergehende Prüfung, ohne schon im Erstschritt Vollständigkeit zu behaupten. Der Übergabevermerk bleibt deshalb kurz und entscheidungsorientiert: Er dokumentiert den nächsten tragfähigen Schritt, keine Gesamtbewertung."
+        "Seine Stärke liegt genau in dieser Begrenzung. Wer den einzelnen Einsatzfall sauber übergeben kann, schafft die Voraussetzung für weitergehende Prüfung, ohne schon im Erstschritt Vollständigkeit zu behaupten. Der Übergabevermerk bleibt deshalb kurz und entscheidungsorientiert: Er dokumentiert den nächsten tragfähigen Schritt, keine Gesamtbewertung.",
+        "Die Partner-Weitergabeprüfung ist deshalb keine zusätzliche Bewertungsebene. Sie ist die dokumentierte Grenze der Weitergabe: Was darf heute in Review, Anfrage oder Freigabe weiterlaufen, und was bleibt beim Owner, bis Evidenz, Befugnis oder fachliche Bestätigung vorliegt."
       ]
     }
   ],
   "faq": [
     {
       "q": "Wann ist ein Workshop-Ergebnis stark genug für die Übergabe an Audit oder Governance?",
-      "a": "Wenn der konkrete Einsatzfall, seine verantwortliche Rolle, der aktuelle Review-Stand und die wichtigsten Evidenzen oder Lücken in einem Pass lesbar sind. Zusätzlich sollte ein kurzer Übergabevermerk festhalten, welche Aussage heute trägt, welche Lücke offen bleibt und welche Anschlussentscheidung als Nächstes dokumentiert wird. Dann kann die nächste Funktion auf demselben Objekt weiterarbeiten, ohne die Grundstruktur neu aufbauen zu müssen."
+      "a": "Wenn der konkrete Einsatzfall, seine verantwortliche Rolle, der aktuelle Review-Stand und die wichtigsten Evidenzen oder Lücken in einem Pass lesbar sind. Zusätzlich sollte ein kurzer Übergabevermerk festhalten, welche Aussage heute trägt, welche Lücke offen bleibt und welche Anschlussentscheidung als Nächstes dokumentiert wird. Die Partner-Weitergabeprüfung ergänzt diese Antwort um eine klare Zeile: intern vervollständigen, Review vorbereiten, Lieferantenrückfrage stellen, Freigabe weiterführen oder Aussage zurückhalten. Dann kann die nächste Funktion auf demselben Objekt weiterarbeiten, ohne die Grundstruktur neu aufbauen zu müssen."
     },
     {
       "q": "Wozu braucht es zusätzlich eine Matrix, wenn schon ein Pass vorliegt?",
-      "a": "Der Pass hält den einzelnen Fall zusammen. Die Matrix macht sichtbar, welche offenen Punkte, Zuständigkeiten und Review-Schritte über mehrere Fälle hinweg noch bearbeitet werden müssen. Beides ergänzt sich, ohne dieselben Informationen doppelt zu pflegen. Für Partnertermine hilft die Matrix außerdem, Übergabevermerke über mehrere Fälle vergleichbar zu halten."
+      "a": "Der Pass hält den einzelnen Fall zusammen. Die Matrix macht sichtbar, welche offenen Punkte, Zuständigkeiten und Review-Schritte über mehrere Fälle hinweg noch bearbeitet werden müssen. Beides ergänzt sich, ohne dieselben Informationen doppelt zu pflegen. Für Partnertermine hilft die Matrix außerdem, Übergabevermerke und Weitergabeentscheidungen über mehrere Fälle vergleichbar zu halten."
     },
     {
       "q": "Ist das Kit eher für externe Partner oder interne Teams gedacht?",
@@ -230,7 +249,7 @@
     },
     {
       "q": "Warum betont das Kit Aussagegrenzen so stark?",
-      "a": "Weil Partnerformate häufig schon belastbare Teilergebnisse liefern, aber noch keine vollständige Freigabe oder abschließende Bewertung. Eine sauber markierte Aussagegrenze ist für Audit, Beschaffung und Governance nützlicher als eine zu große, schlecht abgesicherte Zusage. Im Übergabevermerk wird daraus eine konkrete Handlungsentscheidung: akzeptieren, ergänzen, nachfordern, Anfrage vorbereiten oder Aussage zurückhalten."
+      "a": "Weil Partnerformate häufig schon belastbare Teilergebnisse liefern, aber noch keine vollständige Freigabe oder abschließende Bewertung. Eine sauber markierte Aussagegrenze ist für Audit, Beschaffung und Governance nützlicher als eine zu große, schlecht abgesicherte Zusage. Im Übergabevermerk wird daraus eine konkrete Handlungsentscheidung: akzeptieren, ergänzen, nachfordern, Anfrage vorbereiten oder Aussage zurückhalten. Die Partner-Weitergabeprüfung macht dieselbe Grenze auch für Procurement und Governance lesbar, bevor der Fall in Review, Lieferantenkontakt oder Freigabe weiterläuft."
     }
   ]
 }
