@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]);
 
   const collectionRoutes = [
+    '/de/academy',
+    '/de/academy/ki-kompetenz',
     '/de/standards',
     '/de/updates',
     '/de/artefacts',

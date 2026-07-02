@@ -1,0 +1,130 @@
+{
+  "slug": "ai-act-hochrisiko-einstufung-2026",
+  "locale": "de",
+  "content_type": "update",
+  "sector": "cross-industry",
+  "intent": "regulatory-radar",
+  "review_status": "reviewed",
+  "reviewed_by": "KIRegister Redaktion",
+  "effective_date": "2026-05-19",
+  "last_substantive_update": "2026-05-25",
+  "source_urls": [
+    "https://digital-strategy.ec.europa.eu/en/library/draft-commission-guidelines-classification-high-risk-ai-systems",
+    "https://digital-strategy.ec.europa.eu/en/consultations/targeted-consultation-draft-guidelines-classification-high-risk-artificial-intelligence-systems",
+    "https://digital-strategy.ec.europa.eu/en/news/commission-seeks-feedback-draft-guidelines-classification-high-risk-artificial-intelligence-systems",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation"
+  ],
+  "schema_types": ["Article", "BreadcrumbList", "Organization"],
+  "template_variant": "authority-update",
+  "reversible": true,
+  "notification_email": "zoltangal@web.de",
+  "title": "Hochrisiko-Einstufung wird zum eigenen Prüffeld im Use-Case Pass",
+  "summary": "Die Kommission hat am 19. Mai 2026 Entwurfsleitlinien zur Einstufung hochriskanter KI-Systeme veröffentlicht und die Konsultation bis 23. Juni 2026 geöffnet. Für KIRegister folgt daraus ein enger Standard: Der Use-Case Pass sollte den Einstufungspfad getrennt führen, also Annex-I-Produktbezug, Annex-III-Anwendungsbereich, Rollenentscheidung, Beispielbezug, Begründung, Konsultationsstand und nächste Überprüfung.",
+  "object_label": "Regulatorisches Update",
+  "stance_label": "Einstufungspfad und Prüffeld",
+  "author": "KIRegister",
+  "audiences": [
+    "Governance- und Compliance-Teams mit KI-Einsatzfällen in regulierten oder grundrechtsnahen Bereichen",
+    "Produkt-, Qualitäts- und Dokumentationsverantwortliche mit möglicher Hochrisiko-Nähe",
+    "Partner, Auditoren und Beschaffer mit Bedarf an nachvollziehbarer Einstufungslogik"
+  ],
+  "delivers": [
+    "eine enge Einordnung der neuen Entwurfsleitlinien zur Hochrisiko-Klassifikation",
+    "eine konkrete Pass-Feldlogik für Annex-I-Pfad, Annex-III-Pfad, Beispielbezug und Evidenz",
+    "einen pragmatischen Arbeitsstandard für Use Cases, bei denen die Einstufung offen oder prüfungsrelevant ist"
+  ],
+  "cta": {
+    "label": "Jetzt registrieren",
+    "href": "/login?mode=signup&intent=create_register&returnTo=%2Fde%2Fmy-register%3Fonboarding%3Dtrue",
+    "description": "Eine Hochrisiko-Einstufung wird erst belastbar, wenn der konkrete Einsatzfall mit Begründung, Rolle und Evidenz im Register geführt wird."
+  },
+  "related_links": [
+    {
+      "label": "Der Use-Case Pass als Standardnachweis",
+      "href": "/de/standards/use-case-pass",
+      "description": "Die Referenzstruktur, an die Einstufungspfad und Prüfevidenz angeschlossen werden sollten."
+    },
+    {
+      "label": "Standardisierungs-FAQ und Nachweisfelder",
+      "href": "/de/updates/ai-act-nachweisfelder-standardisierung-2026",
+      "description": "Warum getrennte Nachweisfelder für spätere Standards und Exportlogik relevant bleiben."
+    }
+  ],
+  "faq": [
+    {
+      "q": "Muss jetzt jeder relevante Einsatzfall als Hochrisiko-System behandelt werden?",
+      "a": "Nein. Die Entwurfsleitlinien dienen der Einordnung, ob ein System unter den Annex-I- oder Annex-III-Pfad fällt. Für den Use-Case Pass folgt daraus vor allem eine Dokumentationspflicht der Entscheidung: Warum wurde ein Einsatzfall als hochriskant, nicht hochriskant oder noch offen eingestuft, welche Quelle stützt diese Sicht und wann wird sie erneut geprüft?"
+    }
+  ],
+  "sections": [
+    {
+      "kind": "paragraphs",
+      "heading": "Was die neue Quelle praktisch ändert",
+      "paragraphs": [
+        "Die Kommission hat am 19. Mai 2026 Entwurfsleitlinien zur Klassifikation hochriskanter KI-Systeme veröffentlicht. Die Leitlinien richten sich an Anbieter, Betreiber, Marktüberwachungsbehörden und weitere relevante Akteure. Sie sollen helfen, zu prüfen, ob ein KI-System unter die Hochrisiko-Kategorie fällt, und enthalten praktische Beispiele für unterschiedliche Bereiche und Use Cases.",
+        "Für KIRegister ist daran der Objektwechsel wichtig. Die Einstufung darf nicht nur als allgemeine Rechtsnotiz am Unternehmen hängen. Sie muss am konkreten Einsatzfall dokumentiert werden: Welches System wird genutzt, welche Rolle hat die Organisation, welcher Annex-Pfad ist einschlägig, welche Beispiele aus den Leitlinien sind vergleichbar und welche Evidenz stützt die Entscheidung?"
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Welche Einstufungsangaben der Pass getrennt führen sollte",
+      "rows": [
+        {
+          "label": "System- oder Produktgegenstand",
+          "value": "Welches KI-System, welche Funktion oder welche Produktkomponente konkret bewertet wird und ob ein GPAI-Baustein nur Teil des Systems ist."
+        },
+        {
+          "label": "Annex-I-Produktpfad",
+          "value": "Ob das System als Produkt oder Sicherheitskomponente in eine EU-Harmonisierungsregelung fällt und ob eine Drittstellen-Konformitätsbewertung relevant wird."
+        },
+        {
+          "label": "Annex-III-Anwendungsbereich",
+          "value": "Ob der Einsatzfall in einem gelisteten Bereich wie Biometrics, kritische Infrastruktur, Bildung, Beschäftigung, Migration, Asyl oder Grenzkontrolle liegt."
+        },
+        {
+          "label": "Rolle des Unternehmens",
+          "value": "Ob die Organisation Anbieter, Betreiber, nachgelagerter Anbieter, Integrator oder Beschaffer ist und welche Entscheidungsebene daraus entsteht."
+        },
+        {
+          "label": "Beispielbezug",
+          "value": "Welche Beispiele oder Gegenbeispiele aus den Entwurfsleitlinien vergleichbar sind und wo die eigene Situation bewusst davon abweicht."
+        },
+        {
+          "label": "Begründung und Evidenz",
+          "value": "Welche interne Entscheidung, Rechtsquelle, Produktunterlage, Lieferantenangabe oder fachliche Einschätzung die aktuelle Einstufung belegt."
+        },
+        {
+          "label": "Stand und Wiedervorlage",
+          "value": "Ob die Einordnung final, vorläufig oder offen ist, welche Konsultations- oder Guideline-Fassung zugrunde liegt und wann sie erneut geprüft wird."
+        }
+      ]
+    },
+    {
+      "kind": "bullets",
+      "heading": "Warum das den Use-Case Pass stärkt",
+      "items": [
+        "Die Hochrisiko-Frage wird am realen Einsatzfall geführt statt in einer losen Richtlinie außerhalb des Registers.",
+        "Beschaffung, Audit und Produktteam sehen denselben Einstufungsstand mit Quelle, Begründung und Wiedervorlage.",
+        "Offene Fälle können als offene Fälle geführt werden, ohne voreilig eine abschließende Rechtsposition zu behaupten.",
+        "Spätere Standards, Leitlinien und Exportanforderungen können auf ein vorhandenes Prüffeld aufsetzen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Welche Grenze wichtig bleibt",
+      "paragraphs": [
+        "Die Quelle ist ein Entwurf und Teil einer Konsultation. Feedback ist bis 23. Juni 2026 vorgesehen, und die Beispiele sind nicht als abschließende Liste zu behandeln. Der Pass sollte deshalb keine endgültige Sicherheit vortäuschen, wenn die Einordnung noch von finalen Leitlinien, Lieferantenunterlagen oder einer fachlichen Prüfung abhängt.",
+        "Gleichzeitig ist Warten auf finale Texte kein belastbarer Arbeitsstandard. Organisationen können heute schon sauber dokumentieren, welche Einstufungsfrage überhaupt vorliegt. Gerade bei grundrechtsnahen, sicherheitsbezogenen oder lieferkettenrelevanten Einsatzfällen ist diese frühe Trennung besser als eine spätere Rekonstruktion aus E-Mails, Toolnamen und Freitextnotizen."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was jetzt konkret aufgebaut werden sollte",
+      "paragraphs": [
+        "Für neue und bestehende KI-Einsatzfälle mit möglicher Hochrisiko-Nähe sollte der Use-Case Pass ein eigenes Feldset zur Einstufung erhalten. Dieses Feldset sollte Annex-I-Pfad, Annex-III-Pfad, Rollenpfad, vergleichbare Beispiele, Begründung, Evidenzlink, Entscheidungsstatus und nächste Überprüfung enthalten.",
+        "In Beschaffung und Lieferantenprüfung sollte dieselbe Logik wiederkehren. Wenn ein Anbieter ein System als unkritisch beschreibt, aber der Einsatzfall in einem sensiblen Annex-III-Kontext liegt, muss der Pass diesen Konflikt sichtbar machen. So bleibt der Nachweis dokumentenzentriert, revisionsfähig und anschlussfähig an die spätere finale Guideline-Fassung."
+      ]
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import { ART4_MODULES } from '@/lib/art4-training/definitions';
 export const metadata: Metadata = {
   title: 'KI-Kompetenz nach Art. 4 — kostenlose Rollenschulungen | KI Register',
   description:
-    'Kostenlose, rollenspezifische Kurzschulungen (KI-generiert) zur KI-Kompetenz nach Art. 4 EU AI Act — mit Lernkontrolle und prüfbarem Zertifikat.',
+    'Kostenlose, rollenspezifische Kurzschulungen zur KI-Kompetenz nach Art. 4 EU AI Act — mit Lernkontrolle und prüfbarem Zertifikat.',
 };
 
 export default async function Art4ProgramPage({
