@@ -7,9 +7,10 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-06-23",
+  "last_substantive_update": "2026-07-01",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
+    "https://digital-strategy.ec.europa.eu/en/faqs/understanding-standardisation-ai-act",
     "https://digital-strategy.ec.europa.eu/en/news/ai-act-advisory-forum-convenes-its-kick-meeting",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
   ],
@@ -18,7 +19,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Standardisierung wird zur Anschlussfrage für jedes KI-Register",
-  "summary": "Europäische Standardisierung wirkt bereits in der Struktur von Register, Exporten und Nachweisen. Seit dem Kick-off des AI Act Advisory Forum ist zusätzlich sichtbar, dass Standardisierungsfragen und Hochrisiko-Leitlinien in die laufende Implementierungsarbeit einfließen. Der Use-Case Pass sollte deshalb nicht nur spätere Standards erwarten, sondern den aktuellen Standardisierungsstand als belegte Quelle am Einsatzfall führen.",
+  "summary": "Europäische Standardisierung wirkt bereits in der Struktur von Register, Exporten und Nachweisen. Die Standardisierungsseite der Kommission wurde am 1. Juli 2026 aktualisiert und nennt prEN 18286 als ersten harmonisierten KI-Standard in öffentlicher Prüfung. Der Use-Case Pass sollte deshalb nicht nur spätere Standards erwarten, sondern den aktuellen Quellen- und Normstatus als belegte Aussage am Einsatzfall führen.",
   "object_label": "Regulatorisches Update",
   "stance_label": "Operative Standardisierungsfolge",
   "author": "KIRegister",
@@ -30,6 +31,7 @@
   "delivers": [
     "eine Einordnung, warum Standardisierung heute schon ein Format- und Datenmodellthema ist",
     "eine Aktualisierung zum AI Act Advisory Forum als laufender Implementierungs- und Standardisierungskanal",
+    "einen präziseren Quellen- und Normstatus für prEN 18286, Support-Tools und spätere OJEU-Referenzen",
     "konkrete Folgen für Register, Export, Verify-Flächen und öffentliche Referenzseiten",
     "einen priorisierten Arbeitsfokus für die nächsten operativen Ausbauschritte"
   ],
@@ -53,7 +55,7 @@
   "faq": [
     {
       "q": "Warum betrifft Standardisierung auch Unternehmen ohne sofortige Zertifizierungspläne?",
-      "a": "Weil gemeinsame Begriffe, Feldlogiken und Evidenzmuster lange vor einer formalen Zertifizierung in Audits, Kundennachfragen und Beschaffung wirksam werden. Das AI Act Advisory Forum hat zum Auftakt bereits Standardisierungsfragen und Entwurfsleitlinien zur Hochrisiko-Klassifikation als Input-Themen behandelt. Wer die Datenstruktur früh sauber aufsetzt, spart später Umstellungsaufwand und kann Quellenstände nachvollziehbar aktualisieren."
+      "a": "Weil gemeinsame Begriffe, Feldlogiken, Normstatus und Evidenzmuster lange vor einer formalen Zertifizierung in Audits, Kundennachfragen und Beschaffung wirksam werden. Die Kommission nennt prEN 18286 inzwischen als ersten harmonisierten KI-Standard in öffentlicher Prüfung und verbindet die Anwendung der Hochrisiko-Regeln mit verfügbaren Support-Tools. Wer die Datenstruktur früh sauber aufsetzt, spart später Umstellungsaufwand und kann Quellenstände nachvollziehbar aktualisieren."
     }
   ],
   "sections": [
@@ -62,7 +64,8 @@
       "heading": "Was sich regulatorisch verdichtet",
       "paragraphs": [
         "Standardisierung klingt nach Fernziel, wirkt operativ aber sehr früh. Sobald Auditoren, Kunden oder Beschaffer eine gemeinsame Erwartung an Begriffe, Feldnamen oder Evidenz entwickeln, wird aus einer internen Dokumentationsfrage sofort ein Formatproblem.",
-        "Für KI-Register bedeutet das: Inhalt, Konsistenz und Quellenstand müssen gemeinsam stimmen. Der Kick-off des AI Act Advisory Forum zeigt, dass Standardisierungsfragen nicht nur ein späteres Normungsthema bleiben, sondern Teil der laufenden AI-Act-Implementierung sind. Je sauberer Einsatzfälle beschrieben, aktualisiert und nach außen gezeigt werden, desto weniger Reibung entsteht morgen bei Anpassung, Export und Prüfung."
+        "Für KI-Register bedeutet das: Inhalt, Konsistenz und Quellenstand müssen gemeinsam stimmen. Der Kick-off des AI Act Advisory Forum zeigt, dass Standardisierungsfragen nicht nur ein späteres Normungsthema bleiben, sondern Teil der laufenden AI-Act-Implementierung sind. Je sauberer Einsatzfälle beschrieben, aktualisiert und nach außen gezeigt werden, desto weniger Reibung entsteht morgen bei Anpassung, Export und Prüfung.",
+        "Der Stand vom 1. Juli 2026 macht diese Brücke konkreter. Die Kommission beschreibt zehn angeforderte Standardbereiche, nennt prEN 18286 für ein qualitätsmanagementbezogenes KI-Regelwerk als ersten harmonisierten Standard in öffentlicher Prüfung und erklärt, dass erst nach Prüfung und Referenzierung im Amtsblatt eine Vermutungswirkung entsteht. Für den Use-Case Pass ist deshalb nicht nur die spätere Norm wichtig, sondern der belegte Status der Quelle: FAQ, Entwurf, öffentliche Prüfung, Support-Tool oder referenzierter Standard."
       ]
     },
     {
@@ -84,6 +87,10 @@
         {
           "label": "Quellenstand",
           "value": "Der Pass sollte festhalten, ob ein Nachweisfeld auf bestehender FAQ, Standardisierungsseite, Advisory-Forum-Input oder später referenziertem Standard beruht."
+        },
+        {
+          "label": "Normstatus",
+          "value": "Der Pass sollte unterscheiden, ob ein Bezug nur auf einer EU-FAQ, einem Standardentwurf, einer öffentlichen Prüfung wie prEN 18286, einer Support-Tool-Logik oder einer späteren OJEU-Referenz beruht."
         }
       ]
     },
@@ -93,6 +100,7 @@
       "items": [
         "Ein Pass pro realem KI-Einsatzfall statt einer losen Tool- oder Anbieterlogik.",
         "Ein eigener Quellenstand für Standardisierung und Implementierung, damit klar bleibt, welche Aussage aus welcher offiziellen Fassung stammt.",
+        "Ein eigener Normstatus für standardisierungsnahe Felder, damit öffentliche Prüfung, finaler Standard und Vermutungswirkung nicht vermischt werden.",
         "Einheitliche Benennung von Review-Status, Verantwortlichkeit und Evidenzquellen.",
         "Öffentliche Inhalte, Verify-Flächen und Downloads auf derselben Begriffswelt wie das Register.",
         "Partnerkits und Supplier-Workflows, die dieselben Felder verwenden wie die interne Pass-Struktur."
@@ -103,7 +111,7 @@
       "heading": "Wer zuerst handeln sollte",
       "paragraphs": [
         "Priorität haben Teams, die bereits heute zwischen interner Dokumentation und externer Nachfrage vermitteln: Governance, Beschaffung, Audit, Qualitätsmanagement und produktnahe Fachbereiche. Genau dort fällt zuerst auf, ob ein Register als Standardobjekt funktioniert oder nur als interne Liste.",
-        "Für Automotive und andere stark eingebundene Lieferketten gilt das besonders deutlich. Wenn sich Standardisierungs- und Hochrisiko-Fragen über AI Office, Advisory Forum und spätere Normungsdokumente weiter verdichten, brauchen diese Teams ein Format, das Quellenstände am Einsatzfall fortschreibt statt Nachweise erst bei der ersten Anfrage zu improvisieren."
+        "Für Automotive und andere stark eingebundene Lieferketten gilt das besonders deutlich. Wenn sich Standardisierungs- und Hochrisiko-Fragen über AI Office, Advisory Forum und spätere Normungsdokumente weiter verdichten, brauchen diese Teams ein Format, das Quellenstände am Einsatzfall fortschreibt statt Nachweise erst bei der ersten Anfrage zu improvisieren. prEN 18286 verstärkt diesen Punkt, weil Qualitätsmanagement und Lifecycle-Governance im Pass nicht als allgemeiner Text, sondern als prüfbarer Nachweisbereich geführt werden sollten."
       ]
     },
     {
