@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-26",
-  "last_substantive_update": "2026-05-26",
+  "last_substantive_update": "2026-07-09",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Prüfbriefing-Kit für Partner",
-  "summary": "Dieses Prüfbriefing-Kit hilft Auditoren, Beratern, Trainern, Beschaffungsteams und Governance-Praktikern, einen konkreten KI-Einsatzfall vor Review, Lieferantenrückfrage oder Freigabe strukturiert vorzubereiten. Das Artefakt hält Prüfgegenstand, Rollenlage, vorhandene Evidenz, offene Aussagegrenzen und den nächsten formalen Schritt an einem einzigen Use-Case Pass zusammen.",
+  "summary": "Dieses Prüfbriefing-Kit hilft Auditoren, Beratern, Trainern, Beschaffungsteams und Governance-Praktikern, einen konkreten KI-Einsatzfall vor Review, Lieferantenrückfrage oder Freigabe strukturiert vorzubereiten. Das Artefakt hält Prüfgegenstand, Rollenlage, vorhandene Evidenz, offene Aussagegrenzen und den nächsten formalen Schritt an einem einzigen Use-Case Pass zusammen. Die Aktualisierung vom 9. Juli 2026 ergänzt den Prüfbriefing-Abschluss als knappe Entscheidung, ob Review gestartet, Evidenz eng nachgefordert, ein Supplier Request vorbereitet oder die externe Aussage zurückgehalten wird.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Prüfbriefing für einen einzelnen Einsatzfall",
   "author": "KIRegister",
@@ -29,13 +29,15 @@
     "Auditoren und interne Prüffunktionen, die vor einem Review wissen müssen, ob ein KI-Einsatzfall als prüffähiges Objekt vorliegt",
     "Berater und Governance-Praktiker, die aus Discovery, Gap-Analyse oder Umsetzung eine belastbare Prüfvorbereitung ableiten müssen",
     "Trainer und Moderatoren, die Workshop-Ergebnisse in eine konkrete Review- oder Nachweislogik überführen wollen",
-    "Beschaffung, Vendor Management und Qualitätsfunktionen, die vor Lieferantenanfrage oder Freigabe dieselbe Fallbasis lesen müssen"
+    "Beschaffung, Vendor Management und Qualitätsfunktionen, die vor Lieferantenanfrage oder Freigabe dieselbe Fallbasis lesen müssen",
+    "Partnerverantwortliche, die vor externer Weitergabe an Audit, Lieferant oder Governance eine dokumentierte Aussagegrenze brauchen"
   ],
   "delivers": [
     "ein neutrales Prüfbriefing als ein primäres Arbeitsobjekt vor Audit, Beschaffung oder Governance-Review",
     "eine Feldlogik für Gegenstand, Rolle, Evidenz, offene Aussage, Review-Bedarf und Anschlussentscheidung",
     "eine klare Trennung zwischen vorbereitender Prüfung, formaler Freigabe, Lieferantenrückfrage und nachträglicher Pass-Pflege",
-    "ein nutzbares Materialset aus Beispielpass, Review-Matrix und Partner-Workbook für die operative Vorbereitung"
+    "ein Materialset aus Beispielpass, Review-Matrix und Partner-Workbook für die operative Vorbereitung",
+    "einen Prüfbriefing-Abschluss, der Review, Nachforderung, Supplier Request oder Zurückhalten der Aussage am einzelnen Pass dokumentiert"
   ],
   "downloads": [
     {
@@ -107,6 +109,10 @@
         {
           "label": "Eine Anschlussentscheidung",
           "value": "Am Ende steht eine begrenzte Entscheidung: Review starten, Pass ergänzen, Evidenz nachfordern, Lieferantenanfrage vorbereiten oder externe Aussage zurückhalten."
+        },
+        {
+          "label": "Prüfbriefing-Abschluss",
+          "value": "Der Abschluss ist eine kurze Zeile am Pass: geprüfter Stand, offene Evidenz, zulässige Aussage, verantwortliche Nachlieferung und nächster formaler Schritt."
         }
       ]
     },
@@ -133,6 +139,10 @@
         {
           "label": "Nächster Schritt",
           "value": "Welche konkrete Aktion folgt nach dem Briefing, und in welchem Objekt wird sie dokumentiert: Pass, Matrix, Nachforderungsbrief oder Supplier Request?"
+        },
+        {
+          "label": "Weitergabegrenze",
+          "value": "Darf die Aussage intern genutzt, an Audit oder Beschaffung weitergegeben, beim Lieferanten angefragt oder bis zur Nachlieferung zurückgehalten werden?"
         }
       ]
     },
@@ -204,6 +214,10 @@
         {
           "label": "Aussage zurückhalten",
           "value": "Scope, Rolle oder Evidenzlage sind zu unklar, um eine externe Antwort, Freigabeempfehlung oder Audit-Aussage belastbar zu stützen."
+        },
+        {
+          "label": "Prüfbriefing-Abschluss dokumentieren",
+          "value": "Die Entscheidung wird mit Datum, verantwortlicher Rolle, fehlender Quelle und nächstem Objekt festgehalten, damit Partner den Fall ohne neue Dokumentationsspur weiterführen."
         }
       ]
     },
@@ -212,7 +226,7 @@
       "heading": "Wie das Briefing nach dem Termin weitergeführt wird",
       "paragraphs": [
         "Nach dem Briefing sollte keine separate Ergebnisakte entstehen. Bestätigte Angaben gehören in den Use-Case Pass, offene Punkte in die Review-Matrix und konkrete Rückfragen in Nachforderungsbrief oder Supplier Request. Dadurch bleibt sichtbar, welche Information aus welchem Termin stammt und welche Entscheidung daraus folgte.",
-        "Für Partner ist diese Rückführung der eigentliche Qualitätsmaßstab. Ein gutes Briefing schafft nicht mehr Text, sondern eine bessere Übergabe: Audit sieht das Prüfobjekt, Beschaffung sieht die Aussagegrenze, Training sieht den Kompetenzbezug und Governance sieht die nächste formale Aktion."
+        "Für Partner ist diese Rückführung der eigentliche Qualitätsmaßstab. Ein gutes Briefing schafft nicht mehr Text, sondern eine bessere Übergabe: Audit sieht das Prüfobjekt, Beschaffung sieht die Aussagegrenze, Training sieht den Kompetenzbezug und Governance sieht die nächste formale Aktion. Der Prüfbriefing-Abschluss macht diese Übergabe lesbar, ohne eine Freigabe zu behaupten."
       ]
     },
     {
@@ -231,7 +245,7 @@
     },
     {
       "q": "Was ist das wichtigste Ergebnis des Briefings?",
-      "a": "Eine klare Anschlussentscheidung: Review starten, Pass ergänzen, Evidenz nachfordern, Supplier Request vorbereiten oder externe Aussage zurückhalten. Ohne diese Entscheidung bleibt das Briefing nur ein weiteres Protokoll."
+      "a": "Eine klare Anschlussentscheidung: Review starten, Pass ergänzen, Evidenz nachfordern, Supplier Request vorbereiten oder externe Aussage zurückhalten. Der Prüfbriefing-Abschluss hält diese Entscheidung mit verantwortlicher Rolle und nächstem Objekt fest."
     },
     {
       "q": "Wie unterscheidet sich das Prüfbriefing vom Intake-Kit?",
