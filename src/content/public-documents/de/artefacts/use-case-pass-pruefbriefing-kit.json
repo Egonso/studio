@@ -11,6 +11,7 @@
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "https://digital-strategy.ec.europa.eu/en/policies/guidelines-ai-high-risk-systems",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
     "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
@@ -21,7 +22,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Prüfbriefing-Kit für Partner",
-  "summary": "Dieses Prüfbriefing-Kit hilft Auditoren, Beratern, Trainern, Beschaffungsteams und Governance-Praktikern, einen konkreten KI-Einsatzfall vor Review, Lieferantenrückfrage oder Freigabe strukturiert vorzubereiten. Das Artefakt hält Prüfgegenstand, Rollenlage, vorhandene Evidenz, offene Aussagegrenzen und den nächsten formalen Schritt an einem einzigen Use-Case Pass zusammen. Die Aktualisierung vom 9. Juli 2026 ergänzt den Prüfbriefing-Abschluss als knappe Entscheidung, ob Review gestartet, Evidenz eng nachgefordert, ein Supplier Request vorbereitet oder die externe Aussage zurückgehalten wird.",
+  "summary": "Dieses Prüfbriefing-Kit hilft Auditoren, Beratern, Trainern, Beschaffungsteams und Governance-Praktikern, einen konkreten KI-Einsatzfall vor Review, Lieferantenrückfrage oder Freigabe strukturiert vorzubereiten. Das Artefakt hält Prüfgegenstand, Rollenlage, vorhandene Evidenz, offene Aussagegrenzen und den nächsten formalen Schritt an einem einzigen Use-Case Pass zusammen. Die Aktualisierung vom 9. Juli 2026 ergänzt den Prüfbriefing-Abschluss als knappe Entscheidung, ob Review gestartet, Evidenz eng nachgefordert, ein Supplier Request vorbereitet oder die externe Aussage zurückgehalten wird. Zusätzlich wird die Verwendungsgrenze geschärft: Vor Audit, Beschaffung, Training oder Governance-Übergabe bleibt sichtbar, welche Quelle die Aussage trägt, welche Rolle nachliefert und welches Stop-Kriterium eine externe Weitergabe blockiert.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Prüfbriefing für einen einzelnen Einsatzfall",
   "author": "KIRegister",
@@ -37,7 +38,8 @@
     "eine Feldlogik für Gegenstand, Rolle, Evidenz, offene Aussage, Review-Bedarf und Anschlussentscheidung",
     "eine klare Trennung zwischen vorbereitender Prüfung, formaler Freigabe, Lieferantenrückfrage und nachträglicher Pass-Pflege",
     "ein Materialset aus Beispielpass, Review-Matrix und Partner-Workbook für die operative Vorbereitung",
-    "einen Prüfbriefing-Abschluss, der Review, Nachforderung, Supplier Request oder Zurückhalten der Aussage am einzelnen Pass dokumentiert"
+    "einen Prüfbriefing-Abschluss, der Review, Nachforderung, Supplier Request oder Zurückhalten der Aussage am einzelnen Pass dokumentiert",
+    "eine Verwendungsgrenze für Partnerübergaben, damit Beschaffung, Audit, Training und Governance dieselbe Quelle, Rolle und Stop-Logik lesen"
   ],
   "downloads": [
     {
@@ -113,6 +115,10 @@
         {
           "label": "Prüfbriefing-Abschluss",
           "value": "Der Abschluss ist eine kurze Zeile am Pass: geprüfter Stand, offene Evidenz, zulässige Aussage, verantwortliche Nachlieferung und nächster formaler Schritt."
+        },
+        {
+          "label": "Verwendungsgrenze",
+          "value": "Die Grenze hält fest, ob eine Aussage intern vorbereitet, in ein Review gegeben, als Supplier Request formuliert oder bis zur nächsten Quelle zurückgehalten wird."
         }
       ]
     },
@@ -142,7 +148,7 @@
         },
         {
           "label": "Weitergabegrenze",
-          "value": "Darf die Aussage intern genutzt, an Audit oder Beschaffung weitergegeben, beim Lieferanten angefragt oder bis zur Nachlieferung zurückgehalten werden?"
+          "value": "Darf die Aussage intern genutzt, an Audit oder Beschaffung weitergegeben, beim Lieferanten angefragt oder bis zur Nachlieferung zurückgehalten werden? Welche fehlende Quelle oder Befugnis stoppt die Weitergabe?"
         }
       ]
     },
@@ -169,6 +175,10 @@
         {
           "label": "Qualität und Fachbereich",
           "value": "Lesen, welche fachliche Aussage sie bestätigen müssen und wo Datenbezug, Wirkungsnähe oder Kontrollpfad noch zu unklar sind."
+        },
+        {
+          "label": "Procurement und Lieferantenkontakt",
+          "value": "Nutzen die Verwendungsgrenze, um aus dem Briefing eine begrenzte Lieferantenfrage abzuleiten oder die Anfrage zurückzuhalten, wenn Quelle, Owner oder Aussagegrenze fehlen."
         }
       ]
     },
@@ -180,6 +190,7 @@
         "Eine verantwortliche Rolle ist benannt und kann Korrekturen, Nachreichungen oder Freigabegrenzen verbindlich übernehmen.",
         "Vorhandene Evidenz ist dem Pass-Feld zugeordnet und von Annahmen oder offenen Punkten getrennt.",
         "Die nächste Entscheidung ist enger gefasst als eine Gesamtfreigabe: prüfen, ergänzen, nachfordern, anfragen oder zurückhalten.",
+        "Die Verwendungsgrenze nennt Quelle, verantwortliche Rolle und Stop-Kriterium, bevor der Fall an Audit, Beschaffung oder Governance weitergegeben wird.",
         "Das Ergebnis kann in Pass, Matrix oder Supplier Request fortgeführt werden, ohne eine parallele Dokumentationslogik zu erzeugen."
       ]
     },
@@ -218,6 +229,10 @@
         {
           "label": "Prüfbriefing-Abschluss dokumentieren",
           "value": "Die Entscheidung wird mit Datum, verantwortlicher Rolle, fehlender Quelle und nächstem Objekt festgehalten, damit Partner den Fall ohne neue Dokumentationsspur weiterführen."
+        },
+        {
+          "label": "Weitergabe begrenzen",
+          "value": "Die Aussage ist noch nicht freigabefähig, kann aber als enger Prüfauftrag weiterlaufen: konkrete Frage, tragende Quelle, verantwortliche Rolle, zulässige Verwendung und Stop-Kriterium."
         }
       ]
     },
@@ -226,7 +241,7 @@
       "heading": "Wie das Briefing nach dem Termin weitergeführt wird",
       "paragraphs": [
         "Nach dem Briefing sollte keine separate Ergebnisakte entstehen. Bestätigte Angaben gehören in den Use-Case Pass, offene Punkte in die Review-Matrix und konkrete Rückfragen in Nachforderungsbrief oder Supplier Request. Dadurch bleibt sichtbar, welche Information aus welchem Termin stammt und welche Entscheidung daraus folgte.",
-        "Für Partner ist diese Rückführung der eigentliche Qualitätsmaßstab. Ein gutes Briefing schafft nicht mehr Text, sondern eine bessere Übergabe: Audit sieht das Prüfobjekt, Beschaffung sieht die Aussagegrenze, Training sieht den Kompetenzbezug und Governance sieht die nächste formale Aktion. Der Prüfbriefing-Abschluss macht diese Übergabe lesbar, ohne eine Freigabe zu behaupten."
+        "Für Partner ist diese Rückführung der eigentliche Qualitätsmaßstab. Ein gutes Briefing schafft nicht mehr Text, sondern eine bessere Übergabe: Audit sieht das Prüfobjekt, Beschaffung sieht die Aussagegrenze, Training sieht den Kompetenzbezug und Governance sieht die nächste formale Aktion. Der Prüfbriefing-Abschluss macht diese Übergabe lesbar, ohne eine Freigabe zu behaupten. Die Verwendungsgrenze hält zusätzlich fest, ob eine Aussage direkt weiterlaufen darf oder bis zur nächsten Quelle beim Owner bleibt."
       ]
     },
     {
@@ -245,7 +260,7 @@
     },
     {
       "q": "Was ist das wichtigste Ergebnis des Briefings?",
-      "a": "Eine klare Anschlussentscheidung: Review starten, Pass ergänzen, Evidenz nachfordern, Supplier Request vorbereiten oder externe Aussage zurückhalten. Der Prüfbriefing-Abschluss hält diese Entscheidung mit verantwortlicher Rolle und nächstem Objekt fest."
+      "a": "Eine klare Anschlussentscheidung: Review starten, Pass ergänzen, Evidenz nachfordern, Supplier Request vorbereiten oder externe Aussage zurückhalten. Der Prüfbriefing-Abschluss hält diese Entscheidung mit verantwortlicher Rolle und nächstem Objekt fest. Für Partnerübergaben gehört zusätzlich die Verwendungsgrenze dazu: tragende Quelle, verantwortliche Rolle, zulässige Verwendung und Stop-Kriterium."
     },
     {
       "q": "Wie unterscheidet sich das Prüfbriefing vom Intake-Kit?",
@@ -253,7 +268,7 @@
     },
     {
       "q": "Warum ist die Aussagegrenze so zentral?",
-      "a": "Weil Partner oft schon vor einer formalen Freigabe gefragt werden, was zu einem KI-Einsatzfall gesagt werden darf. Die Aussagegrenze schützt vor zu großen Zusagen und macht sichtbar, welche Evidenz tatsächlich vorliegt."
+      "a": "Weil Partner oft schon vor einer formalen Freigabe gefragt werden, was zu einem KI-Einsatzfall gesagt werden darf. Die Aussagegrenze schützt vor zu großen Zusagen und macht sichtbar, welche Evidenz tatsächlich vorliegt. In der Verwendungsgrenze wird daraus eine Arbeitsentscheidung für Audit, Beschaffung, Training und Governance: nutzen, prüfen, nachfordern oder zurückhalten."
     }
   ]
 }
