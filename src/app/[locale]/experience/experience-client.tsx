@@ -802,6 +802,10 @@ export default function ExperienceClient({ locale }: { locale: string }) {
       );
       if (filmSection && filmMedia && filmCopy) {
         const filmReveal = gsap.timeline({
+          onComplete: () => {
+            gsap.set(filmSection, { clearProps: 'clipPath' });
+            gsap.set(filmMedia, { clearProps: 'transform' });
+          },
           scrollTrigger: {
             trigger: filmSection,
             start: 'top 92%',

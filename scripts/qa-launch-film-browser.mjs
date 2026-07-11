@@ -12,12 +12,12 @@ const locales = [
   {
     code: 'de',
     heading: /Was KIRegister aus einem echten Einsatzfall macht/,
-    play: 'Film ansehen',
+    play: 'Film abspielen',
   },
   {
     code: 'en',
     heading: /What KIRegister turns a real AI use case into/,
-    play: 'Watch the film',
+    play: 'Play the film',
   },
 ];
 const report = [];
@@ -78,16 +78,22 @@ for (const [engineName, engine] of engines) {
     });
     await section.getByRole('button', { name: locale.play }).click();
 
-    const dialog = page.locator('dialog[open]');
-    await dialog.waitFor({ state: 'visible' });
-    const film = dialog.locator('video');
+    const film = section.locator('video[data-launch-master]');
     await page.waitForFunction(
-      (element) => element.readyState >= 1,
+      (element) => element.readyState >= 1 && !element.paused,
       await film.elementHandle(),
     );
+    await page.waitForFunction(
+      (element) => element.currentTime > 0.1,
+      await film.elementHandle(),
+      { timeout: 5000 },
+    );
     const filmInfo = await film.evaluate((element) => ({
+      currentTime: element.currentTime,
       duration: element.duration,
       height: element.videoHeight,
+      paused: element.paused,
+      position: getComputedStyle(element).position,
       src: element.currentSrc,
       tracks: element.textTracks.length,
       width: element.videoWidth,
@@ -96,17 +102,51 @@ for (const [engineName, engine] of engines) {
     assert.equal(filmInfo.width, 1920);
     assert.equal(filmInfo.height, 1080);
     assert.equal(filmInfo.tracks, 1);
+    assert.equal(filmInfo.paused, false);
+    assert.equal(filmInfo.position, 'absolute');
+    assert.ok(filmInfo.currentTime > 0);
     assert.ok(filmInfo.src.includes(`kiregister-launch-master-${locale.code}`));
 
-    await dialog.screenshot({
-      path: `${outputDirectory}/landing-film-dialog-${locale.code}-${engineName}.png`,
+    await section.screenshot({
+      path: `${outputDirectory}/landing-film-playing-${locale.code}-${engineName}.png`,
     });
-    await page.keyboard.press('Escape');
-    await page.waitForFunction(() => !document.querySelector('dialog[open]'));
+
+    const timeBeforeFloat = await film.evaluate((element) => element.currentTime);
+    await page.evaluate(() => {
+      const sectionElement = document.querySelector('#launchfilm');
+      if (!sectionElement) return;
+      window.scrollTo({
+        top: sectionElement.getBoundingClientRect().bottom + window.scrollY + 700,
+        behavior: 'instant',
+      });
+    });
+    await page.waitForFunction(
+      (element) => getComputedStyle(element).position === 'fixed',
+      await film.elementHandle(),
+    );
+    await page.waitForTimeout(700);
+    const floatingBounds = await film.boundingBox();
+    assert.ok(floatingBounds);
+    assert.ok(floatingBounds.width <= 450);
+    assert.ok(floatingBounds.x + floatingBounds.width <= 1440);
+    assert.ok(floatingBounds.y + floatingBounds.height <= 1000);
+    assert.ok(
+      (await film.evaluate((element) => element.currentTime)) > timeBeforeFloat,
+    );
+    await page.screenshot({
+      path: `${outputDirectory}/landing-film-floating-${locale.code}-${engineName}.png`,
+    });
+
+    await section.scrollIntoViewIfNeeded();
+    await page.waitForFunction(
+      (element) => getComputedStyle(element).position === 'absolute',
+      await film.elementHandle(),
+    );
 
     report.push({
       engine: engineName,
       film: filmInfo,
+      floating: 'passed',
       locale: locale.code,
       loop: loopInfo,
       media: '6/6',
@@ -134,17 +174,39 @@ for (const [engineName, engine] of engines) {
   await mobileSection.screenshot({
     path: `${outputDirectory}/landing-film-mobile-${engineName}.png`,
   });
-  await mobileSection.getByRole('button', { name: 'Film ansehen' }).click();
-  const mobileDialog = mobilePage.locator('dialog[open]');
-  await mobileDialog.waitFor({ state: 'visible' });
-  const dialogBounds = await mobileDialog.boundingBox();
-  assert.ok(dialogBounds);
-  assert.ok(dialogBounds.x >= 0);
-  assert.ok(dialogBounds.width <= 390);
-  await mobileDialog.screenshot({
-    path: `${outputDirectory}/landing-film-dialog-mobile-${engineName}.png`,
+  await mobileSection.getByRole('button', { name: 'Film abspielen' }).click();
+  const mobileFilm = mobileSection.locator('video[data-launch-master]');
+  await mobilePage.waitForFunction(
+    (element) => !element.paused,
+    await mobileFilm.elementHandle(),
+  );
+  await mobilePage.evaluate(() => {
+    const sectionElement = document.querySelector('#launchfilm');
+    if (!sectionElement) return;
+    window.scrollTo({
+      top: sectionElement.getBoundingClientRect().bottom + window.scrollY + 500,
+      behavior: 'instant',
+    });
   });
-  await mobilePage.keyboard.press('Escape');
+  await mobilePage.waitForFunction(
+    (element) => getComputedStyle(element).position === 'fixed',
+    await mobileFilm.elementHandle(),
+  );
+  await mobilePage.waitForTimeout(700);
+  const floatingMobileBounds = await mobileFilm.boundingBox();
+  assert.ok(floatingMobileBounds);
+  assert.ok(floatingMobileBounds.x >= 0);
+  assert.ok(floatingMobileBounds.width <= 320);
+  assert.ok(floatingMobileBounds.x + floatingMobileBounds.width <= 390);
+  assert.ok(floatingMobileBounds.y + floatingMobileBounds.height <= 844);
+  await mobilePage.screenshot({
+    path: `${outputDirectory}/landing-film-floating-mobile-${engineName}.png`,
+  });
+  await mobileSection.scrollIntoViewIfNeeded();
+  await mobilePage.waitForFunction(
+    (element) => getComputedStyle(element).position === 'absolute',
+    await mobileFilm.elementHandle(),
+  );
   await mobileContext.close();
 
   await browser.close();

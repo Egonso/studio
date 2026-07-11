@@ -1,7 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 
 import type {
   LandingVideoEvent,
@@ -16,8 +23,8 @@ const COPY = {
     label: 'Der Film · 86 Sekunden',
     title: 'Was KIRegister aus einem echten Einsatzfall macht.',
     body: 'Vom ersten Eintrag zum vorlegbaren Use Case Pass. Der dauerhaft kostenlose Registerkern zuerst, die zwei freiwilligen Vertiefungen danach.',
-    play: 'Film ansehen',
-    close: 'Film schließen',
+    play: 'Film abspielen',
+    playHint: '86 Sekunden · mit Ton',
     cta: 'Register anlegen',
     note: 'Mit Ton · Deutsche Untertitel verfügbar',
     videoLabel: 'KIRegister Launchfilm auf Deutsch',
@@ -26,8 +33,8 @@ const COPY = {
     label: 'The film · 86 seconds',
     title: 'What KIRegister turns a real AI use case into.',
     body: 'From the first capture to a presentable Use Case Pass. The permanently free register comes first, followed by two optional ways to go deeper.',
-    play: 'Watch the film',
-    close: 'Close film',
+    play: 'Play the film',
+    playHint: '86 seconds · with sound',
     cta: 'Set up register',
     note: 'With sound · English captions available',
     videoLabel: 'KIRegister launch film in English',
@@ -51,14 +58,54 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
   const language: LandingVideoLocale = locale === 'en' ? 'en' : 'de';
   const copy = COPY[language];
   const sectionRef = useRef<HTMLElement | null>(null);
+  const mediaRef = useRef<HTMLDivElement | null>(null);
   const loopRef = useRef<HTMLVideoElement | null>(null);
-  const dialogRef = useRef<HTMLDialogElement | null>(null);
   const filmRef = useRef<HTMLVideoElement | null>(null);
   const sentProgress = useRef(new Set<number>());
-  const [open, setOpen] = useState(false);
+  const masterActiveRef = useRef(false);
+  const floatingRef = useRef(false);
+  const previousPlayerRect = useRef<DOMRect | null>(null);
+  const playTracked = useRef(false);
+  const [masterActive, setMasterActive] = useState(false);
+  const [floating, setFloating] = useState(false);
   const launchBase = '/videos/kiregister-launch';
   const loopBase = '/videos/kiregister-hero-loop';
   const setupHref = `/${language}?mode=signup&intent=create_register`;
+
+  const changeFloating = useCallback((next: boolean) => {
+    if (floatingRef.current === next) return;
+    const player = filmRef.current;
+    if (player) previousPlayerRect.current = player.getBoundingClientRect();
+    floatingRef.current = next;
+    setFloating(next);
+  }, []);
+
+  useLayoutEffect(() => {
+    const player = filmRef.current;
+    const previous = previousPlayerRect.current;
+    previousPlayerRect.current = null;
+    if (!player || !previous) return;
+
+    const current = player.getBoundingClientRect();
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (reducedMotion || current.width === 0 || current.height === 0) return;
+
+    const animation = player.animate(
+      [
+        {
+          transform: `translate(${previous.left - current.left}px, ${previous.top - current.top}px) scale(${previous.width / current.width}, ${previous.height / current.height})`,
+        },
+        { transform: 'translate(0, 0) scale(1, 1)' },
+      ],
+      {
+        duration: 620,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+      },
+    );
+    return () => animation.cancel();
+  }, [floating]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -75,7 +122,10 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
           impressionSent = true;
           track('impression', language, 'hero_loop');
         }
-        if (reducedMotion) return;
+        if (reducedMotion || masterActiveRef.current) {
+          loop.pause();
+          return;
+        }
         if (entry.isIntersecting) void loop.play().catch(() => undefined);
         else loop.pause();
       },
@@ -86,22 +136,45 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
   }, [language]);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) {
-      dialog.showModal();
-      window.requestAnimationFrame(() => {
-        void filmRef.current?.play().catch(() => undefined);
-      });
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
+    if (!masterActive) return;
+    const media = mediaRef.current;
+    if (!media) return;
 
-  const openFilm = () => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.18) {
+          changeFloating(false);
+        } else if (entry.boundingClientRect.top < 0) {
+          changeFloating(true);
+        }
+      },
+      { threshold: [0, 0.18] },
+    );
+    observer.observe(media);
+    return () => observer.disconnect();
+  }, [changeFloating, masterActive]);
+
+  const startFilm = () => {
+    const film = filmRef.current;
+    if (!film) return;
     sentProgress.current.clear();
-    setOpen(true);
-    track('play', language, 'master');
+    masterActiveRef.current = true;
+    setMasterActive(true);
+    changeFloating(false);
+    loopRef.current?.pause();
+
+    if (film.ended || (Number.isFinite(film.duration) && film.currentTime >= film.duration - 0.2)) {
+      film.currentTime = 0;
+    }
+    film.muted = false;
+    film.volume = 1;
+    if (!playTracked.current) {
+      playTracked.current = true;
+      track('play', language, 'master');
+    }
+    void film.play().catch(() => {
+      film.focus({ preventScroll: true });
+    });
   };
 
   const updateProgress = () => {
@@ -125,25 +198,16 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
       aria-labelledby="launch-film-title"
     >
       <div
+        ref={mediaRef}
         className={s.media}
         data-launch-film-media
         style={{
           '--launch-film-poster': `url(${launchBase}-poster-${language}.webp)`,
         } as CSSProperties}
       >
-        <div className={s.mediaFallback} aria-hidden>
-          <span>USE CASE PASS</span>
-          <div>
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-          <strong>PROOF_READY</strong>
-        </div>
         <video
           ref={loopRef}
-          className={s.loop}
+          className={`${s.loop} ${masterActive ? s.loopHidden : ''}`}
           muted
           loop
           playsInline
@@ -156,42 +220,20 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
           <source src={`${loopBase}-${language}.webm`} type="video/webm" />
           <source src={`${loopBase}-${language}.mp4`} type="video/mp4" />
         </video>
-        <button type="button" className={s.play} onClick={openFilm}>
-          <span className={s.playMark} aria-hidden>▶</span>
-          {copy.play}
-        </button>
-      </div>
-
-      <div className={s.copy} data-launch-film-copy>
-        <p className={s.label}>{copy.label}</p>
-        <h2 id="launch-film-title">{copy.title}</h2>
-        <p className={s.body}>{copy.body}</p>
-        <p className={s.note}>{copy.note}</p>
-      </div>
-
-      <dialog
-        ref={dialogRef}
-        className={s.dialog}
-        onClose={() => {
-          filmRef.current?.pause();
-          setOpen(false);
-        }}
-        onClick={(event) => {
-          if (event.target === dialogRef.current) setOpen(false);
-        }}
-        aria-label={copy.videoLabel}
-      >
-        <div className={s.dialogHead}>
-          <span>KI Register</span>
-          <button type="button" onClick={() => setOpen(false)}>{copy.close} ×</button>
-        </div>
         <video
           ref={filmRef}
-          className={s.film}
+          data-launch-master
+          className={`${s.master} ${masterActive ? s.masterActive : ''} ${floating ? s.masterFloating : ''}`}
           controls
           playsInline
           preload="metadata"
           poster={`${launchBase}-poster-${language}.webp`}
+          aria-label={copy.videoLabel}
+          tabIndex={masterActive ? 0 : -1}
+          onPlay={() => {
+            masterActiveRef.current = true;
+            setMasterActive(true);
+          }}
           onTimeUpdate={updateProgress}
           onEnded={() => track('complete', language, 'master')}
         >
@@ -205,17 +247,32 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
             src={`${launchBase}-${language}.vtt`}
           />
         </video>
-        <div className={s.dialogFoot}>
-          <p>{copy.body}</p>
-          <Link
-            href={setupHref}
-            className={s.cta}
-            onClick={() => track('cta', language, 'master')}
-          >
-            {copy.cta}
-          </Link>
-        </div>
-      </dialog>
+        {!masterActive ? (
+          <button type="button" className={s.play} onClick={startFilm}>
+            <span className={s.playDisc} aria-hidden>
+              <span className={s.playMark}>▶</span>
+            </span>
+            <span className={s.playCopy}>
+              <strong>{copy.play}</strong>
+              <small>{copy.playHint}</small>
+            </span>
+          </button>
+        ) : null}
+      </div>
+
+      <div className={s.copy} data-launch-film-copy>
+        <p className={s.label}>{copy.label}</p>
+        <h2 id="launch-film-title">{copy.title}</h2>
+        <p className={s.body}>{copy.body}</p>
+        <p className={s.note}>{copy.note}</p>
+        <Link
+          href={setupHref}
+          className={s.cta}
+          onClick={() => track('cta', language, 'master')}
+        >
+          {copy.cta} <span aria-hidden>→</span>
+        </Link>
+      </div>
     </section>
   );
 }
