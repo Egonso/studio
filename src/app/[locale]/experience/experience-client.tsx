@@ -16,6 +16,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import LaunchFilmSection from '@/components/landing/launch-film-section';
 
 import s from './experience.module.css';
 
@@ -791,6 +792,52 @@ export default function ExperienceClient({ locale }: { locale: string }) {
           0.7,
         );
 
+      /* ---------- FILM: the intro resolves into the explainer ---------- */
+      const filmSection = root.querySelector<HTMLElement>('[data-launch-film]');
+      const filmMedia = filmSection?.querySelector<HTMLElement>(
+        '[data-launch-film-media]',
+      );
+      const filmCopy = filmSection?.querySelector<HTMLElement>(
+        '[data-launch-film-copy]',
+      );
+      if (filmSection && filmMedia && filmCopy) {
+        const filmReveal = gsap.timeline({
+          scrollTrigger: {
+            trigger: filmSection,
+            start: 'top 92%',
+            once: true,
+          },
+        });
+        filmReveal
+          .fromTo(
+            filmSection,
+            { clipPath: 'inset(0 0 12% 0)' },
+            {
+              clipPath: 'inset(0 0 0% 0)',
+              duration: 1.15,
+              ease: 'power4.out',
+            },
+          )
+          .fromTo(
+            filmMedia,
+            { scale: 1.035 },
+            { scale: 1, duration: 1.35, ease: 'power3.out' },
+            0,
+          )
+          .fromTo(
+            Array.from(filmCopy.children),
+            { autoAlpha: 0, y: 24 },
+            {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.8,
+              ease: 'power3.out',
+              stagger: 0.08,
+            },
+            0.2,
+          );
+      }
+
       /* ---------- AKT I: fine counter + line reveals ---------- */
       const formatter = new Intl.NumberFormat(
         locale === 'en' ? 'en-IE' : 'de-DE',
@@ -1192,6 +1239,8 @@ export default function ExperienceClient({ locale }: { locale: string }) {
           {copy.scrollHint}
         </div>
       </section>
+
+      <LaunchFilmSection locale={locale} />
 
       {/* ============ DIREKT STARTEN ============ */}
       <section className={s.act} aria-label={copy.entryLabel}>
