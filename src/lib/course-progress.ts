@@ -9,18 +9,26 @@ export interface AcademyProgressSnapshot {
 }
 
 export function countCourseVideos(): number {
-  return courseData.reduce(
-    (sum, module) =>
-      sum + module.videos.filter((video) => !video.isDirectDownload).length,
-    0,
+  return getCourseVideoIds().length;
+}
+
+export function getCourseVideoIds(): string[] {
+  return courseData.flatMap((module) =>
+    module.videos
+      .filter((video) => !video.isDirectDownload)
+      .map((video) => video.id),
   );
 }
 
 export function buildAcademyProgressSnapshot(
   completedVideoIds: string[],
 ): AcademyProgressSnapshot {
-  const totalVideos = countCourseVideos();
-  const completedVideos = Math.min(completedVideoIds.length, totalVideos);
+  const courseVideoIds = getCourseVideoIds();
+  const validCourseVideoIds = new Set(courseVideoIds);
+  const completedVideos = new Set(
+    completedVideoIds.filter((videoId) => validCourseVideoIds.has(videoId)),
+  ).size;
+  const totalVideos = courseVideoIds.length;
   const completionPercent =
     totalVideos === 0 ? 0 : Math.round((completedVideos / totalVideos) * 100);
 

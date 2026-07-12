@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 
 import { requireCertificationActor } from '@/lib/certification/request-auth';
-import { startExamAttempt } from '@/lib/certification/server';
+import {
+  COURSE_COMPLETION_REQUIRED_ERROR,
+  startExamAttempt,
+} from '@/lib/certification/server';
 import { logError } from '@/lib/observability/logger';
 import {
   buildRateLimitKey,
@@ -33,17 +36,22 @@ export async function POST(request: Request) {
   } catch (error) {
     const isAuthFailure =
       error instanceof Error && error.message === 'Authentication required.';
+    const isCourseCompletionFailure =
+      error instanceof Error && error.message === COURSE_COMPLETION_REQUIRED_ERROR;
     logError('certification_exam_start_failed', {
       errorMessage: error instanceof Error ? error.message : 'unknown_error',
       isAuthFailure,
+      isCourseCompletionFailure,
     });
     return NextResponse.json(
       {
         error: isAuthFailure
           ? 'Authentication required.'
-          : 'Exam attempt could not be started.',
+          : isCourseCompletionFailure
+            ? 'Bitte schließen Sie zuerst alle Academy-Videos ab.'
+            : 'Exam attempt could not be started.',
       },
-      { status: isAuthFailure ? 401 : 400 },
+      { status: isAuthFailure ? 401 : isCourseCompletionFailure ? 403 : 400 },
     );
   }
 }

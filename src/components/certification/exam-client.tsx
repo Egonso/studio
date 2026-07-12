@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/auth-context';
 import { LEGACY_EXAM_DEFINITION } from '@/lib/certification/legacy-question-bank';
 import type { ExamSectionResult, PersonCertificateRecord } from '@/lib/certification/types';
+import { buildAcademyProgressSnapshot } from '@/lib/course-progress';
 import { getCourseProgress } from '@/lib/data-service';
 
 type ExamApiResult = {
@@ -147,7 +148,9 @@ export function CertificationExamClient() {
         if (cancelled) {
           return;
         }
-        setCourseUnlocked(progress.length > 0 || currentIdentity.devMode);
+        setCourseUnlocked(
+          buildAcademyProgressSnapshot(progress).completed || currentIdentity.devMode,
+        );
       } catch {
         if (!cancelled) {
           setCourseUnlocked(currentIdentity.devMode);
@@ -399,8 +402,8 @@ export function CertificationExamClient() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-600">
-            Starten Sie zuerst mindestens ein Academy-Modul. Danach bleibt die
-            Prüfung für Sie freigeschaltet.
+            Schließen Sie zuerst alle Videos der großen Academy-Fortbildung ab.
+            Danach wird die Prüfung für Sie freigeschaltet.
           </p>
           <Button asChild>
             <Link href="/academy">Academy öffnen</Link>
