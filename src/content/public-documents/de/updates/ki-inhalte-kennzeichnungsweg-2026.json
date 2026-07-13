@@ -7,9 +7,10 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-20",
-  "last_substantive_update": "2026-06-10",
+  "last_substantive_update": "2026-07-10",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/news/commission-publishes-code-practice-marking-and-labelling-ai-generated-content",
+    "https://digital-strategy.ec.europa.eu/en/library/commission-opinion-assessment-code-practice-transparency-ai-generated-content",
     "https://digital-strategy.ec.europa.eu/en/news/commission-opens-consultation-draft-guidelines-ai-transparency-obligations",
     "https://digital-strategy.ec.europa.eu/en/library/draft-guidelines-implementation-transparency-obligations-certain-ai-systems-under-article-50-ai-act",
     "https://digital-strategy.ec.europa.eu/en/consultations/consultation-draft-guidelines-transparency-obligations-under-ai-act",
@@ -23,9 +24,9 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Der Kennzeichnungsweg für KI-Inhalte wird zum Pflichtfeld im Use-Case Pass",
-  "summary": "Die Kommission hat den finalen Code of Practice zur Markierung und Kennzeichnung KI-generierter Inhalte am 10. Juni 2026 veröffentlicht. Für KIRegister folgt daraus ein enger Standard: Jeder interaktive oder generative Einsatzfall mit Außen- oder Personenbezug sollte im Use-Case Pass einen getrennten Kennzeichnungsweg mit Rolle, Inhaltstyp, Code-Abschnitt, Hinweisform, Ausnahmegrund, Signaturstatus und Evidenzlink führen.",
+  "summary": "Die Kommission hat am 8. Juli 2026 festgestellt, dass der Code of Practice die Pflichten aus Artikel 50 Absatz 2, 4 und 5 angemessen abdeckt; das AI Board hat seine Angemessenheitsbewertung am 9. Juli beschlossen. Der Code ist damit ein EU-weit angemessenes freiwilliges Instrument für die jeweiligen Transparenzpflichten, aber kein abschließender Compliance-Nachweis. Im Use-Case Pass sollten deshalb Angemessenheitsstatus, Code-Abschnitt, Geltungsbereich, Signaturstatus, Umsetzung und Evidenz getrennt geführt werden.",
   "object_label": "Regulatorisches Update",
-  "stance_label": "Kennzeichnungsweg und Evidenzpfad",
+  "stance_label": "Angemessenheitsstatus und Nachweisweg",
   "author": "KIRegister",
   "audiences": [
     "Governance- und Compliance-Teams mit generativen KI-Einsatzfällen in Kommunikation, Support oder Produktflächen",
@@ -33,8 +34,8 @@
     "Partner, Auditoren und Auftraggeber mit Bedarf an belastbarer Transparenz über KI-generierte Inhalte"
   ],
   "delivers": [
-    "eine enge Einordnung des finalen Code of Practice zu Markierung und Kennzeichnung KI-generierter Inhalte",
-    "eine konkrete Pass-Feldlogik für Interaktionshinweis, Markierung, Kennzeichnung, Code-Abschnitt, Ausnahmepfad, Signaturstatus und Evidenz",
+    "eine enge Einordnung der Angemessenheitsbewertung zum Code of Practice für Markierung und Kennzeichnung KI-generierter Inhalte",
+    "eine konkrete Pass-Feldlogik für Angemessenheitsstatus, Interaktionshinweis, Markierung, Kennzeichnung, Code-Abschnitt, Geltungsbereich, Signaturstatus, Alternativnachweis und Evidenz",
     "einen pragmatischen Standard für interaktive und generative Use Cases mit Personen- oder Außenbezug"
   ],
   "cta": {
@@ -57,16 +58,16 @@
   "faq": [
     {
       "q": "Reicht ein allgemeiner Hinweis wie „mit KI erstellt“ für jeden Einsatzfall aus?",
-      "a": "Die offiziellen EU-Seiten sprechen für eine präzisere Logik. Je nach Rolle und Inhalt geht es um Interaktionshinweise, maschinenlesbare Markierung, Kennzeichnung von Deepfakes, Hinweise bei Texten zu Fragen von öffentlichem Interesse oder Systeme zur Emotionserkennung und biometrischen Kategorisierung. Nach dem finalen Code sollte zusätzlich sichtbar sein, welcher Code-Abschnitt angewendet wird, ob ein EU-Icon oder eine andere Kennzeichnung genutzt wird, welcher Signatur- oder Alternativnachweis des Anbieters vorliegt und ob ein Ausnahmepfad wegen menschlicher Prüfung und redaktioneller Verantwortung greift."
+      "a": "Die offiziellen EU-Seiten sprechen für eine präzisere Logik. Je nach Rolle und Inhalt geht es um Interaktionshinweise, maschinenlesbare Markierung, Kennzeichnung von Deepfakes, Hinweise bei Texten zu Fragen von öffentlichem Interesse oder Systeme zur Emotionserkennung und biometrischen Kategorisierung. Die Angemessenheitsbewertung des Code of Practice ersetzt diese Prüfung nicht. Im Pass sollten deshalb Code-Abschnitt, Geltungsbereich, konkrete Hinweis- oder Markierungsform, Signaturstatus der verantwortlichen Organisation und Implementierungs-Evidenz getrennt stehen. Bei fehlender Signatur braucht es einen alternativen angemessenen Nachweisweg; die Nichtunterzeichnung ist kein automatischer Negativbefund."
     }
   ],
   "sections": [
     {
       "kind": "paragraphs",
-      "heading": "Was sich jetzt praktisch verdichtet",
+      "heading": "Angemessenheitsstatus am konkreten Einsatzfall",
       "paragraphs": [
-        "Das AI Office konkretisiert den Transparenzpfad für KI-generierte Inhalte entlang von Artikel 50. Der laufende Code-of-Practice-Prozess trennt deutlich zwischen Pflichten der Anbieter generativer Systeme und Pflichten der Betreiber, die Deepfakes oder bestimmte Texte zu Fragen von öffentlichem Interesse veröffentlichen.",
-        "Für KIRegister ist daran vor allem die Trennung der Pfade wichtig. Anbieter müssen Menschen informieren, wenn sie mit einem KI-System interagieren, und generative Ausgaben maschinenlesbar markierbar machen. Betreiber müssen Personen informieren, wenn sie Deepfakes, KI-generierte Veröffentlichungen zu Fragen von öffentlichem Interesse, Emotionserkennung oder biometrischer Kategorisierung ausgesetzt sind. Der finale Code of Practice ergänzt diesen Pfad für Markierung und Kennzeichnung und trennt dabei die technische Markierung durch Anbieter von der sichtbaren oder kontextnahen Kennzeichnung durch Betreiber."
+        "Die Kommission hat am 8. Juli 2026 festgestellt, dass der Code of Practice die Pflichten aus Artikel 50 Absatz 2, 4 und 5 angemessen abdeckt und ihre wirksame Umsetzung erleichtert. Das AI Board hat seine Angemessenheitsbewertung am Folgetag beschlossen. Der freiwillige Code ist damit ein EU-weit angemessenes Instrument für die jeweiligen Transparenzpflichten, unabhängig von Niederlassung, Betriebsort oder zuständiger Marktüberwachungsbehörde.",
+        "Für KIRegister ist daran die Fallgrenze entscheidend. Der Pass darf den Code nicht pauschal an jeden generativen Einsatzfall hängen. Er muss festhalten, ob der konkrete Einsatz als Anbieter- oder Betreiberfall in den relevanten Geltungsbereich fällt, welcher Code-Abschnitt herangezogen wird und wie die Pflicht praktisch umgesetzt wird. Erst dann lässt sich prüfen, ob technische Markierung, sichtbare Kennzeichnung, Interaktionshinweis oder ein dokumentierter Ausnahmepfad einschlägig sind."
       ]
     },
     {
@@ -86,8 +87,16 @@
           "value": "Wie die Information, Markierung oder Kennzeichnung umgesetzt wird, etwa durch Interaktionshinweis, maschinenlesbare Markierung, sichtbares Label, Disclaimer, redaktionellen Freigabeschritt oder eine technische Detektionslösung."
         },
         {
-          "label": "Code-Abschnitt und Signaturstatus",
-          "value": "Ob der Einsatzfall auf Abschnitt 1, Abschnitt 2 oder beide Abschnitte des finalen Code of Practice verweist und ob der relevante Anbieter oder Betreiber signiert hat, nicht signiert hat oder einen Alternativnachweis führt."
+          "label": "Angemessenheitsstatus und Code-Abschnitt",
+          "value": "Ob der relevante Anbieter oder Betreiber den freiwilligen Code nutzt oder unterzeichnet hat, ob Abschnitt 1, Abschnitt 2 oder beide Abschnitte herangezogen werden und auf welche offizielle Quelle sich dieser Status stützt."
+        },
+        {
+          "label": "Geltungsbereich",
+          "value": "Welche Rolle, welcher Inhaltstyp, welche Oberfläche und welche konkrete Funktion in den dokumentierten Code- oder Artikel-50-Pfad fallen. Ein generativer Einsatzfall wird nicht allein wegen seiner technischen Einordnung als vom Code erfasst behandelt."
+        },
+        {
+          "label": "Signaturstatus und Alternativnachweis",
+          "value": "Ob die verantwortliche Organisation signiert hat. Ohne Signatur wird kein Negativurteil abgeleitet; stattdessen wird ein alternativer angemessener Nachweisweg mit Quelle, verantwortlicher Stelle und Prüfdatum geführt."
         },
         {
           "label": "EU-Icon oder gleichwertige Kennzeichnung",
@@ -98,8 +107,8 @@
           "value": "Ob für öffentliche Textveröffentlichungen ein nachvollziehbarer Pfad aus menschlicher Prüfung und redaktioneller Verantwortung dokumentiert ist."
         },
         {
-          "label": "Verantwortung und Evidenz",
-          "value": "Wer die Angabe pflegt, welche Oberfläche oder Prozessstelle betroffen ist und welcher Evidenzlink belegt, dass der gewählte Transparenzpfad im Betrieb angewendet wird."
+          "label": "Umsetzung und Evidenz",
+          "value": "Wer die Angabe pflegt, welche Oberfläche oder Prozessstelle betroffen ist und welcher Evidenzlink die konkrete technische oder organisatorische Umsetzung im Betrieb belegt."
         }
       ]
     },
@@ -107,10 +116,10 @@
       "kind": "bullets",
       "heading": "Warum das den Use-Case Pass stärkt",
       "items": [
-        "Der Pass trennt erstmals sauber zwischen einem generativen Inhalt und seinem Transparenzpfad.",
-        "Interaktive und generative Use Cases werden prüfbar, weil Auslösepunkt, Rollenpfad und Hinweisform zusammen dokumentiert sind.",
+        "Der Pass trennt den Angemessenheitsstatus des freiwilligen Code von der konkreten Transparenzpflicht am Einsatzfall.",
+        "Interaktive und generative Use Cases werden prüfbar, weil Auslösepunkt, Rollenpfad, Code-Abschnitt und Geltungsbereich zusammen dokumentiert sind.",
         "Ausnahmen durch menschliche Prüfung bleiben nachvollziehbar, weil sie als begründeter Pfad mit Evidenz festgehalten werden.",
-        "Der Signaturstatus oder Alternativnachweis des Anbieters wird direkt am Einsatzfall sichtbar, statt nur als allgemeiner Lieferantenhinweis außerhalb des Registers zu stehen.",
+        "Signaturstatus, Alternativnachweis und Umsetzungsevidenz werden direkt am Einsatzfall sichtbar, statt nur als allgemeiner Lieferantenhinweis außerhalb des Registers zu stehen.",
         "Lieferanten-, Audit-, Produkt- und Kommunikationsfragen lassen sich mit demselben Pass-Feld beantworten, ohne eine zweite Dokumentationswelt aufzubauen."
       ]
     },
@@ -118,17 +127,17 @@
       "kind": "paragraphs",
       "heading": "Was daraus nicht abgeleitet werden sollte",
       "paragraphs": [
-        "Die offiziellen Seiten sagen nicht, dass jede generative Ausgabe denselben Hinweis braucht. Sie zeigen vielmehr, dass zwischen maschinenlesbarer Markierung, Deepfake-Kennzeichnung, öffentlicher Textveröffentlichung und menschlich geprüften Inhalten unterschieden werden muss.",
+        "Die offiziellen Seiten sagen nicht, dass jede generative Ausgabe denselben Hinweis braucht oder automatisch unter den Code fällt. Sie zeigen vielmehr, dass zwischen maschinenlesbarer Markierung, Deepfake-Kennzeichnung, öffentlicher Textveröffentlichung und menschlich geprüften Inhalten unterschieden werden muss.",
         "Schwach wäre auch ein rein globaler Richtlinienvermerk ohne Fallbezug. Artikel-50-Fragen hängen an Inhalt, Oberfläche, Rolle, Freigabe und Evidenz. Wenn diese Angaben nur zentral beschrieben werden, fehlt im konkreten Audit- oder Lieferantengespräch der belegbare Bezug zum Einsatzfall.",
-        "Der finale Code ersetzt außerdem keine eigene Prüfung am konkreten Einsatz. Er macht den Nachweispfad nur klarer: Signaturstatus, Code-Abschnitt, technische Markierung, sichtbare Kennzeichnung und redaktioneller Ausnahmepfad müssen als belegte Angaben geführt werden."
+        "Die Kommission hält ausdrücklich fest, dass die Befolgung des Code kein abschließender Nachweis der Compliance ist. Eine Signatur oder Code-Nutzung darf deshalb nicht als Endergebnis gelesen werden. Bei fehlender Signatur ist ein alternativer angemessener Nachweisweg zu dokumentieren, nicht automatisch ein negativer Befund."
       ]
     },
     {
       "kind": "paragraphs",
       "heading": "Was jetzt konkret aufgebaut werden sollte",
       "paragraphs": [
-        "Jeder generative Einsatzfall mit Außenwirkung sollte im Use-Case Pass einen eigenen Abschnitt für den Kennzeichnungsweg erhalten. Dort werden Inhaltstyp, einschlägiges Transparenzregime, konkrete Umsetzung, verantwortliche Stelle und Evidenzlink festgehalten.",
-        "Im nächsten Schritt sollte derselbe Kennzeichnungsweg in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. Für jeden betroffenen Einsatzfall sollte sichtbar sein, welcher Code-Abschnitt greift, ob ein EU-Icon oder ein gleichwertiger Hinweis genutzt wird, welcher Signaturstatus vorliegt und welche Evidenz den Betrieb belegt. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz, bevor die Regeln am 2. August 2026 anwendbar werden."
+        "Jeder generative Einsatzfall mit Außenwirkung, der nach Rolle, Inhalt und Oberfläche in den dokumentierten Transparenzpfad fällt, sollte im Use-Case Pass einen eigenen Abschnitt für den Kennzeichnungsweg erhalten. Dort werden Angemessenheitsstatus, Inhaltstyp, Geltungsbereich, einschlägiges Transparenzregime, konkrete Umsetzung, verantwortliche Stelle und Evidenzlink festgehalten.",
+        "Im nächsten Schritt sollte derselbe Kennzeichnungsweg in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. Für jeden betroffenen Einsatzfall sollte sichtbar sein, welcher Code-Abschnitt greift, ob ein EU-Icon oder ein gleichwertiger Hinweis genutzt wird, welcher Signaturstatus oder Alternativnachweis vorliegt und welche Evidenz die Umsetzung belegt. Der Eintrag dokumentiert den Status der verantwortlichen Organisation, keine pauschale Signatur- oder Compliance-Aussage über KIRegister. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz, bevor die Regeln am 2. August 2026 anwendbar werden."
       ]
     }
   ]
