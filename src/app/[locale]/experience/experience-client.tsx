@@ -79,12 +79,12 @@ const DE: ExperienceCopy = {
   phase1Title: 'KI ist in Ihrem Unternehmen längst im Einsatz.',
   phase1Sub:
     'In Vertrieb, Entwicklung, Personal und Einkauf. Meist ohne Verzeichnis, ohne Verantwortliche, ohne Nachweis.',
-  phase2Title: 'Verstreut in Tools, Teams und Tabellen.',
+  phase2Title: 'Die Dokumentation ist verstreut — in Tools, Teams und Tabellen.',
   phase2Sub:
-    'Was nicht erfasst ist, kann nicht geprüft werden. Was nicht geprüft ist, kann nicht nachgewiesen werden.',
-  phase3Title: 'Das Register ordnet. Der Pass beweist.',
+    'Informationen zu KI-Einsatz, Zweck und Verantwortung liegen an verschiedenen Orten. Ohne zentrale Erfassung fehlen Übersicht und belastbarer Nachweis.',
+  phase3Title: 'Das Register ordnet. Der Pass bündelt den Nachweis.',
   phase3Sub:
-    'Jeder KI-Einsatzfall wird ein Eintrag. Jeder Eintrag wird ein prüfbarer Use Case Pass.',
+    'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
   scrollHint: 'Registerführung beginnen',
   chromeCta: 'Register anlegen',
   chromeLogin: 'Anmelden',
@@ -257,12 +257,12 @@ const EN: ExperienceCopy = {
   phase1Title: 'AI is already in use across your organisation.',
   phase1Sub:
     'In sales, engineering, HR and procurement. Mostly without an inventory, without owners, without evidence.',
-  phase2Title: 'Scattered across tools, teams and spreadsheets.',
+  phase2Title: 'Documentation is scattered — across tools, teams and spreadsheets.',
   phase2Sub:
-    'What is not recorded cannot be reviewed. What is not reviewed cannot be proven.',
-  phase3Title: 'The register orders. The pass proves.',
+    'Information about AI use, purpose and ownership sits in different places. Without central capture, there is no clear overview or reliable evidence.',
+  phase3Title: 'The register creates order. The pass bundles the evidence.',
   phase3Sub:
-    'Every AI use case becomes an entry. Every entry becomes a verifiable Use Case Pass.',
+    'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
   scrollHint: 'Begin the register walk-through',
   chromeCta: 'Set up register',
   chromeLogin: 'Sign in',
