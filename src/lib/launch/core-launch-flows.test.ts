@@ -47,7 +47,7 @@ test('free signup/login entry stays focused and direct', () => {
   );
   assert.match(
     germanMessages,
-    /"governanceActivating": "Governance Control Center wird für dieses Konto freigeschaltet\."/,
+    /"governanceActivating": "Governance Control Center wird für dieses Konto eingerichtet\."/,
   );
   assert.match(
     germanMessages,

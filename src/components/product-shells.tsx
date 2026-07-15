@@ -30,7 +30,7 @@ const AREA_SECTION_LABELS: Record<ProductAreaId, string> = {
   public_marketing: 'Public Entry',
   public_external_intake: 'Public Submission',
   signed_in_free_register: 'Register',
-  paid_governance_control: 'Organisation Control',
+  paid_governance_control: 'Organisation-wide governance',
 };
 
 export function AreaBadge({ area, className }: AreaBadgeProps) {

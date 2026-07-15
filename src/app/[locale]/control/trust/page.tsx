@@ -49,7 +49,7 @@ function getTrustPageCopy(locale: string) {
         'Prüfen Sie, welche Nachweise öffentlich sichtbar sein sollen.',
       nextStepEmpty:
         'Aktivieren Sie zuerst sichtbare Nachweise oder Organisations-Offenlegung.',
-      disabledTitle: 'Trust Portal ist noch nicht freigeschaltet',
+      disabledTitle: 'Trust Portal ist noch nicht aktiv',
       disabledDescription:
         'Trust- und Portal-Steuerung wird über die bezahlte Control-Ebene bereitgestellt.',
       openRegister: 'Register öffnen',
@@ -57,7 +57,7 @@ function getTrustPageCopy(locale: string) {
       gatedDescription:
         'Das Trust Portal bleibt für bezahlte Governance-Workspaces reserviert. Die Navigation bleibt sichtbar, damit der Zielbereich auffindbar ist.',
       openControl: 'Control öffnen',
-      upgradeOptions: 'Upgrade-Optionen',
+      upgradeOptions: 'Organisationssteuerung',
       dataLoadingTitle: 'Trust-Daten werden geladen',
       dataLoadingDescription:
         'Öffentliche Nachweise und Disclosure-Daten werden vorbereitet.',
@@ -71,7 +71,7 @@ function getTrustPageCopy(locale: string) {
       publicLinksDescription:
         'Sichtbar gewordene Use Cases bleiben im Register gepflegt und werden hier als Trust-Ausgabe gebündelt.',
       empty:
-        'Noch keine öffentlichen Nachweise vorhanden. Aktivieren Sie Trust Portal auf einem Use Case Pass oder schalten Sie die Organisations-Offenlegung in den Governance-Einstellungen frei.',
+        'Noch keine öffentlichen Nachweise vorhanden. Aktivieren Sie Trust Portal auf einem Use Case Pass oder richten Sie die Organisations-Offenlegung in den Governance-Einstellungen ein.',
       open: 'Öffnen',
       loadDataError:
         'Trust-Portal-Daten konnten nicht geladen werden. Bitte öffnen Sie ein Register und versuchen Sie es erneut.',
@@ -102,7 +102,7 @@ function getTrustPageCopy(locale: string) {
     gatedDescription:
       'Trust Portal remains reserved for paid governance workspaces. The navigation stays visible so the target area remains discoverable.',
     openControl: 'Open control',
-    upgradeOptions: 'Upgrade options',
+    upgradeOptions: 'Organisation-wide governance',
     dataLoadingTitle: 'Loading trust data',
     dataLoadingDescription:
       'Public evidence and disclosure data are being prepared.',

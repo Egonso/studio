@@ -48,7 +48,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       'einen klaren Übergang vom allgemeinen KI-Einstieg zur realen Register- und Nachweisarbeit',
     ],
     accessNote:
-      'Die Zusatzprogramme liegen bewusst in der bezahlten Academy. Für Einzelpersonen können Promotion-Codes im bestehenden Stripe-Checkout genutzt werden, auch für eine vollständige Freischaltung ohne reguläre Zahlung.',
+      'Die Zusatzprogramme liegen bewusst in der bezahlten Academy. Für Einzelpersonen können Promotion-Codes im bestehenden Stripe-Checkout genutzt werden, auch für eine vollständige Aktivierung ohne reguläre Zahlung.',
     lessons: [
       {
         id: 'grundkurs-1',
@@ -193,7 +193,7 @@ export const academyProgramDefinitions: AcademyProgramDefinition[] = [
       'eine saubere Brücke von juristischer Einordnung zur operativen Registerarbeit mit Mandanten',
     ],
     accessNote:
-      'Auch dieser Track bleibt Teil der bezahlten Academy. Für Einzelpersonen oder gezielte Freischaltungen können im bestehenden Checkout Promotion-Codes hinterlegt und direkt eingelöst werden.',
+      'Auch dieser Track bleibt Teil der bezahlten Academy. Für Einzelpersonen oder gezielte Aktivierungen können im bestehenden Checkout Promotion-Codes hinterlegt und direkt eingelöst werden.',
     lessons: [
       {
         id: 'juristen-1',

@@ -78,7 +78,7 @@ export default async function TermsPage({ params }: Props) {
             Die Zahlung kann unter anderem über Stripe abgewickelt werden. Der
             Zugang zu kostenpflichtigen Funktionen wird nach bestätigtem
             Zahlungseingang oder bestätigter Berechtigungszuweisung
-            freigeschaltet.
+            aktiviert.
           </p>
         </LegalSection>
 

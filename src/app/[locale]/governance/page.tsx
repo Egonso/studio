@@ -63,13 +63,13 @@ function getCopy(isGerman: boolean) {
       backLabel: 'Zur Plattform',
       kicker: 'Governance Control Center',
       title:
-        'Die bezahlte Governance-Ebene für Organisationen, die KI-Einsatzfälle steuern, prüfen und exportieren müssen.',
+        'Die volumenabhängige Governance-Ebene für Organisationen, die KI-Einsatzfälle steuern, prüfen und exportieren müssen.',
       lead:
         'Das Free Register bleibt die Grundlage für Pflichtdokumentation, Use Case Pass und erste Nachweise. Das Governance Control Center bündelt viele Einsatzfälle zu Reviews, Richtlinien, Rollen, Audit-Spuren, Trust Portal, Exports und Academy auf Organisationsebene.',
-      primaryCta: 'Governance freischalten',
+      primaryCta: 'Organisationssteuerung einrichten',
       secondaryCta: 'Free Register starten',
       checkoutNote:
-        'Der Checkout ermittelt nach Anmeldung automatisch die passende Stufe aus aktiven Usern und dokumentierten Einsatzfällen.',
+        'Nach Anmeldung ermittelt der Stripe-Checkout serverseitig die passende Stufe aus aktiven Usern und dokumentierten Einsatzfällen.',
       heroPanelLabel: 'Organisationssicht',
       heroPanelTitle: 'Aktuelle Governance-Lage',
       heroRows: [
@@ -84,7 +84,7 @@ function getCopy(isGerman: boolean) {
         'Bis 200 dokumentierte Einsatzfälle',
         'Monatlich oder jährlich aktivierbar',
       ],
-      pricingLabel: 'Verkaufsmodell',
+      pricingLabel: 'Volumenmodell',
       pricingTitle: 'Governance wächst mit der Organisation.',
       pricingIntro:
         'Die Stufe steigt in klaren Schritten: jeweils 5 zusätzliche User und 50 zusätzliche Einsatzfälle. Der serverseitige Stripe-Checkout wählt die passende Stufe anhand der aktuellen Workspace-Daten.',
@@ -97,7 +97,7 @@ function getCopy(isGerman: boolean) {
         'Ab 21 Usern oder 201 Einsatzfällen wird ein individueller Governance- oder Enterprise-Rahmen vereinbart.',
       contactCta: 'Größeren Rahmen anfragen',
       freeTitle: 'Was frei bleibt',
-      paidTitle: 'Was Governance freischaltet',
+      paidTitle: 'Was die Organisationssteuerung ergänzt',
       freeItems: [
         'Registereintrag und strukturierte Erfassung einzelner Einsatzfälle',
         'Use Case Pass als grundlegendes Nachweisobjekt',
@@ -195,7 +195,7 @@ function getCopy(isGerman: boolean) {
       securityTitle: 'Zugänge und Schutzlogik',
       securityLabel: 'Sicherheit',
       securityIntro:
-        'Die Freischaltung nutzt bestehende Authentifizierung, Workspace-Mitgliedschaft und serverseitig geprüfte Stripe-Konfiguration. Öffentliche Formulare zeigen keine internen Governance-Ansichten.',
+        'Die Einrichtung nutzt bestehende Authentifizierung, Workspace-Mitgliedschaft und serverseitig geprüfte Stripe-Konfiguration. Öffentliche Formulare zeigen keine internen Governance-Ansichten.',
       securityItems: [
         'Checkout nur für angemeldete Nutzer:innen mit passendem Workspace-Kontext',
         'Stufe wird serverseitig aus aktiven Mitgliedern und Einsatzfällen berechnet',
@@ -204,7 +204,7 @@ function getCopy(isGerman: boolean) {
       ],
       finalTitle: 'Bereit, Governance auf derselben Datenbasis zu führen?',
       finalBody:
-        'Starten Sie mit dem Free Register oder schalten Sie Governance direkt in den Einstellungen frei. Der Checkout übernimmt Abrechnung, Rechnung und die passende Volumenstufe.',
+        'Starten Sie mit dem Free Register oder richten Sie die Organisationssteuerung direkt in den Einstellungen ein. Der Checkout übernimmt Abrechnung, Rechnung und die passende Volumenstufe.',
       trainingCta: 'Fortbildung',
     };
   }
@@ -215,13 +215,13 @@ function getCopy(isGerman: boolean) {
     backLabel: 'Back to platform',
     kicker: 'Governance Control Centre',
     title:
-      'The paid governance layer for organisations that need to steer, review and export AI use cases.',
+      'The volume-based governance layer for organisations that need to steer, review and export AI use cases.',
     lead:
       'The Free Register remains the foundation for baseline documentation, Use Case Pass and first evidence. The Governance Control Centre bundles many use cases into reviews, policies, roles, audit trails, Trust Portal, exports and Academy at organisation level.',
-    primaryCta: 'Unlock governance',
+    primaryCta: 'Set up organisation-wide governance',
     secondaryCta: 'Start Free Register',
     checkoutNote:
-      'After sign-in, Checkout automatically selects the correct tier from active users and documented use cases.',
+      'After sign-in, Stripe Checkout selects the correct tier server-side from active users and documented use cases.',
     heroPanelLabel: 'Organisation view',
     heroPanelTitle: 'Current governance status',
     heroRows: [
@@ -249,7 +249,7 @@ function getCopy(isGerman: boolean) {
       'From 21 users or 201 use cases, an individual governance or enterprise scope is agreed.',
     contactCta: 'Request larger scope',
     freeTitle: 'What remains free',
-    paidTitle: 'What governance unlocks',
+    paidTitle: 'What organisation-wide governance adds',
     freeItems: [
       'Registry entry and structured capture of individual use cases',
       'Use Case Pass as the baseline evidence object',
@@ -356,7 +356,7 @@ function getCopy(isGerman: boolean) {
     ],
     finalTitle: 'Ready to run governance on the same data foundation?',
     finalBody:
-      'Start with the Free Register or unlock governance directly in settings. Checkout handles billing, invoice and the correct volume tier.',
+      'Start with the Free Register or set up organisation-wide governance directly in settings. Checkout handles billing, invoice and the correct volume tier.',
     trainingCta: 'Training',
   };
 }
@@ -368,14 +368,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
       title: 'Governance Control Center – KI Register',
       description:
-        'Die bezahlte Governance-Ebene des KI Registers mit Reviews, Policy Engine, ISO- und Audit-Layer, Trust Portal, Exports und Volumenpreisen.',
+        'Die volumenabhängige Governance-Ebene des KI Registers mit Reviews, Policy Engine, ISO- und Audit-Layer, Trust Portal, Exports und Volumenpreisen.',
     };
   }
 
   return {
     title: 'Governance Control Centre – AI Registry',
     description:
-      'The paid governance layer of AI Registry with reviews, Policy Engine, ISO and Audit Layer, Trust Portal, exports and volume pricing.',
+      'The volume-based governance layer of AI Registry with reviews, Policy Engine, ISO and Audit Layer, Trust Portal, exports and volume pricing.',
   };
 }
 

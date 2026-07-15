@@ -106,10 +106,10 @@ export default function ControlPortfolioPage() {
           {!registerFirstFlags.controlShell ? (
             <Card>
               <CardHeader>
-                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht freigeschaltet" : "AI Governance Control is not enabled"}</CardTitle>
+                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht aktiv" : "AI Governance Control is not enabled"}</CardTitle>
                 <CardDescription>
                   {locale === "de"
-                    ? "Die Portfolio-Ansicht ist für diesen Workspace noch nicht freigeschaltet."
+                    ? "Die Portfolio-Ansicht ist für diesen Workspace noch nicht aktiv."
                     : "The portfolio view is not enabled for this workspace yet."}
                 </CardDescription>
               </CardHeader>

@@ -23,7 +23,19 @@ export function SiteHeader({ locale }: { locale: string }) {
         />
         <span>{isEn ? 'AI Register' : 'KI Register'}</span>
       </Link>
-      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
+      <nav className="flex w-full flex-wrap items-center gap-x-5 gap-y-2 sm:w-auto">
+        <Link
+          href={`/${locale}/academy/ki-kompetenz`}
+          className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+        >
+          {isEn ? 'Free training (DE)' : 'Kostenlose Schulung'}
+        </Link>
+        <Link
+          href={`/${locale}/fortbildung`}
+          className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"
+        >
+          {isEn ? 'Training package' : 'Fortbildung'}
+        </Link>
         <Link
           href={`/${locale}?mode=login`}
           className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-600 underline-offset-4 hover:text-slate-950 hover:underline"

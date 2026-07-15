@@ -113,6 +113,9 @@ const DE: ExperienceCopy = {
   ctaOpen: 'Bestehendes Register öffnen',
   quickLinks: [
     { label: 'Use Case in 30 s erfassen', href: '/capture' },
+    { label: 'Kostenlose Art.-4-Rollenkurse', href: '/academy/ki-kompetenz' },
+    { label: 'Fortbildungspaket', href: '/fortbildung' },
+    { label: 'Governance / Control', href: '/governance' },
     { label: 'Downloads', href: '/downloads' },
     {
       label: 'Whitepaper',
@@ -243,7 +246,7 @@ const DE: ExperienceCopy = {
   ],
   promiseTitle: '„Pflichtdokumentation bleibt dauerhaft kostenlos."',
   promiseBody:
-    'Das Erfüllen des Gesetzes darf keine Preisfrage sein. Registereintrag, Use Case Pass und standardisierte Nachweise bleiben frei zugänglich. Wer mehr Governance auf derselben Plattform bündelt, trägt die Infrastruktur für alle mit.',
+    'Das Erfüllen des Gesetzes darf keine Preisfrage sein. Registereintrag, Use Case Pass, standardisierte Nachweise und die kurzen Art.-4-Rollenschulungen bleiben frei zugänglich. Wer Governance, Academy und Policy-Arbeit auf derselben Plattform bündelt, trägt die Infrastruktur für alle mit.',
   finaleTitlePre: 'Vom Einsatz ',
   finaleTitleEm: 'zum Nachweis.',
   ctaPrimary: 'Register anlegen',
@@ -291,6 +294,9 @@ const EN: ExperienceCopy = {
   ctaOpen: 'Open existing register',
   quickLinks: [
     { label: 'Capture a use case in 30 s', href: '/capture' },
+    { label: 'Free Article 4 role training', href: '/academy/ki-kompetenz' },
+    { label: 'Training package', href: '/fortbildung' },
+    { label: 'Governance / Control', href: '/governance' },
     { label: 'Downloads', href: '/downloads' },
     {
       label: 'Whitepaper',
@@ -420,7 +426,7 @@ const EN: ExperienceCopy = {
   ],
   promiseTitle: '"Mandatory documentation stays free of charge. Permanently."',
   promiseBody:
-    'Complying with the law must not be a question of budget. Register entries, Use Case Passes and standardised evidence remain freely accessible. Organisations bundling more governance on the same platform carry the infrastructure for everyone.',
+    'Complying with the law must not be a question of budget. Register entries, Use Case Passes, standardised evidence and the short Article 4 role trainings remain freely accessible. Organisations bundling governance, Academy and policy work on the same platform carry the infrastructure for everyone.',
   finaleTitlePre: 'From use ',
   finaleTitleEm: 'to proof.',
   ctaPrimary: 'Set up register',

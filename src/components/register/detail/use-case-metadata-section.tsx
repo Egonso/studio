@@ -223,7 +223,7 @@ export function UseCaseMetadataSection({
       : "Manage organisation-level AI governance",
     governanceDescription: isGerman
       ? "Zustaendigkeiten, Pruefmodelle und Policies werden in der Organisationssteuerung verwaltet."
-      : "Responsibilities, review models, and policies are managed in organisation control.",
+      : "Responsibilities, review models, and policies are managed through organisation-wide governance.",
     governanceLink: isGerman
       ? "Im AI Governance Control anzeigen"
       : "Show in AI Governance Control",

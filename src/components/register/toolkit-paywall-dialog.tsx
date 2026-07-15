@@ -46,7 +46,7 @@ export function ToolkitPaywallDialog({
                             <Lock className="w-5 h-5 text-slate-500" />
                         </div>
                         <div>
-                            <DialogTitle className="text-lg">Pro-Plan erforderlich</DialogTitle>
+                            <DialogTitle className="text-lg">Organisationssteuerung erforderlich</DialogTitle>
                             <DialogDescription className="text-sm">
                                 Diese Funktion ist im Governance Toolkit enthalten.
                             </DialogDescription>
@@ -74,7 +74,7 @@ export function ToolkitPaywallDialog({
                         className="w-full"
                         onClick={handleUpgrade}
                     >
-                        Upgrade-Optionen anzeigen
+                        Organisationssteuerung ansehen
                     </Button>
                     <button
                         className="text-xs text-muted-foreground hover:text-slate-600 text-center"

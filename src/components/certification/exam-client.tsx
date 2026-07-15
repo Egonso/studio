@@ -400,7 +400,7 @@ export function CertificationExamClient() {
         <CardContent className="space-y-4">
           <p className="text-sm text-slate-600">
             Starten Sie zuerst mindestens ein Academy-Modul. Danach bleibt die
-            Prüfung für Sie freigeschaltet.
+            Prüfung für Sie verfügbar.
           </p>
           <Button asChild>
             <Link href="/academy">Academy öffnen</Link>

@@ -203,12 +203,12 @@ export default function CoursePage() {
         area="paid_governance_control"
         title="Academy"
         description="Governance-Kurse, Lernressourcen und Prüfungsinformationen für Ihr Team."
-        nextStep="Academy gehört zur bezahlten Governance-Ebene."
+        nextStep="Academy gehört zur Organisationssteuerung."
       >
         <PageStatePanel
           area="paid_governance_control"
-          title="Academy gehört zu den Premium-Bereichen"
-          description={`${requiredPlanLabel} schaltet Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center frei. Promotion-Codes werden im bestehenden Stripe-Checkout unterstützt und können auch für vollständige Einzel-Freischaltungen genutzt werden.`}
+          title="Academy gehört zur Organisationssteuerung"
+          description={`${requiredPlanLabel} umfasst Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center. Promotion-Codes werden im bestehenden Stripe-Checkout unterstützt und können auch für vollständige Einzelaktivierungen genutzt werden.`}
           actions={
             <>
               <Button asChild>
@@ -216,7 +216,7 @@ export default function CoursePage() {
               </Button>
               <Button asChild variant="outline">
                 <Link href={ROUTE_HREFS.governanceUpgrade}>
-                  Upgrade-Optionen
+                  Organisationssteuerung
                 </Link>
               </Button>
             </>

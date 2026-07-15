@@ -30,7 +30,7 @@ test('free plan upgrade points to the canonical governance settings surface', as
 
   assert.ok(destination);
   assert.equal(destination?.href, '/settings?section=governance#upgrade-panel');
-  assert.equal(destination?.label, 'Governance freischalten');
+  assert.equal(destination?.label, 'Organisationssteuerung einrichten');
   assert.equal(destination?.checkoutConfigured, true);
   assert.equal(destination?.external, false);
 });

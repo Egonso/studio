@@ -197,7 +197,7 @@ export function AcademyProgramPage({
         throw new Error(
           typeof payload.error === 'string'
             ? payload.error
-            : 'Die Freischaltung konnte gerade nicht gestartet werden.',
+            : 'Die Aktivierung konnte gerade nicht gestartet werden.',
         );
       }
 
@@ -207,7 +207,7 @@ export function AcademyProgramPage({
       setGrantError(
         error instanceof Error
           ? error.message
-          : 'Die Freischaltung konnte gerade nicht gestartet werden.',
+          : 'Die Aktivierung konnte gerade nicht gestartet werden.',
       );
     }
   }, [academyGrant, checkoutReturnTo, user]);
@@ -271,8 +271,8 @@ export function AcademyProgramPage({
           description={
             grantError ??
             (academyGrant
-              ? 'Dieser Link enthält bereits eine Freischaltung für genau diesen Kurskontext. Die Aktivierung wird vorbereitet oder kann unten erneut ausgelöst werden.'
-              : `${requiredPlanLabel} schaltet diesen Kurs in der Governance Academy frei. Promotion-Codes werden im bestehenden Stripe-Checkout bereits unterstützt und können auch für vollständige Einzel-Freischaltungen genutzt werden.`)
+              ? 'Dieser Link enthält bereits eine Aktivierung für genau diesen Kurskontext. Die Aktivierung wird vorbereitet oder kann unten erneut ausgelöst werden.'
+              : `${requiredPlanLabel} umfasst diesen Kurs in der Governance Academy. Promotion-Codes werden im bestehenden Stripe-Checkout bereits unterstützt und können auch für vollständige Einzelaktivierungen genutzt werden.`)
           }
           actions={
             <>
@@ -284,7 +284,7 @@ export function AcademyProgramPage({
                   {grantActivationState === 'starting' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
-                  Gratis freischalten
+                  Kostenlos starten
                 </Button>
               ) : (
                 <Button asChild>

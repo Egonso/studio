@@ -9,6 +9,7 @@ import {
   Check,
   ClipboardCheck,
   FileCheck2,
+  GraduationCap,
   Mail,
   ReceiptText,
   Scale,
@@ -32,7 +33,7 @@ const CHECKOUT_HREF =
 const QUESTIONS_HREF =
   'mailto:mail.zoltangal@gmail.com?subject=Frage%20zur%20EU%20AI%20Act%20Officer%20Fortbildung';
 
-const LEGACY_HOME_HREF = '/legacy-home/index.html';
+const FREE_ART4_HREF = '/academy/ki-kompetenz';
 
 const JANINE_IMAGE_SRC =
   'https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Janine%20wendt%20foto.jpeg?alt=media&token=298246c6-702b-4eae-84d0-9736fec7dbd8';
@@ -45,9 +46,28 @@ const ZOLTAN_IMAGE_SRC = '/images/faculty/zoltan-gal.png';
 
 const packageStats = [
   { value: '43', label: 'Lernvideos im Hauptkurs' },
-  { value: '7', label: 'Lektionen für Praxis und Mandat' },
+  { value: '4', label: 'kostenlose Art.-4-Rollenkurse' },
   { value: '30 Sek.', label: 'erste Erfassung im Register' },
   { value: '29+', label: 'Arbeitsmaterialien' },
+] as const;
+
+const freeRoleTrainings = [
+  {
+    role: 'Geschäftsführung',
+    body: 'Entscheidungsverantwortung, Budget, Aufsicht und interne Leitplanken.',
+  },
+  {
+    role: 'HR',
+    body: 'KI-Kompetenz, Kommunikation, Schulungsnachweise und sensible Personalkontexte.',
+  },
+  {
+    role: 'Sachbearbeitung',
+    body: 'Alltagsnutzung, Transparenz, Fehlergrenzen und sichere Übergabe an Verantwortliche.',
+  },
+  {
+    role: 'IT',
+    body: 'Systemverständnis, Anbieter, Datenflüsse, Sicherheit und technische Nachweisbarkeit.',
+  },
 ] as const;
 
 const heroProofPoints = [
@@ -110,7 +130,7 @@ const courseCards = [
     kicker: 'Praxisbonus',
     title: 'KIRegister Arbeitsraum',
     body:
-      'Dauerhafter Free-Register-Zugang und ein Pro-Zeitfenster. Erste Erfassung in rund 30 Sekunden, danach Review, Evidenz und Export im Use Case Pass.',
+      'Dauerhafter Free-Register-Zugang und ein abgegrenzter Start in die Organisationssteuerung. Höhere Governance-Funktionen bleiben volumen- und nutzungsabhängig.',
   },
 ] as const;
 
@@ -143,7 +163,12 @@ const faqItems = [
   {
     question: 'Ist KIRegister im Paket enthalten?',
     answer:
-      'Ja. Der dauerhafte Free-Register-Zugang ist enthalten. Zusätzlich ist ein Pro-Zeitfenster vorgesehen, damit ein erster Organisations-, Beratungs- oder Mandantenkontext als Use Case Pass vorbereitet werden kann.',
+      'Ja. Der dauerhafte Free-Register-Zugang ist enthalten. Zusätzlich ist ein abgegrenzter Start in die Organisationssteuerung vorgesehen, damit ein erster Organisations-, Beratungs- oder Mandantenkontext als Use Case Pass vorbereitet werden kann. Die laufenden Governance-/Control-Funktionen sind danach volumen- und nutzungsabhängig.',
+  },
+  {
+    question: 'Was ist kostenlos und was ist bezahlt?',
+    answer:
+      'Kostenlos bleiben Registerstart, Basiserfassung, Use Case Pass und die kurzen Art.-4-Rollenschulungen für Geschäftsführung, HR, Sachbearbeitung und IT. Bezahlt sind der vertiefte Hauptkurs sowie die höheren Governance-/Control-Funktionen für Reviews, Policies, Exporte, Trust Portal und organisationsweite Steuerung.',
   },
   {
     question: 'Was bedeutet „in 30 Sekunden erfassen“?',
@@ -353,6 +378,7 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
   const homeHref = localizeHref(locale, '/');
   const platformHref = localizeHref(locale, '/plattform');
   const academyHref = localizeHref(locale, '/academy');
+  const freeArt4Href = localizeHref(locale, FREE_ART4_HREF);
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
@@ -379,14 +405,9 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
             <a href="#fragen" className="hover:text-slate-950">
               Fragen
             </a>
-            <a
-              href={LEGACY_HOME_HREF}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-slate-950"
-            >
-              Bisherige Seite
-            </a>
+            <Link href={freeArt4Href} className="hover:text-slate-950">
+              Kostenlose Schulung
+            </Link>
             <Link href={platformHref} className="hover:text-slate-950">
               Plattformlogik
             </Link>
@@ -407,7 +428,8 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
               AI-Act-Kompetenz in eine dokumentierte Einsatzfallstruktur bringen
               müssen. Sie arbeiten mit Kurs, Prüfung, Materialien und
               KIRegister an einem realen Projektkontext: Rollen, Zweck, Risiko,
-              Review und Evidenz.
+              Review und Evidenz. Wer zuerst niedrigschwellig starten will,
+              kann die kostenlosen Art.-4-Rollenschulungen vorab nutzen.
             </p>
             <div className="mt-8 max-w-2xl">
               <CheckList items={heroProofPoints} />
@@ -432,6 +454,12 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
                 Jetzt für 495€ buchen
               </PurchaseButton>
             </div>
+            <Link
+              href={freeArt4Href}
+              className="mt-4 block text-sm font-medium text-slate-950 underline underline-offset-4 hover:text-slate-600"
+            >
+              Kostenlose Art.-4-Rollenschulungen vorher ansehen
+            </Link>
             <div className="mt-5 space-y-3 border-t border-slate-200 pt-5 text-sm leading-6 text-slate-600">
               <p className="flex gap-3">
                 <TimerReset className="mt-1 h-4 w-4 shrink-0 text-slate-900" />
@@ -465,6 +493,48 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="border-b border-slate-200 bg-slate-50">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-12 md:grid-cols-[0.9fr_1.1fr] md:items-start">
+          <div>
+            <SectionHeader
+              eyebrow="Kostenloser Einstieg"
+              title="Vier Art.-4-Rollenschulungen, bevor jemand buchen muss."
+              body="Für viele Teams reicht am Anfang nicht die große Fortbildung, sondern eine klare Mindestspur: Wer nutzt KI, welche Rolle trägt welche Verantwortung, und wie wird der Nachweis sichtbar? Genau dafür bleiben die kurzen Rollenschulungen kostenlos."
+            />
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild variant="outline" size="lg" className="h-12">
+                <Link href={freeArt4Href}>
+                  Kostenlose Schulungen öffnen
+                  <GraduationCap className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="lg" className="h-12">
+                <Link href={platformHref}>
+                  Plattformlogik ansehen
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {freeRoleTrainings.map((training) => (
+              <article key={training.role} className="border border-slate-200 bg-white p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                  Kostenfrei · rollenbezogen · mit Nachweis
+                </p>
+                <h3 className="mt-3 text-lg font-semibold text-slate-950">
+                  {training.role}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {training.body}
+                </p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -644,14 +714,9 @@ export default async function EuAiActOfficerCoursePage({ params }: Props) {
             <Link href={academyHref} className="hover:text-slate-950">
               Academy
             </Link>
-            <a
-              href={LEGACY_HOME_HREF}
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-slate-950"
-            >
-              Bisherige Seite
-            </a>
+            <Link href={freeArt4Href} className="hover:text-slate-950">
+              Kostenlose Schulung
+            </Link>
             <a href={QUESTIONS_HREF} className="hover:text-slate-950">
               mail.zoltangal@gmail.com
             </a>

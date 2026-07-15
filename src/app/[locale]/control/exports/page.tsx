@@ -183,7 +183,7 @@ export default function ControlExportsPage() {
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
             area="paid_governance_control"
-            title={locale === 'de' ? 'Exports sind noch nicht freigeschaltet' : 'Exports are not enabled yet'}
+            title={locale === 'de' ? 'Exports sind noch nicht aktiv' : 'Exports are not enabled yet'}
             description={
               locale === 'de'
                 ? 'Das Export Center ist für diesen Workspace noch nicht aktiviert.'
@@ -201,8 +201,8 @@ export default function ControlExportsPage() {
             title={locale === 'de' ? 'Exports gehören zur Governance-Stufe' : 'Exports belong to the governance tier'}
             description={
               locale === 'de'
-                ? 'Audit-Dossiers und Organisations-Exporte werden über das bezahlte Governance-Entitlement freigeschaltet.'
-                : 'Audit dossiers and organisation exports are unlocked through the paid governance entitlement.'
+                ? 'Audit-Dossiers und Organisations-Exporte gehören zur bezahlten Governance-Stufe.'
+                : 'Audit dossiers and organisation exports belong to the paid governance tier.'
             }
             actions={
               <>
@@ -211,7 +211,7 @@ export default function ControlExportsPage() {
                 </Button>
                 <Button asChild variant="outline">
                   <Link href={governanceUpgradeHref}>
-                    {locale === 'de' ? 'Upgrade-Optionen' : 'Upgrade options'}
+                    {locale === 'de' ? 'Organisationssteuerung' : 'Organisation-wide governance'}
                   </Link>
                 </Button>
               </>

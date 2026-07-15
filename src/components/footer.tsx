@@ -23,6 +23,14 @@ export function Footer() {
   const publicLinks: FooterLink[] = [
     { href: localizeHref(locale, '/'), label: t('footer.home') },
     { href: localizeHref(locale, '/plattform'), label: t('footer.plattform') },
+    {
+      href: localizeHref(locale, '/academy/ki-kompetenz'),
+      label: locale === 'en' ? 'Free training (DE)' : 'Kostenlose Schulung',
+    },
+    {
+      href: localizeHref(locale, '/fortbildung'),
+      label: locale === 'en' ? 'Training package' : 'Fortbildung',
+    },
     { href: localizeHref(locale, '/standards'), label: t('footer.standards') },
     { href: localizeHref(locale, '/industries'), label: t('footer.industries') },
     { href: localizeHref(locale, '/artefacts'), label: t('footer.artefacts') },
