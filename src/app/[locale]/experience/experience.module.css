@@ -399,8 +399,8 @@
 
 .mandatGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-  gap: clamp(2rem, 6vw, 6rem);
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.45fr);
+  gap: clamp(2.5rem, 5vw, 5rem);
   align-items: end;
 }
 
@@ -409,12 +409,21 @@
 }
 
 .fineSum {
-  font-size: clamp(3.2rem, 11vw, 10rem);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: normal;
+  font-size: clamp(3.2rem, 8.4vw, 8.75rem);
   font-weight: 650;
   letter-spacing: -0.045em;
   line-height: 0.95;
   font-variant-numeric: tabular-nums;
   margin: 0;
+}
+
+.fineSum > span:first-child {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .fineSuffix {
@@ -433,6 +442,12 @@
   line-height: 1.75;
   color: #b9b8b1;
   margin: 0 0 1.4rem;
+}
+
+.mandatCopy {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .mandatCite {

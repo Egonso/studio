@@ -1,9 +1,8 @@
 /**
  * KI-Kompetenz nach Art. 4 EU AI Act — kostenlose Rollenschulungen.
  *
- * Kennzeichnung: Die Videos sind KI-generiert (Skript kuratiert,
- * Stimme ElevenLabs, Folien automatisiert). Das wird in der UI und
- * auf dem Zertifikat transparent ausgewiesen.
+ * Hinweis: Die Inhalte sind fachlich redaktionell kuratiert. In der
+ * Produktion wurden KI-gestützte Werkzeuge unterstützend eingesetzt.
  *
  * Die korrekten Quiz-Antworten liegen bewusst NICHT in dieser Datei
  * (Client-Bundle), sondern server-seitig in ./answers.ts.

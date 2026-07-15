@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
+  ArrowRight,
   CheckCircle,
   Download,
   FileText,
@@ -49,6 +50,15 @@ type Selection =
 
 const SEAL_URL =
   'https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU-AI-Act%20SIEGEL%20(2160%20x%201080%20px)%20(Anha%CC%88nger%C2%A0%E2%80%93%202%2C5%20x%202%2C5%20Zoll).png?alt=media&token=6f22bdf6-e4a5-4b26-bd48-7b2786ef6487';
+
+const FREE_ACADEMY_TRACK = {
+  slug: 'ki-kompetenz',
+  strapline: 'Kostenloser Academy-Track',
+  title: 'KI-Kompetenz nach Art. 4',
+  summary:
+    'Kostenlose Rollenschulungen für Personen, die KI-Systeme im Arbeitskontext auswählen, einsetzen, beaufsichtigen oder erklären müssen.',
+  meta: 'Kostenlos zugänglich · ohne Academy-Freischaltung',
+} as const;
 
 function resolveSelection(
   videoId: string | null,
@@ -108,6 +118,7 @@ export default function CoursePage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const freeAcademyTrackHref = `/${locale}/academy/${FREE_ACADEMY_TRACK.slug}`;
   const selectedVideoId = searchParams?.get('videoId') ?? null;
   const selectedModuleId = searchParams?.get('moduleId') ?? null;
   const {
@@ -121,12 +132,6 @@ export default function CoursePage() {
     new Set(),
   );
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [authLoading, router, user]);
 
   useEffect(() => {
     if (!user || !allowed) {
@@ -194,7 +199,33 @@ export default function CoursePage() {
   }
 
   if (!user) {
-    return null;
+    return (
+      <SignedInAreaFrame
+        area="paid_governance_control"
+        title="Academy"
+        description="Kurse, Prüfungsinformationen und Governance-Lernmaterialien."
+        nextStep="Der KI-Kompetenz-Track ist frei zugänglich. Für Lernfortschritt, Prüfung und Premium-Kurse melden Sie sich an."
+      >
+        <PageStatePanel
+          area="paid_governance_control"
+          title="Academy-Übersicht"
+          description="KI-Kompetenz nach Art. 4 bleibt als kostenlose Rollenschulung ohne Academy-Freischaltung erreichbar. Die vollständige Academy mit Fortschritt, Prüfung und zusätzlichen Programmen wird nach Anmeldung geladen."
+          actions={
+            <>
+              <Button asChild>
+                <Link href={freeAcademyTrackHref}>
+                  Kostenlosen Track öffnen
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href={`/${locale}/login`}>Einloggen</Link>
+              </Button>
+            </>
+          }
+        />
+      </SignedInAreaFrame>
+    );
   }
 
   if (!allowed) {
@@ -208,9 +239,15 @@ export default function CoursePage() {
         <PageStatePanel
           area="paid_governance_control"
           title="Academy gehört zur Organisationssteuerung"
-          description={`${requiredPlanLabel} umfasst Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center. Promotion-Codes werden im bestehenden Stripe-Checkout unterstützt und können auch für vollständige Einzelaktivierungen genutzt werden.`}
+          description={`${requiredPlanLabel} umfasst Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center. KI-Kompetenz nach Art. 4 bleibt daneben als kostenloser Academy-Track erreichbar. Promotion-Codes können für vollständige Einzelaktivierungen genutzt werden.`}
           actions={
             <>
+              <Button asChild>
+                <Link href={freeAcademyTrackHref}>
+                  Kostenlosen Track öffnen
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
               <Button asChild>
                 <Link href={ROUTE_HREFS.control}>Overview öffnen</Link>
               </Button>
@@ -282,12 +319,32 @@ export default function CoursePage() {
             <CardTitle className="text-base">Weitere Academy-Programme</CardTitle>
             <p className="text-sm leading-6 text-slate-600">
               Der bestehende Zertifizierungskurs bleibt unverändert. Zusätzlich
-              liegen hier neue Tracks für allgemeine Governance-Einführung und
-              juristische Praxis, jeweils mit eingebetteten Videos und
-              kuratierten Materialien.
+              liegt hier ein freier KI-Kompetenz-Track sowie vertiefende
+              Academy-Programme für allgemeine Governance-Einführung und
+              juristische Praxis.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="border border-slate-900 bg-slate-950 px-4 py-4 text-white">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">
+                {FREE_ACADEMY_TRACK.strapline}
+              </p>
+              <h2 className="mt-2 text-lg font-semibold">
+                {FREE_ACADEMY_TRACK.title}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-200">
+                {FREE_ACADEMY_TRACK.summary}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-slate-300">
+                {FREE_ACADEMY_TRACK.meta}
+              </p>
+              <Button asChild className="mt-4 bg-white text-slate-950 hover:bg-slate-100">
+                <Link href={freeAcademyTrackHref}>
+                  Kostenlos öffnen
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
             {academyProgramDefinitions.map((program) => (
               <div
                 key={program.slug}

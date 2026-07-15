@@ -555,7 +555,7 @@ export default async function FortbildungPage({ params }: Props) {
               Kostenlos
             </span>
             <span className="border border-slate-300 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-              KI-generierte Schulung
+              Redaktionell kuratiert
             </span>
           </div>
           <h2 className="max-w-3xl text-2xl font-semibold tracking-tight text-slate-950">
@@ -564,8 +564,8 @@ export default async function FortbildungPage({ params }: Props) {
           </h2>
           <p className="max-w-3xl text-sm leading-7 text-slate-600">
             Für Geschäftsführung, HR, Sachbearbeitung und IT — je ein 6–8-minütiges
-            Video (KI-generiert, redaktionell kuratiert), acht Prüfungsfragen und
-            ein persönlicher Nachweis mit öffentlich prüfbarem Verify-Link.
+            Video, redaktionell kuratierte Inhalte, acht Prüfungsfragen und ein
+            persönlicher Nachweis mit öffentlich prüfbarem Verify-Link.
             Dauerhaft kostenlos; ein kostenloses Konto genügt für das Zertifikat.
           </p>
           <Link

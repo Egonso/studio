@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-29",
-  "last_substantive_update": "2026-06-15",
+  "last_substantive_update": "2026-07-06",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Evidenzprofil für OEM-Beschaffung, Qualität und Compliance",
-  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung vom 15. Juni 2026 ergänzt ein Abnahmeprofil für standardisierte Lieferkettenarbeit: Procurement, Qualität und Compliance sollen denselben Pass-Stand lesen, seine Aktualität prüfen und daraus akzeptieren, vertiefen, Evidenz nachfordern oder die externe Aussage zurückhalten können.",
+  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung vom 6. Juli 2026 ergänzt ein Supplier-Quality-Abnahmeprofil für standardisierte Lieferkettenarbeit: Procurement, Qualität und Compliance sollen denselben Pass-Stand lesen, seine Aktualität prüfen, Portal- oder Audit-Wiederverwendung einordnen und daraus akzeptieren, vertiefen, Evidenz nachfordern oder die externe Aussage zurückhalten können.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Evidenzprofil für Lieferkette und Freigabe",
   "author": "KIRegister",
@@ -39,7 +39,8 @@
     "eine klare Empfängerlogik dafür, welche Aussageform für Procurement, Supplier Quality, Compliance und Eskalation jeweils ausreicht",
     "ein Aktualitäts- und Abnahmeprofil, das OEM-Teams vor Versand, Portalantwort oder Qualitätsrunde als wiederholbaren Prüfpunkt verwenden können",
     "eine Partner-Handoff-Logik, die offene Evidenz, Trainingsbedarf, Nachforderung und externe Antwort sauber trennt",
-    "eine Abnahmelogik für standardisierte Lieferkettenarbeit, damit OEM-Procurement, Supplier Quality und Compliance dieselbe Mindestantwort lesen"
+    "eine Abnahmelogik für standardisierte Lieferkettenarbeit, damit OEM-Procurement, Supplier Quality und Compliance dieselbe Mindestantwort lesen",
+    "einen Supplier-Quality-Abnahmepunkt für Portalantwort, Qualitätsrunde, Audit-Vorbereitung und Verify-Nutzung"
   ],
   "downloads": [
     {
@@ -286,6 +287,10 @@
           "value": "Aus der Mindestantwort muss eine begrenzte Entscheidung ableitbar sein: akzeptieren, vertiefen, Evidenz nachfordern oder externe Aussage zurückhalten. Ohne diese Entscheidung bleibt der Pass zwar informativ, aber noch nicht als Standardobjekt für Beschaffung und Qualität verwendbar."
         },
         {
+          "label": "Supplier-Quality-Abnahmepunkt",
+          "value": "Vor Portalantwort, Audit-Vorbereitung oder Verify-Verweis sollte Supplier Quality denselben Pass-Stand ausdrücklich lesen: Welche Kernaussage ist belegbar, welche Wirkungsnähe bleibt offen, welche Kontrolle trägt die Aussage und welche Form der Wiederverwendung ist zulässig?"
+        },
+        {
           "label": "Aktualität",
           "value": "Der Empfänger sollte erkennen können, ob der Pass-Stand zur aktuellen Nutzung passt. Dazu gehören letzter fachlicher Review, sichtbare offene Punkte und ein Hinweis, ob seit dem Review wesentliche Änderungen an Zweck, Datenbezug, Prozessnähe oder externer Wirkung eingetreten sind."
         }
@@ -344,6 +349,10 @@
         {
           "label": "Aktualitätsprüfung vor Versand",
           "value": "Vor Portalantwort, Dossier oder Verify-Verweis sollte sichtbar sein, ob sich seit dem letzten Review Zweck, Datenquellen, Modellnutzung, Prozessnähe oder externe Wirkung verändert haben. Bleibt dieser Stand unklar, ist die Antwort für Standardisierung und Wiederverwendung zu schwach."
+        },
+        {
+          "label": "Portal- und Audit-Wiederverwendung",
+          "value": "Wenn dieselbe Antwort in Lieferantenportal, Qualitätsgespräch und Audit-Vorbereitung genutzt werden soll, muss der Pass zusätzlich festhalten, welche Felder unverändert wiederverwendet werden dürfen und welche Aussagen nur mit Dossier, Matrix oder erneuter Freigabe getragen werden."
         }
       ]
     },
@@ -392,6 +401,10 @@
         {
           "label": "OEM-Standardisierungsteam",
           "value": "Braucht eine wiederverwendbare Feldlogik, die über einzelne Lieferanten hinaus Bestand hat: Einsatzfall, Owner, Review-Stand, Belegpfad, Aktualitätsvermerk und Abnahmeentscheidung. So kann der Pass in Portalfragen, Qualitätsrunden und Audit-Vorbereitung dieselbe Sprache behalten."
+        },
+        {
+          "label": "Supplier Quality vor Versand",
+          "value": "Braucht eine kurze Abnahme der externen Kernaussage, nicht nur eine Sammlung vorhandener Unterlagen. Der Prüfpunkt hält fest, ob die Aussage getragen, begrenzt, nachgefordert oder zurückgehalten wird und welche Rolle die nächste Evidenz verantwortet."
         }
       ]
     },
@@ -535,6 +548,7 @@
       "paragraphs": [
         "Zulieferer können das Evidenzprofil als Vorprüfung verwenden, bevor eine Anfrage an einen OEM beantwortet wird. Fehlen Zweck, Owner, Datenbezug oder Review-Stand, sollte zuerst der Pass vervollständigt werden. Liegt die Mindeststruktur vor, lässt sich die Antwort kontrolliert aus dem vorhandenen Objekt ableiten.",
         "OEM-Beschaffung und Supplier Quality können die gleiche Logik nutzen, um unverhältnismäßige oder unklare Anfragen zu vermeiden. Statt allgemeine KI-Fragebögen zu verteilen, lässt sich präziser nach dem konkreten Einsatzfall, seiner Wirkung und seiner Evidenzbasis fragen. Genau dadurch wird der Use-Case Pass als wiederholbarer Standard anschlussfähig: dieselbe Mindeststruktur kann in Lieferantenportal, Qualitätsrunde, Audit-Vorbereitung und Dossier wiederkehren.",
+        "Der neue Abnahmepunkt macht die Wiederverwendung kontrollierbar. Eine Portalantwort darf aus dem Pass verdichtet werden, ein Audit-Paket darf zusätzliche Belege referenzieren und ein Verify-Link darf nur die freigegebenen Kernaussagen zeigen. Dadurch bleibt sichtbar, welche Evidenz wirklich dieselbe Aussage trägt und wo Supplier Quality vor Versand erneut lesen muss.",
         "Für eine Standardisierungsrunde ist besonders wichtig, dass jede Annahme als Entscheidung lesbar bleibt. Akzeptiert wird nur die belegte Kernaussage, vertieft wird die qualitäts- oder rechtsnahe Ergänzung, nachgefordert wird eine konkrete Evidenzquelle und zurückgehalten wird jede externe Aussage, deren Pass-Basis noch zu schwach ist.",
         "Sobald ein Fall extern sichtbar gemacht werden soll, sollte Verify nur dieselben Aussagen zeigen, die im Pass bereits dokumentiert und intern tragfähig sind. Das verhindert, dass öffentliche Nachweise eine andere Wirklichkeit abbilden als die interne Register- und Review-Arbeit."
       ]

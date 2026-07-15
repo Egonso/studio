@@ -120,7 +120,7 @@ export async function POST(request: Request) {
       modules: [
         moduleDefinition.certificateModuleLabel,
         'Lernkontrolle bestanden (mind. 6 von 8 Fragen)',
-        'Kostenlose Schulung · Videoinhalt KI-generiert (kuratiertes Skript, synthetische Stimme)',
+        'Kostenlose Schulung · fachlich redaktionell kuratiert · KI-gestützte Werkzeuge unterstützend eingesetzt',
       ],
       company,
       validityMonths: ART4_VALIDITY_MONTHS,

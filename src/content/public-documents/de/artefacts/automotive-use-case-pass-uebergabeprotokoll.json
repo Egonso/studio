@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-12",
-  "last_substantive_update": "2026-06-15",
+  "last_substantive_update": "2026-06-29",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
@@ -21,7 +21,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Übergabeprotokoll für Automotive-Lieferketten",
-  "summary": "Dieses Artefakt beschreibt, wie Automotive-Zulieferer einen einzelnen KI-Einsatzfall vor einer OEM-Rückfrage, Supplier-Quality-Prüfung oder Compliance-Freigabe übergeben sollten. Es trennt interne Pass-Pflege, externe Aussage, Verify-Sicht und ergänzendes Dossier so, dass Beschaffung, Qualität und Recht dieselbe Evidenzbasis lesen und keine zweite Dokumentationslogik entsteht. Die Aktualisierung ergänzt ein Abnahmefenster für OEM-Beschaffung und Supplier Quality: Teams erkennen vor dem Versand, ob der Pass übergabefähig ist, ein Dossier nötig wird, Evidenz nachgefordert wird oder die externe Antwort zurückgehalten bleibt.",
+  "summary": "Dieses Artefakt beschreibt, wie Automotive-Zulieferer einen einzelnen KI-Einsatzfall vor einer OEM-Rückfrage, Supplier-Quality-Prüfung oder Compliance-Freigabe übergeben sollten. Es trennt interne Pass-Pflege, externe Aussage, Verify-Sicht und ergänzendes Dossier so, dass Beschaffung, Qualität und Recht dieselbe Evidenzbasis lesen und keine zweite Dokumentationslogik entsteht. Die Aktualisierung ergänzt eine Abnahmelogik für wiederkehrende Lieferkettenrückfragen, damit Procurement, Quality Leads und Compliance denselben Pass-Stand akzeptieren, vertiefen, nachfordern oder zurückhalten können.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Übergabeprotokoll für Pass-Nachweise",
   "author": "KIRegister",
@@ -35,7 +35,7 @@
     "eine Rollenlogik für Owner, Beschaffung, Qualität, Compliance und externe Empfänger",
     "eine klare Entscheidung, wann Pass, Verify-Link, Supplier-Dossier oder Nachforderung die richtige Belegform ist",
     "eine Mindeststruktur für Aussagegrenze, Review-Stand, Datenbezug, offene Punkte und Quellenpfad",
-    "ein Abnahmefenster für OEM-Beschaffung und Supplier Quality, das Pass-Stand, Belegform und externe Weitergabe auf eine Entscheidung bringt"
+    "eine Abnahmelogik für wiederkehrende OEM- und Tier-1-Rückfragen, die Akzeptanz, Vertiefung, Nachforderung und Zurückhalten sauber trennt"
   ],
   "downloads": [
     {
@@ -135,6 +135,10 @@
         {
           "label": "Ein nächster Belegpfad",
           "value": "Je nach Lage folgt ein Verify-Auszug, ein Supplier-Dossier, eine Registermatrix oder eine begrenzte Nachforderung an Owner, Lieferant oder Fachbereich."
+        },
+        {
+          "label": "Ein Abnahmepunkt",
+          "value": "Die Übergabe endet mit einer beschränkten Arbeitsentscheidung: Procurement kann eine Mindestantwort akzeptieren, Supplier Quality vertieft qualitätsnahe Punkte, Compliance fordert Evidenz nach oder die externe Aussage bleibt zurückgehalten."
         }
       ]
     },
@@ -161,6 +165,10 @@
         {
           "label": "Externer Empfänger",
           "value": "Erhält nur die Belegform, die zur freigegebenen Aussage passt: Verify für stabile Kernaussagen, Dossier für vertiefte Rückfragen, Nachforderung bei Lücken."
+        },
+        {
+          "label": "Standard Owner",
+          "value": "Sorgt dafür, dass wiederkehrende OEM- oder Tier-1-Rückfragen nicht jedes Mal neu formuliert werden, sondern auf dieselbe Mindeststruktur aus Einsatzfall, Rolle, Review-Stand, Belegpfad und Aussagegrenze zurückgehen."
         }
       ]
     },
@@ -172,7 +180,9 @@
         "Eine verantwortliche Rolle ist benannt und kann Rückfragen, Änderungen sowie Nachweispflege verbindlich übernehmen.",
         "Datenbezug, Wirkungsnähe und mögliche externe Wirkung sind so dokumentiert, dass Review-Bedarf sichtbar wird.",
         "Bestätigte Aussagen, laufende Prüfungen und offene Punkte sind getrennt lesbar.",
-        "Mindestens eine Belegquelle wie Pass, Matrix, Dossier, Richtlinie oder Verify-Auszug ist referenziert."
+        "Mindestens eine Belegquelle wie Pass, Matrix, Dossier, Richtlinie oder Verify-Auszug ist referenziert.",
+        "Die empfangende Funktion kann erkennen, ob die Antwort akzeptiert, fachlich vertieft, mit einer Nachforderung ergänzt oder vorerst zurückgehalten werden soll.",
+        "Der gleiche Mindeststand kann in Lieferantenportal, Qualitätsreview, Audit-Vorbereitung oder Beschaffungsgespräch wiederholt werden, ohne den Pass in ein Sonderformat umzuschreiben."
       ]
     },
     {
@@ -198,6 +208,14 @@
         {
           "label": "Unklare Evidenzlage",
           "value": "Bei fehlendem Scope, offenem Datenbezug oder unklarer Verantwortung sollte die Antwort in eine Nachforderung wechseln, bevor ein externer Link versendet wird."
+        },
+        {
+          "label": "Wiederkehrende OEM-Abfrage",
+          "value": "Bei wiederholten Kundenfragen sollte dieselbe Mindestantwort wiederverwendet werden: Einsatzfall, Zweck, Owner, Review-Stand, Belegquelle und Aussagegrenze. Erst kundenspezifische Zusatzfelder werden ergänzend übersetzt."
+        },
+        {
+          "label": "Qualitätsnahe Eskalation",
+          "value": "Wenn der Einsatzfall Freigabe-, Prüf-, Reklamations- oder Produktionsnähe berührt, sollte Supplier Quality den Pass-Stand bestätigen, bevor Procurement eine externe Antwort als ausreichend behandelt."
         }
       ]
     },
@@ -206,7 +224,8 @@
       "heading": "Warum die Übergabe vor der Antwort liegen muss",
       "paragraphs": [
         "Viele schwache Lieferkettenantworten entstehen erst in der letzten Meile. Intern ist bekannt, was ein Tool tut, doch die externe Antwort wird aus E-Mail, Präsentation, Policy und Fachnotiz zusammengesetzt. Dadurch kann ein Empfänger schwer erkennen, welche Aussage tatsächlich freigegeben ist und auf welche Primärquelle sie zurückgeht.",
-        "Das Übergabeprotokoll setzt früher an. Vor dem Versand wird geklärt, ob der Pass tragfähig ist, welche Evidenz mitgegeben wird und welche Aussagegrenze ausdrücklich sichtbar bleiben muss. Das ist gerade im Automotive-Kontext wichtig, weil Beschaffung, Qualität und Recht häufig denselben Fall aus verschiedenen Blickwinkeln prüfen."
+        "Das Übergabeprotokoll setzt früher an. Vor dem Versand wird geklärt, ob der Pass tragfähig ist, welche Evidenz mitgegeben wird und welche Aussagegrenze ausdrücklich sichtbar bleiben muss. Das ist gerade im Automotive-Kontext wichtig, weil Beschaffung, Qualität und Recht häufig denselben Fall aus verschiedenen Blickwinkeln prüfen.",
+        "Für die Standardadoption zählt deshalb weniger die Länge des Dossiers als die Wiederholbarkeit der Entscheidung. Wenn ein Zulieferer bei zehn ähnlichen OEM-Rückfragen dieselbe Pass-Logik nutzt, entstehen belastbare Routinen: Procurement sieht den Gegenstand, Quality sieht die Wirkung, Compliance sieht die Grenze und der externe Empfänger sieht den Quellenpfad."
       ]
     },
     {
@@ -230,20 +249,8 @@
           "value": "Eine eng begrenzte Nachforderung ist sinnvoll, wenn eine einzelne fehlende Evidenzquelle den nächsten Schritt blockiert, etwa ein Freigabevermerk, eine Datenbeschreibung oder eine Owner-Bestätigung."
         },
         {
-          "label": "Übergabefähig vor OEM-Versand",
-          "value": "Der Pass benennt Einsatzfall, Fachzweck, verantwortliche Rolle, Review-Stand, Datenbezug, Belegpfad und Aussagegrenze so klar, dass Beschaffung und Supplier Quality dieselbe externe Kernaussage tragen können."
-        },
-        {
-          "label": "Dossier ergänzen",
-          "value": "Der Pass ist stabil, doch der Empfänger verlangt zusätzliche Formularlogik, Qualitätsnähe, Kontrollbeschreibung oder Rollenklärung. Das Supplier-Dossier übernimmt nur Aussagen, die bereits im Pass oder in der Matrix referenziert sind."
-        },
-        {
-          "label": "Evidenz nachfordern",
-          "value": "Eine einzelne Lücke blockiert die nächste Entscheidung, etwa Datenbeschreibung, Owner-Bestätigung, Freigabevermerk, Trainingsbezug oder Review-Notiz. Die Nachforderung bleibt eng am fehlenden Pass-Feld."
-        },
-        {
-          "label": "Antwort zurückhalten",
-          "value": "Scope-Grenze, Datenbezug, Wirkungsnähe oder Review-Stand sind für externe Leser noch zu unklar. Die Antwort bleibt intern, bis der Pass die tragfähige Mindeststruktur sichtbar führt."
+          "label": "Standardisieren",
+          "value": "Die Antwortstruktur sollte als wiederkehrender Mindeststandard festgehalten werden, wenn mehrere Kunden ähnliche Fragen stellen. Dann wird nicht jedes Formular zum neuen Primärobjekt, sondern jedes Formular verweist auf denselben Use-Case Pass."
         }
       ]
     },
@@ -252,7 +259,8 @@
       "heading": "Bezug zu AI Act, Standards und AI Literacy",
       "paragraphs": [
         "Die offiziellen EU-Quellen zum AI Act, zur Standardisierung und zu AI Literacy zeigen dieselbe Grundrichtung: Anforderungen werden tragfähiger, wenn Rollen, Kontext, Dokumentation, Nachvollziehbarkeit und Zuständigkeit klar geführt werden. Für Automotive-Lieferketten heißt das operativ, dass eine Antwort auf einen realen Einsatzfall zurückgeführt werden sollte.",
-        "Das Übergabeprotokoll ersetzt keine Rechtsprüfung und keine technische Konformitätsbewertung. Es schafft die vorbereitende Ordnung, damit rechtliche, qualitative oder beschaffungsbezogene Prüfungen nicht bei losen Toolinformationen starten, sondern bei einem dokumentierten Use-Case Pass."
+        "Das Übergabeprotokoll ersetzt keine Rechtsprüfung und keine technische Konformitätsbewertung. Es schafft die vorbereitende Ordnung, damit rechtliche, qualitative oder beschaffungsbezogene Prüfungen bei einem dokumentierten Use-Case Pass starten.",
+        "Die Ergänzung zu AI Literacy ist bewusst operativ: Verantwortliche Rollen müssen verstehen, welche Aussage sie treffen, welche Evidenz sie stützt und wann eine Frage an Qualität, Recht oder Governance übergeben wird. Genau diese Übergabe ist in Lieferketten oft der Unterschied zwischen einem nützlichen Nachweisstandard und einer Sammlung gut gemeinter Einzelantworten."
       ]
     },
     {
@@ -263,7 +271,9 @@
         "Offene Punkte werden sprachlich geglättet, obwohl sie für Review, Qualität oder Recht entscheidend sind.",
         "Ein Verify-Link wird versendet, obwohl die Kernaussagen im Pass noch nicht stabil dokumentiert sind.",
         "Beschaffung, Qualität und Compliance arbeiten mit unterschiedlichen Dokumentständen.",
-        "Die externe Aussage enthält mehr Sicherheit, als Pass, Matrix oder Dossier tatsächlich belegen."
+        "Die externe Aussage enthält mehr Sicherheit, als Pass, Matrix oder Dossier tatsächlich belegen.",
+        "Ein OEM-Formular wird als neues Primärdokument behandelt, obwohl der Use-Case Pass die interne Quelle der Aussage bleiben müsste.",
+        "Der Empfänger sieht nicht, ob die Antwort bereits akzeptiert wurde, noch fachlich vertieft wird oder wegen fehlender Evidenz zurückgehalten bleibt."
       ]
     }
   ]

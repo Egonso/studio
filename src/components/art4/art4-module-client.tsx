@@ -37,7 +37,7 @@ export function Art4BadgeRow() {
         Kostenlos
       </span>
       <span className="border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-        KI-generierte Schulung
+        Redaktionell kuratiert
       </span>
       <span className="border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
         Zertifikat mit Verify-Link
@@ -49,11 +49,11 @@ export function Art4BadgeRow() {
 export function Art4AiDisclosure() {
   return (
     <p className="border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600">
-      Transparenzhinweis: Diese Schulung ist KI-generiert — das Skript wurde
-      redaktionell kuratiert, Stimme und Folien wurden automatisiert erzeugt
-      (synthetische Stimme). Sie dokumentiert Teilnahme und bestandene
-      Lernkontrolle nach Art. 4 EU AI Act und ersetzt keine einzelfallbezogene
-      Rechtsberatung.
+      Hinweis zur Erstellung: Die Schulung wurde fachlich redaktionell
+      kuratiert. In der Produktion wurden KI-gestützte Werkzeuge unterstützend
+      eingesetzt, unter anderem für Aufbereitung, Folien und Audio. Sie
+      dokumentiert Teilnahme und bestandene Lernkontrolle nach Art. 4 EU AI Act
+      und ersetzt keine einzelfallbezogene Rechtsberatung.
     </p>
   );
 }

@@ -7,7 +7,7 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-05-21",
-  "last_substantive_update": "2026-06-18",
+  "last_substantive_update": "2026-07-07",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
@@ -20,7 +20,7 @@
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Trainingsnachweis-Kit für Partner",
-  "summary": "Dieses Trainingsnachweis-Kit hilft Trainern, Auditoren, Beratern, Beschaffungsteams und Governance-Praktikern, Schulungs- und Workshop-Ergebnisse zu einem konkreten KI-Einsatzfall in prüffähige Pass-Angaben zu überführen. Das Artefakt hält Lernziel, Rollenklärung, Einsatzfallbezug, offene Evidenz und nächsten Review-Schritt zusammen, damit AI-Literacy-Arbeit als belastbarer Baustein im Use-Case Pass weitergeführt wird. Ergänzt ist ein Abnahmevermerk nach dem Partnerformat: Er trennt befähigte Rolle, verwendete Quelle, offene Evidenz, Aussagegrenze und nächsten Registerschritt, bevor Beschaffung, Audit oder Governance eine Aussage weiterverwenden.",
+  "summary": "Dieses Trainingsnachweis-Kit hilft Trainern, Auditoren, Beratern, Beschaffungsteams und Governance-Praktikern, Schulungs- und Workshop-Ergebnisse zu einem konkreten KI-Einsatzfall in prüffähige Pass-Angaben zu überführen. Das Artefakt hält Lernziel, Rollenklärung, Einsatzfallbezug, offene Evidenz und nächsten Review-Schritt zusammen, damit AI-Literacy-Arbeit als belastbarer Baustein im Use-Case Pass weitergeführt wird. Ergänzt ist ein Abnahmevermerk nach dem Partnerformat: Er trennt befähigte Rolle, verwendete Quelle, offene Evidenz, Aussagegrenze und nächsten Registerschritt, bevor Beschaffung, Audit oder Governance eine Aussage weiterverwenden. Die Aktualisierung vom 7. Juli 2026 ergänzt einen Weitergabepunkt für Partner, damit vor Audit, Beschaffung oder Trainingsabschluss klar bleibt, welche Aussage intern getragen, begrenzt genutzt oder bis zur Nachforderung zurückgehalten wird.",
   "object_label": "Partner-Artefakt",
   "stance_label": "Trainingsnachweis für fallbezogene Pass-Arbeit",
   "author": "KIRegister",
@@ -36,7 +36,8 @@
     "eine Übergabestruktur für Partnerformate, damit Workshop-Ergebnisse in Register, Review-Matrix oder Beschaffungsantwort weitergeführt werden können",
     "eine sachliche Grenze zwischen Teilnahme, Befähigung, fallbezogener Evidenz und formaler Freigabe",
     "einen Abnahmevermerk nach dem Trainingsformat, der befähigte Rolle, verwendete Quelle, offene Evidenz und nächstes Registerziel trennt",
-    "eine Beschaffungs- und Audit-Lesart, mit der Partner vor externen Antworten erkennen, ob Trainingsbezug, Pass-Stand und Aussagegrenze zusammenpassen"
+    "eine Beschaffungs- und Audit-Lesart, mit der Partner vor externen Antworten erkennen, ob Trainingsbezug, Pass-Stand und Aussagegrenze zusammenpassen",
+    "einen Weitergabepunkt für Partner, der Trainingsbezug, offene Nachforderung, verantwortliche Rolle und zulässige Verwendung vor Audit, Beschaffung oder Governance-Abschluss zusammenführt"
   ],
   "downloads": [
     {
@@ -142,6 +143,10 @@
         {
           "label": "Quellenpfad",
           "value": "Welche Handouts, Workbooks, Lieferantenangaben oder internen Richtlinien wurden tatsächlich verwendet, und wo werden sie im Pass oder in der Review-Matrix wieder auffindbar?"
+        },
+        {
+          "label": "Weitergabepunkt",
+          "value": "Welche interne oder externe Verwendung ist nach dem Training zulässig, welche Evidenz fehlt noch und welche Rolle bestätigt den nächsten Schritt im Register?"
         }
       ]
     },
@@ -172,6 +177,10 @@
         {
           "label": "Prüf- und Abnahmerunde",
           "value": "Nutzt den Abnahmevermerk, um nach dem Partnerformat dieselbe Entscheidung zu lesen: Aussage tragen, begrenzen, vertiefen, nachfordern oder zurückhalten."
+        },
+        {
+          "label": "Partnerkoordination",
+          "value": "Hält vor Audit-, Trainings- oder Beschaffungshandoff fest, ob der Nachweis nur intern vorbereitet, begrenzt verwendet, an Governance übergeben oder bis zur Nachforderung zurückgestellt wird."
         }
       ]
     },
@@ -218,6 +227,10 @@
         {
           "label": "Externe Aussage zurückhalten",
           "value": "Der Einsatzfall ist nach dem Training noch nicht tragfähig genug beschrieben, um eine Lieferanten-, Kunden- oder Prüfantwort darauf zu stützen."
+        },
+        {
+          "label": "Partnerweitergabe vormerken",
+          "value": "Der Nachweis ist für die nächste Partnerrolle vorbereitet, enthält aber noch eine klare Nutzungsgrenze, eine verantwortliche Nachforderung und den nächsten Registertermin."
         }
       ]
     },
