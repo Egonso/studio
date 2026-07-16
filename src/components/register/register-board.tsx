@@ -37,6 +37,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { trackProductFunnelEvent } from "@/lib/analytics/product-funnel-client";
 import {
   Select,
   SelectContent,
@@ -107,6 +108,7 @@ interface RegisterBoardProps {
   refreshKey?: number;
   onUseCasesLoaded?: (cards: UseCaseCard[]) => void;
   initialFilter?: string;
+  hideActivationEmptyState?: boolean;
 }
 
 type StatusFilter = RegisterUseCaseStatus | "ALL";
@@ -420,7 +422,7 @@ async function copyTextToClipboard(value: string): Promise<void> {
   }
 }
 
-export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter }: RegisterBoardProps) {
+export function RegisterBoard({ projectId, mode = "dashboard", registerId, refreshKey = 0, onUseCasesLoaded, initialFilter, hideActivationEmptyState = false }: RegisterBoardProps) {
   const locale = useLocale();
   const t = useTranslations();
   const copy = getRegisterBoardCopy(locale);
@@ -701,6 +703,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       });
 
       await loadUseCases();
+      if (nextStatus === "REVIEWED" || nextStatus === "PROOF_READY") {
+        void trackProductFunnelEvent({
+          eventName: "review_completed",
+          payload: { status: nextStatus },
+          context: { source: "register" },
+        });
+      }
     } catch (updateError) {
       const code = mapServiceErrorCode(updateError);
       const message =
@@ -769,6 +778,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       getUseCasePassFileName(card.useCaseId),
       serializePrettyJson(exportPayload)
     );
+    void Promise.all([
+      trackProductFunnelEvent({
+        eventName: "pass_generated",
+        payload: { format: "json" },
+        context: { source: "register" },
+      }),
+      trackProductFunnelEvent({
+        eventName: "export_completed",
+        payload: { format: "json" },
+        context: { source: "register" },
+      }),
+    ]);
   };
 
   const handleExportProofPackDraft = (card: UseCaseCard) => {
@@ -777,11 +798,28 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       getProofPackDraftFileName(card.useCaseId),
       serializePrettyJson(exportPayload)
     );
+    void trackProductFunnelEvent({
+      eventName: "export_completed",
+      payload: { format: "json" },
+      context: { source: "register" },
+    });
   };
 
   const handleExportProofPackPdf = (card: UseCaseCard) => {
     const pdfBlob = createProofPackPdfBlob(card);
     downloadBlob(getProofPackPdfFileName(card.useCaseId), pdfBlob);
+    void Promise.all([
+      trackProductFunnelEvent({
+        eventName: "pass_generated",
+        payload: { format: "pdf" },
+        context: { source: "register" },
+      }),
+      trackProductFunnelEvent({
+        eventName: "export_completed",
+        payload: { format: "pdf" },
+        context: { source: "register" },
+      }),
+    ]);
   };
 
   const handleExportUseCasePassV11 = async (card: UseCaseCard) => {
@@ -806,6 +844,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         getUseCasePassV11FileName(card.globalUseCaseId ?? card.useCaseId),
         serializePrettyJson(exportPayload)
       );
+      void Promise.all([
+        trackProductFunnelEvent({
+          eventName: "pass_generated",
+          payload: { format: "json" },
+          context: { source: "register" },
+        }),
+        trackProductFunnelEvent({
+          eventName: "export_completed",
+          payload: { format: "json" },
+          context: { source: "register" },
+        }),
+      ]);
     } catch {
       toast({
         variant: "destructive",
@@ -816,21 +866,29 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   };
 
   const handleTogglePublicVisibility = async (card: UseCaseCard) => {
+    const nextVisibility = !(card.isPublicVisible ?? false);
     try {
       if (isStandalone) {
         await registerService.setPublicVisibility({
           registerId,
           useCaseId: card.useCaseId,
-          isPublicVisible: !(card.isPublicVisible ?? false),
+          isPublicVisible: nextVisibility,
         });
       } else {
         await registerFirstService.setPublicVisibility({
           projectId,
           useCaseId: card.useCaseId,
-          isPublicVisible: !(card.isPublicVisible ?? false),
+          isPublicVisible: nextVisibility,
         });
       }
       await loadUseCases();
+      if (nextVisibility) {
+        void trackProductFunnelEvent({
+          eventName: "pass_shared",
+          payload: { channel: "public_link" },
+          context: { source: "register" },
+        });
+      }
     } catch {
       toast({
         variant: "destructive",
@@ -1249,12 +1307,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           <Loader2 className="h-6 w-6 animate-spin" />
         </div>
       ) : useCases.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{copy.noUseCasesTitle}</CardTitle>
-            <CardDescription>{copy.noUseCasesDesc}</CardDescription>
-          </CardHeader>
-        </Card>
+        hideActivationEmptyState ? null : (
+          <Card>
+            <CardHeader>
+              <CardTitle>{copy.noUseCasesTitle}</CardTitle>
+              <CardDescription>{copy.noUseCasesDesc}</CardDescription>
+            </CardHeader>
+          </Card>
+        )
       ) : sortedUseCases.length === 0 ? (
         <Card>
           <CardHeader>

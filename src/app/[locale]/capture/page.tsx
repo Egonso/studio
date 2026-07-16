@@ -21,6 +21,7 @@ import {
   trackCoverageAssistEntryShown,
   trackCoverageAssistSuggestionSelected,
 } from "@/lib/analytics/coverage-assist-events";
+import { trackProductFunnelEvent } from "@/lib/analytics/product-funnel-client";
 import {
   createCoverageAssistContextFromQuery,
 } from "@/lib/coverage-assist/query-contract";
@@ -47,6 +48,23 @@ import {
 
 type OnboardingState = "loading" | "no_register" | "ready";
 type CaptureInitialDraft = Partial<QuickCaptureFieldsDraft & { description: string }>;
+type CaptureJourneySource =
+  | "training_completion"
+  | "training_landing"
+  | "register_landing"
+  | "invite";
+
+function parseCaptureJourneySource(value: string | null): CaptureJourneySource | undefined {
+  if (
+    value === "training_completion" ||
+    value === "training_landing" ||
+    value === "register_landing" ||
+    value === "invite"
+  ) {
+    return value;
+  }
+  return undefined;
+}
 
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -65,6 +83,8 @@ export default function StandaloneCapturePage() {
   );
   const workspaceScope = useWorkspaceScope();
   const source = safeSearchParams.get("source");
+  const captureJourneySource = parseCaptureJourneySource(source);
+  const analyticsSessionId = safeSearchParams.get("journey");
   const prefill = (safeSearchParams.get("prefill") ?? "").trim();
   const originUrl = (safeSearchParams.get("originUrl") ?? "").trim();
   const checkoutSessionId = safeSearchParams.get("checkout_session_id");
@@ -197,6 +217,27 @@ export default function StandaloneCapturePage() {
     try {
       await registerService.createRegister(name);
       setOnboardingState("ready");
+      const hasLocalCapture = (() => {
+        try {
+          return JSON.parse(
+            window.localStorage.getItem("kiregister_guest_captures") ?? "[]",
+          ).length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      if (captureJourneySource || hasLocalCapture) {
+        void trackProductFunnelEvent({
+          eventName: "register_created_after_capture",
+          payload: {},
+          context: {
+            source: "capture",
+            ...(analyticsSessionId
+              ? { anonymousSessionId: analyticsSessionId }
+              : {}),
+          },
+        });
+      }
     } catch (err) {
       const code = mapErrorCode(err);
       setCreateError(
@@ -552,6 +593,16 @@ export default function StandaloneCapturePage() {
         renderInline
         initialDraft={initialDraft}
         assistContext={assistContext}
+        showSuccessReceipt
+        captureSource={captureJourneySource}
+        analyticsSessionId={analyticsSessionId}
+        captureMode={
+          assistContext?.assist === "coverage"
+            ? "coverage_assist"
+            : assistDraft
+              ? "description_assist"
+              : "direct"
+        }
         onStartDraftAssist={
           draftAssistCaptureEnabled ? openDraftAssist : undefined
         }

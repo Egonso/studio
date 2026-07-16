@@ -5,6 +5,8 @@ import {
   regeneratePublicCertificateDocument,
 } from '@/lib/certification/server';
 import { buildRateLimitKey, enforceRequestRateLimit } from '@/lib/security/request-security';
+import { createHash } from 'node:crypto';
+import { recordProductFunnelEvent } from '@/lib/analytics/product-funnel-server';
 
 interface PublicCertificateRouteContext {
   params: Promise<{
@@ -47,6 +49,29 @@ export async function GET(
       { status: 404 },
     );
   }
+
+  const anonymousSessionId = `certificate_${createHash('sha256')
+    .update(code)
+    .digest('hex')
+    .slice(0, 24)}`;
+  await Promise.all([
+    recordProductFunnelEvent({
+      eventName: 'training_certificate_opened',
+      payload: {},
+      context: {
+        anonymousSessionId,
+        source: 'certificate',
+      },
+    }),
+    recordProductFunnelEvent({
+      eventName: 'pass_verified',
+      payload: { kind: 'course_certificate' },
+      context: {
+        anonymousSessionId,
+        source: 'certificate',
+      },
+    }),
+  ]);
 
   return NextResponse.json(certificate);
 }

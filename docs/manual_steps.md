@@ -2,6 +2,17 @@
 
 To finalize the architecture refactoring, please perform the following steps manually in your Firebase Console or local environment.
 
+## Cross-product activation release (2026-07-16)
+
+This release changes `functions/src/index.ts` to record completed training purchases from the Stripe webhook. After the Studio merge:
+
+```bash
+npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
+```
+
+No Firestore rules or indexes deployment is required for the admin-only analytics collections. After deployment, verify that an accepted event contains only the strict contract fields and no customer or form content.
+
 ## 1. Update Firestore Security Rules
 Copy the contents of `firestore.rules` (located in your project root) to your Firebase Console > Firestore > Rules.
 

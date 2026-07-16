@@ -8,6 +8,7 @@ import { useLocale } from 'next-intl';
 import { ActionQueue } from '@/components/control/action-queue';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { trackProductFunnelEventOnce } from '@/lib/analytics/product-funnel-client';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { buildControlActionQueue } from '@/lib/control/action-queue-engine';
 import { calculateControlOverview } from '@/lib/control/maturity-calculator';
@@ -145,6 +146,11 @@ export default function ControlReviewsPage() {
         orgSettings: register?.orgSettings ?? null,
         organisationName: register?.organisationName ?? null,
         capturedAt: new Date(),
+      });
+      void trackProductFunnelEventOnce('review-queue-opened', {
+        eventName: 'review_queue_opened',
+        payload: {},
+        context: { source: 'review_queue' },
       });
     } catch (error) {
       console.error('Failed to load control reviews', error);

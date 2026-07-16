@@ -32,6 +32,7 @@ import type {
   PublicCertificateRecord,
   UserCertificationSnapshot,
 } from './types';
+import { recordProductFunnelEvent } from '@/lib/analytics/product-funnel-server';
 
 const CERTIFICATION_DOCUMENT_PROVIDER_ENV_NAME = [
   'CERTIFICATION',
@@ -745,6 +746,7 @@ function buildPublicRecord(
     modules: certificate.modules,
     verifyUrl: certificate.publicUrl,
     latestDocumentUrl: certificate.latestDocumentUrl,
+    examVersion: certificate.examVersion,
   };
 }
 
@@ -799,6 +801,7 @@ function mapLegacyCertificateToPublicRecord(input: {
     modules: Array.isArray(input.data.modules) ? input.data.modules : [],
     verifyUrl: buildCertificateVerifyUrl(certificateCode),
     latestDocumentUrl: input.latestDocumentUrl,
+    examVersion: 'legacy',
   };
 }
 
@@ -1588,6 +1591,22 @@ export async function submitExamAttempt(
   }
 
   await saveCertificate(certificate);
+
+  await recordProductFunnelEvent(
+    {
+      eventName: 'training_completed',
+      payload: {},
+      context: {
+        anonymousSessionId: `course_${createHash('sha256')
+          .update(actor.uid)
+          .digest('hex')
+          .slice(0, 24)}`,
+        source: 'training_completion',
+        occurredAt: completedAttempt.completedAt ?? new Date().toISOString(),
+      },
+    },
+    { authenticatedUserId: actor.uid },
+  );
 
   return {
     attempt: completedAttempt,

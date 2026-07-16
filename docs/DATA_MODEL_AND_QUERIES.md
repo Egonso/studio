@@ -2,6 +2,33 @@
 
 This document serves as the **Single Source of Truth** for the AI Act Compass data architecture. It defines the database schema, required indexes, query patterns, and UX rules for the "Wizard-First" approach.
 
+## Product funnel analytics (2026-07-16)
+
+The activation release adds two admin-only, additive collections. Browser clients do not receive direct Firestore write access.
+
+### `productFunnelEvents/{eventId}`
+
+- `eventName`: strict event enum
+- `payload`: strict bounded enum payload; never form text
+- `source`: bounded product/flow enum
+- `anonymousSessionIdHash`: SHA-256 hash of the opaque browser identifier
+- `authenticatedUserIdHash`: optional SHA-256 hash of the Firebase uid
+- `workspaceIdHash`: optional SHA-256 hash of the workspace identifier
+- `identityKey`: SHA-256 hash of workspace, user, or session identity
+- `occurredAt`: ISO timestamp supplied or normalized by the server
+- `recordedAt`: server timestamp
+- `privacyVersion`: analytics contract version
+- `externalReferenceHash`: optional SHA-256 hash for trusted webhook evidence
+
+### `productFunnelMilestones/{identityKey}`
+
+- `activatedAt`: first real use-case completion timestamp
+- `returnedD7At`: first operational action at least seven days later
+- `returnedD30At`: first operational action at least thirty days later
+- `source`, `privacyVersion`, `createdAt`
+
+No client query, composite index, migration, or backfill is required for this release. Reporting queries must remain admin-side and aggregate only after a meaningful sample exists.
+
 ---
 
 ## 1. Data Model (Schema)

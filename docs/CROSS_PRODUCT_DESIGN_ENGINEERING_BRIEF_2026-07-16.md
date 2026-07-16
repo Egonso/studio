@@ -2,7 +2,7 @@
 
 Date: 2026-07-16
 
-Status: implementation brief plus first activation slice
+Status: implementation complete; release verification in progress
 Audience: product design, UX writing, frontend, backend, QA, analytics, and release owners
 
 ## 1. Product outcome
@@ -191,7 +191,7 @@ Acceptance criteria:
 - Error summary uses existing destructive color semantics and `role="alert"`.
 - Close button receives “Schließen” as its accessible label.
 
-### First-success confirmation (next slice)
+### First-success confirmation
 
 After save, show one of three explicit receipts:
 
@@ -201,7 +201,7 @@ After save, show one of three explicit receipts:
 
 Do not send users to a generic dashboard without a receipt.
 
-### Register overview activation state (next slice)
+### Register overview activation state
 
 When the register has zero real use cases:
 
@@ -282,19 +282,22 @@ No adoption claim should be made until these events can be separated by anonymou
 
 ### Existing data model
 
-The first implementation slice changes no Firestore schema and requires no migration.
+The activation release adds two admin-only analytics collections and requires no migration or backfill.
 
 - Capture behavior remains within the current use-case creation service.
 - Drafting remains a preview/handoff; it persists nothing before explicit acceptance.
 - Coverage-assist source context remains backwards compatible.
 - EUKIGesetz changes are static content, layout, and links only.
+- `productFunnelEvents` stores strict event enums, hashed session/user/workspace identifiers, timestamps, and non-PII payloads.
+- `productFunnelMilestones` stores activation and derived D7/D30 action-return milestones.
+- Neither collection is written directly by browser clients; events enter through a validated API or the Stripe webhook.
 
 ### Feature flags
 
 - Preserve the existing `draftAssistCapture` and Coverage Assist flags.
 - Direct form behavior is the default even when drafting is enabled.
-- Future course-to-capture handoff should use a dedicated disabled-by-default flag until analytics and receipt states are verified.
-- Future overview action ranking should be behind a disabled-by-default activation flag and must not automate governance decisions.
+- `courseActivationHandoff`, `registerActivationGuide`, and `productFunnelAnalytics` remain disabled by default in code and are enabled explicitly in production configuration.
+- The overview ranking is deterministic and advisory; it does not automate governance decisions.
 
 ### Error handling
 
@@ -352,12 +355,13 @@ The first implementation slice changes no Firestore schema and requires no migra
 
 ## 11. Release plan
 
-### Current slice
+### Current release
 
 - Repository branches only; no production deployment is implied by a push.
 - No data migration.
-- No Firestore rules, indexes, or Functions deployment.
-- Preview must be validated by the product owner before merge/release.
+- No Firestore rules or indexes deployment.
+- A Functions build and deployment is required for server-side Stripe purchase completion measurement.
+- Preview must be validated before merge/release.
 
 ### Rollback
 
@@ -376,9 +380,9 @@ The first implementation slice changes no Firestore schema and requires no migra
 - Documentation updated.
 - Branches pushed and local/committed/pushed/preview/live status reported separately.
 
-## 12. Follow-on backlog
+## 12. Follow-on backlog and evidence gates
 
-### P1
+### P1 — implemented
 
 1. Course completion receipt and first-use-case handoff.
 2. Activation-aware register empty/first-record states.
@@ -390,14 +394,20 @@ The first implementation slice changes no Firestore schema and requires no migra
 ### P2
 
 1. Role-aware navigation after behavioral evidence exists.
-2. Team onboarding checklist tied to real records.
-3. Import/templates based on repeated interview evidence.
-4. Policy/trust/export refinements based on activated coordinator behavior.
-5. D7/D30 action-retention reporting.
+2. Import/templates based on repeated interview evidence.
+3. Policy/trust/export refinements based on activated coordinator behavior.
+4. Aggregated D7/D30 reporting UI after the event sample is large enough to avoid misleading conclusions.
+
+Implemented foundations from the former P2 list:
+
+- Team onboarding checklist tied to real records.
+- D7/D30 action-return derivation after activation.
+
+Role-aware navigation and import/template recommendations remain intentionally disabled because there is no behavioral evidence from sustained live use. Inventing those branches now would turn assumptions into product structure.
 
 ## 13. Current implementation status
 
-Implemented in the first branch slice:
+Implemented in the release branch:
 
 - Direct capture is the default KI Register `/capture` experience.
 - Description-based drafting remains available as an explicit secondary path.
@@ -410,20 +420,29 @@ Implemented in the first branch slice:
 - EUKIGesetz has an early learner/team role split.
 - EUKIGesetz legal/certificate/proof language is narrower and source-linked.
 - EUKIGesetz narrative pacing is shorter and contains a direct first-use-case bridge.
+- EUKIGesetz emits privacy-preserving landing, role, curriculum, pricing, checkout, and handoff events; the Stripe payment link receives the anonymous journey reference.
+- The Stripe webhook records training purchase completion without storing customer PII in the analytics collection.
+- Course completion records a training-completed event and displays a scoped first-use-case handoff.
+- Capture records start, bounded validation failures, completion, first activation, and explicit local/register receipts.
+- Register creation/join after a local capture can be distinguished.
+- Register overview hides meaningless zero metrics and ranks one next action with reason and owner.
+- Team activation progress is derived from real use cases, owners, reviews, and scoped shared passes.
+- External inbox rows expose status, responsible person, and next action.
+- Course certificate and Use-Case-Pass verification pages state issuer, version, integrity basis, status, verification date, scope, and limitation.
+- Review, supplier, pass, share, verification, and export actions are instrumented.
+- D7/D30 return milestones are derived from real operational action events, not page views.
 
-Not yet implemented:
+Release still required after branch verification:
 
-- Checkout/course backend changes.
-- Course-completion event integration.
-- Register overview action ranking.
-- New analytics schema/events.
-- New supplier inbox information architecture.
-- Production preview, merge, or deployment.
+- Push and pull-request checks.
+- Merge to both production branches.
+- Functions deployment.
+- Production-domain verification.
 
 ### Verification evidence for this branch slice
 
 - KI Register lint passed.
-- KI Register unit and smoke suite passed: 321 tests, 0 failures, followed by all configured smoke scripts.
+- KI Register unit and smoke suite passed: 330 tests, 0 failures, followed by all configured smoke scripts.
 - KI Register typecheck and production build passed from an isolated copy of the same working tree. The canonical checkout sits below a separate ancestor `node_modules`; the OpenAI SDK type bundle probes hoisted parent paths and can block on that unrelated filesystem tree. No product configuration was changed to conceal that environmental issue.
 - Authenticated desktop/mobile journey checks covered register overview, external inbox, use-case detail, pass, capture, control, reviews, governance settings, policies, exports, trust, organization, academy, and settings with temporary data that was removed afterward.
 - EUKIGesetz production build and internal-anchor/local-resource checks passed.

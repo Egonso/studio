@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -16,6 +16,7 @@ import { registerService } from "@/lib/register-first/register-service";
 import {
     trackCoverageAssistSaved,
 } from "@/lib/analytics/coverage-assist-events";
+import { trackProductFunnelEvent } from "@/lib/analytics/product-funnel-client";
 import type { CaptureAssistContext } from "@/lib/coverage-assist/types";
 import type {
     CaptureUsageContext,
@@ -50,6 +51,10 @@ interface QuickCaptureModalProps {
     initialDraft?: Partial<QuickDraft>;
     assistContext?: CaptureAssistContext | null;
     onStartDraftAssist?: () => void;
+    showSuccessReceipt?: boolean;
+    captureSource?: "training_completion" | "training_landing" | "register_landing" | "invite";
+    analyticsSessionId?: string | null;
+    captureMode?: "direct" | "description_assist" | "coverage_assist";
 }
 
 interface QuickDraft extends QuickCaptureFieldsDraft {
@@ -70,6 +75,13 @@ interface GuestCaptureEntry {
     decisionInfluence: DecisionInfluence | null;
     description: string;
     assistContext?: CaptureAssistContext | null;
+}
+
+interface CaptureSuccessReceipt {
+    storage: "local" | "register";
+    useCaseId?: string;
+    location: string;
+    reviewer: string;
 }
 
 function createInitialDraft(
@@ -119,6 +131,10 @@ export function QuickCaptureModal({
     initialDraft,
     assistContext = null,
     onStartDraftAssist,
+    showSuccessReceipt = false,
+    captureSource,
+    analyticsSessionId,
+    captureMode,
 }: QuickCaptureModalProps) {
     const multisystemEnabled = registerFirstFlags.multisystemCapture;
     const isGuestMode = mode === "guest";
@@ -127,6 +143,10 @@ export function QuickCaptureModal({
     const [isSaving, setIsSaving] = useState(false);
     const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
     const [inheritanceApplied, setInheritanceApplied] = useState(false);
+    const [activeRegisterName, setActiveRegisterName] = useState("aktiven Register");
+    const [reviewerName, setReviewerName] = useState("Registerverantwortung");
+    const [successReceipt, setSuccessReceipt] = useState<CaptureSuccessReceipt | null>(null);
+    const trackedOpenRef = useRef(false);
     const { allowed: canInheritRaw } = useCapability("extendedOrgSettings");
     const canInherit = canInheritRaw && !isGuestMode;
     const { toast } = useToast();
@@ -136,16 +156,51 @@ export function QuickCaptureModal({
         if (open) {
             setDraft(createInitialDraft(initialDraft));
             setFieldErrors({});
+            setSuccessReceipt(null);
+            trackedOpenRef.current = false;
         }
     }, [initialDraft, open]);
 
+    useEffect(() => {
+        if (!open || trackedOpenRef.current) return;
+        trackedOpenRef.current = true;
+        const mode = captureMode ?? (assistContext?.assist === "coverage"
+            ? "coverage_assist"
+            : "direct");
+        void trackProductFunnelEvent({
+            eventName: "capture_started",
+            payload: {
+                mode,
+                ...(captureSource ? { source: captureSource } : {}),
+            },
+            context: {
+                source: "capture",
+                ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+            },
+        });
+    }, [analyticsSessionId, assistContext?.assist, captureMode, captureSource, open]);
+
     // Load orgSettings from active register for inheritance
     useEffect(() => {
-        if (!canInherit) return;
-        registerService.listRegisters().then((regs) => {
-            if (regs.length > 0 && regs[0].orgSettings) {
-                setOrgSettings(regs[0].orgSettings);
-                const merged = applyOrgDefaults(regs[0].orgSettings);
+        Promise.all([
+            registerService.listRegisters(),
+            registerService.getActiveRegister().catch(() => null),
+        ]).then(([regs, activeRegister]) => {
+            const register = activeRegister ?? regs[0] ?? null;
+            if (register) {
+                setActiveRegisterName(
+                    register.organisationName || register.name || "aktiven Register",
+                );
+                const settings = register.orgSettings ?? null;
+                setReviewerName(
+                    settings?.raci?.reviewOwner?.name?.trim() ||
+                    settings?.contactPerson?.name?.trim() ||
+                    "Registerverantwortung",
+                );
+            }
+            if (canInherit && register?.orgSettings) {
+                setOrgSettings(register.orgSettings);
+                const merged = applyOrgDefaults(register.orgSettings);
                 const hasDefaults = merged.reviewCycle !== "unknown" ||
                     merged.policyLinks.length > 0 ||
                     merged.incidentProcessDefined ||
@@ -184,6 +239,16 @@ export function QuickCaptureModal({
         if (!validation.isValid) {
             setFieldErrors(validation.errors);
             focusCaptureField(validation.firstInvalidField);
+            void trackProductFunnelEvent({
+                eventName: "capture_validation_failed",
+                payload: {
+                    fields: Object.keys(validation.errors) as Array<"purpose" | "ownerRole">,
+                },
+                context: {
+                    source: "capture",
+                    ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+                },
+            });
             return;
         }
 
@@ -234,7 +299,37 @@ export function QuickCaptureModal({
                     });
                 }
 
+                void Promise.all([
+                    trackProductFunnelEvent({
+                        eventName: "capture_completed",
+                        payload: {
+                            storage: "local",
+                            ...(captureSource ? { source: captureSource } : {}),
+                        },
+                        context: {
+                            source: "capture",
+                            ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+                        },
+                    }),
+                    trackProductFunnelEvent({
+                        eventName: "first_real_use_case_completed",
+                        payload: { storage: "local" },
+                        context: {
+                            source: "capture",
+                            ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+                        },
+                    }),
+                ]);
+
                 setDraft(createInitialDraft(initialDraft));
+                if (showSuccessReceipt) {
+                    setSuccessReceipt({
+                        storage: "local",
+                        location: "in diesem Browser",
+                        reviewer: "noch nicht zugeordnet",
+                    });
+                    return;
+                }
                 onCaptured?.();
                 onOpenChange(false);
                 return;
@@ -299,7 +394,38 @@ export function QuickCaptureModal({
                 });
             }
 
+            void Promise.all([
+                trackProductFunnelEvent({
+                    eventName: "capture_completed",
+                    payload: {
+                        storage: "register",
+                        ...(captureSource ? { source: captureSource } : {}),
+                    },
+                    context: {
+                        source: "capture",
+                        ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+                    },
+                }),
+                trackProductFunnelEvent({
+                    eventName: "first_real_use_case_completed",
+                    payload: { storage: "register" },
+                    context: {
+                        source: "capture",
+                        ...(analyticsSessionId ? { anonymousSessionId: analyticsSessionId } : {}),
+                    },
+                }),
+            ]);
+
             setDraft(createInitialDraft(initialDraft));
+            if (showSuccessReceipt) {
+                setSuccessReceipt({
+                    storage: "register",
+                    useCaseId: card.useCaseId,
+                    location: activeRegisterName,
+                    reviewer: reviewerName,
+                });
+                return;
+            }
             onCaptured?.(card.useCaseId);
             onOpenChange(false);
         } catch {
@@ -346,17 +472,46 @@ export function QuickCaptureModal({
                     onKeyDown={handleKeyDown}
                 >
                     <DialogHeader className="border-b border-slate-200 px-6 pb-4 pt-6 pr-12">
-                        <DialogTitle className="text-lg">KI-Einsatzfall erfassen</DialogTitle>
+                        <DialogTitle className="text-lg">
+                            {successReceipt ? "Erfassung abgeschlossen" : "KI-Einsatzfall erfassen"}
+                        </DialogTitle>
                         <DialogDescription>
-                            Erfassen Sie zuerst nur das Minimum. Details können Sie später ergänzen.
+                            {successReceipt
+                                ? "Der Speicherort und die nächste Zuständigkeit sind eindeutig dokumentiert."
+                                : "Erfassen Sie zuerst nur das Minimum. Details können Sie später ergänzen."}
                         </DialogDescription>
-                        {isGuestMode && (
+                        {isGuestMode && !successReceipt && (
                             <p className="text-xs text-muted-foreground">
                                 Gastmodus: Einträge werden lokal in diesem Browser gespeichert.
                             </p>
                         )}
                     </DialogHeader>
 
+                    {successReceipt ? (
+                        <div className="min-h-0 space-y-5 overflow-y-auto px-6 py-6">
+                            <div className="flex items-start gap-3">
+                                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-slate-700" />
+                                <div>
+                                    <p className="font-medium text-slate-950">
+                                        {successReceipt.storage === "local"
+                                            ? "In diesem Browser gespeichert"
+                                            : `Im Register „${successReceipt.location}“ gespeichert`}
+                                    </p>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600">
+                                        Zuständig für den nächsten Prüfschritt: {successReceipt.reviewer}.
+                                        Der Eintrag bleibt bis zur menschlichen Prüfung im Status
+                                        „Formale Prüfung ausstehend“.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="border-t border-slate-200 pt-5">
+                                <p className="text-xs leading-5 text-slate-600">
+                                    Der Use Case Pass bündelt später Angaben, Status und Nachweise.
+                                    Er ist kein automatisches Rechtsurteil.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
                     <div className="min-h-0 space-y-4 overflow-y-auto px-6 py-5">
                         {onStartDraftAssist ? (
                             <div className="flex flex-col gap-2 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -401,8 +556,36 @@ export function QuickCaptureModal({
                             </div>
                         )}
                     </div>
+                    )}
 
                     {/* Actions */}
+                    {successReceipt ? (
+                        <div className="flex flex-col gap-3 border-t border-slate-200 bg-background px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                            >
+                                {successReceipt.storage === "local"
+                                    ? "Zur Startseite"
+                                    : "Im Register bleiben"}
+                            </Button>
+                            {successReceipt.storage === "register" && successReceipt.useCaseId ? (
+                                <Button onClick={() => onCaptured?.(successReceipt.useCaseId)}>
+                                    Eintrag öffnen
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={() => {
+                                        window.location.assign("/?mode=login&returnTo=%2Fmy-register");
+                                    }}
+                                >
+                                    Anmelden und zuordnen
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    ) : (
                     <div className="flex flex-col gap-3 border-t border-slate-200 bg-background px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-[11px] text-muted-foreground">
                             <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘↵</kbd>{" "}
@@ -418,6 +601,7 @@ export function QuickCaptureModal({
                             </Button>
                         </div>
                     </div>
+                    )}
                 </DialogContent>
             ) : null}
         </Dialog>

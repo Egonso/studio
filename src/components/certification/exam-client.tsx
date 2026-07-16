@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 import { CertificateBadgeCard } from '@/components/certification/certificate-badge-card';
+import { CourseActivationReceipt } from '@/components/certification/course-activation-receipt';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -511,6 +512,12 @@ export function CertificationExamClient() {
             ) : null}
           </CardContent>
         </Card>
+
+        {certificate ? (
+          <CourseActivationReceipt
+            certificateCode={certificate.certificateCode}
+          />
+        ) : null}
 
         {certificate ? (
           <CertificateBadgeCard

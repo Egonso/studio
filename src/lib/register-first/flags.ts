@@ -23,6 +23,9 @@ export interface RegisterFirstFeatureFlags {
   coverageAssistExtension: boolean;
   coverageAssistSeedLibrary: boolean;
   draftAssistCapture: boolean;
+  courseActivationHandoff: boolean;
+  registerActivationGuide: boolean;
+  productFunnelAnalytics: boolean;
 }
 
 export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
@@ -51,6 +54,9 @@ export const registerFirstDefaultFlags: RegisterFirstFeatureFlags =
     coverageAssistExtension: false,
     coverageAssistSeedLibrary: false,
     draftAssistCapture: false,
+    courseActivationHandoff: false,
+    registerActivationGuide: false,
+    productFunnelAnalytics: false,
   });
 
 export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
@@ -144,6 +150,18 @@ export const REGISTER_FIRST_FLAG_KEYS = Object.freeze({
     "NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE",
     "REGISTER_FIRST_DRAFT_ASSIST_CAPTURE",
   ],
+  courseActivationHandoff: [
+    "NEXT_PUBLIC_COURSE_ACTIVATION_HANDOFF",
+    "COURSE_ACTIVATION_HANDOFF",
+  ],
+  registerActivationGuide: [
+    "NEXT_PUBLIC_REGISTER_ACTIVATION_GUIDE",
+    "REGISTER_ACTIVATION_GUIDE",
+  ],
+  productFunnelAnalytics: [
+    "NEXT_PUBLIC_PRODUCT_FUNNEL_ANALYTICS",
+    "PRODUCT_FUNNEL_ANALYTICS",
+  ],
 });
 
 function parseBooleanFlag(value: string | undefined): boolean {
@@ -195,6 +213,9 @@ export function getRegisterFirstFeatureFlags(
       coverageAssistExtension: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_EXTENSION"] ?? env["COVERAGE_ASSIST_EXTENSION"]) || registerFirstDefaultFlags.coverageAssistExtension,
       coverageAssistSeedLibrary: parseBooleanFlag(env["NEXT_PUBLIC_COVERAGE_ASSIST_SEED_LIBRARY"] ?? env["COVERAGE_ASSIST_SEED_LIBRARY"]) || registerFirstDefaultFlags.coverageAssistSeedLibrary,
       draftAssistCapture: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE"] ?? env["REGISTER_FIRST_DRAFT_ASSIST_CAPTURE"]) || registerFirstDefaultFlags.draftAssistCapture,
+      courseActivationHandoff: parseBooleanFlag(env["NEXT_PUBLIC_COURSE_ACTIVATION_HANDOFF"] ?? env["COURSE_ACTIVATION_HANDOFF"]) || registerFirstDefaultFlags.courseActivationHandoff,
+      registerActivationGuide: parseBooleanFlag(env["NEXT_PUBLIC_REGISTER_ACTIVATION_GUIDE"] ?? env["REGISTER_ACTIVATION_GUIDE"]) || registerFirstDefaultFlags.registerActivationGuide,
+      productFunnelAnalytics: parseBooleanFlag(env["NEXT_PUBLIC_PRODUCT_FUNNEL_ANALYTICS"] ?? env["PRODUCT_FUNNEL_ANALYTICS"]) || registerFirstDefaultFlags.productFunnelAnalytics,
     };
   }
 
@@ -272,6 +293,15 @@ export function getRegisterFirstFeatureFlags(
     draftAssistCapture:
       parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_FIRST_DRAFT_ASSIST_CAPTURE) ||
       registerFirstDefaultFlags.draftAssistCapture,
+    courseActivationHandoff:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_COURSE_ACTIVATION_HANDOFF) ||
+      registerFirstDefaultFlags.courseActivationHandoff,
+    registerActivationGuide:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_REGISTER_ACTIVATION_GUIDE) ||
+      registerFirstDefaultFlags.registerActivationGuide,
+    productFunnelAnalytics:
+      parseBooleanFlag(process.env.NEXT_PUBLIC_PRODUCT_FUNNEL_ANALYTICS) ||
+      registerFirstDefaultFlags.productFunnelAnalytics,
   };
 }
 
