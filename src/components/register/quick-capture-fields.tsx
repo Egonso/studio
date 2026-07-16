@@ -80,13 +80,13 @@ function getQuickCaptureCopy(locale: string) {
       systemsLabel: "Systeme",
       systemLabel: "System / Tool",
       systemHelperMulti:
-        "Optional. Du kannst Tools, APIs oder andere beteiligte Systeme erfassen.",
+        "Optional. Sie können Tools, APIs oder andere beteiligte Systeme erfassen.",
       systemHelperSingle:
-        "Optional. Du kannst ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.",
+        "Optional. Sie können ein Tool aus dem Katalog wählen oder einen eigenen Namen erfassen.",
       customSystem: "Eigenes System",
       systemFallback: "System",
-      ownerRoleLabel: "Owner-Rolle (funktional)",
-      ownerRolePlaceholder: "z. B. Head of Marketing / HR Lead / IT Security",
+      ownerRoleLabel: "Verantwortliche Rolle",
+      ownerRolePlaceholder: "z. B. Marketingleitung, Personalabteilung, IT-Sicherheit",
       ownerRoleHelp:
         "Rolle oder Funktion erfassen, nicht den wechselnden Personennamen.",
       contactPersonLabel: "Kontaktperson",

@@ -46,12 +46,12 @@ const STATUS_LABELS: Record<ExternalSubmissionStatus, string> = {
   submitted: "Eingegangen",
   approved: "Freigegeben",
   rejected: "Abgelehnt",
-  merged: "Uebernommen",
+  merged: "Übernommen",
 };
 
 const SOURCE_LABELS: Record<ExternalSubmissionSourceType, string> = {
-  supplier_request: "Supplier-Link",
-  access_code: "Capture-Link",
+  supplier_request: "Lieferanten-Link",
+  access_code: "Erfassungslink",
   manual_import: "Import",
 };
 
@@ -96,7 +96,7 @@ export function ExternalSubmissionsInbox({
   refreshKey = 0,
   onCountsChange,
   title = "Externe Inbox",
-  description = "Nachvollziehbare externe Einreichungen aus Supplier-Links, Capture-Links und Importen.",
+  description = "Nachvollziehbare externe Einreichungen aus Lieferanten-Links, Erfassungslinks und Importen.",
 }: ExternalSubmissionsInboxProps) {
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
@@ -213,7 +213,7 @@ export function ExternalSubmissionsInbox({
           {kmuMode ? (
             <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
               <Info className="h-3.5 w-3.5 text-slate-500" />
-              KMU-Modus aktiv: Freigaben aus Supplier-Links erzeugen direkt
+              KMU-Modus aktiv: Freigaben aus Lieferanten-Links erzeugen direkt
               einen Use Case.
             </div>
           ) : null}
@@ -249,7 +249,7 @@ export function ExternalSubmissionsInbox({
               <SelectItem value="submitted">Eingegangen</SelectItem>
               <SelectItem value="approved">Freigegeben</SelectItem>
               <SelectItem value="rejected">Abgelehnt</SelectItem>
-              <SelectItem value="merged">Uebernommen</SelectItem>
+              <SelectItem value="merged">Übernommen</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -263,8 +263,8 @@ export function ExternalSubmissionsInbox({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Quellen</SelectItem>
-              <SelectItem value="supplier_request">Supplier-Link</SelectItem>
-              <SelectItem value="access_code">Capture-Link</SelectItem>
+              <SelectItem value="supplier_request">Lieferanten-Link</SelectItem>
+              <SelectItem value="access_code">Erfassungslink</SelectItem>
               <SelectItem value="manual_import">Import</SelectItem>
             </SelectContent>
           </Select>
@@ -439,7 +439,7 @@ export function ExternalSubmissionsInbox({
                               ) : (
                                 <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                               )}
-                              Uebernehmen
+                              Übernehmen
                             </Button>
                           ) : null}
                         </>
@@ -466,14 +466,12 @@ export function ExternalSubmissionsInbox({
               })}
             </div>
 
-            <div className="hidden md:block">
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                     <TableRow>
-                    <TableHead>Quelle</TableHead>
                     <TableHead>Einreichung</TableHead>
                     <TableHead>Eingereicht von</TableHead>
-                    <TableHead>Datum</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Use Case</TableHead>
                     <TableHead className="text-right">Aktionen</TableHead>
@@ -489,25 +487,18 @@ export function ExternalSubmissionsInbox({
                       <TableRow key={submission.submissionId}>
                         <TableCell>
                           <div className="space-y-1">
-                            <div className="font-medium">
-                              {SOURCE_LABELS[submission.sourceType]}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {submission.requestTokenId
-                                ? `Token ${submission.requestTokenId}`
-                                : submission.accessCodeId
-                                  ? `Code ${submission.accessCodeId}`
-                                  : submission.submissionId}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
                             <div className="font-medium text-slate-900">{title}</div>
                             <div className="text-xs text-muted-foreground">
                               {typeof submission.rawPayloadSnapshot.purpose === "string"
                                 ? submission.rawPayloadSnapshot.purpose
                                 : "Keine Beschreibung"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {SOURCE_LABELS[submission.sourceType]} · {submission.requestTokenId
+                                ? `Token ${submission.requestTokenId}`
+                                : submission.accessCodeId
+                                  ? `Code ${submission.accessCodeId}`
+                                  : submission.submissionId}
                             </div>
                           </div>
                         </TableCell>
@@ -519,9 +510,11 @@ export function ExternalSubmissionsInbox({
                                 {submission.submittedByEmail}
                               </div>
                             ) : null}
+                            <div className="text-xs text-muted-foreground">
+                              {formatDate(submission.submittedAt)}
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell>{formatDate(submission.submittedAt)}</TableCell>
                         <TableCell>
                           <Badge variant={statusVariant(submission.status)}>
                             {STATUS_LABELS[submission.status]}
@@ -550,7 +543,7 @@ export function ExternalSubmissionsInbox({
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-wrap justify-end gap-2">
                             {submission.status === "submitted" ? (
                               <>
                                 <Button
@@ -592,7 +585,7 @@ export function ExternalSubmissionsInbox({
                                     ) : (
                                       <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                                     )}
-                                    Uebernehmen
+                                    Übernehmen
                                   </Button>
                                 ) : null}
                               </>

@@ -14,6 +14,7 @@ import {
 } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { createLazyBoundProxy } from '@/lib/admin/lazy-bound-proxy';
 import {
   PROJECT_ID_KEYS,
   SERVICE_ACCOUNT_JSON_KEYS,
@@ -334,31 +335,6 @@ let cachedAdminApp: App | null = null;
 let cachedDb: Firestore | null = null;
 let cachedAuth: Auth | null = null;
 
-function createLazyAdminProxy<T extends object>(resolveTarget: () => T): T {
-  return new Proxy({} as T, {
-    get(_target, property, receiver) {
-      return Reflect.get(resolveTarget() as object, property, receiver);
-    },
-    has(_target, property) {
-      return property in resolveTarget();
-    },
-    ownKeys() {
-      return Reflect.ownKeys(resolveTarget());
-    },
-    getOwnPropertyDescriptor(_target, property) {
-      const descriptor = Object.getOwnPropertyDescriptor(resolveTarget(), property);
-      if (!descriptor) {
-        return undefined;
-      }
-
-      return {
-        ...descriptor,
-        configurable: true,
-      };
-    },
-  });
-}
-
 export function getAdminApp(): App {
   if (!cachedAdminApp) {
     cachedAdminApp = initializeFirebaseAdminApp();
@@ -383,6 +359,6 @@ export function getAdminAuth(): Auth {
   return cachedAuth;
 }
 
-export const adminApp = createLazyAdminProxy<App>(() => getAdminApp());
-export const db = createLazyAdminProxy<Firestore>(() => getAdminDb());
-export const auth = createLazyAdminProxy<Auth>(() => getAdminAuth());
+export const adminApp = createLazyBoundProxy<App>(() => getAdminApp());
+export const db = createLazyBoundProxy<Firestore>(() => getAdminDb());
+export const auth = createLazyBoundProxy<Auth>(() => getAdminAuth());

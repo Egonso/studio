@@ -208,7 +208,7 @@ export function SignedInAreaFrame({
                 </div>
                 {nextStep ? (
                   <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
-                    <span className="font-medium text-slate-950">Next step:</span>{' '}
+                    <span className="font-medium text-slate-950">Nächster Schritt:</span>{' '}
                     {nextStep}
                   </div>
                 ) : null}

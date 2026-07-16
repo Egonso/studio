@@ -216,7 +216,7 @@ test('external inbox and premium destinations stay discoverable', () => {
   assert.match(inboxSource, /Eingegangen/);
   assert.match(inboxSource, /Freigegeben/);
   assert.match(inboxSource, /Abgelehnt/);
-  assert.match(inboxSource, /Uebernommen/);
+  assert.match(inboxSource, /Übernommen/);
   assert.match(inboxSource, /Ablehnen/);
   assert.match(inboxSource, /Freigeben/);
   assert.match(controlSource, /Bericht aktuell halten/);

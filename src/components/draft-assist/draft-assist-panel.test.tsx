@@ -12,7 +12,7 @@ import {
 test("draft assist panel returns a clean validation error for too-short descriptions", () => {
   const error = validateDraftAssistDescription("Zu kurz");
   assert.ok(error);
-  assert.match(error, /mindestens 2-5 Saetzen oder ca\. 50 Zeichen/);
+  assert.match(error, /2–5 Sätzen oder mit mindestens 50 Zeichen/);
 });
 
 test("draft assist panel renders a ready_for_handoff result with takeover action", () => {
@@ -99,8 +99,8 @@ test("draft assist panel renders a ready_for_handoff result with takeover action
 
   assert.match(html, /Noch nichts gespeichert/);
   assert.match(html, /Reviewbar/);
-  assert.match(html, /In Quick Capture uebernehmen/);
-  assert.match(html, /Moeglicher Doppel-Eintrag/);
+  assert.match(html, /In die Erfassung übernehmen/);
+  assert.match(html, /Möglicher Doppel-Eintrag/);
 });
 
 test("draft assist panel renders open questions for needs_input results", () => {
@@ -189,11 +189,11 @@ test("draft assist panel renders open questions for needs_input results", () => 
     />,
   );
 
-  assert.match(html, /Rueckfragen offen/);
-  assert.match(html, /Offene Rueckfragen/);
+  assert.match(html, /Rückfragen offen/);
+  assert.match(html, /Offene Rückfragen/);
   assert.match(html, /Welches konkrete KI-System/);
-  assert.match(html, /Moeglicher Doppel-Eintrag/);
-  assert.match(html, /Mit Entwurf in Quick Capture weiter/);
+  assert.match(html, /Möglicher Doppel-Eintrag/);
+  assert.match(html, /Mit Entwurf zur Erfassung weiter/);
 });
 
 test("draft assist request helper returns a result but persists nothing before explicit acceptance", async () => {

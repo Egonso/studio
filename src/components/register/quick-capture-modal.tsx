@@ -49,6 +49,7 @@ interface QuickCaptureModalProps {
     renderInline?: boolean;
     initialDraft?: Partial<QuickDraft>;
     assistContext?: CaptureAssistContext | null;
+    onStartDraftAssist?: () => void;
 }
 
 interface QuickDraft extends QuickCaptureFieldsDraft {
@@ -117,6 +118,7 @@ export function QuickCaptureModal({
     renderInline = false,
     initialDraft,
     assistContext = null,
+    onStartDraftAssist,
 }: QuickCaptureModalProps) {
     const multisystemEnabled = registerFirstFlags.multisystemCapture;
     const isGuestMode = mode === "guest";
@@ -326,8 +328,11 @@ export function QuickCaptureModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             {open ? (
                 <DialogContent
-                    className={`sm:max-w-[480px] max-h-[90vh] overflow-y-auto ${renderInline ? "top-6 sm:top-8 translate-y-0 data-[state=open]:slide-in-from-top-4 data-[state=closed]:slide-out-to-top-4" : ""}`}
+                    className={`max-h-[calc(100dvh-2rem)] gap-0 overflow-hidden p-0 sm:max-w-[560px] ${renderInline ? "top-4 sm:top-8 translate-y-0 data-[state=open]:slide-in-from-top-4 data-[state=closed]:slide-out-to-top-4" : ""}`}
                     hideOverlay={renderInline}
+                    fallbackTitle={null}
+                    fallbackDescription={null}
+                    closeLabel="Schließen"
                     onPointerDownOutside={(event) => {
                         if (renderInline) {
                             event.preventDefault();
@@ -339,13 +344,11 @@ export function QuickCaptureModal({
                         }
                     }}
                     onKeyDown={handleKeyDown}
-                    aria-describedby="qc-dialog-desc"
-                    aria-labelledby="qc-dialog-title"
                 >
-                    <DialogHeader>
-                        <DialogTitle id="qc-dialog-title" className="text-lg">Quick Capture</DialogTitle>
-                        <DialogDescription id="qc-dialog-desc">
-                            Erfasse nur das Minimum. Du kannst später ergänzen.
+                    <DialogHeader className="border-b border-slate-200 px-6 pb-4 pt-6 pr-12">
+                        <DialogTitle className="text-lg">KI-Einsatzfall erfassen</DialogTitle>
+                        <DialogDescription>
+                            Erfassen Sie zuerst nur das Minimum. Details können Sie später ergänzen.
                         </DialogDescription>
                         {isGuestMode && (
                             <p className="text-xs text-muted-foreground">
@@ -354,7 +357,31 @@ export function QuickCaptureModal({
                         )}
                     </DialogHeader>
 
-                    <div className="space-y-4 py-2">
+                    <div className="min-h-0 space-y-4 overflow-y-auto px-6 py-5">
+                        {onStartDraftAssist ? (
+                            <div className="flex flex-col gap-2 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs leading-5 text-muted-foreground">
+                                    Sie kennen die Details noch nicht? Eine kurze Beschreibung reicht für einen vorbefüllten Entwurf.
+                                </p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="shrink-0"
+                                    onClick={onStartDraftAssist}
+                                >
+                                    Mit Beschreibung starten
+                                </Button>
+                            </div>
+                        ) : null}
+                        {hasFieldErrors && (
+                            <div
+                                role="alert"
+                                aria-live="assertive"
+                                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900"
+                            >
+                                Bitte ergänzen Sie die markierten Pflichtfelder. Das erste fehlende Feld ist bereits fokussiert.
+                            </div>
+                        )}
                         <QuickCaptureFields
                             draft={draft}
                             onChange={patch}
@@ -362,15 +389,6 @@ export function QuickCaptureModal({
                             showDescription
                             errors={fieldErrors}
                         />
-                        {hasFieldErrors && (
-                            <div
-                                role="status"
-                                aria-live="polite"
-                                className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-foreground"
-                            >
-                                Bitte ergänze die markierten Pflichtfelder, bevor du speicherst.
-                            </div>
-                        )}
                         {/* Inheritance Hint */}
                         {canInherit && inheritanceApplied && (
                             <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
@@ -385,12 +403,12 @@ export function QuickCaptureModal({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 border-t border-slate-200 bg-background px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-[11px] text-muted-foreground">
                             <kbd className="rounded border px-1 py-0.5 text-[10px] font-mono">⌘↵</kbd>{" "}
                             {isGuestMode ? "Lokal speichern" : "Speichern"}
                         </p>
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                             <Button variant="outline" onClick={() => onOpenChange(false)}>
                                 Abbrechen
                             </Button>
