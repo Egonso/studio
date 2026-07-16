@@ -141,6 +141,7 @@ export interface PublicCertificateRecord {
   modules: string[];
   verifyUrl: string;
   latestDocumentUrl: string | null;
+  examVersion?: string | null;
 }
 
 export interface CertificationSettings {

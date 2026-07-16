@@ -47,7 +47,7 @@ test('free signup/login entry stays focused and direct', () => {
   );
   assert.match(
     germanMessages,
-    /"governanceActivating": "Governance Control Center wird für dieses Konto freigeschaltet\."/,
+    /"governanceActivating": "Governance Control Center wird für dieses Konto eingerichtet\."/,
   );
   assert.match(
     germanMessages,
@@ -216,7 +216,7 @@ test('external inbox and premium destinations stay discoverable', () => {
   assert.match(inboxSource, /Eingegangen/);
   assert.match(inboxSource, /Freigegeben/);
   assert.match(inboxSource, /Abgelehnt/);
-  assert.match(inboxSource, /Uebernommen/);
+  assert.match(inboxSource, /Übernommen/);
   assert.match(inboxSource, /Ablehnen/);
   assert.match(inboxSource, /Freigeben/);
   assert.match(controlSource, /Bericht aktuell halten/);

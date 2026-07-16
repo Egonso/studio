@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: `Erfolgreich als ${payload.role} eingeladen. Zugriff wurde direkt freigeschaltet.`,
+          message: `Erfolgreich als ${payload.role} eingeladen. Zugriff ist direkt aktiv.`,
           mode: "direct",
         },
         { status: 200 }

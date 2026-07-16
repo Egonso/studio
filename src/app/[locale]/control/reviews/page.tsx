@@ -8,6 +8,7 @@ import { useLocale } from 'next-intl';
 import { ActionQueue } from '@/components/control/action-queue';
 import { PageStatePanel, SignedInAreaFrame } from '@/components/product-shells';
 import { useAuth } from '@/context/auth-context';
+import { trackProductFunnelEventOnce } from '@/lib/analytics/product-funnel-client';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import { buildControlActionQueue } from '@/lib/control/action-queue-engine';
 import { calculateControlOverview } from '@/lib/control/maturity-calculator';
@@ -49,7 +50,7 @@ function getReviewsPageCopy(locale: string) {
         'Arbeiten Sie zuerst überfällige oder hochriskante Review-Themen ab.',
       nextStepEmpty:
         'Die Action Queue ist leer. Prüfen Sie Policies, Trust Portal oder Academy als nächsten Governance-Schritt.',
-      disabledTitle: 'Control ist noch nicht freigeschaltet',
+      disabledTitle: 'Control ist noch nicht aktiv',
       disabledDescription:
         'Die bezahlte Governance-Ebene ist in diesem Workspace noch nicht aktiviert.',
       openRegister: 'Register öffnen',
@@ -57,7 +58,7 @@ function getReviewsPageCopy(locale: string) {
       gatedDescription:
         'Formale Review-Workflows und die Action Queue bleiben für bezahlte Governance-Workspaces reserviert.',
       openOverview: 'Overview öffnen',
-      upgradeOptions: 'Upgrade-Optionen',
+      upgradeOptions: 'Organisationssteuerung',
       dataLoadingTitle: 'Review-Daten werden geladen',
       dataLoadingDescription:
         'Action Queue und Review-Kennzahlen werden aus dem Register abgeleitet.',
@@ -95,7 +96,7 @@ function getReviewsPageCopy(locale: string) {
     gatedDescription:
       'Formal review workflows and the action queue remain reserved for paid governance workspaces.',
     openOverview: 'Open overview',
-    upgradeOptions: 'Upgrade options',
+    upgradeOptions: 'Organisation-wide governance',
     dataLoadingTitle: 'Loading review data',
     dataLoadingDescription:
       'Action queue and review metrics are derived from the register.',
@@ -145,6 +146,11 @@ export default function ControlReviewsPage() {
         orgSettings: register?.orgSettings ?? null,
         organisationName: register?.organisationName ?? null,
         capturedAt: new Date(),
+      });
+      void trackProductFunnelEventOnce('review-queue-opened', {
+        eventName: 'review_queue_opened',
+        payload: {},
+        context: { source: 'review_queue' },
       });
     } catch (error) {
       console.error('Failed to load control reviews', error);

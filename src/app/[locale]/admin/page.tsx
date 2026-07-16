@@ -630,7 +630,7 @@ export default function AdminPage() {
                             <CardHeader>
                                 <CardTitle>Billing Repair</CardTitle>
                                 <CardDescription>
-                                    Repariert Legacy-Käufe, synchronisiert Entitlements und zieht Workspace-Freischaltungen nach.
+                                    Repariert Legacy-Käufe, synchronisiert Entitlements und zieht Workspace-Aktivierungen nach.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">

@@ -501,6 +501,7 @@ export function GovernanceHeader({
         />
       )}
 
+      {!(registerFirstFlags.registerActivationGuide && counts.total === 0) && (
       <div className="grid gap-4 pt-5 sm:grid-cols-3">
         <div className="rounded-md border border-slate-200 bg-white px-4 py-4">
           <p className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
@@ -536,6 +537,7 @@ export function GovernanceHeader({
           </div>
         </div>
       </div>
+      )}
 
     </div>
   );

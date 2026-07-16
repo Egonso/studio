@@ -259,7 +259,7 @@ export function DashboardGuidanceFrame({
                             ) : (
                                 <div className="bg-slate-100/50 dark:bg-slate-800/50 p-4 rounded-lg">
                                     <p className="text-sm text-slate-500 italic">
-                                        In dieser Phase konzentrieren wir uns voll auf die Basisdokumentation. Weitere Optionen werden freigeschaltet, sobald diese Grundlage steht.
+                                        In dieser Phase konzentrieren wir uns voll auf die Basisdokumentation. Weitere Optionen werden verfügbar, sobald diese Grundlage steht.
                                     </p>
                                 </div>
                             )}

@@ -88,12 +88,12 @@ const DE: ExperienceCopy = {
   phase1Title: 'KI ist in Ihrem Unternehmen längst im Einsatz.',
   phase1Sub:
     'In Vertrieb, Entwicklung, Personal und Einkauf. Meist ohne Verzeichnis, ohne Verantwortliche, ohne Nachweis.',
-  phase2Title: 'Verstreut in Tools, Teams und Tabellen.',
+  phase2Title: 'Die Dokumentation ist verstreut — in Tools, Teams und Tabellen.',
   phase2Sub:
-    'Was nicht erfasst ist, kann nicht geprüft werden. Was nicht geprüft ist, kann nicht nachgewiesen werden.',
-  phase3Title: 'Das Register ordnet. Der Pass beweist.',
+    'Informationen zu KI-Einsatz, Zweck und Verantwortung liegen an verschiedenen Orten. Ohne zentrale Erfassung fehlen Übersicht und belastbarer Nachweis.',
+  phase3Title: 'Das Register ordnet. Der Pass bündelt den Nachweis.',
   phase3Sub:
-    'Jeder KI-Einsatzfall wird ein Eintrag. Jeder Eintrag wird ein prüfbarer Use Case Pass.',
+    'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
   scrollHint: 'Registerführung beginnen',
   heroTrust:
     'Wissenschaftlich eingeordnet durch Prof. Dr. Janine Wendt · TU Darmstadt · Mitherausgeberin des Großkommentars zur KI-Verordnung',
@@ -134,6 +134,9 @@ const DE: ExperienceCopy = {
     'Die Einschätzung bezieht sich auf die methodische Eignung des Ansatzes. Sie ist keine Garantie für die Rechtskonformität einzelner Implementierungen und ersetzt keine individuelle Rechtsberatung.',
   quickLinks: [
     { label: 'Use Case in 30 s erfassen', href: '/capture' },
+    { label: 'Kostenlose Art.-4-Rollenkurse', href: '/academy/ki-kompetenz' },
+    { label: 'Fortbildungspaket', href: '/fortbildung' },
+    { label: 'Governance / Control', href: '/governance' },
     { label: 'Downloads', href: '/downloads' },
     {
       label: 'Whitepaper',
@@ -264,7 +267,7 @@ const DE: ExperienceCopy = {
   ],
   promiseTitle: '„Pflichtdokumentation bleibt dauerhaft kostenlos."',
   promiseBody:
-    'Das Erfüllen des Gesetzes darf keine Preisfrage sein. Registereintrag, Use Case Pass und standardisierte Nachweise bleiben frei zugänglich. Wer mehr Governance auf derselben Plattform bündelt, trägt die Infrastruktur für alle mit.',
+    'Das Erfüllen des Gesetzes darf keine Preisfrage sein. Registereintrag, Use Case Pass, standardisierte Nachweise und die kurzen Art.-4-Rollenschulungen bleiben frei zugänglich. Wer Governance, Academy und Policy-Arbeit auf derselben Plattform bündelt, trägt die Infrastruktur für alle mit.',
   finaleTitlePre: 'Vom Einsatz ',
   finaleTitleEm: 'zum Nachweis.',
   ctaPrimary: 'Register anlegen',
@@ -278,12 +281,12 @@ const EN: ExperienceCopy = {
   phase1Title: 'AI is already in use across your organisation.',
   phase1Sub:
     'In sales, engineering, HR and procurement. Mostly without an inventory, without owners, without evidence.',
-  phase2Title: 'Scattered across tools, teams and spreadsheets.',
+  phase2Title: 'Documentation is scattered — across tools, teams and spreadsheets.',
   phase2Sub:
-    'What is not recorded cannot be reviewed. What is not reviewed cannot be proven.',
-  phase3Title: 'The register orders. The pass proves.',
+    'Information about AI use, purpose and ownership sits in different places. Without central capture, there is no clear overview or reliable evidence.',
+  phase3Title: 'The register creates order. The pass bundles the evidence.',
   phase3Sub:
-    'Every AI use case becomes an entry. Every entry becomes a verifiable Use Case Pass.',
+    'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
   scrollHint: 'Begin the register walk-through',
   heroTrust:
     'Scientific assessment by Prof. Dr. Janine Wendt · Technical University of Darmstadt · Co-editor of the commentary on the EU Artificial Intelligence Act',
@@ -324,6 +327,9 @@ const EN: ExperienceCopy = {
     'English translation. The statement assesses the methodological suitability of the approach. It is not a guarantee of the legal conformity of individual implementations and does not replace individual legal advice.',
   quickLinks: [
     { label: 'Capture a use case in 30 s', href: '/capture' },
+    { label: 'Free Article 4 role training', href: '/academy/ki-kompetenz' },
+    { label: 'Training package', href: '/fortbildung' },
+    { label: 'Governance / Control', href: '/governance' },
     { label: 'Downloads', href: '/downloads' },
     {
       label: 'Whitepaper',
@@ -453,7 +459,7 @@ const EN: ExperienceCopy = {
   ],
   promiseTitle: '"Mandatory documentation stays free of charge. Permanently."',
   promiseBody:
-    'Complying with the law must not be a question of budget. Register entries, Use Case Passes and standardised evidence remain freely accessible. Organisations bundling more governance on the same platform carry the infrastructure for everyone.',
+    'Complying with the law must not be a question of budget. Register entries, Use Case Passes, standardised evidence and the short Article 4 role trainings remain freely accessible. Organisations bundling governance, Academy and policy work on the same platform carry the infrastructure for everyone.',
   finaleTitlePre: 'From use ',
   finaleTitleEm: 'to proof.',
   ctaPrimary: 'Set up register',

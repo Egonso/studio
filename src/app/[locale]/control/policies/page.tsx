@@ -221,7 +221,7 @@ export default function ControlPoliciesPage() {
         {!registerFirstFlags.controlShell ? (
           <PageStatePanel
             area="paid_governance_control"
-            title={locale === 'de' ? 'Policies sind noch nicht freigeschaltet' : 'Policies are not enabled yet'}
+            title={locale === 'de' ? 'Policies sind noch nicht aktiv' : 'Policies are not enabled yet'}
             description={
               locale === 'de'
                 ? 'Die Policy Engine ist für diesen Workspace noch nicht aktiviert.'
@@ -239,8 +239,8 @@ export default function ControlPoliciesPage() {
             title={locale === 'de' ? 'Policy Engine gehört zur Governance-Stufe' : 'Policy Engine belongs to the governance tier'}
             description={
               locale === 'de'
-                ? 'Richtlinien, Versionen und Governance-Baselines werden über das bezahlte Entitlement freigeschaltet.'
-                : 'Policies, versions and governance baselines are unlocked through the paid entitlement.'
+                ? 'Richtlinien, Versionen und Governance-Baselines gehören zur bezahlten Governance-Stufe.'
+                : 'Policies, versions and governance baselines belong to the paid governance tier.'
             }
             actions={
               <>
@@ -249,7 +249,7 @@ export default function ControlPoliciesPage() {
                 </Button>
                 <Button asChild variant="outline">
                   <Link href={governanceUpgradeHref}>
-                    {locale === 'de' ? 'Upgrade-Optionen' : 'Upgrade options'}
+                    {locale === 'de' ? 'Organisationssteuerung' : 'Organisation-wide governance'}
                   </Link>
                 </Button>
               </>

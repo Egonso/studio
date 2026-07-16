@@ -30,7 +30,7 @@ const AREA_SECTION_LABELS: Record<ProductAreaId, string> = {
   public_marketing: 'Public Entry',
   public_external_intake: 'Public Submission',
   signed_in_free_register: 'Register',
-  paid_governance_control: 'Organisation Control',
+  paid_governance_control: 'Organisation-wide governance',
 };
 
 export function AreaBadge({ area, className }: AreaBadgeProps) {
@@ -208,7 +208,7 @@ export function SignedInAreaFrame({
                 </div>
                 {nextStep ? (
                   <div className="border-l-2 border-slate-300 pl-4 text-sm leading-6 text-slate-700">
-                    <span className="font-medium text-slate-950">Next step:</span>{' '}
+                    <span className="font-medium text-slate-950">Nächster Schritt:</span>{' '}
                     {nextStep}
                   </div>
                 ) : null}

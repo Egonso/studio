@@ -79,8 +79,8 @@ function getControlPageCopy(locale: string) {
         'Halten Sie Dokumentation, Verantwortlichkeiten und Governance-Grundlagen aktuell.',
       nextStepEmptyControl:
         'Prüfen Sie Richtlinien, Exporte oder das Trust Portal als nächsten Governance-Schritt.',
-      disabledTitleReport: 'Bericht ist noch nicht freigeschaltet',
-      disabledTitleControl: 'Governance ist noch nicht freigeschaltet',
+      disabledTitleReport: 'Bericht ist noch nicht aktiv',
+      disabledTitleControl: 'Governance ist noch nicht aktiv',
       disabledDescriptionReport:
         'Dieser Bericht ist für diesen Workspace noch nicht aktiviert.',
       disabledDescriptionControl:

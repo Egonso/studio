@@ -71,7 +71,7 @@ function summarizePrimarySystem(
 }
 
 function resolveDuplicateHintLabel(count: number): string {
-  return count === 1 ? "Moeglicher Doppel-Eintrag" : "Moegliche Doppel-Eintraege";
+  return count === 1 ? "Möglicher Doppel-Eintrag" : "Mögliche Doppel-Einträge";
 }
 
 function resolveVerdictLabel(
@@ -81,9 +81,9 @@ function resolveVerdictLabel(
     case "ready_for_handoff":
       return "Reviewbar";
     case "needs_input":
-      return "Rueckfragen offen";
+      return "Rückfragen offen";
     default:
-      return "Vorlaeufig blockiert";
+      return "Vorläufig blockiert";
   }
 }
 
@@ -92,11 +92,11 @@ function resolveVerdictDescription(
 ): string {
   switch (verdict) {
     case "ready_for_handoff":
-      return "Der Erstentwurf ist sauber genug fuer die Uebernahme ins Quick Capture.";
+      return "Der Erstentwurf ist klar genug für die Übernahme in die Erfassung.";
     case "needs_input":
-      return "Der Erstentwurf ist nuetzlich, braucht aber noch einige offene Fakten oder eine bewusste menschliche Einordnung.";
+      return "Der Erstentwurf ist nützlich, benötigt aber noch offene Fakten oder eine bewusste menschliche Einordnung.";
     default:
-      return "Der Assist hat Widersprueche oder zu wenig belastbare Grundlage gefunden. Manuell weiter ist hier ehrlicher.";
+      return "Der Assistent hat Widersprüche oder zu wenig belastbare Grundlagen gefunden. Erfassen Sie den Fall hier besser manuell.";
   }
 }
 
@@ -106,11 +106,11 @@ export function validateDraftAssistDescription(
   const normalized = description.trim();
 
   if (normalized.length < MIN_DRAFT_ASSIST_DESCRIPTION_LENGTH) {
-    return "Bitte beschreibe den Einsatz in mindestens 2-5 Saetzen oder ca. 50 Zeichen.";
+    return "Bitte beschreiben Sie den Einsatz in 2–5 Sätzen oder mit mindestens 50 Zeichen.";
   }
 
   if (normalized.length > MAX_DRAFT_ASSIST_DESCRIPTION_LENGTH) {
-    return "Bitte kuerze die Beschreibung auf maximal 2000 Zeichen.";
+    return "Bitte kürzen Sie die Beschreibung auf maximal 2.000 Zeichen.";
   }
 
   return null;
@@ -166,30 +166,30 @@ export function DraftAssistPanelView({
   const canAcceptHandoff = Boolean(result?.handoff) && verdict !== "blocked";
   const acceptLabel =
     verdict === "ready_for_handoff"
-      ? "In Quick Capture uebernehmen"
-      : "Mit Entwurf in Quick Capture weiter";
+      ? "In die Erfassung übernehmen"
+      : "Mit Entwurf zur Erfassung weiter";
 
   return (
     <Card className="mx-auto w-full max-w-3xl border-slate-200 shadow-sm">
       <CardHeader className="space-y-3">
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
-          <span>Draft Assist</span>
+          <span>Entwurfshilfe</span>
         </div>
         <CardTitle className="text-xl">
           Erstentwurf aus Freitext erzeugen
         </CardTitle>
         <CardDescription>
-          Beschreibe den KI-Einsatz in wenigen Saetzen. Wir erzeugen einen reviewbaren Erstentwurf
-          und uebergeben ihn erst nach deiner Bestaetigung ins Quick Capture.
+          Beschreiben Sie den KI-Einsatz in wenigen Sätzen. Daraus entsteht ein prüfbarer Erstentwurf,
+          den Sie bewusst in die Erfassung übernehmen können.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <Alert>
           <AlertTitle>Noch nichts gespeichert</AlertTitle>
           <AlertDescription>
-            Der Assist erstellt nur einen Entwurf. Gespeichert wird erst, wenn du ihn bewusst ins
-            Quick Capture uebernimmst. Die menschliche Review bleibt final.
+            Die Entwurfshilfe speichert noch nichts. Erst Ihre bewusste Übernahme öffnet den
+            Erfassungsdialog. Die menschliche Prüfung bleibt maßgeblich.
           </AlertDescription>
         </Alert>
 
@@ -201,19 +201,19 @@ export function DraftAssistPanelView({
             id="draft-assist-description"
             value={description}
             onChange={(event) => onDescriptionChange?.(event.target.value)}
-            placeholder="z. B. Unser Support-Team nutzt ChatGPT, um erste Antwortentwuerfe fuer Kundenanfragen zu formulieren. Vor dem Versand prueft ein Mensch jede Antwort."
+            placeholder="z. B. Unser Support-Team nutzt ChatGPT, um erste Antwortentwürfe für Kundenanfragen zu formulieren. Vor dem Versand prüft ein Mensch jede Antwort."
             rows={5}
             disabled={isSubmitting}
           />
           <div className="flex flex-col gap-2 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-            <span>2-5 Saetze reichen fuer v1 meist aus.</span>
+            <span>2–5 Sätze reichen für einen ersten Entwurf meist aus.</span>
             <span>{description.trim().length}/{MAX_DRAFT_ASSIST_DESCRIPTION_LENGTH}</span>
           </div>
         </div>
 
         {error ? (
           <Alert variant="destructive">
-            <AlertTitle>Assist gerade nicht verfuegbar</AlertTitle>
+            <AlertTitle>Entwurfshilfe gerade nicht verfügbar</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
@@ -275,7 +275,7 @@ export function DraftAssistPanelView({
 
               {result.questions.length > 0 ? (
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-slate-900">Offene Rueckfragen</div>
+                  <div className="text-sm font-medium text-slate-900">Offene Rückfragen</div>
                   <ul className="space-y-2 text-sm text-slate-700">
                     {result.questions.map((question) => (
                       <li key={question} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
@@ -323,8 +323,8 @@ export function DraftAssistPanelView({
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
           <div className="text-xs text-slate-500">
             {mode === "guest"
-              ? "Im Gastmodus bleibt die finale Speicherung lokal im Browser."
-              : "Im Registermodus uebernimmst du den Entwurf erst in den bestehenden Erfassungsflow."}
+              ? "Im Gastmodus bleibt die finale Speicherung lokal in diesem Browser."
+              : "Im Registermodus übernehmen Sie den Entwurf zunächst in den bestehenden Erfassungsablauf."}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             {result ? (

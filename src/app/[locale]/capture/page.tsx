@@ -21,6 +21,7 @@ import {
   trackCoverageAssistEntryShown,
   trackCoverageAssistSuggestionSelected,
 } from "@/lib/analytics/coverage-assist-events";
+import { trackProductFunnelEvent } from "@/lib/analytics/product-funnel-client";
 import {
   createCoverageAssistContextFromQuery,
 } from "@/lib/coverage-assist/query-contract";
@@ -33,6 +34,7 @@ import type {
   CoverageAssistSeedSuggestion,
 } from "@/lib/coverage-assist/types";
 import { syncRegisterEntitlement } from "@/lib/register-first/entitlement-client";
+import { resolveCaptureEntryMode } from "@/lib/register-first/capture-entry-mode";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import {
   buildScopedRegisterHref,
@@ -46,6 +48,23 @@ import {
 
 type OnboardingState = "loading" | "no_register" | "ready";
 type CaptureInitialDraft = Partial<QuickCaptureFieldsDraft & { description: string }>;
+type CaptureJourneySource =
+  | "training_completion"
+  | "training_landing"
+  | "register_landing"
+  | "invite";
+
+function parseCaptureJourneySource(value: string | null): CaptureJourneySource | undefined {
+  if (
+    value === "training_completion" ||
+    value === "training_landing" ||
+    value === "register_landing" ||
+    value === "invite"
+  ) {
+    return value;
+  }
+  return undefined;
+}
 
 function mapErrorCode(error: unknown): RegisterServiceErrorCode | null {
   if (error && typeof error === "object" && "code" in error) {
@@ -64,6 +83,8 @@ export default function StandaloneCapturePage() {
   );
   const workspaceScope = useWorkspaceScope();
   const source = safeSearchParams.get("source");
+  const captureJourneySource = parseCaptureJourneySource(source);
+  const analyticsSessionId = safeSearchParams.get("journey");
   const prefill = (safeSearchParams.get("prefill") ?? "").trim();
   const originUrl = (safeSearchParams.get("originUrl") ?? "").trim();
   const checkoutSessionId = safeSearchParams.get("checkout_session_id");
@@ -75,6 +96,7 @@ export default function StandaloneCapturePage() {
   const [syncedEntitlement, setSyncedEntitlement] = useState(false);
   const coverageAssistPilotEnabled = isCoverageAssistPilotEnabled(registerFirstFlags);
   const draftAssistCaptureEnabled = registerFirstFlags.draftAssistCapture;
+  const draftAssistRequestedByQuery = safeSearchParams.get("assist") === "draft";
   const defaultInitialDraft = useMemo(
     () => ({
       purpose: prefill.slice(0, 160),
@@ -91,8 +113,16 @@ export default function StandaloneCapturePage() {
       }),
     [coverageAssistPilotEnabled, safeSearchParams]
   );
+  const initialEntryMode = resolveCaptureEntryMode({
+    hasCoverageAssistEntry: assistEntryState !== null,
+    draftAssistEnabled: draftAssistCaptureEnabled,
+    draftAssistRequested: draftAssistRequestedByQuery,
+  });
   const [captureOpen, setCaptureOpen] = useState(
-    () => assistEntryState === null && !draftAssistCaptureEnabled
+    () => initialEntryMode === "direct"
+  );
+  const [draftAssistRequested, setDraftAssistRequested] = useState(
+    initialEntryMode === "draft_assist"
   );
   const [assistDraft, setAssistDraft] = useState<CaptureInitialDraft | null>(null);
   const [assistContext, setAssistContext] = useState<CaptureAssistContext | null>(null);
@@ -101,6 +131,7 @@ export default function StandaloneCapturePage() {
   const shouldShowAssistEntry = assistEntryState !== null && assistDraft === null;
   const shouldShowDraftAssistEntry =
     draftAssistCaptureEnabled &&
+    draftAssistRequested &&
     assistEntryState === null &&
     assistDraft === null &&
     !captureOpen;
@@ -186,12 +217,33 @@ export default function StandaloneCapturePage() {
     try {
       await registerService.createRegister(name);
       setOnboardingState("ready");
+      const hasLocalCapture = (() => {
+        try {
+          return JSON.parse(
+            window.localStorage.getItem("kiregister_guest_captures") ?? "[]",
+          ).length > 0;
+        } catch {
+          return false;
+        }
+      })();
+      if (captureJourneySource || hasLocalCapture) {
+        void trackProductFunnelEvent({
+          eventName: "register_created_after_capture",
+          payload: {},
+          context: {
+            source: "capture",
+            ...(analyticsSessionId
+              ? { anonymousSessionId: analyticsSessionId }
+              : {}),
+          },
+        });
+      }
     } catch (err) {
       const code = mapErrorCode(err);
       setCreateError(
         code === "UNAUTHENTICATED"
-          ? "Du bist nicht angemeldet. Bitte melde dich erneut an."
-          : "Register konnte nicht erstellt werden. Bitte versuche es erneut."
+          ? "Sie sind nicht angemeldet. Bitte melden Sie sich erneut an."
+          : "Register konnte nicht erstellt werden. Bitte versuchen Sie es erneut."
       );
     } finally {
       setIsCreatingRegister(false);
@@ -244,9 +296,17 @@ export default function StandaloneCapturePage() {
   };
 
   const openManualCapture = () => {
+    setDraftAssistRequested(false);
     setAssistDraft(null);
     setAssistContext(null);
     setCaptureOpen(true);
+  };
+
+  const openDraftAssist = () => {
+    setDraftAssistRequested(true);
+    setAssistDraft(null);
+    setAssistContext(null);
+    setCaptureOpen(false);
   };
 
   const handleDraftAssistAccepted = (handoff: DraftAssistHandoff) => {
@@ -334,15 +394,15 @@ export default function StandaloneCapturePage() {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
-        title="Quick Capture"
+        title="KI-Einsatzfall erfassen"
         description="Erfassen Sie neue KI-Einsatzfälle direkt im Register."
-        nextStep="Quick Capture wird vorbereitet."
+        nextStep="Die Erfassung wird vorbereitet."
         width="5xl"
       >
         <PageStatePanel
           tone="loading"
           area="signed_in_free_register"
-          title="Quick Capture wird geladen"
+          title="Erfassung wird geladen"
           description="Registerkontext und Erfassungsformular werden vorbereitet."
         />
       </SignedInAreaFrame>
@@ -353,7 +413,7 @@ export default function StandaloneCapturePage() {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
-        title="Quick Capture"
+        title="KI-Einsatzfall erfassen"
         description="Erfassen Sie neue KI-Einsatzfälle direkt im Register."
         nextStep="Legen Sie zuerst ein Register an."
         width="5xl"
@@ -362,7 +422,7 @@ export default function StandaloneCapturePage() {
           <PageStatePanel
             area="signed_in_free_register"
             title="Es fehlt noch ein Register"
-            description="Bevor Sie Quick Capture nutzen, legen Sie Ihren ersten Register-Arbeitsbereich an."
+            description="Bevor Sie einen Einsatzfall erfassen, legen Sie Ihren ersten Register-Arbeitsbereich an."
           />
           <Card className="mx-auto w-full max-w-md">
             <CardHeader>
@@ -406,7 +466,7 @@ export default function StandaloneCapturePage() {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
-        title="Quick Capture"
+        title="KI-Einsatzfall erfassen"
         description="Ein KI-Einsatzfall wird in rund 30 Sekunden erfasst — System, Zweck, Verantwortung. Daraus entsteht ein Eintrag im KI-Register Ihrer Organisation."
         nextStep="Direkt ausprobieren oder anmelden und ins Register speichern."
         width="5xl"
@@ -414,7 +474,7 @@ export default function StandaloneCapturePage() {
         <div className="mx-auto grid w-full max-w-4xl gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
           <Card>
             <CardHeader>
-              <CardTitle>Quick Capture starten</CardTitle>
+              <CardTitle>Ersten KI-Einsatzfall erfassen</CardTitle>
               <CardDescription>
                 Drei kurze Felder, keine Vorkenntnisse nötig. Sie können sofort
                 loslegen — ein Konto brauchen Sie erst, wenn der Eintrag ins
@@ -454,12 +514,12 @@ export default function StandaloneCapturePage() {
                 <p>
                   <span className="font-medium text-foreground">2 · Prüfen</span>
                   <br />
-                  Risk Assist schlägt vor, ein Mensch bestätigt.
+                  Risikohinweise unterstützen, ein Mensch bestätigt.
                 </p>
                 <p>
                   <span className="font-medium text-foreground">3 · Nachweisen</span>
                   <br />
-                  Als Use Case Pass teilen (PDF/JSON).
+                  Dokumentationsstand als Use Case Pass teilen (PDF/JSON).
                 </p>
               </div>
             </CardContent>
@@ -475,7 +535,7 @@ export default function StandaloneCapturePage() {
               Daraus wird
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
-              Ein Use Case Pass — der vorlegbare Nachweis
+              Ein Use Case Pass — der teilbare Dokumentationsstand
             </p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -496,11 +556,11 @@ export default function StandaloneCapturePage() {
   return (
     <SignedInAreaFrame
       area="signed_in_free_register"
-      title="Quick Capture"
+      title="KI-Einsatzfall erfassen"
       description="Erfassen Sie einen neuen KI-Einsatzfall in wenigen Feldern und führen Sie ihn danach im Register weiter."
       nextStep={
         shouldShowAssistEntry
-          ? "Klären Sie zuerst den Zweck, bevor der Einsatzfall ins Quick Capture übernommen wird."
+          ? "Klären Sie zuerst den Zweck, bevor der Einsatzfall in die Erfassung übernommen wird."
           : "Dokumentieren Sie zuerst Zweck, Tool und Nutzungskontext."
       }
       width="5xl"
@@ -533,6 +593,19 @@ export default function StandaloneCapturePage() {
         renderInline
         initialDraft={initialDraft}
         assistContext={assistContext}
+        showSuccessReceipt
+        captureSource={captureJourneySource}
+        analyticsSessionId={analyticsSessionId}
+        captureMode={
+          assistContext?.assist === "coverage"
+            ? "coverage_assist"
+            : assistDraft
+              ? "description_assist"
+              : "direct"
+        }
+        onStartDraftAssist={
+          draftAssistCaptureEnabled ? openDraftAssist : undefined
+        }
       />
     </SignedInAreaFrame>
   );

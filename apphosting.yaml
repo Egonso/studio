@@ -57,3 +57,9 @@ env:
     value: "true"
   - variable: NEXT_PUBLIC_SUPPLIER_INVITE_V2_ENABLED
     value: "true"
+  - variable: NEXT_PUBLIC_COURSE_ACTIVATION_HANDOFF
+    value: "true"
+  - variable: NEXT_PUBLIC_REGISTER_ACTIVATION_GUIDE
+    value: "true"
+  - variable: NEXT_PUBLIC_PRODUCT_FUNNEL_ANALYTICS
+    value: "true"

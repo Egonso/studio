@@ -195,9 +195,9 @@ function getEnterpriseCopy(locale?: string | null) {
           'Members, identity, approvals and audit export are being prepared.',
         title: 'Organisation',
         descriptionWithWorkspace: (workspace: string) =>
-          `Organisation controls for ${workspace}. Roles, procurement, identity and approvals come together here.`,
+          `Organisation-wide governance for ${workspace}. Roles, procurement, identity and approvals come together here.`,
         description:
-          'Organisation controls for roles, procurement, identity and approvals.',
+          'Organisation-wide governance for roles, procurement, identity and approvals.',
         nextStep:
           'Maintain roles, approval policy and procurement documents for the active workspace first.',
       },
@@ -205,7 +205,7 @@ function getEnterpriseCopy(locale?: string | null) {
         title:
           'This area is not available for the active workspace',
         description:
-          'Role model, SSO/SCIM, procurement settings and formal workspace approvals are managed in organisation controls.',
+          'Role model, SSO/SCIM, procurement settings and formal workspace approvals are managed through organisation-wide governance.',
         controlOverview: 'Control overview',
         exportsAudit: 'Exports / Audit',
         noWorkspaceTitle: 'No workspace selected',

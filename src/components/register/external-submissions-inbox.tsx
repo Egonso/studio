@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, ExternalLink, Info, Loader2, Search, XCircle } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { trackProductFunnelEvent } from "@/lib/analytics/product-funnel-client";
 import {
   getExternalSubmissionActor,
   getExternalSubmissionTitle,
@@ -33,6 +33,7 @@ import {
   externalSubmissionService,
   isExternalSubmissionPermissionError,
 } from "@/lib/register-first/external-submission-service";
+import { resolveExternalSubmissionWorkflow } from "@/lib/register-first/external-submission-workflow";
 import { buildScopedUseCaseDetailHref } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
 import type {
@@ -42,16 +43,9 @@ import type {
   Register,
 } from "@/lib/register-first/types";
 
-const STATUS_LABELS: Record<ExternalSubmissionStatus, string> = {
-  submitted: "Eingegangen",
-  approved: "Freigegeben",
-  rejected: "Abgelehnt",
-  merged: "Uebernommen",
-};
-
 const SOURCE_LABELS: Record<ExternalSubmissionSourceType, string> = {
-  supplier_request: "Supplier-Link",
-  access_code: "Capture-Link",
+  supplier_request: "Lieferanten-Link",
+  access_code: "Erfassungslink",
   manual_import: "Import",
 };
 
@@ -70,18 +64,12 @@ function formatDate(value: string): string {
   });
 }
 
-function statusVariant(status: ExternalSubmissionStatus) {
-  switch (status) {
-    case "approved":
-      return "secondary";
-    case "merged":
-      return "default";
-    case "rejected":
-      return "destructive";
-    default:
-      return "outline";
-  }
-}
+const STATUS_DOT_CLASSES: Record<ExternalSubmissionStatus, string> = {
+  submitted: "bg-slate-950",
+  approved: "bg-slate-700",
+  rejected: "bg-slate-300",
+  merged: "bg-slate-500",
+};
 
 interface ExternalSubmissionsInboxProps {
   register: Register | null;
@@ -96,7 +84,7 @@ export function ExternalSubmissionsInbox({
   refreshKey = 0,
   onCountsChange,
   title = "Externe Inbox",
-  description = "Nachvollziehbare externe Einreichungen aus Supplier-Links, Capture-Links und Importen.",
+  description = "Nachvollziehbare externe Einreichungen aus Lieferanten-Links, Erfassungslinks und Importen.",
 }: ExternalSubmissionsInboxProps) {
   const router = useRouter();
   const workspaceScope = useWorkspaceScope();
@@ -188,6 +176,11 @@ export function ExternalSubmissionsInbox({
             ? `Verknüpfter Use Case: ${updated.linkedUseCaseId}`
             : undefined,
       });
+      void trackProductFunnelEvent({
+        eventName: "supplier_submission_processed",
+        payload: { action },
+        context: { source: "supplier_inbox" },
+      });
     } catch (reviewError) {
       console.error("External submission review failed:", reviewError);
       toast({
@@ -213,7 +206,7 @@ export function ExternalSubmissionsInbox({
           {kmuMode ? (
             <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
               <Info className="h-3.5 w-3.5 text-slate-500" />
-              KMU-Modus aktiv: Freigaben aus Supplier-Links erzeugen direkt
+              KMU-Modus aktiv: Freigaben aus Lieferanten-Links erzeugen direkt
               einen Use Case.
             </div>
           ) : null}
@@ -249,7 +242,7 @@ export function ExternalSubmissionsInbox({
               <SelectItem value="submitted">Eingegangen</SelectItem>
               <SelectItem value="approved">Freigegeben</SelectItem>
               <SelectItem value="rejected">Abgelehnt</SelectItem>
-              <SelectItem value="merged">Uebernommen</SelectItem>
+              <SelectItem value="merged">Übernommen</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -263,8 +256,8 @@ export function ExternalSubmissionsInbox({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Alle Quellen</SelectItem>
-              <SelectItem value="supplier_request">Supplier-Link</SelectItem>
-              <SelectItem value="access_code">Capture-Link</SelectItem>
+              <SelectItem value="supplier_request">Lieferanten-Link</SelectItem>
+              <SelectItem value="access_code">Erfassungslink</SelectItem>
               <SelectItem value="manual_import">Import</SelectItem>
             </SelectContent>
           </Select>
@@ -310,6 +303,10 @@ export function ExternalSubmissionsInbox({
                 const isActing = actingId === submission.submissionId;
                 const title = getExternalSubmissionTitle(submission);
                 const actor = getExternalSubmissionActor(submission);
+                const workflow = resolveExternalSubmissionWorkflow(
+                  submission,
+                  register,
+                );
 
                 return (
                   <div
@@ -330,9 +327,12 @@ export function ExternalSubmissionsInbox({
                             : "Keine Beschreibung"}
                         </div>
                       </div>
-                      <Badge variant={statusVariant(submission.status)}>
-                        {STATUS_LABELS[submission.status]}
-                      </Badge>
+                      <div className="flex shrink-0 items-center gap-2 text-xs text-slate-700">
+                        <span
+                          className={`h-2 w-2 rounded-full ${STATUS_DOT_CLASSES[workflow.status]}`}
+                        />
+                        <span>{workflow.statusLabel}</span>
+                      </div>
                     </div>
 
                     <div className="grid gap-3 text-sm text-slate-700">
@@ -365,6 +365,15 @@ export function ExternalSubmissionsInbox({
                             Zeitpunkt
                           </div>
                           <div>{formatDate(submission.submittedAt)}</div>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
+                          Zuständig
+                        </div>
+                        <div>{workflow.ownerLabel}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {workflow.nextActionLabel}
                         </div>
                       </div>
                       <div>
@@ -439,7 +448,7 @@ export function ExternalSubmissionsInbox({
                               ) : (
                                 <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                               )}
-                              Uebernehmen
+                              Übernehmen
                             </Button>
                           ) : null}
                         </>
@@ -466,15 +475,13 @@ export function ExternalSubmissionsInbox({
               })}
             </div>
 
-            <div className="hidden md:block">
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                     <TableRow>
-                    <TableHead>Quelle</TableHead>
                     <TableHead>Einreichung</TableHead>
                     <TableHead>Eingereicht von</TableHead>
-                    <TableHead>Datum</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Status / Zuständig</TableHead>
                     <TableHead>Use Case</TableHead>
                     <TableHead className="text-right">Aktionen</TableHead>
                   </TableRow>
@@ -484,23 +491,13 @@ export function ExternalSubmissionsInbox({
                     const isActing = actingId === submission.submissionId;
                     const title = getExternalSubmissionTitle(submission);
                     const actor = getExternalSubmissionActor(submission);
+                    const workflow = resolveExternalSubmissionWorkflow(
+                      submission,
+                      register,
+                    );
 
                     return (
                       <TableRow key={submission.submissionId}>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="font-medium">
-                              {SOURCE_LABELS[submission.sourceType]}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {submission.requestTokenId
-                                ? `Token ${submission.requestTokenId}`
-                                : submission.accessCodeId
-                                  ? `Code ${submission.accessCodeId}`
-                                  : submission.submissionId}
-                            </div>
-                          </div>
-                        </TableCell>
                         <TableCell>
                           <div className="space-y-1">
                             <div className="font-medium text-slate-900">{title}</div>
@@ -508,6 +505,13 @@ export function ExternalSubmissionsInbox({
                               {typeof submission.rawPayloadSnapshot.purpose === "string"
                                 ? submission.rawPayloadSnapshot.purpose
                                 : "Keine Beschreibung"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {SOURCE_LABELS[submission.sourceType]} · {submission.requestTokenId
+                                ? `Token ${submission.requestTokenId}`
+                                : submission.accessCodeId
+                                  ? `Code ${submission.accessCodeId}`
+                                  : submission.submissionId}
                             </div>
                           </div>
                         </TableCell>
@@ -519,13 +523,26 @@ export function ExternalSubmissionsInbox({
                                 {submission.submittedByEmail}
                               </div>
                             ) : null}
+                            <div className="text-xs text-muted-foreground">
+                              {formatDate(submission.submittedAt)}
+                            </div>
                           </div>
                         </TableCell>
-                        <TableCell>{formatDate(submission.submittedAt)}</TableCell>
                         <TableCell>
-                          <Badge variant={statusVariant(submission.status)}>
-                            {STATUS_LABELS[submission.status]}
-                          </Badge>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-sm text-slate-900">
+                              <span
+                                className={`h-2 w-2 rounded-full ${STATUS_DOT_CLASSES[workflow.status]}`}
+                              />
+                              <span>{workflow.statusLabel}</span>
+                            </div>
+                            <div className="text-xs text-slate-700">
+                              {workflow.ownerLabel}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {workflow.nextActionLabel}
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell>
                           {submission.linkedUseCaseId ? (
@@ -550,7 +567,7 @@ export function ExternalSubmissionsInbox({
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-wrap justify-end gap-2">
                             {submission.status === "submitted" ? (
                               <>
                                 <Button
@@ -592,7 +609,7 @@ export function ExternalSubmissionsInbox({
                                     ) : (
                                       <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
                                     )}
-                                    Uebernehmen
+                                    Übernehmen
                                   </Button>
                                 ) : null}
                               </>

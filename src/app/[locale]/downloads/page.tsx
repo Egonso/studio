@@ -20,12 +20,23 @@ function getDownloadsCopy(locale: string) {
       appName: 'KI Register',
       metadataTitle: 'Downloads | KI Register',
       metadataDescription:
-        'Chrome Plugin, macOS Menüleisten-App und Agent Kit für KI Register herunterladen.',
+        'Kostenlosen Arbeitsleitfaden, Chrome Plugin, macOS Menüleisten-App und Agent Kit für KI Register herunterladen.',
       headerLabel: 'KI Register',
       pageTitle: 'Downloads',
       backHome: 'Zur Startseite',
       infoNote:
-        'Beide Downloads öffnen die bestehende Quick-Capture-Maske des KI Registers. Inhalte und Governance bleiben im gleichen Register-Standard auf kiregister.com.',
+        'Arbeitsleitfaden, Quick Capture und Agent Kit folgen derselben Logik: KI-Einsatzfälle erfassen, Verantwortlichkeiten ordnen und Nachweise aus einem Register heraus führen.',
+      guideKicker: 'Kostenloser Arbeitsleitfaden',
+      guideTitle: 'Das prüfbare KI-Register: eine 30-Minuten-Inventur',
+      guideBody:
+        'Der 14-seitige Leitfaden hilft Ihnen, verstreute KI-Nutzung sichtbar zu machen, Rollen zu klären und aus zehn Einsatzfällen ein erstes prüfbares Register aufzubauen. Ohne Anmeldung.',
+      guidePoints: [
+        'Sechs Fragen für jeden KI-Einsatzfall',
+        'Ein kompakter Ablauf für die erste Inventur',
+        'Rollen-, Nachweis- und Quellenlogik für die weitere Prüfung',
+      ],
+      guideDownload: 'Arbeitsleitfaden als PDF herunterladen',
+      guideRegister: 'Danach im Register erfassen',
       overviewLabel: 'Kurze Übersicht',
       overviewTitle: 'Downloads für Quick Capture',
       installation: 'Installation',
@@ -109,12 +120,23 @@ function getDownloadsCopy(locale: string) {
     appName: 'AI Registry',
     metadataTitle: 'Downloads | AI Registry',
     metadataDescription:
-      'Download the Chrome extension, macOS menu bar app and Agent Kit for AI Registry.',
+      'Download the free guide, Chrome extension, macOS menu bar app and Agent Kit for AI Registry.',
     headerLabel: 'AI Registry',
     pageTitle: 'Downloads',
     backHome: 'Back to home',
     infoNote:
-      'Both downloads open the existing Quick Capture surface of AI Registry. Content and governance stay inside the same register standard on kiregister.com.',
+      'The guide, Quick Capture and Agent Kit follow the same logic: capture AI use cases, assign responsibility and maintain evidence from one register.',
+    guideKicker: 'Free guide · German edition',
+    guideTitle: 'The auditable AI register: a 30-minute inventory',
+    guideBody:
+      'This 14-page German-language guide helps teams make scattered AI use visible, clarify roles and turn ten use cases into a first auditable register. No sign-up required.',
+    guidePoints: [
+      'Six questions for every AI use case',
+      'A compact workflow for the first inventory',
+      'Role, evidence and source logic for further review',
+    ],
+    guideDownload: 'Download the guide as PDF',
+    guideRegister: 'Continue in the register',
     overviewLabel: 'Quick overview',
     overviewTitle: 'Downloads for Quick Capture',
     installation: 'Installation',
@@ -256,6 +278,7 @@ export default async function DownloadsPage({ params }: Props) {
   const copy = getDownloadsCopy(locale);
   const agentKitDocsHref = localizeHref(locale, '/developers/agent-kit');
   const agentKitSettingsHref = localizeHref(locale, '/settings/agent-kit');
+  const registerHref = localizeHref(locale, '/?mode=signup&intent=create_register');
   const homeHref = localizeHref(locale, '/');
 
   return (
@@ -296,6 +319,45 @@ export default async function DownloadsPage({ params }: Props) {
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-slate-700" />
             <p className="text-sm leading-relaxed text-slate-700">{copy.infoNote}</p>
+          </div>
+        </section>
+
+        <section className="mt-8 border-y border-slate-300 bg-white px-1 py-8">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                {copy.guideKicker}
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">
+                {copy.guideTitle}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-700">{copy.guideBody}</p>
+              <ul className="mt-5 grid gap-2 text-sm text-slate-700 sm:grid-cols-3">
+                {copy.guidePoints.map((point) => (
+                  <li key={point} className="border-l border-slate-300 pl-3 leading-relaxed">
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col items-start gap-3 lg:items-stretch">
+              <a
+                href="/downloads/KIRegister_30-Minuten-Inventur_Pruefbares_KI-Register.pdf"
+                download
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+              >
+                <Download className="h-4 w-4" />
+                {copy.guideDownload}
+              </a>
+              <Link
+                href={registerHref}
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                {copy.guideRegister}
+              </Link>
+            </div>
           </div>
         </section>
 

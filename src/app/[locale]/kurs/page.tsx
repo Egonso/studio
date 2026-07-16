@@ -234,12 +234,12 @@ export default function CoursePage() {
         area="paid_governance_control"
         title="Academy"
         description="Governance-Kurse, Lernressourcen und Prüfungsinformationen für Ihr Team."
-        nextStep="Academy gehört zur bezahlten Governance-Ebene."
+        nextStep="Academy gehört zur Organisationssteuerung."
       >
         <PageStatePanel
           area="paid_governance_control"
-          title="Academy gehört zu den Premium-Bereichen"
-          description={`${requiredPlanLabel} schaltet Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center frei. KI-Kompetenz nach Art. 4 bleibt daneben als kostenloser Academy-Track erreichbar.`}
+          title="Academy gehört zur Organisationssteuerung"
+          description={`${requiredPlanLabel} umfasst Kurse, Lernfortschritt und Zertifizierungsoberflächen im Governance Control Center. KI-Kompetenz nach Art. 4 bleibt daneben als kostenloser Academy-Track erreichbar. Promotion-Codes können für vollständige Einzelaktivierungen genutzt werden.`}
           actions={
             <>
               <Button asChild>
@@ -253,7 +253,7 @@ export default function CoursePage() {
               </Button>
               <Button asChild variant="outline">
                 <Link href={ROUTE_HREFS.governanceUpgrade}>
-                  Upgrade-Optionen
+                  Organisationssteuerung
                 </Link>
               </Button>
             </>

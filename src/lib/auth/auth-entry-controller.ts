@@ -1,6 +1,7 @@
 import type { Auth, UserCredential } from 'firebase/auth';
 
 import { getPublicAppOrigin } from '@/lib/app-url';
+import { trackProductFunnelEvent } from '@/lib/analytics/product-funnel-client';
 import { buildBillingWelcomePath } from '@/lib/billing/post-checkout';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import {
@@ -234,6 +235,25 @@ async function acceptWorkspaceInvites(
         email,
         responseStatus: response.status,
         workspaceInvite,
+      });
+      return;
+    }
+
+    let hasLocalCapture = false;
+    try {
+      const stored = JSON.parse(
+        window.localStorage.getItem('kiregister_guest_captures') ?? '[]',
+      );
+      hasLocalCapture = Array.isArray(stored) && stored.length > 0;
+    } catch {
+      hasLocalCapture = false;
+    }
+
+    if (hasLocalCapture) {
+      void trackProductFunnelEvent({
+        eventName: 'register_joined_after_capture',
+        payload: {},
+        context: { source: 'invite' },
       });
     }
   } catch (error) {

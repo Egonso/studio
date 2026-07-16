@@ -15,6 +15,7 @@ import {
 import { MarketingShell } from '@/components/product-shells';
 import { CertificateBadgeCard } from '@/components/certification/certificate-badge-card';
 import { ThemeAwareLogo } from '@/components/theme-aware-logo';
+import { VerificationScopePanel } from '@/components/verification/verification-scope-panel';
 import { localizeHref } from '@/lib/i18n/localize-href';
 
 interface PublicCertificate {
@@ -28,6 +29,7 @@ interface PublicCertificate {
   modules: string[];
   verifyUrl: string;
   latestDocumentUrl: string | null;
+  examVersion?: string | null;
 }
 
 function formatDate(value: string | null, locale: string, fallback: string): string {
@@ -198,6 +200,7 @@ export default function VerificationPage() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [documentNotice, setDocumentNotice] = useState<string | null>(null);
   const [documentError, setDocumentError] = useState<string | null>(null);
+  const [verifiedAt, setVerifiedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!code) {
@@ -218,6 +221,7 @@ export default function VerificationPage() {
 
         const payload = await response.json();
         setCertificate(payload as PublicCertificate);
+        setVerifiedAt(new Date().toISOString());
       } catch (fetchError) {
         console.error('Verification error:', fetchError);
         setError(
@@ -268,6 +272,7 @@ export default function VerificationPage() {
       }
 
       setCertificate(payload);
+      setVerifiedAt(new Date().toISOString());
       setDocumentNotice(copy.regenerateSuccess);
     } catch (regenerateError) {
       console.error('Certificate regeneration error:', regenerateError);
@@ -487,6 +492,25 @@ export default function VerificationPage() {
                   </Link>
                 </aside>
               </div>
+
+              <VerificationScopePanel
+                locale={locale}
+                issuer={copy.appName}
+                version={certificate.examVersion || (locale === 'de' ? 'Bestandszertifikat' : 'Legacy certificate')}
+                integrity={
+                  locale === 'de'
+                    ? 'Zertifikatscode und öffentlicher Datensatz stimmen überein.'
+                    : 'Certificate code and public record match.'
+                }
+                status={statusMeta.label}
+                verifiedAt={formatDate(verifiedAt, locale, copy.notSet)}
+                scope={certificate.modules}
+                limitation={
+                  locale === 'de'
+                    ? 'Der Nachweis dokumentiert Teilnahme und Kompetenzprüfung. Er ist keine behördliche Zulassung und keine abschließende Rechtskonformitätsentscheidung.'
+                    : 'This record documents participation and a competency assessment. It is not a regulatory approval or a final legal-compliance decision.'
+                }
+              />
 
               {certificate.status === 'active' ? (
                 <CertificateBadgeCard

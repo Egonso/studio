@@ -59,7 +59,7 @@ export function getGovernanceUpgradeDestination(
           href: buildMailtoHref('Enterprise Upgrade Request'),
           label: 'Enterprise anfragen',
           description:
-            'Enterprise wird aktuell über direkten Kontakt statt über einen Checkout freigeschaltet.',
+            'Enterprise wird aktuell über direkten Kontakt statt über einen Checkout eingerichtet.',
           external: true,
           checkoutConfigured: false,
           targetPlan: 'enterprise',
@@ -68,9 +68,9 @@ export function getGovernanceUpgradeDestination(
 
   return {
     href: '/settings?section=governance#upgrade-panel',
-    label: 'Governance freischalten',
+    label: 'Organisationssteuerung einrichten',
     description:
-      'Die bezahlte Governance-Stufe wird über Governance Settings und einen serverseitig abgesicherten Stripe-Checkout aktiviert.',
+      'Die volumenabhängige Governance-Stufe wird über Governance Settings und einen serverseitig abgesicherten Stripe-Checkout eingerichtet.',
     external: false,
     checkoutConfigured: true,
     targetPlan: 'pro',

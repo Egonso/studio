@@ -3,11 +3,13 @@ import type Stripe from 'stripe';
 import { z } from 'zod';
 
 import { buildPublicAppUrl } from '@/lib/app-url';
+import { recordProductFunnelEvent } from '@/lib/analytics/product-funnel-server';
 import {
   createStripeServerClient,
   resolveStripeBillingConfiguration,
 } from '@/lib/billing/stripe-server';
 import { logError, logWarn } from '@/lib/observability/logger';
+import { normalizeProductFunnelSessionId } from '@/lib/analytics/product-funnel-contract';
 import {
   buildRateLimitKey,
   enforceRequestRateLimit,
@@ -22,6 +24,7 @@ const FORTBILDUNG_SOURCE_FLOW = 'fortbildung_neulaunch_checkout';
 const FortbildungCheckoutSchema = z
   .object({
     locale: z.enum(['de', 'en']).optional(),
+    anonymousSessionId: z.string().trim().min(8).max(200).optional(),
   })
   .strict();
 
@@ -167,7 +170,8 @@ export async function POST(request: NextRequest) {
       allow_promotion_codes: true,
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
-      client_reference_id: FORTBILDUNG_PRODUCT_ID,
+      client_reference_id:
+        normalizeProductFunnelSessionId(body.anonymousSessionId) ?? undefined,
       metadata,
       custom_fields: [
         {
@@ -206,6 +210,17 @@ export async function POST(request: NextRequest) {
         { status: 502 },
       );
     }
+
+    await recordProductFunnelEvent({
+      eventName: 'training_checkout_started',
+      payload: { plan: 'solo' },
+      context: {
+        anonymousSessionId:
+          normalizeProductFunnelSessionId(body.anonymousSessionId) ??
+          checkoutSession.id,
+        source: 'checkout',
+      },
+    });
 
     return NextResponse.json({
       checkoutSessionId: checkoutSession.id,

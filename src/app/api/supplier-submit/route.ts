@@ -29,6 +29,8 @@ import type { SubmissionRiskFlag } from '@/lib/register-first/submission-trust-t
 import { checkPublicRateLimit } from '@/lib/security/public-rate-limit';
 import { getClientIp } from '@/lib/security/request-security';
 import { getWorkspaceSettingsForRegister } from '@/lib/workspace-admin';
+import { createHash } from 'node:crypto';
+import { recordProductFunnelEvent } from '@/lib/analytics/product-funnel-server';
 
 const SUPPLIER_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const SUPPLIER_RATE_LIMIT_MAX_REQUESTS = 8;
@@ -353,6 +355,19 @@ async function handleV2Submit(
     ipHash,
   });
 
+  await recordProductFunnelEvent({
+    eventName: 'supplier_submission_received',
+    payload: { source: 'supplier_request' },
+    context: {
+      anonymousSessionId: `supplier_${createHash('sha256')
+        .update(submission.submissionId)
+        .digest('hex')
+        .slice(0, 24)}`,
+      workspaceId,
+      source: 'supplier_request',
+    },
+  });
+
   const organisationName =
     register?.organisationName ?? register?.name ?? 'Ihre Organisation';
   let confirmationEmailSent = false;
@@ -606,6 +621,19 @@ export async function POST(req: Request) {
       outcome: 'accepted',
       submissionId: submission.submissionId,
       registerId: submission.registerId,
+    });
+
+    await recordProductFunnelEvent({
+      eventName: 'supplier_submission_received',
+      payload: { source: 'supplier_request' },
+      context: {
+        anonymousSessionId: `supplier_${createHash('sha256')
+          .update(submission.submissionId)
+          .digest('hex')
+          .slice(0, 24)}`,
+        workspaceId,
+        source: 'supplier_request',
+      },
     });
 
     return NextResponse.json({

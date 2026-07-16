@@ -336,7 +336,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Dieses Konto ist bereits für die gewünschte Freischaltungsstufe aktiviert.',
+            'Dieses Konto ist bereits für die gewünschte Governance-Stufe aktiviert.',
         },
         { status: 409 },
       );

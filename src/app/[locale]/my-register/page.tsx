@@ -32,6 +32,7 @@ import {
 import { useAuth } from '@/context/auth-context';
 import { RegisterDeleteDialog } from '@/components/register/register-delete-dialog';
 import { GovernanceHeader } from '@/components/register/governance-header';
+import { RegisterActivationGuide } from '@/components/register/register-activation-guide';
 import { invalidateEntitlementCache } from '@/lib/compliance-engine/capability/useCapability';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { registerFirstFlags } from '@/lib/register-first/flags';
@@ -46,7 +47,12 @@ import {
   isExternalSubmissionPermissionError,
 } from '@/lib/register-first/external-submission-service';
 import { parseRegisterScopeFromWorkspaceValue } from '@/lib/register-first/register-scope';
-import type { Register, UseCaseCard } from '@/lib/register-first/types';
+import type {
+  ExternalSubmission,
+  Register,
+  UseCaseCard,
+} from '@/lib/register-first/types';
+import { buildRegisterActivationSnapshot } from '@/lib/register-first/register-activation';
 import {
   EXTERNAL_INBOX_FILTER,
   getVisiblePremiumControlNav,
@@ -218,6 +224,8 @@ export default function MyRegisterPage() {
     useState<OnboardingState>('loading');
   const [captureOpen, setCaptureOpen] = useState(false);
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
+  const [useCasesLoaded, setUseCasesLoaded] = useState(false);
+  const [externalSubmissions, setExternalSubmissions] = useState<ExternalSubmission[]>([]);
   const [registers, setRegisters] = useState<Register[]>([]);
   const [activeRegister, setActiveRegister] = useState<Register | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -258,6 +266,8 @@ export default function MyRegisterPage() {
     setHasChecked(false);
     setOnboardingState('loading');
     setUseCases([]);
+    setUseCasesLoaded(false);
+    setExternalSubmissions([]);
     setRegisters([]);
     setActiveRegister(null);
   }, [workspaceScope]);
@@ -359,6 +369,7 @@ export default function MyRegisterPage() {
   useEffect(() => {
     if (!user || !activeRegister?.registerId) {
       setExternalInboxCounts({ total: 0, open: 0 });
+      setExternalSubmissions([]);
       return;
     }
 
@@ -367,6 +378,7 @@ export default function MyRegisterPage() {
       .list(activeRegister.registerId, {}, scopeContext)
       .then((items) => {
         if (cancelled) return;
+        setExternalSubmissions(items);
         setExternalInboxCounts({
           total: items.length,
           open: items.filter((item) => item.status === 'submitted').length,
@@ -378,6 +390,7 @@ export default function MyRegisterPage() {
         }
         if (!cancelled) {
           setExternalInboxCounts({ total: 0, open: 0 });
+          setExternalSubmissions([]);
         }
       });
 
@@ -401,6 +414,9 @@ export default function MyRegisterPage() {
   };
 
   const handleSwitchRegister = async (registerId: string) => {
+    setUseCasesLoaded(false);
+    setUseCases([]);
+    setExternalSubmissions([]);
     const selectedRegister =
       await registerService.setActiveRegister(registerId, scopeContext);
     const reg =
@@ -420,7 +436,18 @@ export default function MyRegisterPage() {
 
   const handleUseCasesLoaded = (cards: UseCaseCard[]) => {
     setUseCases(cards);
+    setUseCasesLoaded(true);
   };
+
+  const activationSnapshot = useMemo(
+    () =>
+      buildRegisterActivationSnapshot({
+        useCases,
+        externalSubmissions,
+        register: activeRegister,
+      }),
+    [activeRegister, externalSubmissions, useCases],
+  );
 
   const handleRegisterDeleted = async (result: DeleteRegisterResult) => {
     const regs = await registerService.listRegisters(scopeContext);
@@ -594,6 +621,28 @@ export default function MyRegisterPage() {
               </div>
             )}
           </GovernanceHeader>
+          {registerFirstFlags.registerActivationGuide &&
+            useCasesLoaded &&
+            !showingExternalInbox && (
+              <RegisterActivationGuide
+                snapshot={activationSnapshot}
+                onCapture={() => setCaptureOpen(true)}
+                onOpenExternalInbox={() =>
+                  handleDocumentLensChange('supplier_requests')
+                }
+                onOpenUseCase={(useCaseId, focus) => {
+                  const href = buildScopedUseCaseDetailHref(
+                    useCaseId,
+                    workspaceScope,
+                  );
+                  router.push(
+                    focus
+                      ? `${href}${href.includes('?') ? '&' : '?'}focus=${encodeURIComponent(focus)}`
+                      : href,
+                  );
+                }}
+              />
+            )}
           {registerFirstFlags.supplierInviteV2 &&
             activeRegister &&
             showingExternalInbox && (
@@ -728,6 +777,9 @@ export default function MyRegisterPage() {
               refreshKey={refreshKey}
               onUseCasesLoaded={handleUseCasesLoaded}
               initialFilter={initialFilter}
+              hideActivationEmptyState={
+                registerFirstFlags.registerActivationGuide
+              }
             />
           )}
           <RegisterDeleteDialog

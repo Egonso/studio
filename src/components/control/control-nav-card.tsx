@@ -32,7 +32,7 @@ export function ControlNavCard({ plan, pathname }: ControlNavCardProps) {
       : {
           title: 'Governance Navigation',
           description: 'Organisation-wide areas in a clear structure.',
-          locked: 'available in organisation controls',
+          locked: 'available with organisation-wide governance',
         };
 
   return (

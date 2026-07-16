@@ -7,6 +7,8 @@ import { Loader2, Shield, XCircle } from 'lucide-react';
 
 import { MarketingShell } from '@/components/product-shells';
 import { ThemeAwareLogo } from '@/components/theme-aware-logo';
+import { VerificationScopePanel } from '@/components/verification/verification-scope-panel';
+import { trackProductFunnelEventOnce } from '@/lib/analytics/product-funnel-client';
 import { localizeHref } from '@/lib/i18n/localize-href';
 import type { PublicUseCaseIndexEntry } from '@/lib/register-first';
 import { lookupPublicUseCase } from '@/lib/register-first/register-repository';
@@ -150,6 +152,7 @@ export default function VerifyPassPage() {
   const [state, setState] = useState<LoadingState>('loading');
   const [entry, setEntry] = useState<PublicUseCaseIndexEntry | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [verifiedAt, setVerifiedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!hashId || hashId.length < 8) {
@@ -168,6 +171,12 @@ export default function VerifyPassPage() {
 
         setEntry(result);
         setState('found');
+        setVerifiedAt(new Date().toISOString());
+        void trackProductFunnelEventOnce(`pass:${hashId}`, {
+          eventName: 'pass_verified',
+          payload: { kind: 'use_case_pass' },
+          context: { source: 'pass' },
+        });
       } catch (err) {
         console.error('Verify pass error:', err);
         setErrorMessage(copy.retryError);
@@ -331,6 +340,34 @@ export default function VerifyPassPage() {
               </div>
             </div>
           </section>
+
+          <div className="mt-6">
+            <VerificationScopePanel
+              locale={locale}
+              issuer={copy.appName}
+              version={entry.formatVersion}
+              integrity={
+                locale === 'de'
+                  ? 'Der öffentliche Hash ist einem veröffentlichten Registereintrag zugeordnet.'
+                  : 'The public hash is linked to a published register record.'
+              }
+              status={statusMeta.label}
+              verifiedAt={
+                verifiedAt ? formatDate(verifiedAt, locale) : copy.notPublished
+              }
+              scope={[
+                entry.verification?.scope ||
+                  (locale === 'de'
+                    ? 'Öffentlicher Nachweisstatus dieses KI-Einsatzfalls'
+                    : 'Public evidence status for this AI use case'),
+              ]}
+              limitation={
+                locale === 'de'
+                  ? 'Der Pass belegt den veröffentlichten Registerstand. Er ersetzt keine individuelle Rechtsberatung, Zertifizierung oder behördliche Entscheidung.'
+                  : 'The pass confirms the published register state. It does not replace individual legal advice, certification or a regulatory decision.'
+              }
+            />
+          </div>
 
           <section className="mt-6 border border-slate-200 px-6 py-5">
             <div className="flex items-center gap-2">

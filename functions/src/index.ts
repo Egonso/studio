@@ -16,6 +16,7 @@ import {
   upsertCustomerEntitlement,
 } from './product-entitlement-sync';
 import { processAffiliateCommission } from './affiliate-commission';
+import { recordFunctionsProductFunnelEvent } from './product-funnel-events';
 
 // Initialize Firebase Admin
 admin.initializeApp();
@@ -98,6 +99,48 @@ function resolveSessionAccessExpiresAt(
   }
 
   return null;
+}
+
+function isTrainingPurchase(
+  session: Stripe.Checkout.Session,
+  lineItemHints: BillingLineItemHint[],
+): boolean {
+  if (
+    session.metadata?.sourceFlow === 'fortbildung_neulaunch_checkout' ||
+    session.metadata?.includedMainCourse === 'eu_ai_act_main_course' ||
+    session.metadata?.productId === 'fortbildung_neulaunch_package'
+  ) {
+    return true;
+  }
+
+  return lineItemHints.some((item) =>
+    [item.productName, item.description, item.lookupKey]
+      .filter((value): value is string => Boolean(value))
+      .some((value) =>
+        /fortbildung|eu.?ai.?act|zertifikatskurs/i.test(value),
+      ),
+  );
+}
+
+function resolveTrainingPlan(
+  session: Stripe.Checkout.Session,
+): 'solo' | 'team' | 'enterprise' {
+  const includedPersons = Number.parseInt(
+    session.metadata?.includedPersons ?? '1',
+    10,
+  );
+  if (session.metadata?.plan === 'enterprise') return 'enterprise';
+  if (Number.isFinite(includedPersons) && includedPersons > 1) return 'team';
+  return 'solo';
+}
+
+function resolveAnalyticsSessionId(session: Stripe.Checkout.Session): string {
+  const clientReference = session.client_reference_id?.trim();
+  if (clientReference && /^[A-Za-z0-9_-]{8,200}$/.test(clientReference)) {
+    return clientReference;
+  }
+
+  return `stripe_${session.id.replace(/[^A-Za-z0-9_-]/g, '_').slice(-80)}`;
 }
 
 export const stripeWebhook = onRequest(
@@ -214,12 +257,32 @@ export const stripeWebhook = onRequest(
               expand: ['data.price.product'],
             },
           );
+          const lineItemHints = toLineItemHints(lineItems);
           const resolvedEntitlement = inferCheckoutEntitlement({
             metadata: session.metadata,
             productId: session.metadata?.productId ?? null,
-            lineItems: toLineItemHints(lineItems),
+            lineItems: lineItemHints,
           });
           const plan = resolvedEntitlement?.plan ?? null;
+
+          if (isTrainingPurchase(session, lineItemHints)) {
+            await recordFunctionsProductFunnelEvent(db, {
+              eventName: 'training_purchase_completed',
+              anonymousSessionId: resolveAnalyticsSessionId(session),
+              source: 'stripe_webhook',
+              plan: resolveTrainingPlan(session),
+              externalReference: session.id,
+              occurredAt: new Date(session.created * 1000).toISOString(),
+            }).catch((analyticsError) => {
+              console.warn('training_purchase_completed analytics failed', {
+                checkoutSessionId: session.id,
+                error:
+                  analyticsError instanceof Error
+                    ? analyticsError.message
+                    : 'unknown_error',
+              });
+            });
+          }
 
           // Parallel update: Studio 'customers' collection
           const customerRef = db.collection('customers').doc(email);

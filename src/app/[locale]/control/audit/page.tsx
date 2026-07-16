@@ -128,10 +128,10 @@ export default function ControlAuditPage() {
           {!registerFirstFlags.controlShell ? (
             <Card>
               <CardHeader>
-                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht freigeschaltet" : "AI Governance Control is not enabled"}</CardTitle>
+                <CardTitle>{locale === "de" ? "AI Governance Control ist nicht aktiv" : "AI Governance Control is not enabled"}</CardTitle>
                 <CardDescription>
                   {locale === "de"
-                    ? "Der Audit-Bereich ist für diesen Workspace noch nicht freigeschaltet."
+                    ? "Der Audit-Bereich ist für diesen Workspace noch nicht aktiv."
                     : "The audit area is not enabled for this workspace yet."}
                 </CardDescription>
               </CardHeader>
