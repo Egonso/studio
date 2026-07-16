@@ -56,6 +56,10 @@ test('derived retention events only accept bounded operational actions', () => {
     context,
   });
 
+  assert.equal(parsed.eventName, 'returned_d7_for_action');
+  if (parsed.eventName !== 'returned_d7_for_action') {
+    assert.fail('Expected a D7 return event.');
+  }
   assert.equal(parsed.payload.action, 'review_completed');
   assert.throws(() =>
     parseProductFunnelEvent({
