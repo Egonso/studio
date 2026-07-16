@@ -235,6 +235,24 @@
   color: var(--ink-soft);
 }
 
+.heroTrust {
+  display: inline-block;
+  margin-top: 1.4rem;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.11em;
+  line-height: 1.6;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.25rem;
+  pointer-events: auto;
+  transition: border-color 0.25s ease;
+}
+
+.heroTrust:hover { border-color: var(--ink); }
+
 .quickRow {
   margin-top: 2.2rem;
   display: flex;
@@ -378,6 +396,102 @@
   border-bottom: 1px solid var(--ink);
   padding-bottom: 0.3rem;
   align-self: flex-start;
+}
+
+/* ============================================================
+   WISSENSCHAFTLICHE STELLUNGNAHME — ruhiger Vertrauensanker
+   ============================================================ */
+
+.trustAnchor {
+  padding: clamp(4.5rem, 10vh, 8rem) clamp(1.4rem, 6vw, 6rem);
+  background: #f2f1eb;
+}
+
+.trustInner {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.36fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: clamp(2.4rem, 5vw, 4rem) 0;
+}
+
+.trustSource {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.trustLabel {
+  margin: 0 0 2.2rem;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.22em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.trustAttribution {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.trustAffiliation {
+  margin: 0.45rem 0 1.8rem;
+  max-width: 24rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.trustLink {
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 0.25rem;
+}
+
+.trustStatement h2 {
+  margin: 0 0 1.4rem;
+  font-size: clamp(1.8rem, 3.8vw, 3.2rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.trustStatement blockquote {
+  margin: 0;
+  max-width: 58rem;
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 2.35vw, 2rem);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.trustDisclaimer {
+  margin: 1.8rem 0 0;
+  max-width: 52rem;
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--gray);
+}
+
+@media (max-width: 800px) {
+  .trustInner {
+    grid-template-columns: 1fr;
+    gap: 2.4rem;
+  }
+
+  .trustLabel { margin-bottom: 1.4rem; }
 }
 
 .finaleMetaLink {

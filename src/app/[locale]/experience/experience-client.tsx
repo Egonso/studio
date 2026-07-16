@@ -33,12 +33,20 @@ interface ExperienceCopy {
   phase3Title: string;
   phase3Sub: string;
   scrollHint: string;
+  heroTrust: string;
   chromeCta: string;
   chromeLogin: string;
   chromeJoin: string;
   entryLabel: string;
   entries: { title: string; body: string; action: string; kind: 'create' | 'join' | 'open' }[];
   ctaOpen: string;
+  trustLabel: string;
+  trustTitle: string;
+  trustQuote: string;
+  trustAttribution: string;
+  trustAffiliation: string;
+  trustLink: string;
+  trustDisclaimer: string;
   quickLinks: { label: string; href: string; external?: boolean }[];
   spine: string[];
   mandatLabel: string;
@@ -87,6 +95,8 @@ const DE: ExperienceCopy = {
   phase3Sub:
     'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
   scrollHint: 'Registerführung beginnen',
+  heroTrust:
+    'Wissenschaftlich eingeordnet durch Prof. Dr. Janine Wendt · TU Darmstadt · Mitherausgeberin des Großkommentars zur KI-Verordnung',
   chromeCta: 'Register anlegen',
   chromeLogin: 'Anmelden',
   chromeJoin: 'Register beitreten',
@@ -112,6 +122,16 @@ const DE: ExperienceCopy = {
     },
   ],
   ctaOpen: 'Bestehendes Register öffnen',
+  trustLabel: 'Wissenschaftliche Stellungnahme · 30. Juni 2026',
+  trustTitle: 'Methodisch konsistent mit dem EU AI Act.',
+  trustQuote:
+    'Der registerbasierte Ansatz von KI Register ist geeignet, Organisationen bei der strukturierten Dokumentation ihrer KI-Nutzung zu unterstützen und dadurch die Herstellung prüffähiger Nachweise sowie die praktische Audit-Readiness im Sinne des EU AI Act wesentlich zu erleichtern.',
+  trustAttribution: 'Prof. Dr. Janine Wendt',
+  trustAffiliation:
+    'Technische Universität Darmstadt · Fachbereich Rechts- und Wirtschaftswissenschaften · Mitherausgeberin des Großkommentars zur KI-Verordnung',
+  trustLink: 'Unterzeichnete Stellungnahme lesen (PDF)',
+  trustDisclaimer:
+    'Die Einschätzung bezieht sich auf die methodische Eignung des Ansatzes. Sie ist keine Garantie für die Rechtskonformität einzelner Implementierungen und ersetzt keine individuelle Rechtsberatung.',
   quickLinks: [
     { label: 'Use Case in 30 s erfassen', href: '/capture' },
     { label: 'Kostenlose Art.-4-Rollenkurse', href: '/academy/ki-kompetenz' },
@@ -268,6 +288,8 @@ const EN: ExperienceCopy = {
   phase3Sub:
     'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
   scrollHint: 'Begin the register walk-through',
+  heroTrust:
+    'Scientific assessment by Prof. Dr. Janine Wendt · Technical University of Darmstadt · Co-editor of the commentary on the EU Artificial Intelligence Act',
   chromeCta: 'Set up register',
   chromeLogin: 'Sign in',
   chromeJoin: 'Join a register',
@@ -293,6 +315,16 @@ const EN: ExperienceCopy = {
     },
   ],
   ctaOpen: 'Open existing register',
+  trustLabel: 'Scientific statement · 30 June 2026',
+  trustTitle: 'Methodologically consistent with the EU AI Act.',
+  trustQuote:
+    'The register-based approach of KI Register is suited to supporting organisations in the structured documentation of their use of AI and thus substantially facilitating the production of auditable evidence as well as practical audit readiness within the meaning of the EU AI Act.',
+  trustAttribution: 'Prof. Dr. Janine Wendt',
+  trustAffiliation:
+    'Technical University of Darmstadt · Department of Law and Economics · Co-editor of the commentary on the EU Artificial Intelligence Act',
+  trustLink: 'Read the signed statement (German PDF)',
+  trustDisclaimer:
+    'English translation. The statement assesses the methodological suitability of the approach. It is not a guarantee of the legal conformity of individual implementations and does not replace individual legal advice.',
   quickLinks: [
     { label: 'Capture a use case in 30 s', href: '/capture' },
     { label: 'Free Article 4 role training', href: '/academy/ki-kompetenz' },
@@ -1199,6 +1231,14 @@ export default function ExperienceClient({ locale }: { locale: string }) {
             <p className={s.heroKicker}>{copy.kicker}</p>
             <h1 className={s.heroTitle}>{copy.phase1Title}</h1>
             <p className={s.heroSub}>{copy.phase1Sub}</p>
+            <a
+              href="/downloads/2026-06-30_Wissenschaftliche_Stellungnahme_Prof_Wendt_KI-Register.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className={s.heroTrust}
+            >
+              {copy.heroTrust} ↗
+            </a>
             <nav className={s.quickRow} aria-label="Direktzugriff">
               {copy.quickLinks.map((link) =>
                 link.external ? (
@@ -1271,6 +1311,30 @@ export default function ExperienceClient({ locale }: { locale: string }) {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      {/* ============ WISSENSCHAFTLICHE STELLUNGNAHME ============ */}
+      <section className={s.trustAnchor} aria-labelledby="wendt-statement-title">
+        <div className={s.trustInner}>
+          <div className={s.trustSource}>
+            <p className={s.trustLabel}>{copy.trustLabel}</p>
+            <p className={s.trustAttribution}>{copy.trustAttribution}</p>
+            <p className={s.trustAffiliation}>{copy.trustAffiliation}</p>
+            <a
+              href="/downloads/2026-06-30_Wissenschaftliche_Stellungnahme_Prof_Wendt_KI-Register.pdf"
+              target="_blank"
+              rel="noreferrer"
+              className={s.trustLink}
+            >
+              {copy.trustLink} ↗
+            </a>
+          </div>
+          <div className={s.trustStatement}>
+            <h2 id="wendt-statement-title">{copy.trustTitle}</h2>
+            <blockquote>„{copy.trustQuote}“</blockquote>
+            <p className={s.trustDisclaimer}>{copy.trustDisclaimer}</p>
+          </div>
         </div>
       </section>
 
