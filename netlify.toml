@@ -72,7 +72,7 @@ status = 301
 force = true
 
 [build.environment]
-NODE_VERSION = "20"
+NODE_VERSION = "22"
 NEXT_PUBLIC_APP_ORIGIN = "https://kiregister.com"
 NEXT_PUBLIC_REGISTER_FIRST_RISK_ASSIST_DETAIL = "true"
 NEXT_PUBLIC_CONTROL_SHELL_ENABLED = "true"

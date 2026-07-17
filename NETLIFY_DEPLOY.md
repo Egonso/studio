@@ -1,51 +1,51 @@
-# Netlify Deployment Anleitung
+# Netlify production deployment
 
-## Schritt 1: Projekt auf Netlify verbinden
+## Canonical project
 
-1. Gehen Sie zu [https://app.netlify.com](https://app.netlify.com)
-2. Klicken Sie auf **"Add new site"** → **"Import an existing project"**
-3. Wählen Sie **GitHub** als Git-Provider
-4. Wählen Sie das Repository **Egonso/studio** aus
-5. Netlify erkennt automatisch die Next.js-Konfiguration
+- Netlify project: `studio-egonso`
+- Production domain: [kiregister.com](https://kiregister.com)
+- Repository: `Egonso/studio`
+- Production branch: `main`
+- Build command: `npm run build`
+- Publish directory: `.next`
+- Runtime: Node.js 22, configured in `netlify.toml`
 
-## Schritt 2: Build-Einstellungen
+`studio-egonso` is the only production Netlify project for KI Register. Do not create another project when local CLI access or project linking is missing.
 
-Die Build-Einstellungen sollten automatisch erkannt werden:
-- **Build command:** `npm run build`
-- **Publish directory:** `.next` (wird automatisch vom Next.js Plugin behandelt)
+The obsolete duplicate `pumuckels` had no custom domain and served older assets. It was permanently deleted on 2026-07-17 after the production asset mapping was reverified.
 
-## Schritt 3: Umgebungsvariablen hinzufügen
+## Standard deployment path
 
-1. Gehen Sie zu **Site settings** → **Environment variables**
-2. Klicken Sie auf **"Add a variable"**
-3. Fügen Sie folgende Variable hinzu:
-   - **Key:** `GEMINI_API_KEY`
-   - **Value:** Wert aus Ihrem Secret Manager / Passwortsafe
-4. Klicken Sie auf **"Save"**
+1. Push a `codex/*` branch.
+2. Review the Netlify deploy preview attached to the pull request.
+3. Require green GitHub CI.
+4. Merge the pull request into `main`.
+5. Let the `studio-egonso` Git integration publish production.
+6. Verify `kiregister.com` after the production deploy completes.
 
-## Schritt 4: Deployment starten
+The Git integration is the normal production path. A local `netlify deploy --prod` is not a substitute for missing access to `studio-egonso`.
 
-1. Gehen Sie zurück zum **Deploys** Tab
-2. Klicken Sie auf **"Trigger deploy"** → **"Deploy site"**
-3. Warten Sie, bis das Deployment abgeschlossen ist
+## CLI safety check
 
-## Alternative: Über Netlify CLI (wenn authentifiziert)
-
-Falls Sie bereits bei Netlify eingeloggt sind, können Sie auch folgende Befehle verwenden:
+Before any Netlify mutation, verify both the authenticated account and the exact linked project:
 
 ```bash
-# Umgebungsvariable setzen (nachdem die Site erstellt wurde)
-netlify env:set GEMINI_API_KEY "<secret-from-password-manager>"
-
-# Deployen
-netlify deploy --prod
+netlify status
+netlify sites:list
 ```
 
-## Wichtige Hinweise
+If `studio-egonso` is not visible to the authenticated account, stop. Use the GitHub deployment path or obtain access to the owning Netlify team. Never run `netlify init`, create a replacement project, or deploy production to a similarly named site.
 
-- Die `.env.local` Datei wird nicht ins Repository committed (siehe `.gitignore`)
-- Die Umgebungsvariable muss in Netlify gesetzt werden, damit sie während des Builds verfügbar ist
-- Genkit verwendet standardmäßig die `GEMINI_API_KEY` Umgebungsvariable für die Google AI Authentifizierung
+## Production verification
 
+Verify at least:
 
+- `https://kiregister.com/de` returns HTTP 200;
+- the primary capture journey loads;
+- the production Next.js asset set matches `studio-egonso.netlify.app`;
+- the merged feature or copy is visible;
+- no stale duplicate project is receiving production traffic.
 
+## Rollback
+
+For a faulty web release, revert the merge commit through a pull request. Netlify will publish the reverted `main` state. If immediate recovery is required, restore the previous successful production deploy in the `studio-egonso` Netlify project and then reconcile `main` through GitHub.

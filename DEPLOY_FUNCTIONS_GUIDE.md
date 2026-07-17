@@ -1,97 +1,67 @@
+# Firebase Functions deployment guide
 
-# Anleitung: Firebase Function & Regeln bereitstellen
+## Production target
 
-Herzlichen Glückwunsch! Die Code-Implementierung ist abgeschlossen. Damit Ihr neuer Stripe-Webhook und die Sicherheitsregeln live funktionieren, müssen wir drei Dinge tun:
+- Firebase project: `ai-act-compass-m6o05`
+- Codebase: `app`
+- Runtime: Node.js 22
+- Runtime source of truth: `firebase.json`
+- Package compatibility declaration: `functions/package.json`
 
-1.  **Die Cloud Function bereitstellen (deployen):** Wir laden den neuen Code in Ihr Firebase-Projekt hoch.
-2.  **Geheime Schlüssel (Secrets) sicher hinterlegen:** Wir teilen Firebase Ihre geheimen Stripe-Schlüssel mit.
-3.  **Firestore-Regeln bereitstellen:** Wir laden die neuen Sicherheitsregeln hoch, die den Datenzugriff steuern.
+The application currently deploys five Functions:
 
-Folgen Sie einfach diesen Schritten.
+- `api`
+- `stripeWebhook`
+- `scheduledSupplierReminders`
+- `checkPublicInfo`
+- `sendWelcomeEmailOnPurchase`
 
----
+## Preflight
 
-### Voraussetzungen
+1. Work from a clean checkout of the merged commit.
+2. Use Node.js 22 and a current Firebase CLI.
+3. Confirm the Firebase project explicitly; do not rely on an implicit default.
+4. Confirm required secrets exist through metadata commands. Never print secret values into the terminal transcript or documentation.
+5. Preserve the existing non-secret parameter values for sender, templates, and public origin.
 
-1.  **Firebase CLI:** Sie müssen die Firebase-Befehlszeilentools (CLI) installiert haben. Falls nicht, finden Sie [hier eine Anleitung](https://firebase.google.com/docs/cli#install).
-2.  **Angemeldet sein:** Sie müssen in Ihrem Terminal bei Firebase angemeldet sein. Führen Sie `firebase login` aus, falls Sie sich nicht sicher sind.
+This runtime migration does not require Firestore rules, indexes, schema changes, or data backfills.
 
----
-
-### Schritt 1: Das Terminal öffnen
-
-Öffnen Sie das eingebaute Terminal oder die Befehlszeile in Ihrer Entwicklungsumgebung. In den meisten Programmen finden Sie es im Menü unter `Terminal` > `New Terminal`.
-
-### Schritt 2: In das `functions`-Verzeichnis wechseln
-
-Unsere Cloud Function hat ihr eigenes, separates Verzeichnis. Wir müssen dorthin navigieren, bevor wir Befehle ausführen.
-
-```bash
-cd functions
-```
-
-### Schritt 3: Die Abhängigkeiten der Function installieren
-
-Genau wie Ihr Hauptprojekt benötigt auch die Function ihre eigenen Pakete (`stripe`, `firebase-admin`, etc.).
+## Build and deploy
 
 ```bash
-npm install
+npm --prefix functions ci
+npm --prefix functions run typecheck
+npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
 ```
 
-### Schritt 4: Zurück ins Hauptverzeichnis wechseln
+If local source discovery is unusually slow, diagnose the filesystem or deploy from a clean checkout. The deployment must still use the exact merged source.
 
-Wechseln Sie wieder eine Ebene nach oben, um die restlichen Befehle auszuführen.
+## Configuration boundaries
+
+Secrets are managed with Firebase Functions secrets. Examples include Stripe, Emailit, and supplier-session credentials. Do not store them in tracked files.
+
+Non-secret parameters include:
+
+- `EMAILIT_FROM_EMAIL`
+- `EMAILIT_SUPPLIER_REMINDER_TEMPLATE`
+- `EMAILIT_WELCOME_TEMPLATE`
+- `APP_PUBLIC_ORIGIN`
+
+The deployment may prompt for these values when a clean checkout has no local parameter file. Reuse the current production values; do not guess or silently replace them.
+
+## Verification
+
+After deployment:
 
 ```bash
-cd ..
+firebase functions:list --project ai-act-compass-m6o05
 ```
 
-### Schritt 5: Die Firestore-Regeln bereitstellen
+Verify that all five application Functions are `ACTIVE` on `nodejs22`. Then run the smallest safe live checks for the changed behavior, such as the public API health path or a bounded, non-PII analytics event.
 
-Dieser Befehl lädt die neue `firestore.rules`-Datei in Ihr Projekt hoch.
+## Rollback
 
-```bash
-firebase deploy --only firestore:rules
-```
+The runtime-only rollback is to revert the migration commit and redeploy the prior runtime while Node.js 20 deployments remain permitted. This is a time-limited fallback because Node.js 20 is scheduled for decommissioning on 2026-10-30. Functional code regressions should be handled by reverting the responsible application commit and redeploying from a clean checkout.
 
-### Schritt 6: Stripe-Secrets sicher hinterlegen
-
-Die Function verwendet Firebase Functions v2 Secrets. Hinterlegen Sie die Stripe-Werte deshalb vor dem Deploy im Secret-Store und nicht als lose Klartext-Umgebungsvariablen in der UI.
-
-```bash
-firebase functions:secrets:set STRIPE_SECRET_KEY
-firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
-```
-
-Optional nur für ältere Fallbacks:
-
-```bash
-firebase functions:secrets:set STRIPE_API_KEY
-```
-
-### Schritt 7: Die Function bereitstellen (deployen)
-
-Jetzt laden wir den Code der Funktion in die Cloud hoch.
-
-```bash
-firebase deploy --only functions
-```
-
-Wenn alles geklappt hat, sehen Sie eine Erfolgsmeldung, die Ihnen auch die URL Ihrer Webhook-Funktion anzeigt.
-
-### Schritt 8: Secret- und Webhook-Konfiguration prüfen
-
-1.  Verifizieren Sie mit `firebase functions:secrets:access STRIPE_SECRET_KEY`, dass das Secret im richtigen Projekt liegt.
-2.  Prüfen Sie im Stripe-Dashboard unter Entwickler > Webhooks, dass Ihr Endpunkt auf die aktuelle Firebase-Function-URL zeigt.
-3.  Stellen Sie sicher, dass dort mindestens diese Events aktiviert sind:
-    *   `checkout.session.completed`
-    *   `invoice.paid`
-    *   `customer.subscription.updated`
-    *   `customer.subscription.deleted`
-    *   `charge.refunded`
-
----
-
-### Fertig!
-
-Das war's! Ihr Stripe-Webhook und Ihre Firestore-Datenbank sind jetzt voll funktionsfähig und sicher konfiguriert. Neue Kunden werden automatisch in Firestore gespeichert, und die Registrierung ist auf diese Kunden beschränkt.
+See [docs/NODE22_RUNTIME_MIGRATION_2026-07-17.md](docs/NODE22_RUNTIME_MIGRATION_2026-07-17.md) for the migration evidence and support window.
