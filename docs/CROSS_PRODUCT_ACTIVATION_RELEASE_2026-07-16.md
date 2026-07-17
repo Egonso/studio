@@ -60,6 +60,13 @@ All three flags default to `false` in application code and are enabled explicitl
 5. Merge the EUKIGesetz pull request only after the endpoint is healthy.
 6. Verify both production domains and their cross-product handoff.
 
+## Post-release maintenance (2026-07-17)
+
+- GitHub CI, Netlify builds, and Firebase Functions moved from Node.js 20 to Node.js 22.
+- The production Netlify project remains `studio-egonso`; its asset set was reverified against `kiregister.com`.
+- The obsolete duplicate Netlify project `pumuckels` had no custom domain, served older assets, and was permanently deleted.
+- Runtime migration evidence and rollback are documented in `docs/NODE22_RUNTIME_MIGRATION_2026-07-17.md`.
+
 ## Rollback
 
 - Disable the three feature flags to remove the handoff, activation guide, and event ingestion without changing stored use cases.

@@ -1,85 +1,48 @@
-# GitHub Integration für automatische Deployments
+# GitHub and production integration
 
-## Status
-✅ Netlify-Site erstellt: `studio-egonso`
-✅ Projekt verlinkt
-✅ Umgebungsvariable `GEMINI_API_KEY` gesetzt
-✅ Build Hook erstellt
+## Current source of truth
 
-**Live URL:** https://studio-egonso.netlify.app
+- GitHub repository: [Egonso/studio](https://github.com/Egonso/studio)
+- Release branch: `main`
+- Production Netlify project: `studio-egonso`
+- Production domain: [kiregister.com](https://kiregister.com)
+- Pull requests receive Netlify deploy previews and GitHub Actions verification.
 
-## Einmalige Einrichtung für automatische Deployments
+GitHub `main` is the deploy source of truth. Local branch descriptions, old worktrees, and similarly named Netlify projects do not prove production state.
 
-Es gibt zwei Möglichkeiten, automatische Deployments einzurichten:
+## Required pull-request flow
 
-### OPTION 1: Netlify Dashboard (empfohlen - am einfachsten)
+1. Create a focused `codex/*` branch from current `origin/main`.
+2. Commit one reviewable maintenance or product slice.
+3. Push the branch and open a pull request.
+4. Wait for GitHub CI and the `studio-egonso` deploy preview.
+5. Merge only after the relevant checks pass.
+6. Verify the production domain after the `main` deploy.
+7. Delete the remote feature branch after successful verification.
 
-1. **Gehen Sie zum Netlify-Dashboard:**
-   - https://app.netlify.com/projects/studio-egonso
+Do not push feature work directly to `main`.
 
-2. **Gehen Sie zu Site settings → Build & deploy → Continuous Deployment**
+## Checks
 
-3. **Klicken Sie auf "Link to Git provider"**
+The CI workflow uses Node.js 22 and runs:
 
-4. **Wählen Sie GitHub** und autorisieren Sie Netlify, auf Ihr Repository zuzugreifen
+- application dependency installation;
+- Functions dependency installation and typecheck;
+- application typecheck;
+- lint;
+- tests;
+- production build.
 
-5. **Wählen Sie das Repository:** `Egonso/studio`
+The Netlify preview validates the hosting build and route behavior independently of GitHub Actions.
 
-6. **Konfigurieren Sie die Build-Einstellungen:**
-   - **Branch to deploy:** `main`
-   - **Build command:** `npm run build`
-   - **Publish directory:** `.next`
+## Integration recovery
 
-7. **Klicken Sie auf "Save"**
+If the Netlify check does not appear on a pull request:
 
-✅ **Fertig!** Netlify richtet automatisch den Webhook ein.
+1. confirm that the repository and branch are correct;
+2. confirm that the expected project is `studio-egonso`;
+3. inspect the existing Git integration in the Netlify dashboard;
+4. repair the existing integration instead of creating a second Netlify project;
+5. never paste build hooks, tokens, or other credentials into tracked documentation.
 
-### OPTION 2: GitHub Webhook manuell einrichten
-
-Falls Sie den Webhook manuell einrichten möchten:
-
-1. **Gehen Sie zu GitHub:**
-   - https://github.com/Egonso/studio/settings/hooks
-
-2. **Klicken Sie auf "Add webhook"**
-
-3. **Fügen Sie folgende Daten ein:**
-   - **Payload URL:** `https://api.netlify.com/build_hooks/6947be8d7a96d9c1c7a8e55d`
-   - **Content type:** `application/json`
-   - **Which events:** `Just the push event`
-   - **Active:** ✓
-
-4. **Klicken Sie auf "Add webhook"**
-
-✅ **Fertig!** Bei jedem Push in `main` wird automatisch deployed.
-
-## Nach der Einrichtung
-
-Nach der Einrichtung wird Netlify automatisch:
-- ✅ Bei jedem Push in den `main` Branch deployen
-- ✅ Deploy Previews für Pull Requests erstellen
-- ✅ Die Umgebungsvariable `GEMINI_API_KEY` in allen Builds verwenden
-
-## Manueller Trigger (falls nötig)
-
-Falls Sie sofort ein Deployment triggern möchten, können Sie:
-
-```bash
-# Im Projekt-Verzeichnis
-netlify deploy --prod
-```
-
-Oder im Dashboard: **Deploys** → **Trigger deploy** → **Deploy site**
-
-## Überprüfung
-
-Nach der Einrichtung können Sie testen:
-1. Machen Sie eine kleine Änderung im Code
-2. Committen und pushen Sie in den `main` Branch:
-   ```bash
-   git add .
-   git commit -m "Test: Auto-deploy"
-   git push origin main
-   ```
-3. Gehen Sie zum Netlify-Dashboard und sehen Sie, wie automatisch ein neues Deployment gestartet wird
-
+Manual production deploys are exceptional recovery actions and require verified access to `studio-egonso`. See [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md).

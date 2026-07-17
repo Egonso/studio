@@ -2,6 +2,24 @@
 
 To finalize the architecture refactoring, please perform the following steps manually in your Firebase Console or local environment.
 
+## Node.js 22 runtime maintenance (2026-07-17)
+
+GitHub CI, Netlify builds, and Firebase Functions are pinned to Node.js 22. `firebase.json` is the authoritative Functions runtime declaration and must remain aligned with `functions/package.json`.
+
+For a runtime deployment:
+
+```bash
+npm --prefix functions ci
+npm --prefix functions run typecheck
+npm --prefix functions run build
+firebase deploy --only functions --project ai-act-compass-m6o05
+firebase functions:list --project ai-act-compass-m6o05
+```
+
+After deployment, verify that `api`, `stripeWebhook`, `scheduledSupplierReminders`, `checkPublicInfo`, and `sendWelcomeEmailOnPurchase` are `ACTIVE` on `nodejs22`.
+
+No Firestore rule, index, schema, migration, or backfill is required for the runtime change. See `docs/NODE22_RUNTIME_MIGRATION_2026-07-17.md` for support dates, verification gates, and rollback.
+
 ## Cross-product activation release (2026-07-16)
 
 This release changes `functions/src/index.ts` to record completed training purchases from the Stripe webhook. After the Studio merge:
@@ -274,4 +292,4 @@ npm --prefix functions run build
 firebase deploy --only functions --project ai-act-compass-m6o05
 ```
 
-The web app itself is served through Firebase App Hosting. Once the required App Hosting secrets exist, push to the connected GitHub branch or create a manual rollout for the backend in Firebase App Hosting.
+The production web app is served by the Netlify project `studio-egonso` at `kiregister.com`. Web releases are triggered by the GitHub integration after a pull request is merged into `main`. Firebase remains the backend platform for Functions, Firestore, Authentication, and related resources.
