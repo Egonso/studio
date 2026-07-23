@@ -7,21 +7,23 @@
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
   "effective_date": "2026-04-29",
-  "last_substantive_update": "2026-07-06",
+  "last_substantive_update": "2026-07-23",
   "source_urls": [
     "https://eur-lex.europa.eu/eli/reg/2024/1689/oj?locale=de",
     "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-act-standardisation",
     "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
     "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-4",
-    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26"
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-26",
+    "https://ai-act-service-desk.ec.europa.eu/en/biometrics",
+    "https://digital-strategy.ec.europa.eu/en/news/commission-publishes-guidelines-transparency-obligations-providers-and-deployers-certain-ai-systems"
   ],
   "schema_types": ["Article", "FAQPage", "BreadcrumbList", "Organization"],
   "template_variant": "artefact-sheet",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
   "title": "Use-Case Pass Evidenzprofil für OEM-Beschaffung, Qualität und Compliance",
-  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung vom 6. Juli 2026 ergänzt ein Supplier-Quality-Abnahmeprofil für standardisierte Lieferkettenarbeit: Procurement, Qualität und Compliance sollen denselben Pass-Stand lesen, seine Aktualität prüfen, Portal- oder Audit-Wiederverwendung einordnen und daraus akzeptieren, vertiefen, Evidenz nachfordern oder die externe Aussage zurückhalten können.",
+  "summary": "Dieses Artefakt ordnet die Evidenzerwartungen für KI-Einsatzfälle in der Automobil-Lieferkette entlang eines einzelnen Use-Case Pass. Es zeigt, welche Aussagen OEM-Beschaffung, Supplier Quality und Compliance vor Supplier Request, Verify-Freigabe oder qualitätsbezogener Rückfrage ohne Zusatzdeutung direkt aus dem Pass lesen können sollten, welche Annahmegrenze dafür gilt und an welchem Punkt eine Antwort intern gestoppt oder vertieft werden muss. Die Aktualisierung vom 23. Juli 2026 ergänzt für kamerabasiertes Driver Monitoring eine getrennte Pass-Logik: Zweck und Output, Emotion oder Intention, Produkt- und Sicherheitskomponentenpfad sowie eine mögliche Informationspflicht werden einzeln geführt. So wird eine enge Einordnung nach einem Beispiel der EU-Kommission nicht fälschlich zur pauschalen Klassifikation des gesamten Fahrzeugsystems.",
   "object_label": "Automotive-Artefakt",
   "stance_label": "Evidenzprofil für Lieferkette und Freigabe",
   "author": "KIRegister",
@@ -40,7 +42,8 @@
     "ein Aktualitäts- und Abnahmeprofil, das OEM-Teams vor Versand, Portalantwort oder Qualitätsrunde als wiederholbaren Prüfpunkt verwenden können",
     "eine Partner-Handoff-Logik, die offene Evidenz, Trainingsbedarf, Nachforderung und externe Antwort sauber trennt",
     "eine Abnahmelogik für standardisierte Lieferkettenarbeit, damit OEM-Procurement, Supplier Quality und Compliance dieselbe Mindestantwort lesen",
-    "einen Supplier-Quality-Abnahmepunkt für Portalantwort, Qualitätsrunde, Audit-Vorbereitung und Verify-Nutzung"
+    "einen Supplier-Quality-Abnahmepunkt für Portalantwort, Qualitätsrunde, Audit-Vorbereitung und Verify-Nutzung",
+    "eine getrennte Nachweislogik für kamerabasiertes Driver Monitoring, die körperliche Zustände, Emotionen oder Intentionen, Produkt- und Sicherheitskomponentenpfad sowie mögliche Informationspflichten nicht vermischt"
   ],
   "downloads": [
     {
@@ -173,6 +176,28 @@
         {
           "label": "Nicht ausreichend",
           "value": "Tool-Listen, lose E-Mails, Präsentationsfolien oder allgemeine Zusicherungen ohne klaren Pass-Bezug. Sie können Kontext liefern, tragen aber keine belastbare Lieferkettenaussage über einen konkreten KI-Einsatzfall."
+        }
+      ]
+    },
+    {
+      "kind": "table",
+      "heading": "Vier getrennte Prüfpfade für kamerabasiertes Driver Monitoring",
+      "rows": [
+        {
+          "label": "Zweck und Output",
+          "value": "Der Pass muss konkret festhalten, ob das System beim sicheren Fahren unterstützen soll, indem es nachlassende Aufmerksamkeit, Müdigkeit, Einschlafen oder einen akuten körperlichen Zustand erkennt. Kamera, Blickrichtung oder Bewegungsdaten allein entscheiden noch keine rechtliche Einordnung; zu dokumentieren sind Zweck, Eingaben, Ausgabe und die daraus folgende Fahrzeug- oder Fahreraktion."
+        },
+        {
+          "label": "Emotionen und Intentionen",
+          "value": "Getrennt zu prüfen ist, ob das System tatsächlich Emotionen oder Intentionen ableiten soll. Das Beispiel des AI Act Service Desk ordnet Müdigkeit, Einschlafen und körperliche Zustände nicht dem Pfad der Emotionserkennung nach Anhang III zu. Daraus folgt keine pauschale Einstufung des gesamten Fahrzeugsystems; die Aussage gilt nur für diesen abgegrenzten Prüfpfad."
+        },
+        {
+          "label": "Produkt- und Sicherheitskomponentenpfad",
+          "value": "Unabhängig davon ist nach Artikel 6 AI Act zu prüfen, ob die KI Sicherheitskomponente eines von Anhang I erfassten Produkts ist oder selbst ein solches Produkt bildet und ob dafür eine Drittstellen-Konformitätsbewertung erforderlich ist. Der Pass hält Produktbezug, Sicherheitsfunktion, Stand der Konformitätsbewertung, verantwortliche Rolle, Quelle und Reviewdatum getrennt fest."
+        },
+        {
+          "label": "Information bei Emotionserkennung oder biometrischer Kategorisierung",
+          "value": "Ist die vorgesehene Funktion Emotionserkennung oder biometrische Kategorisierung, wird zusätzlich der Informationspfad nach Artikel 50 geprüft und dokumentiert: wer informiert wird, welche Rolle ihn verantwortet, welche Quelle ihn trägt und wann er zuletzt geprüft wurde. Allein die Erkennung von Müdigkeit begründet diesen Pfad nicht."
         }
       ]
     },
@@ -586,6 +611,10 @@
     {
       "q": "Wann wirkt eine Antwort trotz vieler Unterlagen schwach?",
       "a": "Wenn Pass, Dossier, Verify-Link und Freitext nicht auf denselben Einsatzfall zurückführen. Viele Anhänge helfen nicht, wenn unklar bleibt, welche Aussage belegt ist, wer sie verantwortet und welcher Scope gegenüber dem OEM tatsächlich gemeint ist."
+    },
+    {
+      "q": "Darf Driver Monitoring ohne weitere Prüfung als nicht hochriskant dokumentiert werden?",
+      "a": "Nein. Das Beispiel des AI Act Service Desk grenzt nur den Pfad der Emotionserkennung ab: Müdigkeit, Einschlafen und körperliche Zustände sind keine Emotionen oder Intentionen. Der Produkt- und Sicherheitskomponentenpfad nach Artikel 6 sowie eine mögliche Informationspflicht bei einer anderen vorgesehenen Funktion müssen für den konkreten Einsatzfall weiterhin getrennt geprüft werden."
     },
     {
       "q": "Welche Aussage muss ein OEM ohne weitere Rückfrage direkt verstehen können?",
