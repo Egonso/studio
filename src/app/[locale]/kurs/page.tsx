@@ -9,6 +9,7 @@ import {
   ArrowRight,
   CheckCircle,
   Download,
+  ExternalLink,
   FileText,
   GraduationCap,
   PlayCircle,
@@ -31,7 +32,11 @@ import { useAuth } from '@/context/auth-context';
 import { useCapability } from '@/lib/compliance-engine/capability/useCapability';
 import { academyProgramDefinitions } from '@/lib/academy-programs';
 import { courseData } from '@/lib/course-data';
-import type { Module, Video } from '@/lib/course-data';
+import type {
+  LocalizedCourseText,
+  Module,
+  Video,
+} from '@/lib/course-data';
 import { buildAcademyProgressSnapshot } from '@/lib/course-progress';
 import { getCourseProgress, saveCourseProgress } from '@/lib/data-service';
 import { ROUTE_HREFS } from '@/lib/navigation/route-manifest';
@@ -111,6 +116,19 @@ function ResourceIcon({ type }: { type: string }) {
     default:
       return <Download className="h-5 w-5" />;
   }
+}
+
+function getCourseText(text: LocalizedCourseText, locale: string) {
+  return locale.toLowerCase().startsWith('de') ? text.de : text.en;
+}
+
+function formatCourseDate(date: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${date}T00:00:00Z`));
 }
 
 export default function CoursePage() {
@@ -512,6 +530,81 @@ export default function CoursePage() {
                   <p className="text-muted-foreground">
                     {selectedItem.data.description}
                   </p>
+
+                  {selectedItem.data.legalUpdate ? (
+                    <section
+                      aria-labelledby={`legal-update-${selectedItem.data.id}`}
+                      className="border-l-2 border-slate-900 bg-slate-50 px-4 py-4 md:px-5"
+                    >
+                      <p className="text-xs font-semibold uppercase text-slate-600">
+                        {locale.toLowerCase().startsWith('de')
+                          ? `Rechtsstand ${formatCourseDate(
+                              selectedItem.data.legalUpdate.checkedAt,
+                              locale,
+                            )}`
+                          : `Legal position ${formatCourseDate(
+                              selectedItem.data.legalUpdate.checkedAt,
+                              locale,
+                            )}`}
+                      </p>
+                      <h2
+                        id={`legal-update-${selectedItem.data.id}`}
+                        className="mt-1 text-base font-semibold text-slate-950"
+                      >
+                        {locale.toLowerCase().startsWith('de')
+                          ? 'Aktualisierung zum Video'
+                          : 'Update to this video'}
+                      </h2>
+                      <p className="mt-2 text-sm text-slate-700">
+                        {getCourseText(
+                          selectedItem.data.legalUpdate.status,
+                          locale,
+                        )}
+                      </p>
+                      <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-900">
+                        {selectedItem.data.legalUpdate.points.map(
+                          (point, index) => (
+                            <li key={index}>{getCourseText(point, locale)}</li>
+                          ),
+                        )}
+                      </ul>
+                      <div className="mt-4 border-t border-slate-300 pt-3">
+                        <h3 className="text-sm font-semibold text-slate-950">
+                          {locale.toLowerCase().startsWith('de')
+                            ? 'Amtliche Quellen'
+                            : 'Official sources'}
+                        </h3>
+                        <ul className="mt-2 space-y-1.5">
+                          {selectedItem.data.legalUpdate.sources.map(
+                            (source) => {
+                              const sourceUrl = source.localizedUrl
+                                ? getCourseText(source.localizedUrl, locale)
+                                : source.url;
+
+                              return (
+                              <li key={sourceUrl}>
+                                <a
+                                  href={sourceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-start gap-1.5 text-sm font-medium text-slate-800 underline decoration-slate-400 underline-offset-4 hover:text-slate-950"
+                                >
+                                  <span>
+                                    {getCourseText(source.label, locale)}
+                                  </span>
+                                  <ExternalLink
+                                    aria-hidden="true"
+                                    className="mt-0.5 h-3.5 w-3.5 shrink-0"
+                                  />
+                                </a>
+                              </li>
+                              );
+                            },
+                          )}
+                        </ul>
+                      </div>
+                    </section>
+                  ) : null}
 
                   {selectedItem.data.resources?.length ? (
                     <>

@@ -66,7 +66,7 @@ const MAIN_COURSE_MODULES_DE: CourseModuleBreakdown[] = [
     items: [
       'Regelungsbereich des AI Act, Risikopyramide, verbotene Praktiken und Hochrisiko-Pflichten',
       'Generative KI, GPAI, Transparenzpflichten, Chatbot-Kennzeichnung und Emotionserkennung',
-      'Live-Entscheidungsbaum und Compliance-Roadmap bis 2026',
+      'Live-Entscheidungsbaum und Compliance-Roadmap mit datiertem Rechtsstands-Hinweis',
       'Materialien: Risikopyramide, Hochrisiko-Pflichten, GPAI-Übersicht, Entscheidungsbaum, Kennzeichnungs- und Roadmap-Unterlagen',
     ],
   },
@@ -150,7 +150,7 @@ const MAIN_COURSE_MODULES_EN: CourseModuleBreakdown[] = [
     items: [
       'Scope of the AI Act, risk pyramid, prohibited practices and high-risk obligations',
       'Generative AI, GPAI, transparency duties, chatbot labelling and emotion recognition',
-      'Decision tree and compliance roadmap up to 2026',
+      'Decision tree and compliance roadmap with a dated legal-position notice',
       'Materials: risk pyramid, high-risk obligations, GPAI overview, decision tree, labelling and roadmap documents',
     ],
   },
