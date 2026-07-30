@@ -1,201 +1,161 @@
 WEBVTT
 
 1
-00:00:00.099 --> 00:00:01.139
-KI   ist   in   Ihrem
+00:00:00.197 --> 00:00:02.802 line:88% position:40% size:70% align:center
+KI ist in Ihrem Unternehmen längst im
 
 2
-00:00:01.019 --> 00:00:02.199
-  Unternehmen   längst   im
+00:00:02.802 --> 00:00:05.488 line:88% position:40% size:70% align:center
+Einsatz für Antworten, Analysen, Bilder,
 
 3
-00:00:02.079 --> 00:00:04.500
-Einsatz:   für   Antworten,   Analysen,
+00:00:05.860 --> 00:00:07.769 line:88% position:40% size:70% align:center
+Bewertungen und Protokolle.
 
 4
-00:00:04.380 --> 00:00:06.479
-  Bilder,   Bewerbungen   und
+00:00:08.172 --> 00:00:08.512 line:88% position:40% size:70% align:center
+Doch
 
 5
-00:00:06.359 --> 00:00:07.039
-Protokolle.
+00:00:09.546 --> 00:00:12.826 line:88% position:40% size:70% align:center
+wer nutzt welches System wofür?
 
 6
-00:00:08.079 --> 00:00:09.259
-Doch   wer   nutzt   welches
+00:00:13.216 --> 00:00:14.258 line:88% position:40% size:70% align:center
+Mit welchen Daten?
 
 7
-00:00:09.139 --> 00:00:10.919
-  System,   wofür,   mit
+00:00:14.602 --> 00:00:16.106 line:88% position:40% size:70% align:center
+Und wer verantwortet es?
 
 8
-00:00:10.799 --> 00:00:12.419
-welchen   Daten   und   wer
+00:00:16.378 --> 00:00:18.420 line:88% position:40% size:70% align:center
+Sind die Antworten in Chats, Teams und
 
 9
-00:00:12.299 --> 00:00:13.219
-  verantwortet   es?
+00:00:18.420 --> 00:00:19.391 line:88% position:40% size:70% align:center
+Tabellen verstreut,
 
 10
-00:00:14.079 --> 00:00:15.159
-Sind   die   Antworten   in
+00:00:20.616 --> 00:00:22.533 line:88% position:40% size:70% align:center
+fehlt im entscheidenden Moment der Nachweis.
 
 11
-00:00:15.039 --> 00:00:16.539
-  Chats,   Teams   und
+00:00:23.005 --> 00:00:26.399 line:88% position:40% size:70% align:center
+Das KI-Register macht aus täglicher KI-Nutzung
 
 12
-00:00:16.419 --> 00:00:18.379
-Tabellen   verstreut,   fehlt   im
+00:00:26.882 --> 00:00:28.523 line:88% position:40% size:70% align:center
+einen prüfbaren Einsatzfall.
 
 13
-00:00:18.259 --> 00:00:19.580
-  entscheidenden   Moment   der
+00:00:29.479 --> 00:00:32.463 line:88% position:40% size:70% align:center
+Die Erfassung dauert rund 30
 
 14
-00:00:19.460 --> 00:00:20.079
-Nachweis.
+00:00:32.495 --> 00:00:34.093 line:88% position:40% size:70% align:center
+Sekunden.
 
 15
-00:00:20.079 --> 00:00:21.419
-Das   KI   Register   macht
+00:00:34.370 --> 00:00:37.630 line:88% position:40% size:70% align:center
+System, Zweck und Verantwortung werden erfasst
 
 16
-00:00:21.299 --> 00:00:23.079
-  aus   täglicher   KI-Nutzung
+00:00:38.260 --> 00:00:39.584 line:88% position:40% size:70% align:center
+und ein Mensch prüft.
 
 17
-00:00:22.960 --> 00:00:24.679
-einen   prüfbaren   Einsatzfall.
+00:00:40.009 --> 00:00:42.703 line:88% position:40% size:70% align:center
+So entsteht der Use Case Pass: Zweck,
 
 18
-00:00:24.559 --> 00:00:26.380
-  Die   Erfassung   dauert
+00:00:43.009 --> 00:00:45.912 line:88% position:40% size:70% align:center
+Owner, Review-Stand, Kontrollen und
 
 19
-00:00:26.260 --> 00:00:27.679
-rund   dreißig   Sekunden.
+00:00:45.912 --> 00:00:49.008 line:88% position:40% size:70% align:center
+Evidenz in einem Dokument
 
 20
-00:00:28.099 --> 00:00:30.099
-System,   Zweck   und   Verantwortung
+00:00:49.400 --> 00:00:51.001 line:88% position:40% size:70% align:center
+menschen- und maschinenlesbar.
 
 21
-00:00:29.979 --> 00:00:30.939
-  werden   erfasst.
+00:00:51.380 --> 00:00:54.436 line:88% position:40% size:70% align:center
+Dauerhaft kostenlos bleiben Register, QuickCapture,
 
 22
-00:00:30.819 --> 00:00:32.939
-  Ein   Mensch   prüft.
+00:00:54.808 --> 00:00:57.234 line:88% position:40% size:70% align:center
+Use Case Pass und eben PDF- und
 
 23
-00:00:34.099 --> 00:00:35.120
-So   entsteht   der   Use
+00:00:57.299 --> 00:01:00.097 line:88% position:40% size:70% align:center
+JSON-Export ohne Kreditkarte.
 
 24
-00:00:35.000 --> 00:00:36.899
-  Case   Pass:   Zweck,
+00:01:00.272 --> 00:01:03.304 line:88% position:40% size:70% align:center
+Auch kostenlos: Vorlagen, öffentliche Ressourcen,
 
 25
-00:00:36.779 --> 00:00:39.779
-Owner,   Review-Stand,   Kontrollen
+00:01:03.904 --> 00:01:06.611 line:88% position:40% size:70% align:center
+Zugänge sowie Artikel-IV-Schulungen mit
 
 26
-00:00:39.659 --> 00:00:41.259
-und   Evidenz   in   einem
+00:01:07.012 --> 00:01:07.769 line:88% position:40% size:70% align:center
+Zertifikat.
 
 27
-00:00:41.139 --> 00:00:41.759
-  Dokument.
+00:01:08.083 --> 00:01:11.385 line:88% position:40% size:70% align:center
+Wenn viele Einsatzfälle gesteuert werden müssen, bündelt
 
 28
-00:00:42.079 --> 00:00:44.159
-Dauerhaft   kostenlos   bleiben   Register,
+00:01:11.385 --> 00:01:14.735 line:88% position:40% size:70% align:center
+unser Governance Control Reviews Richtlinien, Rollen
 
 29
-00:00:44.039 --> 00:00:45.639
-  Quick   Capture,   Use
+00:01:14.944 --> 00:01:15.943 line:88% position:40% size:70% align:center
+und Audit-Exporte.
 
 30
-00:00:45.519 --> 00:00:47.079
-Case   Pass   und   PDF-
+00:01:16.380 --> 00:01:19.320 line:88% position:40% size:70% align:center
+Die Fortbildung verbindet Prüfung, Zertifikat
 
 31
-00:00:46.959 --> 00:00:48.279
-  oder   JSON-Export.
+00:01:19.885 --> 00:01:22.018 line:88% position:40% size:70% align:center
+und dann die direkte Anwendung im Register,
 
 32
-00:00:48.159 --> 00:00:50.039
-  Ohne   Kreditkarte.
+00:01:22.050 --> 00:01:24.870 line:88% position:40% size:70% align:center
+so dass all das Gelernte lebendig umgesetzt
 
 33
-00:00:50.079 --> 00:00:52.860
-Auch   kostenlos:   Vorlagen,   öffentliche
+00:01:24.870 --> 00:01:25.946 line:88% position:40% size:70% align:center
+und implementiert wird.
 
 34
-00:00:52.740 --> 00:00:54.699
-  Ressourcen,   Zugänge   sowie
+00:01:26.136 --> 00:01:28.390 line:88% position:40% size:70% align:center
+Und schicken Sie diesen Film gerne der
 
 35
-00:00:54.579 --> 00:00:57.040
-vier   Art.-4-Schulungen   mit   Zertifikat.
+00:01:28.390 --> 00:01:31.531 line:88% position:40% size:70% align:center
+Person, die in Ihrem Unternehmen den Überblick
 
 36
-00:00:58.079 --> 00:00:59.759
-Wenn   viele   Einsatzfälle   gesteuert
+00:01:31.531 --> 00:01:32.852 line:88% position:40% size:70% align:center
+hat und braucht.
 
 37
-00:00:59.639 --> 00:01:01.339
-  werden   müssen,   bündelt
+00:01:33.160 --> 00:01:35.890 line:88% position:40% size:70% align:center
+Beginnen Sie mit einem echten ersten
 
 38
-00:01:01.220 --> 00:01:03.899
-Governance   Control   Reviews,   Richtlinien,
+00:01:36.100 --> 00:01:36.618 line:88% position:40% size:70% align:center
+Einsatzfall.
 
 39
-00:01:03.779 --> 00:01:05.519
-  Rollen   und   Audit-Exporte.
+00:01:37.458 --> 00:01:38.395 line:88% position:40% size:70% align:center
+Dauerhaft kostenlos.
 
 40
-00:01:06.119 --> 00:01:07.899
-Die   Fortbildung   verbindet   Prüfung,
-
-41
-00:01:07.779 --> 00:01:10.259
-  Zertifikat   und   direkte
-
-42
-00:01:10.139 --> 00:01:11.659
-Anwendung   im   Register.
-
-43
-00:01:12.079 --> 00:01:13.219
-Beginnen   Sie   mit   einem
-
-44
-00:01:13.099 --> 00:01:14.399
-  echten   Einsatzfall.
-
-45
-00:01:14.279 --> 00:01:17.179
-  Kostenlos,   ohne   Beratung
-
-46
-00:01:17.059 --> 00:01:18.080
-  oder   Kreditkarte.
-
-47
-00:01:20.099 --> 00:01:21.199
-Und   schicken   Sie   diesen
-
-48
-00:01:21.079 --> 00:01:22.759
-  Film   der   Person,
-
-49
-00:01:22.639 --> 00:01:24.219
-die   in   Ihrem   Unternehmen
-
-50
-00:01:24.099 --> 00:01:25.279
-  den   Überblick   braucht.
+00:01:39.009 --> 00:01:39.849 line:88% position:40% size:70% align:center
+Ohne Kreditkarte.

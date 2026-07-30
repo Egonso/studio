@@ -1,225 +1,149 @@
 WEBVTT
 
 1
-00:00:00.140 --> 00:00:01.459
-AI   is   already   used
+00:00:00.202 --> 00:00:03.494 line:88% position:40% size:70% align:center
+AI is already used across your organization
 
 2
-00:00:01.339 --> 00:00:03.199
-  across   your   organisation:
+00:00:03.494 --> 00:00:06.127 line:88% position:40% size:70% align:center
+in replies, analysis, images,
 
 3
-00:00:03.079 --> 00:00:05.699
-in   replies,   analyses,   images,
+00:00:06.962 --> 00:00:09.194 line:88% position:40% size:70% align:center
+applications, and meeting notes.
 
 4
-00:00:05.579 --> 00:00:07.319
-  applications   and   meeting
+00:00:09.598 --> 00:00:12.023 line:88% position:40% size:70% align:center
+But who uses which system for what
 
 5
-00:00:07.199 --> 00:00:07.639
-notes.
+00:00:12.023 --> 00:00:15.266 line:88% position:40% size:70% align:center
+purpose, with what data, and who
 
 6
-00:00:08.099 --> 00:00:09.279
-But   who   uses   which
+00:00:15.539 --> 00:00:16.422 line:88% position:40% size:70% align:center
+is responsible?
 
 7
-00:00:09.159 --> 00:00:10.399
-  system,   for   what
+00:00:16.792 --> 00:00:19.464 line:88% position:40% size:70% align:center
+When those answers are scattered across charts,
 
 8
-00:00:10.279 --> 00:00:12.279
-purpose,   with   what   data,
+00:00:19.545 --> 00:00:22.652 line:88% position:40% size:70% align:center
+teams, and spreadsheets, the evidence is missing
 
 9
-00:00:12.159 --> 00:00:12.799
-  and   who   is
+00:00:22.765 --> 00:00:23.538 line:88% position:40% size:70% align:center
+when it matters.
 
 10
-00:00:12.679 --> 00:00:13.339
-responsible?
+00:00:23.786 --> 00:00:27.137 line:88% position:40% size:70% align:center
+AI Registry turns daily AI use into
 
 11
-00:00:14.079 --> 00:00:15.219
-When   those   answers   are
+00:00:27.185 --> 00:00:28.788 line:88% position:40% size:70% align:center
+a verifiable use case.
 
 12
-00:00:15.099 --> 00:00:16.639
-  scattered   across   chats,
+00:00:30.018 --> 00:00:33.312 line:88% position:40% size:70% align:center
+The initial capture takes about 30 seconds.
 
 13
-00:00:16.519 --> 00:00:18.459
-teams   and   spreadsheets,   the
+00:00:33.590 --> 00:00:36.460 line:88% position:40% size:70% align:center
+Capture system, purpose, data
 
 14
-00:00:18.339 --> 00:00:19.419
-  evidence   is   missing
+00:00:36.460 --> 00:00:37.887 line:88% position:40% size:70% align:center
+context, and owner.
 
 15
-00:00:19.299 --> 00:00:20.079
-when   it   matters.
+00:00:38.571 --> 00:00:40.498 line:88% position:40% size:70% align:center
+And a human reviews it all.
 
 16
-00:00:20.099 --> 00:00:21.899
-AI   Registry   turns   daily
+00:00:40.793 --> 00:00:42.542 line:88% position:40% size:70% align:center
+The result is a use case:
 
 17
-00:00:21.779 --> 00:00:22.979
-  AI   use   into
+00:00:43.562 --> 00:00:46.584 line:88% position:40% size:70% align:center
+purpose, owner, review, controls, and
 
 18
-00:00:22.859 --> 00:00:24.540
-a   verifiable   use   case.
+00:00:46.697 --> 00:00:49.907 line:88% position:40% size:70% align:center
+evidence in one document for humans and
 
 19
-00:00:24.420 --> 00:00:26.339
-  The   initial   capture
+00:00:50.004 --> 00:00:50.585 line:88% position:40% size:70% align:center
+machines.
 
 20
-00:00:26.219 --> 00:00:27.659
-takes   about   thirty   seconds.
+00:00:51.014 --> 00:00:53.951 line:88% position:40% size:70% align:center
+The register QuickCapture use case pass,
 
 21
-00:00:28.079 --> 00:00:30.799
-Capture   system,   purpose,   data
+00:00:54.726 --> 00:00:57.663 line:88% position:40% size:70% align:center
+PDF, JSON exports remain free.
 
 22
-00:00:30.679 --> 00:00:32.079
-  context   and   owner.
+00:00:58.922 --> 00:00:59.536 line:88% position:40% size:70% align:center
+Permanently.
 
 23
-00:00:31.959 --> 00:00:33.879
-  A   human   reviews
+00:00:59.818 --> 00:01:02.959 line:88% position:40% size:70% align:center
+Also free: templates, public resources,
 
 24
-00:00:33.759 --> 00:00:33.999
-it.
+00:01:03.863 --> 00:01:04.493 line:88% position:40% size:70% align:center
+access tools,
 
 25
-00:00:34.099 --> 00:00:35.039
-The   result   is   a
+00:01:05.494 --> 00:01:08.028 line:88% position:40% size:70% align:center
+and 4 certified Article 4
 
 26
-00:00:34.919 --> 00:00:36.539
-  Use   Case   Pass:
+00:01:08.383 --> 00:01:08.932 line:88% position:40% size:70% align:center
+trainings.
 
 27
-00:00:36.419 --> 00:00:39.399
-purpose,   owner,   review,   controls
+00:01:09.182 --> 00:01:10.520 line:88% position:40% size:70% align:center
+For many use cases,
 
 28
-00:00:39.279 --> 00:00:40.859
-  and   evidence   in
+00:01:11.503 --> 00:01:14.631 line:88% position:40% size:70% align:center
+Governance Control brings together reviews,
 
 29
-00:00:40.739 --> 00:00:41.599
-one   document.
+00:01:15.146 --> 00:01:18.371 line:88% position:40% size:70% align:center
+policies, roles, and audit exports.
 
 30
-00:00:42.099 --> 00:00:43.819
-The   register,   Quick   Capture,
+00:01:18.765 --> 00:01:21.915 line:88% position:40% size:70% align:center
+And the training combines an exam, certificate,
 
 31
-00:00:43.699 --> 00:00:45.079
-  Use   Case   Pass
+00:01:22.624 --> 00:01:24.984 line:88% position:40% size:70% align:center
+and direct application in the register.
 
 32
-00:00:44.960 --> 00:00:46.540
-and   PDF   or   JSON
+00:01:25.400 --> 00:01:26.489 line:88% position:40% size:70% align:center
+So you can implement.
 
 33
-00:00:46.420 --> 00:00:47.959
-  exports   remain   free.
+00:01:26.800 --> 00:01:29.538 line:88% position:40% size:70% align:center
+Start with one real AI use case.
 
 34
-00:00:47.839 --> 00:00:49.319
-  Permanently.
+00:01:30.134 --> 00:01:33.195 line:88% position:40% size:70% align:center
+It is free, requires no consulting call,
 
 35
-00:00:50.179 --> 00:00:52.919
-Also   free:   templates,   public
+00:01:33.598 --> 00:01:35.257 line:88% position:40% size:70% align:center
+and asks for no credit card.
 
 36
-00:00:52.799 --> 00:00:55.259
-  resources,   access   tools
+00:01:35.600 --> 00:01:38.099 line:88% position:40% size:70% align:center
+Then forward this film to the person
 
 37
-00:00:55.139 --> 00:00:56.899
-and   four   certified   Article
-
-38
-00:00:56.779 --> 00:00:57.659
-  4   trainings.
-
-39
-00:00:58.079 --> 00:00:59.179
-For   many   use   cases,
-
-40
-00:00:59.059 --> 00:01:00.519
-  Governance   Control   brings
-
-41
-00:01:00.399 --> 00:01:02.939
-together   reviews,   policies,   roles
-
-42
-00:01:02.819 --> 00:01:04.080
-  and   audit   exports.
-
-43
-00:01:06.079 --> 00:01:07.259
-The   training   combines   an
-
-44
-00:01:07.139 --> 00:01:09.419
-  exam,   certificate   and
-
-45
-00:01:09.299 --> 00:01:10.520
-direct   application   in   the
-
-46
-00:01:10.400 --> 00:01:11.080
-  register.
-
-47
-00:01:12.099 --> 00:01:13.459
-Start   with   one   real
-
-48
-00:01:13.339 --> 00:01:14.560
-  AI   use   case.
-
-49
-00:01:14.440 --> 00:01:16.019
-  It   is   free,
-
-50
-00:01:15.899 --> 00:01:17.899
-requires   no   consulting   call,
-
-51
-00:01:17.779 --> 00:01:18.899
-  and   asks   for
-
-52
-00:01:18.779 --> 00:01:19.759
-no   credit   card.
-
-53
-00:01:20.099 --> 00:01:21.519
-Then   forward   this   film
-
-54
-00:01:21.399 --> 00:01:22.220
-  to   the   person
-
-55
-00:01:22.100 --> 00:01:23.399
-who   needs   the   overview
-
-56
-00:01:23.279 --> 00:01:24.580
-  across   your   organisation.
+00:01:38.131 --> 00:01:41.486 line:88% position:40% size:70% align:center
+who needs the overview across your organization.
