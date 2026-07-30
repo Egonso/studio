@@ -33,6 +33,7 @@ This runtime migration does not require Firestore rules, indexes, schema changes
 ```bash
 npm --prefix functions ci
 npm --prefix functions run typecheck
+npm --prefix functions test
 npm --prefix functions run build
 firebase deploy --only functions --project ai-act-compass-m6o05
 ```
