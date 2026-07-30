@@ -33,7 +33,7 @@ interface ExperienceCopy {
   phase3Title: string;
   phase3Sub: string;
   scrollHint: string;
-  heroTrust: string;
+  heroTrustQuote: string;
   chromeCta: string;
   chromeLogin: string;
   chromeJoin: string;
@@ -95,8 +95,8 @@ const DE: ExperienceCopy = {
   phase3Sub:
     'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
   scrollHint: 'Registerführung beginnen',
-  heroTrust:
-    'Wissenschaftlich eingeordnet durch Prof. Dr. Janine Wendt · TU Darmstadt · Mitherausgeberin des Großkommentars zur KI-Verordnung',
+  heroTrustQuote:
+    'Der registerbasierte Ansatz von KI Register ist geeignet, Organisationen bei der strukturierten Dokumentation ihrer KI-Nutzung zu unterstützen.',
   chromeCta: 'Register anlegen',
   chromeLogin: 'Anmelden',
   chromeJoin: 'Register beitreten',
@@ -288,8 +288,8 @@ const EN: ExperienceCopy = {
   phase3Sub:
     'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
   scrollHint: 'Begin the register walk-through',
-  heroTrust:
-    'Scientific assessment by Prof. Dr. Janine Wendt · Technical University of Darmstadt · Co-editor of the commentary on the EU Artificial Intelligence Act',
+  heroTrustQuote:
+    'The register-based approach of KI Register is suited to supporting organisations in the structured documentation of their use of AI.',
   chromeCta: 'Set up register',
   chromeLogin: 'Sign in',
   chromeJoin: 'Join a register',
@@ -1237,7 +1237,12 @@ export default function ExperienceClient({ locale }: { locale: string }) {
               rel="noreferrer"
               className={s.heroTrust}
             >
-              {copy.heroTrust} ↗
+              <q className={s.heroTrustQuote}>{copy.heroTrustQuote}</q>
+              <span className={s.heroTrustSignature}>
+                <strong>{copy.trustAttribution}</strong>
+                <span>{copy.trustAffiliation}</span>
+              </span>
+              <span className={s.heroTrustLink}>{copy.trustLink} ↗</span>
             </a>
             <nav className={s.quickRow} aria-label="Direktzugriff">
               {copy.quickLinks.map((link) =>

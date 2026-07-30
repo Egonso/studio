@@ -20,21 +20,21 @@ import s from './launch-film-section.module.css';
 
 const COPY = {
   de: {
-    label: 'Der Film · 86 Sekunden',
+    label: 'Der Film · 1:40 Minuten',
     title: 'Was KIRegister aus einem echten Einsatzfall macht.',
     body: 'Vom ersten Eintrag zum vorlegbaren Use Case Pass. Der dauerhaft kostenlose Registerkern zuerst, die zwei freiwilligen Vertiefungen danach.',
     play: 'Film abspielen',
-    playHint: '86 Sekunden · mit Ton',
+    playHint: '1:40 Minuten · mit Ton',
     cta: 'Register anlegen',
     note: 'Mit Ton · Deutsche Untertitel verfügbar',
     videoLabel: 'KIRegister Launchfilm auf Deutsch',
   },
   en: {
-    label: 'The film · 86 seconds',
+    label: 'The film · 1:42',
     title: 'What KIRegister turns a real AI use case into.',
     body: 'From the first capture to a presentable Use Case Pass. The permanently free register comes first, followed by two optional ways to go deeper.',
     play: 'Play the film',
-    playHint: '86 seconds · with sound',
+    playHint: '1:42 · with sound',
     cta: 'Set up register',
     note: 'With sound · English captions available',
     videoLabel: 'KIRegister launch film in English',

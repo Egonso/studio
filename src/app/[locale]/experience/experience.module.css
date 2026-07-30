@@ -236,29 +236,63 @@
 }
 
 .heroTrust {
-  display: inline-block;
-  margin-top: 1.4rem;
+  display: grid;
+  gap: 0.55rem;
+  width: min(100%, 48rem);
+  margin: 1.25rem auto 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--line);
   color: var(--ink);
-  font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.11em;
-  line-height: 1.6;
   text-decoration: none;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 0.25rem;
   pointer-events: auto;
-  transition: border-color 0.25s ease;
+  transition: border-color 0.25s ease, color 0.25s ease;
 }
 
-.heroTrust:hover { border-color: var(--ink); }
+.heroTrust:hover {
+  border-color: var(--ink);
+  color: var(--ink-soft);
+}
+
+.heroTrustQuote {
+  max-width: 44rem;
+  margin: 0 auto;
+  font-family: var(--serif);
+  font-size: clamp(0.88rem, 1.35vw, 1.08rem);
+  font-style: italic;
+  line-height: 1.42;
+}
+
+.heroTrustSignature {
+  display: grid;
+  gap: 0.15rem;
+  max-width: 46rem;
+  margin: 0 auto;
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.09em;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
+.heroTrustSignature strong {
+  font-size: 0.61rem;
+  font-weight: 650;
+}
+
+.heroTrustLink {
+  font-family: var(--mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
 
 .quickRow {
-  margin-top: 2.2rem;
+  margin-top: 1.35rem;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.9rem 1.8rem;
+  gap: 0.65rem 1.4rem;
   pointer-events: auto;
 }
 
@@ -308,6 +342,77 @@
   45% { transform: scaleY(1); transform-origin: top; }
   55% { transform: scaleY(1); transform-origin: bottom; }
   100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+@media (max-width: 600px) {
+  .heroText {
+    padding: 3.7rem 1.35rem 3.3rem;
+  }
+
+  .heroPhase {
+    max-width: 23rem;
+  }
+
+  .heroKicker {
+    margin-bottom: 1.05rem;
+    font-size: 0.58rem;
+    line-height: 1.45;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.15rem, 10.8vw, 2.65rem);
+  }
+
+  .heroSub {
+    margin-top: 1.15rem;
+    font-size: 0.91rem;
+    line-height: 1.5;
+  }
+
+  .heroTrust {
+    gap: 0.38rem;
+    margin-top: 0.9rem;
+    padding-top: 0.58rem;
+  }
+
+  .heroTrustQuote {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .heroTrustSignature {
+    gap: 0.08rem;
+    font-size: 0.49rem;
+    line-height: 1.35;
+  }
+
+  .heroTrustSignature strong {
+    font-size: 0.54rem;
+  }
+
+  .heroTrustLink {
+    font-size: 0.46rem;
+  }
+
+  .quickRow {
+    margin-top: 0.9rem;
+    gap: 0.5rem 0.95rem;
+  }
+
+  .quickLink {
+    font-size: 0.54rem;
+    letter-spacing: 0.12em;
+  }
+
+  .heroHint {
+    bottom: 0.8rem;
+    gap: 0.35rem;
+    font-size: 0.52rem;
+  }
+
+  .heroHint::after {
+    height: 1.8rem;
+  }
 }
 
 /* ============================================================
