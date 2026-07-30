@@ -37,6 +37,10 @@ jobs:
         run: npm run typecheck
         working-directory: functions
 
+      - name: Test functions
+        run: npm test
+        working-directory: functions
+
       - name: Typecheck app
         run: npm run typecheck
 

@@ -8,13 +8,15 @@
 - Runtime source of truth: `firebase.json`
 - Package compatibility declaration: `functions/package.json`
 
-The application currently deploys five Functions:
+The application currently deploys seven Functions:
 
 - `api`
 - `stripeWebhook`
 - `scheduledSupplierReminders`
 - `checkPublicInfo`
 - `sendWelcomeEmailOnPurchase`
+- `notifyAdminsOnUserCreate`
+- `notifyAdminsOnFeedbackCreate`
 
 ## Preflight
 
@@ -46,6 +48,7 @@ Non-secret parameters include:
 - `EMAILIT_FROM_EMAIL`
 - `EMAILIT_SUPPLIER_REMINDER_TEMPLATE`
 - `EMAILIT_WELCOME_TEMPLATE`
+- `ADMIN_NOTIFICATION_EMAILS`
 - `APP_PUBLIC_ORIGIN`
 
 The deployment may prompt for these values when a clean checkout has no local parameter file. Reuse the current production values; do not guess or silently replace them.

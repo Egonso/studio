@@ -29,6 +29,21 @@ The activation release adds two admin-only, additive collections. Browser client
 
 No client query, composite index, migration, or backfill is required for this release. Reporting queries must remain admin-side and aggregate only after a meaningful sample exists.
 
+## Admin notification delivery (2026-07-30)
+
+### `_adminNotificationEvents/{eventId}`
+
+- Server-only delivery state for new Firebase Auth users and new `feedback` documents.
+- `kind`: `auth_user_created` or `feedback_created`
+- `sourceIdHash`: SHA-256 hash of the Auth UID or feedback document ID
+- `status`: `attempting`, `accepted`, `failed_retryable`, or `failed_permanent`
+- `attemptCount`, `createdAt`, `updatedAt`
+- Temporary `leaseId` and `leaseUntil` while a delivery is in progress
+- On accepted deliveries: `acceptedAt`, `recipientCount`, optional Emailit ID and status
+- On failures: bounded `lastErrorCode` and `failedAt`
+
+The collection stores no feedback message, email address, display name, path, or user agent. Browser clients have no Firestore access. Existing Auth users and feedback documents are not backfilled.
+
 ---
 
 ## 1. Data Model (Schema)
