@@ -59,7 +59,7 @@ export function ExamCard() {
                     <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                         <li>Die Prüfung kann bei Nichtbestehen wiederholt werden.</li>
                         <li>Die Ergebnisse werden Ihrem Nutzerkonto zugeordnet.</li>
-                        <li>Bei technischen Problemen kontaktieren Sie uns unter: <a href="mailto:office@momofeichtinger.com" className="text-primary hover:underline">office@momofeichtinger.com</a></li>
+                        <li>Bei technischen Problemen kontaktieren Sie uns unter: <a href="mailto:kiregister@zukunftbilden.eu" className="text-primary hover:underline">kiregister@zukunftbilden.eu</a></li>
                     </ul>
                 </div>
             </CardContent>

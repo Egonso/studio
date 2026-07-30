@@ -46,7 +46,7 @@ export default async function PrivacyPage({ params }: Props) {
             <div className="rounded-lg border border-slate-200 bg-white p-4">
               <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
               <p>Magazinstrasse 4/Top 5, 5020 Salzburg, Österreich</p>
-              <p>E-Mail: office@momofeichtinger.com</p>
+              <p>E-Mail: kiregister@zukunftbilden.eu</p>
               <p>Telefon: +43 681 816 55313</p>
             </div>
             <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -202,10 +202,10 @@ export default async function PrivacyPage({ params }: Props) {
           <p>
             Datenschutzanfragen können an{' '}
             <a
-              href="mailto:office@momofeichtinger.com"
+              href="mailto:kiregister@zukunftbilden.eu"
               className="underline underline-offset-4"
             >
-              office@momofeichtinger.com
+              kiregister@zukunftbilden.eu
             </a>{' '}
             gerichtet werden.
           </p>
@@ -238,7 +238,7 @@ export default async function PrivacyPage({ params }: Props) {
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
             <p>Magazinstrasse 4/Top 5, 5020 Salzburg, Austria</p>
-            <p>E-mail: office@momofeichtinger.com</p>
+            <p>E-mail: kiregister@zukunftbilden.eu</p>
             <p>Phone: +43 681 816 55313</p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-4">
@@ -381,10 +381,10 @@ export default async function PrivacyPage({ params }: Props) {
         <p>
           Data protection enquiries can be directed to{' '}
           <a
-            href="mailto:office@momofeichtinger.com"
+            href="mailto:kiregister@zukunftbilden.eu"
             className="underline underline-offset-4"
           >
-            office@momofeichtinger.com
+            kiregister@zukunftbilden.eu
           </a>
           .
         </p>

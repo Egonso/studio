@@ -97,7 +97,7 @@ export default async function LegalNoticePage({ params }: Props) {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-lg border border-slate-200 bg-white p-4">
               <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
-              <p>E-Mail: office@momofeichtinger.com</p>
+              <p>E-Mail: kiregister@zukunftbilden.eu</p>
               <p>Telefon: +43 681 816 55313</p>
               <p>Adresse: Magazinstrasse 4/Top 5, 5020 Salzburg, Österreich</p>
             </div>
@@ -246,7 +246,7 @@ export default async function LegalNoticePage({ params }: Props) {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="rounded-lg border border-slate-200 bg-white p-4">
             <p className="font-medium text-slate-950">ZukunftBilden GmbH</p>
-            <p>Email: office@momofeichtinger.com</p>
+            <p>Email: kiregister@zukunftbilden.eu</p>
             <p>Telephone: +43 681 816 55313</p>
             <p>Address: Magazinstrasse 4/Top 5, 5020 Salzburg, Austria</p>
           </div>
