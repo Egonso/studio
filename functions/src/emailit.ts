@@ -7,17 +7,59 @@ import {
 
 const EMAILIT_API_BASE_URL = 'https://api.emailit.com/v2';
 
-interface SendEmailitTemplateEmailInput {
+interface EmailitBaseInput {
   apiKey: string;
   from: string;
   to: string | string[];
-  template: string;
-  variables?: Record<string, unknown>;
   replyTo?: string | string[];
-  subject?: string;
   idempotencyKey?: string;
   meta?: Record<string, string>;
   tracking?: boolean | { loads?: boolean; clicks?: boolean };
+}
+
+interface SendEmailitTemplateEmailInput extends EmailitBaseInput {
+  template: string;
+  variables?: Record<string, unknown>;
+  subject?: string;
+}
+
+interface SendEmailitRawEmailInput extends EmailitBaseInput {
+  subject: string;
+  html: string;
+  text: string;
+}
+
+export interface EmailitSendResult {
+  id: string | null;
+  status: string | null;
+}
+
+export class EmailitApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(`Emailit send failed (${status}): ${message}`);
+    this.name = 'EmailitApiError';
+  }
+
+  get retryable(): boolean {
+    return this.status === 429 || this.status >= 500;
+  }
+}
+
+export class EmailitNetworkError extends Error {
+  constructor() {
+    super('Emailit network request failed.');
+    this.name = 'EmailitNetworkError';
+  }
+}
+
+export function isRetryableEmailitError(error: unknown): boolean {
+  return (
+    error instanceof EmailitNetworkError ||
+    (error instanceof EmailitApiError && error.retryable)
+  );
 }
 
 function parseTrimmed(value: string | undefined | null): string | null {
@@ -70,30 +112,64 @@ function sanitizeMeta(
 export async function sendEmailitTemplateEmail(
   input: SendEmailitTemplateEmailInput,
 ): Promise<void> {
-  const response = await fetch(`${EMAILIT_API_BASE_URL}/emails`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${input.apiKey}`,
-      'Content-Type': 'application/json',
-      ...(input.idempotencyKey
-        ? { 'Idempotency-Key': input.idempotencyKey }
-        : {}),
-    },
-    body: JSON.stringify({
-      from: input.from,
-      to: input.to,
-      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
-      ...(input.subject ? { subject: input.subject } : {}),
-      template: input.template,
-      variables: input.variables ?? {},
-      meta: sanitizeMeta(input.meta),
-      tracking: input.tracking ?? false,
-    }),
+  await sendEmailitRequest(input, {
+    ...(input.subject ? { subject: input.subject } : {}),
+    template: input.template,
+    variables: input.variables ?? {},
   });
+}
+
+export async function sendEmailitRawEmail(
+  input: SendEmailitRawEmailInput,
+): Promise<EmailitSendResult> {
+  return sendEmailitRequest(input, {
+    subject: input.subject,
+    html: input.html,
+    text: input.text,
+  });
+}
+
+async function sendEmailitRequest(
+  input: EmailitBaseInput,
+  content: Record<string, unknown>,
+): Promise<EmailitSendResult> {
+  let response: Response;
+  try {
+    response = await fetch(`${EMAILIT_API_BASE_URL}/emails`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${input.apiKey}`,
+        'Content-Type': 'application/json',
+        ...(input.idempotencyKey
+          ? { 'Idempotency-Key': input.idempotencyKey }
+          : {}),
+      },
+      body: JSON.stringify({
+        from: input.from,
+        to: input.to,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        ...content,
+        meta: sanitizeMeta(input.meta),
+        tracking: input.tracking ?? false,
+      }),
+    });
+  } catch {
+    throw new EmailitNetworkError();
+  }
 
   if (!response.ok) {
     const message = await extractErrorMessage(response);
-    throw new Error(`Emailit send failed (${response.status}): ${message}`);
+    throw new EmailitApiError(response.status, message);
+  }
+
+  try {
+    const data = (await response.json()) as { id?: unknown; status?: unknown };
+    return {
+      id: typeof data.id === 'string' ? data.id : null,
+      status: typeof data.status === 'string' ? data.status : null,
+    };
+  } catch {
+    return { id: null, status: null };
   }
 }
 

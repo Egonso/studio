@@ -16,7 +16,12 @@ export const emailitWelcomeTemplateParam = defineString(
     default: 'welcome',
   },
 );
+export const adminNotificationEmailsParam = defineString(
+  'ADMIN_NOTIFICATION_EMAILS',
+  {
+    default: 'mo.feich@gmail.com,zoltangal@web.de',
+  },
+);
 export const appPublicOriginParam = defineString('APP_PUBLIC_ORIGIN', {
   default: 'https://kiregister.com',
 });
-
