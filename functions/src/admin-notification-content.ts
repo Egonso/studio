@@ -23,8 +23,7 @@ type FeedbackNotificationInput = {
 const ADMIN_URL = 'https://kiregister.com/de/admin';
 const SIMPLE_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REQUIRED_ADMIN_RECIPIENTS = [
-  'mo.feich@gmail.com',
-  'zoltangal@web.de',
+  'kiregister@zukunftbilden.eu',
 ] as const;
 
 function singleLine(
@@ -117,7 +116,7 @@ export function parseAdminNotificationRecipients(value: string): string[] {
     )
   ) {
     throw new Error(
-      'ADMIN_NOTIFICATION_EMAILS muss exakt die beiden KIRegister-Admins enthalten.',
+      'ADMIN_NOTIFICATION_EMAILS muss exakt die KIRegister-Projektadresse enthalten.',
     );
   }
 

@@ -19,7 +19,7 @@ export const emailitWelcomeTemplateParam = defineString(
 export const adminNotificationEmailsParam = defineString(
   'ADMIN_NOTIFICATION_EMAILS',
   {
-    default: 'mo.feich@gmail.com,zoltangal@web.de',
+    default: 'kiregister@zukunftbilden.eu',
   },
 );
 export const appPublicOriginParam = defineString('APP_PUBLIC_ORIGIN', {

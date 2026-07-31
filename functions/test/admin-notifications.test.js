@@ -17,21 +17,21 @@ const {
   sendEmailitRawEmail,
 } = require('../lib/emailit.js');
 
-test('parses the two configured admin recipients and rejects invalid input', () => {
+test('parses the canonical KIRegister recipient and rejects invalid input', () => {
   assert.deepEqual(
     parseAdminNotificationRecipients(
-      'mo.feich@gmail.com, zoltangal@web.de;MO.FEICH@gmail.com',
+      'kiregister@zukunftbilden.eu;KIREGISTER@ZUKUNFTBILDEN.EU',
     ),
-    ['mo.feich@gmail.com', 'zoltangal@web.de'],
+    ['kiregister@zukunftbilden.eu'],
   );
   assert.throws(() => parseAdminNotificationRecipients(''));
   assert.throws(() => parseAdminNotificationRecipients('not-an-email'));
   assert.throws(() =>
-    parseAdminNotificationRecipients('mo.feich@gmail.com'),
+    parseAdminNotificationRecipients('zoltangal@web.de'),
   );
   assert.throws(() =>
     parseAdminNotificationRecipients(
-      'mo.feich@gmail.com,zoltangal@web.de,extra@example.com',
+      'kiregister@zukunftbilden.eu,zoltangal@web.de',
     ),
   );
 });

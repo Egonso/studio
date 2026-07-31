@@ -39,18 +39,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scheduledSupplierReminders = exports.sendWelcomeEmailOnPurchase = exports.stripeWebhook = void 0;
+exports.notifyAdminsOnUserCreate = exports.notifyAdminsOnFeedbackCreate = exports.scheduledSupplierReminders = exports.sendWelcomeEmailOnPurchase = exports.stripeWebhook = void 0;
 const admin = __importStar(require("firebase-admin"));
 const stripe_1 = __importDefault(require("stripe"));
 const sendWelcomeEmail_1 = require("./sendWelcomeEmail");
 Object.defineProperty(exports, "sendWelcomeEmailOnPurchase", { enumerable: true, get: function () { return sendWelcomeEmail_1.sendWelcomeEmailOnPurchase; } });
 const scheduledSupplierReminders_1 = require("./scheduledSupplierReminders");
 Object.defineProperty(exports, "scheduledSupplierReminders", { enumerable: true, get: function () { return scheduledSupplierReminders_1.scheduledSupplierReminders; } });
+const adminNotifications_1 = require("./adminNotifications");
+Object.defineProperty(exports, "notifyAdminsOnFeedbackCreate", { enumerable: true, get: function () { return adminNotifications_1.notifyAdminsOnFeedbackCreate; } });
+Object.defineProperty(exports, "notifyAdminsOnUserCreate", { enumerable: true, get: function () { return adminNotifications_1.notifyAdminsOnUserCreate; } });
 const https_1 = require("firebase-functions/v2/https");
 const params_1 = require("firebase-functions/params");
 const billing_entitlements_1 = require("./billing-entitlements");
 const product_entitlement_sync_1 = require("./product-entitlement-sync");
 const affiliate_commission_1 = require("./affiliate-commission");
+const product_funnel_events_1 = require("./product-funnel-events");
 // Initialize Firebase Admin
 admin.initializeApp();
 const stripeSecretKey = (0, params_1.defineSecret)('STRIPE_SECRET_KEY');
@@ -113,6 +117,34 @@ function resolveSessionAccessExpiresAt(session) {
         return addMonths(new Date(session.created * 1000), 12).toISOString();
     }
     return null;
+}
+function isTrainingPurchase(session, lineItemHints) {
+    var _a, _b, _c;
+    if (((_a = session.metadata) === null || _a === void 0 ? void 0 : _a.sourceFlow) === 'fortbildung_neulaunch_checkout' ||
+        ((_b = session.metadata) === null || _b === void 0 ? void 0 : _b.includedMainCourse) === 'eu_ai_act_main_course' ||
+        ((_c = session.metadata) === null || _c === void 0 ? void 0 : _c.productId) === 'fortbildung_neulaunch_package') {
+        return true;
+    }
+    return lineItemHints.some((item) => [item.productName, item.description, item.lookupKey]
+        .filter((value) => Boolean(value))
+        .some((value) => /fortbildung|eu.?ai.?act|zertifikatskurs/i.test(value)));
+}
+function resolveTrainingPlan(session) {
+    var _a, _b, _c;
+    const includedPersons = Number.parseInt((_b = (_a = session.metadata) === null || _a === void 0 ? void 0 : _a.includedPersons) !== null && _b !== void 0 ? _b : '1', 10);
+    if (((_c = session.metadata) === null || _c === void 0 ? void 0 : _c.plan) === 'enterprise')
+        return 'enterprise';
+    if (Number.isFinite(includedPersons) && includedPersons > 1)
+        return 'team';
+    return 'solo';
+}
+function resolveAnalyticsSessionId(session) {
+    var _a;
+    const clientReference = (_a = session.client_reference_id) === null || _a === void 0 ? void 0 : _a.trim();
+    if (clientReference && /^[A-Za-z0-9_-]{8,200}$/.test(clientReference)) {
+        return clientReference;
+    }
+    return `stripe_${session.id.replace(/[^A-Za-z0-9_-]/g, '_').slice(-80)}`;
 }
 exports.stripeWebhook = (0, https_1.onRequest)({
     cors: true,
@@ -202,12 +234,30 @@ exports.stripeWebhook = (0, https_1.onRequest)({
                     limit: 20,
                     expand: ['data.price.product'],
                 });
+                const lineItemHints = toLineItemHints(lineItems);
                 const resolvedEntitlement = (0, billing_entitlements_1.inferCheckoutEntitlement)({
                     metadata: session.metadata,
                     productId: (_d = (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.productId) !== null && _d !== void 0 ? _d : null,
-                    lineItems: toLineItemHints(lineItems),
+                    lineItems: lineItemHints,
                 });
                 const plan = (_e = resolvedEntitlement === null || resolvedEntitlement === void 0 ? void 0 : resolvedEntitlement.plan) !== null && _e !== void 0 ? _e : null;
+                if (isTrainingPurchase(session, lineItemHints)) {
+                    await (0, product_funnel_events_1.recordFunctionsProductFunnelEvent)(db, {
+                        eventName: 'training_purchase_completed',
+                        anonymousSessionId: resolveAnalyticsSessionId(session),
+                        source: 'stripe_webhook',
+                        plan: resolveTrainingPlan(session),
+                        externalReference: session.id,
+                        occurredAt: new Date(session.created * 1000).toISOString(),
+                    }).catch((analyticsError) => {
+                        console.warn('training_purchase_completed analytics failed', {
+                            checkoutSessionId: session.id,
+                            error: analyticsError instanceof Error
+                                ? analyticsError.message
+                                : 'unknown_error',
+                        });
+                    });
+                }
                 // Parallel update: Studio 'customers' collection
                 const customerRef = db.collection('customers').doc(email);
                 await customerRef.set({
