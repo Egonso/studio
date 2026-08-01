@@ -33,11 +33,15 @@ interface ExperienceCopy {
   phase3Title: string;
   phase3Sub: string;
   scrollHint: string;
+  heroPrimary: string;
+  heroPrimaryMeta: string;
   heroTrustQuote: string;
+  heroTrustAffiliation: string;
   chromeCta: string;
   chromeLogin: string;
   chromeJoin: string;
   entryLabel: string;
+  moreLinksLabel: string;
   entries: { title: string; body: string; action: string; kind: 'create' | 'join' | 'open' }[];
   ctaOpen: string;
   trustLabel: string;
@@ -84,23 +88,28 @@ interface ExperienceCopy {
 }
 
 const DE: ExperienceCopy = {
-  kicker: 'KI Register · Registerführung nach EU AI Act',
-  phase1Title: 'KI ist in Ihrem Unternehmen längst im Einsatz.',
+  kicker: 'KI Register · KI-Einsatz dokumentieren',
+  phase1Title: 'KI-Einsatz gehört ins Register.',
   phase1Sub:
-    'In Vertrieb, Entwicklung, Personal und Einkauf. Meist ohne Verzeichnis, ohne Verantwortliche, ohne Nachweis.',
+    'KIRegister macht den Anfang einfach: Erfassen Sie einen realen Einsatzfall in rund 30 Sekunden. Zweck, Verantwortung, Review und Nachweise bleiben danach an einem Ort.',
   phase2Title: 'Die Dokumentation ist verstreut — in Tools, Teams und Tabellen.',
   phase2Sub:
     'Informationen zu KI-Einsatz, Zweck und Verantwortung liegen an verschiedenen Orten. Ohne zentrale Erfassung fehlen Übersicht und belastbarer Nachweis.',
   phase3Title: 'Das Register ordnet. Der Pass bündelt den Nachweis.',
   phase3Sub:
     'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
-  scrollHint: 'Registerführung beginnen',
+  scrollHint: 'So entsteht der Nachweis',
+  heroPrimary: 'Ersten KI-Einsatzfall erfassen',
+  heroPrimaryMeta: 'Rund 30 Sekunden · ohne Login-Hürde',
   heroTrustQuote:
     'Der registerbasierte Ansatz von KI Register ist geeignet, Organisationen bei der strukturierten Dokumentation ihrer KI-Nutzung zu unterstützen.',
+  heroTrustAffiliation:
+    'Technische Universität Darmstadt · Wissenschaftliche Stellungnahme vom 30. Juni 2026',
   chromeCta: 'Register anlegen',
   chromeLogin: 'Anmelden',
   chromeJoin: 'Register beitreten',
   entryLabel: 'Direkt starten — drei Wege',
+  moreLinksLabel: 'Weitere Bereiche im KI Register',
   entries: [
     {
       kind: 'create',
@@ -277,23 +286,28 @@ const DE: ExperienceCopy = {
 };
 
 const EN: ExperienceCopy = {
-  kicker: 'AI Register · Register-based governance under the EU AI Act',
-  phase1Title: 'AI is already in use across your organisation.',
+  kicker: 'AI Register · Document AI use',
+  phase1Title: 'AI use belongs in a register.',
   phase1Sub:
-    'In sales, engineering, HR and procurement. Mostly without an inventory, without owners, without evidence.',
+    'KIRegister makes the first step simple: capture one real use case in about 30 seconds. Its purpose, ownership, review and evidence then stay together in one place.',
   phase2Title: 'Documentation is scattered — across tools, teams and spreadsheets.',
   phase2Sub:
     'Information about AI use, purpose and ownership sits in different places. Without central capture, there is no clear overview or reliable evidence.',
   phase3Title: 'The register creates order. The pass bundles the evidence.',
   phase3Sub:
     'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
-  scrollHint: 'Begin the register walk-through',
+  scrollHint: 'See how evidence is created',
+  heroPrimary: 'Capture the first AI use case',
+  heroPrimaryMeta: 'About 30 seconds · no login barrier',
   heroTrustQuote:
     'The register-based approach of KI Register is suited to supporting organisations in the structured documentation of their use of AI.',
+  heroTrustAffiliation:
+    'Technical University of Darmstadt · Scientific statement dated 30 June 2026',
   chromeCta: 'Set up register',
   chromeLogin: 'Sign in',
   chromeJoin: 'Join a register',
   entryLabel: 'Start now — three paths',
+  moreLinksLabel: 'More areas in KI Register',
   entries: [
     {
       kind: 'create',
@@ -1226,11 +1240,17 @@ export default function ExperienceClient({ locale }: { locale: string }) {
             ref={(el) => {
               phaseRefs.current[0] = el;
             }}
-            className={s.heroPhase}
+            className={`${s.heroPhase} ${s.heroPhaseIntro}`}
           >
             <p className={s.heroKicker}>{copy.kicker}</p>
             <h1 className={s.heroTitle}>{copy.phase1Title}</h1>
             <p className={s.heroSub}>{copy.phase1Sub}</p>
+            <div className={s.heroActions}>
+              <Link href={captureHref} className={s.heroPrimaryCta}>
+                {copy.heroPrimary} →
+              </Link>
+              <span className={s.heroPrimaryMeta}>{copy.heroPrimaryMeta}</span>
+            </div>
             <a
               href="/downloads/2026-06-30_Wissenschaftliche_Stellungnahme_Prof_Wendt_KI-Register.pdf"
               target="_blank"
@@ -1240,33 +1260,10 @@ export default function ExperienceClient({ locale }: { locale: string }) {
               <q className={s.heroTrustQuote}>{copy.heroTrustQuote}</q>
               <span className={s.heroTrustSignature}>
                 <strong>{copy.trustAttribution}</strong>
-                <span>{copy.trustAffiliation}</span>
+                <span>{copy.heroTrustAffiliation}</span>
               </span>
               <span className={s.heroTrustLink}>{copy.trustLink} ↗</span>
             </a>
-            <nav className={s.quickRow} aria-label="Direktzugriff">
-              {copy.quickLinks.map((link) =>
-                link.external ? (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={s.quickLink}
-                  >
-                    {link.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={link.label}
-                    href={`/${locale}${link.href}`}
-                    className={s.quickLink}
-                  >
-                    {link.label}
-                  </Link>
-                ),
-              )}
-            </nav>
           </div>
           <div
             ref={(el) => {
@@ -1317,6 +1314,32 @@ export default function ExperienceClient({ locale }: { locale: string }) {
             );
           })}
         </div>
+        <details className={s.secondaryAccess}>
+          <summary>{copy.moreLinksLabel}</summary>
+          <nav className={s.secondaryLinksNav} aria-label={copy.moreLinksLabel}>
+            {copy.quickLinks.map((link) =>
+              link.external ? (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={s.quickLink}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.label}
+                  href={`/${locale}${link.href}`}
+                  className={s.quickLink}
+                >
+                  {link.label}
+                </Link>
+              ),
+            )}
+          </nav>
+        </details>
       </section>
 
       {/* ============ WISSENSCHAFTLICHE STELLUNGNAHME ============ */}
