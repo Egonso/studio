@@ -11,7 +11,7 @@ Auf kleinen Viewports konkurrierten die abstrakte Hero-Erzählung, der wissensch
 Der erste View beantwortet vier Fragen in dieser Reihenfolge:
 
 1. Was ist das Produkt? Ein Register für die KI-Dokumentation in Unternehmen.
-2. Welches Problem löst es? KI-Einsatz wird nachvollziehbar und prüfbar.
+2. Welches Problem löst es? Die Dokumentation schafft die notwendige Grundlage, damit KI-Compliance möglich wird.
 3. Wie beginne ich? In rund 30 Sekunden per Kurzformular oder mit einem vom KI-Agenten vorbereiteten Entwurf.
 4. Warum ist das glaubwürdig? Wissenschaftliche Einordnung von Prof. Dr. Janine Wendt.
 
@@ -28,6 +28,7 @@ Der erste View beantwortet vier Fragen in dieser Reihenfolge:
 ## Produkt- und Claim-Grenzen
 
 - keine Zertifizierungs- oder Compliance-Garantie
+- „Damit KI-Compliance möglich wird“ beschreibt Dokumentation als notwendige Grundlage, nicht als hinreichenden Nachweis
 - Zitat bleibt ein freigegebener Auszug der wissenschaftlichen Stellungnahme
 - „rund 30 Sekunden“ beschreibt die bestehende Schnellerfassung, nicht die vollständige Registerführung
 - ein KI-Agent bereitet den Entwurf während der Arbeit vor; die Einreichung bleibt an eine ausdrückliche Bestätigung gebunden

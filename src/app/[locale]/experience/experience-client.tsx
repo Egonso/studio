@@ -91,7 +91,7 @@ const DE: ExperienceCopy = {
   kicker: 'KI Register · KI-Dokumentation für Unternehmen',
   phase1Title: 'KI-Dokumentation, die einfach mitläuft.',
   phase1Sub:
-    'Dokumentieren Sie einen KI-Einsatz in rund 30 Sekunden – oder lassen Sie einen KI-Agenten den Entwurf während der Arbeit vorbereiten. KIRegister ordnet Zweck, Verantwortung, Risiko und Nachweise für einen nachvollziehbaren, prüfbaren KI-Einsatz.',
+    'Dokumentieren Sie einen KI-Einsatz in rund 30 Sekunden – oder lassen Sie einen KI-Agenten den Entwurf während der Arbeit vorbereiten. Damit KI-Compliance möglich wird.',
   phase2Title: 'Die Dokumentation ist verstreut — in Tools, Teams und Tabellen.',
   phase2Sub:
     'Informationen zu KI-Einsatz, Zweck und Verantwortung liegen an verschiedenen Orten. Ohne zentrale Erfassung fehlen Übersicht und belastbarer Nachweis.',
@@ -289,7 +289,7 @@ const EN: ExperienceCopy = {
   kicker: 'AI Register · AI documentation for organisations',
   phase1Title: 'AI documentation that fits the way you work.',
   phase1Sub:
-    'Document an AI use case in about 30 seconds—or let an AI agent prepare the draft while the work is happening. KIRegister organises purpose, ownership, risk and evidence for traceable, review-ready AI use.',
+    'Document an AI use case in about 30 seconds—or let an AI agent prepare the draft while the work is happening. Making AI compliance possible.',
   phase2Title: 'Documentation is scattered — across tools, teams and spreadsheets.',
   phase2Sub:
     'Information about AI use, purpose and ownership sits in different places. Without central capture, there is no clear overview or reliable evidence.',
