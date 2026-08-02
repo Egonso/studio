@@ -1,6 +1,6 @@
 # KIRegister Landing Hero: Klarheit und Vertrauensanker
 
-Stand: 31. Juli 2026
+Stand: 2. August 2026
 
 ## Problem
 
@@ -8,16 +8,17 @@ Auf kleinen Viewports konkurrierten die abstrakte Hero-Erzählung, der wissensch
 
 ## Ziel
 
-Der erste View beantwortet drei Fragen in dieser Reihenfolge:
+Der erste View beantwortet vier Fragen in dieser Reihenfolge:
 
-1. Was ist hier zu tun? KI-Einsatz dokumentieren.
-2. Wie beginne ich? Einen realen Einsatzfall in rund 30 Sekunden erfassen.
-3. Warum ist das glaubwürdig? Wissenschaftliche Einordnung von Prof. Dr. Janine Wendt.
+1. Was ist das Produkt? Ein Register für die KI-Dokumentation in Unternehmen.
+2. Welches Problem löst es? KI-Einsatz wird nachvollziehbar und prüfbar.
+3. Wie beginne ich? In rund 30 Sekunden per Kurzformular oder mit einem vom KI-Agenten vorbereiteten Entwurf.
+4. Warum ist das glaubwürdig? Wissenschaftliche Einordnung von Prof. Dr. Janine Wendt.
 
 ## Umsetzung
 
-- klare Hero-Aussage: „KI-Einsatz gehört ins Register.“
-- konkrete 30-Sekunden-Erfassung als primärer Einstieg
+- klare Hero-Aussage: „KI-Dokumentation, die einfach mitläuft.“
+- konkrete 30-Sekunden-Erfassung als primärer Einstieg und agentische Vorbereitung als zweite Erfassungslogik
 - typografisch eigenständiger, verlinkter Wendt-Vertrauensanker
 - bestehende Chaos-zu-Ordnung-Scroll-Erzählung unverändert beibehalten
 - acht sekundäre Direktlinks aus dem Hero in einen eingeklappten Bereich nach den drei Haupteinstiegen verschoben
@@ -29,6 +30,7 @@ Der erste View beantwortet drei Fragen in dieser Reihenfolge:
 - keine Zertifizierungs- oder Compliance-Garantie
 - Zitat bleibt ein freigegebener Auszug der wissenschaftlichen Stellungnahme
 - „rund 30 Sekunden“ beschreibt die bestehende Schnellerfassung, nicht die vollständige Registerführung
+- ein KI-Agent bereitet den Entwurf während der Arbeit vor; die Einreichung bleibt an eine ausdrückliche Bestätigung gebunden
 
 ## Prüfung
 
