@@ -88,10 +88,10 @@ interface ExperienceCopy {
 }
 
 const DE: ExperienceCopy = {
-  kicker: 'KI Register · KI-Einsatz dokumentieren',
-  phase1Title: 'KI-Einsatz gehört ins Register.',
+  kicker: 'KI Register · KI-Dokumentation für Unternehmen',
+  phase1Title: 'KI-Dokumentation, die einfach mitläuft.',
   phase1Sub:
-    'KIRegister macht den Anfang einfach: Erfassen Sie einen realen Einsatzfall in rund 30 Sekunden. Zweck, Verantwortung, Review und Nachweise bleiben danach an einem Ort.',
+    'Dokumentieren Sie einen KI-Einsatz in rund 30 Sekunden – oder lassen Sie einen KI-Agenten den Entwurf während der Arbeit vorbereiten. KIRegister ordnet Zweck, Verantwortung, Risiko und Nachweise für einen nachvollziehbaren, prüfbaren KI-Einsatz.',
   phase2Title: 'Die Dokumentation ist verstreut — in Tools, Teams und Tabellen.',
   phase2Sub:
     'Informationen zu KI-Einsatz, Zweck und Verantwortung liegen an verschiedenen Orten. Ohne zentrale Erfassung fehlen Übersicht und belastbarer Nachweis.',
@@ -99,7 +99,7 @@ const DE: ExperienceCopy = {
   phase3Sub:
     'Das Register dokumentiert jeden KI-Einsatzfall mit Zweck, Verantwortung, Status und Nachweisen. Daraus entsteht ein prüfbarer Use Case Pass für interne Reviews und Audits.',
   scrollHint: 'So entsteht der Nachweis',
-  heroPrimary: 'Ersten KI-Einsatzfall erfassen',
+  heroPrimary: 'Ersten KI-Einsatz dokumentieren',
   heroPrimaryMeta: 'Rund 30 Sekunden · ohne Login-Hürde',
   heroTrustQuote:
     'Der registerbasierte Ansatz von KI Register ist geeignet, Organisationen bei der strukturierten Dokumentation ihrer KI-Nutzung zu unterstützen.',
@@ -286,10 +286,10 @@ const DE: ExperienceCopy = {
 };
 
 const EN: ExperienceCopy = {
-  kicker: 'AI Register · Document AI use',
-  phase1Title: 'AI use belongs in a register.',
+  kicker: 'AI Register · AI documentation for organisations',
+  phase1Title: 'AI documentation that fits the way you work.',
   phase1Sub:
-    'KIRegister makes the first step simple: capture one real use case in about 30 seconds. Its purpose, ownership, review and evidence then stay together in one place.',
+    'Document an AI use case in about 30 seconds—or let an AI agent prepare the draft while the work is happening. KIRegister organises purpose, ownership, risk and evidence for traceable, review-ready AI use.',
   phase2Title: 'Documentation is scattered — across tools, teams and spreadsheets.',
   phase2Sub:
     'Information about AI use, purpose and ownership sits in different places. Without central capture, there is no clear overview or reliable evidence.',
@@ -297,7 +297,7 @@ const EN: ExperienceCopy = {
   phase3Sub:
     'The register documents every AI use case with its purpose, owner, status and supporting records. This creates a verifiable Use Case Pass for internal reviews and audits.',
   scrollHint: 'See how evidence is created',
-  heroPrimary: 'Capture the first AI use case',
+  heroPrimary: 'Document the first AI use case',
   heroPrimaryMeta: 'About 30 seconds · no login barrier',
   heroTrustQuote:
     'The register-based approach of KI Register is suited to supporting organisations in the structured documentation of their use of AI.',
