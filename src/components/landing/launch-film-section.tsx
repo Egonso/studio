@@ -70,6 +70,14 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
   const [floating, setFloating] = useState(false);
   const launchBase = '/videos/kiregister-launch';
   const loopBase = '/videos/kiregister-hero-loop';
+  const masterBase =
+    language === 'de'
+      ? `${launchBase}-master-de-20260803`
+      : `${launchBase}-master-en`;
+  const captionsSource =
+    language === 'de'
+      ? `${launchBase}-de-20260803.vtt`
+      : `${launchBase}-en.vtt`;
   const setupHref = `/${language}?mode=signup&intent=create_register`;
 
   const changeFloating = useCallback((next: boolean) => {
@@ -138,10 +146,15 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
   useEffect(() => {
     if (!masterActive) return;
     const media = mediaRef.current;
-    if (!media) return;
+    const film = filmRef.current;
+    if (!media || !film) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!masterActiveRef.current || film.paused || film.ended) {
+          changeFloating(false);
+          return;
+        }
         if (entry.intersectionRatio >= 0.18) {
           changeFloating(false);
         } else if (entry.boundingClientRect.top < 0) {
@@ -189,6 +202,13 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
     }
   };
 
+  const completeFilm = useCallback(() => {
+    masterActiveRef.current = false;
+    setMasterActive(false);
+    changeFloating(false);
+    track('complete', language, 'master');
+  }, [changeFloating, language]);
+
   return (
     <section
       ref={sectionRef}
@@ -234,17 +254,18 @@ export default function LaunchFilmSection({ locale }: { locale: string }) {
             masterActiveRef.current = true;
             setMasterActive(true);
           }}
+          onPause={() => changeFloating(false)}
           onTimeUpdate={updateProgress}
-          onEnded={() => track('complete', language, 'master')}
+          onEnded={completeFilm}
         >
-          <source src={`${launchBase}-master-${language}.webm`} type="video/webm" />
-          <source src={`${launchBase}-master-${language}.mp4`} type="video/mp4" />
+          <source src={`${masterBase}.webm`} type="video/webm" />
+          <source src={`${masterBase}.mp4`} type="video/mp4" />
           <track
             default
             kind="captions"
             srcLang={language}
             label={language === 'de' ? 'Deutsch' : 'English'}
-            src={`${launchBase}-${language}.vtt`}
+            src={captionsSource}
           />
         </video>
         {!masterActive ? (
