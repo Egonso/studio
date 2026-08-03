@@ -6,20 +6,22 @@
   "intent": "regulatory-radar",
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
-  "effective_date": "2026-04-15",
-  "last_substantive_update": "2026-04-15",
+  "effective_date": "2026-08-03",
+  "last_substantive_update": "2026-08-03",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/faqs/ai-literacy-questions-answers",
-    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-talent-skills-and-literacy",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/timeline/timeline-implementation-eu-ai-act",
+    "https://eur-lex.europa.eu/eli/reg/2026/1744/oj/deu"
   ],
   "schema_types": ["Article", "BreadcrumbList", "Organization"],
   "template_variant": "authority-update",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
-  "title": "AI Literacy: Mindestinhalt und Fristlogik nach dem EU-Q&A",
-  "summary": "Das offizielle EU-Q&A konkretisiert den Mindestinhalt eines AI-Literacy-Programms. Für Unternehmen wird damit klarer, dass Inventar, Rollenbezug, Risikobezug und dokumentierte Maßnahmen zusammengehören und seit dem 2. Februar 2025 vorbereitet sein müssen.",
+  "title": "AI Literacy: Aufsicht und Durchsetzung ab 3. August 2026",
+  "summary": "Das aktualisierte EU-Q&A bestätigt: Die Pflicht aus Artikel 4 gilt seit dem 2. Februar 2025, die Aufsichts- und Durchsetzungsregeln greifen ab dem 3. August 2026. Die Digital-Omnibus-Änderung lässt die Pflicht bestehen, schreibt aber kein bestimmtes Kompetenzniveau, Format oder Zertifikat vor. Für KIRegister müssen Inventar, Rollenbezug, Risikobezug, Maßnahmen und interne Nachweise am konkreten Einsatzfall zusammengeführt werden.",
   "object_label": "Regulatorisches Update",
-  "stance_label": "Mindestprogramm und Fristlogik",
+  "stance_label": "Anwendung, Aufsicht und Nachweis",
   "author": "KIRegister",
   "audiences": [
     "Governance- und Compliance-Verantwortliche mit Registerverantwortung",
@@ -52,6 +54,10 @@
     {
       "q": "Reicht eine allgemeine KI-Schulung ohne Register oder Einsatzfallbezug aus?",
       "a": "Das offizielle Q&A spricht für einen breiteren Ansatz. Mindestinhalt umfasst Klarheit darüber, welche KI im Unternehmen genutzt wird, welche Rolle die Organisation einnimmt, welche Risiken vorliegen und welche Maßnahmen daraus konkret folgen."
+    },
+    {
+      "q": "Gilt die AI-Literacy-Pflicht erst ab dem 3. August 2026?",
+      "a": "Nein. Die Pflicht, Maßnahmen zur Entwicklung von AI Literacy zu ergreifen, gilt laut Kommission seit dem 2. Februar 2025. Der 3. August 2026 bezeichnet im aktuellen Q&A den Beginn der Aufsichts- und Durchsetzungsregeln. Die zuständigen nationalen Marktüberwachungsbehörden bleiben von der AI Office-Aufsicht getrennt."
     }
   ],
   "sections": [
@@ -99,8 +105,16 @@
       "kind": "paragraphs",
       "heading": "Welche Fristlogik Unternehmen jetzt sauber lesen sollten",
       "paragraphs": [
-        "Die Pflicht, Maßnahmen zur AI Literacy zu ergreifen, gilt laut offiziellem Q&A seit dem 2. Februar 2025. Die Aufsicht und Durchsetzung durch nationale Marktüberwachungsbehörden startet ab dem 3. August 2026, wobei die Behörden laut Kommission ab dem 2. August 2026 mit Überwachung und Enforcement beginnen.",
-        "Praktisch heißt das: Unternehmen sollten die Zeit nicht mit abstrakten Schulungsdebatten verlieren, sondern jetzt ein belastbares Inventar ihrer KI-Einsatzfälle, die Rollenlogik pro Einsatzfall und die daraus abgeleiteten Maßnahmen dokumentieren. Genau dort ist der Use-Case Pass als Standardobjekt anschlussfähig."
+        "Die Pflicht, Maßnahmen zur AI Literacy zu ergreifen, gilt laut offiziellem Q&A seit dem 2. Februar 2025. Das aktualisierte Q&A vom 27. Juli 2026 nennt den 3. August 2026 als Beginn der Aufsichts- und Durchsetzungsregeln. In der anschließenden Zuständigkeitsantwort nennt die Kommission für den Start der nationalen Marktüberwachungsbehörden den 2. August 2026. Für den Rechtsstand werden deshalb Pflicht, Aufsichtsbeginn und zuständige Stelle getrennt dokumentiert: Die Durchsetzung liegt bei den nationalen Marktüberwachungsbehörden, nicht beim AI Office.",
+        "Praktisch heißt das: Am 3. August 2026 sollten Unternehmen ein belastbares Inventar ihrer KI-Einsatzfälle, die Rollenlogik pro Einsatzfall und die daraus abgeleiteten Maßnahmen vorlegen können. Genau dort ist der Use-Case Pass als Standardobjekt anschlussfähig."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Was der aktuelle Rechtsstand für Nachweise bedeutet",
+      "paragraphs": [
+        "Artikel 4 verlangt kein einheitliches Schulungsformat, kein bestimmtes Kompetenzniveau und kein Zertifikat. Die Maßnahmen sollen zur technischen Kenntnis, Erfahrung, Ausbildung und zum Nutzungskontext der betroffenen Personen sowie zu den Risiken des konkreten Systems passen. Die Kommission nennt interne Aufzeichnungen über Trainings oder andere Anleitungsmaßnahmen als möglichen Nachweisweg.",
+        "Im Use-Case Pass sollten deshalb mindestens das betroffene System, die verantwortliche Rolle, die mit Betrieb oder Nutzung befassten Personen, die relevanten Risiken, die daraus abgeleiteten Maßnahmen, der interne Nachweis und sein Prüfdatum zusammengeführt werden. Ein fehlendes Zertifikat ist für sich genommen keine Rechtslücke; ein fehlender Bezug zwischen Maßnahme, Rolle und Einsatzfall bleibt aber eine dokumentierte Evidenzlücke."
       ]
     },
     {
