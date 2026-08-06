@@ -38,7 +38,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
 
 function getRequestHostname(request: NextRequest): string {
   const forwardedHost = request.headers.get('x-forwarded-host');
-  const host = forwardedHost ?? request.headers.get('host') ?? '';
+  const host = forwardedHost ?? request.headers.get('host') ?? request.nextUrl.hostname;
   if (host.startsWith('[')) {
     const closingBracketIndex = host.indexOf(']');
     return closingBracketIndex > 0
