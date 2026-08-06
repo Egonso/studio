@@ -18,6 +18,13 @@ const EXPECTED_UPDATED_VIDEOS = [
     "video-2-9",
 ];
 
+const EXPECTED_RECHECKED_ON_2026_08_06 = [
+    "video-0-1",
+    "video-2-2",
+    "video-2-4",
+    "video-2-9",
+];
+
 test("course legal updates are complete, localised and officially sourced", () => {
     const updatedVideos = courseData
         .flatMap((module) => module.videos)
@@ -31,7 +38,12 @@ test("course legal updates are complete, localised and officially sourced", () =
     for (const video of updatedVideos) {
         const update = video.legalUpdate;
         assert.ok(update);
-        assert.equal(update.checkedAt, "2026-07-24");
+        assert.equal(
+            update.checkedAt,
+            EXPECTED_RECHECKED_ON_2026_08_06.includes(video.id)
+                ? "2026-08-06"
+                : "2026-07-24",
+        );
         assert.ok(update.status.de.length > 0);
         assert.ok(update.status.en.length > 0);
         assert.ok(update.points.length > 0);
@@ -94,6 +106,24 @@ test("course legal updates preserve the key application-date boundaries", () => 
     assert.match(
         prohibitedPractices.points.map((point) => point.en).join(" "),
         /2 December 2026/,
+    );
+
+    const literacyUpdate = getUpdate("video-0-1");
+    const literacyPoints = literacyUpdate.points.map((point) => point.de).join(" ");
+    assert.match(literacyPoints, /seit dem 2\. Februar 2025/);
+    assert.match(literacyPoints, /kein bestimmtes oder „ausreichendes“ Kompetenzniveau/);
+    assert.ok(
+        literacyUpdate.sources.some((source) => source.url.includes("ai-literacy-questions-answers")),
+    );
+
+    const highRiskUpdate = getUpdate("video-2-4");
+    assert.match(
+        highRiskUpdate.points.map((point) => point.de).join(" "),
+        /Download bleibt unverändert/,
+    );
+    assert.match(
+        highRiskUpdate.points.map((point) => point.de).join(" "),
+        /Artikel 26 bestehen/,
     );
 
     const omnibusSource = getUpdate("video-2-9").sources.find(

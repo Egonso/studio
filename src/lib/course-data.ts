@@ -50,6 +50,11 @@ const DIGITAL_OMNIBUS_STATUS: LocalizedCourseText = {
     en: "The amendment was published in the Official Journal on 24 July 2026 and enters into force on 27 July 2026.",
 };
 
+const AI_LITERACY_STATUS: LocalizedCourseText = {
+    de: "Die Verordnung (EU) 2026/1744 wurde am 24. Juli 2026 im Amtsblatt veröffentlicht und trat am 27. Juli 2026 in Kraft. Artikel 4 bleibt auf Anbieter und Betreiber anwendbar; ein bestimmtes oder „ausreichendes“ Kompetenzniveau muss nicht garantiert werden.",
+    en: "Regulation (EU) 2026/1744 was published in the Official Journal on 24 July 2026 and entered into force on 27 July 2026. Article 4 remains applicable to providers and deployers; no specific or ‘sufficient’ level of competence must be guaranteed.",
+};
+
 const ARTICLE_50_STATUS: LocalizedCourseText = {
     de: "Artikel 50 ist Teil des verabschiedeten AI Act. Seine Transparenzpflichten gelten grundsätzlich ab 2. August 2026.",
     en: "Article 50 forms part of the adopted AI Act. Its transparency obligations generally apply from 2 August 2026.",
@@ -157,16 +162,20 @@ export const courseData: Module[] = [
                 description: "Welcome to the e-learning course 'EU AI Act for SMEs'. In this video you will meet the course leaders and the experts who will accompany you on your learning journey.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/Intro%20zu%20Dritt%20EU%20AI%20Act%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=25d66838-8ed8-4a6d-8662-c8b6c27d7833",
                 legalUpdate: {
-                    checkedAt: "2026-07-24",
-                    status: DIGITAL_OMNIBUS_STATUS,
+                    checkedAt: "2026-08-06",
+                    status: AI_LITERACY_STATUS,
                     points: [
                         {
                             de: "Der AI Act verlangt keine Funktion „KI-Act-Beauftragte:r“. Eine solche Rolle kann intern sinnvoll sein, ist aber ein Governance-Modell des Kurses und keine gesetzlich vorgeschriebene Stelle.",
                             en: "The AI Act does not require an “AI Act Officer”. Such a role can be useful internally, but it is a course governance model rather than a legally mandated function.",
                         },
                         {
-                            de: "Ab 27. Juli 2026 verlangt Artikel 4 Maßnahmen zur Unterstützung der Entwicklung von KI-Kompetenz. Ein bestimmtes Kompetenzniveau muss nicht garantiert werden.",
-                            en: "From 27 July 2026, Article 4 requires measures that support the development of AI literacy. It does not require a specific level of competence to be guaranteed.",
+                            de: "Die Pflicht aus Artikel 4 gilt seit dem 2. Februar 2025. Die Änderung vom 27. Juli 2026 lässt sie bestehen, verlangt aber kein bestimmtes oder „ausreichendes“ Kompetenzniveau.",
+                            en: "The Article 4 obligation has applied since 2 February 2025. The amendment of 27 July 2026 keeps it in place but does not require a specific or ‘sufficient’ level of competence.",
+                        },
+                        {
+                            de: "Für Betreiber von Hochrisiko-KI bleibt nach Artikel 26 die Pflicht bestehen, das mit dem System befasste Personal für die menschliche Aufsicht zu schulen.",
+                            en: "For deployers of high-risk AI, Article 26 continues to require training for staff dealing with the system so that they can perform human oversight.",
                         },
                     ],
                     sources: [
@@ -324,7 +333,7 @@ export const courseData: Module[] = [
                 description: "Welcome! This video explains the four risk categories of the AI Act \u2013 from minimal risk to prohibited applications.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.2%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=a26f2c0f-ea67-4be1-911a-b221bb254434",
                 legalUpdate: {
-                    checkedAt: "2026-07-24",
+                    checkedAt: "2026-08-06",
                     status: DIGITAL_OMNIBUS_STATUS,
                     points: [
                         {
@@ -332,8 +341,8 @@ export const courseData: Module[] = [
                             en: "The risk pyramid is a learning model, not an exhaustive legal classification. The 5 to 15 per cent range stated for high-risk systems is neither a legal threshold nor an officially confirmed market share.",
                         },
                         {
-                            de: "„Minimales Risiko“ bedeutet nicht automatisch „keine Pflichten“. Artikel 4 gilt rollenbezogen unabhängig von der Risikoklasse; ab 2. August 2026 kann Artikel 50 für bestimmte Systeme und Ausgaben zusätzliche Transparenzpflichten auslösen.",
-                            en: "“Minimal risk” does not automatically mean “no obligations”. Article 4 applies by role regardless of risk class, while Article 50 can trigger additional transparency duties for certain systems and outputs from 2 August 2026.",
+                            de: "„Minimales Risiko“ bedeutet nicht automatisch „keine Pflichten“. Die Pflicht aus Artikel 4 gilt für Anbieter und Betreiber unabhängig von der Risikoklasse. Sie verlangt passende Maßnahmen zur Entwicklung von KI-Kompetenz; ein bestimmtes oder „ausreichendes“ Niveau muss nicht garantiert werden.",
+                            en: "“Minimal risk” does not automatically mean “no obligations”. The Article 4 obligation applies to providers and deployers regardless of the risk class. It requires appropriate measures to support AI literacy; no specific or ‘sufficient’ level must be guaranteed.",
                         },
                     ],
                     sources: [
@@ -382,8 +391,8 @@ export const courseData: Module[] = [
                 description: "Welcome! You will learn what obligations providers and deployers of high-risk systems have.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202%204%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=fce19041-f951-4716-af86-f3f16efda1bd",
                 legalUpdate: {
-                    checkedAt: "2026-07-24",
-                    status: CURRENT_LAW_STATUS,
+                    checkedAt: "2026-08-06",
+                    status: AI_LITERACY_STATUS,
                     points: [
                         {
                             de: "Artikel 10 verlangt, dass Datensätze nach bestem Bemühen fehlerfrei und vollständig sind. Er fordert außerdem die Prüfung, Erkennung, Verhinderung und Minderung möglicher Verzerrungen, nicht absolute Fehler- oder Vorurteilsfreiheit.",
@@ -393,10 +402,20 @@ export const courseData: Module[] = [
                             de: "Anbieter- und Betreiberpflichten bleiben getrennt: Artikel 10 richtet die Daten-Governance an Anbieter; Artikel 26 regelt unter anderem die Eingabedaten und Überwachung durch Betreiber.",
                             en: "Provider and deployer duties remain distinct: Article 10 directs data governance obligations to providers, while Article 26 covers deployer duties including input data and monitoring.",
                         },
+                        {
+                            de: "Für Betreiber von Hochrisiko-KI bleibt die Schulungspflicht aus Artikel 26 bestehen. Das mit dem System befasste Personal muss für die menschliche Aufsicht ausreichend geschult sein.",
+                            en: "For deployers of high-risk AI, the Article 26 training obligation remains in place. Staff dealing with the system must be sufficiently trained to perform human oversight.",
+                        },
+                        {
+                            de: "Der verlinkte Hochrisiko-Download bleibt unverändert. Er enthält keine eigene Schulungszeile und deckt die Schulungspflicht aus Artikel 26 daher nicht vollständig ab.",
+                            en: "The linked high-risk download remains unchanged. It has no separate training line and therefore does not fully cover the Article 26 training obligation.",
+                        },
                     ],
                     sources: [
                         EU_SOURCES.article10,
                         EU_SOURCES.article26,
+                        EU_SOURCES.digitalOmnibus,
+                        EU_SOURCES.aiLiteracyFaq,
                     ],
                 },
                 resources: [
@@ -520,20 +539,20 @@ export const courseData: Module[] = [
                 description: "Welcome! You will receive an implementation roadmap. The dated legal update shown below supplements the unchanged video and download.",
                 url: "https://firebasestorage.googleapis.com/v0/b/ki-eu-akt-zertifizierung.firebasestorage.app/o/EU%20AI%20Act%20Zertifizierung%20Modul%202.9%20(1080p_30fps_H264-128kbit_AAC).mp4?alt=media&token=5710ded6-e85f-4f98-aba0-cbc5460fc2fe",
                 legalUpdate: {
-                    checkedAt: "2026-07-24",
-                    status: DIGITAL_OMNIBUS_STATUS,
+                    checkedAt: "2026-08-06",
+                    status: AI_LITERACY_STATUS,
                     points: [
                         {
                             de: "Die im Video genannten Hochrisiko-Fristen August 2026 und August 2027 wurden geändert. Die Regeln für Systeme nach Artikel 6 Absatz 2 und Anhang III gelten ab 2. Dezember 2027; für Systeme nach Artikel 6 Absatz 1 und Anhang I ab 2. August 2028.",
                             en: "The August 2026 and August 2027 high-risk dates stated in the video have changed. Rules for systems under Article 6(2) and Annex III apply from 2 December 2027, while systems under Article 6(1) and Annex I apply from 2 August 2028.",
                         },
                         {
-                            de: "Ab 27. Juli 2026 verlangt Artikel 4 die Unterstützung der Entwicklung von KI-Kompetenz, aber keine Garantie eines bestimmten Niveaus. Kursabschluss oder Zertifikat allein belegen daher noch keine vollständige Erfüllung.",
-                            en: "From 27 July 2026, Article 4 requires support for the development of AI literacy, but no guarantee of a specific level. Completing the course or holding a certificate alone therefore does not demonstrate full compliance.",
+                            de: "Die Pflicht aus Artikel 4 gilt seit dem 2. Februar 2025 und bleibt nach der Änderung vom 27. Juli 2026 bestehen. Ein bestimmtes oder „ausreichendes“ Kompetenzniveau muss nicht garantiert werden; für Betreiber von Hochrisiko-KI bleibt die Schulung für menschliche Aufsicht nach Artikel 26 erforderlich. Kursabschluss oder Zertifikat allein belegen daher keine vollständige Erfüllung.",
+                            en: "The Article 4 obligation has applied since 2 February 2025 and remains in place after the amendment of 27 July 2026. No specific or ‘sufficient’ level of competence must be guaranteed; deployers of high-risk AI must still provide Article 26 training for human oversight. Completing the course or holding a certificate alone does not demonstrate full compliance.",
                         },
                         {
-                            de: "Eine Funktion „KI-Act-Beauftragte:r“ bleibt eine mögliche interne Governance-Entscheidung und ist keine Pflichtrolle des AI Act.",
-                            en: "An “AI Act Officer” remains an optional internal governance decision rather than a mandatory role under the AI Act.",
+                            de: "Der verlinkte Roadmap-Download bleibt unverändert. Die dort genannte Benennung einer Funktion „KI-Act-Beauftragte:r“ ist als internes Governance-Modell zu lesen; der AI Act schreibt diese Funktion nicht vor.",
+                            en: "The linked roadmap download remains unchanged. Its suggestion to name an “AI Act Officer” is an internal governance option; the AI Act does not mandate this function.",
                         },
                     ],
                     sources: [
