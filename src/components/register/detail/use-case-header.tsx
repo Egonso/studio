@@ -54,6 +54,7 @@ import { useUserProfile } from "@/hooks/use-user-profile";
 import { useAuth } from "@/context/auth-context";
 import { registerService } from "@/lib/register-first/register-service";
 import { useToast } from "@/hooks/use-toast";
+import { downloadTextFile } from "@/lib/register-first/download";
 import {
   buildScopedRegisterHref,
   buildScopedUseCasePassHref,
@@ -81,16 +82,6 @@ const legacyDecisionImpactLabelsEn = {
   NO: "No",
   UNSURE: "Unsure",
 } as const;
-
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export function UseCaseHeader({
   card,
@@ -131,6 +122,13 @@ export function UseCaseHeader({
     more: isGerman ? "Mehr" : "More",
     exportPdf: isGerman ? "PDF exportieren" : "Export PDF",
     exportJson: isGerman ? "JSON exportieren" : "Export JSON",
+    exported: isGerman ? "Export abgeschlossen" : "Export complete",
+    exportedDesc: (filename: string) =>
+      isGerman ? `Datei bereitgestellt: ${filename}` : `File provided: ${filename}`,
+    exportFailed: isGerman ? "Export fehlgeschlagen" : "Export failed",
+    exportFailedDesc: isGerman
+      ? "Die Datei konnte nicht erzeugt werden. Bitte versuchen Sie es erneut."
+      : "The file could not be generated. Please try again.",
     sealing: isGerman ? "Formal signieren..." : "Signing...",
     seal: isGerman ? "Formal signieren" : "Formally sign",
     delete: isGerman ? "Löschen" : "Delete",
@@ -286,7 +284,19 @@ export function UseCaseHeader({
     };
     const json = JSON.stringify(exportData, null, 2);
     const filename = `use-case-pass-${card.globalUseCaseId || card.useCaseId}.json`;
-    downloadFile(json, filename, "application/json;charset=utf-8");
+    try {
+      downloadTextFile(filename, json, "application/json;charset=utf-8");
+      toast({
+        title: copy.exported,
+        description: copy.exportedDesc(filename),
+      });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: copy.exportFailed,
+        description: copy.exportFailedDesc,
+      });
+    }
   };
 
   const subline = [

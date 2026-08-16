@@ -88,16 +88,41 @@ import {
   getProofPackPdfFileName,
 } from "@/lib/register-first/proof-pack";
 import { validateVerifyLinkInput } from "@/lib/register-first/verify-link";
+import { downloadBlob, downloadTextFile } from "@/lib/register-first/download";
 import { RegisterStatusBadge } from "./status-badge";
 import { registerFirstFlags } from "@/lib/register-first/flags";
 import { parseRegisterScopeFromWorkspaceValue } from "@/lib/register-first/register-scope";
 import { registerService } from "@/lib/register-first/register-service";
 import { buildScopedUseCaseDetailHref } from "@/lib/navigation/workspace-scope";
 import { useWorkspaceScope } from "@/lib/navigation/use-workspace-scope";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 const toolRegistry = createStaticToolRegistryService();
 const aiToolsRegistry = createAiToolsRegistryService();
+
+/**
+ * The register row carries a real link on the use case title. This click handler is
+ * only a convenience for the rest of the row, so it must stand down whenever the
+ * browser's own behaviour is the right one: modifier/secondary clicks that open a
+ * new tab, clicks that landed on a nested control, and clicks that end a text
+ * selection.
+ */
+function shouldFollowRowClick(event: React.MouseEvent<HTMLElement>): boolean {
+  if (event.defaultPrevented || event.button !== 0) return false;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+  if (
+    (event.target as HTMLElement | null)?.closest(
+      "a, button, input, select, textarea, [role='menuitem']",
+    )
+  ) {
+    return false;
+  }
+  if ((window.getSelection()?.toString() ?? "").trim().length > 0) return false;
+  return true;
+}
+
+const rowLinkClassName =
+  "rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 
 
@@ -148,6 +173,11 @@ function getRegisterBoardCopy(locale: string) {
       restoreFailed: 'Einsatzfall konnte nicht wiederhergestellt werden.',
       exportFailed: 'Export fehlgeschlagen',
       exportFailedDesc: 'Der Use-Case Pass v1.1 konnte nicht exportiert werden.',
+      exported: 'Export abgeschlossen',
+      exportedDesc: (filename: string) => `Datei bereitgestellt: ${filename}`,
+      exportFailedGeneric:
+        'Die Datei konnte nicht erzeugt werden. Bitte versuchen Sie es erneut.',
+      exporting: 'Export läuft …',
       visibilityFailed: 'Sichtbarkeit konnte nicht geändert werden.',
       proofStatusOnly:
         'Verify-Link-Daten können nur im Status Proof-ready gepflegt werden.',
@@ -222,6 +252,14 @@ function getRegisterBoardCopy(locale: string) {
       statusReasonLabel: 'Begründung',
       statusReasonPlaceholder:
         'Kurz sachlich begründen, warum dieser Status jetzt gesetzt wird.',
+      statusDocumentedTitle: 'Statusänderung dokumentiert',
+      statusDocumentedPrefix: 'Status',
+      documenting: 'Wird dokumentiert …',
+      refreshList: 'Liste aktualisieren',
+      refreshing: 'Wird aktualisiert …',
+      rowActions: 'Aktionen zu diesem Einsatzfall',
+      sortDirectionAscending: 'Sortierung: aufsteigend',
+      sortDirectionDescending: 'Sortierung: absteigend',
     };
   }
 
@@ -246,6 +284,11 @@ function getRegisterBoardCopy(locale: string) {
     restoreFailed: 'Use case could not be restored.',
     exportFailed: 'Export failed',
     exportFailedDesc: 'The v1.1 use case pass could not be exported.',
+    exported: 'Export complete',
+    exportedDesc: (filename: string) => `File provided: ${filename}`,
+    exportFailedGeneric:
+      'The file could not be generated. Please try again.',
+    exporting: 'Exporting …',
     visibilityFailed: 'Visibility could not be changed.',
     proofStatusOnly: 'Verify link data can only be maintained in Proof-ready status.',
     verifyLinkInvalid: 'Verify link data is invalid. Please check URL and scope.',
@@ -318,6 +361,14 @@ function getRegisterBoardCopy(locale: string) {
     statusReasonLabel: 'Reason',
     statusReasonPlaceholder:
       'Briefly explain why this status is being set now.',
+    statusDocumentedTitle: 'Status change documented',
+    statusDocumentedPrefix: 'Status',
+    documenting: 'Documenting …',
+    refreshList: 'Refresh list',
+    refreshing: 'Refreshing …',
+    rowActions: 'Actions for this use case',
+    sortDirectionAscending: 'Sort order: ascending',
+    sortDirectionDescending: 'Sort order: descending',
   };
 }
 
@@ -443,6 +494,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       : null;
   const [useCases, setUseCases] = useState<UseCaseCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [activeCustomFilter, setActiveCustomFilter] = useState<string | null>(initialCustomFilter);
@@ -460,12 +512,25 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   const [selectedNextStatusById, setSelectedNextStatusById] = useState<
     Record<string, RegisterUseCaseStatus | undefined>
   >({});
-  const [_updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
+  const [updatingUseCaseId, setUpdatingUseCaseId] = useState<string | null>(null);
+  const [exportingUseCaseId, setExportingUseCaseId] = useState<string | null>(null);
   const [confirmingStatusCard, setConfirmingStatusCard] = useState<UseCaseCard | null>(null);
   const [statusChangeReason, setStatusChangeReason] = useState("");
-  const [_updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
+  const [updateErrorById, setUpdateErrorById] = useState<Record<string, string | undefined>>(
     {}
   );
+  const isConfirmingStatusUpdate =
+    confirmingStatusCard !== null &&
+    updatingUseCaseId === confirmingStatusCard.useCaseId;
+  /**
+   * Any refetch, whether triggered by a mutation or by applying a filter/search.
+   * Rows stay mounted throughout, so this is the only signal that the list is
+   * being brought up to date.
+   */
+  const isBusy = isLoading || isRefreshing;
+  const confirmingStatusError = confirmingStatusCard
+    ? updateErrorById[confirmingStatusCard.useCaseId]
+    : undefined;
   const [proofDraftById, setProofDraftById] = useState<Record<string, ProofMetaDraft>>({});
   const [_savingProofUseCaseId, setSavingProofUseCaseId] = useState<string | null>(null);
   const [_proofErrorById, setProofErrorById] = useState<Record<string, string | undefined>>({});
@@ -495,8 +560,18 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     [locale],
   );
 
-  const loadUseCases = useCallback(async () => {
-    setIsLoading(true);
+  /**
+   * `silent` refetches without swapping the table for a spinner. Mutations act on a
+   * single row, so tearing down the whole register — and with it the reader's place
+   * in it — is the wrong response to documenting one status.
+   */
+  const loadUseCases = useCallback(async (options?: { silent?: boolean }) => {
+    const silent = options?.silent === true;
+    if (silent) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
 
     try {
@@ -591,7 +666,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         setError(copy.registerLoadFailed);
       }
     } finally {
-      setIsLoading(false);
+      if (silent) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [activeCustomFilter, copy.noContext, copy.notSignedIn, copy.registerLoadFailed, isStandalone, projectId, registerId, riskFilter, scopeContext, searchQuery, showDeleted, statusFilter]);
 
@@ -667,10 +746,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
     return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [copy.noOrganisation, copy.notAssigned, copy.viewAll, sortedUseCases, statusLabel, viewMode]);
 
-  const handleUpdateStatus = async (card: UseCaseCard, reason?: string) => {
+  /** Resolves to true when the status change was persisted. */
+  const handleUpdateStatus = async (
+    card: UseCaseCard,
+    reason?: string,
+  ): Promise<boolean> => {
     const nextStatus = selectedNextStatusById[card.useCaseId];
     if (!nextStatus) {
-      return;
+      return false;
     }
 
     setUpdatingUseCaseId(card.useCaseId);
@@ -702,7 +785,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         return nextMap;
       });
 
-      await loadUseCases();
+      await loadUseCases({ silent: true });
+      toast({
+        title: copy.statusDocumentedTitle,
+        description: `${copy.statusDocumentedPrefix}: ${statusLabel(nextStatus)}`,
+      });
       if (nextStatus === "REVIEWED" || nextStatus === "PROOF_READY") {
         void trackProductFunnelEvent({
           eventName: "review_completed",
@@ -710,6 +797,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           context: { source: "register" },
         });
       }
+      return true;
     } catch (updateError) {
       const code = mapServiceErrorCode(updateError);
       const message =
@@ -723,6 +811,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         ...prev,
         [card.useCaseId]: message,
       }));
+      return false;
     } finally {
       setUpdatingUseCaseId(null);
     }
@@ -735,7 +824,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         card.useCaseId,
         scopeContext,
       );
-      await loadUseCases();
+      await loadUseCases({ silent: true });
       toast({ title: copy.deleted, description: copy.deletedDesc });
     } catch {
       toast({ variant: "destructive", title: t('common.error'), description: copy.deleteFailed });
@@ -749,35 +838,54 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         card.useCaseId,
         scopeContext,
       );
-      await loadUseCases();
+      await loadUseCases({ silent: true });
       toast({ title: copy.restored, description: copy.restoredDesc });
     } catch {
       toast({ variant: "destructive", title: t('common.error'), description: copy.restoreFailed });
     }
   };
 
-  const downloadBlob = (filename: string, blob: Blob) => {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = filename;
-    anchor.click();
-    URL.revokeObjectURL(url);
+  const downloadJson = (filename: string, content: string) => {
+    downloadTextFile(filename, content, "application/json;charset=utf-8");
   };
 
-  const downloadJson = (filename: string, content: string) => {
-    downloadBlob(
-      filename,
-      new Blob([content], { type: "application/json;charset=utf-8" })
-    );
+  /**
+   * Export is the register's core output, so every attempt has to end in a stated
+   * outcome. `run` performs the download; a throw becomes a plain-language failure.
+   *
+   * `notifySuccess` is opt-out for paths whose artefact is not yet trustworthy:
+   * claiming success for a lossy file would be a false confirmation.
+   */
+  const runExport = (
+    filename: string,
+    run: () => void,
+    options?: { notifySuccess?: boolean },
+  ): boolean => {
+    try {
+      run();
+      if (options?.notifySuccess !== false) {
+        toast({
+          title: copy.exported,
+          description: copy.exportedDesc(filename),
+        });
+      }
+      return true;
+    } catch {
+      toast({
+        variant: "destructive",
+        title: copy.exportFailed,
+        description: copy.exportFailedGeneric,
+      });
+      return false;
+    }
   };
 
   const handleExportUseCasePass = (card: UseCaseCard) => {
-    const exportPayload = createUseCasePassExport(card);
-    downloadJson(
-      getUseCasePassFileName(card.useCaseId),
-      serializePrettyJson(exportPayload)
-    );
+    const filename = getUseCasePassFileName(card.useCaseId);
+    const exported = runExport(filename, () => {
+      downloadJson(filename, serializePrettyJson(createUseCasePassExport(card)));
+    });
+    if (!exported) return;
     void Promise.all([
       trackProductFunnelEvent({
         eventName: "pass_generated",
@@ -793,11 +901,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   };
 
   const handleExportProofPackDraft = (card: UseCaseCard) => {
-    const exportPayload = createProofPackDraftExport(card);
-    downloadJson(
-      getProofPackDraftFileName(card.useCaseId),
-      serializePrettyJson(exportPayload)
-    );
+    const filename = getProofPackDraftFileName(card.useCaseId);
+    const exported = runExport(filename, () => {
+      downloadJson(filename, serializePrettyJson(createProofPackDraftExport(card)));
+    });
+    if (!exported) return;
     void trackProductFunnelEvent({
       eventName: "export_completed",
       payload: { format: "json" },
@@ -806,8 +914,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   };
 
   const handleExportProofPackPdf = (card: UseCaseCard) => {
-    const pdfBlob = createProofPackPdfBlob(card);
-    downloadBlob(getProofPackPdfFileName(card.useCaseId), pdfBlob);
+    const filename = getProofPackPdfFileName(card.useCaseId);
+    // No success toast here. buildMinimalPdf/toPdfAscii strips every non-ASCII
+    // character (proof-pack.ts), so umlauts are silently dropped and long lines
+    // are not wrapped. Until that encoder is fixed, confirming "export complete"
+    // would assert a fidelity this file does not have. Failures still surface.
+    const exported = runExport(
+      filename,
+      () => {
+        downloadBlob(filename, createProofPackPdfBlob(card));
+      },
+      { notifySuccess: false },
+    );
+    if (!exported) return;
     void Promise.all([
       trackProductFunnelEvent({
         eventName: "pass_generated",
@@ -823,6 +942,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
   };
 
   const handleExportUseCasePassV11 = async (card: UseCaseCard) => {
+    if (exportingUseCaseId !== null) return;
+    setExportingUseCaseId(card.useCaseId);
     try {
       const resolvedTool = card.toolId
         ? await toolRegistry.getToolById(card.toolId)
@@ -840,10 +961,14 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           : {}
       );
 
-      downloadJson(
-        getUseCasePassV11FileName(card.globalUseCaseId ?? card.useCaseId),
-        serializePrettyJson(exportPayload)
+      const filename = getUseCasePassV11FileName(
+        card.globalUseCaseId ?? card.useCaseId,
       );
+      downloadJson(filename, serializePrettyJson(exportPayload));
+      toast({
+        title: copy.exported,
+        description: copy.exportedDesc(filename),
+      });
       void Promise.all([
         trackProductFunnelEvent({
           eventName: "pass_generated",
@@ -862,6 +987,8 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         title: copy.exportFailed,
         description: copy.exportFailedDesc,
       });
+    } finally {
+      setExportingUseCaseId(null);
     }
   };
 
@@ -881,7 +1008,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           isPublicVisible: nextVisibility,
         });
       }
-      await loadUseCases();
+      await loadUseCases({ silent: true });
       if (nextVisibility) {
         void trackProductFunnelEvent({
           eventName: "pass_shared",
@@ -953,7 +1080,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         });
       }
 
-      await loadUseCases();
+      await loadUseCases({ silent: true });
     } catch (saveError) {
       const code = mapServiceErrorCode(saveError);
       const message =
@@ -1117,10 +1244,22 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       </DropdownMenuItem>
       {card.cardVersion === "1.1" && (
         <DropdownMenuItem
-          onClick={() => void handleExportUseCasePassV11(card)}
-          disabled={!outputState.cardJsonEnabled}
+          onSelect={(event) => {
+            // Resolving the tool registry is async, so hold the menu open and show
+            // the item as in flight rather than closing onto no feedback.
+            event.preventDefault();
+            void handleExportUseCasePassV11(card);
+          }}
+          disabled={
+            !outputState.cardJsonEnabled || exportingUseCaseId !== null
+          }
         >
-          {copy.useCasePassV11}
+          {exportingUseCaseId === card.useCaseId ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : null}
+          {exportingUseCaseId === card.useCaseId
+            ? copy.exporting
+            : copy.useCasePassV11}
         </DropdownMenuItem>
       )}
       <DropdownMenuItem
@@ -1250,6 +1389,11 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             size="sm"
             className="h-9 w-9 p-0"
             onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+            aria-label={
+              sortDir === "asc"
+                ? copy.sortDirectionAscending
+                : copy.sortDirectionDescending
+            }
             title={sortDir === "asc" ? copy.ascending : copy.descending}
           >
             {sortDir === "asc" ? <ArrowUpIcon className="h-4 w-4" /> : <ArrowDownIcon className="h-4 w-4" />}
@@ -1266,7 +1410,16 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
             <SelectItem value="BY_STATUS">{copy.viewByStatus}</SelectItem>
           </SelectContent>
         </Select>
-        <Button type="submit" variant="ghost" size="sm" className="h-9 w-9 p-0" title={copy.applyFilters}><Search className="h-3.5 w-3.5" /></Button>
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="h-9 w-9 p-0"
+          aria-label={copy.applyFilters}
+          title={copy.applyFilters}
+        >
+          <Search className="h-3.5 w-3.5" />
+        </Button>
         <button type="button" className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline px-1" onClick={handleResetFilters}>
           {t('common.reset')}
         </button>
@@ -1288,7 +1441,19 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           <span className="text-xs text-muted-foreground">
             {resultCountLabel}
           </span>
-          <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => void loadUseCases()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={isBusy ? "h-8 gap-1.5 px-2 text-xs" : "h-8 w-8 p-0"}
+            pending={isBusy}
+            pendingLabel={copy.refreshing}
+            // While busy the button carries visible text, which is then its own
+            // accessible name; overriding it would break label-in-name.
+            aria-label={isBusy ? undefined : copy.refreshList}
+            title={isBusy ? copy.refreshing : copy.refreshList}
+            onClick={() => void loadUseCases({ silent: true })}
+          >
             <RefreshCw className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -1302,9 +1467,16 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
         </Alert>
       )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center rounded-md border p-12">
-          <Loader2 className="h-6 w-6 animate-spin" />
+      {isLoading && useCases.length === 0 ? (
+        <div
+          className="flex items-center justify-center gap-2 rounded-md border p-12 text-sm text-muted-foreground"
+          aria-busy="true"
+        >
+          <Loader2
+            className="h-4 w-4 motion-safe:animate-spin"
+            aria-hidden="true"
+          />
+          <span>{copy.refreshing}</span>
         </div>
       ) : useCases.length === 0 ? (
         hideActivationEmptyState ? null : (
@@ -1323,7 +1495,15 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
           </CardHeader>
         </Card>
       ) : (
-        <div className="rounded-md border bg-card">
+        // Rows stay mounted while the register refetches. The busy state is a
+        // hairline and an aria-busy flag, not a teardown: applying a filter must
+        // never destroy the reader's place in the list.
+        <div
+          className={`rounded-md border bg-card transition-colors duration-100 ${
+            isBusy ? "border-slate-400" : ""
+          }`}
+          aria-busy={isBusy || undefined}
+        >
           {isMobile ? (
             <div className="space-y-3 p-3">
               {sortedUseCases.map((card, idx) => {
@@ -1391,6 +1571,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                   registerFirstFlags
                 );
                 const proofPdfState = getProofPackPdfState(card, registerFirstFlags);
+                const detailHref = buildScopedUseCaseDetailHref(
+                  card.useCaseId,
+                  workspaceScope,
+                );
 
                 return (
                   <React.Fragment key={card.useCaseId}>
@@ -1400,22 +1584,22 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                       </div>
                     ) : null}
                     <div
-                      onClick={() =>
-                        router.push(
-                          buildScopedUseCaseDetailHref(
-                            card.useCaseId,
-                            workspaceScope,
-                          ),
-                        )
-                      }
-                      className={`space-y-4 rounded-xl border border-slate-200 bg-white p-4 ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
+                      onClick={(event) => {
+                        if (shouldFollowRowClick(event)) {
+                          router.push(detailHref);
+                        }
+                      }}
+                      className={`space-y-4 rounded-xl border border-slate-200 bg-white p-4 transition-colors duration-100 active:bg-slate-100 ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-2">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className={`text-sm font-medium text-slate-950 ${card.isDeleted ? "line-through" : ""}`}>
-                            {card.purpose}
-                          </span>
+                            <Link
+                              href={detailHref}
+                              className={`text-sm font-medium text-slate-950 ${rowLinkClassName} ${card.isDeleted ? "line-through" : ""}`}
+                            >
+                              {card.purpose}
+                            </Link>
                           {card.isDeleted ? (
                             <Badge variant="destructive" className="shrink-0">
                               {copy.deleted}
@@ -1434,7 +1618,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                         <div onClick={(event) => event.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 hover:bg-muted">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8"
+                                aria-label={copy.rowActions}
+                                title={copy.rowActions}
+                              >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -1541,6 +1731,10 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                     registerFirstFlags
                   );
                   const proofPdfState = getProofPackPdfState(card, registerFirstFlags);
+                  const detailHref = buildScopedUseCaseDetailHref(
+                    card.useCaseId,
+                    workspaceScope,
+                  );
 
                   return (
                     <React.Fragment key={card.useCaseId}>
@@ -1552,22 +1746,22 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                         </TableRow>
                       )}
                       <TableRow
-                        onClick={() =>
-                          router.push(
-                            buildScopedUseCaseDetailHref(
-                              card.useCaseId,
-                              workspaceScope,
-                            ),
-                          )
-                        }
-                        className={`cursor-pointer group ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
+                        onClick={(event) => {
+                          if (shouldFollowRowClick(event)) {
+                            router.push(detailHref);
+                          }
+                        }}
+                        className={`cursor-pointer group active:bg-slate-100 ${card.isDeleted ? "opacity-60 grayscale" : ""}`}
                       >
                         <TableCell>
                           <div className="flex min-w-0 flex-col gap-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className={`text-sm font-medium text-slate-950 ${card.isDeleted ? "line-through" : ""}`}>
+                              <Link
+                                href={detailHref}
+                                className={`text-sm font-medium text-slate-950 ${rowLinkClassName} ${card.isDeleted ? "line-through" : ""}`}
+                              >
                                 {card.purpose}
-                              </span>
+                              </Link>
                               {card.isDeleted && (
                                 <Badge variant="destructive" className="shrink-0">{copy.deleted}</Badge>
                               )}
@@ -1606,7 +1800,13 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
                         <TableCell className="text-right align-middle" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 hover:bg-muted">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8"
+                                aria-label={copy.rowActions}
+                                title={copy.rowActions}
+                              >
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -1627,7 +1827,7 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
       <AlertDialog
         open={confirmingStatusCard !== null}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !isConfirmingStatusUpdate) {
             setConfirmingStatusCard(null);
             setStatusChangeReason("");
           }
@@ -1648,24 +1848,43 @@ export function RegisterBoard({ projectId, mode = "dashboard", registerId, refre
               onChange={(event) => setStatusChangeReason(event.target.value)}
               placeholder={copy.statusReasonPlaceholder}
               maxLength={500}
+              disabled={isConfirmingStatusUpdate}
             />
+            {confirmingStatusError ? (
+              <p className="text-xs text-destructive">{confirmingStatusError}</p>
+            ) : null}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={isConfirmingStatusUpdate}>
+              {t('common.cancel')}
+            </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (confirmingStatusCard) {
-                  const normalizedReason = statusChangeReason.trim();
-                  void handleUpdateStatus(
-                    confirmingStatusCard,
-                    normalizedReason.length > 0 ? normalizedReason : undefined,
-                  );
-                  setConfirmingStatusCard(null);
-                  setStatusChangeReason("");
-                }
+              disabled={isConfirmingStatusUpdate}
+              aria-busy={isConfirmingStatusUpdate || undefined}
+              onClick={(event) => {
+                // Keep the dialog mounted until the write resolves, so the action is
+                // visibly in flight and a failure stays on screen next to its reason.
+                event.preventDefault();
+                if (!confirmingStatusCard || isConfirmingStatusUpdate) return;
+                const normalizedReason = statusChangeReason.trim();
+                void handleUpdateStatus(
+                  confirmingStatusCard,
+                  normalizedReason.length > 0 ? normalizedReason : undefined,
+                ).then((succeeded) => {
+                  if (succeeded) {
+                    setConfirmingStatusCard(null);
+                    setStatusChangeReason("");
+                  }
+                });
               }}
             >
-              {t('common.confirm')}
+              {isConfirmingStatusUpdate ? (
+                <Loader2
+                  className="mr-2 h-4 w-4 motion-safe:animate-spin"
+                  aria-hidden="true"
+                />
+              ) : null}
+              {isConfirmingStatusUpdate ? copy.documenting : t('common.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

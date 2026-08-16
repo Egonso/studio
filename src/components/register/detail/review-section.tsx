@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -473,9 +472,9 @@ export function ReviewSection({
                 <Button
                   size="sm"
                   onClick={() => setShowConfirm(true)}
-                  disabled={!selectedStatus || isUpdating}
+                  disabled={!selectedStatus}
+                  pending={isUpdating}
                 >
-                  {isUpdating && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                   {submitLabel}
                 </Button>
                 {error && <p className="text-xs text-destructive">{error}</p>}

@@ -16,8 +16,11 @@
     --secondary-foreground: 224 26% 17%;
     --muted: 0 0% 100%;
     --muted-foreground: 221 12% 43%;
-    --accent: 0 0% 100%;
-    --accent-foreground: 224 26% 17%;
+    /* Interaction highlight. Hover, keyboard focus and selected states in menus,
+       selects and ghost/outline buttons all resolve to --accent. It must stay
+       distinguishable from --background, or those states render invisible. */
+    --accent: 210 40% 96%;
+    --accent-foreground: 224 34% 10%;
     --destructive: 0 45% 43%;
     --destructive-foreground: 0 0% 100%;
     --border: 220 14% 82%;
@@ -78,6 +81,45 @@
     overflow-x: hidden;
     font-feature-settings: "ss01" 1, "cv02" 1, "cv03" 1;
   }
+}
+
+/* Accessibility preferences.
+   Radix and tailwindcss-animate do not honour these on their own, so the
+   product surfaces need them declared here. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: 220 14% 55%;
+    --input: 220 14% 55%;
+    --ring: 221 60% 30%;
+  }
+  .dark {
+    --border: 222 12% 48%;
+    --input: 222 12% 48%;
+    --ring: 216 40% 86%;
+  }
+}
+
+/* A busy control must stay distinguishable from one that is merely disabled, and
+   must remain unambiguous when motion is suppressed and the spinner cannot turn.
+   Deliberately more specific than the disabled utilities: a busy control is not
+   dimmed, it is outlined. currentColor keeps the hairline visible on filled dark
+   buttons and on light outline/ghost buttons alike. */
+button[aria-busy="true"]:disabled,
+[aria-busy="true"][data-disabled] {
+  opacity: 1;
+  cursor: progress;
+  box-shadow: inset 0 0 0 1px currentColor;
 }
 
 @media print {

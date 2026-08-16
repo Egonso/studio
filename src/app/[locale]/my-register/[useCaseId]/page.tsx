@@ -32,6 +32,7 @@ import {
   createAiToolsRegistryService,
   computeUseCaseReadiness,
   getUseCaseSystemSectionMode,
+  getRegisterUseCaseStatusLabel,
   type UseCaseReadinessStepKey,
 } from '@/lib/register-first';
 import { externalSubmissionService } from '@/lib/register-first/external-submission-service';
@@ -45,6 +46,7 @@ import type {
 } from '@/lib/register-first/types';
 import { setActiveWorkspaceId } from '@/lib/workspace-session';
 import { Link, useRouter } from '@/i18n/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 const aiRegistry = createAiToolsRegistryService();
 
@@ -88,6 +90,8 @@ function getUseCaseDetailPageCopy(locale: string) {
         'Zeigt den dokumentierten Nachweisstand pro beteiligtem System.',
       singleSystemEvidenceDescription:
         'Zeigt den dokumentierten Nachweisstand für das aktuell geführte System.',
+      statusDocumentedTitle: 'Statusänderung dokumentiert',
+      statusDocumentedPrefix: 'Status',
     };
   }
 
@@ -129,6 +133,8 @@ function getUseCaseDetailPageCopy(locale: string) {
       'Shows the documented evidence status for each involved system.',
     singleSystemEvidenceDescription:
       'Shows the documented evidence status for the currently recorded system.',
+    statusDocumentedTitle: 'Status change documented',
+    statusDocumentedPrefix: 'Status',
   };
 }
 
@@ -140,6 +146,7 @@ export default function UseCaseDetailPage() {
   const searchParams = useSearchParams() ?? new URLSearchParams();
   const workspaceScope = useWorkspaceScope();
   const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   const [card, setCard] = useState<UseCaseCard | null>(null);
   const [relatedSubmission, setRelatedSubmission] =
@@ -147,6 +154,7 @@ export default function UseCaseDetailPage() {
   const [allUseCases, setAllUseCases] = useState<UseCaseCard[]>([]);
   const [orgSettings, setOrgSettings] = useState<OrgSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isRiskReviewOpen, setIsRiskReviewOpen] = useState(false);
   const [riskReviewContext, setRiskReviewContext] =
@@ -216,9 +224,20 @@ export default function UseCaseDetailPage() {
     }
   }, [editParam, resolvedFocus, useCaseId]);
 
-  const loadUseCase = useCallback(async () => {
+  /**
+   * `silent` keeps the already-rendered detail view mounted while data is refetched.
+   * Re-running the blocking load after a mutation would unmount the header, the open
+   * proof step and the scroll position, which makes documenting a status change feel
+   * like losing your place.
+   */
+  const loadUseCase = useCallback(async (options?: { silent?: boolean }) => {
     if (!useCaseId) return;
-    setIsLoading(true);
+    const silent = options?.silent === true;
+    if (silent) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const [result, register, useCases] = await Promise.all([
@@ -268,7 +287,11 @@ export default function UseCaseDetailPage() {
         setError(copy.loadFailed);
       }
     } finally {
-      setIsLoading(false);
+      if (silent) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   }, [copy.loadFailed, copy.noRegister, copy.notFound, scopeContext, useCaseId, router]);
 
@@ -309,7 +332,10 @@ export default function UseCaseDetailPage() {
     const focusTargetId = getFocusTargetId(resolvedFocus);
     const frameId = window.requestAnimationFrame(() => {
       const element = document.getElementById(focusTargetId);
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element?.scrollIntoView({
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+        block: 'center',
+      });
     });
 
     const timeoutId = window.setTimeout(() => {
@@ -334,14 +360,18 @@ export default function UseCaseDetailPage() {
       actor: 'HUMAN',
       scopeContext,
     });
-    await loadUseCase();
+    await loadUseCase({ silent: true });
+    toast({
+      title: copy.statusDocumentedTitle,
+      description: `${copy.statusDocumentedPrefix}: ${getRegisterUseCaseStatusLabel(nextStatus, locale)}`,
+    });
   };
 
   const handleSaveMetadata = async (updates: Partial<UseCaseCard>) => {
     if (!card) return;
     try {
       await registerService.updateUseCase(card.useCaseId, updates, scopeContext);
-      await loadUseCase();
+      await loadUseCase({ silent: true });
     } catch (err) {
       console.error('Failed to save metadata', err);
       setError(copy.saveFailed);
@@ -352,7 +382,7 @@ export default function UseCaseDetailPage() {
     setRequestedEditField(field);
   }, []);
 
-  if (authLoading || isLoading) {
+  if (authLoading || (isLoading && !card)) {
     return (
       <SignedInAreaFrame
         area="signed_in_free_register"
@@ -410,10 +440,10 @@ export default function UseCaseDetailPage() {
       width="5xl"
       headerMode="hidden"
     >
-      <div className="space-y-10">
+      <div className="space-y-10" aria-busy={isRefreshing || undefined}>
         <UseCaseHeader
           card={card}
-          onRefresh={loadUseCase}
+          onRefresh={() => loadUseCase({ silent: true })}
           onEditField={handleEditField}
         />
 
@@ -473,7 +503,7 @@ export default function UseCaseDetailPage() {
                             : null
                         }
                         onCardUpdate={() => {
-                          void loadUseCase();
+                          void loadUseCase({ silent: true });
                         }}
                         onToggleDetails={onCollapse}
                       />
@@ -597,7 +627,7 @@ export default function UseCaseDetailPage() {
               setRiskReviewContext(null);
             }
           }}
-          onComplete={loadUseCase}
+          onComplete={() => loadUseCase({ silent: true })}
           launchContext={riskReviewContext}
         />
         <div
@@ -614,6 +644,11 @@ export default function UseCaseDetailPage() {
 }
 
 const focusHighlightClassName = 'border-l-2 border-slate-300 pl-3';
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 function resolveFocusTarget(
   focus: ControlFocusTarget | null,

@@ -15,7 +15,6 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useLocale } from "next-intl";
-import { Loader2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -264,9 +263,8 @@ export function ReviewDialog({
                     </Button>
                     <Button
                         onClick={() => void handleSubmit()}
-                        disabled={isSaving}
+                        pending={isSaving}
                     >
-                        {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         {copy.save}
                     </Button>
                 </DialogFooter>

@@ -35,7 +35,18 @@ test('register use-case navigation keeps the active locale prefix', () => {
   }
 
   const boardSource = readSource('src/components/register/register-board.tsx');
-  assert.match(boardSource, /router\.push\(\s*buildScopedUseCaseDetailHref\(/);
+  // The row href is derived once per card and reused by both the link and the
+  // convenience click, so assert the invariant rather than a single call shape.
+  assert.match(boardSource, /buildScopedUseCaseDetailHref\(\s*card\.useCaseId,/);
+  assert.match(boardSource, /router\.push\(detailHref\)/);
+
+  // Register rows must expose a real locale-aware link, not only a click handler,
+  // so keyboard users and modifier-clicks reach the detail page.
+  assert.match(
+    boardSource,
+    /import\s+\{[^}]*\bLink\b[^}]*\}\s+from\s+['"]@\/i18n\/navigation['"]/,
+  );
+  assert.match(boardSource, /<Link\s+href=\{detailHref\}/);
 });
 
 test('register detail pass links use locale-aware links', () => {
