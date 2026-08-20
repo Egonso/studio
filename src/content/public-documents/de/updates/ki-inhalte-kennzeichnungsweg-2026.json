@@ -6,12 +6,14 @@
   "intent": "regulatory-radar",
   "review_status": "reviewed",
   "reviewed_by": "KIRegister Redaktion",
-  "effective_date": "2026-04-20",
-  "last_substantive_update": "2026-07-20",
+  "effective_date": "2026-08-02",
+  "last_substantive_update": "2026-08-20",
   "source_urls": [
     "https://digital-strategy.ec.europa.eu/en/news/commission-publishes-guidelines-transparency-obligations-providers-and-deployers-certain-ai-systems",
     "https://digital-strategy.ec.europa.eu/en/policies/guidelines-transparency-ai-generated-content",
     "https://digital-strategy.ec.europa.eu/en/faqs/transparency-obligations-under-article-50-ai-act",
+    "https://ai-act-service-desk.ec.europa.eu/en/ai-act/faq/when-does-enforcement-start",
+    "https://eur-lex.europa.eu/eli/reg/2026/1744/oj/deu",
     "https://digital-strategy.ec.europa.eu/en/news/commission-publishes-code-practice-marking-and-labelling-ai-generated-content",
     "https://digital-strategy.ec.europa.eu/en/library/commission-opinion-assessment-code-practice-transparency-ai-generated-content",
     "https://digital-strategy.ec.europa.eu/en/news/commission-opens-consultation-draft-guidelines-ai-transparency-obligations",
@@ -26,10 +28,10 @@
   "template_variant": "authority-update",
   "reversible": true,
   "notification_email": "zoltangal@web.de",
-  "title": "Der Kennzeichnungsweg für KI-Inhalte wird zum Pflichtfeld im Use-Case Pass",
-  "summary": "Die Kommission hat am 20. Juli 2026 Leitlinien und FAQ zu Artikel 50 veröffentlicht. Sie klären vor dem 2. August, welche bestehenden Transparenzpflichten Anbieter und Betreiber praktisch treffen: Interaktionshinweis und technische Markierung einerseits, sichtbare Offenlegung an Betroffene andererseits. Im Use-Case Pass sollten deshalb Rolle, Auslösepunkt, Oberfläche, Hinweisform und die Evidenz des tatsächlich einschlägigen Pfads getrennt geführt werden.",
+  "title": "Artikel 50: Kennzeichnungsweg und Übergangsfrist im Use-Case Pass",
+  "summary": "Artikel 50 gilt für die einschlägigen Transparenzpflichten ab 2. August 2026. Für KI-Systeme, die bereits vor diesem Datum in Verkehr gebracht wurden, endet die begrenzte Übergangsfrist für die technische Kennzeichnung und Erkennbarkeit nach Artikel 50 Absatz 2 am 2. Dezember 2026. Sichtbare Offenlegung, direkte Interaktion und die jeweils verantwortliche Rolle müssen davon getrennt geprüft und im Use-Case Pass belegt werden.",
   "object_label": "Regulatorisches Update",
-  "stance_label": "Leitlinien und Kennzeichnungsweg",
+  "stance_label": "Anwendung und Übergangsfrist",
   "author": "KIRegister",
   "audiences": [
     "Governance- und Compliance-Teams mit generativen KI-Einsatzfällen in Kommunikation, Support oder Produktflächen",
@@ -62,6 +64,10 @@
     {
       "q": "Reicht ein allgemeiner Hinweis wie „mit KI erstellt“ für jeden Einsatzfall aus?",
       "a": "Nein. Die Leitlinien unterscheiden nach Rolle, Inhalt und Oberfläche. Anbieter prüfen den Hinweis bei direkter Interaktion und die technische Markierung einschlägiger generativer Ausgaben. Betreiber prüfen die sichtbare Offenlegung bei Deepfakes, bei Texten zu Fragen von öffentlichem Interesse, die weder materiell menschlich geprüft noch redaktionell kontrolliert sind, sowie bei Emotionserkennung oder biometrischer Kategorisierung. Ein pauschales Label und die Signatur eines freiwilligen Code ersetzen diese Fallprüfung nicht. Im Pass sollten deshalb Auslösepunkt, Rollenpfad, konkrete Hinweis- oder Markierungsform und die Implementierungs-Evidenz getrennt stehen."
+    },
+    {
+      "q": "Was gilt für ein KI-System, das vor dem 2. August 2026 in Verkehr gebracht wurde?",
+      "a": "Artikel 50 gilt grundsätzlich ab dem 2. August 2026. Nur für die technische Kennzeichnung und Erkennbarkeit generierter Inhalte nach Artikel 50 Absatz 2 besteht für solche bereits in Verkehr gebrachten Systeme eine begrenzte Übergangsfrist bis zum 2. Dezember 2026. Die Pflicht zur Information bei direkter Interaktion und die sichtbaren Offenlegungspflichten für Betreiber werden dadurch nicht allgemein verschoben."
     }
   ],
   "sections": [
@@ -69,9 +75,17 @@
       "kind": "paragraphs",
       "heading": "Was die Artikel-50-Leitlinien am konkreten Einsatzfall präzisieren",
       "paragraphs": [
-        "Die Kommission hat am 20. Juli 2026 Leitlinien und FAQ veröffentlicht, die die Anwendung der bestehenden Transparenzpflichten aus Artikel 50 ab dem 2. August praktisch einordnen. Sie führen keine neue Pflicht ein. Sie machen jedoch deutlich, welche Rolle den jeweiligen Nachweis tragen muss und welche Ausnahmen am konkreten Einsatz begründet werden müssen.",
+        "Die Kommission hat am 20. Juli 2026 Leitlinien und FAQ veröffentlicht; die Artikel-50-Pflichten gelten für die einschlägigen Systeme ab dem 2. August 2026. Die amtlichen Erläuterungen unterscheiden dabei weiterhin zwischen Rechtsstand, Anwendung und einer eng begrenzten Übergangsregel für ältere Systeme.",
         "Anbieter müssen bei direkter Interaktion mit Menschen von Beginn an klar informieren, sofern die Interaktion nicht offensichtlich ist. Die Leitlinien prüfen dafür vier Punkte zusammen: ein KI-System, ein echter wechselseitiger Austausch, direkte Kommunikation des Systems mit einer natürlichen Person und die fehlende Offensichtlichkeit. Für einschlägige generierte oder manipulierte Ausgaben kommt zusätzlich die maschinenlesbare Markierung und Erkennbarkeit in Betracht.",
         "Betreiber müssen Personen bei Deepfakes, bei Texten zu Fragen von öffentlichem Interesse ohne materielle menschliche Prüfung oder tatsächliche redaktionelle Kontrolle sowie bei Emotionserkennung oder biometrischer Kategorisierung informieren. Eine technische Markierung des Anbieters genügt dabei nicht als sichtbare Offenlegung gegenüber der betroffenen Person."
+      ]
+    },
+    {
+      "kind": "paragraphs",
+      "heading": "Welche Frist für bereits in Verkehr gebrachte Systeme gilt",
+      "paragraphs": [
+        "Der aktuelle AI Act Service Desk nennt eine begrenzte Übergangsfrist: Für KI-Systeme, die vor dem 2. August 2026 in Verkehr gebracht wurden, müssen Anbieter die Pflichten zur technischen Kennzeichnung und Erkennbarkeit generierter Inhalte nach Artikel 50 Absatz 2 erst ab dem 2. Dezember 2026 erfüllen. Das verschiebt nicht den allgemeinen Beginn der Transparenzpflichten.",
+        "Die Abgrenzung ist für den Pass wichtig. Der Eintrag sollte festhalten, ob das System vor dem 2. August in Verkehr gebracht wurde, ob die konkrete Evidenz Artikel 50 Absatz 2 betrifft und ob es zugleich um direkte Interaktion, sichtbare Offenlegung oder einen anderen Transparenzpfad geht. Das Datum 2. Dezember ist eine begrenzte Übergangsfrist für den technischen Pfad, keine pauschale Verschiebung aller Artikel-50-Pflichten."
       ]
     },
     {
@@ -130,7 +144,7 @@
         "Die Leitlinien sagen nicht, dass jede generative Ausgabe denselben Hinweis braucht. Sie unterscheiden zwischen direkter Interaktion, maschinenlesbarer Markierung, Deepfake-Offenlegung, öffentlicher Textveröffentlichung und Ausnahmen für materielle menschliche Prüfung oder redaktionelle Kontrolle.",
         "Schwach wäre auch ein rein globaler Richtlinienvermerk ohne Fallbezug. Artikel-50-Fragen hängen an Inhalt, Oberfläche, Rolle, Freigabe und Evidenz. Wenn diese Angaben nur zentral beschrieben werden, fehlt im konkreten Audit- oder Lieferantengespräch der belegbare Bezug zum Einsatzfall.",
         "Die Befolgung des freiwilligen Code ist kein abschließender Compliance-Nachweis. Eine Signatur oder Code-Nutzung darf deshalb nicht als Endergebnis gelesen werden. Bei fehlender Signatur ist ein alternativer angemessener Nachweisweg zu dokumentieren, nicht automatisch ein negativer Befund.",
-        "Für Inhalte, die vor dem 2. August 2026 erzeugt wurden, verlangen die Leitlinien keine rückwirkende Kennzeichnung. Daraus folgt keine allgemeine Verschiebung der Transparenzpflichten für neue oder fortlaufend eingesetzte Systeme."
+        "Für Inhalte, die vor dem 2. August 2026 erzeugt wurden, verlangen die Leitlinien keine rückwirkende Kennzeichnung. Die Übergangsfrist bis zum 2. Dezember 2026 betrifft nur die technische Kennzeichnung und Erkennbarkeit nach Artikel 50 Absatz 2 bei bereits vorher in Verkehr gebrachten Systemen. Daraus folgt keine allgemeine Verschiebung der Transparenzpflichten für neue oder fortlaufend eingesetzte Systeme."
       ]
     },
     {
@@ -138,7 +152,7 @@
       "heading": "Was jetzt konkret aufgebaut werden sollte",
       "paragraphs": [
         "Jeder generative oder interaktive Einsatzfall mit Außenwirkung, der nach Rolle, Inhalt und Oberfläche in den Transparenzpfad fällt, sollte im Use-Case Pass einen eigenen Abschnitt für den Kennzeichnungsweg erhalten. Dort werden Auslösepunkt, verantwortliche Rolle, Oberfläche, konkrete Hinweis- oder Markierungsform, materieller Ausnahmepfad und Evidenzlink festgehalten.",
-        "Im nächsten Schritt sollte dieselbe Feldlogik in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. Für jeden betroffenen Einsatzfall muss sichtbar sein, ob eine technische Markierung, eine sichtbare Offenlegung oder ein begründeter Ausnahmepfad einschlägig ist und welche Evidenz die Umsetzung trägt. Der Eintrag dokumentiert den Status der verantwortlichen Organisation, keine pauschale Signatur- oder Compliance-Aussage über KIRegister. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz ab dem 2. August 2026."
+        "Im nächsten Schritt sollte dieselbe Feldlogik in Produktoberflächen, redaktionellen Workflows, Freigaben, Supplier Requests und Exporten wiederverwendet werden. Für jeden betroffenen Einsatzfall muss sichtbar sein, ob eine technische Markierung, eine sichtbare Offenlegung oder ein begründeter Ausnahmepfad einschlägig ist und welche Evidenz die Umsetzung trägt. Der Eintrag dokumentiert den Status der verantwortlichen Organisation, keine pauschale Signatur- oder Compliance-Aussage über KIRegister. So wird der Pass zum belastbaren Nachweisobjekt für Artikel-50-Transparenz ab dem 2. August 2026, mit einem getrennten Status für die begrenzte Übergangsfrist beim technischen Kennzeichnungspfad."
       ]
     }
   ]
